@@ -56,6 +56,7 @@
   #ticker{
     background:#060d18; border:1px solid var(--line); min-height:240px; max-height:340px;
     overflow-y:auto; padding:10px 12px; font-size:13px;
+    clear:both; /* le téléscripteur passe sous les contrôles de vitesse flottants — sinon il se rétrécit à côté (BFC vs float) */
   }
   #ticker p{margin:0 0 3px; white-space:pre-wrap;}
   #ticker .evt{display:flex; align-items:flex-start; gap:7px;}
@@ -111,10 +112,12 @@
   nav button{flex:1 1 30%;padding:9px 2px;font-size:10px;letter-spacing:0}
   .panel{padding:8px;overflow-x:auto}
   table{min-width:540px}
+  table.fit{min-width:0} /* tables clé/valeur étroites : tiennent dans l'écran, pas de scroll horizontal */
   .panel table{font-size:11px}
   .tSc{font-size:24px;min-width:32px;padding:0 4px}
   .tNom{font-size:11px;max-width:90px}
   #tabScore{gap:5px}
+  #ctlVitesse{float:none !important;display:block;margin-top:6px} /* les contrôles de vitesse sur leur propre ligne, plein écran */
   #ticker{font-size:11px;max-height:280px}
   .fbox{max-width:94vw !important;padding:10px !important}
   .fbox #cage, .fbox div[style*="width:330px"]{width:100% !important}
@@ -137,6 +140,7 @@
    complétés par génération procédurale (noms fictifs plausibles).
    ===================================================================== */
 
+const VERSION = "0.27"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2009,7 +2013,7 @@ function ecranAccueil(){
         <span class="badge">prestige ${c.pres}/10</span>
       </button>`; }).join("")}
    </div>
-   <p class="footer">Prototype v0.15 — données d'époque approximatives.</p>`;
+   <p class="footer">Prototype v${VERSION} — données d'époque approximatives.</p>`;
   app.querySelectorAll(".startclub").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id));
 }
 
@@ -2024,7 +2028,7 @@ function chrome(actif, corps){
      .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s.toUpperCase()}</button>`).join("")}
    </nav>
    <div id="corps">${corps}</div>
-   <p class="footer">D1 MANAGER 95-96 · v0.26 ·
+   <p class="footer">D1 MANAGER 95-96 · v${VERSION} ·
      <button class="act" id="bExp">Exporter la sauvegarde</button>
      <label class="act" style="cursor:pointer">Importer<input type="file" accept=".json" style="display:none" id="bImp"></label>
    </p>`;
@@ -2717,7 +2721,7 @@ function ecranFinances(){
       <br><span class="dim" style="font-size:11px">${esc(o.desc)}${o.ere?" — « "+esc(o.ere)+" »":""}</span></p>`).join("")}
     <p class="dim" style="margin-top:6px">Un seul contrat à la fois. Choisissez selon votre confiance dans l'équipe.</p></div>`:"";
   chrome("finances",`${offres}<div class="panel"><h2>Finances</h2>
-   <table>
+   <table class="fit">
     <tr><td>Budget transferts</td><td class="num jaune">${(G.budget/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Trésorerie (fonctionnement)</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Masse salariale hebdomadaire</td><td class="num rouge">- ${FMT(masse)} FF</td></tr>
@@ -2829,9 +2833,9 @@ function ecranClub(){
    </div>
    <div class="panel"><h2>Buteurs &amp; passeurs</h2>
      <h3>Buteurs</h3>
-     <table>${buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join("")}</table>
+     <table class="fit">${buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join("")}</table>
      <h3>Passeurs décisifs</h3>
-     <table>${passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join("")}</table>
+     <table class="fit">${passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join("")}</table>
    </div></div>`);
   document.getElementById("bSt").onclick=agrandirStade;
   document.getElementById("bCe").onclick=ameliorerCentre;
