@@ -60,6 +60,8 @@ toujours « raconter quelque chose ».
   `descendent`), les deux divisions vieillissent. `construitDivision()` bâtit une division ; `clubById`
   cherche dans les deux. Les effectifs D2 sont au mieux (OM curé à fond, autres clubs documentés au mieux,
   reste procédural). Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions**.
+  Le **mercato est national** (`ecranMercato` liste D1 + D2, colonne « Div », filtre par division) ;
+  la **fiche d'accueil affiche l'effectif réel curé** (STARS/STARS_D2) avant de choisir son club.
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match. Calibrage à préserver.

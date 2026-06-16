@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.32"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.33"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2334,6 +2334,14 @@ function ficheClubAccueil(id){
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${(c.budget/1e6).toFixed(0)} MF</p>
     ${riv?`<p><span class="dim">Rival historique :</span> <b class="rouge">${esc(riv.nom)}</b> — ${esc(nomRivalite(c.id,riv.id))}</p>`:""}
     ${MALEDICTIONS[c.id]?`<p style="margin-top:8px;font-style:italic;border-left:2px solid ${st.coul};padding-left:8px">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
+    ${(()=>{
+      const stars=((enD2?STARS_D2:STARS)[c.id]||[]).slice().sort((a,b)=>"GDMA".indexOf(a[1])-"GDMA".indexOf(b[1])||b[3]-a[3]);
+      const cnt={G:0,D:0,M:0,A:0}; stars.forEach(s=>cnt[s[1]]++);
+      const proc=["G","D","M","A"].reduce((n,p)=>n+Math.max(0,CIBLE[p]-cnt[p]),0);
+      if(!stars.length) return '<p class="dim" style="margin-top:10px">Effectif entièrement complété à la signature (joueurs générés).</p>';
+      return `<p style="margin-top:10px" class="cyan">Effectif réel — ${stars.length} joueur(s)${proc?' <span class="dim">+ '+proc+' complété(s) à la signature</span>':""} :</p>
+        <table class="fit" style="font-size:12px;margin-top:4px">${stars.map(s=>`<tr><td class="pos-${s[1]}">${s[1]}</td><td>${esc(s[0])}</td><td class="num dim">${s[2]} ans</td><td class="num"><b>${s[3]}</b></td></tr>`).join("")}</table>`;
+    })()}
     <p style="margin-top:12px">
       <button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${("DE "+c.nom).toUpperCase()}</button>
       <button class="act" id="bRetour" style="display:block;width:100%">← Choisir un autre club</button>
@@ -3031,12 +3039,14 @@ function ouvreFiche(j){
 
 /* ---- Mercato ---- */
 function ecranMercato(){
-  let posF="*", txtF="", ageF=99, favSeul=false, triCle="note", triDir=-1;
+  let posF="*", txtF="", ageF=99, favSeul=false, triCle="note", triDir=-1, divF="*";
+  const autreNum=G.div===1?2:1, autreIds=new Set((G.autre||[]).map(c=>c.id));
+  const divOf=j=>autreIds.has(j.club)?autreNum:(G.div||1); // le mercato est national : D1 + D2
   const valTri=(j,k)=>k==="prix"?prixAchat(j):(k==="club"?clubById(j.club).nom:(k==="nom"?j.nom:(k==="prog"?j.note-(j.note0||j.note):j[k])));
   const rend=()=>{
-    const tous=G.clubs.filter(c=>c.id!==G.monClub).flatMap(c=>c.joueurs)
+    const tous=G.clubs.concat(G.autre||[]).filter(c=>c.id!==G.monClub).flatMap(c=>c.joueurs)
       .filter(j=>!j.pretIn&&!j.pretOut)
-      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && j.nom.toLowerCase().includes(txtF))
+      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (divF==="*"||divOf(j)===+divF) && j.nom.toLowerCase().includes(txtF))
       .sort((a,b)=>{const va=valTri(a,triCle),vb=valTri(b,triCle);
         return (typeof va==="string"? va.localeCompare(vb) : va-vb)*triDir;});
     const dispo=tous.slice(0,60);
@@ -3050,6 +3060,7 @@ function ecranMercato(){
         <th class="num click" data-c="note">Note${fl("note")}</th>
         <th class="num click" data-c="prog">Prog.${fl("prog")}</th>
         <th class="click" data-c="club">Club${fl("club")}</th>
+        <th>Div</th>
         <th class="num click" data-c="prix">Prix${fl("prix")}</th><th></th></tr>
       ${dispo.map((j,i)=>`<tr class="click" data-k="${i}">
         <td><button class="act bF" data-k="${i}" title="Suivre ce joueur">${j.fav?'<span class="jaune">★</span>':"☆"}</button></td>
@@ -3057,6 +3068,7 @@ function ecranMercato(){
         <td class="num">${j.age}</td><td class="num"><b>${j.note}</b></td>
         <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲+'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
         <td class="dim">${esc(clubById(j.club).nom)}</td>
+        <td><b class="${divOf(j)===1?'jaune':'cyan'}">D${divOf(j)}</b></td>
         <td class="num">${(prixAchat(j)/1e6).toFixed(1)} MF</td>
         <td><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button>
             <button class="act bP" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Prêt</button></td></tr>`).join("")}
@@ -3094,11 +3106,13 @@ function ecranMercato(){
       <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:180px">
       <select id="selP"><option value="*">Tous postes</option><option>G</option><option>D</option><option>M</option><option>A</option></select>
       <select id="selA"><option value="99">Tout âge</option><option value="20">≤ 20 ans</option><option value="23">≤ 23 ans</option><option value="27">≤ 27 ans</option></select>
+      <select id="selDiv"><option value="*">D1 + D2</option><option value="1">D1 seule</option><option value="2">D2 seule</option></select>
       <label><input type="checkbox" id="chkF"> Mes favoris ★</label>
     </p>
     <div id="listeM"></div></div>`);
   document.getElementById("selP").onchange=e=>{posF=e.target.value;rend();};
   document.getElementById("selA").onchange=e=>{ageF=+e.target.value;rend();};
+  document.getElementById("selDiv").onchange=e=>{divF=e.target.value;rend();};
   document.getElementById("chkF").onchange=e=>{favSeul=e.target.checked;rend();};
   document.getElementById("inpN").oninput=e=>{txtF=e.target.value.toLowerCase();rend();};
   document.querySelectorAll(".bJ").forEach(b=>b.onclick=()=>acheterJoker(+b.dataset.k));
