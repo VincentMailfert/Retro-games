@@ -1,7 +1,7 @@
 # D1 MANAGER 95-96 — mémoire projet
 
 ## Ce que c'est
-Jeu de management de football rétro, **fichier HTML unique autonome** (`d1-manager-9596.html`).
+Jeu de management de football rétro, **fichier HTML unique autonome** (`index.html`).
 Saison de départ : Division 1 française 1995-96, vrais clubs et joueurs, puis carrière multi-saisons.
 Hébergé sur GitHub Pages dans le repo `retro-games`, servi à l'URL `…/championnat/`.
 Joué par la famille et les amis de l'auteur, qui remontent des retours de playtest.
@@ -17,12 +17,14 @@ toujours « raconter quelque chose ».
 - Le ton du jeu est léger, drôle, parfois sulfureux mais bon enfant. Jamais de registre tragique.
 
 ## Architecture (un seul fichier)
-- `d1-manager-9596.html` : tout est dedans — `<style>`, `<body>` minimal, gros `<script>` vanilla.
+- `index.html` : tout est dedans — `<style>`, `<body>` minimal, gros `<script>` vanilla.
 - **Aucun framework, aucune dépendance externe, aucun build.** HTML/CSS/JS pur.
 - État global dans l'objet `G` (club, journée, joueurs, finances, réputation, incidents…).
 - Pas de `localStorage` pour la logique ; sauvegarde via export/import d'un JSON (boutons en pied de page).
-- Numéro de version affiché en pied de page (`D1 MANAGER 95-96 · vX.Y ·`) — l'incrémenter à chaque livraison
-  pour que les testeurs sachent sur quelle version ils jouent.
+- Numéro de version centralisé dans la constante `const VERSION` (en tête de script) et recopié aux **deux**
+  pieds de page — l'accueil (`Prototype vX.Y`) et le jeu (`D1 MANAGER 95-96 · vX.Y ·`). L'incrémenter à
+  chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils
+  jouent, et pour éviter que les deux pieds de page se désynchronisent.
 
 ## Conventions de code
 - **Éditions chirurgicales** : modifier le strict nécessaire, préserver l'art ASCII, les blasons SVG,
@@ -49,7 +51,7 @@ toujours « raconter quelque chose ».
 
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
-   `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('d1-manager-9596.html').read(), re.S).group(1))" && node --check game.js`
+   `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
 2. Lancer un **harnais headless Node** : stub minimal de `window`/`document`, puis `nouvellePartie(id)`
    et boucle `jouerJournee()` sur plusieurs saisons. Vérifier : pas d'erreur, calibrage des buts,
    pas de joueur 36+ actif après vieillissement, incidents sans exception.
@@ -68,3 +70,10 @@ toujours « raconter quelque chose ».
 - Reset des stats de TOUS les clubs à l'intersaison (`razStatsClub`), y compris ceux qui restent.
 - Backstories cohérentes avec l'origine du patronyme (un Traoré ne grandit pas en RDA).
 - Après un choix d'incident, masquer les options non choisies et mettre en valeur la décision prise.
+- En mobile, la règle `table{min-width:540px}` (scroll horizontal des grands tableaux) s'applique à TOUTES
+  les `table`. Les tableaux étroits libellé/valeur (Finances, Buteurs, Passeurs) doivent porter
+  `class="fit"` (qui remet `min-width:0`), sinon leur colonne de droite — montants, compteurs de buts/passes —
+  sort de l'écran et devient invisible.
+- Le téléscripteur (`#ticker`) a `overflow-y:auto`, donc c'est un bloc de formatage indépendant ; il cohabite
+  avec les boutons de vitesse (`#ctlVitesse`) en `float:right`. Il doit garder `clear:both` (et les contrôles
+  passent sur leur propre ligne en mobile), sinon il se rétrécit en une mince colonne à côté du flottant.
