@@ -20,7 +20,12 @@ toujours « raconter quelque chose ».
 - `index.html` : tout est dedans — `<style>`, `<body>` minimal, gros `<script>` vanilla.
 - **Aucun framework, aucune dépendance externe, aucun build.** HTML/CSS/JS pur.
 - État global dans l'objet `G` (club, journée, joueurs, finances, réputation, incidents…).
-- Pas de `localStorage` pour la logique ; sauvegarde via export/import d'un JSON (boutons en pied de page).
+- **Sauvegarde** : sauvegarde rapide en 1 clic dans le `localStorage` (clé `SAVEKEY`) — auto à chaque
+  fin de journée et à chaque transition d'écran (`montre`), plus un bouton « 💾 Sauvegarder » en pied de
+  page et un bouton « Reprendre » sur l'accueil (`sauvegardeLocale`/`chargeLocale`/`infoSauvegarde`, qui
+  réutilisent `migre()`). L'export/import d'un fichier JSON reste pour la sauvegarde de secours et le
+  transfert entre appareils. Le `localStorage` ne porte PAS de logique de jeu — juste la sérialisation de
+  `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne pas peser sur le harnais.
 - Numéro de version centralisé dans la constante `const VERSION` (en tête de script) et recopié aux **deux**
   pieds de page — l'accueil (`Prototype vX.Y`) et le jeu (`D1 MANAGER 95-96 · vX.Y ·`). L'incrémenter à
   chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils

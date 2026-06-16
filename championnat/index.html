@@ -140,7 +140,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.28"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.29"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1019,6 +1019,7 @@ function finirJournee(delta){
     if(G.incident) G.incidentsRecents.push({id:G.incident.inc.id, j:G.journee});
   }
   if(G.journee>=38) finDeSaison();
+  sauvegardeLocale(true); // sauvegarde auto en fin de journée
 }
 
 /* ---------- Moral & sélections nationales ---------- */
@@ -2104,6 +2105,24 @@ function importer(ev){
   r.onload=()=>{ G=JSON.parse(r.result); migre(); majTitre(); montre("calendrier"); };
   r.readAsText(f);
 }
+/* ---------- Sauvegarde rapide en 1 clic (localStorage, sans fichier) ---------- */
+const SAVEKEY="d1manager_sauvegarde_v1";
+function sauvegardeLocale(silencieux){
+  if(EN_TEST()||!G) return false;
+  try{ localStorage.setItem(SAVEKEY, JSON.stringify(G)); return true; }
+  catch(e){ if(!silencieux) alert("Sauvegarde impossible : le stockage du navigateur est indisponible (navigation privée ?). Utilisez l'export en fichier."); return false; }
+}
+function infoSauvegarde(){
+  try{ const s=localStorage.getItem(SAVEKEY); if(!s) return null;
+    const o=JSON.parse(s); const c=CLUBS.find(x=>x.id===o.monClub);
+    return {club:c?c.nom:"?", saison:o.saison||"?", journee:Math.min((o.journee||0)+1,38)};
+  }catch(e){ return null; }
+}
+function chargeLocale(){
+  try{ const s=localStorage.getItem(SAVEKEY); if(!s) return false;
+    G=JSON.parse(s); migre(); majTitre(); montre("calendrier"); return true;
+  }catch(e){ alert("Impossible de charger la sauvegarde (données corrompues)."); return false; }
+}
 
 /* =====================================================================
    INTERFACE
@@ -2151,8 +2170,13 @@ function ficheClubAccueil(id){
   document.getElementById("bRetour").onclick=()=>{ fiche.style.display="none"; };
 }
 function ecranAccueil(){
+  const sv=infoSauvegarde();
   app.innerHTML=`
    <div class="topbar"><span>D1 MANAGER · SAISON 1995-96</span><span class="r">Division 1 française</span></div>
+   ${sv?`<div class="panel" style="border-color:#62c462">
+     <button class="big" id="bReprendre" style="display:block;width:100%;background:#62c462;color:#06210f">▶ REPRENDRE — ${esc(sv.club)} · ${esc(sv.saison)}, J${sv.journee}/38</button>
+     <p class="dim" style="margin-top:6px;text-align:center;font-size:11px">Votre dernière partie est sauvegardée dans ce navigateur. Choisir un club ci-dessous démarre une nouvelle carrière (et remplacera cette sauvegarde).</p>
+   </div>`:""}
    <div class="panel">
      <h2>Choisissez votre club</h2>
      <p class="dim" style="margin-bottom:10px">Vingt clubs, vingt histoires. Cliquez pour découvrir l'ambition, le rival et la malédiction de chacun — puis prenez les rênes.
@@ -2165,6 +2189,7 @@ function ecranAccueil(){
    </div>
    <p class="footer">Prototype v${VERSION} — données d'époque approximatives.</p>`;
   app.querySelectorAll(".startclub").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id));
+  const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale();
 }
 
 function chrome(actif, corps){
@@ -2179,10 +2204,16 @@ function chrome(actif, corps){
    </nav>
    <div id="corps">${corps}</div>
    <p class="footer">D1 MANAGER 95-96 · v${VERSION} ·
-     <button class="act" id="bExp">Exporter la sauvegarde</button>
-     <label class="act" style="cursor:pointer">Importer<input type="file" accept=".json" style="display:none" id="bImp"></label>
+     <button class="act" id="bSave">💾 Sauvegarder</button>
+     <button class="act" id="bExp">Exporter (fichier)</button>
+     <label class="act" style="cursor:pointer">Importer (fichier)<input type="file" accept=".json" style="display:none" id="bImp"></label>
    </p>`;
   app.querySelectorAll("nav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
+  document.getElementById("bSave").onclick=()=>{
+    if(sauvegardeLocale(false)){ const b=document.getElementById("bSave");
+      b.textContent="✓ Partie sauvegardée"; b.disabled=true;
+      setTimeout(()=>{ const bb=document.getElementById("bSave"); if(bb){ bb.textContent="💾 Sauvegarder"; bb.disabled=false; } },1600); }
+  };
   document.getElementById("bExp").onclick=exporter;
   document.getElementById("bImp").onchange=importer;
 }
@@ -2206,6 +2237,7 @@ function montre(ecran){
   if(!G) return ecranAccueil();
   abandonneDirect();
   ECRAN=ecran; VUECLUB=null;
+  sauvegardeLocale(true); // sauvegarde auto à chaque transition d'écran
   if(ecran==="calendrier") return ecranCalendrier();
   if(ecran==="classement") return ecranClassement();
   if(ecran==="effectif")   return ecranEffectif();
