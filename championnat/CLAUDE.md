@@ -73,9 +73,11 @@ toujours « raconter quelque chose ».
   ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et
   **jamais un de VOS joueurs** (eux partent via les offres `offreExt` que vous acceptez, ou un incident `vend`).
   Toute sortie d'un de vos joueurs déclenche une `notif`.
-- **Célébration de but** (`celebreBut`) : en match **en direct**, chaque but déclenche un overlay LED clignotant
-  ~1,5 s (`#butFlash`). Comme les overlays de moment, il doit être nettoyé par `abandonneDirect()` (sinon il
-  surgit hors match). Pas de célébration en « résultat instantané » (volontairement rapide).
+- **Fenêtres de temps fort** (`celebreFlash`) : en match **en direct**, un but ou un carton rouge déclenche un
+  overlay LED clignotant (`#butFlash`) avec titre + score/joueur + **détail** (le commentaire `l.x`), ~5 s ou
+  jusqu'au clic (« cliquez pour continuer »). Comme les overlays de moment, il doit être nettoyé par
+  `abandonneDirect()` (sinon il surgit hors match). Pas de fenêtre en « résultat instantané » (rapide). Les
+  penalties ont déjà leur propre fenêtre interactive (le moment de match).
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 

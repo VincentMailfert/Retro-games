@@ -74,12 +74,15 @@
   /* ---- célébration de but : panneau d'affichage LED clignotant ---- */
   #butFlash{position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
     background:rgba(4,9,18,.55); pointer-events:none;}
-  #butFlash .led{font-family:'Courier New',monospace; font-weight:bold; text-align:center; padding:20px 36px;
+  #butFlash .led{font-family:'Courier New',monospace; font-weight:bold; text-align:center; padding:20px 30px;
+    max-width:92vw; box-sizing:border-box; cursor:pointer;
     background:#0a0610; background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px); background-size:6px 6px;
     border:4px solid #2a2a2a; border-radius:6px; box-shadow:0 0 60px rgba(0,0,0,.85), inset 0 0 28px rgba(0,0,0,.6);}
   #butFlash .gros{font-size:56px; letter-spacing:10px; color:var(--jaune); line-height:1.1;
     text-shadow:0 0 9px var(--jaune), 0 0 2px #fff; animation:butflash .4s steps(1) infinite;}
-  #butFlash .det{font-size:15px; color:#e8e8e8; margin-top:10px; letter-spacing:1px;}
+  #butFlash .det{font-size:16px; color:#e8e8e8; margin-top:10px; letter-spacing:1px;}
+  #butFlash .dettxt{font-size:12.5px; color:var(--cyan); margin-top:8px; line-height:1.5; font-style:italic; max-width:420px;}
+  #butFlash .hint{font-size:11px; color:var(--dim); margin-top:12px; letter-spacing:1px;}
   #butFlash.contre .gros{color:var(--rouge); text-shadow:0 0 9px var(--rouge);}
   @keyframes butflash{50%{opacity:.2;}}
   @media (prefers-reduced-motion:reduce){#butFlash .gros{animation:none;}}
@@ -153,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.30"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.31"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2466,21 +2469,29 @@ const ICO={
 };
 
 let tickerTimer=null, tickerDelai=950, butFlashTimer=null;
-/* célébration de but : panneau LED clignotant ~1,5 s par-dessus le match */
-function celebreBut(l, eM){
-  if(!l||!l.g||EN_TEST()) return;
-  const div=document.getElementById("butFlash"); if(div) div.remove();
-  const contre = l.g.cote!==G.monClub;
+/* panneau LED clignotant ~5 s pour les temps forts (but, carton rouge…), avec détail ;
+   o = {classe, gros, sub (HTML), detail (texte)} ; onDone appelé au clic OU après 5 s */
+function celebreFlash(o, onDone){
+  if(EN_TEST()){ if(onDone) onDone(); return; }
+  const old=document.getElementById("butFlash"); if(old) old.remove();
   const d=document.createElement("div");
-  d.id="butFlash"; if(contre) d.className="contre";
+  d.id="butFlash"; if(o.classe) d.className=o.classe;
   d.innerHTML=`<div class="led">
-    <div class="gros">${contre?"BUT…":"⚽ BUT !"}</div>
-    <div class="det">${esc(l.g.but)}${l.g.pen?" (sp)":""}<br>
-      <b class="jaune">${esc(eM.h.nom)} ${l.g.sh} — ${l.g.sa} ${esc(eM.a.nom)}</b></div>
+    <div class="gros">${o.gros}</div>
+    ${o.sub?`<div class="det">${o.sub}</div>`:""}
+    ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}
+    <div class="hint">▸ cliquez pour continuer</div>
   </div>`;
   document.body.appendChild(d);
-  if(butFlashTimer) clearTimeout(butFlashTimer);
-  butFlashTimer=setTimeout(()=>{ const x=document.getElementById("butFlash"); if(x) x.remove(); butFlashTimer=null; }, 1500);
+  d.style.pointerEvents="auto";
+  let fini=false;
+  const fin=()=>{ if(fini) return; fini=true;
+    if(butFlashTimer){ clearTimeout(butFlashTimer); butFlashTimer=null; }
+    const x=document.getElementById("butFlash"); if(x) x.remove();
+    if(onDone) onDone();
+  };
+  d.onclick=fin;
+  butFlashTimer=setTimeout(fin, 5000);
 }
 function ouvreIncident(suite){
   const {inc,j,k}=G.incident;
@@ -2604,9 +2615,18 @@ function lanceMatch(instant){
       ouvreMoment(monMatch,res,resoudMoment,()=>{ tickerTimer=setTimeout(tic,tickerDelai); });
       return;
     }
-    if(lg && lg.g){ // BUT : on célèbre et on marque une pause
-      celebreBut(lg, eM);
-      tickerTimer=setTimeout(tic, Math.max(tickerDelai,1700));
+    if(lg && lg.g){ // BUT
+      const contre=lg.g.cote!==G.monClub;
+      celebreFlash({classe:contre?"contre":"", gros:contre?"BUT…":"⚽ BUT !",
+        sub:`<b class="jaune">${esc(eM.h.nom)} ${lg.g.sh} — ${lg.g.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
+    }
+    if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE
+      const contre=lg.c.cote===G.monClub;
+      celebreFlash({classe:"contre", gros:"🟥 CARTON ROUGE",
+        sub:`<b class="jaune">${esc(lg.c.nom)}</b> · ${lg.m}'${contre?" — un des vôtres&nbsp;!":""}`,
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
     tickerTimer=setTimeout(tic,tickerDelai);
