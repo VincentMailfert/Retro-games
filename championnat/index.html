@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.31"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.32"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -187,6 +187,29 @@ const CLUBS=[
  {id:"REN", nom:"Stade Rennais",     stade:"Route de Lorient", cap:16000, pres:4, budget:19e6},
  {id:"STE", nom:"AS Saint-Étienne",  stade:"Geoffroy-Guichard",cap:36000, pres:5, budget:25e6},
  {id:"STR", nom:"RC Strasbourg",     stade:"La Meinau",        cap:29000, pres:5, budget:28e6},
+];
+/* ---------- Division 2 1995-96 (20 clubs ; OM rétrogradé après l'affaire VA-OM) ---------- */
+const CLUBS_D2=[
+ {id:"OM",  nom:"Olympique de Marseille",stade:"Vélodrome",        cap:42000, pres:8, budget:30e6},
+ {id:"CAE", nom:"SM Caen",              stade:"Michel-d'Ornano",  cap:21000, pres:5, budget:13e6},
+ {id:"NCY", nom:"AS Nancy-Lorraine",    stade:"Marcel-Picot",     cap:20000, pres:5, budget:13e6},
+ {id:"LAV", nom:"Stade Lavallois",      stade:"Francis-Le-Basser",cap:18000, pres:4, budget:9e6},
+ {id:"TOU", nom:"Toulouse FC",          stade:"Stadium municipal",cap:35000, pres:5, budget:13e6},
+ {id:"LMN", nom:"Le Mans UC72",         stade:"Léon-Bollée",      cap:17000, pres:4, budget:9e6},
+ {id:"RST", nom:"Red Star 93",          stade:"Bauer",            cap:10000, pres:4, budget:8e6},
+ {id:"PER", nom:"Perpignan FC",         stade:"Aimé-Giral",       cap:14000, pres:3, budget:7e6},
+ {id:"CHA", nom:"LB Châteauroux",       stade:"Gaston-Petit",     cap:17000, pres:4, budget:8e6},
+ {id:"SOC", nom:"FC Sochaux",           stade:"Auguste-Bonal",    cap:18000, pres:5, budget:11e6},
+ {id:"LOU", nom:"CS Louhans-Cuiseaux",  stade:"Bram",             cap:8000,  pres:3, budget:6e6},
+ {id:"LOR", nom:"FC Lorient",           stade:"Le Moustoir",      cap:15000, pres:4, budget:8e6},
+ {id:"AMI", nom:"Amiens SC",            stade:"Moulonguet",       cap:8000,  pres:3, budget:6e6},
+ {id:"MUL", nom:"FC Mulhouse",          stade:"Stade de l'Ill",   cap:10000, pres:3, budget:6e6},
+ {id:"VAL", nom:"ASOA Valence",         stade:"Georges-Pompidou", cap:14000, pres:3, budget:6e6},
+ {id:"NIO", nom:"Chamois Niortais",     stade:"René-Gaillard",    cap:11000, pres:4, budget:7e6},
+ {id:"CHV", nom:"FCO Charleville",      stade:"Bayard",           cap:8000,  pres:2, budget:5e6},
+ {id:"EPI", nom:"SA Épinal",            stade:"La Colombière",    cap:8000,  pres:2, budget:5e6},
+ {id:"POI", nom:"Stade Poitevin",       stade:"Rébeilleau",       cap:10000, pres:2, budget:5e6},
+ {id:"DUN", nom:"USL Dunkerque",        stade:"Marcel-Tribut",    cap:5000,  pres:2, budget:5e6},
 ];
 
 /* ---------- Vedettes curées [nom, poste, âge, note, potentiel] ---------- */
@@ -307,6 +330,44 @@ const STARS={
       ["S. Romano","D",31,72,72],["S. Odet","M",19,71,78],["O. Ichoua","M",25,70,71],
       ["B. Génésio","M",29,77,77],["S. Zamfir","M",28,75,75],["L. David","M",24,70,71],
       ["M. Sylla","A",24,72,73],["A. Sow","A",25,70,72],["O. Vandevoorde","A",26,70,71],["F. Soler","A",25,70,71]],
+};
+/* Effectifs réels de D2 95-96 — OM curé à fond, autres clubs documentés au mieux ; le reste = procédural */
+const STARS_D2={
+ OM:[["J. Alonzo","G",23,72,80],["L. Spinosi","G",26,64,64],
+     ["B. Casoni","D",34,83,83],["M. Amoros","D",33,85,85],["J.-P. Durand","D",34,80,80],
+     ["S. Mazzolini","D",29,68,68],["J. Cantona","D",28,68,68],["C. Galtier","D",29,69,69],["J.-F. Hernández","D",26,68,68],
+     ["M. Dib","M",35,76,76],["J.-M. Ferreri","M",32,80,80],["B. Ferrer","M",31,72,72],
+     ["O. Echouafni","M",23,70,78],["F. Moreau","M",28,64,64],
+     ["T. Cascarino","A",33,83,83],["M. Libbra","A",23,73,80],["N. Bjekovic","A",21,65,74],["F. Vignola","A",29,66,66]],
+ TOU:[["P. Montanier","G",31,79,79],["A. Gouaméné","G",30,78,78],
+      ["D. Arribagé","D",25,78,82],["A. Obafemi","D",22,72,76],["J. Tchimbakala","D",25,68,68],["D. Sénac","D",35,71,71],["N. Paviot","D",21,68,74],
+      ["L. Batlles","M",20,78,86],["C. Sansus","M",19,72,82],["K. Sebwe","M",24,72,72],["F. Henry","M",28,68,68],["P. Reynaud","M",28,68,68],
+      ["P. Chanlot","A",28,72,73],["R. Salaün","A",27,68,68],["F. Calderaro","A",32,68,68]],
+ NCY:[["G. Wimbée","G",24,76,78],["F. Roux","G",23,68,72],
+      ["S. Schemmel","D",21,78,85],["M. Méniri","D",19,72,80],["F. Biancalani","D",21,72,74],["D. Combe","D",27,68,68],["J. Maillard","D",25,68,68],
+      ["É. Rabésandratana","M",23,76,78],["M. Hadji","M",24,85,88],["S. Capiaux","M",27,68,68],["J. Savine","M",20,68,74],
+      ["P. Correa","A",29,79,79],["W. Eloi","A",22,76,78],["F. Bonora","A",28,72,72],["O. Rambo","A",21,68,72]],
+ SOC:[["S. Cassard","G",23,76,82],["F. Petereyns","G",26,68,68],
+      ["R. Szewczyk","D",31,72,72],["B. Piton","D",25,72,73],["S. Dailly","D",19,72,82],["J.-M. Diringer","D",33,68,68],["V. Faivre","D",20,68,74],
+      ["M. Baždarević","M",35,82,82],["P. Cuervo","M",26,72,73],["A. Bouafia","M",24,72,73],
+      ["H. Vos","A",30,76,77],["A. Gunnlaugsson","A",22,76,80],["É. Mendy","A",24,72,73]],
+ RST:[["S. Noël","G",22,68,73],["J.-P. Forêt","G",27,68,68],
+      ["C. Domoraud","D",24,82,86],["C. Fiatte","D",29,68,68],["D. Giraudo","D",26,68,68],["S. Brighenti","D",22,68,74],["A. Gunia","D",29,68,68],
+      ["C. Médaillon","M",23,68,68],["J.-L. Girard","M",30,68,68],["R. Vazquez","M",25,68,68],["F. Guimard","M",26,68,68],
+      ["S. Marlet","A",22,74,88],["G. Mauricio","A",21,68,73],["A. Hassid","A",20,64,73]],
+ LMN:[["O. Pédemas","G",27,68,73],["M. Acard","G",33,68,68],
+      ["C. Penaud","D",32,68,68],["O. Pignolet","D",25,68,68],["B. Senoussi","D",29,68,68],["B. Montiège","D",23,68,68],["T. Saxemard","D",29,68,68],
+      ["É. Garcin","M",30,68,68],["O. Létang","M",23,71,73],["M. Poisson","M",22,68,68],["R. Beunardeau","M",29,68,68],["M. Tannaï","M",30,68,68],
+      ["P. Van Kets","A",29,68,70],["T. Dziubiński","A",27,68,70]],
+ CHA:[["V. Fernandez","G",21,68,74],["F. Guéguen","G",25,68,68],
+      ["R. Bouzaiene","D",25,80,83],["J. Algérino","D",24,76,80],["D. Sékana","D",27,68,68],["O. Saragaglia","D",25,68,68],["N. Weber","D",25,68,68],
+      ["K. Ukkonen","M",35,80,80],["P. Gastien","M",32,72,72],["E. Murati","M",20,72,77],["D. Le Frapper","M",25,68,68],["R. Calenda","M",23,68,68],
+      ["J. Mayélé","A",20,76,83],["D. Martel","A",24,68,68],["B. Roux","A",32,68,68]],
+ NIO:[["G. Malicki","G",22,72,76],["T. Debenest","G",22,68,68],
+      ["O. Tébily","D",20,80,86],["B. Beaumet","D",28,68,68],["D. Lhuillier","D",22,68,68],["A. Gauvin","D",22,68,68],["C. Courtin","D",24,68,68],
+      ["K. Fradin","M",24,72,73],["F. Hantz","M",30,76,76],["R. Brouard","M",29,72,72],["F. Azzopardi","M",26,68,68],
+      ["L. D'Jaffo","A",25,76,78],["P. Gliha","A",28,72,73],["W. Loko","A",23,76,77],["W. Mota","A",28,68,68]],
+ CAE:[], LAV:[], PER:[], LOU:[], LOR:[], AMI:[], MUL:[], VAL:[], CHV:[], EPI:[], POI:[], DUN:[],
 };
 
 /* ---------- Génération procédurale du reste des effectifs ---------- */
@@ -459,6 +520,10 @@ const BLASONS={
  CAN:{a:"#d40026",b:"#ffffff",st:"diag"}, MAR:{a:"#e8b800",b:"#0a2a6b",st:"uni"},
  GUE:{a:"#f7d917",b:"#1d6bb5",st:"v"},    TOU:{a:"#5b2d8e",b:"#ffffff",st:"uni"},
  CAE:{a:"#d40026",b:"#0a2a6b",st:"v"},    NCY:{a:"#ffffff",b:"#d40026",st:"diag"},
+ SOC:{a:"#f7d917",b:"#1c4fa0",st:"uni"},  RST:{a:"#1c7c3a",b:"#ffffff",st:"uni"},
+ LMN:{a:"#d40026",b:"#f7d917",st:"v"},    CHA:{a:"#d40026",b:"#0a2a6b",st:"v"},
+ NIO:{a:"#f7d917",b:"#1d6bb5",st:"uni"},  LAV:{a:"#ff7b00",b:"#111111",st:"uni"},
+ LOR:{a:"#ff7b00",b:"#111111",st:"uni"},  PER:{a:"#d40026",b:"#f7d917",st:"ray"},
 };
 let _blN=0;
 function blason(c,s){
@@ -503,45 +568,42 @@ function objectifPour(pres){
 }
 
 /* ---------- Construction d'une nouvelle partie ---------- */
-function nouvellePartie(clubId){
-  const clubs = CLUBS.map(c=>({...c, joueurs:[], pts:0,j:0,g:0,n:0,p:0,bp:0,bc:0, forme:[]}));
+function construitDivision(listeClubs, starsMap){
+  const clubs = listeClubs.map(c=>({...c, joueurs:[], pts:0,j:0,g:0,n:0,p:0,bp:0,bc:0, forme:[]}));
   for(const c of clubs){
-    const stars=(STARS[c.id]||[]).map(s=>({nom:s[0],pos:s[1],age:s[2],note:s[3],pot:s[4]}));
+    const stars=(starsMap[c.id]||[]).map(s=>({nom:s[0],pos:s[1],age:s[2],note:s[3],pot:s[4]}));
     c.joueurs=stars;
     for(const pos of ["G","D","M","A"]){
-      while(c.joueurs.filter(j=>j.pos===pos).length < CIBLE[pos]){
-        c.joueurs.push(genJoueur(pos,c.pres));
-      }
+      while(c.joueurs.filter(j=>j.pos===pos).length < CIBLE[pos]) c.joueurs.push(genJoueur(pos,c.pres));
     }
     c.joueurs.forEach(j=>{ j.club=c.id; j.avendre=false; j.buts=0; j.passes=0; j.matchs=0; j.note0=j.note; j.fav=false; j.titu=false; j.uid=uidGen(); j.bless=0; j.susp=0; j.reel=!j.histoire; j.nat=j.nat||"FR"; j.moral=j.moral==null?RNDI(58,75):j.moral; j.sansJouer=0; initTraits(j); });
   }
-  // chaque club a sa bête noire (jamais son rival, c'est un autre registre)
-  for(const c of clubs){
+  for(const c of clubs){ // bête noire (jamais le rival, autre registre)
     const autres=clubs.filter(x=>x.id!==c.id && x.id!==(RIVAL[c.id]||""));
     c.beteNoire=PICK(autres).id; c.bnBattue=false;
   }
+  return clubs;
+}
+function nouvellePartie(clubId){
+  const d1=construitDivision(CLUBS, STARS);
+  const d2=construitDivision(CLUBS_D2, STARS_D2);
+  const enD1=CLUBS.some(c=>c.id===clubId);
+  const clubs=enD1?d1:d2, autre=enD1?d2:d1;
   G={
-    saison:"1995-96", saisonIdx:1, monClub:clubId, clubs,
+    saison:"1995-96", saisonIdx:1, monClub:clubId, clubs, autre, div: enD1?1:2,
     journee:0, calendrier:berger(clubs.map(c=>c.id)),
     budget: clubs.find(c=>c.id===clubId).budget,
     tresorerie: 12e6,
-    histo:[], news:["Bienvenue au "+clubs.find(c=>c.id===clubId).nom+". Le président attend une saison digne du club."],
+    histo:[], news:["Bienvenue au "+clubs.find(c=>c.id===clubId).nom+". "+(enD1?"Le président attend une saison digne du club.":"Cap sur la remontée en Division 1.")],
     mercatoFerme:false, rapport:[], sponsor:null, offresSponsor:null, sponsorSwitch:false, prets:[],
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
     centre:1, offreExt:null, reput:75,
-    poolPromus:[
-      {id:"OM", nom:"Olympique de Marseille", stade:"Vélodrome",      cap:42000, pres:7, budget:45e6},
-      {id:"CAE",nom:"SM Caen",                stade:"Venoix",          cap:10500, pres:3, budget:12e6},
-      {id:"NCY",nom:"AS Nancy-Lorraine",      stade:"Marcel-Picot",    cap:15000, pres:4, budget:14e6},
-      {id:"TOU",nom:"Toulouse FC",            stade:"Stadium municipal",cap:19000,pres:4, budget:15e6},
-    ],
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.rapport=genRapport();
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
-  // marché : joueurs des autres clubs, prix affiché
   majTitre(); montre("calendrier");
 }
 
@@ -715,7 +777,7 @@ function affluence(home,away){
 }
 
 /* ---------- Journée de championnat ---------- */
-function clubById(id){ return G.clubs.find(c=>c.id===id); }
+function clubById(id){ return G.clubs.find(c=>c.id===id) || (G.autre&&G.autre.find(c=>c.id===id)); }
 function appliqueResultat(h,a,sh,sa,pre){
   h.j++; a.j++; h.bp+=sh; h.bc+=sa; a.bp+=sa; a.bc+=sh;
   if(sh>sa){h.pts+=3;h.g++;a.p++;h.forme.push(1);a.forme.push(-1);}
@@ -1974,17 +2036,18 @@ function finDeSaison(){
   G.prets=[];
   const cl=classement();
   const rang=cl.findIndex(c=>c.id===G.monClub)+1;
-  const prime=[40,30,24,20,17,15,13,12,11,10,9,8,7,6,5,4,3,2,1,0][rang-1]*1e6;
+  const prime=[40,30,24,20,17,15,13,12,11,10,9,8,7,6,5,4,3,2,1,0][rang-1]*1e6*(G.div===1?1:0.5);
   G.tresorerie+=prime; G.budget+=prime*0.7;
-  G.news.unshift("FIN DE SAISON — "+rang+"ᵉ place. Prime de classement : "+(prime/1e6)+" MF reversée (70 % au budget transferts).");
+  G.news.unshift("FIN DE SAISON ("+(G.div===1?"D1":"D2")+") — "+rang+"ᵉ place. Prime de classement : "+(prime/1e6).toFixed(1)+" MF (70 % au budget transferts).");
   if(rang===1){
-    const premier=JAMAIS_CHAMPION.has(G.monClub);
-    G.palmares.push("Champion de France "+G.saison+(premier?" — PREMIER TITRE DE L'HISTOIRE":""));
-    if(premier) G.presse.unshift("« LA MALÉDICTION EST MORTE : "+clubById(G.monClub).nom+" champion pour la première fois de son histoire ! »");
+    if(G.div===1){
+      const premier=JAMAIS_CHAMPION.has(G.monClub);
+      G.palmares.push("Champion de France "+G.saison+(premier?" — PREMIER TITRE DE L'HISTOIRE":""));
+      if(premier) G.presse.unshift("« LA MALÉDICTION EST MORTE : "+clubById(G.monClub).nom+" champion pour la première fois de son histoire ! »");
+    } else G.palmares.push("Champion de Division 2 "+G.saison);
   }
-  // verdict du président
-  if(rang>=17){ G.vire="relegation"; }
-  else if(rang>G.objectif.place+3 && G.confiance<45){ G.vire="objectif"; }
+  // verdict du président : être relégué ne licencie plus (on continue en D2) ; seul un objectif manqué de loin coûte la place
+  if(rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
   else if(rang<=G.objectif.place){
     G.budget+=15e6; G.confiance=Math.min(100,G.confiance+20);
     G.news.unshift("Le président savoure : objectif atteint. Rallonge de 15 MF au budget transferts.");
@@ -2039,28 +2102,32 @@ function construireEffectif(p){
     }
   }
 }
+/* force d'un club (note moyenne du onze) — sert au classement abstrait de la division qu'on ne joue pas */
+function forceClub(c){ const xi=onze(c); return xi.length? xi.reduce((s,j)=>s+j.note,0)/xi.length : 50; }
+function classementAbstrait(clubs){
+  return clubs.map(c=>({c, s:forceClub(c)+RND(-6,6)})).sort((a,b)=>b.s-a.s).map(x=>x.c);
+}
 function intersaison(){
   const rec=[];
-  const cl=classement();
-  rec.push("— Bilan "+G.saison+" : "+cl[0].nom+" champion de France. —");
-  // relégations / promotions
-  const rel=cl.slice(16);
-  rel.forEach(c=>{ rec.push(c.nom+" descend en Division 2."); razStatsClub(c); });
-  G.d2.push(...rel);
-  G.clubs=G.clubs.filter(c=>!rel.includes(c));
-  for(let k=0;k<4;k++){
-    let p=null;
-    if(G.poolPromus.length) p=G.poolPromus.shift();
-    else if(G.d2.length>4) p=G.d2.shift();
-    if(!p) break;
-    if(!p.joueurs || !p.joueurs.length) construireEffectif(p); else razStatsClub(p);
-    p.joueurs.forEach(j=>j.club=p.id);
-    G.clubs.push(p);
-    rec.push(p.nom+" est promu en Division 1 !");
-  }
-  // vieillissement, retraites, nouvelles générations — et remise à zéro générale des compteurs
-  for(const c of G.clubs) vieillirClub(c, rec);
-  for(const c of G.clubs) razStatsClub(c);
+  // classements : MA division (réel) + l'autre (abstrait, selon la force des effectifs)
+  const maDiv=classement();
+  const autreDiv=classementAbstrait(G.autre);
+  const d1=G.div===1?maDiv:autreDiv, d2=G.div===1?autreDiv:maDiv;
+  const monC=maDiv.find(c=>c.id===G.monClub);
+  rec.push("— Bilan "+G.saison+" : "+d1[0].nom+" champion de France · "+d2[0].nom+" sacré en Division 2. —");
+  // 3 montées / 3 descentes entre D1 et D2
+  const descendent=d1.slice(-3), montent=d2.slice(0,3);
+  descendent.forEach(c=>rec.push(c.nom+" est relégué en Division 2."));
+  montent.forEach(c=>rec.push(c.nom+" est promu en Division 1 !"));
+  const nd1=d1.filter(c=>!descendent.includes(c)).concat(montent);
+  const nd2=d2.filter(c=>!montent.includes(c)).concat(descendent);
+  if(nd1.includes(monC)){ G.div=1; G.clubs=nd1; G.autre=nd2; }
+  else { G.div=2; G.clubs=nd2; G.autre=nd1; }
+  if(montent.includes(monC)) rec.push("★ VOTRE CLUB MONTE EN DIVISION 1 ! L'élite vous attend.");
+  if(descendent.includes(monC)) rec.push("▼ VOTRE CLUB EST RELÉGUÉ EN DIVISION 2. La reconquête commence.");
+  // vieillissement, retraites, nouvelles générations + remise à zéro — sur LES DEUX divisions (l'autre évolue aussi)
+  for(const c of G.clubs.concat(G.autre)) vieillirClub(c, rec);
+  for(const c of G.clubs.concat(G.autre)) razStatsClub(c);
   // l'été international : ce que dit l'histoire
   const HONNEURS={
     1:"ÉTÉ 96 — Euro en Angleterre : l'Allemagne sacrée à Wembley, but en or de Bierhoff. Shearer meilleur buteur.",
@@ -2129,7 +2196,7 @@ function intersaison(){
     }
   }
   // budgets de transfert des clubs IA : réapprovisionnés chaque saison selon le prestige (marché vivant)
-  for(const c of G.clubs) if(c.id!==G.monClub) c.budget=Math.max(c.budget||0, (c.pres||4)*4e6+6e6);
+  for(const c of G.clubs.concat(G.autre||[])) if(c.id!==G.monClub) c.budget=Math.max(c.budget||0, (c.pres||4)*4e6+6e6);
   // le vivier du recruteur se régénère : ~50% de rotation, et il reste à ~90% de vrais noms
   if(G.vivier){
     const enJeu=new Set();
@@ -2176,6 +2243,13 @@ function migre(){
   G.reput=G.reput==null?75:G.reput;
   G.equip=G.equip||null; G.offresEquip=G.offresEquip||null;
   if(!G.equip && !G.offresEquip) G.offresEquip=genEquip(); // anciennes sauvegardes : proposer des offres
+  // anciennes sauvegardes mono-division : on reconstitue la division adverse
+  G.div=G.div||1;
+  if(!G.autre){
+    const presents=new Set(G.clubs.map(c=>c.id));
+    const baseAutre=(G.div===1?CLUBS_D2:CLUBS).filter(c=>!presents.has(c.id));
+    G.autre=construitDivision(baseAutre, G.div===1?STARS_D2:STARS);
+  }
   G.clubs.forEach(c=>{ if(c._coupTordu==null) c._coupTordu=false; });
   G.incidentsRecents=G.incidentsRecents||[]; G.eresVues=G.eresVues||[]; G.nouvelleEre=G.nouvelleEre||null;
   G.objectif=G.objectif||objectifPour(clubById(G.monClub).pres);
@@ -2211,8 +2285,8 @@ function sauvegardeLocale(silencieux){
 }
 function infoSauvegarde(){
   try{ const s=localStorage.getItem(SAVEKEY); if(!s) return null;
-    const o=JSON.parse(s); const c=CLUBS.find(x=>x.id===o.monClub);
-    return {club:c?c.nom:"?", saison:o.saison||"?", journee:Math.min((o.journee||0)+1,38)};
+    const o=JSON.parse(s); const c=CLUBS.find(x=>x.id===o.monClub)||CLUBS_D2.find(x=>x.id===o.monClub);
+    return {club:c?c.nom:"?", saison:o.saison||"?", journee:Math.min((o.journee||0)+1,38), div:o.div||1};
   }catch(e){ return null; }
 }
 function chargeLocale(){
@@ -2246,13 +2320,15 @@ function statutClub(c){
     amb:"Chaque point est une bataille. L'objectif tient en un mot : survivre, et déjouer les pronostics.", obj:o};
 }
 function ficheClubAccueil(id){
-  const c=CLUBS.find(x=>x.id===id);
+  const c=CLUBS.find(x=>x.id===id)||CLUBS_D2.find(x=>x.id===id);
+  const enD2=!CLUBS.some(x=>x.id===id);
   const st=statutClub(c);
-  const riv=RIVAL[c.id]&&CLUBS.find(x=>x.id===RIVAL[c.id]);
+  const riv=RIVAL[c.id]&&(CLUBS.find(x=>x.id===RIVAL[c.id])||CLUBS_D2.find(x=>x.id===RIVAL[c.id]));
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${st.coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:90vh;overflow-y:auto">
     <h2 style="display:flex;align-items:center;gap:10px">${blason(c,40)}${esc(c.nom)}</h2>
-    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag}</p>
+    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag} <span class="dim">·</span> <b class="${enD2?'cyan':'jaune'}">DIVISION ${enD2?2:1}</b></p>
+    ${enD2?'<p class="cyan" style="font-size:12px">Saison en deuxième division — l\'objectif numéro un : la remontée parmi l\'élite.</p>':""}
     <p style="margin-top:8px">${esc(st.amb)}</p>
     <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="jaune">${esc(st.obj.label)}</b></p>
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${(c.budget/1e6).toFixed(0)} MF</p>
@@ -2276,13 +2352,13 @@ function ecranAccueil(){
    </div>`:""}
    <div class="panel">
      <h2>Choisissez votre club</h2>
-     <p class="dim" style="margin-bottom:10px">Vingt clubs, vingt histoires. Cliquez pour découvrir l'ambition, le rival et la malédiction de chacun — puis prenez les rênes.
-     L'OM purge sa saison en D2, affaire VA-OM oblige.</p>
+     <p class="dim" style="margin-bottom:8px">Deux divisions, quarante clubs. L'OM purge sa saison en D2 (affaire VA-OM) — à vous de le ramener dans l'élite. Cliquez sur un club pour découvrir son ambition, puis prenez les rênes.</p>
+     <p class="dim" style="margin:8px 0 4px"><b class="jaune">━━ DIVISION 1 ━━</b></p>
      ${CLUBS.slice().sort((a,b)=>b.pres-a.pres).map(c=>{ const st=statutClub(c); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:10px">
-        ${blason(c,26)}
-        <span style="flex:1"><b>${esc(c.nom)}</b><br><span style="color:${st.coul};font-size:11px;letter-spacing:.5px">${st.tag}</span></span>
-        <span class="badge">prestige ${c.pres}/10</span>
-      </button>`; }).join("")}
+        ${blason(c,26)}<span style="flex:1"><b>${esc(c.nom)}</b><br><span style="color:${st.coul};font-size:11px;letter-spacing:.5px">${st.tag}</span></span><span class="badge">prestige ${c.pres}/10</span></button>`; }).join("")}
+     <p class="dim" style="margin:14px 0 4px"><b class="cyan">━━ DIVISION 2 ━━</b> <span style="font-size:11px">— ramenez votre club dans l'élite</span></p>
+     ${CLUBS_D2.slice().sort((a,b)=>b.pres-a.pres).map(c=>{ const st=statutClub(c); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:10px">
+        ${blason(c,26)}<span style="flex:1"><b>${esc(c.nom)}</b><br><span style="color:${st.coul};font-size:11px;letter-spacing:.5px">${st.tag}</span></span><span class="badge">prestige ${c.pres}/10</span></button>`; }).join("")}
    </div>
    <p class="footer">Prototype v${VERSION} — données d'époque approximatives.</p>`;
   app.querySelectorAll(".startclub").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id));
@@ -2294,7 +2370,7 @@ function chrome(actif, corps){
   app.innerHTML=`
    <div class="topbar">
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
-     <span class="r">${esc(G.saison)} · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
+     <span class="r">${esc(G.saison)} · <b class="${G.div===2?'cyan':'jaune'}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
    </div>
    <nav>${["calendrier","classement","effectif","mercato","finances","club"]
      .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s.toUpperCase()}</button>`).join("")}
@@ -2367,8 +2443,12 @@ function ecranCalendrier(){
   }
   if(G.finie){
     const cl=classement(); const rang=cl.findIndex(c=>c.id===G.monClub)+1;
-    chrome("calendrier",`<div class="panel"><h2>Saison ${esc(G.saison)} terminée</h2>
-      <p>Vous terminez à la <b class="jaune">${rang}ᵉ place</b>. ${rang===1?"CHAMPION DE FRANCE ! Le titre revient au club !":rang<=3?"Une saison de très haut niveau.":rang<=G.objectif.place?"Objectif rempli, le président est satisfait.":"Une saison en demi-teinte."}</p>
+    const relegue=G.div===1 && rang>=cl.length-2, promu=G.div===2 && rang<=3;
+    const verdict = G.div===1
+      ? (rang===1?"CHAMPION DE FRANCE ! Le titre revient au club !":relegue?"RELÉGUÉ EN DIVISION 2. La reconquête commence dès l'an prochain.":rang<=G.objectif.place?"Objectif rempli, le président est satisfait.":"Une saison en demi-teinte.")
+      : (rang===1?"CHAMPION DE DIVISION 2 — RETOUR DANS L'ÉLITE !":promu?"PROMU EN DIVISION 1 ! L'élite vous attend.":rang<=G.objectif.place?"Objectif rempli, le président est satisfait.":"La remontée attendra encore un an.");
+    chrome("calendrier",`<div class="panel"><h2>Saison ${esc(G.saison)} terminée (Division ${G.div})</h2>
+      <p>Vous terminez à la <b class="jaune">${rang}ᵉ place</b>. ${verdict}</p>
       <p style="margin-top:8px"><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>
       <p class="dim" style="margin-top:6px">Vieillissement, retraites, nouvelle génération, promus et relégués... puis la saison suivante commence.</p></div>`);
     document.getElementById("bInter").onclick=()=>{intersaison();montre("calendrier");};
@@ -2462,10 +2542,10 @@ function ecranCalendrier(){
 const ICO={
  but:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="1" y="1" width="20" height="14" fill="none" stroke="#27466e" stroke-width="1"/><path d="M5 1v14M9 1v14M13 1v14M17 1v14M1 5h20M1 9h20" stroke="#27466e" stroke-width="1"/><circle cx="11" cy="8" r="3.4" fill="#ffd24a"/></svg>`,
  rate:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="14" y="1" width="2" height="14" fill="#7e96b5"/><rect x="2" y="6" width="3" height="1.6" fill="#7e96b5"/><rect x="6" y="6" width="3" height="1.6" fill="#7e96b5"/><circle cx="19.5" cy="4" r="2.4" fill="#7e96b5"/></svg>`,
- arret:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="9" y="2" width="4" height="12" fill="#6fd6e8"/><rect x="6" y="4" width="3" height="4" fill="#6fd6e8"/><rect x="13" y="4" width="3" height="4" fill="#6fd6e8"/><circle cx="3.6" cy="8" r="2.4" fill="#ffd24a"/></svg>`,
+ arret:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="6" y="3" width="2" height="5" fill="#eef2ff"/><rect x="9" y="2" width="2" height="6" fill="#eef2ff"/><rect x="12" y="2" width="2" height="6" fill="#eef2ff"/><rect x="15" y="3" width="2" height="5" fill="#eef2ff"/><rect x="5" y="7" width="13" height="6" fill="#eef2ff"/><rect x="3" y="8" width="2" height="3" fill="#eef2ff"/><rect x="5" y="13" width="13" height="2" fill="#6fd6e8"/></svg>`,
  cj:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="7" y="1.6" width="8" height="12.8" fill="#ffd24a" transform="rotate(8 11 8)"/></svg>`,
  cr:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="7" y="1.6" width="8" height="12.8" fill="#ff6f61" transform="rotate(8 11 8)"/></svg>`,
- sub:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><path d="M3 5h11v-3l5 4.5-5 4.5v-3H3z" fill="#5fd98f" transform="translate(0,-1.5) scale(1,0.62)"/><path d="M19 11h-11v-3l-5 4.5 5 4.5v-3h11z" fill="#ff6f61" transform="translate(0,-2.5) scale(1,0.62)"/></svg>`,
+ sub:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="5" y="5" width="2" height="9" fill="#5fd98f"/><path d="M6 1l4 5H2z" fill="#5fd98f"/><rect x="15" y="3" width="2" height="9" fill="#ff6f61"/><path d="M16 15l-4-5h8z" fill="#ff6f61"/></svg>`,
 };
 
 let tickerTimer=null, tickerDelai=950, butFlashTimer=null;
@@ -2820,14 +2900,14 @@ function momentTacle(mo,moi,resoudre,suite){
 /* ---- Classement ---- */
 function ecranClassement(){
   const cl=classement();
-  chrome("classement",`<div class="panel"><h2>Classement — Division 1</h2>
+  chrome("classement",`<div class="panel"><h2>Classement — Division ${G.div}</h2>
    <table><tr><th>#</th><th>Club</th><th class="num">J</th><th class="num">G</th><th class="num">N</th><th class="num">P</th><th class="num">Bp</th><th class="num">Bc</th><th class="num">Diff</th><th class="num">Pts</th></tr>
-   ${cl.map((c,i)=>`<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
-     <td>${i+1}</td><td><span style="display:inline-flex;align-items:center;gap:7px">${blason(c,15)}${esc(c.nom)}</span></td><td class="num">${c.j}</td><td class="num">${c.g}</td>
+   ${cl.map((c,i)=>{const mont=G.div===2&&i<3, desc=G.div===1&&i>=cl.length-3; return `<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
+     <td>${mont?'<span class="vert">'+(i+1)+'▲</span>':desc?'<span class="rouge">'+(i+1)+'▼</span>':(i+1)}</td><td><span style="display:inline-flex;align-items:center;gap:7px">${blason(c,15)}${esc(c.nom)}</span></td><td class="num">${c.j}</td><td class="num">${c.g}</td>
      <td class="num">${c.n}</td><td class="num">${c.p}</td><td class="num">${c.bp}</td><td class="num">${c.bc}</td>
-     <td class="num">${c.bp-c.bc>0?"+":""}${c.bp-c.bc}</td><td class="num"><b>${c.pts}</b></td></tr>`).join("")}
+     <td class="num">${c.bp-c.bc>0?"+":""}${c.bp-c.bc}</td><td class="num"><b>${c.pts}</b></td></tr>`;}).join("")}
    </table>
-   <p class="dim" style="margin-top:6px">Victoire 3 pts · Les quatre derniers descendent en D2 · Cliquez sur un club pour consulter son effectif et faire vos emplettes.</p></div>`);
+   <p class="dim" style="margin-top:6px">Victoire 3 pts · ${G.div===1?"Les trois derniers (▼) descendent en Division 2":"Les trois premiers (▲) montent en Division 1 !"} · Cliquez sur un club pour consulter son effectif.</p></div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=()=>{
     if(tr.dataset.id===G.monClub) montre("effectif"); else ecranClubVue(tr.dataset.id);
   });

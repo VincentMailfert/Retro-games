@@ -2,7 +2,8 @@
 
 ## Ce que c'est
 Jeu de management de football rétro, **fichier HTML unique autonome** (`index.html`).
-Saison de départ : Division 1 française 1995-96, vrais clubs et joueurs, puis carrière multi-saisons.
+Saison de départ : France 1995-96, deux divisions jouables (D1 et **D2 — où l'OM purge sa relégation
+post-affaire VA-OM**), vrais clubs et joueurs, puis carrière multi-saisons avec montées/descentes.
 Hébergé sur GitHub Pages dans le repo `retro-games`, servi à l'URL `…/championnat/`.
 Joué par la famille et les amis de l'auteur, qui remontent des retours de playtest.
 
@@ -52,6 +53,15 @@ toujours « raconter quelque chose ».
   dépannage si la réserve est momentanément épuisée → ~90%+ (en pratique ~100%) de vrais noms. Les gens
   n'accrochent pas aux jokers factices : garder le vivier réel, et `enJeu` (effectifs D1 **+ D2** + vivier)
   empêche tout doublon d'un joueur entre un club et le vivier.
+- **Deux divisions** (`CLUBS`/`STARS` = D1, `CLUBS_D2`/`STARS_D2` = D2, 20 clubs chacune). On peut choisir
+  un club de D1 OU de D2 à l'accueil (OM est en D2). `G.div` (1/2), `G.clubs` = la division JOUÉE (simulée
+  en détail par le moteur), `G.autre` = l'autre division (simulée en **abstrait** via `classementAbstrait`
+  = force des onze + bruit). À l'intersaison : **3 montées / 3 descentes** entre D1 et D2 (`montent`/
+  `descendent`), les deux divisions vieillissent. `construitDivision()` bâtit une division ; `clubById`
+  cherche dans les deux. Les effectifs D2 sont au mieux (OM curé à fond, autres clubs documentés au mieux,
+  reste procédural). Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions**.
+- **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
+  manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match. Calibrage à préserver.
 - **Moments de match** interactifs (penalty pour/contre, tacle, provocation, but de 50m, geste技, etc.).
 - **Incidents de vie de club** : catalogue `INCIDENTS` (~38 cartes), tiré ~1 journée sur 3,
