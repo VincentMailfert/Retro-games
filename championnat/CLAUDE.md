@@ -36,6 +36,17 @@ toujours « raconter quelque chose ».
   cyan `#6fd6e8`, monospace. Respecter cette palette.
 
 ## Systèmes de jeu en place (ne pas casser)
+- **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
+  `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** — viser ~97% de vrais
+  noms (16+ par club, postes 2G-5D-5M-4A = `CIBLE`) ; `genJoueur` ne complète qu'à la marge. Un joueur
+  est « réel » si `j.reel` (= pas de `j.histoire`). Ne pas réintroduire de faux noms ni de joueur au
+  mauvais club/âge ; ne jamais dupliquer un même joueur entre deux clubs **ni entre un club et le vivier**.
+- **Vivier du recruteur** (jokers signables hors fenêtre) : `VIVIER` (cibles réelles été 95) + une
+  `JOKERS_RESERVE` de vrais noms des années 90. À l'intersaison, le vivier subit ~50% de rotation et se
+  recomplète **en priorité avec de vrais noms** (réserve) ; une pépite procédurale n'arrive qu'en
+  dépannage si la réserve est momentanément épuisée → ~90%+ (en pratique ~100%) de vrais noms. Les gens
+  n'accrochent pas aux jokers factices : garder le vivier réel, et `enJeu` (effectifs D1 **+ D2** + vivier)
+  empêche tout doublon d'un joueur entre un club et le vivier.
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match. Calibrage à préserver.
 - **Moments de match** interactifs (penalty pour/contre, tacle, provocation, but de 50m, geste技, etc.).
 - **Incidents de vie de club** : catalogue `INCIDENTS` (~38 cartes), tiré ~1 journée sur 3,
