@@ -71,6 +71,19 @@
   .cursor::after{content:"▌"; animation:cl 1s steps(1) infinite; color:var(--vert);}
   @keyframes cl{50%{opacity:0;}}
   @media (prefers-reduced-motion:reduce){.cursor::after{animation:none;}}
+  /* ---- célébration de but : panneau d'affichage LED clignotant ---- */
+  #butFlash{position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
+    background:rgba(4,9,18,.55); pointer-events:none;}
+  #butFlash .led{font-family:'Courier New',monospace; font-weight:bold; text-align:center; padding:20px 36px;
+    background:#0a0610; background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px); background-size:6px 6px;
+    border:4px solid #2a2a2a; border-radius:6px; box-shadow:0 0 60px rgba(0,0,0,.85), inset 0 0 28px rgba(0,0,0,.6);}
+  #butFlash .gros{font-size:56px; letter-spacing:10px; color:var(--jaune); line-height:1.1;
+    text-shadow:0 0 9px var(--jaune), 0 0 2px #fff; animation:butflash .4s steps(1) infinite;}
+  #butFlash .det{font-size:15px; color:#e8e8e8; margin-top:10px; letter-spacing:1px;}
+  #butFlash.contre .gros{color:var(--rouge); text-shadow:0 0 9px var(--rouge);}
+  @keyframes butflash{50%{opacity:.2;}}
+  @media (prefers-reduced-motion:reduce){#butFlash .gros{animation:none;}}
+  @media(max-width:700px){ #butFlash .gros{font-size:34px; letter-spacing:5px;} #butFlash .led{padding:14px 18px;} }
   .scoreline{font-size:18px; color:var(--jaune); text-align:center; padding:6px 0; letter-spacing:1px;}
   .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
@@ -140,7 +153,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.29"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.30"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -524,6 +537,7 @@ function nouvellePartie(clubId){
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.rapport=genRapport();
   G.offresSponsor=genSponsors(1);
+  G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   // marché : joueurs des autres clubs, prix affiché
   majTitre(); montre("calendrier");
 }
@@ -884,13 +898,14 @@ function finirJournee(delta){
       G.news.unshift("J"+(G.journee+1)+" — Billetterie : "+FMT(aff)+" spectateurs, recette "+(aff*70/1e6).toFixed(2)+" MF.");
     }
     G.tresorerie += 450000; // droits TV par journée
+    const gagneJ=(hid===G.monClub&&r.sh>r.sa)||(aid===G.monClub&&r.sa>r.sh);
+    if(G.equip){ G.tresorerie += G.equip.fixe; if(gagneJ&&G.equip.prime) G.tresorerie += G.equip.prime; } // contrat équipementier
     if(G.sponsor){
       if(G.sponsor.defaut && Math.random()<G.sponsor.defaut){
         notif("💸 "+G.sponsor.nom+" n'a pas versé son dû cette journée. Les relances restent sans réponse.");
       } else {
         G.tresorerie += G.sponsor.fixe;
-        const gagne=(hid===G.monClub&&r.sh>r.sa)||(aid===G.monClub&&r.sa>r.sh);
-        if(gagne&&G.sponsor.prime){ G.tresorerie+=G.sponsor.prime;
+        if(gagneJ&&G.sponsor.prime){ G.tresorerie+=G.sponsor.prime;
           G.news.unshift(G.sponsor.nom+" verse la prime de victoire : "+(G.sponsor.prime/1e6).toFixed(2)+" MF."); }
       }
     }
@@ -984,6 +999,7 @@ function finirJournee(delta){
     }
   }
   G.rapport=genRapport(); // nouvelles offres du recruteur chaque semaine
+  if(fenetreOuverte() && Math.random()<0.6) transfertIA(); // le marché vit : les clubs IA se renforcent
   if(G.journee===19){ G.offresSponsor=genSponsors(1.35); G.sponsorSwitch=true;
     G.news.unshift("De nouveaux sponsors se manifestent — offres améliorées à étudier dans FINANCES.");
     notif("📜 Votre contrat sponsor arrive à mi-parcours — de meilleures offres vous attendent dans FINANCES."); }
@@ -1042,7 +1058,8 @@ function eff(j, e){
     moi.joueurs=moi.joueurs.filter(x=>x!==j);
     const dest=PICK(ETR_ACHETEURS.concat(G.clubs.filter(c=>c.id!==G.monClub).map(c=>c.nom)));
     G.budget+=prix;
-    G.news.unshift("DÉPART : "+j.nom+" quitte le club pour "+(prix/1e6).toFixed(1)+" MF.");
+    G.news.unshift("DÉPART : "+j.nom+" file à "+dest+" pour "+(prix/1e6).toFixed(1)+" MF.");
+    notif("💸 DÉPART : "+j.nom+" quitte le club pour "+dest+" ("+(prix/1e6).toFixed(1)+" MF).");
   }
 }
 const INCIDENTS=[
@@ -1627,6 +1644,7 @@ function accepterOffreExt(){
   G.budget+=o.prix; G.offreExt=null;
   G.news.unshift("TRANSFERT RECORD : "+j.nom+" rejoint "+o.club+" pour "+(o.prix/1e6).toFixed(1)+" MF !");
   G.presse.unshift("« "+o.club+" rafle "+j.nom+" à prix d'or — le mercato français en ébullition. »");
+  notif("💸 DÉPART : "+j.nom+" est transféré à "+o.club+" pour "+(o.prix/1e6).toFixed(1)+" MF. Les caisses se remplissent.");
   montre("calendrier");
 }
 function refuserOffreExt(){
@@ -1640,6 +1658,37 @@ function refuserOffreExt(){
     else G.news.unshift("Offre déclinée. "+j.nom+" encaisse, le vestiaire apprécie sa loyauté.");
   } else G.news.unshift("Offre déclinée.");
   montre("calendrier");
+}
+/* ---------- Marché des transferts entre clubs IA (pendant les fenêtres) ---------- */
+/* Un club IA se renforce en achetant un joueur à un autre club, dans la limite de son budget.
+   Jamais à votre club (on vous fait des offres pour ça) ; le vendeur garde toujours son ossature. */
+function transfertIA(){
+  const acheteurs=G.clubs.filter(c=>c.id!==G.monClub && (c.budget||0)>=8e6 && c.joueurs.length<22);
+  if(!acheteurs.length) return;
+  const ach=PICK(acheteurs);
+  const posCible=PICK(["G","D","M","A"]);
+  const mesPos=ach.joueurs.filter(j=>j.pos===posCible).sort((a,b)=>a.note-b.note);
+  const faible=mesPos.length?mesPos[0].note:60; // son plus faible à ce poste : on cherche mieux
+  const cand=[];
+  for(const c of G.clubs){
+    if(c.id===ach.id||c.id===G.monClub) continue;
+    const atPos=c.joueurs.filter(j=>j.pos===posCible).sort((a,b)=>b.note-a.note);
+    if(atPos.length<=CIBLE[posCible]) continue;     // le vendeur garde son ossature (ses CIBLE meilleurs)
+    for(const j of atPos.slice(CIBLE[posCible])){   // seul le surplus est vendable (jamais les titulaires)
+      if(j.pretIn||j.pretOut) continue;
+      if(j.note<=faible) continue;                  // doit renforcer l'acheteur
+      const prix=prixAchat(j);
+      if(prix<=ach.budget) cand.push({j,c,prix});
+    }
+  }
+  if(!cand.length) return;
+  cand.sort((a,b)=>b.j.note-a.j.note);
+  const {j,c,prix}=cand[Math.min(cand.length-1,RNDI(0,2))];
+  c.joueurs=c.joueurs.filter(x=>x!==j);
+  j.club=ach.id; j.titu=false; j.avendre=false; ach.joueurs.push(j);
+  ach.budget-=prix; c.budget=(c.budget||0)+Math.round(prix*0.9);
+  G.news.unshift("MERCATO : "+ach.nom+" recrute "+j.nom+" ("+c.nom+") pour "+(prix/1e6).toFixed(1)+" MF.");
+  if(Math.random()<0.4) G.presse.unshift("« "+ach.nom+" frappe un grand coup : "+j.nom+" débarque de "+c.nom+". »");
 }
 
 /* ---------- Centre d'entraînement ---------- */
@@ -1808,10 +1857,12 @@ const SPONSORS_RINGARDS=[
  {nom:"Cassoulet Torloting", rep:0, ere:"La conserve qui sent bon le Sud-Ouest, le confit et le haricot. Ça tient au corps."},
  {nom:"Mammouth", rep:0, ere:"La grande surface au design culte des années 80. Le mammouth écrase les prix."},
  {nom:"La Halle aux Bonnes Affaires", rep:0, ere:"Des fringues pas chères pour un sport populaire. Style discount assumé."},
+ {nom:"La Crèmerie du Mont Joufflu", rep:+1, ere:"La crèmerie du coin et ses pâtes pressées qui sentent bon l'alpage. Le Mont Joufflu veille, débonnaire, sur le maillot."},
+ {nom:"Pastaga 41", rep:0, ere:"Le pastis de l'apéro d'après-match, 41 à l'ombre des platanes. « À consommer avec modération », jure l'étiquette en tout petit."},
  {nom:"3617 Monique", rep:-3, de:1995, a:2004, ere:"Un service de minitel rose sur le maillot. « Composez le 3617 », osé pour un club familial."},
 ];
 const SPONSORS_PROPRES=["Brasseries Royale","Eaux Vives du Forez","Micro-Galaxie Informatique","Supermarchés Maxi",
- "Assurances du Littoral","Télévisions Hexagone","Charcuteries Bredin","Boulangeries Saint-Fournil","Mutuelle des Travailleurs"];
+ "Assurances du Littoral","Télévisions Hexagone","Boucherie Sanzot","Boulangeries Les Deux Miches","Cols Bleus Mutuelle","Pulse FM","Sopalin"];
 const SPONSORS_SULFUREUX=[
  // intemporels : ces tentations existent depuis toujours
  {nom:"BTP Construquick", rep:-12, defaut:0.30, ere:"La boîte de BTP au carnet de commandes trouble. Du cash tout de suite, des questions plus tard."},
@@ -1854,6 +1905,44 @@ function choisirSponsor(k){
   if(G.sponsor.moderne) G.eresVues=(G.eresVues||[]).concat(G.sponsor.nom);
   if(G.sponsor.rep) majReput(G.sponsor.rep, "Contrat "+G.sponsor.nom);
   G.news.unshift("CONTRAT : "+G.sponsor.nom+" devient sponsor maillot ("+FMT(G.sponsor.fixe)+" FF/journée"+(G.sponsor.prime?" + "+FMT(G.sponsor.prime)+" FF par victoire":"")+")."+(G.sponsor.rep<0?" La presse tique sur ce choix.":(G.sponsor.ringard?" Le public sourit, attendri.":"")));
+  montre("finances");
+}
+/* ---------- Équipementiers : revenu selon la notoriété du club (noms fictifs) ---------- */
+const EQUIPEMENTIERS=[
+ {nom:"Athéna",                min:8.5, max:12, cachet:1.00, note:"l'équipementier roi — virgule conquérante, contrats en or"},
+ {nom:"Triax",                 min:7,   max:11, cachet:0.92, note:"trois bandes et un palmarès continental"},
+ {nom:"Cheetah",               min:6,   max:9.5,cachet:0.82, note:"le félin qui monte, marketing agressif"},
+ {nom:"Ombra",                 min:5,   max:8,  cachet:0.68, note:"valeur sûre venue des terrains anglais"},
+ {nom:"Oméga",                 min:4,   max:7,  cachet:0.55, note:"l'outsider transalpin aux motifs voyants"},
+ {nom:"Le Faisan Sportif",     min:3,   max:6,  cachet:0.44, note:"la fierté cocardière, coupe à l'ancienne"},
+ {nom:"Ringbok",               min:3,   max:5,  cachet:0.36, note:"robuste, increvable, sans fioritures"},
+ {nom:"Tombola",               min:2,   max:4,  cachet:0.28, note:"couleurs criardes et prix plancher"},
+ {nom:"Sportec Vosges",        min:1,   max:3,  cachet:0.20, note:"la petite manufacture du coin, cousue main"},
+ {nom:"Le Grand Échalas",      min:0,   max:2,  cachet:0.14, note:"l'atelier du village, floqué à la maison le samedi"},
+];
+/* offres d'équipementier selon la notoriété — comme les sponsors : rien tant qu'on n'a pas signé */
+function genEquip(){
+  const c=clubById(G.monClub);
+  const standing=c.pres + Math.max(-1.5, Math.min(1.5, ((G.reput==null?75:G.reput)-75)/20));
+  const elig=EQUIPEMENTIERS.filter(e=>standing>=e.min && standing<=e.max).sort((a,b)=>b.cachet-a.cachet);
+  const ordre=elig.length?elig:[EQUIPEMENTIERS[EQUIPEMENTIERS.length-1]];
+  const base=120000*(0.65+0.05*c.pres), rnd=x=>Math.round(x/1000)*1000;
+  const prem=ordre[0];
+  const iPrem=EQUIPEMENTIERS.indexOf(prem);
+  const chal=ordre[1] || EQUIPEMENTIERS[iPrem+1] || EQUIPEMENTIERS[iPrem-1] || prem;
+  const loc=EQUIPEMENTIERS[EQUIPEMENTIERS.length-1]; // l'atelier local, modeste mais aimé
+  const offres=[
+    {nom:prem.nom, fixe:rnd(base*prem.cachet),        prime:0,                          rep:0,  note:prem.note, desc:"le gros contrat — fixe maximal"},
+    {nom:chal.nom, fixe:rnd(base*chal.cachet*0.72),   prime:rnd(base*chal.cachet*0.55),  rep:0,  note:chal.note, desc:"moins de fixe, mais une prime à chaque victoire"},
+  ];
+  if(loc.nom!==prem.nom && loc.nom!==chal.nom)
+    offres.push({nom:loc.nom, fixe:rnd(base*0.22), prime:0, rep:+1, note:loc.note, desc:"l'atelier du coin — modeste, mais le public et la région l'adorent"});
+  return offres;
+}
+function choisirEquip(k){
+  G.equip=G.offresEquip[k]; G.offresEquip=null;
+  if(G.equip.rep) majReput(G.equip.rep, "Équipementier "+G.equip.nom);
+  G.news.unshift("ÉQUIPEMENTIER : "+G.equip.nom+" habille le club ("+FMT(G.equip.fixe)+" FF/journée"+(G.equip.prime?" + "+FMT(G.equip.prime)+" FF par victoire":"")+").");
   montre("finances");
 }
 function agrandirStade(){
@@ -2016,6 +2105,7 @@ function intersaison(){
   G.journee=0; G.histo=[]; G.finie=false; G.presse=[]; G.affaire=null; G.truque=false; G.risque=false;
   G.calendrier=berger(G.clubs.map(c=>c.id));
   G.sponsor=null; G.offresSponsor=genSponsors(1+0.06*G.saisonIdx); G.sponsorSwitch=false;
+  G.equip=null; G.offresEquip=genEquip(); // l'équipementier est à re-signer chaque saison, selon la notoriété
   // une nouvelle ère de sponsoring s'ouvre-t-elle cette saison ?
   G.nouvelleEre=null;
   const an=1994+G.saisonIdx;
@@ -2035,6 +2125,8 @@ function intersaison(){
       rec.push("EN ÉTAT DE GRÂCE : "+heros.nom+" semble métamorphosé à l'entraînement. Et si c'était SA saison ?");
     }
   }
+  // budgets de transfert des clubs IA : réapprovisionnés chaque saison selon le prestige (marché vivant)
+  for(const c of G.clubs) if(c.id!==G.monClub) c.budget=Math.max(c.budget||0, (c.pres||4)*4e6+6e6);
   // le vivier du recruteur se régénère : ~50% de rotation, et il reste à ~90% de vrais noms
   if(G.vivier){
     const enJeu=new Set();
@@ -2079,6 +2171,8 @@ function migre(){
   G.centre=G.centre||1; G.offreExt=G.offreExt||null;
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
   G.reput=G.reput==null?75:G.reput;
+  G.equip=G.equip||null; G.offresEquip=G.offresEquip||null;
+  if(!G.equip && !G.offresEquip) G.offresEquip=genEquip(); // anciennes sauvegardes : proposer des offres
   G.clubs.forEach(c=>{ if(c._coupTordu==null) c._coupTordu=false; });
   G.incidentsRecents=G.incidentsRecents||[]; G.eresVues=G.eresVues||[]; G.nouvelleEre=G.nouvelleEre||null;
   G.objectif=G.objectif||objectifPour(clubById(G.monClub).pres);
@@ -2224,6 +2318,8 @@ function fermeFiche(){ if(window._penEnCours) return; if(fiche&&fiche.style) fic
 function rafraichir(){ if(EN_TEST())return; if(VUECLUB) ecranClubVue(VUECLUB); else montre(ECRAN); }
 function abandonneDirect(){
   if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; }
+  if(butFlashTimer){ clearTimeout(butFlashTimer); butFlashTimer=null; }
+  const bf=document.getElementById("butFlash"); if(bf) bf.remove();
   if(window._penEnCours){ window._penEnCours=false; if(fiche&&fiche.style) fiche.style.display="none"; }
   if(G && G._pend){ // un match était en cours : il se termine sans vous
     const P=G._pend;
@@ -2369,7 +2465,23 @@ const ICO={
  sub:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><path d="M3 5h11v-3l5 4.5-5 4.5v-3H3z" fill="#5fd98f" transform="translate(0,-1.5) scale(1,0.62)"/><path d="M19 11h-11v-3l-5 4.5 5 4.5v-3h11z" fill="#ff6f61" transform="translate(0,-2.5) scale(1,0.62)"/></svg>`,
 };
 
-let tickerTimer=null, tickerDelai=950;
+let tickerTimer=null, tickerDelai=950, butFlashTimer=null;
+/* célébration de but : panneau LED clignotant ~1,5 s par-dessus le match */
+function celebreBut(l, eM){
+  if(!l||!l.g||EN_TEST()) return;
+  const div=document.getElementById("butFlash"); if(div) div.remove();
+  const contre = l.g.cote!==G.monClub;
+  const d=document.createElement("div");
+  d.id="butFlash"; if(contre) d.className="contre";
+  d.innerHTML=`<div class="led">
+    <div class="gros">${contre?"BUT…":"⚽ BUT !"}</div>
+    <div class="det">${esc(l.g.but)}${l.g.pen?" (sp)":""}<br>
+      <b class="jaune">${esc(eM.h.nom)} ${l.g.sh} — ${l.g.sa} ${esc(eM.a.nom)}</b></div>
+  </div>`;
+  document.body.appendChild(d);
+  if(butFlashTimer) clearTimeout(butFlashTimer);
+  butFlashTimer=setTimeout(()=>{ const x=document.getElementById("butFlash"); if(x) x.remove(); butFlashTimer=null; }, 1500);
+}
 function ouvreIncident(suite){
   const {inc,j,k}=G.incident;
   const fiche=document.getElementById("fiche");
@@ -2485,10 +2597,16 @@ function lanceMatch(instant){
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const courante=i;
+    const lg=lignes[i];
     ajouteLigne(tk,lignes[i]); majTableau(lignes[i]); i++;
     tk.scrollTop=tk.scrollHeight;
     if(courante===penIdx){
       ouvreMoment(monMatch,res,resoudMoment,()=>{ tickerTimer=setTimeout(tic,tickerDelai); });
+      return;
+    }
+    if(lg && lg.g){ // BUT : on célèbre et on marque une pause
+      celebreBut(lg, eM);
+      tickerTimer=setTimeout(tic, Math.max(tickerDelai,1700));
       return;
     }
     tickerTimer=setTimeout(tic,tickerDelai);
@@ -2902,12 +3020,21 @@ function ecranFinances(){
       ${o.rep?`<span class="${o.rep>0?'vert':'rouge'}">[réputation ${o.rep>0?'+':''}${o.rep}]</span>`:'<span class="dim">[réputation neutre]</span>'}
       <br><span class="dim" style="font-size:11px">${esc(o.desc)}${o.ere?" — « "+esc(o.ere)+" »":""}</span></p>`).join("")}
     <p class="dim" style="margin-top:6px">Un seul contrat à la fois. Choisissez selon votre confiance dans l'équipe.</p></div>`:"";
-  chrome("finances",`${offres}<div class="panel"><h2>Finances</h2>
+  const offresEq=(G.offresEquip && !G.equip)?
+   `<div class="panel"><h2>Offres d'équipementier</h2>
+    ${G.offresEquip.map((o,k)=>`<p style="margin:8px 0">
+      <button class="act bEq" data-k="${k}">Signer</button>
+      <b class="jaune">${esc(o.nom)}</b> — ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
+      ${o.rep?`<span class="vert">[réputation +${o.rep}]</span>`:""}
+      <br><span class="dim" style="font-size:11px">${esc(o.desc)} — « ${esc(o.note)} »</span></p>`).join("")}
+    <p class="dim" style="margin-top:6px">L'équipementier habille le maillot et verse un cachet chaque journée. À re-signer chaque saison.</p></div>`:"";
+  chrome("finances",`${offres}${offresEq}<div class="panel"><h2>Finances</h2>
    <table class="fit">
     <tr><td>Budget transferts</td><td class="num jaune">${(G.budget/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Trésorerie (fonctionnement)</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Masse salariale hebdomadaire</td><td class="num rouge">- ${FMT(masse)} FF</td></tr>
     <tr><td>Droits TV par journée</td><td class="num vert">+ 0,45 MF</td></tr>
+    <tr><td>Équipementier</td><td class="num">${G.equip?'<span class="vert">'+esc(G.equip.nom)+" : +"+FMT(G.equip.fixe)+" FF/j</span>":'<span class="dim">—</span>'}</td></tr>
     <tr><td>Sponsor maillot</td><td class="num">${G.sponsor?'<span class="vert">'+esc(G.sponsor.nom)+" : +"+FMT(G.sponsor.fixe)+" FF/j"+(G.sponsor.prime?" +"+FMT(G.sponsor.prime)+" FF/victoire":"")+"</span>":'<span class="dim">aucun contrat</span>'}</td></tr>
     <tr><td>Billet moyen</td><td class="num">70 FF</td></tr>
     <tr><td>Capacité de ${esc(c.stade)}</td><td class="num">${FMT(c.cap)} places</td></tr>
@@ -2916,6 +3043,7 @@ function ecranFinances(){
    <div class="panel"><h2>Dépêches financières</h2>
    ${G.news.slice(0,10).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
   document.querySelectorAll(".bSp").forEach(b=>b.onclick=()=>choisirSponsor(+b.dataset.k));
+  document.querySelectorAll(".bEq").forEach(b=>b.onclick=()=>choisirEquip(+b.dataset.k));
 }
 
 /* ---- Visuel du stade : étapes de développement ---- */

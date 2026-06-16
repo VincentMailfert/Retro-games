@@ -59,9 +59,23 @@ toujours « raconter quelque chose ».
 - **Datation par époque** : chaque incident/sponsor peut porter `de:` et/ou `a:` (années).
   `anneeJeu()` = 1994 + saisonIdx. **Toujours dater un contenu marqué par son époque**
   (réseaux sociaux ≥ 2009, paris en ligne ≥ 2010, etc.). L'anachronisme casse l'immersion.
-- **Sponsors** : 3 familles — ringards (terroir, peu payés, image neutre/+), propres, sulfureux
+- **Sponsors maillot** : 3 familles — ringards (terroir, peu payés, image neutre/+), propres, sulfureux
   (pont d'or mais réputation en baisse, parfois défaut de paiement). Noms = pastiches inventés,
   jamais de vraie marque déposée (risque juridique).
+- **Équipementiers** (`EQUIPEMENTIERS`, `genEquip`/`choisirEquip`) : 2e source de revenu, **se signe comme un
+  sponsor** — rien au début de saison, on choisit parmi des offres (`G.offresEquip`) qui dépendent de la
+  **notoriété** (prestige nuancé par la réputation) ; le contrat (`G.equip`) verse un cachet chaque journée et
+  expire à l'intersaison (à re-signer). 3 offres types : gros fixe / fixe moindre + prime à la victoire /
+  atelier local modeste mais +réputation. Noms **fictifs** (Athéna, Triax, Cheetah, Ombra, Oméga,
+  Le Faisan Sportif, Ringbok, Tombola, Sportec Vosges, Le Grand Échalas…) — jamais de vraie marque.
+- **Marché des transferts IA** (`transfertIA`) : pendant les fenêtres (`fenetreOuverte`), un club IA achète
+  un joueur à un autre, dans la limite de **son** budget (`c.budget`, réapprovisionné à l'intersaison). Règles :
+  ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et
+  **jamais un de VOS joueurs** (eux partent via les offres `offreExt` que vous acceptez, ou un incident `vend`).
+  Toute sortie d'un de vos joueurs déclenche une `notif`.
+- **Célébration de but** (`celebreBut`) : en match **en direct**, chaque but déclenche un overlay LED clignotant
+  ~1,5 s (`#butFlash`). Comme les overlays de moment, il doit être nettoyé par `abandonneDirect()` (sinon il
+  surgit hors match). Pas de célébration en « résultat instantané » (volontairement rapide).
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 
