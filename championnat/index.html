@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.35"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.36"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -605,6 +605,7 @@ function nouvellePartie(clubId){
   G.rapport=genRapport();
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
+  assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
   majTitre(); montre("calendrier");
 }
 
@@ -642,14 +643,49 @@ function onze(c){
   }
   return xi;
 }
+/* Qualité de meneur d'un joueur : expérience (âge) × autorité (ego) × respect (note) ×
+   intégrité (vénalité), le tout modulé par sa forme du moment (moral = investissement). */
+function leadership(j){
+  if(!j) return 0;
+  const age=j.age||25, ego=j.ego||5, note=j.note||60, venal=j.venal||5, moral=(j.moral==null?65:j.moral);
+  const expF =Math.max(0,Math.min(1,(age-21)/9));   // 21 ans → 0, 30 ans et + → 1
+  const autF =Math.max(0,Math.min(1,(ego-2)/6));    // un meneur a de la présence (ego)
+  const respF=Math.max(0,Math.min(1,(note-58)/30)); // on suit les meilleurs (note)
+  const intF =Math.max(0,Math.min(1,(8-venal)/6));  // un mercenaire inspire moins (vénalité)
+  const base =0.32*expF + 0.30*autF + 0.28*respF + 0.10*intF; // ∈ [0,1]
+  return base*(0.85+0.30*(moral/100)); // ~×1.05 à 65 de moral, ×1.15 à fond, ×0.97 en berne
+}
+function capitaineDuXI(xi){ // le capitaine désigné s'il est sur la pelouse, sinon le meneur naturel
+  return xi.find(j=>j.capitaine) || xi.slice().sort((a,b)=>leadership(b)-leadership(a))[0] || null;
+}
 function forces(c){
   const xi=onze(c);
   let exces=0; xi.forEach(j=>{ if((j.ego||5)>=8) exces+=(j.ego-7); });
-  const coh=Math.max(0.88, 1-0.012*exces); // les divas se marchent dessus
+  const L=leadership(capitaineDuXI(xi)); // qualité du capitaine effectif (0..~1,15)
+  let coh=Math.max(0.85, 1-0.012*exces*(1-0.40*L)); // un fort capitaine tempère les divas
+  coh*=1+(L-0.68)*0.05;                              // et soude (ou non) le vestiaire : ±~2 %
+  coh=Math.max(0.84, Math.min(1.03, coh));
   const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral)); // le moral fait ±5 %
   const att=xi.filter(j=>"MA".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/6*coh;
   const def=xi.filter(j=>"GD".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/5*coh;
   return {att,def,xi,coh};
+}
+/* garantit que MON club a toujours un capitaine valide (départ, retraite, vieille sauvegarde) */
+function assureCapitaine(){
+  const c=clubById(G.monClub); if(!c||!c.joueurs.length) return;
+  if(c.joueurs.some(j=>j.capitaine)) return; // brassard déjà attribué
+  const cand=c.joueurs.slice().sort((a,b)=>leadership(b)-leadership(a))[0];
+  if(cand){ cand.capitaine=true;
+    if((G.journee||0)>0) notif("©️ Brassard vacant : "+cand.nom+" est nommé capitaine par défaut."); }
+}
+function libLeadership(j){
+  const L=leadership({...j, moral:65}); // étoffe intrinsèque, hors forme du moment
+  if((j.age||25)<23) return "encore un peu jeune pour le brassard";
+  if((j.ego||5)>=9 && L<0.75) return "du caractère, mais il divise le vestiaire";
+  if(L>=0.80) return "un meneur d'hommes né";
+  if(L>=0.64) return "a clairement l'étoffe d'un capitaine";
+  if(L>=0.48) return "ferait un capitaine discret";
+  return "peu d'ascendant sur le groupe";
 }
 
 /* ---------- Moteur de match + commentaires ---------- */
@@ -1143,6 +1179,7 @@ function finirJournee(delta){
     if(G.incident) G.incidentsRecents.push({id:G.incident.inc.id, j:G.journee});
   }
   if(G.journee>=38) finDeSaison();
+  assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
   sauvegardeLocale(true); // sauvegarde auto en fin de journée
 }
 
@@ -2264,6 +2301,7 @@ function intersaison(){
   }
   G.rapport=genRapport();
   G.news.unshift("SAISON "+G.saison+" — Objectif du président : "+G.objectif.label+".");
+  assureCapitaine(); // le capitaine a pu raccrocher les crampons : on reconduit un meneur
   G.recap=rec;
 }
 function classement(){
@@ -2310,6 +2348,7 @@ function migre(){
       initTraits(j);
     }
   }
+  assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
     if(r && r.pen && !r.moment) r.moment={type:"pen_pour", uid:r.pen.uid};
@@ -3034,7 +3073,7 @@ function ecranEffectif(){
    <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th></tr>
    ${js.map((j,i)=>`<tr class="click" data-i="${c.joueurs.indexOf(j)}">
      <td>${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan">★</span>':""}</td>
-     <td>${esc(j.nom)}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}</td>
+     <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}</td>
      <td class="pos-${j.pos}">${j.pos}</td><td class="num">${j.age}</td>
      <td class="num"><b>${j.note}</b></td>
      <td>${pictos(j)}</td>
@@ -3063,6 +3102,38 @@ function ecranEffectif(){
   app.querySelectorAll("tr.pret").forEach(tr=>tr.onclick=()=>{const j=byUid(tr.dataset.u); if(j) ouvreFiche(j);});
 }
 
+function nommerCapitaine(j){
+  const c=clubById(G.monClub); if(!c||j.club!==G.monClub) return;
+  const ego=j.ego||5, venal=j.venal||5;
+  const greed=Math.max(0,(ego-5)+(venal-4)); // un cadre humble (ego/vénalité bas) ne réclame rien
+  const demande=greed<=1?0:Math.min(3e6, Math.round(valeur(j)*0.01*greed/1e5)*1e5);
+  const poser=(prime)=>{
+    c.joueurs.forEach(x=>x.capitaine=false); j.capitaine=true;
+    if(prime>0){ G.tresorerie-=prime; j.moral=Math.min(100,(j.moral||65)+10);
+      c.joueurs.forEach(x=>{ if(x!==j) x.moral=Math.min(100,(x.moral||65)+1); }); } // pleinement investi, vestiaire flatté
+    else if(demande>0){ j.moral=Math.max(5,(j.moral||65)-5); } // nommé sans la prime espérée : il fait la moue, et mènera mollement
+    else { j.moral=Math.min(100,(j.moral||65)+6); } // honneur sincère
+    G.news.unshift("BRASSARD : "+j.nom+" prend le capitanat"+(prime>0?", récompensé d'une prime de "+(prime/1e6).toFixed(1)+" MF.":"."));
+    notif("©️ "+j.nom+" est votre nouveau capitaine.");
+    fiche.style.display="none"; rafraichir();
+  };
+  fiche.style.display="flex";
+  fiche.innerHTML=`<div class="card">
+    <h2 class="jaune">©️ LE BRASSARD DE CAPITAINE</h2>
+    <p><b>${esc(j.nom)}</b> — ${esc(libLeadership(j))}.</p>
+    ${demande>0
+      ?`<p class="dim">Ambitieux, il endosserait volontiers le brassard... mais réclame une prime de <b class="jaune">${(demande/1e6).toFixed(1)} MF</b>. Un capitaine pleinement investi soude le vestiaire ; vexé, il mènera du bout des lèvres.</p>`
+      :`<p class="dim">Sans calcul : il serait simplement fier de mener les siens. Un meneur respecté tempère les ego et fait monter l'équipe d'un cran.</p>`}
+    <p style="margin-top:10px">
+      ${demande>0?`<button class="big" id="cPay" ${G.tresorerie>=demande?"":"disabled"} style="display:block;width:100%;margin:6px 0">Payer la prime — ${(demande/1e6).toFixed(1)} MF${G.tresorerie>=demande?"":" (caisse insuffisante)"}</button>`:""}
+      <button class="big" id="cFree" style="display:block;width:100%;margin:6px 0">${demande>0?"Le nommer sans prime (il fera la moue)":"Lui confier le brassard"}</button>
+      <button class="big" id="cNo" style="display:block;width:100%;margin:6px 0">Renoncer</button>
+    </p></div>`;
+  const bp=document.getElementById("cPay"); if(bp) bp.onclick=()=>poser(demande);
+  document.getElementById("cFree").onclick=()=>poser(0);
+  document.getElementById("cNo").onclick=()=>{ fiche.style.display="none"; };
+  fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
+}
 function ouvreFiche(j){
   const n0=j.note0||j.note;
   const v0=valeur({...j, note:n0}), v1=valeur(j);
@@ -3083,7 +3154,8 @@ function ouvreFiche(j){
        Fragilité ${j.fragile||5}/10 — ${esc(fragLib(j.fragile||5))}<br>
        Vénalité ${j.venal||5}/10 — ${esc(venalLib(j.venal||5))}</p>
     <p>Moral : <b class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"jaune")}">${Math.round(j.moral||65)}/100</b>${(j.sansJouer||0)>=3?' <span class="rouge">— ronge son frein sur le banc</span>':""}</p>
-    ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`:""}
+    ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
+      :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
     ${j.grace?`<p class="vert">✨ En état de grâce — il vit la saison de sa vie !</p>`:""}
     ${j.selA?`<p class="cyan">International français${j.butSel?" — a marqué chez les Bleus":""}</p>`:(j.selEsp?`<p class="cyan">International Espoirs</p>`:"")}
     ${(!j.reel&&j.histoire)?`<p style="margin-top:8px" class="cyan">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}
@@ -3099,6 +3171,7 @@ function ouvreFiche(j){
   const bE=document.getElementById("bEclair"); if(bE) bE.onclick=()=>venteEclair(j);
   const bO=document.getElementById("bPretOut"); if(bO) bO.onclick=()=>modalPret(j,"out");
   const bI=document.getElementById("bPretIn"); if(bI) bI.onclick=()=>modalPret(j,"in");
+  const bC=document.getElementById("bCap"); if(bC) bC.onclick=()=>nommerCapitaine(j);
   document.getElementById("bF").onclick=()=>fiche.style.display="none";
   fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
 }
