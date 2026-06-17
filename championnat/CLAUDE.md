@@ -101,8 +101,20 @@ toujours « raconter quelque chose ».
   overlay LED clignotant (`#butFlash`) avec titre + score/joueur + **détail** (le commentaire `l.x`), ~5 s ou
   jusqu'au clic (« cliquez pour continuer »). Comme les overlays de moment, il doit être nettoyé par
   `abandonneDirect()` (sinon il surgit hors match). Pas de fenêtre en « résultat instantané » (rapide). Les
-  penalties ont déjà leur propre fenêtre interactive (le moment de match). Une **cagade** allume ce flash en
-  **rouge (« CAGADE ! »)** et un **cadeau** du gardien adverse en version festive — détail = l'annonce du moment.
+  penalties ont déjà leur propre fenêtre interactive (le moment de match). **TOUS les moments-buts** allument ce
+  flash : `cagade` en **rouge (« CAGADE ! »)**, `cadeau` en version festive, et `geste`/`but50` en
+  **« 🌟 BUT D'ANTHOLOGIE ! »** — détail = l'annonce du moment. Le **chien sur la pelouse** (`chien`) a aussi son
+  flash, avec une **« image » ASCII** (`DOG_ART`) affichée sur le panneau via le champ `o.art` de `celebreFlash`.
+- **Montée de tension avant un but** (`MONTEE_BUT`, en direct seulement) : avant CHAQUE but du téléscripteur, on
+  insère une brève ligne d'anticipation (« ça s'emballe dans la surface… ») puis un battement (`Math.max(650,
+  tickerDelai)`) AVANT d'afficher le but et son flash — pour que le but ne « débarque plus sans prévenir ». Géré
+  dans `tic()` via le flag `lg._monte` ; n'altère pas le score ni le calibrage (purement cosmétique).
+- **Moral des joueurs prêtés dehors** : un prêté (`G.prets` `sens:"out"`, retiré de `moi.joueurs` → club hôte)
+  n'est jamais touché par `majMoral` (qui n'itère que `moi.joueurs`). `finirJournee` lui pose `_joue=1` ET lui
+  remonte le moral (~+1,5/journée) : titulaire ailleurs, il revient « aguerri ».
+- **Onglet « À propos »** (`ecranApropos`, 7ᵉ onglet de la `nav`) : pitch de l'auteur + **formulaire de contact**
+  (objet + message → `mailto:` vers `CONTACT_MAIL`, pré-rempli avec club/saison/journée). Pas de backend : c'est
+  un simple lien `mailto`. Garder le ton léger.
 - **Capitanat** (`leadership`, `capitaineDuXI`, `assureCapitaine`, `nommerCapitaine`) : chaque club a un
   capitaine (flag `j.capitaine`). Sa **qualité de meneur** = âge (expérience) × ego (autorité) × note (respect)
   × vénalité (intégrité), modulée par le moral (investissement). Elle agit dans `forces()` : un fort capitaine

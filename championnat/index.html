@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.36"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.37"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -926,6 +926,18 @@ function jouerJournee(evCb){
 /* ---------- Le paquet de cartes des moments de match ---------- */
 const MOMENTS_INTERACTIFS={pen_pour:1,pen_contre:1,tacle:1,provoc:1};
 const MOMENTS_BUT={but50:1,geste:1,cagade:1,cadeau:1}; // moments non interactifs qui changent le score (résolus avant le direct)
+// montée de tension : une brève annonce AVANT le but, pour qu'il ne débarque plus sans prévenir
+const MONTEE_BUT=[
+  "Ça s'emballe dans la surface, la défense recule…",
+  "Une accélération sur l'aile, le centre va tomber…",
+  "Récupération haute, le contre est lancé…",
+  "Coup de billard devant le but, ça chauffe…",
+  "Une-deux dans l'axe, la dernière passe arrive…",
+  "Corner à jouer, tout le monde monte dans la surface…",
+  "Ouverture limpide dans le dos des défenseurs…",
+];
+// l'envahisseur à quatre pattes, façon panneau d'affichage de stade
+const DOG_ART=["    / \\__","   (    @\\___","   /         O","  /   (_____/"," /_____/   U"].join("\n");
 const CAGADES=[ // les bourdes de gardien, racontées côté fautif (le nom du portier passé en argument)
   gk=>"ballon sous le corps façon Arconada, "+gk+" se couche... et la balle file dans son dos",
   gk=>"relance catastrophique de "+gk+" droit dans les pieds de l'attaquant",
@@ -1001,7 +1013,7 @@ function tireMoment(moi,adv){
       annonce:"Votre gardien "+gk.nom+" reste au sol après un choc... Un défenseur enfile les gants pour les arrêts de jeu."};
   }
   return {type:"chien",
-    annonce:"UN CHIEN SUR LA PELOUSE ! Il slalome entre les stadiers, tribunes pliées de rire. Le foot des années 90."};
+    annonce:"UN CHIEN SUR LA PELOUSE ! Il slalome entre les stadiers, tribunes pliées de rire. Personne n'arrive à l'attraper."};
 }
 function autoMoment(mo){ // résolution sans intervention (tests, abandon de banc, moments non interactifs)
   if(mo.type==="pen_pour")   return Math.random()<0.74 ? +1 : 0;
@@ -1059,7 +1071,7 @@ function finirJournee(delta){
   // moral : temps de jeu et résultat du club humain
   majMoral(res);
   // un joueur prêté à l'extérieur a un temps de jeu garanti : il progresse comme un titulaire
-  G.prets.filter(p=>p.sens==="out").forEach(p=>{ const j=byUid(p.uid); if(j) j._joue=1; });
+  G.prets.filter(p=>p.sens==="out").forEach(p=>{ const j=byUid(p.uid); if(j){ j._joue=1; j.moral=Math.min(100,(j.moral==null?65:j.moral)+1.5); } }); // titulaire ailleurs : il joue et reprend du poil de la bête
   progression();
   ventesEnCours();
   avanceChantier();
@@ -2465,8 +2477,8 @@ function chrome(actif, corps){
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
      <span class="r">${esc(G.saison)} · <b class="${G.div===2?'cyan':'jaune'}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
    </div>
-   <nav>${["calendrier","classement","effectif","mercato","finances","club"]
-     .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s.toUpperCase()}</button>`).join("")}
+   <nav>${["calendrier","classement","effectif","mercato","finances","club","apropos"]
+     .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s==="apropos"?"À PROPOS":s.toUpperCase()}</button>`).join("")}
    </nav>
    <div id="corps">${corps}</div>
    <p class="footer">D1 MANAGER 95-96 · v${VERSION} ·
@@ -2482,6 +2494,42 @@ function chrome(actif, corps){
   };
   document.getElementById("bExp").onclick=exporter;
   document.getElementById("bImp").onchange=importer;
+}
+
+const CONTACT_MAIL="vincent.mailfert@gmail.com";
+function ecranApropos(){
+  const objets=["Proposition d'amélioration","Erreur scandaleuse à corriger","Autres"];
+  const champ="background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:13px;padding:8px";
+  chrome("apropos",`
+   <div class="panel">
+     <h2 class="jaune">À propos</h2>
+     <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
+       et qui est coincé dans l'ascenseur depuis.</p>
+     <p class="dim" style="font-size:12px;line-height:1.5">D1 MANAGER 95-96 — prototype v${VERSION}. Fait main, un seul fichier, sans pub ni mouchard.
+       C'est un jeu de famille et de copains : vos retours de playtest font le jeu.</p>
+   </div>
+   <div class="panel">
+     <h2 class="cyan">Une remarque ? Un scandale ?</h2>
+     <p class="dim" style="font-size:12px;margin-bottom:10px">Écrivez-moi, je lis tout.</p>
+     <label style="display:block;margin-bottom:8px;font-size:12px">Objet
+       <select id="ctcObjet" style="display:block;width:100%;margin-top:4px;${champ}">
+         ${objets.map(o=>`<option>${esc(o)}</option>`).join("")}
+       </select>
+     </label>
+     <label style="display:block;margin-bottom:10px;font-size:12px">Message
+       <textarea id="ctcMsg" rows="5" placeholder="Dites tout…" style="display:block;width:100%;margin-top:4px;resize:vertical;${champ}"></textarea>
+     </label>
+     <button class="big" id="ctcEnvoi">✉️ Envoyer</button>
+     <p class="dim" style="font-size:11px;margin-top:10px">Cela ouvre votre messagerie avec un mail pré-rempli pour <b>${CONTACT_MAIL}</b>.</p>
+   </div>`);
+  document.getElementById("ctcEnvoi").onclick=()=>{
+    const obj=document.getElementById("ctcObjet").value;
+    const msg=document.getElementById("ctcMsg").value;
+    const c=clubById(G.monClub)||{};
+    const sujet="[D1 Manager v"+VERSION+"] "+obj;
+    const corps=msg+"\n\n— "+(c.nom||"")+" · "+(G.saison||"")+" · J"+Math.min((G.journee||0)+1,38)+"/38";
+    window.location.href="mailto:"+CONTACT_MAIL+"?subject="+encodeURIComponent(sujet)+"&body="+encodeURIComponent(corps);
+  };
 }
 
 let ECRAN="calendrier", VUECLUB=null;
@@ -2512,6 +2560,7 @@ function montre(ecran){
   if(ecran==="mercato")    return ecranMercato();
   if(ecran==="finances")   return ecranFinances();
   if(ecran==="club")       return ecranClub();
+  if(ecran==="apropos")    return ecranApropos();
 }
 
 /* ---- Calendrier / match ---- */
@@ -2651,6 +2700,7 @@ function celebreFlash(o, onDone){
   d.id="butFlash"; if(o.classe) d.className=o.classe;
   d.innerHTML=`<div class="led">
     <div class="gros">${o.gros}</div>
+    ${o.art?`<pre style="font-family:monospace;white-space:pre;line-height:1.05;font-size:14px;color:#ffd24a;margin:8px 0;text-shadow:0 0 6px rgba(255,210,74,.5)">${o.art}</pre>`:""}
     ${o.sub?`<div class="det">${o.sub}</div>`:""}
     ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}
     <div class="hint">▸ cliquez pour continuer</div>
@@ -2790,8 +2840,13 @@ function lanceMatch(instant){
   let i=0;
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
-    const courante=i;
     const lg=lignes[i];
+    // montée de tension : le but ne débarque plus sans prévenir — un battement d'anticipation avant le flash
+    if(lg && lg.g && !lg._monte){ lg._monte=1;
+      ajouteLigne(tk,{m:lg.m,t:"amb",x:PICK(MONTEE_BUT)}); tk.scrollTop=tk.scrollHeight;
+      tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
+    }
+    const courante=i;
     ajouteLigne(tk,lignes[i]); majTableau(lignes[i]); i++;
     tk.scrollTop=tk.scrollHeight;
     if(courante===penIdx){
@@ -2812,15 +2867,20 @@ function lanceMatch(instant){
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
-    if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : on met le score à jour (tableau + feuille)
+    if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : on met le score à jour (tableau + feuille)...
       const gl=buteurMoment(); extra.push(gl); majTableau(gl);
-      if(lg.mo==="cagade" || lg.mo==="cadeau"){ // ...et on déclenche le gros flash LED
-        const cag=(lg.mo==="cagade");
-        celebreFlash({classe:cag?"contre":"", gros:cag?"🧤 CAGADE !":"🎁 CADEAU DU GARDIEN !",
-          sub:`<b class="jaune">${esc(eM.h.nom)} ${eM.sh} — ${eM.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
-          detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
-        return;
-      }
+      const cag=(lg.mo==="cagade"); // ...et tous méritent leur flash LED — un but d'anthologie autant qu'une cagade
+      const titre=cag?"🧤 CAGADE !":lg.mo==="cadeau"?"🎁 CADEAU DU GARDIEN !":"🌟 BUT D'ANTHOLOGIE !";
+      celebreFlash({classe:cag?"contre":"", gros:titre,
+        sub:`<b class="jaune">${esc(eM.h.nom)} ${eM.sh} — ${eM.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
+    }
+    if(lg && lg.mo==="chien"){ // l'envahisseur à quatre pattes s'affiche sur le panneau du stade
+      celebreFlash({classe:"", gros:"🐕 ENVAHISSEUR DE PELOUSE", art:DOG_ART,
+        sub:"Un chien sur la pelouse&nbsp;! Le match attendra.",
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
     }
     tickerTimer=setTimeout(tic,tickerDelai);
   };
