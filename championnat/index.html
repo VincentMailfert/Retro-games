@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.34"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.35"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -685,6 +685,16 @@ const COMM={
   "CARTON ROUGE ! {A} laisse les siens à dix après un geste d'humeur !",
   "Expulsion de {A} pour une semelle dangereuse ! Le stade gronde.",
  ],
+ cjGK:[ // faute de gardien (jaune) — un portier ne taclant pas, il faute autrement
+  "Sortie ratée de {A} qui fauche l'attaquant à la limite de la surface — jaune pour le gardien !",
+  "{A} sort poings devant et percute son homme au lieu du ballon — l'arbitre brandit le jaune.",
+  "Main de {A} hors de sa surface pour casser le contre — le portier est averti !",
+ ],
+ crGK:[ // faute de gardien (rouge)
+  "SORTIE KAMIKAZE À LA SCHUMACHER ! {A} aplatit l'attaquant lancé — ROUGE, le gardien est exclu !",
+  "{A} surgit les deux poings en avant et assomme son adversaire — ROUGE direct pour le portier !",
+  "Dernier rempart, dernier recours : {A} fauche l'attaquant filant seul au but — ROUGE logique pour le gardien.",
+ ],
  but:[
   "{A} reprend victorieusement au second poteau... BUUUT !",
   "Frappe enroulée de {A} en pleine lucarne ! Quel geste !",
@@ -732,18 +742,20 @@ function simuleMatch(home,away,verbeux){
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
   const derby=(RIVAL[home.id]===away.id);
   if(home._coupTordu && home.id===G.monClub){ la*=0.90; home._coupTordu=false; } // vestiaire saboté : l'adversaire démarre patraque
+  let mulH=1, mulA=1; // infériorité numérique : un rouge plombe l'équipe réduite pour les minutes restantes
   let sh=0, sa=0; const ev=[];
   const aff=affluence(home,away);
   if(verbeux) ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."});
   for(let m=1;m<=90;m++){
+    const elh=lh*mulH, ela=la*mulA; // attaques effectives, révisées à la baisse pour l'équipe à dix
     const r=Math.random();
-    if(r < lh/90){ // évènement côté domicile
+    if(r < elh/90){ // évènement côté domicile
       if(Math.random()<0.42){ sh++; marque(home,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
       else if(verbeux&&Math.random()<.7){
         const arr=Math.random()<.5;
         ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tireur(home),away)});
       }
-    } else if(r < (lh+la)/90){
+    } else if(r < (elh+ela)/90){
       if(Math.random()<0.42){ sa++; marque(away,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
       else if(verbeux&&Math.random()<.7){
         const arr=Math.random()<.5;
@@ -753,11 +765,16 @@ function simuleMatch(home,away,verbeux){
       ev.push({m,t:"amb",x:PICK(COMM.amb)});
     }
     if(verbeux && Math.random()<(derby?0.055:0.030)){ // discipline (le derby chauffe les esprits)
-      const cote=Math.random()<.5?home:away, j=agressif(cote);
+      const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
       const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
-      if(rouge) j.susp=(j.susp||0)+3; // expulsion : 2 journées de suspension après celle-ci
-      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge},
-        x:fmtC(PICK(rouge?COMM.cr:COMM.cj),j,cote)+" ("+cote.id+")"});
+      if(rouge){
+        j.susp=(j.susp||0)+3; // expulsion : 2 journées de suspension après celle-ci
+        const dDef=gardien?1.34:1.18; // un de moins : on attaque moins, on encaisse plus — sans gardien, la cage est une passoire
+        if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; }
+      }
+      const pool=rouge?(gardien?COMM.crGK:COMM.cr):(gardien?COMM.cjGK:COMM.cj);
+      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien},
+        x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
     }
     if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
   }
@@ -853,7 +870,7 @@ function jouerJournee(evCb){
       r.moment=tireMoment(moi,adv);
       if(r.moment){
         const sifflet=r.ev.pop();
-        r.ev.push({m:90,t:"crd",x:r.moment.annonce});
+        r.ev.push({m:90,t:"crd",x:r.moment.annonce,mo:r.moment.type});
         r.ev.push(sifflet);
       }
     }
@@ -872,6 +889,13 @@ function jouerJournee(evCb){
 
 /* ---------- Le paquet de cartes des moments de match ---------- */
 const MOMENTS_INTERACTIFS={pen_pour:1,pen_contre:1,tacle:1,provoc:1};
+const MOMENTS_BUT={but50:1,geste:1,cagade:1,cadeau:1}; // moments non interactifs qui changent le score (résolus avant le direct)
+const CAGADES=[ // les bourdes de gardien, racontées côté fautif (le nom du portier passé en argument)
+  gk=>"ballon sous le corps façon Arconada, "+gk+" se couche... et la balle file dans son dos",
+  gk=>"relance catastrophique de "+gk+" droit dans les pieds de l'attaquant",
+  gk=>"erreur d'appréciation totale, "+gk+" manque complètement sa sortie aérienne",
+  gk=>"passe en retrait anodine, faux rebond, "+gk+" la voit filer derrière lui dans le but",
+];
 function tireMoment(moi,adv){
   const t=Math.random();
   const xiM=onze(moi), xiA=onze(adv);
@@ -882,43 +906,59 @@ function tireMoment(moi,adv){
     if(prov) return {type:"provoc", uid:prov.uid,
       annonce:"APRÈS SON BUT, "+prov.nom.toUpperCase()+" SE TOURNE VERS LE PARCAGE ADVERSE... Le public bout, l'arbitre approche."};
   }
-  if(t<0.28){
+  if(t<0.26){
     const tir=xiM.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0];
     if(!tir) return null;
     return {type:"pen_pour", uid:tir.uid,
       annonce:"PENALTY POUR "+moi.nom.toUpperCase()+" À L'ULTIME SECONDE !! "+tir.nom+" pose le ballon..."};
   }
-  if(t<0.54){
+  if(t<0.50){
     const tir=xiA.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0];
     const gk=xiM.find(j=>j.pos==="G");
     if(!tir||!gk) return null;
     return {type:"pen_contre", uid:tir.uid, gk:gk.uid,
       annonce:"PENALTY CONTRE "+moi.nom.toUpperCase()+" À LA 90ᵉ !!! "+tir.nom+" défie "+gk.nom+". À vous de choisir le plongeon..."};
   }
-  if(t<0.70){
+  if(t<0.64){
     const b=xiM.filter(j=>(j.agress||5)>=7).sort((a,b)=>(b.agress||0)-(a.agress||0))[0];
     if(!b) return null;
     return {type:"tacle", uid:b.uid,
       annonce:"TACLE EFFROYABLE DE "+b.nom.toUpperCase()+" ! L'arbitre porte la main à sa poche, le stade retient son souffle..."};
   }
-  if(t<0.74){
+  if(t<0.68){
     const prov=xiM.filter(j=>(j.ego||5)>=7).sort((a,b)=>(b.ego||0)-(a.ego||0))[0];
     if(prov) return {type:"provoc", uid:prov.uid,
       annonce:"GRISÉ PAR L'AMBIANCE, "+prov.nom.toUpperCase()+" CHARRIE LE PUBLIC ADVERSE... Les tribunes grondent, l'arbitre s'approche."};
   }
-  if(t<0.82){ // but venu d'ailleurs : gardien adverse trop avancé, frappe de 50 mètres
+  if(t<0.75){ // but venu d'ailleurs : gardien adverse trop avancé, frappe de 50 mètres
     const tir=xiM.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0];
     if(tir) return {type:"but50", uid:tir.uid,
       annonce:"INCROYABLE ! Le gardien adverse est monté, "+tir.nom.toUpperCase()+" arme de 50 MÈTRES... le ballon retombe sous la barre — BUT VENU D'AILLEURS !"};
   }
-  if(t<0.90){ // geste technique d'exception
+  if(t<0.82){ // geste technique d'exception
     const tir=xiM.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0];
     if(tir){ const gestes=["un RETOURNÉ ACROBATIQUE","une REPRISE DE VOLÉE pleine lucarne","un COUP DU SCORPION improbable","une talonnade aérienne"];
       return {type:"geste", uid:tir.uid, geste:PICK(gestes),
       annonce:tir.nom.toUpperCase()+" inscrit un but d'anthologie — "+PICK(gestes)+" ! Le stade entier se lève."};
     }
   }
-  if(t<0.95){
+  if(t<0.88){ // cagade : VOTRE gardien se troue, but encaissé sec (Arconada, relance dans les pieds...)
+    const gk=xiM.find(j=>j.pos==="G");
+    const benef=PICK(xiA.filter(j=>j.pos==="A"))||PICK(xiA.filter(j=>"MA".includes(j.pos)))||xiA[xiA.length-1];
+    if(gk&&benef){ const desc=PICK(CAGADES)(gk.nom);
+      return {type:"cagade", uid:benef.uid, gk:gk.uid,
+        annonce:"🧤 CAGADE DE "+gk.nom.toUpperCase()+" ! "+desc+" — "+benef.nom+" pousse au fond. BUT CONTRE "+moi.nom.toUpperCase()+" À LA 90ᵉ !"};
+    }
+  }
+  if(t<0.94){ // cadeau : le gardien ADVERSE se troue, but offert
+    const gk=xiA.find(j=>j.pos==="G");
+    const benef=PICK(xiM.filter(j=>j.pos==="A"))||PICK(xiM.filter(j=>"MA".includes(j.pos)))||xiM[xiM.length-1];
+    if(gk&&benef){ const desc=PICK(CAGADES)(gk.nom);
+      return {type:"cadeau", uid:benef.uid, gk:gk.uid,
+        annonce:"🎁 CADEAU DU GARDIEN ADVERSE ! "+desc+" — "+benef.nom.toUpperCase()+" ne se fait pas prier. BUT POUR "+moi.nom.toUpperCase()+" À LA 90ᵉ !"};
+    }
+  }
+  if(t<0.97){
     const gk=xiM.find(j=>j.pos==="G");
     if(!gk) return null;
     return {type:"gants", uid:gk.uid,
@@ -938,6 +978,8 @@ function autoMoment(mo){ // résolution sans intervention (tests, abandon de ban
     if(G) G.buzz=Math.min(4,(G.buzz||0)+1);
     return +1;
   }
+  if(mo.type==="cagade"){ const g=byUid(mo.gk); if(g) g.moral=Math.max(0,(g.moral||65)-8); return -1; } // votre gardien encaisse, et l'a mauvaise
+  if(mo.type==="cadeau"){ const b=byUid(mo.uid); if(b) b.moral=Math.min(100,(b.moral||65)+5); if(G) G.buzz=Math.min(4,(G.buzz||0)+1); return +1; } // cadeau du portier d'en face
   return 0;
 }
 
@@ -2651,6 +2693,14 @@ function lanceMatch(instant){
       `<div>⚽ ${esc(l.g.but)} ${l.m}'${l.g.pen?" (sp)":""}</div>`);
   };
   const extra=[];
+  // moments-buts non interactifs (cagade, cadeau, but50, geste) : déjà résolus par finirJournee.
+  // Le sifflet et la feuille de match doivent donc afficher le score final, comme pour un penalty.
+  const buteurMoment=()=>{ const mo=monMatch.moment, ben=mo&&byUid(mo.uid);
+    return {m:90,t:"but",ic:"but",g:{cote:ben?ben.club:eM.h.id,but:ben?ben.nom:"?",pas:null,sh:eM.sh,sa:eM.sa}}; };
+  if(monMatch.moment && MOMENTS_BUT[monMatch.moment.type]){
+    const sif=lignes[lignes.length-1];
+    if(sif&&sif.t==="sys") sif.x="COUP DE SIFFLET FINAL. "+eM.h.nom+" "+eM.sh+" - "+eM.sa+" "+eM.a.nom;
+  }
   const fin=()=>{
     if(ctl) ctl.style.display="none";
     // feuille de match
@@ -2690,7 +2740,9 @@ function lanceMatch(instant){
     suite();
   };
   if(instant){
-    if(penIdx<0){ lignes.forEach(l=>{ajouteLigne(tk,l);majTableau(l);}); fin(); return; }
+    if(penIdx<0){ lignes.forEach(l=>{ajouteLigne(tk,l);majTableau(l);});
+      if(monMatch.moment && MOMENTS_BUT[monMatch.moment.type]){ const gl=buteurMoment(); extra.push(gl); majTableau(gl); }
+      fin(); return; }
     lignes.slice(0,penIdx+1).forEach(l=>{ajouteLigne(tk,l);majTableau(l);});
     ouvreMoment(monMatch,res,resoudMoment,()=>{ ajouteLigne(tk,lignes[lignes.length-1]); fin(); });
     return;
@@ -2720,6 +2772,16 @@ function lanceMatch(instant){
         sub:`<b class="jaune">${esc(lg.c.nom)}</b> · ${lg.m}'${contre?" — un des vôtres&nbsp;!":""}`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
+    }
+    if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : on met le score à jour (tableau + feuille)
+      const gl=buteurMoment(); extra.push(gl); majTableau(gl);
+      if(lg.mo==="cagade" || lg.mo==="cadeau"){ // ...et on déclenche le gros flash LED
+        const cag=(lg.mo==="cagade");
+        celebreFlash({classe:cag?"contre":"", gros:cag?"🧤 CAGADE !":"🎁 CADEAU DU GARDIEN !",
+          sub:`<b class="jaune">${esc(eM.h.nom)} ${eM.sh} — ${eM.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
+          detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+        return;
+      }
     }
     tickerTimer=setTimeout(tic,tickerDelai);
   };
