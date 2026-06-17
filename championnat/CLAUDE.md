@@ -71,8 +71,10 @@ toujours « raconter quelque chose ».
 - **Datation par époque** : chaque incident/sponsor peut porter `de:` et/ou `a:` (années).
   `anneeJeu()` = 1994 + saisonIdx. **Toujours dater un contenu marqué par son époque**
   (réseaux sociaux ≥ 2009, paris en ligne ≥ 2010, etc.). L'anachronisme casse l'immersion.
-- **Sponsors maillot** : 3 familles — ringards (terroir, peu payés, image neutre/+), propres, sulfureux
-  (pont d'or mais réputation en baisse, parfois défaut de paiement). Noms = pastiches inventés,
+- **Sponsors maillot** : 3 familles formant un vrai dilemme image/argent — terroir/ringards (peu payés mais
+  **gros bonus de réputation**, +3 à +8 selon le sponsor : on sacrifie l'argent pour l'image), propres
+  (équilibré, +1), sulfureux (pont d'or mais réputation en baisse, parfois défaut de paiement). Le bonus de
+  réputation est porté par le champ `rep` de chaque entrée de `SPONSORS_RINGARDS`. Noms = pastiches inventés,
   jamais de vraie marque déposée (risque juridique).
 - **Équipementiers** (`EQUIPEMENTIERS`, `genEquip`/`choisirEquip`) : 2e source de revenu, **se signe comme un
   sponsor** — rien au début de saison, on choisit parmi des offres (`G.offresEquip`) qui dépendent de la
@@ -121,3 +123,12 @@ toujours « raconter quelque chose ».
 - Le téléscripteur (`#ticker`) a `overflow-y:auto`, donc c'est un bloc de formatage indépendant ; il cohabite
   avec les boutons de vitesse (`#ctlVitesse`) en `float:right`. Il doit garder `clear:both` (et les contrôles
   passent sur leur propre ligne en mobile), sinon il se rétrécit en une mince colonne à côté du flottant.
+- Les filtres du mercato (poste, âge, division, recherche, favoris, tri) sont conservés dans l'objet module
+  `MERCF`, pas dans des locales de `ecranMercato` : un achat passe par `rafraichir()`→`montre("mercato")` qui
+  ré-exécute tout l'écran, et sans `MERCF` chaque achat réinitialiserait les filtres (la case « Mes favoris »
+  se décochait). `rend()` recopie l'état dans `MERCF` à chaque rendu, les contrôles le reflètent (`selected`/
+  `checked`/`value`), et `nouvellePartie` le remet à neuf.
+- Le penalty CONTRE (`momentPenContre`) : la narration doit coller à l'issue réelle. Plonger du bon côté ne
+  garantit pas l'arrêt (les frappes pures passent quand même) ; le texte ne doit donc jamais clamer la réussite
+  (« vous aviez lu son regard ! ») quand le but rentre — d'où le verdict « BUT QUAND MÊME — la frappe était
+  trop pure » dans ce cas. Cohérence texte/résultat obligatoire.

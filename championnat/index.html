@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.33"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.34"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -585,6 +585,7 @@ function construitDivision(listeClubs, starsMap){
   return clubs;
 }
 function nouvellePartie(clubId){
+  MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*"}; // filtres mercato à neuf
   const d1=construitDivision(CLUBS, STARS);
   const d2=construitDivision(CLUBS_D2, STARS_D2);
   const enD1=CLUBS.some(c=>c.id===clubId);
@@ -1585,6 +1586,7 @@ function venteEclair(j){
   j.club=dest.id; j.avendre=false; j.titu=false; dest.joueurs.push(j);
   G.budget+=prix;
   G.news.unshift("VENTE ÉCLAIR : "+j.nom+" bradé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
+  notif("💰 VENDU : "+j.nom+" bradé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF (vente éclair).");
   // brader un cadre fidèle (ancien, capitaine, ou international maison) abîme l'image
   if(j.capitaine || j.selA || (j.matchs||0)>=38) majReput(-6, "départ forcé d'un cadre");
   fermeFiche();
@@ -1681,12 +1683,14 @@ function ventesEnCours(){
       j.club=dest.id; j.avendre=false; dest.joueurs.push(j);
       G.budget+=prix;
       G.news.unshift("VENTE : "+j.nom+" cédé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
+      notif("💰 VENDU : "+j.nom+" part à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF — l'affaire est conclue.");
     } else if(!ouverte && Math.random()<0.20){ // l'étranger, lui, achète toute l'année
       const prix=Math.round(valeur(j)*RND(0.9,1.15));
       const dest=PICK(ETR_ACHETEURS);
       moi.joueurs=moi.joueurs.filter(x=>x!==j);
       G.budget+=prix;
       G.news.unshift("VENTE À L'ÉTRANGER : "+dest+" recrute "+j.nom+" pour "+(prix/1e6).toFixed(1)+" MF — leur mercato est encore ouvert.");
+      notif("💰 VENDU À L'ÉTRANGER : "+dest+" s'offre "+j.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
     }
   }
 }
@@ -1912,18 +1916,18 @@ function acheterJoker(k){
 // Les ringards cultes : peu rémunérateurs mais attachants et fédérateurs (petit bonus de réputation).
 // Clins d'œil aux vrais sponsors kitsch de l'histoire du foot français (Justin Bridou, Zoo de Marseille, Poulet de Loué...).
 const SPONSORS_RINGARDS=[
- {nom:"Saucissons Gros-Jacquot", rep:+1, ere:"Le saucisson roi sur le maillot. Tout est bon dans le cochon, dit la pub."},
- {nom:"Zoo Municipal", rep:+1, ere:"Le zoo de la ville s'affiche fièrement. Les enfants adorent, les joueurs un peu moins."},
- {nom:"Limonade Pétillou", rep:+1, ere:"La limonade pétillante du goûter, bulles et sucre. Le sponsor le plus rafraîchissant du championnat."},
- {nom:"Poulet d'Or", rep:+1, ere:"Le poulet label rouge de la région. Ça ne fait pas voler bien haut, mais c'est du sérieux."},
- {nom:"Le Râpé de Mémé", rep:+1, ere:"Le fromage râpé de la fromagerie locale. Le fromage annonce souvent la fin du repas."},
- {nom:"Bonbons Crocandy", rep:0, ere:"Des bonbons et des blagues pourries au dos de l'emballage. De quoi sourire à chaque but."},
- {nom:"Siro Nimo", rep:0, ere:"Le sirop de grenadine qui désaltère toute la famille au goûter. Pétillant de ringardise."},
- {nom:"Cassoulet Torloting", rep:0, ere:"La conserve qui sent bon le Sud-Ouest, le confit et le haricot. Ça tient au corps."},
- {nom:"Mammouth", rep:0, ere:"La grande surface au design culte des années 80. Le mammouth écrase les prix."},
- {nom:"La Halle aux Bonnes Affaires", rep:0, ere:"Des fringues pas chères pour un sport populaire. Style discount assumé."},
- {nom:"La Crèmerie du Mont Joufflu", rep:+1, ere:"La crèmerie du coin et ses pâtes pressées qui sentent bon l'alpage. Le Mont Joufflu veille, débonnaire, sur le maillot."},
- {nom:"Pastaga 41", rep:0, ere:"Le pastis de l'apéro d'après-match, 41 à l'ombre des platanes. « À consommer avec modération », jure l'étiquette en tout petit."},
+ {nom:"Saucissons Gros-Jacquot", rep:+7, ere:"Le saucisson roi sur le maillot. Tout est bon dans le cochon, dit la pub."},
+ {nom:"Zoo Municipal", rep:+6, ere:"Le zoo de la ville s'affiche fièrement. Les enfants adorent, les joueurs un peu moins."},
+ {nom:"Limonade Pétillou", rep:+6, ere:"La limonade pétillante du goûter, bulles et sucre. Le sponsor le plus rafraîchissant du championnat."},
+ {nom:"Poulet d'Or", rep:+7, ere:"Le poulet label rouge de la région. Ça ne fait pas voler bien haut, mais c'est du sérieux."},
+ {nom:"Le Râpé de Mémé", rep:+6, ere:"Le fromage râpé de la fromagerie locale. Le fromage annonce souvent la fin du repas."},
+ {nom:"Bonbons Crocandy", rep:+4, ere:"Des bonbons et des blagues pourries au dos de l'emballage. De quoi sourire à chaque but."},
+ {nom:"Siro Nimo", rep:+4, ere:"Le sirop de grenadine qui désaltère toute la famille au goûter. Pétillant de ringardise."},
+ {nom:"Cassoulet Torloting", rep:+7, ere:"La conserve qui sent bon le Sud-Ouest, le confit et le haricot. Ça tient au corps."},
+ {nom:"Mammouth", rep:+4, ere:"La grande surface au design culte des années 80. Le mammouth écrase les prix."},
+ {nom:"La Halle aux Bonnes Affaires", rep:+3, ere:"Des fringues pas chères pour un sport populaire. Style discount assumé."},
+ {nom:"La Crèmerie du Mont Joufflu", rep:+8, ere:"La crèmerie du coin et ses pâtes pressées qui sentent bon l'alpage. Le Mont Joufflu veille, débonnaire, sur le maillot."},
+ {nom:"Pastaga 41", rep:+5, ere:"Le pastis de l'apéro d'après-match, 41 à l'ombre des platanes. « À consommer avec modération », jure l'étiquette en tout petit."},
  {nom:"3617 Monique", rep:-3, de:1995, a:2004, ere:"Un service de minitel rose sur le maillot. « Composez le 3617 », osé pour un club familial."},
 ];
 const SPONSORS_PROPRES=["Brasseries Royale","Eaux Vives du Forez","Micro-Galaxie Informatique","Supermarchés Maxi",
@@ -1956,7 +1960,7 @@ function genSponsors(mult){
   const sulf=PICK(sponsorsDispo());
   return [
     {nom:ring.nom, fixe:Math.round(95000*ech*mult), prime:0, rep:ring.rep, ere:ring.ere, ringard:true,
-     desc:"sponsor du terroir — peu rémunérateur, mais le public l'adore"},
+     desc:"sponsor du terroir — peu rémunérateur, mais le public l'adore (gros bonus d'image)"},
     {nom:propres[0], fixe:Math.round(150000*ech*mult), prime:Math.round(60000*ech*mult), rep:+1,
      desc:"marque nationale — équilibré, image saine"},
     {nom:sulf.nom, fixe:Math.round(290000*ech*mult), prime:Math.round(180000*ech*mult), rep:sulf.rep,
@@ -2857,7 +2861,7 @@ function momentPenContre(mo,moi,adv,resoudre,suite){
     let arret=false, but=false;
     if(!off){
       if(z===zt){
-        const pSave=(zt==="bg"||zt==="bd")?Math.min(.85,.62+(g-75)*.005):(zt==="bc"?.75:(zt==="hc"?.45:.30));
+        const pSave=(zt==="bg"||zt==="bd")?Math.min(.90,.70+(g-75)*.006):(zt==="bc"?.82:(zt==="hc"?.48:.32));
         arret=Math.random()<pSave;
       }
       but=!arret;
@@ -2865,8 +2869,8 @@ function momentPenContre(mo,moi,adv,resoudre,suite){
     if(arret){ gk.moral=Math.min(100,(gk.moral||65)+10); }
     const libT=ZONES_PEN.find(x=>x[0]===zt)[1].toLowerCase();
     finMoment(fiche,
-      `<p style="margin-top:8px">${esc(t.nom)} frappe ${libT}${z===zt?" — vous aviez lu son regard !":" — vous êtes parti de l'autre côté..."}</p>
-       <p class="${but?"rouge":"vert"}" style="font-size:18px;margin-top:4px">${but?"💔 BUT ENCAISSÉ À LA 90ᵉ...":(arret?"🧤 ARRÊT DE "+esc(gk.nom).toUpperCase()+" !!!":"✗ À CÔTÉ ! Le poteau vous sauve !")}</p>`,
+      `<p style="margin-top:8px">${esc(t.nom)} frappe ${libT}${z===zt?" — vous plongez du bon côté !":" — vous êtes parti de l'autre côté..."}</p>
+       <p class="${but?"rouge":"vert"}" style="font-size:18px;margin-top:4px">${but?(z===zt?"💔 BUT QUAND MÊME — la frappe était trop pure !":"💔 BUT ENCAISSÉ À LA 90ᵉ..."):(arret?"🧤 ARRÊT DE "+esc(gk.nom).toUpperCase()+" !!!":"✗ À CÔTÉ ! Le poteau vous sauve !")}</p>`,
       ()=>{
         const lx=but?(t.nom+" transforme — "+libT+" — le coup de poignard de la 90ᵉ. {SCORE}")
               :(arret?("ARRÊT DE "+gk.nom.toUpperCase()+" SUR LE PENALTY !! "+moi.stade+" explose ! Le héros du soir porte des gants.")
@@ -3038,15 +3042,18 @@ function ouvreFiche(j){
 }
 
 /* ---- Mercato ---- */
+let MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*"};
 function ecranMercato(){
-  let posF="*", txtF="", ageF=99, favSeul=false, triCle="note", triDir=-1, divF="*";
+  // état des filtres conservé entre deux rendus (achat, tri…) — voir MERCF
+  let posF=MERCF.posF, txtF=MERCF.txtF, ageF=MERCF.ageF, favSeul=MERCF.favSeul, triCle=MERCF.triCle, triDir=MERCF.triDir, divF=MERCF.divF;
   const autreNum=G.div===1?2:1, autreIds=new Set((G.autre||[]).map(c=>c.id));
   const divOf=j=>autreIds.has(j.club)?autreNum:(G.div||1); // le mercato est national : D1 + D2
   const valTri=(j,k)=>k==="prix"?prixAchat(j):(k==="club"?clubById(j.club).nom:(k==="nom"?j.nom:(k==="prog"?j.note-(j.note0||j.note):j[k])));
   const rend=()=>{
+    MERCF={posF,txtF,ageF,favSeul,triCle,triDir,divF}; // mémorise les filtres pour le prochain rendu
     const tous=G.clubs.concat(G.autre||[]).filter(c=>c.id!==G.monClub).flatMap(c=>c.joueurs)
       .filter(j=>!j.pretIn&&!j.pretOut)
-      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (divF==="*"||divOf(j)===+divF) && j.nom.toLowerCase().includes(txtF))
+      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (divF==="*"||divOf(j)===+divF) && j.nom.toLowerCase().includes(txtF.toLowerCase()))
       .sort((a,b)=>{const va=valTri(a,triCle),vb=valTri(b,triCle);
         return (typeof va==="string"? va.localeCompare(vb) : va-vb)*triDir;});
     const dispo=tous.slice(0,60);
@@ -3103,18 +3110,18 @@ function ecranMercato(){
     <p class="dim">Budget transferts : <b class="jaune">${(G.budget/1e6).toFixed(1)} MF</b> ·
       Cliquez sur les en-têtes pour trier · ☆ pour suivre un joueur · L'avis des recruteurs (clic sur le joueur) révèle les pépites.</p>
     <p class="row" style="margin:8px 0">
-      <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:180px">
-      <select id="selP"><option value="*">Tous postes</option><option>G</option><option>D</option><option>M</option><option>A</option></select>
-      <select id="selA"><option value="99">Tout âge</option><option value="20">≤ 20 ans</option><option value="23">≤ 23 ans</option><option value="27">≤ 27 ans</option></select>
-      <select id="selDiv"><option value="*">D1 + D2</option><option value="1">D1 seule</option><option value="2">D2 seule</option></select>
-      <label><input type="checkbox" id="chkF"> Mes favoris ★</label>
+      <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:180px" value="${esc(txtF)}">
+      <select id="selP"><option value="*"${posF==="*"?" selected":""}>Tous postes</option><option${posF==="G"?" selected":""}>G</option><option${posF==="D"?" selected":""}>D</option><option${posF==="M"?" selected":""}>M</option><option${posF==="A"?" selected":""}>A</option></select>
+      <select id="selA"><option value="99"${ageF===99?" selected":""}>Tout âge</option><option value="20"${ageF===20?" selected":""}>≤ 20 ans</option><option value="23"${ageF===23?" selected":""}>≤ 23 ans</option><option value="27"${ageF===27?" selected":""}>≤ 27 ans</option></select>
+      <select id="selDiv"><option value="*"${divF==="*"?" selected":""}>D1 + D2</option><option value="1"${divF==="1"?" selected":""}>D1 seule</option><option value="2"${divF==="2"?" selected":""}>D2 seule</option></select>
+      <label><input type="checkbox" id="chkF"${favSeul?" checked":""}> Mes favoris ★</label>
     </p>
     <div id="listeM"></div></div>`);
   document.getElementById("selP").onchange=e=>{posF=e.target.value;rend();};
   document.getElementById("selA").onchange=e=>{ageF=+e.target.value;rend();};
   document.getElementById("selDiv").onchange=e=>{divF=e.target.value;rend();};
   document.getElementById("chkF").onchange=e=>{favSeul=e.target.checked;rend();};
-  document.getElementById("inpN").oninput=e=>{txtF=e.target.value.toLowerCase();rend();};
+  document.getElementById("inpN").oninput=e=>{txtF=e.target.value;rend();};
   document.querySelectorAll(".bJ").forEach(b=>b.onclick=()=>acheterJoker(+b.dataset.k));
   document.querySelectorAll("tr.rj").forEach(tr=>tr.onclick=e=>{
     if(e.target.closest(".bJ"))return; ouvreFiche(G.rapport[+tr.dataset.k].j);
