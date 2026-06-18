@@ -69,6 +69,10 @@ toujours « raconter quelque chose ».
   noms (16+ par club, postes 2G-5D-5M-4A = `CIBLE`) ; `genJoueur` ne complète qu'à la marge. Un joueur
   est « réel » si `j.reel` (= pas de `j.histoire`). Ne pas réintroduire de faux noms ni de joueur au
   mauvais club/âge ; ne jamais dupliquer un même joueur entre deux clubs **ni entre un club et le vivier**.
+  **Convention d'âge** : `âge = 1995 − année de naissance` (l'âge atteint dans l'année civile 1995) — s'y
+  tenir pour éviter les décalages d'un an, écueil récurrent à la curation. Un contrôle de doublons utile :
+  balayer tous les tuples `["Nom","POS",n,n,n]` (STARS + STARS_D2 + VIVIER + JOKERS_RESERVE) et vérifier
+  qu'aucun nom n'apparaît deux fois.
 - **Vivier du recruteur** (jokers signables hors fenêtre) : `VIVIER` (cibles réelles été 95) + une
   `JOKERS_RESERVE` de vrais noms des années 90. À l'intersaison, le vivier subit ~50% de rotation et se
   recomplète **en priorité avec de vrais noms** (réserve) ; une pépite procédurale n'arrive qu'en
@@ -80,8 +84,11 @@ toujours « raconter quelque chose ».
   en détail par le moteur), `G.autre` = l'autre division (simulée en **abstrait** via `classementAbstrait`
   = force des onze + bruit). À l'intersaison : **3 montées / 3 descentes** entre D1 et D2 (`montent`/
   `descendent`), les deux divisions vieillissent. `construitDivision()` bâtit une division ; `clubById`
-  cherche dans les deux. Les effectifs D2 sont au mieux (OM curé à fond, autres clubs documentés au mieux,
-  reste procédural). Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions**.
+  cherche dans les deux. Depuis v0.45, **les 20 clubs de D2 sont curés au même standard que la D1**
+  (vrais effectifs 95-96 dans `STARS_D2`, `genJoueur` ne complétant qu'à la marge) ; la case `PER`
+  (« Perpignan FC ») porte l'effectif réel de **Canet-Roussillon** — club voisin retenu faute de club
+  perpignanais en D2 cette saison-là — et Angers/Alès, sans case dans le jeu, sont restés de côté.
+  Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions**.
   Le **mercato est national** (`ecranMercato` liste D1 + D2, colonne « Div », filtre par division) ;
   la **fiche d'accueil affiche l'effectif réel curé** (STARS/STARS_D2) avant de choisir son club.
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
