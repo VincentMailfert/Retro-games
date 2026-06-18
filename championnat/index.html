@@ -173,7 +173,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.42"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.43"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -304,8 +304,8 @@ const STARS={
       ["C. Fichaux","D",27,70,71],["M. Louis-Jean","D",20,71,80],["N. Huysman","M",28,71,72],
       ["D. Robert","M",27,70,71],["C. Daury","M",26,70,71],["A. Caveglia","A",28,75,75],
       ["C. Lagrange","A",29,70,71],["S. Samson","A",21,70,76]],
- STE:[["G. Coupet","G",23,72,86],["J. Alonzo","G",23,72,80],["P. Carteron","D",25,75,76],
-      ["S. Pédron","M",24,74,78],["L. Moravcik","M",30,84,84],
+ STE:[["G. Coupet","G",23,72,86],["G. Ceccarelli","G",33,64,64],["L. Potillon","D",22,70,80],
+      ["P. Sarr","M",18,67,82],["L. Moravcik","M",30,84,84],
       ["F. Mannucci","D",20,68,76],["R. Billong","D",25,72,73],["S. Pérez","D",22,74,80],
       ["W. Sagnol","D",18,66,88],["C. Ohrel","M",27,79,79],["P. Despeyroux","M",30,75,75],
       ["A. Chedli","M",18,70,82],["L. Sandjak","A",29,75,76],["D. Thimothée","A",25,72,73],
@@ -502,7 +502,7 @@ const MALEDICTIONS={
  AUX:"Jamais champion de France — Guy Roux attend son heure depuis 1961.",
  LEN:"Le titre fuit l'Artois depuis toujours. Bollaert gronde d'impatience.",
  STE:"Dix titres au compteur... et le poids écrasant du glorieux passé.",
- PSG:"Un seul titre (1994). Paris exige l'hégémonie, rien de moins.",
+ PSG:"Deux titres (1986, 1994), des pionniers de Rocheteau aux héros d'Europe : Paris exige l'hégémonie, rien de moins.",
  OM:"L'affaire de 1993 colle aux maillots. Laver l'honneur, sur le terrain cette fois.",
  BOR:"Le rachat de 1991 a laissé des cicatrices. Reconstruire, encore.",
  MON:"Le Rocher gagne... devant 6 000 spectateurs. Faire taire les moqueries.",
@@ -568,7 +568,8 @@ function valeur(j){ // valeur de marché en francs — indexée sur la note VISI
   const ageF = (j.age>=23 && j.age<=28) ? 1.15 : (j.age<21 ? 0.8 : (j.age>30 ? 0.6 : 1));
   return Math.round(Math.pow(j.note/100,3.1) * 95e6 * ageF / 1e5)*1e5;
 }
-function salaire(j){ return Math.round(j.note*j.note*1.1); } // FF / semaine
+function salaire(j){ return Math.round(j.note*j.note*10); } // FF / semaine — la masse salariale est la principale dépense, et grimpe vite avec la qualité (un crack coûte cher)
+function fraisJournee(c){ return Math.round((c?c.cap:0)*18); } // FF / journée — entretien du stade + personnel : croît avec la taille du club et contrebalance la manne de la billetterie
 
 function avisRecruteur(j){
   const gap=j.pot-j.note;
@@ -618,7 +619,7 @@ function nouvellePartie(clubId){
     mercatoFerme:false, rapport:[], sponsor:null, offresSponsor:null, sponsorSwitch:false, prets:[],
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
-    centre:1, offreExt:null, reput:75,
+    centre:1, offreExt:null, reput:75, consigne:"equilibre",
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.rapport=genRapport();
@@ -647,6 +648,13 @@ function berger(ids){
 /* ---------- Sélection du XI et forces ---------- */
 /* ---------- Sélection du XI (4-4-2, titulaires forcés prioritaires) ---------- */
 const FORMATION={G:1,D:4,M:4,A:2};
+/* Consigne d'avant-match : modulateur d'agressivité appliqué au SEUL match du joueur.
+   att = votre attaque, adv = l'attaque adverse contre vous. Offensif marque plus mais expose ; prudent verrouille. */
+const CONSIGNES={
+  prudent:  {att:0.85, adv:0.82, label:"Prudent",   desc:"On verrouille : on encaisse moins, mais on se crée moins d'occasions."},
+  equilibre:{att:1.00, adv:1.00, label:"Équilibré", desc:"Bloc mesuré, ni trop haut ni trop bas — le réglage par défaut."},
+  offensif: {att:1.15, adv:1.15, label:"Offensif",  desc:"On pousse l'attaque : plus d'occasions, mais on laisse des espaces derrière."}
+};
 function dispo(j){ return !(j.bless>0) && !(j.susp>0) && !j._reposIncident; }
 function onze(c){
   const xi=[];
@@ -656,8 +664,8 @@ function onze(c){
     const reste=pool.filter(j=>!forces.includes(j)).sort((a,b)=>b.note-a.note);
     xi.push(...forces, ...reste.slice(0, FORMATION[p]-forces.length));
   }
-  if(xi.length<11){ // effectif décimé : on complète hors poste
-    const restants=c.joueurs.filter(j=>dispo(j)&&!xi.includes(j)).sort((a,b)=>b.note-a.note);
+  if(xi.length<11){ // effectif décimé : on complète hors poste — un joueur de champ AVANT tout 2e gardien (un gardien ne dépanne qu'en tout dernier recours)
+    const restants=c.joueurs.filter(j=>dispo(j)&&!xi.includes(j)).sort((a,b)=>((a.pos==="G")-(b.pos==="G"))||(b.note-a.note));
     xi.push(...restants.slice(0, 11-xi.length));
   }
   return xi;
@@ -797,6 +805,11 @@ function simuleMatch(home,away,verbeux){
   const fh=forces(home), fa=forces(away);
   let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18);
   let la=Math.max(.20, 2.45*Math.pow(fa.att/fh.def,2.5)*0.92);
+  // consigne d'avant-match : n'affecte QUE votre match (neutre partout ailleurs → calibrage intact)
+  if(home.id===G.monClub||away.id===G.monClub){
+    const C=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
+    if(home.id===G.monClub){ lh*=C.att; la*=C.adv; } else { la*=C.att; lh*=C.adv; }
+  }
   // bête noire : l'adversaire maudit joue toujours bien contre vous (jusqu'à ce que le sort soit brisé)
   if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
@@ -908,7 +921,7 @@ function jouerJournee(evCb){
         r.ev.push({m:88,t:"but",ic:"but",g:{cote:(dom?h:a).id,but:but.nom,pas:p?p.nom:null,sh:r.sh,sa:r.sa},x:but.nom+" surgit dans un silence étrange... BUT. La défense adverse semble pétrifiée. ("+h.id+" "+r.sh+"-"+r.sa+")"});
         r.ev.push(fin); fin.x="COUP DE SIFFLET FINAL. "+h.nom+" "+r.sh+" - "+r.sa+" "+a.nom;
       }
-      G.truque=false; G.risque=true;
+      G.truque=false; G.risque=RNDI(4,7); // l'enquête reste chaude 4 à 7 journées, puis la piste se refroidit
       G.news.unshift("L'intermédiaire a disparu dans la nuit. La victoire est là. Dormez bien... si vous le pouvez.");
     }
     if(!mien){
@@ -1086,7 +1099,7 @@ function finirJournee(delta){
       G.tresorerie += aff*70;
       G.news.unshift("J"+(G.journee+1)+" — Billetterie : "+FMT(aff)+" spectateurs, recette "+(aff*70/1e6).toFixed(2)+" MF.");
     }
-    G.tresorerie += 450000; // droits TV par journée
+    G.tresorerie += (G.div===1?450000:200000); // droits TV par journée — bien moindres en D2 : remonter, c'est aussi décrocher le jackpot télé
     const gagneJ=(hid===G.monClub&&r.sh>r.sa)||(aid===G.monClub&&r.sa>r.sh);
     if(G.equip){ G.tresorerie += G.equip.fixe; if(gagneJ&&G.equip.prime) G.tresorerie += G.equip.prime; } // contrat équipementier
     if(G.sponsor){
@@ -1099,7 +1112,12 @@ function finirJournee(delta){
       }
     }
     const masse=clubById(G.monClub).joueurs.reduce((s,j)=>s+salaire(j),0);
-    G.tresorerie -= masse;
+    const frais=fraisJournee(clubById(G.monClub)); // entretien du stade + personnel
+    G.tresorerie -= masse + frais;
+    if(G.tresorerie<0){ // le découvert agace le président : l'argent redevient une contrainte
+      G.confiance=Math.max(0,G.confiance-1);
+      if(!G._deficit){ G._deficit=true; notif("🔴 Trésorerie dans le rouge. Le président veut un retour à l'équilibre — alléger la masse salariale, vendre, ou décrocher un meilleur sponsor."); }
+    } else if(G.tresorerie>2e6){ G._deficit=false; }
   }
   // moral : temps de jeu et résultat du club humain
   majMoral(res);
@@ -1127,17 +1145,24 @@ function finirJournee(delta){
   G.confiance=Math.max(0,Math.min(100,G.confiance));
   if(G.confiance<=0 && G.journee>8){ G.vire="confiance";
     G.news.unshift("LIMOGEAGE : le président vous remercie. La D1 est cruelle."); }
-  // le scandale peut éclater
-  if(G.risque && Math.random()<0.07){
-    G.risque=false;
-    const moi=clubById(G.monClub);
-    moi.pts=Math.max(0,moi.pts-6); G.tresorerie-=8e6; G.confiance=Math.max(0,G.confiance-35);
-    G.news.unshift("L'AFFAIRE ÉCLATE ! Perquisitions au siège : 6 points de pénalité, 8 MF d'amende. Le président est livide.");
-    notif("⚖️ L'AFFAIRE A ÉCLATÉ : 6 points de pénalité, 8 MF d'amende.");
-    G.presse.unshift("« SCANDALE : des valises, des matches, des questions — la justice s'invite à "+moi.nom+". »");
+  // le scandale ne peut éclater que tant que l'enquête est chaude (fenêtre bornée) — sinon la piste se refroidit et vous passez à travers
+  if(G.risque>0){
+    if(Math.random()<0.10){
+      G.risque=0;
+      const moi=clubById(G.monClub);
+      moi.pts=Math.max(0,moi.pts-6); G.tresorerie-=8e6; G.confiance=Math.max(0,G.confiance-35);
+      G.news.unshift("L'AFFAIRE ÉCLATE ! Perquisitions au siège : 6 points de pénalité, 8 MF d'amende. Le président est livide.");
+      notif("⚖️ L'AFFAIRE A ÉCLATÉ : 6 points de pénalité, 8 MF d'amende.");
+      G.presse.unshift("« SCANDALE : des valises, des matches, des questions — la justice s'invite à "+clubById(G.monClub).nom+". »");
+    } else if(--G.risque<=0){
+      G.risque=0;
+      G.news.unshift("Faute de preuves, le juge classe l'affaire. La mallette restera un secret de parking — vous l'avez échappé belle.");
+      notif("🤫 Enquête classée, aucune charge : la piste s'est refroidie.");
+    }
   }
-  // un intermédiaire rôde...
-  if(!G.affaire && !G.risque && !G.truque && G.journee>2 && G.journee<36 && Math.random()<0.07){
+  // un intermédiaire rôde — et il sent la détresse : il revient plus souvent quand le club va mal (c'est là que la victoire garantie tente le plus)
+  const enDangerMal = G.confiance<45 || rang0>=Math.max(15, G.clubs.length-3);
+  if(!G.affaire && !G.risque && !G.truque && G.journee>2 && G.journee<36 && Math.random()<(enDangerMal?0.085:0.04)){
     G.affaire={prix:RNDI(3,7)*1e6};
     notif("🕶️ Un intermédiaire vous attend au parking... Sa proposition est sur l'écran match.");
   }
@@ -1722,7 +1747,7 @@ function byUid(uid){
   for(const c of G.clubs) for(const j of c.joueurs) if(j.uid===uid) return j;
   return null;
 }
-function tarifPret(j){ return Math.max(50000, Math.round(valeur(j)*0.0035/1e4)*1e4); }
+function tarifPret(j){ return Math.max(20000, Math.round(valeur(j)*0.0020/1e4)*1e4); } // appoint, pas une rente : prêter libère surtout le salaire et du temps de jeu
 function modalPret(j, sens){ // sens: "in" = emprunter, "out" = prêter
   const maxD=Math.min(15, 37-G.journee);
   if(maxD<3) return alert("Trop tard dans la saison pour un prêt.");
@@ -2300,7 +2325,7 @@ function intersaison(){
   // nouvelle saison
   G.saisonIdx++;
   G.saison=(1994+G.saisonIdx)+"-"+String((95+G.saisonIdx)%100).padStart(2,"0");
-  G.journee=0; G.histo=[]; G.finie=false; G.presse=[]; G.affaire=null; G.truque=false; G.risque=false;
+  G.journee=0; G.histo=[]; G.finie=false; G.presse=[]; G.affaire=null; G.truque=false; G.risque=0;
   G.calendrier=berger(G.clubs.map(c=>c.id));
   G.sponsor=null; G.offresSponsor=genSponsors(1+0.06*G.saisonIdx); G.sponsorSwitch=false;
   G.equip=null; G.offresEquip=genEquip(); // l'équipementier est à re-signer chaque saison, selon la notoriété
@@ -2364,7 +2389,7 @@ function migre(){
   G.offresSponsor=G.offresSponsor||null; G.sponsorSwitch=!!G.sponsorSwitch;
   G.prets=G.prets||[]; G.vivier=G.vivier||null;
   G.saisonIdx=G.saisonIdx||1; G.confiance=G.confiance==null?65:G.confiance;
-  G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=!!G.risque;
+  G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre";
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
   G.centre=G.centre||1; G.offreExt=G.offreExt||null;
@@ -2642,7 +2667,7 @@ function ecranCalendrier(){
   const affaire=G.affaire?`<div class="panel" style="border-color:#b86a2e">
      <h2 style="color:#ffd24a">Un intermédiaire vous approche...</h2>
      <p>« Le match de cette semaine ? Considérez-le comme... acquis. ${(G.affaire.prix/1e6).toFixed(0)} MF, en liquide, et personne n'en saura rien. »</p>
-     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Si l'affaire éclate un jour : 6 points de pénalité, 8 MF d'amende.</p>
+     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Le juge fouinera quelques journées : passé ce délai sans fuite, la piste se refroidit et vous êtes tranquille. Mais si l'affaire éclate : 6 points de pénalité, 8 MF d'amende, et un président furieux.</p>
      <p style="margin-top:8px"><button class="act" id="bMalAcc">Accepter la mallette (${(G.affaire.prix/1e6).toFixed(0)} MF)</button>
      <button class="act" id="bMalRef">Éconduire l'intermédiaire</button></p></div>`:"";
   chrome("calendrier",`
@@ -2654,6 +2679,11 @@ function ecranCalendrier(){
      <p class="ctr dim">${esc(h.stade)} · ${dom?"À DOMICILE":"À L'EXTÉRIEUR"}</p>
      <p class="ctr"><span class="${fenetreOuverte()?"vert":"dim"}">${esc(msgMercato())}</span></p>
      ${G.declar?`<p class="ctr" style="margin-top:6px;font-style:italic"><span class="rouge">«&nbsp;${esc(G.declar.txt)}&nbsp;»</span><br><span class="dim">— ${esc(G.declar.nom)} (${esc(G.declar.club)}), dans la presse du matin</span></p>`:""}
+     <div class="ctr" style="margin-top:12px">
+       <span class="dim" style="font-size:12px">Consigne d'avant-match :</span><br>
+       ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne" data-k="${k}" style="margin:4px 3px 0${G.consigne===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${CONSIGNES[k].label}</button>`).join("")}
+       <br><span class="dim" style="font-size:11px">${esc((CONSIGNES[G.consigne]||CONSIGNES.equilibre).desc)}</span>
+     </div>
      <p class="ctr" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
        <button class="act" id="bVite" style="margin-left:8px">Résultat instantané</button>
@@ -2673,6 +2703,7 @@ function ecranCalendrier(){
    <div class="panel"><h2>Dépêches</h2>${G.news.slice(0,6).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
   document.getElementById("bJouer").onclick=()=>lanceMatch(false);
   document.getElementById("bVite").onclick=()=>lanceMatch(true);
+  document.querySelectorAll(".bConsigne").forEach(b=>b.onclick=()=>{ G.consigne=b.dataset.k; montre("calendrier"); });
   const ouvreDebrief=()=>{
     if(!(G.notifs && G.notifs.length)) return;
     const lst=G.notifs.slice(); G.notifs=[];
@@ -3419,13 +3450,14 @@ function ecranFinances(){
     <tr><td>Budget transferts</td><td class="num jaune">${(G.budget/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Trésorerie (fonctionnement)</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Masse salariale hebdomadaire</td><td class="num rouge">- ${FMT(masse)} FF</td></tr>
-    <tr><td>Droits TV par journée</td><td class="num vert">+ 0,45 MF</td></tr>
+    <tr><td>Frais de fonctionnement (stade + personnel)</td><td class="num rouge">- ${FMT(fraisJournee(c))} FF/j</td></tr>
+    <tr><td>Droits TV par journée</td><td class="num vert">+ ${G.div===1?"0,45":"0,20"} MF</td></tr>
     <tr><td>Équipementier</td><td class="num">${G.equip?'<span class="vert">'+esc(G.equip.nom)+" : +"+FMT(G.equip.fixe)+" FF/j</span>":'<span class="dim">—</span>'}</td></tr>
     <tr><td>Sponsor maillot</td><td class="num">${G.sponsor?'<span class="vert">'+esc(G.sponsor.nom)+" : +"+FMT(G.sponsor.fixe)+" FF/j"+(G.sponsor.prime?" +"+FMT(G.sponsor.prime)+" FF/victoire":"")+"</span>":'<span class="dim">aucun contrat</span>'}</td></tr>
     <tr><td>Billet moyen</td><td class="num">70 FF</td></tr>
     <tr><td>Capacité de ${esc(c.stade)}</td><td class="num">${FMT(c.cap)} places</td></tr>
    </table>
-   <p class="dim" style="margin-top:8px">La billetterie n'est encaissée qu'à domicile. Les primes de classement tombent en fin de saison.</p></div>
+   <p class="dim" style="margin-top:8px">Salaires et frais de fonctionnement sont prélevés chaque journée : une masse salariale trop lourde plombe les caisses. La billetterie n'est encaissée qu'à domicile, les primes de classement tombent en fin de saison. Trésorerie dans le rouge = président mécontent.</p></div>
    <div class="panel"><h2>Dépêches financières</h2>
    ${G.news.slice(0,10).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
   document.querySelectorAll(".bSp").forEach(b=>b.onclick=()=>choisirSponsor(+b.dataset.k));
