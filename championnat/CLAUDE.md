@@ -31,6 +31,15 @@ toujours « raconter quelque chose ».
   pieds de page — l'accueil (`Prototype vX.Y`) et le jeu (`D1 MANAGER 95-96 · vX.Y ·`). L'incrémenter à
   chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils
   jouent, et pour éviter que les deux pieds de page se désynchronisent.
+- **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
+  compte `d1manager` (`https://d1manager.goatcounter.com`). C'est la **seule** entorse au « aucune dépendance
+  externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte
+  le compteur **que sur l'URL publique HTTPS** (pas en `file://`, pas en `localhost`, et le harnais Node sans
+  DOM ne l'exécute jamais), pour que les tests ne polluent pas les stats. Sans cookie, donc pas de bannière de
+  consentement. **Piège** : cette balise est un **second bloc `<script>`**, volontairement marqué
+  `type="text/javascript"` pour qu'elle ne soit **pas** capturée par le motif `<script>` *nu* de la commande
+  d'extraction (validation §1). Ne pas lui retirer cet attribut, et ne jamais ajouter d'autre bloc `<script>`
+  nu hors du gros script de jeu, sinon l'extraction du JS attrape le mauvais bloc.
 
 ## Conventions de code
 - **Éditions chirurgicales** : modifier le strict nécessaire, préserver l'art ASCII, les blasons SVG,
