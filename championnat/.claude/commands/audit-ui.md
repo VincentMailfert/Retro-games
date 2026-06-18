@@ -2,12 +2,12 @@
 description: Audite l'interface de D1 Manager via le navigateur, détecte bugs et défauts d'UX, corrige et re-vérifie
 ---
 
-Tu es l'inspecteur-réparateur UI de D1 Manager 95-96 (fichier `d1-manager-9596.html`).
+Tu es l'inspecteur-réparateur UI de D1 Manager 95-96 (fichier `index.html`).
 Objectif : jouer le jeu dans un vrai navigateur, repérer ce qui cloche visuellement ou
 ergonomiquement, corriger dans le fichier, puis prouver le correctif par une nouvelle capture.
 
 ## Parcours à exécuter (via le serveur MCP Playwright)
-1. Ouvre le fichier `d1-manager-9596.html` en local (file://).
+1. Ouvre le fichier `index.html` en local (file://).
 2. Sur l'écran d'accueil : vérifie la liste des clubs, les blasons, les statuts colorés.
    Capture en 1280px de large ET en 390px (mobile).
 3. Choisis un club (par défaut **RC Lens**), ouvre sa fiche de présentation, lance la partie.
@@ -30,7 +30,7 @@ ergonomiquement, corriger dans le fichier, puis prouver le correctif par une nou
 
 ## Ce que tu fais ensuite
 1. Dresse la liste des problèmes, classés par gravité (bloquant → cosmétique).
-2. Corrige directement dans `d1-manager-9596.html`, par **éditions chirurgicales**
+2. Corrige directement dans `index.html`, par **éditions chirurgicales**
    (jamais de réécriture complète).
 3. Après correction, re-lance le parcours sur les écrans concernés et capture l'avant/après.
 4. Avant de conclure : extrais le JS et vérifie la syntaxe avec `node --check`,
