@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.37"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.38"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2505,8 +2505,7 @@ function ecranApropos(){
      <h2 class="jaune">À propos</h2>
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
        et qui est coincé dans l'ascenseur depuis.</p>
-     <p class="dim" style="font-size:12px;line-height:1.5">D1 MANAGER 95-96 — prototype v${VERSION}. Fait main, un seul fichier, sans pub ni mouchard.
-       C'est un jeu de famille et de copains : vos retours de playtest font le jeu.</p>
+     <p class="dim" style="font-size:12px;line-height:1.5">D1 MANAGER 95-96 — prototype v${VERSION}</p>
    </div>
    <div class="panel">
      <h2 class="cyan">Une remarque ? Un scandale ?</h2>
@@ -2517,10 +2516,9 @@ function ecranApropos(){
        </select>
      </label>
      <label style="display:block;margin-bottom:10px;font-size:12px">Message
-       <textarea id="ctcMsg" rows="5" placeholder="Dites tout…" style="display:block;width:100%;margin-top:4px;resize:vertical;${champ}"></textarea>
+       <textarea id="ctcMsg" rows="5" placeholder="Nom de joueur, effectif, note scandaleuse basse... dites moi tout" style="display:block;width:100%;margin-top:4px;resize:vertical;${champ}"></textarea>
      </label>
      <button class="big" id="ctcEnvoi">✉️ Envoyer</button>
-     <p class="dim" style="font-size:11px;margin-top:10px">Cela ouvre votre messagerie avec un mail pré-rempli pour <b>${CONTACT_MAIL}</b>.</p>
    </div>`);
   document.getElementById("ctcEnvoi").onclick=()=>{
     const obj=document.getElementById("ctcObjet").value;
