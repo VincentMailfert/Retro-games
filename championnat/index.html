@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.39"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.40"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -606,6 +606,7 @@ function nouvellePartie(clubId){
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
+  assureTireur(); // un tireur attitré dès le départ
   majTitre(); montre("calendrier");
 }
 
@@ -658,6 +659,10 @@ function leadership(j){
 function capitaineDuXI(xi){ // le capitaine désigné s'il est sur la pelouse, sinon le meneur naturel
   return xi.find(j=>j.capitaine) || xi.slice().sort((a,b)=>leadership(b)-leadership(a))[0] || null;
 }
+function tireurDuXI(xi){ // le tireur d'élite (coups francs/penaltys) s'il est sur la pelouse, sinon le meilleur frappeur
+  if(!xi||!xi.length) return null;
+  return xi.find(j=>j.tireurElite) || xi.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0] || xi[0] || null;
+}
 function forces(c){
   const xi=onze(c);
   let exces=0; xi.forEach(j=>{ if((j.ego||5)>=8) exces+=(j.ego-7); });
@@ -677,6 +682,16 @@ function assureCapitaine(){
   const cand=c.joueurs.slice().sort((a,b)=>leadership(b)-leadership(a))[0];
   if(cand){ cand.capitaine=true;
     if((G.journee||0)>0) notif("©️ Brassard vacant : "+cand.nom+" est nommé capitaine par défaut."); }
+}
+/* garantit que MON club a toujours un tireur d'élite valide (penaltys/coups francs) */
+function assureTireur(){
+  const c=clubById(G.monClub); if(!c||!c.joueurs.length) return;
+  if(c.joueurs.some(j=>j.tireurElite)) return; // tireur déjà désigné
+  const cand=c.joueurs.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0]
+          || c.joueurs.filter(j=>j.pos!=="G").sort((a,b)=>b.note-a.note)[0]
+          || c.joueurs[0]; // un attaquant/milieu de préférence, sinon le meilleur joueur de champ
+  if(cand){ cand.tireurElite=true;
+    if((G.journee||0)>0) notif("🎯 "+cand.nom+" hérite des coups de pied arrêtés."); }
 }
 function libLeadership(j){
   const L=leadership({...j, moral:65}); // étoffe intrinsèque, hors forme du moment
@@ -955,13 +970,13 @@ function tireMoment(moi,adv){
       annonce:"APRÈS SON BUT, "+prov.nom.toUpperCase()+" SE TOURNE VERS LE PARCAGE ADVERSE... Le public bout, l'arbitre approche."};
   }
   if(t<0.26){
-    const tir=xiM.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0];
+    const tir=tireurDuXI(xiM);
     if(!tir) return null;
     return {type:"pen_pour", uid:tir.uid,
       annonce:"PENALTY POUR "+moi.nom.toUpperCase()+" À L'ULTIME SECONDE !! "+tir.nom+" pose le ballon..."};
   }
   if(t<0.50){
-    const tir=xiA.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0];
+    const tir=tireurDuXI(xiA);
     const gk=xiM.find(j=>j.pos==="G");
     if(!tir||!gk) return null;
     return {type:"pen_contre", uid:tir.uid, gk:gk.uid,
@@ -1192,6 +1207,7 @@ function finirJournee(delta){
   }
   if(G.journee>=38) finDeSaison();
   assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
+  assureTireur(); // idem si le tireur attitré a quitté le club
   sauvegardeLocale(true); // sauvegarde auto en fin de journée
 }
 
@@ -2314,6 +2330,7 @@ function intersaison(){
   G.rapport=genRapport();
   G.news.unshift("SAISON "+G.saison+" — Objectif du président : "+G.objectif.label+".");
   assureCapitaine(); // le capitaine a pu raccrocher les crampons : on reconduit un meneur
+  assureTireur(); // de même pour le tireur attitré
   G.recap=rec;
 }
 function classement(){
@@ -2361,6 +2378,7 @@ function migre(){
     }
   }
   assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
+  assureTireur(); // vieilles sauvegardes : pas de tireur désigné → on en nomme un
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
     if(r && r.pen && !r.moment) r.moment={type:"pen_pour", uid:r.pen.uid};
@@ -2973,16 +2991,17 @@ function momentPenPour(mo,moi,adv,resoudre,suite){
   const gk=onze(adv).find(j=>j.pos==="G")||{note:70,nom:"le gardien"};
   const fiche=cadreMoment("PENALTY — 90ᵉ MINUTE",
     `<p><b>${esc(t.nom)}</b> (note ${t.note}) face à <b>${esc(gk.nom)}</b> (${gk.note}).</p>
+     ${t.tireurElite?`<p class="cyan">🎯 Votre tireur d'élite s'avance — le sang-froid en plus.</p>`:""}
      <p class="dim">Choisissez la zone. La lucarne ne pardonne qu'aux grands joueurs — le ras de terre est plus sûr, mais le gardien le sait aussi.</p>`+grilleZones(""));
   fiche.querySelectorAll(".zPen").forEach(b=>b.onclick=()=>{
     const z=b.dataset.z, s=t.note, g=gk.note;
-    const pOff=(z==="hg"||z==="hd")?Math.max(0.05,0.48-0.005*s):(z==="hc")?Math.max(0.03,0.30-0.003*s):(z==="bc")?0.02:0.04;
+    const pOff=((z==="hg"||z==="hd")?Math.max(0.05,0.48-0.005*s):(z==="hc")?Math.max(0.03,0.30-0.003*s):(z==="bc")?0.02:0.04)*(t.tireurElite?0.6:1);
     const zg=zoneGardien();
     const off=Math.random()<pOff;
     let arret=false, marque=false;
     if(!off){
       if(zg===z){
-        const pSave=(z==="bg"||z==="bd")?Math.min(.85,.62+(g-75)*.005):(z==="bc"?.75:(z==="hc"?.45:.30));
+        const pSave=((z==="bg"||z==="bd")?Math.min(.85,.62+(g-75)*.005):(z==="bc"?.75:(z==="hc"?.45:.30)))*(t.tireurElite?0.82:1);
         arret=Math.random()<pSave;
       }
       marque=!arret;
@@ -3131,7 +3150,7 @@ function ecranEffectif(){
    <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th></tr>
    ${js.map((j,i)=>`<tr class="click" data-i="${c.joueurs.indexOf(j)}">
      <td>${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan">★</span>':""}</td>
-     <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}</td>
+     <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}</td>
      <td class="pos-${j.pos}">${j.pos}</td><td class="num">${j.age}</td>
      <td class="num"><b>${j.note}</b></td>
      <td>${pictos(j)}</td>
@@ -3192,6 +3211,14 @@ function nommerCapitaine(j){
   document.getElementById("cNo").onclick=()=>{ fiche.style.display="none"; };
   fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
 }
+function nommerTireur(j){ // désigne le tireur attitré (penaltys/coups francs) — pas de gardien
+  const c=clubById(G.monClub); if(!c||j.club!==G.monClub||j.pos==="G") return;
+  c.joueurs.forEach(x=>x.tireurElite=false); j.tireurElite=true;
+  j.moral=Math.min(100,(j.moral||65)+4); // être le tireur attitré, ça flatte
+  G.news.unshift("COUPS DE PIED ARRÊTÉS : "+j.nom+" récupère penaltys et coups francs.");
+  notif("🎯 "+j.nom+" est votre tireur d'élite.");
+  fermeFiche(); rafraichir();
+}
 function ouvreFiche(j){
   const n0=j.note0||j.note;
   const v0=valeur({...j, note:n0}), v1=valeur(j);
@@ -3214,6 +3241,8 @@ function ouvreFiche(j){
     <p>Moral : <b class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"jaune")}">${Math.round(j.moral||65)}/100</b>${(j.sansJouer||0)>=3?' <span class="rouge">— ronge son frein sur le banc</span>':""}</p>
     ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
       :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
+    ${j.tireurElite?`<p class="cyan">🎯 Tireur d'élite — coups francs et penaltys</p>`
+      :(j.club===G.monClub&&!j.pretIn&&j.pos!=="G"?`<p class="dim">Coups de pied arrêtés : <button class="act" id="bTir" style="margin-left:6px">🎯 Désigner tireur</button></p>`:"")}
     ${j.grace?`<p class="vert">✨ En état de grâce — il vit la saison de sa vie !</p>`:""}
     ${j.selA?`<p class="cyan">International A${j.butSel?" — a marqué en sélection":""}</p>`:(j.selEsp?`<p class="cyan">International Espoirs</p>`:"")}
     ${(!j.reel&&j.histoire)?`<p style="margin-top:8px" class="cyan">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}
@@ -3230,6 +3259,7 @@ function ouvreFiche(j){
   const bO=document.getElementById("bPretOut"); if(bO) bO.onclick=()=>modalPret(j,"out");
   const bI=document.getElementById("bPretIn"); if(bI) bI.onclick=()=>modalPret(j,"in");
   const bC=document.getElementById("bCap"); if(bC) bC.onclick=()=>nommerCapitaine(j);
+  const bT=document.getElementById("bTir"); if(bT) bT.onclick=()=>nommerTireur(j);
   document.getElementById("bF").onclick=()=>fiche.style.display="none";
   fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
 }

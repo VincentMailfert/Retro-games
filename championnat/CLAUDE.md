@@ -123,6 +123,14 @@ toujours « raconter quelque chose ».
   joueur — un cadre cupide (ego/vénalité élevés) **réclame une prime** (`G.tresorerie`) : payée il est à fond
   (moral +), vexé il mène mollement (moral −). `assureCapitaine()` garantit toujours un capitaine valide
   (démarrage, départ, retraite, vieille sauvegarde) ; ne jamais laisser MON club sans brassard.
+- **Tireur d'élite** (`tireurDuXI`, `assureTireur`, `nommerTireur`, flag `j.tireurElite`, badge 🎯) : chaque club a
+  UN tireur attitré des **penaltys et coups francs**, calqué sur le capitanat. `tireurDuXI(xi)` = le désigné s'il
+  est sur la pelouse, sinon le meilleur frappeur M/A — utilisé pour les penaltys `pen_pour`/`pen_contre` de
+  `tireMoment` (l'IA prend son meilleur frappeur, faute de flag). `assureTireur()` garantit un tireur valide pour
+  MON club (démarrage, départ, intersaison, vieille sauvegarde) ; **vous** le désignez depuis la fiche joueur
+  (jamais un gardien). Sur le **penalty interactif** (`momentPenPour`), un tireur d'élite frappe avec **plus de
+  sang-froid** (`pOff`×0,6 de ratés, `pSave`×0,82 côté gardien). Badge 🎯 dans l'effectif et la fiche ; ne jamais
+  laisser MON club sans tireur.
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 
