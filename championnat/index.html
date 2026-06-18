@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.38"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.39"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1528,13 +1528,13 @@ function selections(){
     if((j.nat||"FR")!=="FR") continue;
     if(j.note>=84 && !j.selA){
       j.selA=true; j.moral=Math.min(100,(j.moral||65)+8);
-      G.news.unshift("ÉQUIPE DE FRANCE : "+j.nom+" honore sa première sélection chez les Bleus !");
-      notif("🇫🇷 "+j.nom+" appelé en ÉQUIPE DE FRANCE — première sélection !");
-      G.presse.unshift("« "+j.nom+" en Bleu — la récompense d'un travail de club remarquable. »");
+      G.news.unshift("ÉQUIPE NATIONALE : "+j.nom+" honore sa première sélection nationale !");
+      notif("🌍 "+j.nom+" appelé en ÉQUIPE NATIONALE — première sélection !");
+      G.presse.unshift("« "+j.nom+" en sélection — la récompense d'un travail de club remarquable. »");
     } else if(j.selA && !j.butSel && j.pos!=="G" && Math.random()<0.3){
       j.butSel=true; j.moral=Math.min(100,(j.moral||65)+5);
-      G.news.unshift("TRÊVE INTERNATIONALE : premier but en équipe de France pour "+j.nom+" !");
-      notif("🇫🇷 Premier but en Bleu pour "+j.nom+" !");
+      G.news.unshift("TRÊVE INTERNATIONALE : premier but en équipe nationale pour "+j.nom+" !");
+      notif("🌍 Premier but en sélection pour "+j.nom+" !");
     } else if(j.selA){
       j.moral=Math.min(100,(j.moral||65)+4); // revenir de Clairefontaine fait toujours du bien
       if(j.age<=24 && j.note<j.pot && Math.random()<0.18){
@@ -1542,8 +1542,8 @@ function selections(){
       }
     } else if(j.age<=21 && j.note>=76 && !j.selEsp){
       j.selEsp=true; j.moral=Math.min(100,(j.moral||65)+5);
-      G.news.unshift("ESPOIRS : "+j.nom+" ("+j.age+" ans) appelé en équipe de France Espoirs.");
-      notif("🇫🇷 "+j.nom+" ("+j.age+" ans) convoqué chez les Espoirs.");
+      G.news.unshift("ESPOIRS : "+j.nom+" ("+j.age+" ans) appelé en équipe nationale Espoirs.");
+      notif("🌍 "+j.nom+" ("+j.age+" ans) convoqué chez les Espoirs.");
     }
   }
 }
@@ -2028,7 +2028,7 @@ const SPONSORS_SULFUREUX=[
  {nom:"BTP Construquick", rep:-12, defaut:0.30, ere:"La boîte de BTP au carnet de commandes trouble. Du cash tout de suite, des questions plus tard."},
  {nom:"Bâtiment Santucci & Fils", rep:-13, defaut:0.25, ere:"Une société de BTP insulaire au capital opaque et aux amitiés bien placées. On ne refuse pas vraiment, et on ne pose pas de questions."},
  {nom:"Cigarettes Mistral", rep:-15, a:2008, ere:"Une marque de tabac, comme au bon vieux temps des maillots enfumés."},
- {nom:"Groupe Méridien Promesses", rep:-10, defaut:0.45, ere:"Pleine de belles promesses... mais paiera-t-elle vraiment ? Rien n'est moins sûr."},
+ {nom:"Roch, Encourt & Associés", rep:-10, defaut:0.45, ere:"Pleine de belles promesses... mais paiera-t-elle vraiment ? Rien n'est moins sûr."},
  {nom:"Télé-Magnat Diffusion", rep:-13, de:1999, ere:"Une nouvelle chaîne tenue par des magnats à la réputation sulfureuse — l'argent du câble coule à flots."},
  {nom:"Bidoo Startup Internet", rep:-8, de:1998, a:2003, defaut:0.40, moderne:true, ere:"Une jeune pousse de l'Internet, gavée de capital-risque et de promesses en « -oo ». La « nouvelle économie » s'affiche sur les maillots — pourvu que la bulle ne crève pas."},
  {nom:"Mobilis-Téléphonie Mobile", rep:-6, a:2004, defaut:0.15, ere:"Un de ces nouveaux opérateurs de téléphonie mobile qui se lancent à grand renfort de pub. Le GSM, paraît-il, va tout changer."},
@@ -3215,7 +3215,7 @@ function ouvreFiche(j){
     ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
       :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
     ${j.grace?`<p class="vert">✨ En état de grâce — il vit la saison de sa vie !</p>`:""}
-    ${j.selA?`<p class="cyan">International français${j.butSel?" — a marqué chez les Bleus":""}</p>`:(j.selEsp?`<p class="cyan">International Espoirs</p>`:"")}
+    ${j.selA?`<p class="cyan">International A${j.butSel?" — a marqué en sélection":""}</p>`:(j.selEsp?`<p class="cyan">International Espoirs</p>`:"")}
     ${(!j.reel&&j.histoire)?`<p style="margin-top:8px" class="cyan">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}
     <p style="margin-top:8px" class="cyan">Avis des recruteurs :</p>
     <p>« ${esc(avisRecruteur(j))} »</p>
