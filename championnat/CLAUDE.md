@@ -19,7 +19,10 @@ toujours « raconter quelque chose ».
 
 ## Architecture (un seul fichier)
 - `index.html` : tout est dedans — `<style>`, `<body>` minimal, gros `<script>` vanilla.
-- **Aucun framework, aucune dépendance externe, aucun build.** HTML/CSS/JS pur.
+- **Aucun framework, aucun build, et aucune dépendance externe dans la logique de jeu.** HTML/CSS/JS pur.
+  Deux entorses purement cosmétiques chargées depuis le `<head>`, sans effet sur le moteur (voir plus bas) :
+  les fontes Google (VT323/Silkscreen) et le compteur GoatCounter — toutes deux dégradent proprement si le
+  réseau manque (repli `monospace`, pas de comptage).
 - État global dans l'objet `G` (club, journée, joueurs, finances, réputation, incidents…).
 - **Sauvegarde** : sauvegarde rapide en 1 clic dans le `localStorage` (clé `SAVEKEY`) — auto à chaque
   fin de journée et à chaque transition d'écran (`montre`), plus un bouton « 💾 Sauvegarder » en pied de
@@ -32,8 +35,8 @@ toujours « raconter quelque chose ».
   chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils
   jouent, et pour éviter que les deux pieds de page se désynchronisent.
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
-  compte `d1manager` (`https://d1manager.goatcounter.com`). C'est la **seule** entorse au « aucune dépendance
-  externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte
+  compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
+  Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte
   le compteur **que sur l'URL publique HTTPS** (pas en `file://`, pas en `localhost`, et le harnais Node sans
   DOM ne l'exécute jamais), pour que les tests ne polluent pas les stats. Sans cookie, donc pas de bannière de
   consentement. **Piège** : cette balise est un **second bloc `<script>`**, volontairement marqué
@@ -48,7 +51,16 @@ toujours « raconter quelque chose ».
 - Helpers courts en camelCase (`clubById`, `onze`, `majReput`, `tireIncident`…).
 - Montants en francs (FF) ou millions de francs (MF). Époque oblige.
 - Style visuel : télétexte Championship Manager 2 — fond bleu nuit `#0b1626`, jaune `#ffd24a`,
-  cyan `#6fd6e8`, monospace. Respecter cette palette.
+  cyan `#6fd6e8`. Respecter cette palette.
+- **Typographie** : deux fontes d'écran rétro, déclarées en variables `:root` (toujours garder le repli
+  `monospace`). `--font-ui` = **VT323** (toute l'interface, portée par `body`) ; `--font-led` = **Silkscreen**
+  (la « voix tableau d'affichage » : flash de but `#butFlash .gros`, `.scoreline`, et les chiffres de score
+  `.tSc`/`.tSep`). **Piège de métrique** : VT323 rend nettement plus petit que Consolas à taille égale — la base
+  est à `17px` (pas 14) et toutes les `font-size` (sous-éléments **et** bloc mobile) ont été remontées d'environ
+  20 % pour rester lisibles. Si on change de fonte ou qu'on ajoute un écran, relire les tailles (surtout les
+  tableaux mercato/classement). Les temps forts LED portent un **halo serré + ombre pixel**
+  (`text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6)`), pas un néon flou — ne pas réintroduire le
+  `0 0 9px`.
 
 ## Systèmes de jeu en place (ne pas casser)
 - **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
