@@ -64,7 +64,8 @@ toujours « raconter quelque chose ».
 
 ## Systèmes de jeu en place (ne pas casser)
 - **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
-  `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** — viser ~97% de vrais
+  `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** (référence de curation :
+  **Transfermarkt**, page effectif par club et saison — `…/kader/verein/<id>/saison_id/1995`) — viser ~97% de vrais
   noms (16+ par club, postes 2G-5D-5M-4A = `CIBLE`) ; `genJoueur` ne complète qu'à la marge. Un joueur
   est « réel » si `j.reel` (= pas de `j.histoire`). Ne pas réintroduire de faux noms ni de joueur au
   mauvais club/âge ; ne jamais dupliquer un même joueur entre deux clubs **ni entre un club et le vivier**.
@@ -90,6 +91,13 @@ toujours « raconter quelque chose ».
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé =
   cage encore plus fragile). Les **gardiens fautent autrement** qu'un joueur de champ (`COMM.crGK`/`COMM.cjGK` :
   sortie kamikaze à la Schumacher, poings en avant, main hors surface) — branché sur `j.pos==="G"`.
+- **Consigne d'avant-match** (`CONSIGNES`, `G.consigne` ∈ `prudent`/`equilibre`/`offensif`, défaut `equilibre`) :
+  un **choix restreint** avant chaque match (sélecteur sur l'écran du match, consigne active surlignée, elle
+  persiste jusqu'au changement suivant). Modulateur d'agressivité appliqué **au SEUL match du joueur** dans
+  `simuleMatch` (`att` = votre attaque, `adv` = l'attaque adverse contre vous) : offensif marque plus mais
+  expose, prudent verrouille. Neutre (×1) pour tous les autres clubs et en `equilibre` → **le calibrage du
+  championnat reste intact** (le harnais joue en `equilibre`). Multiplicateurs = réglages tunables. À migrer
+  (`G.consigne||"equilibre"`).
 - **Moments de match**, deux familles. **Interactifs** (`MOMENTS_INTERACTIFS` : penalty pour/contre, tacle,
   provocation) — overlay à choix. **Non interactifs qui changent le score** (`MOMENTS_BUT` : but de 50m, geste
   d'anthologie, et les **cagades de gardien** `cagade`/`cadeau`) : tirés par `tireMoment`, résolus par
@@ -99,6 +107,13 @@ toujours « raconter quelque chose ».
   deux sens** : `cagade` (le vôtre se troue) / `cadeau` (celui d'en face).
 - **Incidents de vie de club** : catalogue `INCIDENTS` (~38 cartes), tiré ~1 journée sur 3,
   chacun avec un joueur, 2-3 choix, des effets via `eff(j, {…})`. Anti-répétition sur 8 journées.
+- **Mallette / match truqué** (`G.affaire` l'offre, `G.truque` la victoire promise, `G.risque` le compte à
+  rebours d'enquête) : un intermédiaire propose une victoire garantie (3-7 MF) ; accepter arme `G.truque`
+  (match suivant gagné), puis `G.risque=RNDI(4,7)` ouvre une **fenêtre d'enquête bornée** (~10 %/journée
+  d'éclatement : −6 pts, −8 MF, −35 de confiance ; sinon la piste se refroidit → ~44 % de se faire prendre).
+  **Ne JAMAIS** rendre `G.risque` permanent : l'ancien booléen valait ~94 % de scandale, donc refuser était
+  toujours optimal et le dilemme était mort. L'intermédiaire **rôde davantage quand le club coule** (confiance
+  < 45 ou bas de tableau). `G.risque` est un entier (migrer `+G.risque||0`).
 - **Datation par époque** : chaque incident/sponsor peut porter `de:` et/ou `a:` (années).
   `anneeJeu()` = 1994 + saisonIdx. **Toujours dater un contenu marqué par son époque**
   (réseaux sociaux ≥ 2009, paris en ligne ≥ 2010, etc.). L'anachronisme casse l'immersion.
@@ -113,6 +128,16 @@ toujours « raconter quelque chose ».
   expire à l'intersaison (à re-signer). 3 offres types : gros fixe / fixe moindre + prime à la victoire /
   atelier local modeste mais +réputation. Noms **fictifs** (Athéna, Triax, Cheetah, Ombra, Oméga,
   Le Faisan Sportif, Ringbok, Tombola, Sportec Vosges, Le Grand Échalas…) — jamais de vraie marque.
+- **Économie — « l'argent est une contrainte »** : chaque journée, pour MON club, `finirJournee` encaisse
+  billetterie à domicile (`affluence×70`), droits TV (**450 kF en D1, 200 kF en D2** — remonter, c'est le
+  jackpot télé), sponsor et équipementier, puis prélève **deux charges** : la **masse salariale**
+  (`salaire(j)=note²×10`, grimpe vite avec la qualité — empiler des cracks coûte cher) et les **frais de
+  fonctionnement** (`fraisJournee(c)=cap×15`, entretien stade + personnel : un grand stade vide devient un
+  fardeau). Trésorerie négative = `G.confiance−1`/journée + alerte (flag `G._deficit`). Plancher mesuré dans
+  le moteur : club moyen ~+6 MF/saison sans sponsor, **D2 en déficit** (survie). Le **budget mercato `G.budget`**
+  reste un pot séparé (réalimenté à 70 % par la prime de classement à l'intersaison). Les **prêts** sont un
+  appoint, pas une rente (`tarifPret` abaissé) : prêter libère surtout le salaire. Tous ces coefficients sont
+  des **réglages** à durcir/adoucir après playtest. L'écran Finances détaille chaque poste.
 - **Marché des transferts IA** (`transfertIA`) : pendant les fenêtres (`fenetreOuverte`), un club IA achète
   un joueur à un autre, dans la limite de **son** budget (`c.budget`, réapprovisionné à l'intersaison). Règles :
   ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et
@@ -193,3 +218,7 @@ toujours « raconter quelque chose ».
   garantit pas l'arrêt (les frappes pures passent quand même) ; le texte ne doit donc jamais clamer la réussite
   (« vous aviez lu son regard ! ») quand le but rentre — d'où le verdict « BUT QUAND MÊME — la frappe était
   trop pure » dans ce cas. Cohérence texte/résultat obligatoire.
+- La **sélection du XI** (`onze`) complète un secteur décimé (blessures/suspensions) en servant les **joueurs
+  de champ d'abord** ; un 2e gardien ne bouche un trou qu'en **tout dernier recours** (tri
+  `(a.pos==="G")-(b.pos==="G")||note`). Bug d'origine signalé en playtest : on alignait un gardien remplaçant
+  à la place d'un joueur de champ disponible. Gardé en régression par la **section E** du harnais.
