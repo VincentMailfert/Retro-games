@@ -173,7 +173,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.43"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.44"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -460,6 +460,22 @@ const TRAITS={ // profils curés des fortes personnalités de l'époque
  "Y. Djorkaeff":{ego:7,agress:3,fragile:3,venal:4},"T. Henry":{ego:3,agress:2,fragile:3,venal:3},
  "Ronaldo":{ego:5,agress:2,fragile:7,venal:6},     "E. Scifo":{ego:6,agress:3,fragile:5,venal:3},
 };
+// Le panthéon des bouchers notoires de la L1 (palmarès cartons) — quand l'un d'eux est dans le jeu,
+// son agressivité est poussée au taquet (picto 🪝). Di Meco, dit la légende, est « le pire ».
+const BOUCHERS={
+ "É. Di Meco":10, "C. Rool":10, "S. Diawara":9, "C. Jeunechamp":9, "L. Battles":9,
+ "F. Jurietti":8, "F. Balmont":8, "J. Leroy":8, "É. Cissé":8, "A. Diarra":8,
+ "N. Saveljic":8, "B. Pedretti":8, "M. Chalmé":8, "A. Réveillère":8, "C. Barbosa":8, "B. Cheyrou":8,
+};
+// Les rois du coup franc de la L1 (classement historique des buteurs sur CPA) — don inné des balles
+// arrêtées : ceux-là deviennent tireurs d'élite (🎯) dès qu'ils foulent une pelouse, même peu notés.
+const TIREURS_CF=new Set([
+ "Juninho","F. Sauzée","A. Caveglia","F. Meyrieu","Wendel","P. Pauleta","M. Bastos","T. Bertin",
+ "A. Asanović","C. Martins","M. Vahirua","S. Guivarc'h","J.-L. Zanon","W. Khazri","Nenê","L. Robert",
+ "C. Grenier","D. Wass","F. Brisson","P. Jeannol","Z. Ibrahimović","A. Emon","B. Ferrer","B. Bellone",
+ "P. Le Guen","Z. Zidane","J. Gourvennec","G. Passi","V. Halilhodžić","D. Payet","R. Boudebouz",
+ "N. Fekir","Á. Di María","B. Bourigeaud","T. Savanier",
+]);
 function initTraits(j){
   if(j.ego==null)    j.ego    = Math.max(1, RNDI(1,6) + (j.note>=85?RNDI(1,4):0));
   if(j.agress==null) j.agress = Math.max(1, RNDI(0,6)+RNDI(0,4));
@@ -467,19 +483,22 @@ function initTraits(j){
   if(j.venal==null)  j.venal  = Math.max(1, RNDI(0,6)+RNDI(0,4));
   const t=TRAITS[j.nom];
   if(t){ j.ego=t.ego; j.agress=t.agress; j.fragile=t.fragile; j.venal=t.venal; }
+  if(BOUCHERS[j.nom]!=null) j.agress=BOUCHERS[j.nom]; // boucher notoire : agressivité au maximum
   j.ego=Math.min(10,j.ego); j.agress=Math.min(10,j.agress); j.fragile=Math.min(10,j.fragile); j.venal=Math.min(10,j.venal);
-  // don RARE des coups de pied arrêtés (penaltys + coups francs) : réservé aux bons milieux/attaquants, peu fréquent
-  if(j.tireurElite==null) j.tireurElite = (t&&t.tireur) ? true : ("MA".includes(j.pos||"") && (j.note||0)>=79 && Math.random()<0.09);
+  // don RARE des coups de pied arrêtés (penaltys + coups francs) : réservé aux bons milieux/attaquants, peu fréquent ;
+  // un vrai roi du coup franc (TIREURS_CF) l'a d'office, quelle que soit sa note
+  if(j.tireurElite==null) j.tireurElite = ((t&&t.tireur)||TIREURS_CF.has(j.nom)) ? true : ("MA".includes(j.pos||"") && (j.note||0)>=79 && Math.random()<0.09);
 }
 const egoLib=v=>v>=9?"Diva — le vestiaire retient son souffle":v>=7?"Forte tête":v>=5?"Caractère affirmé":"Bon coéquipier";
 const agressLib=v=>v>=8?"Boucher notoire":v>=6?"Rugueux":v>=4?"Engagé":"Fair-play";
 const fragLib=v=>v>=8?"En sucre":v>=6?"Fragile":v>=4?"Constitution normale":"Un roc";
 const venalLib=v=>v>=8?"L'argent lui tourne la tête":v>=6?"Sensible aux sirènes":v>=4?"Pragmatique":"Joue pour le maillot";
-function pictos(j){
+function pictos(j, avecTireur){
   let s="";
+  if(avecTireur && j.tireurElite) s+='<span title="Tireur d\'élite — coups francs et penaltys">🎯</span>';
   if((j.ego||5)>=8)    s+='<span title="Diva — ego surdimensionné, pèse sur la cohésion">👑</span>';
   else if((j.ego||5)<=3) s+='<span title="Team player — bon coéquipier, ciment du vestiaire">🤝</span>';
-  if((j.agress||5)>=8) s+='<span title="Boucher — collectionne cartons et suspensions">🪝</span>';
+  if((j.agress||5)>=8) s+='<span title="'+((j.agress||5)>=10?"Boucher légendaire — la terreur des ailiers":"Boucher — collectionne cartons et suspensions")+'">🪝</span>';
   if((j.fragile||5)>=8)s+='<span title="En sucre — abonné à l\'infirmerie">🤕</span>';
   if((j.venal||5)>=8)  s+='<span title="Vénal — chaque offre étrangère lui tourne la tête">🤑</span>';
   if(j.moral!=null && j.moral<=30) s+='<span title="Moral au plus bas — performances en berne">😞</span>';
@@ -570,6 +589,18 @@ function valeur(j){ // valeur de marché en francs — indexée sur la note VISI
 }
 function salaire(j){ return Math.round(j.note*j.note*10); } // FF / semaine — la masse salariale est la principale dépense, et grimpe vite avec la qualité (un crack coûte cher)
 function fraisJournee(c){ return Math.round((c?c.cap:0)*18); } // FF / journée — entretien du stade + personnel : croît avec la taille du club et contrebalance la manne de la billetterie
+// Politique tarifaire de la billetterie : recette à l'unité contre ferveur populaire. Brader remplit le stade,
+// soigne l'image et le moral ; faire payer cher gonfle la caisse mais vide les gradins et écorne la réputation.
+// `prix` = recette par spectateur (FF), `aff` = modulateur d'affluence, `rep` = dérive réputation / match à domicile,
+// `moral` = nudge moral / match à domicile. Le palier 2 (« Normal », 70 FF, neutre) préserve le calibrage d'origine.
+const PRIX_BILLET=[
+ {nom:"Populaire", prix:45,  aff:1.14, rep:+0.35, moral:+0.45, desc:"Tarif du peuple : les gradins débordent, la ville vous adore — mais chaque billet rapporte une misère."},
+ {nom:"Modéré",    prix:58,  aff:1.06, rep:+0.12, moral:+0.18, desc:"Accessible. Le stade respire et personne ne maugrée à la caisse."},
+ {nom:"Normal",    prix:70,  aff:1.00, rep:0,     moral:0,     desc:"Le prix d'usage. Ni applaudi, ni reproché."},
+ {nom:"Majoré",    prix:92,  aff:0.91, rep:-0.22, moral:-0.12, desc:"On rentabilise la tribune. Les abonnés grognent, mais si l'équipe gagne ils reviennent."},
+ {nom:"Premium",   prix:120, aff:0.82, rep:-0.45, moral:-0.30, desc:"Guichets de luxe : le tiroir-caisse se remplit, le cœur des supporters un peu moins."},
+];
+function palierBillet(){ return PRIX_BILLET[G.prixBillet!=null?G.prixBillet:2]; }
 
 function avisRecruteur(j){
   const gap=j.pot-j.note;
@@ -619,7 +650,7 @@ function nouvellePartie(clubId){
     mercatoFerme:false, rapport:[], sponsor:null, offresSponsor:null, sponsorSwitch:false, prets:[],
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
-    centre:1, offreExt:null, reput:75, consigne:"equilibre",
+    centre:1, offreExt:null, reput:75, consigne:"equilibre", prixBillet:2,
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.rapport=genRapport();
@@ -864,6 +895,7 @@ function affluence(home,away){
   if(RIVAL[home.id]===away.id) taux+=0.15; // le derby fait toujours guichets fermés ou presque
   if(home.id===G.monClub && (G.buzz||0)>0) taux+=0.045*Math.min(3,G.buzz); // une recrue fait vendre des billets
   if(home.id===G.monClub && G.reput!=null) taux+=(G.reput-60)*0.0016; // un club respecté attire, un club décrié lasse
+  if(home.id===G.monClub) taux*=palierBillet().aff; // votre politique tarifaire : brader remplit, faire payer cher vide
   return Math.round(home.cap*Math.max(0.30, Math.min(1, taux)));
 }
 
@@ -1095,9 +1127,14 @@ function finirJournee(delta){
     appliqueResultat(h,a,r.sh,r.sa,pre);
     // finances : billetterie à domicile + droits TV + sponsor
     if(hid===G.monClub){
-      const aff=affluence(h,a);
-      G.tresorerie += aff*70;
-      G.news.unshift("J"+(G.journee+1)+" — Billetterie : "+FMT(aff)+" spectateurs, recette "+(aff*70/1e6).toFixed(2)+" MF.");
+      const aff=affluence(h,a), pb=palierBillet();
+      G.tresorerie += aff*pb.prix;
+      G.news.unshift("J"+(G.journee+1)+" — Billetterie ("+pb.nom.toLowerCase()+", "+pb.prix+" FF) : "+FMT(aff)+" spectateurs, recette "+(aff*pb.prix/1e6).toFixed(2)+" MF.");
+      // l'image du club glisse selon le tarif (cher = râleries, bradé = ferveur) — discret, mais cumulatif sur la saison
+      if(pb.rep) G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+pb.rep));
+      // le moral du vestiaire suit le tarif ET le remplissage : un stade plein porte, un stade vide plombe
+      const fill=Math.min(1, aff/Math.max(1,h.cap)), nudge=pb.moral+(fill-0.70)*0.8;
+      if(nudge) clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.max(0,Math.min(100,(j.moral==null?65:j.moral)+nudge)));
     }
     G.tresorerie += (G.div===1?450000:200000); // droits TV par journée — bien moindres en D2 : remonter, c'est aussi décrocher le jackpot télé
     const gagneJ=(hid===G.monClub&&r.sh>r.sa)||(aid===G.monClub&&r.sa>r.sh);
@@ -2389,7 +2426,7 @@ function migre(){
   G.offresSponsor=G.offresSponsor||null; G.sponsorSwitch=!!G.sponsorSwitch;
   G.prets=G.prets||[]; G.vivier=G.vivier||null;
   G.saisonIdx=G.saisonIdx||1; G.confiance=G.confiance==null?65:G.confiance;
-  G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre";
+  G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre"; G.prixBillet=(G.prixBillet==null?2:G.prixBillet);
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
   G.centre=G.centre||1; G.offreExt=G.offreExt||null;
@@ -3230,7 +3267,7 @@ function ecranEffectif(){
   const js=c.joueurs.slice().sort((a,b)=>"GDMA".indexOf(a.pos)-"GDMA".indexOf(b.pos)||b.note-a.note);
   const xi=onze(c);
   chrome("effectif",`<div class="panel"><h2>Effectif — ${esc(c.nom)}</h2>
-   <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th></tr>
+   <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th><th></th></tr>
    ${js.map((j,i)=>`<tr class="click" data-i="${c.joueurs.indexOf(j)}">
      <td>${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan">★</span>':""}</td>
      <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}</td>
@@ -3242,7 +3279,8 @@ function ecranEffectif(){
      <td class="num">${(valeur(j)/1e6).toFixed(1)} MF</td>
      <td class="num">${j.buts}</td><td class="num">${j.passes||0}</td>
      <td><button class="act bT" data-i="${c.joueurs.indexOf(j)}">${j.titu?"Libérer":"Titulariser"}</button>
-         <button class="act bV" data-i="${c.joueurs.indexOf(j)}">${j.avendre?"Retirer":"Vendre"}</button></td></tr>`).join("")}
+         <button class="act bV" data-i="${c.joueurs.indexOf(j)}">${j.avendre?"Retirer":"Vendre"}</button></td>
+     <td>${j.pretIn?'<span class="dim">—</span>':`<button class="act bL" data-i="${c.joueurs.indexOf(j)}" title="Prêter à un club où il jouera titulaire">Prêter</button>`}</td></tr>`).join("")}
    </table>
    <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême. Survolez pour le détail, ouvrez la fiche pour tout savoir.</p>
    <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le 4-4-2 même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
@@ -3254,11 +3292,12 @@ function ecranEffectif(){
       <td class="num vert">+${FMT(p.tarif)} FF/j</td>
       <td class="dim">retour J${p.fin}</td></tr>`:"";}).join("")}</table>`:""}</div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=e=>{
-    if(e.target.classList.contains("bV")||e.target.classList.contains("bT"))return;
+    if(e.target.classList.contains("bV")||e.target.classList.contains("bT")||e.target.classList.contains("bL"))return;
     ouvreFiche(c.joueurs[+tr.dataset.i]);
   });
   app.querySelectorAll(".bV").forEach(b=>b.onclick=()=>listerVente(c.joueurs[+b.dataset.i]));
   app.querySelectorAll(".bT").forEach(b=>b.onclick=()=>titulariser(c.joueurs[+b.dataset.i]));
+  app.querySelectorAll(".bL").forEach(b=>b.onclick=()=>modalPret(c.joueurs[+b.dataset.i],"out"));
   app.querySelectorAll("tr.pret").forEach(tr=>tr.onclick=()=>{const j=byUid(tr.dataset.u); if(j) ouvreFiche(j);});
 }
 
@@ -3362,6 +3401,7 @@ function ecranMercato(){
         <th class="num click" data-c="age">Âge${fl("age")}</th>
         <th class="num click" data-c="note">Note${fl("note")}</th>
         <th class="num click" data-c="prog">Prog.${fl("prog")}</th>
+        <th title="Caractère — 🎯 tireur d'élite · 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal">Car.</th>
         <th class="click" data-c="club">Club${fl("club")}</th>
         <th>Div</th>
         <th class="num click" data-c="prix">Prix${fl("prix")}</th><th></th></tr>
@@ -3370,6 +3410,7 @@ function ecranMercato(){
         <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
         <td class="num">${j.age}</td><td class="num"><b>${j.note}</b></td>
         <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲+'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
+        <td>${pictos(j,true)}</td>
         <td class="dim">${esc(clubById(j.club).nom)}</td>
         <td><b class="${divOf(j)===1?'jaune':'cyan'}">D${divOf(j)}</b></td>
         <td class="num">${(prixAchat(j)/1e6).toFixed(1)} MF</td>
@@ -3429,6 +3470,7 @@ function ecranMercato(){
 function ecranFinances(){
   const c=clubById(G.monClub);
   const masse=c.joueurs.reduce((s,j)=>s+salaire(j),0);
+  const pb=palierBillet();
   const offres=(G.offresSponsor&&(!G.sponsor||G.sponsorSwitch))?
    `<div class="panel"><h2>Offres de sponsoring maillot ${G.sponsorSwitch?'<span class="vert">— renégociation de mi-saison</span>':""}</h2>
     ${G.offresSponsor.map((o,k)=>`<p style="margin:8px 0">
@@ -3454,14 +3496,26 @@ function ecranFinances(){
     <tr><td>Droits TV par journée</td><td class="num vert">+ ${G.div===1?"0,45":"0,20"} MF</td></tr>
     <tr><td>Équipementier</td><td class="num">${G.equip?'<span class="vert">'+esc(G.equip.nom)+" : +"+FMT(G.equip.fixe)+" FF/j</span>":'<span class="dim">—</span>'}</td></tr>
     <tr><td>Sponsor maillot</td><td class="num">${G.sponsor?'<span class="vert">'+esc(G.sponsor.nom)+" : +"+FMT(G.sponsor.fixe)+" FF/j"+(G.sponsor.prime?" +"+FMT(G.sponsor.prime)+" FF/victoire":"")+"</span>":'<span class="dim">aucun contrat</span>'}</td></tr>
-    <tr><td>Billet moyen</td><td class="num">70 FF</td></tr>
+    <tr><td>Billet moyen</td><td class="num">${pb.prix} FF <span class="dim">(${esc(pb.nom.toLowerCase())})</span></td></tr>
     <tr><td>Capacité de ${esc(c.stade)}</td><td class="num">${FMT(c.cap)} places</td></tr>
    </table>
    <p class="dim" style="margin-top:8px">Salaires et frais de fonctionnement sont prélevés chaque journée : une masse salariale trop lourde plombe les caisses. La billetterie n'est encaissée qu'à domicile, les primes de classement tombent en fin de saison. Trésorerie dans le rouge = président mécontent.</p></div>
+   <div class="panel"><h2>Billetterie — politique tarifaire</h2>
+    <p class="dim">Le prix du billet arbitre entre recette à l'unité et ferveur des tribunes. Un stade plein dope le moral des joueurs — donc le jeu ; un club qui gagne peut faire payer plus cher sans vider Bollaert, au prix de son image. Quand l'équipe coule, brader ramène le peuple et remonte le moral.</p>
+    <p class="row" style="margin:10px 0">Tarif appliqué&nbsp;:
+      <select id="selPrix">${PRIX_BILLET.map((p,k)=>`<option value="${k}"${k===(G.prixBillet!=null?G.prixBillet:2)?" selected":""}>${esc(p.nom)} — ${p.prix} FF</option>`).join("")}</select>
+    </p>
+    <p class="dim" style="font-style:italic">« ${esc(pb.desc)} »</p>
+    <table class="fit" style="margin-top:6px">
+      <tr><td>Affluence</td><td class="num">${pb.aff===1?'<span class="dim">de référence</span>':(pb.aff>1?'<span class="vert">×'+pb.aff.toFixed(2)+'</span>':'<span class="rouge">×'+pb.aff.toFixed(2)+'</span>')}</td></tr>
+      <tr><td>Réputation par match à domicile</td><td class="num">${pb.rep>0?'<span class="vert">+'+pb.rep+'</span>':(pb.rep<0?'<span class="rouge">'+pb.rep+'</span>':'<span class="dim">neutre</span>')}</td></tr>
+      <tr><td>Moral du vestiaire</td><td class="num">${pb.moral>0?'<span class="vert">↑</span>':(pb.moral<0?'<span class="rouge">↓</span>':'<span class="dim">neutre</span>')}</td></tr>
+    </table></div>
    <div class="panel"><h2>Dépêches financières</h2>
    ${G.news.slice(0,10).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
   document.querySelectorAll(".bSp").forEach(b=>b.onclick=()=>choisirSponsor(+b.dataset.k));
   document.querySelectorAll(".bEq").forEach(b=>b.onclick=()=>choisirEquip(+b.dataset.k));
+  const sP=document.getElementById("selPrix"); if(sP) sP.onchange=e=>{ G.prixBillet=+e.target.value; montre("finances"); };
 }
 
 /* ---- Visuel du stade : étapes de développement ---- */
