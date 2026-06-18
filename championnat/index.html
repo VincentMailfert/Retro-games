@@ -156,7 +156,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.40"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.41"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -451,6 +451,8 @@ function initTraits(j){
   const t=TRAITS[j.nom];
   if(t){ j.ego=t.ego; j.agress=t.agress; j.fragile=t.fragile; j.venal=t.venal; }
   j.ego=Math.min(10,j.ego); j.agress=Math.min(10,j.agress); j.fragile=Math.min(10,j.fragile); j.venal=Math.min(10,j.venal);
+  // don RARE des coups de pied arrêtés (penaltys + coups francs) : réservé aux bons milieux/attaquants, peu fréquent
+  if(j.tireurElite==null) j.tireurElite = (t&&t.tireur) ? true : ("MA".includes(j.pos||"") && (j.note||0)>=79 && Math.random()<0.09);
 }
 const egoLib=v=>v>=9?"Diva — le vestiaire retient son souffle":v>=7?"Forte tête":v>=5?"Caractère affirmé":"Bon coéquipier";
 const agressLib=v=>v>=8?"Boucher notoire":v>=6?"Rugueux":v>=4?"Engagé":"Fair-play";
@@ -606,7 +608,6 @@ function nouvellePartie(clubId){
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
-  assureTireur(); // un tireur attitré dès le départ
   majTitre(); montre("calendrier");
 }
 
@@ -671,7 +672,8 @@ function forces(c){
   coh*=1+(L-0.68)*0.05;                              // et soude (ou non) le vestiaire : ±~2 %
   coh=Math.max(0.84, Math.min(1.03, coh));
   const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral)); // le moral fait ±5 %
-  const att=xi.filter(j=>"MA".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/6*coh;
+  let att=xi.filter(j=>"MA".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/6*coh;
+  if(xi.some(j=>j.tireurElite)) att*=1.03; // un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts
   const def=xi.filter(j=>"GD".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/5*coh;
   return {att,def,xi,coh};
 }
@@ -682,16 +684,6 @@ function assureCapitaine(){
   const cand=c.joueurs.slice().sort((a,b)=>leadership(b)-leadership(a))[0];
   if(cand){ cand.capitaine=true;
     if((G.journee||0)>0) notif("©️ Brassard vacant : "+cand.nom+" est nommé capitaine par défaut."); }
-}
-/* garantit que MON club a toujours un tireur d'élite valide (penaltys/coups francs) */
-function assureTireur(){
-  const c=clubById(G.monClub); if(!c||!c.joueurs.length) return;
-  if(c.joueurs.some(j=>j.tireurElite)) return; // tireur déjà désigné
-  const cand=c.joueurs.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0]
-          || c.joueurs.filter(j=>j.pos!=="G").sort((a,b)=>b.note-a.note)[0]
-          || c.joueurs[0]; // un attaquant/milieu de préférence, sinon le meilleur joueur de champ
-  if(cand){ cand.tireurElite=true;
-    if((G.journee||0)>0) notif("🎯 "+cand.nom+" hérite des coups de pied arrêtés."); }
 }
 function libLeadership(j){
   const L=leadership({...j, moral:65}); // étoffe intrinsèque, hors forme du moment
@@ -939,7 +931,7 @@ function jouerJournee(evCb){
 }
 
 /* ---------- Le paquet de cartes des moments de match ---------- */
-const MOMENTS_INTERACTIFS={pen_pour:1,pen_contre:1,tacle:1,provoc:1};
+const MOMENTS_INTERACTIFS={pen_pour:1,pen_contre:1,coupfranc:1,tacle:1,provoc:1};
 const MOMENTS_BUT={but50:1,geste:1,cagade:1,cadeau:1}; // moments non interactifs qui changent le score (résolus avant le direct)
 // montée de tension : une brève annonce AVANT le but, pour qu'il ne débarque plus sans prévenir
 const MONTEE_BUT=[
@@ -969,18 +961,25 @@ function tireMoment(moi,adv){
     if(prov) return {type:"provoc", uid:prov.uid,
       annonce:"APRÈS SON BUT, "+prov.nom.toUpperCase()+" SE TOURNE VERS LE PARCAGE ADVERSE... Le public bout, l'arbitre approche."};
   }
-  if(t<0.26){
+  if(t<0.22){
     const tir=tireurDuXI(xiM);
     if(!tir) return null;
     return {type:"pen_pour", uid:tir.uid,
       annonce:"PENALTY POUR "+moi.nom.toUpperCase()+" À L'ULTIME SECONDE !! "+tir.nom+" pose le ballon..."};
   }
-  if(t<0.50){
+  if(t<0.40){
     const tir=tireurDuXI(xiA);
     const gk=xiM.find(j=>j.pos==="G");
     if(!tir||!gk) return null;
     return {type:"pen_contre", uid:tir.uid, gk:gk.uid,
       annonce:"PENALTY CONTRE "+moi.nom.toUpperCase()+" À LA 90ᵉ !!! "+tir.nom+" défie "+gk.nom+". À vous de choisir le plongeon..."};
+  }
+  if(t<0.52){ // coup franc dangereux aux abords de la surface (16-25 m)
+    const tir=tireurDuXI(xiM);
+    if(!tir) return null;
+    const dist=RNDI(16,25), elite=!!tir.tireurElite;
+    return {type:"coupfranc", uid:tir.uid, dist,
+      annonce:"COUP FRANC DANGEREUX POUR "+moi.nom.toUpperCase()+" À "+dist+" MÈTRES ! "+tir.nom+(elite?", votre spécialiste,":"")+" place le ballon et fixe la lucarne..."};
   }
   if(t<0.64){
     const b=xiM.filter(j=>(j.agress||5)>=7).sort((a,b)=>(b.agress||0)-(a.agress||0))[0];
@@ -1033,6 +1032,8 @@ function tireMoment(moi,adv){
 function autoMoment(mo){ // résolution sans intervention (tests, abandon de banc, moments non interactifs)
   if(mo.type==="pen_pour")   return Math.random()<0.74 ? +1 : 0;
   if(mo.type==="pen_contre") return Math.random()<0.70 ? -1 : 0;
+  if(mo.type==="coupfranc"){ const j=byUid(mo.uid); const el=!!(j&&j.tireurElite); // un spécialiste transforme bien plus souvent
+    return Math.random()<(el?0.30:0.09) ? +1 : 0; }
   if(mo.type==="tacle"){ const j=byUid(mo.uid); if(j) j.susp=(j.susp||0)+3; return 0; }
   if(mo.type==="provoc"){ const j=byUid(mo.uid); if(j && Math.random()<0.4) j.susp=(j.susp||0)+1; return 0; }
   if(mo.type==="but50" || mo.type==="geste"){ // but d'exception : il compte, et il marque les esprits
@@ -1207,7 +1208,6 @@ function finirJournee(delta){
   }
   if(G.journee>=38) finDeSaison();
   assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
-  assureTireur(); // idem si le tireur attitré a quitté le club
   sauvegardeLocale(true); // sauvegarde auto en fin de journée
 }
 
@@ -2330,7 +2330,6 @@ function intersaison(){
   G.rapport=genRapport();
   G.news.unshift("SAISON "+G.saison+" — Objectif du président : "+G.objectif.label+".");
   assureCapitaine(); // le capitaine a pu raccrocher les crampons : on reconduit un meneur
-  assureTireur(); // de même pour le tireur attitré
   G.recap=rec;
 }
 function classement(){
@@ -2378,7 +2377,6 @@ function migre(){
     }
   }
   assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
-  assureTireur(); // vieilles sauvegardes : pas de tireur désigné → on en nomme un
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
     if(r && r.pen && !r.moment) r.moment={type:"pen_pour", uid:r.pen.uid};
@@ -2942,6 +2940,7 @@ function ouvreMoment(monMatch,res,resoudre,suite){
   const moi=e.h.id===G.monClub?e.h:e.a, adv=e.h.id===G.monClub?e.a:e.h;
   if(mo.type==="pen_pour")   return momentPenPour(mo,moi,adv,resoudre,suite);
   if(mo.type==="pen_contre") return momentPenContre(mo,moi,adv,resoudre,suite);
+  if(mo.type==="coupfranc")  return momentCoupFranc(mo,moi,adv,resoudre,suite);
   if(mo.type==="tacle")      return momentTacle(mo,moi,resoudre,suite);
   if(mo.type==="provoc")     return momentProvoc(mo,moi,adv,resoudre,suite);
   resoudre(0,"Le match reprend son cours.","rate",null,null,suite);
@@ -3015,6 +3014,42 @@ function momentPenPour(mo,moi,adv,resoudre,suite){
               :(arret?("ARRÊT DU GARDIEN !! Il avait lu le "+lib+" de "+t.nom+". Quel sang-froid !")
                      :(t.nom+" vise "+lib+"... À CÔTÉ ! Le ballon meurt en tribune."));
         resoudre(marque?+1:0, lx, marque?"but":(arret?"arret":"rate"), moi.id, t.nom, suite);
+      });
+  });
+}
+
+/* Coup franc dangereux (16-25 m) : vous choisissez la frappe. Un tireur d'élite la met où il veut. */
+function momentCoupFranc(mo,moi,adv,resoudre,suite){
+  const t=byUid(mo.uid)||{nom:"le tireur",note:75};
+  const gk=onze(adv).find(j=>j.pos==="G")||{note:72,nom:"le gardien"};
+  const el=!!t.tireurElite, s=t.note, g=gk.note, dist=mo.dist||20;
+  const fiche=cadreMoment("COUP FRANC — "+dist+" MÈTRES",
+    `<p><b>${esc(t.nom)}</b> (note ${t.note}) à ${dist} m face au mur, ${esc(gk.nom)} (${gk.note}) dans les buts.</p>
+     ${el?`<p class="cyan">🎯 Votre tireur d'élite est sur le ballon — il peut la mettre où il veut.</p>`
+         :`<p class="dim">Aucun spécialiste des coups francs dans vos rangs : il faudra une réussite insolente.</p>`}
+     <p class="dim">Comment la frapper&nbsp;?</p>
+     <div style="display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0">
+       <button class="act zChoix" data-c="lucarne" style="padding:12px;text-align:left">Par-dessus le mur, plein lucarne <span class="dim">— spectaculaire, mais ardu</span></button>
+       <button class="act zChoix" data-c="enroule" style="padding:12px;text-align:left">Enroulé au ras du poteau <span class="dim">— le coup franc classique</span></button>
+       <button class="act zChoix" data-c="tendue"  style="padding:12px;text-align:left">Frappe tendue cherchant la déviation <span class="dim">— surprendre le gardien</span></button>
+     </div><div id="penRes"></div>`);
+  fiche.querySelectorAll(".zChoix").forEach(b=>b.onclick=()=>{
+    const c=b.dataset.c;
+    const base=c==="lucarne"?0.08:(c==="enroule"?0.10:0.095);
+    const distF=1-Math.max(0,(dist-16))*0.02;       // plus c'est loin, plus c'est dur
+    const noteF=1+((s-78)*0.012);                    // un grand frappeur cadre mieux
+    const gkF=1-Math.max(0,(g-76))*0.006;            // un gardien d'exception sauve un peu plus
+    let p=base*(el?3.4:1)*distF*noteF*gkF;
+    p=Math.max(0.03,Math.min(0.55,p));
+    const but=Math.random()<p;
+    const place=c==="lucarne"?"par-dessus le mur en pleine lucarne":(c==="enroule"?"enroulé au ras du poteau":"d'une frappe tendue déviée par le mur");
+    const rate=c==="lucarne"?"AU-DESSUS, d'un rien !":(c==="enroule"?"LE GARDIEN SE DÉTEND ET REPOUSSE !":"LE MUR PREND TOUT !");
+    finMoment(fiche,
+      `<p class="${but?"vert":"rouge"}" style="font-size:18px;margin-top:4px">${but?"⚽ EN PLEINE LUCARNE — BUUUT !!!":"✗ "+rate}</p>`,
+      ()=>{
+        const lx=but?(t.nom+" enroule "+place+" — COUP FRANC MAGISTRAL À "+dist+" M, BUUUT À LA 90ᵉ !!! {SCORE}")
+                    :(t.nom+" tente "+place+"... "+rate.toLowerCase()+" L'occasion s'envole.");
+        resoudre(but?+1:0, lx, but?"but":"rate", moi.id, t.nom, suite);
       });
   });
 }
@@ -3211,14 +3246,6 @@ function nommerCapitaine(j){
   document.getElementById("cNo").onclick=()=>{ fiche.style.display="none"; };
   fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
 }
-function nommerTireur(j){ // désigne le tireur attitré (penaltys/coups francs) — pas de gardien
-  const c=clubById(G.monClub); if(!c||j.club!==G.monClub||j.pos==="G") return;
-  c.joueurs.forEach(x=>x.tireurElite=false); j.tireurElite=true;
-  j.moral=Math.min(100,(j.moral||65)+4); // être le tireur attitré, ça flatte
-  G.news.unshift("COUPS DE PIED ARRÊTÉS : "+j.nom+" récupère penaltys et coups francs.");
-  notif("🎯 "+j.nom+" est votre tireur d'élite.");
-  fermeFiche(); rafraichir();
-}
 function ouvreFiche(j){
   const n0=j.note0||j.note;
   const v0=valeur({...j, note:n0}), v1=valeur(j);
@@ -3241,8 +3268,7 @@ function ouvreFiche(j){
     <p>Moral : <b class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"jaune")}">${Math.round(j.moral||65)}/100</b>${(j.sansJouer||0)>=3?' <span class="rouge">— ronge son frein sur le banc</span>':""}</p>
     ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
       :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
-    ${j.tireurElite?`<p class="cyan">🎯 Tireur d'élite — coups francs et penaltys</p>`
-      :(j.club===G.monClub&&!j.pretIn&&j.pos!=="G"?`<p class="dim">Coups de pied arrêtés : <button class="act" id="bTir" style="margin-left:6px">🎯 Désigner tireur</button></p>`:"")}
+    ${j.tireurElite?`<p class="cyan">🎯 Tireur d'élite — il tire les penaltys et les coups francs</p>`:""}
     ${j.grace?`<p class="vert">✨ En état de grâce — il vit la saison de sa vie !</p>`:""}
     ${j.selA?`<p class="cyan">International A${j.butSel?" — a marqué en sélection":""}</p>`:(j.selEsp?`<p class="cyan">International Espoirs</p>`:"")}
     ${(!j.reel&&j.histoire)?`<p style="margin-top:8px" class="cyan">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}
@@ -3259,7 +3285,6 @@ function ouvreFiche(j){
   const bO=document.getElementById("bPretOut"); if(bO) bO.onclick=()=>modalPret(j,"out");
   const bI=document.getElementById("bPretIn"); if(bI) bI.onclick=()=>modalPret(j,"in");
   const bC=document.getElementById("bCap"); if(bC) bC.onclick=()=>nommerCapitaine(j);
-  const bT=document.getElementById("bTir"); if(bT) bT.onclick=()=>nommerTireur(j);
   document.getElementById("bF").onclick=()=>fiche.style.display="none";
   fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
 }

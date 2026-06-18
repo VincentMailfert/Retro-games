@@ -123,14 +123,15 @@ toujours « raconter quelque chose ».
   joueur — un cadre cupide (ego/vénalité élevés) **réclame une prime** (`G.tresorerie`) : payée il est à fond
   (moral +), vexé il mène mollement (moral −). `assureCapitaine()` garantit toujours un capitaine valide
   (démarrage, départ, retraite, vieille sauvegarde) ; ne jamais laisser MON club sans brassard.
-- **Tireur d'élite** (`tireurDuXI`, `assureTireur`, `nommerTireur`, flag `j.tireurElite`, badge 🎯) : chaque club a
-  UN tireur attitré des **penaltys et coups francs**, calqué sur le capitanat. `tireurDuXI(xi)` = le désigné s'il
-  est sur la pelouse, sinon le meilleur frappeur M/A — utilisé pour les penaltys `pen_pour`/`pen_contre` de
-  `tireMoment` (l'IA prend son meilleur frappeur, faute de flag). `assureTireur()` garantit un tireur valide pour
-  MON club (démarrage, départ, intersaison, vieille sauvegarde) ; **vous** le désignez depuis la fiche joueur
-  (jamais un gardien). Sur le **penalty interactif** (`momentPenPour`), un tireur d'élite frappe avec **plus de
-  sang-froid** (`pOff`×0,6 de ratés, `pSave`×0,82 côté gardien). Badge 🎯 dans l'effectif et la fiche ; ne jamais
-  laisser MON club sans tireur.
+- **Tireur d'élite** (`tireurDuXI`, flag `j.tireurElite`, badge 🎯) : don **RARE et inné** des coups de pied arrêtés
+  (penaltys + coups francs), **pas un rôle qu'on attribue** — semé dans `initTraits` (réservé aux bons M/A note≥79,
+  ~9 % → ~3-4 clubs sur 20 en D1, souvent 0 en D2 ; tombe sur de vrais spécialistes : Djorkaeff, Moravčík…). **On ne
+  le nomme pas** : on l'a ou pas (le recrutement d'un spécialiste devient un vrai enjeu). `tireurDuXI(xi)` = l'élite
+  sur la pelouse sinon le meilleur frappeur M/A — il prend les penaltys `pen_pour`/`pen_contre` ET le **coup franc**
+  (`coupfranc` : moment **interactif** à 16-25 m, on choisit la frappe ; un élite convertit ~30-34 % contre ~10 %).
+  En avoir un **augmente la proba de marquer** : sang-froid bonus au penalty interactif (`momentPenPour` : `pOff`×0,6,
+  `pSave`×0,82), forte conversion du coup franc, et **+3 % d'attaque** dans `forces()` si le XI en compte un. Badge 🎯
+  (effectif + fiche), aucune désignation. Curation possible d'un spécialiste réel via `TRAITS[nom].tireur=true`.
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 
