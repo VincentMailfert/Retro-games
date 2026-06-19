@@ -176,7 +176,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.47"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.48"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -906,14 +906,16 @@ function simuleMatch(home,away,verbeux){
     if(r < elh/90){ // évènement côté domicile
       if(Math.random()<0.42){ sh++; marque(home,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
       else if(verbeux&&Math.random()<.7){
-        const arr=Math.random()<.5;
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tireur(home),away)});
+        const arr=Math.random()<.5, tir=tireur(home);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,away),
+          q:{but:tir.nom,cote:home.id,bu:Math.random()<MONTEE_RATEE}}); // q = de quoi monter le suspense avant une occasion qui peut ne rien donner
       }
     } else if(r < (elh+ela)/90){
       if(Math.random()<0.42){ sa++; marque(away,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
       else if(verbeux&&Math.random()<.7){
-        const arr=Math.random()<.5;
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tireur(away),home)});
+        const arr=Math.random()<.5, tir=tireur(away);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,home),
+          q:{but:tir.nom,cote:away.id,bu:Math.random()<MONTEE_RATEE}});
       }
     } else if(verbeux && Math.random()<0.028){
       ev.push({m,t:"amb",x:PICK(COMM.amb)});
@@ -1045,8 +1047,11 @@ function jouerJournee(evCb){
 /* ---------- Le paquet de cartes des moments de match ---------- */
 const MOMENTS_INTERACTIFS={pen_pour:1,pen_contre:1,coupfranc:1,tacle:1,provoc:1};
 const MOMENTS_BUT={but50:1,geste:1,cagade:1,cadeau:1}; // moments non interactifs qui changent le score (résolus avant le direct)
-// montée de tension : le but ne débarque plus sans prévenir, l'action se développe en deux temps.
+// montée de tension : l'action se développe en deux temps avant un but… ET avant certaines grosses occasions
+// qui ne donnent rien. La « grosse action » en blanc ne garantit donc plus le but — le suspense est rendu :
+// on ne sait qu'à la résolution si ça rentre (ligne jaune) ou si ça fuit (occasion ratée, ligne cyan).
 // Étape 1 — l'action s'installe (ambiance, défense qui recule). Étape 2 — un joueur nommé arme le geste décisif.
+const MONTEE_RATEE=0.6; // proba qu'une occasion ratée hérite d'une montée de tension (réglage tunable) — ~1/3 des montées font alors long feu
 const MONTEE_BUT=[
   "Ça s'emballe dans la surface, la défense recule…",
   "Une accélération sur l'aile, le centre va tomber…",
@@ -2812,7 +2817,7 @@ function ecranCalendrier(){
    </div>
    <div class="panel"><h2>Téléscripteur
      <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
-       Vitesse : <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
+       Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
      </span></h2>
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
    ${G.presse.length?`<div class="panel"><h2>Revue de presse</h2>
@@ -2850,9 +2855,11 @@ function ecranCalendrier(){
   };
   if(G.incident){ ouvreEre(()=>ouvreIncident(ouvreDebrief)); }
   else { ouvreEre(ouvreDebrief); }
-  document.getElementById("vL").onclick=()=>tickerDelai=1700;
-  document.getElementById("vN").onclick=()=>tickerDelai=950;
-  document.getElementById("vR").onclick=()=>tickerDelai=380;
+  // toute l'échelle reculée d'un cran (le défilement par défaut respire davantage) ; « Très lente » est le nouveau plancher
+  document.getElementById("vTL").onclick=()=>tickerDelai=3000;
+  document.getElementById("vL").onclick=()=>tickerDelai=2300;
+  document.getElementById("vN").onclick=()=>tickerDelai=1600;
+  document.getElementById("vR").onclick=()=>tickerDelai=950;
   const bA=document.getElementById("bMalAcc"); if(bA) bA.onclick=accepterAffaire;
   const bR=document.getElementById("bMalRef"); if(bR) bR.onclick=refuserAffaire;
   const bEA=document.getElementById("bExtAcc"); if(bEA) bEA.onclick=accepterOffreExt;
@@ -2869,7 +2876,7 @@ const ICO={
  sub:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="5" y="5" width="2" height="9" fill="#5fd98f"/><path d="M6 1l4 5H2z" fill="#5fd98f"/><rect x="15" y="3" width="2" height="9" fill="#ff6f61"/><path d="M16 15l-4-5h8z" fill="#ff6f61"/></svg>`,
 };
 
-let tickerTimer=null, tickerDelai=950, butFlashTimer=null;
+let tickerTimer=null, tickerDelai=1600, butFlashTimer=null;
 /* panneau LED clignotant ~5 s pour les temps forts (but, carton rouge…), avec détail ;
    o = {classe, gros, sub (HTML), detail (texte)} ; onDone appelé au clic OU après 5 s */
 function celebreFlash(o, onDone){
@@ -3024,18 +3031,20 @@ function lanceMatch(instant){
     ouvreMoment(monMatch,res,resoudMoment,()=>{ ajouteLigne(tk,lignes[lignes.length-1]); fin(); });
     return;
   }
-  tickerDelai=950;
+  tickerDelai=1600;
   let i=0;
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
-    // montée de tension : le but ne débarque plus sans prévenir — deux battements d'anticipation avant le flash.
-    // 1er temps : l'action s'installe. 2e temps : le buteur (nommé) arme son geste face au gardien adverse.
-    if(lg && lg.g && (lg._monte||0)<2){
-      const etape=(lg._monte=(lg._monte||0)+1);
+    // montée de tension : deux battements d'anticipation avant le flash, devant un BUT (lg.g) comme devant
+    // une grosse occasion flaguée (lg.q.bu) qui peut très bien ne rien donner → la montée en blanc ne « spoile »
+    // plus le but. 1er temps : l'action s'installe. 2e temps : le porteur (nommé) arme son geste face au gardien.
+    const monte=lg && (lg.g || (lg.q && lg.q.bu));
+    if(monte && (lg._monte||0)<2){
+      const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
       if(etape===1){ txt=PICK(MONTEE_BUT); }
-      else { const defClub=eM?(lg.g.cote===eM.h.id?eM.a:eM.h):null; txt=PICK(MONTEE_FRAPPE)(lg.g.but, gardienDe(defClub)); }
+      else { const defClub=eM?(info.cote===eM.h.id?eM.a:eM.h):null; txt=PICK(MONTEE_FRAPPE)(info.but, gardienDe(defClub)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
