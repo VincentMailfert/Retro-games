@@ -112,6 +112,12 @@ toujours « raconter quelque chose ».
   restent cohérents (sinon le flash affiche un score que le sifflet contredit). Les **cagades** = bourdes de
   gardien (Arconada, relance dans les pieds, sortie ratée, faux rebond sur passe en retrait), **but sec dans les
   deux sens** : `cagade` (le vôtre se troue) / `cadeau` (celui d'en face).
+  **Retour visuel du choix** : un overlay interactif tranché ne laisse plus tous les boutons en jaune. `finMoment`
+  reçoit le **bouton cliqué** (4ᵉ argument) et applique les classes `.choisi` (le retenu s'illumine en jaune + coche
+  ✅, via `dataset.coche` pour ne préfixer qu'une fois) et `.ecarte` (les autres en fond sombre estompé). Tous les
+  `.zPen`/`.zChoix` portent l'une ou l'autre → chaque appelant (`momentPenPour/PenContre/CoupFranc/Tacle/Provoc`)
+  passe son bouton ; `momentTacle` le fait via son helper `conclure`. Même esprit que la décision d'incident
+  (« masquer les options non choisies »), mais sans réécrire le DOM des boutons.
 - **Incidents de vie de club** : catalogue `INCIDENTS` (~38 cartes), tiré ~1 journée sur 3,
   chacun avec un joueur, 2-3 choix, des effets via `eff(j, {…})`. Anti-répétition sur 8 journées.
 - **Mallette / match truqué** (`G.affaire` l'offre, `G.truque` la victoire promise, `G.risque` le compte à
@@ -169,10 +175,21 @@ toujours « raconter quelque chose ».
   flash : `cagade` en **rouge (« CAGADE ! »)**, `cadeau` en version festive, et `geste`/`but50` en
   **« 🌟 BUT D'ANTHOLOGIE ! »** — détail = l'annonce du moment. Le **chien sur la pelouse** (`chien`) a aussi son
   flash, avec une **« image » ASCII** (`DOG_ART`) affichée sur le panneau via le champ `o.art` de `celebreFlash`.
-- **Montée de tension avant un but** (`MONTEE_BUT`, en direct seulement) : avant CHAQUE but du téléscripteur, on
-  insère une brève ligne d'anticipation (« ça s'emballe dans la surface… ») puis un battement (`Math.max(650,
-  tickerDelai)`) AVANT d'afficher le but et son flash — pour que le but ne « débarque plus sans prévenir ». Géré
-  dans `tic()` via le flag `lg._monte` ; n'altère pas le score ni le calibrage (purement cosmétique).
+- **Montée de tension avant un but** (`MONTEE_BUT` + `MONTEE_FRAPPE`, en direct seulement) : avant CHAQUE but du
+  téléscripteur, l'action se construit en **deux temps**, chacun suivi d'un battement (`Math.max(650, tickerDelai)`)
+  AVANT le but et son flash. 1er temps = l'action s'installe (ambiance générique, `MONTEE_BUT` : « ça s'emballe dans
+  la surface… »). 2e temps = le **futur buteur nommé** (`lg.g.but`) arme son geste face au **gardien adverse cité**
+  (`gardienDe(defClub)` = le portier du `onze` du club qui n'a pas marqué) via `MONTEE_FRAPPE` (« X arme sa frappe… »,
+  « X en face à face avec Y… »). Géré dans `tic()` via le **compteur** `lg._monte` (passé de booléen à 0→1→2 pour les
+  deux étapes) ; n'altère ni le score ni le calibrage (purement cosmétique). Le harnais ne rend pas le direct, donc
+  rien à vérifier côté moteur.
+- **Cycle du bouton d'action de l'écran de match** : le bloc `#preMatchAct` (un `<p>` centré) porte avant le coup
+  d'envoi « Jouer le match » (`#bJouer`) + « Résultat instantané » (`#bVite`). `lanceMatch` les **masque**
+  (`style.display="none"`, plus seulement `disabled`) pour qu'ils ne traînent pas pendant le direct ; au coup de
+  sifflet, `fin()` réécrit `#preMatchAct` avec un unique **« Prochaine journée 📆 »** (`#bNext` → `montre("calendrier")`,
+  qui affiche la journée suivante puisque `finirJournee` a déjà incrémenté `G.journee`). Le bouton de bas de
+  téléscripteur (`#bSuite`) porte le même libellé pour rester cohérent. `montre("calendrier")` re-rend tout, donc
+  les boutons d'avant-match reviennent intacts.
 - **Moral des joueurs prêtés dehors** : un prêté (`G.prets` `sens:"out"`, retiré de `moi.joueurs` → club hôte)
   n'est jamais touché par `majMoral` (qui n'itère que `moi.joueurs`). `finirJournee` lui pose `_joue=1` ET lui
   remonte le moral (~+1,5/journée) : titulaire ailleurs, il revient « aguerri ».
