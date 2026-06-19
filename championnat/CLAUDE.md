@@ -151,6 +151,15 @@ toujours « raconter quelque chose ».
   reste un pot séparé (réalimenté à 70 % par la prime de classement à l'intersaison). Les **prêts** sont un
   appoint, pas une rente (`tarifPret` abaissé) : prêter libère surtout le salaire. Tous ces coefficients sont
   des **réglages** à durcir/adoucir après playtest. L'écran Finances détaille chaque poste.
+- **Vases communicants — pont budget ↔ trésorerie** (`transvaser(sens, montant)`, `FRAIS_VIRE`=0,10) : les
+  deux poches restent **séparées** (le trésor de guerre mercato ne paie pas les salaires), mais on peut en
+  **transvaser** de l'une à l'autre depuis l'écran Finances pour débloquer un projet (typiquement renflouer la
+  caisse pour agrandir le stade quand le budget transferts déborde). `sens="caisse"` = `G.budget`→`G.tresorerie`,
+  `sens="mercato"` = l'inverse ; **commission de 10 %** dans les deux sens (`FRAIS_VIRE`, réglage tunable) pour
+  que ce soit un **vrai arbitrage** et pas un jonglage gratuit — sans cette friction, le découvert
+  (`G._deficit`) cesserait de mordre. Refuse si le montant dépasse la poche de départ, ignore les montants
+  ≤ 0, et un renflouement au-dessus de 2 MF éteint l'alerte de découvert. Pas d'état persistant nouveau (rien
+  à migrer). Les messages « Trésorerie insuffisante » du stade et du centre renvoient vers ce levier.
 - **Politique tarifaire de la billetterie** (`PRIX_BILLET`, 5 paliers ; `G.prixBillet` = index, défaut `2` =
   « Normal », 70 FF ; helper `palierBillet()`) : un **vrai dilemme argent / image**, réglé depuis l'écran
   Finances. Chaque palier porte `prix` (recette par spectateur), `aff` (modulateur d'affluence appliqué **au

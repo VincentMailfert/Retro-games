@@ -176,7 +176,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.46"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.47"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2012,10 +2012,28 @@ function transfertIA(){
 function ameliorerCentre(){
   if(G.centre>=5) return alert("Le centre d'entraînement est déjà au niveau maximal.");
   const cout=8e6*G.centre;
-  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : "+(cout/1e6)+" MF).");
+  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : "+(cout/1e6)+" MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
   G.tresorerie-=cout; G.centre++;
   G.news.unshift("CENTRE D'ENTRAÎNEMENT niveau "+G.centre+" : progression accélérée, blessures mieux soignées.");
   montre("club");
+}
+
+/* ---------- Vases communicants : budget transferts ↔ trésorerie ---------- */
+/* Les deux poches restent séparées (le trésor de guerre du mercato ne sert pas à payer les salaires),
+   mais on peut transvaser de l'une à l'autre pour débloquer un projet — au prix d'une commission, pour
+   que ce soit un vrai arbitrage et pas un jonglage gratuit. FRAIS_VIRE est un réglage tunable. */
+const FRAIS_VIRE=0.10; // commission de conversion : transvaser n'est jamais à 100 %
+function transvaser(sens, montant){
+  // sens "caisse" : budget transferts → trésorerie ; sens "mercato" : trésorerie → budget transferts
+  if(!(montant>0)) return;
+  const source = sens==="caisse" ? G.budget : G.tresorerie;
+  if(montant>source) return alert("Montant supérieur à la poche de départ ("+(source/1e6).toFixed(1)+" MF disponibles).");
+  const recu=Math.round(montant*(1-FRAIS_VIRE)), perte=montant-recu;
+  if(sens==="caisse"){ G.budget-=montant; G.tresorerie+=recu; }
+  else               { G.tresorerie-=montant; G.budget+=recu; }
+  G.news.unshift("TRANSVASEMENT : "+(montant/1e6).toFixed(1)+" MF "+(sens==="caisse"?"du mercato vers la caisse de fonctionnement":"de la caisse vers le budget transferts")+" — "+(recu/1e6).toFixed(1)+" MF arrivés à bon port, "+(perte/1e6).toFixed(1)+" MF de frais.");
+  if(G.tresorerie>2e6) G._deficit=false; // un renflouement suffisant éteint l'alerte de découvert
+  montre("finances");
 }
 
 /* ---------- Le rapport du recruteur : vrais joueurs, été 1995 ---------- */
@@ -2265,7 +2283,7 @@ function choisirEquip(k){
 function agrandirStade(){
   const c=clubById(G.monClub), cout=15e6;
   if(G.chantier) return alert("Un chantier est déjà en cours (livraison dans "+G.chantier.reste+" journée(s)).");
-  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : 15 MF).");
+  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : 15 MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
   G.tresorerie-=cout;
   G.chantier={reste:3, places:3000};
   G.news.unshift("TRAVAUX : le chantier d'une nouvelle tribune démarre à "+c.stade+". Livraison dans 3 journées.");
@@ -3584,6 +3602,14 @@ function ecranFinances(){
     <tr><td>Capacité de ${esc(c.stade)}</td><td class="num">${FMT(c.cap)} places</td></tr>
    </table>
    <p class="dim" style="margin-top:8px">Salaires et frais de fonctionnement sont prélevés chaque journée : une masse salariale trop lourde plombe les caisses. La billetterie n'est encaissée qu'à domicile, les primes de classement tombent en fin de saison. Trésorerie dans le rouge = président mécontent.</p></div>
+   <div class="panel"><h2>Vases communicants — budget ↔ caisse</h2>
+    <p class="dim">Deux poches séparées : le <b class="jaune">budget transferts</b> recrute, la <b>trésorerie</b> fait tourner le club (salaires, frais, stade, centre). Quand le mercato déborde mais que la caisse est vide — impossible d'agrandir le stade —, le président autorise à <b>transvaser</b> d'une poche à l'autre. La manœuvre a un coût : <b class="rouge">${Math.round(FRAIS_VIRE*100)} %</b> de frais (banque, fisc, commissions). À sortir pour débloquer un projet, pas pour jongler.</p>
+    <p class="row" style="margin:10px 0">Montant&nbsp;:
+      <select id="selVire">${[5,10,25,50,100].map(m=>`<option value="${m}">${m} MF</option>`).join("")}</select>
+      <button class="act" id="bVcaisse">Mercato → caisse</button>
+      <button class="act" id="bVmercato">Caisse → mercato</button>
+    </p>
+    <p class="dim" style="font-size:11px">« Mercato → caisse » puise dans le budget transferts pour renflouer le fonctionnement (et financer stade ou centre). « Caisse → mercato » réinvestit vos bénéfices d'exploitation en recrues. Dans les deux sens, ${Math.round(FRAIS_VIRE*100)} % partent en frais.</p></div>
    <div class="panel"><h2>Billetterie — politique tarifaire</h2>
     <p class="dim">Le prix du billet arbitre entre recette à l'unité et ferveur des tribunes. Un stade plein dope le moral des joueurs — donc le jeu ; un club qui gagne peut faire payer plus cher sans vider Bollaert, au prix de son image. Quand l'équipe coule, brader ramène le peuple et remonte le moral.</p>
     <p class="row" style="margin:10px 0">Tarif appliqué&nbsp;:
@@ -3600,6 +3626,10 @@ function ecranFinances(){
   document.querySelectorAll(".bSp").forEach(b=>b.onclick=()=>choisirSponsor(+b.dataset.k));
   document.querySelectorAll(".bEq").forEach(b=>b.onclick=()=>choisirEquip(+b.dataset.k));
   const sP=document.getElementById("selPrix"); if(sP) sP.onchange=e=>{ G.prixBillet=+e.target.value; montre("finances"); };
+  const sV=document.getElementById("selVire");
+  const bVc=document.getElementById("bVcaisse"), bVm=document.getElementById("bVmercato");
+  if(sV&&bVc) bVc.onclick=()=>transvaser("caisse", (+sV.value)*1e6);
+  if(sV&&bVm) bVm.onclick=()=>transvaser("mercato", (+sV.value)*1e6);
 }
 
 /* ---- Visuel du stade : étapes de développement ---- */
