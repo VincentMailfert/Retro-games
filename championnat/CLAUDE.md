@@ -257,7 +257,12 @@ toujours « raconter quelque chose ».
   VOTRE SEUL match de championnat suivant** (une ligne gardée dans `simuleMatch`, dissipée en tête de
   `finirJournee` ; **neutre quand `fatigue=0`** → le harnais joue en mixte, calibrage intact). Onglet **COUPE**
   (`ecranCoupe`, 3ᵉ de la nav) : statut, rotation, votre parcours, la fiche du Poucet, résultats du dernier
-  tour. (Re)tirée à `nouvellePartie` et à `intersaison` (nouveau tableau + nouveau Poucet), migrée par `migre`
+  tour. **Économie** : billetterie `COUPE_RECETTE` (600 kF à chaque tour franchi) **plus une dotation
+  progressive de la Fédération** `COUPE_DOTATION` (barème selon le tour ATTEINT — 0,3 / 0,6 / 1,0 / 1,8 / 3,0
+  MF, 5 MF au finaliste battu — versée à l'élimination) et `COUPE_DOTATION_VAINQUEUR` (8 MF au sacre) ; le
+  cumul de la saison est porté par `G.coupe.gains` et affiché sur l'écran. À distinguer de la **prime de
+  classement du championnat** (déjà en place dans `finDeSaison` : 40 MF au 1er → 0 au dernier, ÷2 en D2, dont
+  70 % bascule au budget transferts). (Re)tirée à `nouvellePartie` et à `intersaison` (nouveau tableau + nouveau Poucet), migrée par `migre`
   (`if(!G.coupe) coupeInit()`). **Équilibrage mesuré** (test dédié, 80 saisons) : club fort **~13 % de
   victoire en « cadres »** contre ~6 % en mixte (le choix de rotation pèse), Poucet en quarts+ ~10-19 % et
   sacré très exceptionnellement. **v1** : résolution automatique des tours (pas encore de direct façon

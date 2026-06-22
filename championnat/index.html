@@ -176,7 +176,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.49"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.50"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2369,8 +2369,11 @@ const ROTATION_COUPE={ // votre gestion de l'effectif pour le tour de semaine �
 };
 const COUPE_TERRAIN=5;        // avantage du terrain (le petit reçoit, et il y croit)
 const COUPE_POUCET_BONUS=14;  // le Petit Poucet joue très au-dessus de son rang réel
-const COUPE_RECETTE=600000;   // recette (votre club) à chaque tour franchi
-const COUPE_PRIME=8e6;        // prime au vainqueur de la Coupe de France
+const COUPE_RECETTE=600000;   // recette de billetterie (votre club) à chaque tour franchi
+// Dotation de la Fédération : barème PROGRESSIF selon le tour ATTEINT, versé à la fin de votre
+// parcours (à l'élimination ou au sacre). Index = tour de COUPE_TOURS où vous sortez.
+const COUPE_DOTATION=[0.3e6, 0.6e6, 1.0e6, 1.8e6, 3.0e6, 5.0e6]; // 32es · 16es · 8es · quarts · demies · finaliste battu
+const COUPE_DOTATION_VAINQUEUR=8e6;  // dotation du vainqueur de la Coupe de France
 
 function melange(a){ for(let i=a.length-1;i>0;i--){ const k=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[k]; a[k]=t; } return a; }
 function estAmateur(id){ return CLUBS_AMATEURS.some(a=>a.id===id); }
@@ -2415,7 +2418,7 @@ function coupeInit(){ // (re)tirage du tableau pour la saison en cours
   G.coupe={ saison:G.saison, tourIdx:0, vivants,
     poucetId:poucet, poucetVivant:true, poucetParcours:[], poucetSortie:null,
     monParcours:[], elimine:false, tourSortie:null, vainqueur:null,
-    dernierTour:null, rotation:"mixte", fatigue:0 };
+    dernierTour:null, rotation:"mixte", fatigue:0, gains:0 };
 }
 function coupeTick(){ // appelé en fin de journée : déclenche le tour de semaine s'il est à l'heure
   if(!G.coupe || G.coupe.vainqueur || G.coupe.tourIdx>=COUPE_TOURS.length) return;
@@ -2446,13 +2449,15 @@ function coupeJoueTour(tour){
       co.monParcours.push({tour:tour.court, hid:f.hid, aid:f.aid, sh:f.sh, sa:f.sa, tab:f.tab, gagne});
       if(co.rotation==="cadres") co.fatigue=1;                       // les cadres ont donné : jambes lourdes au prochain match
       if(gagne){
-        G.tresorerie+=COUPE_RECETTE;
+        G.tresorerie+=COUPE_RECETTE; co.gains=(co.gains||0)+COUPE_RECETTE; // billetterie du tour
         notif("🏆 COUPE — "+tour.court+" : QUALIFIÉ ! "+sc+tb+(dom?" à domicile":" à "+villeCoupe(advId))+" face à "+nomCoupe(advId)+poucetTag);
         G.news.unshift("COUPE DE FRANCE — "+tour.court+" : "+nomCoupe(G.monClub)+" élimine "+nomCoupe(advId)+" ("+sc+tb+")"+poucetTag+" Le rêve continue.");
       } else {
         co.elimine=true; co.tourSortie=tour.nom;
-        notif("💔 COUPE — "+tour.court+" : éliminé "+sc+tb+" par "+nomCoupe(advId)+". L'aventure s'arrête.");
-        G.news.unshift("COUPE DE FRANCE — "+tour.court+" : élimination "+sc+tb+" face à "+nomCoupe(advId)+(estAmateur(advId)?" (un club amateur !)":"")+". La coupe attendra l'an prochain.");
+        const dot=COUPE_DOTATION[COUPE_TOURS.indexOf(tour)]||0; // dotation de la Fédération selon le tour atteint
+        if(dot){ G.tresorerie+=dot; co.gains=(co.gains||0)+dot; }
+        notif("💔 COUPE — "+tour.court+" : éliminé "+sc+tb+" par "+nomCoupe(advId)+"."+(dot?" Dotation : "+(dot/1e6).toFixed(1)+" MF.":""));
+        G.news.unshift("COUPE DE FRANCE — "+tour.court+" : élimination "+sc+tb+" face à "+nomCoupe(advId)+(estAmateur(advId)?" (un club amateur !)":"")+(dot?". Dotation de la Fédération : "+(dot/1e6).toFixed(1)+" MF.":". La coupe attendra l'an prochain."));
       }
     }
   }
@@ -2490,8 +2495,9 @@ function coupeSacre(id){
   const co=G.coupe; co.vainqueur=id;
   if(id===G.monClub){
     G.palmares.push("Vainqueur de la Coupe de France "+co.saison);
-    G.confiance=Math.min(100,G.confiance+12); G.tresorerie+=COUPE_PRIME;
-    G.news.unshift("🏆🏆 COUPE DE FRANCE REMPORTÉE ! "+nomCoupe(G.monClub)+" soulève le trophée. La ville défile, le président pleure. Prime de "+(COUPE_PRIME/1e6).toFixed(0)+" MF.");
+    G.confiance=Math.min(100,G.confiance+12);
+    G.tresorerie+=COUPE_DOTATION_VAINQUEUR; co.gains=(co.gains||0)+COUPE_DOTATION_VAINQUEUR;
+    G.news.unshift("🏆🏆 COUPE DE FRANCE REMPORTÉE ! "+nomCoupe(G.monClub)+" soulève le trophée. La ville défile, le président pleure. Dotation de vainqueur : "+(COUPE_DOTATION_VAINQUEUR/1e6).toFixed(0)+" MF.");
     notif("🏆 VOUS REMPORTEZ LA COUPE DE FRANCE "+co.saison+" !");
     G.presse.unshift("« "+nomCoupe(G.monClub)+" VAINQUEUR DE LA COUPE DE FRANCE ! Une épopée que personne n'oubliera. »");
   } else if(id===co.poucetId){
@@ -2511,6 +2517,7 @@ function ecranCoupe(){
   else if(co.elimine) statut=`<p class="rouge">Éliminé en ${esc(co.tourSortie||"?")}. ${co.vainqueur?"Vainqueur : "+esc(nomCoupe(co.vainqueur))+".":"La coupe continue sans vous."}</p>`;
   else if(co.vainqueur) statut=`<p class="dim">Vainqueur : ${esc(nomCoupe(co.vainqueur))}.</p>`;
   else statut=`<p class="vert">Toujours en lice — ${co.vivants.length} clubs encore en course.</p>`;
+  if(co.gains) statut += `<p class="dim" style="font-size:12px">Billetterie + dotations encaissées cette saison : <span class="jaune">${(co.gains/1e6).toFixed(1)} MF</span></p>`;
   const tourLabel = co.vainqueur ? "Épreuve terminée" :
     (co.tourIdx<COUPE_TOURS.length ? "Prochain tour : "+COUPE_TOURS[co.tourIdx].nom+" (en semaine, vers la J"+COUPE_TOURS[co.tourIdx].j+")" : "—");
   const peutRegler = !co.elimine && !co.vainqueur && co.tourIdx<COUPE_TOURS.length;
