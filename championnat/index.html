@@ -176,7 +176,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.48"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.49"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -707,6 +707,7 @@ function nouvellePartie(clubId){
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
+  coupeInit();       // tirage de la Coupe de France de la saison
   majTitre(); montre("calendrier");
 }
 
@@ -891,6 +892,9 @@ function simuleMatch(home,away,verbeux){
     const C=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
     if(home.id===G.monClub){ lh*=C.att; la*=C.adv; } else { la*=C.att; lh*=C.adv; }
   }
+  // fatigue de coupe : aligner ses cadres en semaine laisse des jambes lourdes au match suivant
+  // (VOTRE match uniquement, et seulement si fatigue>0 → le calibrage du championnat reste intact)
+  if(G.coupe && G.coupe.fatigue>0){ if(home.id===G.monClub) lh*=0.95; else if(away.id===G.monClub) la*=0.95; }
   // bête noire : l'adversaire maudit joue toujours bien contre vous (jusqu'à ce que le sort soit brisé)
   if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
@@ -1180,6 +1184,7 @@ function autoMoment(mo){ // résolution sans intervention (tests, abandon de ban
 function finirJournee(delta){
   const P=G._pend; if(!P) return; G._pend=null;
   const {res,pend}=P;
+  if(G.coupe && G.coupe.fatigue>0) G.coupe.fatigue--; // la fatigue de coupe se dissipe après le match qu'elle a plombé
   if(pend){
     const {r,h,a,hid,aid,pre,e}=pend;
     if(r.moment && delta){
@@ -1352,6 +1357,7 @@ function finirJournee(delta){
     G.incident=tireIncident();
     if(G.incident) G.incidentsRecents.push({id:G.incident.inc.id, j:G.journee});
   }
+  coupeTick(); // tour de Coupe de France en semaine, s'il est à l'heure
   if(G.journee>=38) finDeSaison();
   assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
   sauvegardeLocale(true); // sauvegarde auto en fin de journée
@@ -2306,6 +2312,241 @@ function avanceChantier(){
 }
 
 /* ---------- Fin de saison ---------- */
+/* ============================ COUPE DE FRANCE ============================
+   Compétition parallèle au championnat, jouée EN MILIEU DE SEMAINE entre les
+   journées. 64 équipes aux 32es de finale : les 40 clubs pros (D1+D2) y entrent,
+   rejoints par 24 clubs amateurs de villages tirés d'un vivier. Tirage SANS tête
+   de série, LE PETIT REÇOIT (le club du plus bas niveau joue à domicile), et PAS
+   DE MATCH NUL (tirs au but). Un PETIT POUCET est désigné chaque saison et joue
+   très au-dessus de son rang — parfois il va loin, parfois il vous tombe dessus.
+   Règle d'or : la coupe ne touche JAMAIS les stats de championnat (c.bp/c.j) ni
+   le calibrage des buts — tout y est résolu par un modèle de force autonome. */
+const CLUBS_AMATEURS=[
+  // les villes et villages suggérés par l'auteur
+  {id:"colliou", nom:"US Collioure",                 ville:"Collioure",                 force:46},
+  {id:"longcoc", nom:"AS Longcochon",                ville:"Longcochon",                force:43},
+  {id:"noeudm",  nom:"FC Nœud-les-Mines",            ville:"Nœud-les-Mines",            force:47},
+  {id:"vitryf",  nom:"ES Vitry-le-François",         ville:"Vitry-le-François",         force:50},
+  {id:"stpour",  nom:"Saint-Pourçain Sports",        ville:"Saint-Pourçain-sur-Sioule", force:45},
+  {id:"montdi",  nom:"US Montdidier",                ville:"Montdidier",                force:48},
+  {id:"fourmi",  nom:"AS Fourmies",                  ville:"Fourmies",                  force:49},
+  {id:"rangfl",  nom:"ES Rang-du-Fliers",            ville:"Rang-du-Fliers",            force:44},
+  // de vraies communes au nom qui fait sourire
+  {id:"montcuq", nom:"FC Montcuq",                   ville:"Montcuq",                   force:46},
+  {id:"andouil", nom:"US Andouille",                 ville:"Andouille",                 force:42},
+  {id:"poil",    nom:"AS Poil",                      ville:"Poil",                      force:41},
+  {id:"trecon",  nom:"ES Trécon",                    ville:"Trécon",                    force:43},
+  {id:"corpsnu", nom:"FC Corps-Nuds",               ville:"Corps-Nuds",                force:45},
+  {id:"vatan",   nom:"US Vatan",                     ville:"Vatan",                     force:47},
+  {id:"arnacp",  nom:"AS Arnac-la-Poste",            ville:"Arnac-la-Poste",            force:44},
+  {id:"bouzill", nom:"ES Bouzillé",                  ville:"Bouzillé",                  force:42},
+  // des noms inventés, dans le même esprit bon enfant
+  {id:"trifou",  nom:"Étoile de Trifouilly-les-Oies",ville:"Trifouilly-les-Oies",       force:45},
+  {id:"pacy",    nom:"FC Pacy-sur-Eure",             ville:"Pacy-sur-Eure",             force:43},
+  {id:"perpet",  nom:"AS Perpète-les-Olivettes",     ville:"Perpète-les-Olivettes",     force:44},
+  {id:"stglin",  nom:"US Saint-Glinglin",            ville:"Saint-Glinglin",            force:46},
+  {id:"bouzero", nom:"ES Bouzeron-sur-Vigne",        ville:"Bouzeron-sur-Vigne",        force:48},
+  {id:"stecuis", nom:"FC Sainte-Cuisse",             ville:"Sainte-Cuisse",             force:42},
+  {id:"corneb",  nom:"AS Cornebidouille",            ville:"Cornebidouille",            force:43},
+  {id:"champig", nom:"Sporting de Champignac",       ville:"Champignac",                force:47},
+  {id:"laploub", nom:"ES La Plouberie",              ville:"La Plouberie",              force:44},
+  {id:"belair",  nom:"AS Bellair-sur-Boue",          ville:"Bellair-sur-Boue",          force:42},
+  {id:"mouille", nom:"FC Mouille-les-Bottes",        ville:"Mouille-les-Bottes",        force:45},
+  {id:"trougn",  nom:"US Trou-Paumé",                ville:"Trou-Paumé",                force:41},
+];
+const COUPE_TOURS=[ // tours intercalés en semaine ; j = valeur de G.journee à laquelle le tour se joue
+  {nom:"32es de finale",  court:"32es",   j:10},
+  {nom:"16es de finale",  court:"16es",   j:15},
+  {nom:"8es de finale",   court:"8es",    j:20},
+  {nom:"Quarts de finale",court:"Quarts", j:26},
+  {nom:"Demi-finales",    court:"Demies", j:31},
+  {nom:"Finale",          court:"Finale", j:36},
+];
+const ROTATION_COUPE={ // votre gestion de l'effectif pour le tour de semaine — un vrai arbitrage
+  cadres: {mult:1.04, label:"Les cadres",   desc:"On joue le coup à fond — mais jambes lourdes au prochain match de championnat."},
+  mixte:  {mult:0.95, label:"Équipe mixte", desc:"Un mélange cadres / jeunes. Aucun contrecoup au championnat."},
+  reserve:{mult:0.82, label:"La réserve",   desc:"On préserve les titulaires pour le championnat — au risque du carton face aux amateurs."},
+};
+const COUPE_TERRAIN=5;        // avantage du terrain (le petit reçoit, et il y croit)
+const COUPE_POUCET_BONUS=14;  // le Petit Poucet joue très au-dessus de son rang réel
+const COUPE_RECETTE=600000;   // recette (votre club) à chaque tour franchi
+const COUPE_PRIME=8e6;        // prime au vainqueur de la Coupe de France
+
+function melange(a){ for(let i=a.length-1;i>0;i--){ const k=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[k]; a[k]=t; } return a; }
+function estAmateur(id){ return CLUBS_AMATEURS.some(a=>a.id===id); }
+function amaById(id){ return CLUBS_AMATEURS.find(a=>a.id===id); }
+function nomCoupe(id){ if(estAmateur(id)) return amaById(id).nom; const c=clubById(id); return c?c.nom:id; }
+function villeCoupe(id){ if(estAmateur(id)) return amaById(id).ville; const c=clubById(id); return c?c.nom:id; }
+function niveauCoupe(id){ // 0 amateur · 1 D2 · 2 D1 — sert à savoir qui reçoit
+  if(estAmateur(id)) return 0;
+  const d1=(G.div===1?G.clubs:G.autre)||[];
+  return d1.some(c=>c.id===id)?2:1;
+}
+function forceCoupe(id){
+  if(estAmateur(id)){ let f=amaById(id).force; if(G.coupe&&id===G.coupe.poucetId) f+=COUPE_POUCET_BONUS; return f; }
+  const c=clubById(id); let f=c?forceClub(c):55;
+  if(id===G.monClub && G.coupe) f*=(ROTATION_COUPE[G.coupe.rotation]||ROTATION_COUPE.mixte).mult; // votre rotation pèse
+  return f;
+}
+function poissonC(l){ l=Math.max(0.05,l); const L=Math.exp(-l); let k=0,p=1; do{ k++; p*=Math.random(); }while(p>L && k<14); return k-1; }
+function scoreCoupe(fh,fa){ // buts plausibles selon le rapport de force (calibrage doux, hors championnat)
+  // exposant élevé (~celui du moteur de championnat) : le niveau pèse vraiment, les upsets restent possibles
+  // mais ne sont plus la norme. Le Petit Poucet, dopé à un niveau quasi-pro, garde sa capacité de nuisance.
+  const lh=Math.max(0.12, 1.15*Math.pow(fh/fa,2.6));
+  const la=Math.max(0.09, 1.15*Math.pow(fa/fh,2.6));
+  return [Math.min(8,poissonC(lh)), Math.min(8,poissonC(la))];
+}
+function resoudreCoupe(hid,aid){
+  const fh=forceCoupe(hid)+COUPE_TERRAIN, fa=forceCoupe(aid);
+  let [sh,sa]=scoreCoupe(fh,fa);
+  let tab=false, win;
+  if(sh>sa) win=hid; else if(sa>sh) win=aid;
+  else { tab=true; win=(Math.random()<fh/(fh+fa))?hid:aid; } // pas de nul : tirs au but, le plus fort un peu favori
+  return {hid,aid,sh,sa,tab,win};
+}
+function coupeInit(){ // (re)tirage du tableau pour la saison en cours
+  if(!G||!G.clubs) return;
+  const pros=G.clubs.concat(G.autre||[]).map(c=>c.id);
+  const amateurs=melange(CLUBS_AMATEURS.slice());
+  const poucet=amateurs[0].id;                                  // garanti dans le tableau (index 0)
+  const sel=amateurs.slice(0, Math.max(0, 64-pros.length)).map(a=>a.id); // complète à 64
+  const vivants=melange(pros.concat(sel));
+  if(!vivants.includes(poucet)) vivants[vivants.length-1]=poucet;
+  G.coupe={ saison:G.saison, tourIdx:0, vivants,
+    poucetId:poucet, poucetVivant:true, poucetParcours:[], poucetSortie:null,
+    monParcours:[], elimine:false, tourSortie:null, vainqueur:null,
+    dernierTour:null, rotation:"mixte", fatigue:0 };
+}
+function coupeTick(){ // appelé en fin de journée : déclenche le tour de semaine s'il est à l'heure
+  if(!G.coupe || G.coupe.vainqueur || G.coupe.tourIdx>=COUPE_TOURS.length) return;
+  const tour=COUPE_TOURS[G.coupe.tourIdx];
+  if(G.journee!==tour.j) return;
+  coupeJoueTour(tour);
+}
+function scoreVu(f,id){ return id===f.hid ? f.sh+"-"+f.sa : f.sa+"-"+f.sh; }
+function coupeJoueTour(tour){
+  const co=G.coupe;
+  const ids=melange(co.vivants.slice());
+  const gagnants=[], faits=[];
+  for(let i=0;i+1<ids.length;i+=2){
+    let hid=ids[i], aid=ids[i+1];
+    const nh=niveauCoupe(hid), na=niveauCoupe(aid);
+    if(na<nh){ const t=hid; hid=aid; aid=t; }                       // le plus bas niveau reçoit
+    else if(nh===na && Math.random()<0.5){ const t=hid; hid=aid; aid=t; }
+    const r=resoudreCoupe(hid,aid);
+    gagnants.push(r.win); faits.push(r);
+  }
+  co.dernierTour={nom:tour.nom, court:tour.court, faits};
+  // 1) VOTRE match (si vous êtes encore en lice)
+  if(!co.elimine){
+    const f=faits.find(x=>x.hid===G.monClub||x.aid===G.monClub);
+    if(f){
+      const dom=f.hid===G.monClub, advId=dom?f.aid:f.hid, gagne=f.win===G.monClub, sc=scoreVu(f,G.monClub), tb=f.tab?" t.a.b.":"";
+      const poucetTag=advId===co.poucetId?" — LE Petit Poucet en personne !":"";
+      co.monParcours.push({tour:tour.court, hid:f.hid, aid:f.aid, sh:f.sh, sa:f.sa, tab:f.tab, gagne});
+      if(co.rotation==="cadres") co.fatigue=1;                       // les cadres ont donné : jambes lourdes au prochain match
+      if(gagne){
+        G.tresorerie+=COUPE_RECETTE;
+        notif("🏆 COUPE — "+tour.court+" : QUALIFIÉ ! "+sc+tb+(dom?" à domicile":" à "+villeCoupe(advId))+" face à "+nomCoupe(advId)+poucetTag);
+        G.news.unshift("COUPE DE FRANCE — "+tour.court+" : "+nomCoupe(G.monClub)+" élimine "+nomCoupe(advId)+" ("+sc+tb+")"+poucetTag+" Le rêve continue.");
+      } else {
+        co.elimine=true; co.tourSortie=tour.nom;
+        notif("💔 COUPE — "+tour.court+" : éliminé "+sc+tb+" par "+nomCoupe(advId)+". L'aventure s'arrête.");
+        G.news.unshift("COUPE DE FRANCE — "+tour.court+" : élimination "+sc+tb+" face à "+nomCoupe(advId)+(estAmateur(advId)?" (un club amateur !)":"")+". La coupe attendra l'an prochain.");
+      }
+    }
+  }
+  // 2) les EXPLOITS (un amateur sort un pro), hors votre match et hors Poucet
+  for(const f of faits){
+    if(f.hid===G.monClub||f.aid===G.monClub) continue;
+    const perd=f.win===f.hid?f.aid:f.hid;
+    if(estAmateur(f.win) && !estAmateur(perd) && f.win!==co.poucetId){
+      G.news.unshift("COUPE — EXPLOIT en "+tour.court+" : "+nomCoupe(f.win)+" (amateur) sort "+nomCoupe(perd)+" ! "+(f.tab?"Aux tirs au but. ":"")+"Le village ne dormira pas.");
+    }
+  }
+  // 3) le PETIT POUCET
+  if(co.poucetVivant){
+    const pf=faits.find(f=>f.hid===co.poucetId||f.aid===co.poucetId);
+    if(pf){
+      const advId=pf.hid===co.poucetId?pf.aid:pf.hid;
+      if(pf.win===co.poucetId){
+        co.poucetParcours.push({tour:tour.court, adv:advId, sh:pf.hid===co.poucetId?pf.sh:pf.sa, sa:pf.hid===co.poucetId?pf.sa:pf.sh, tab:pf.tab});
+        if(advId!==G.monClub){
+          const suiv=COUPE_TOURS[co.tourIdx+1];
+          G.news.unshift("COUPE — LE PETIT POUCET : "+nomCoupe(co.poucetId)+" ("+villeCoupe(co.poucetId)+") élimine "+nomCoupe(advId)+" et continue son rêve fou !");
+          notif("✨ Le Petit Poucet de "+villeCoupe(co.poucetId)+" passe en "+(suiv?suiv.court:"finale")+" !");
+        }
+      } else {
+        co.poucetVivant=false; co.poucetSortie=tour.court;
+        if(advId!==G.monClub) G.news.unshift("COUPE — Le conte s'achève : le Petit Poucet "+nomCoupe(co.poucetId)+" tombe en "+tour.court+". Chapeau, "+villeCoupe(co.poucetId)+".");
+      }
+    }
+  }
+  co.vivants=gagnants;
+  co.tourIdx++;
+  if(gagnants.length===1) coupeSacre(gagnants[0]);
+}
+function coupeSacre(id){
+  const co=G.coupe; co.vainqueur=id;
+  if(id===G.monClub){
+    G.palmares.push("Vainqueur de la Coupe de France "+co.saison);
+    G.confiance=Math.min(100,G.confiance+12); G.tresorerie+=COUPE_PRIME;
+    G.news.unshift("🏆🏆 COUPE DE FRANCE REMPORTÉE ! "+nomCoupe(G.monClub)+" soulève le trophée. La ville défile, le président pleure. Prime de "+(COUPE_PRIME/1e6).toFixed(0)+" MF.");
+    notif("🏆 VOUS REMPORTEZ LA COUPE DE FRANCE "+co.saison+" !");
+    G.presse.unshift("« "+nomCoupe(G.monClub)+" VAINQUEUR DE LA COUPE DE FRANCE ! Une épopée que personne n'oubliera. »");
+  } else if(id===co.poucetId){
+    G.news.unshift("🏆 INCROYABLE : le Petit Poucet "+nomCoupe(id)+" ("+villeCoupe(id)+") REMPORTE LA COUPE DE FRANCE ! Le plus beau conte de l'histoire du football.");
+    notif("✨🏆 Le Petit Poucet de "+villeCoupe(id)+" gagne la Coupe de France. On n'avait jamais vu ça.");
+    G.presse.unshift("« CONTE DE FÉES : "+nomCoupe(id)+", club de village, INSCRIT SON NOM SUR LA COUPE DE FRANCE ! »");
+  } else {
+    G.news.unshift("COUPE DE FRANCE "+co.saison+" — "+nomCoupe(id)+" remporte le trophée.");
+  }
+}
+function ecranCoupe(){
+  const co=G.coupe;
+  if(!co){ chrome("coupe",`<div class="panel"><h2 class="jaune">🏆 Coupe de France</h2><p class="dim">Le tirage n'est pas encore connu.</p></div>`); return; }
+  const pId=co.poucetId;
+  let statut;
+  if(co.vainqueur===G.monClub) statut=`<p class="jaune"><b>Vous avez REMPORTÉ la Coupe de France ${esc(co.saison)} !</b></p>`;
+  else if(co.elimine) statut=`<p class="rouge">Éliminé en ${esc(co.tourSortie||"?")}. ${co.vainqueur?"Vainqueur : "+esc(nomCoupe(co.vainqueur))+".":"La coupe continue sans vous."}</p>`;
+  else if(co.vainqueur) statut=`<p class="dim">Vainqueur : ${esc(nomCoupe(co.vainqueur))}.</p>`;
+  else statut=`<p class="vert">Toujours en lice — ${co.vivants.length} clubs encore en course.</p>`;
+  const tourLabel = co.vainqueur ? "Épreuve terminée" :
+    (co.tourIdx<COUPE_TOURS.length ? "Prochain tour : "+COUPE_TOURS[co.tourIdx].nom+" (en semaine, vers la J"+COUPE_TOURS[co.tourIdx].j+")" : "—");
+  const peutRegler = !co.elimine && !co.vainqueur && co.tourIdx<COUPE_TOURS.length;
+  const rota = peutRegler ? `<div class="panel"><h2 class="cyan">Votre approche pour le prochain tour</h2>
+     <p class="dim" style="font-size:12px">Le match se joue en milieu de semaine. Ménagez-vous vos cadres pour le championnat ?</p>
+     <div class="ctr" style="margin-top:6px">
+       ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRot" data-k="${k}" style="margin:4px 3px 0${co.rotation===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
+       <br><span class="dim" style="font-size:11px">${esc(ROTATION_COUPE[co.rotation].desc)}</span>
+     </div></div>` : "";
+  const parc = co.monParcours.length ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Score</th><th></th></tr>
+     ${co.monParcours.map(p=>{ const adv=p.hid===G.monClub?p.aid:p.hid, sc=scoreVu(p,G.monClub);
+        return `<tr class="${adv===pId?'':''}"><td>${esc(p.tour)}</td><td>${esc(nomCoupe(adv))}${adv===pId?' <span class="cyan">🐭</span>':''}</td><td class="num">${sc}${p.tab?" <span class=dim>tab</span>":""}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`;}).join("")}
+     </table>` : `<p class="dim">Votre entrée en lice se fera en ${esc(COUPE_TOURS[0].nom)}.</p>`;
+  const pouc = `<div class="panel" style="border-color:#6fd6e8"><h2 class="cyan">🐭 Le Petit Poucet</h2>
+     <p><b>${esc(nomCoupe(pId))}</b> <span class="dim">— ${esc(villeCoupe(pId))}</span></p>
+     ${co.poucetParcours.length ? `<p class="dim" style="font-size:12px">A déjà sorti : ${co.poucetParcours.map(p=>esc(nomCoupe(p.adv))+" ("+p.sh+"-"+p.sa+(p.tab?" tab":"")+")").join(" · ")}</p>` : `<p class="dim" style="font-size:12px">L'aventure ne fait que commencer…</p>`}
+     <p class="${co.poucetVivant?"vert":"rouge"}" style="font-size:12px">${co.poucetVivant?(co.vainqueur===pId?"A REMPORTÉ LA COUPE !":"Encore en lice — le rêve continue."):"Éliminé en "+esc(co.poucetSortie||"?")+"."}</p></div>`;
+  const dt = co.dernierTour ? `<div class="panel"><h2>${esc(co.dernierTour.nom)} — résultats</h2>
+     <table class="fit"><tr><th>Hôte</th><th class="num">Score</th><th>Visiteur</th></tr>
+     ${co.dernierTour.faits.map(f=>`<tr class="${(f.hid===G.monClub||f.aid===G.monClub)?"me":""}">
+       <td>${f.win===f.hid?"<b>":""}${esc(nomCoupe(f.hid))}${f.hid===pId?" 🐭":""}${f.win===f.hid?"</b>":""}</td>
+       <td class="num">${f.sh}-${f.sa}${f.tab?" <span class=dim>tab</span>":""}</td>
+       <td>${f.win===f.aid?"<b>":""}${esc(nomCoupe(f.aid))}${f.aid===pId?" 🐭":""}${f.win===f.aid?"</b>":""}</td></tr>`).join("")}
+     </table></div>` : "";
+  chrome("coupe",`
+    <div class="panel"><h2 class="jaune">🏆 Coupe de France ${esc(co.saison)}</h2>
+      ${statut}
+      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Les pros (D1 + D2) entrent en ${esc(COUPE_TOURS[0].court)}. Tirage sans tête de série · le petit reçoit · pas de match nul (tirs au but).</p>
+    </div>
+    ${rota}
+    <div class="panel"><h2>Votre parcours</h2>${parc}</div>
+    ${pouc}
+    ${dt}`);
+  if(peutRegler) app.querySelectorAll(".bRot").forEach(b=>b.onclick=()=>{ G.coupe.rotation=b.dataset.k; montre("coupe"); });
+}
+
 function finDeSaison(){
   for(const p of G.prets.slice()) retourPret(p);
   G.prets=[];
@@ -2449,6 +2690,7 @@ function intersaison(){
   G.saison=(1994+G.saisonIdx)+"-"+String((95+G.saisonIdx)%100).padStart(2,"0");
   G.journee=0; G.histo=[]; G.finie=false; G.presse=[]; G.affaire=null; G.truque=false; G.risque=0;
   G.calendrier=berger(G.clubs.map(c=>c.id));
+  coupeInit(); // nouveau tableau de Coupe de France et nouveau Petit Poucet
   G.sponsor=null; G.offresSponsor=genSponsors(1+0.06*G.saisonIdx); G.sponsorSwitch=false;
   G.equip=null; G.offresEquip=genEquip(); // l'équipementier est à re-signer chaque saison, selon la notoriété
   // une nouvelle ère de sponsoring s'ouvre-t-elle cette saison ?
@@ -2540,6 +2782,7 @@ function migre(){
       initTraits(j);
     }
   }
+  if(!G.coupe) coupeInit(); // vieilles sauvegardes : on ouvre la Coupe de France en cours de route
   assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
@@ -2657,7 +2900,7 @@ function chrome(actif, corps){
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
      <span class="r">${esc(G.saison)} · <b class="${G.div===2?'cyan':'jaune'}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
    </div>
-   <nav>${["calendrier","classement","effectif","mercato","finances","club","apropos"]
+   <nav>${["calendrier","classement","coupe","effectif","mercato","finances","club","apropos"]
      .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s==="apropos"?"À PROPOS":s.toUpperCase()}</button>`).join("")}
    </nav>
    <div id="corps">${corps}</div>
@@ -2734,6 +2977,7 @@ function montre(ecran){
   sauvegardeLocale(true); // sauvegarde auto à chaque transition d'écran
   if(ecran==="calendrier") return ecranCalendrier();
   if(ecran==="classement") return ecranClassement();
+  if(ecran==="coupe")      return ecranCoupe();
   if(ecran==="effectif")   return ecranEffectif();
   if(ecran==="mercato")    return ecranMercato();
   if(ecran==="finances")   return ecranFinances();
