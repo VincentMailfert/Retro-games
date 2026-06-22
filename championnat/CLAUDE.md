@@ -186,16 +186,24 @@ toujours « raconter quelque chose ».
   flash : `cagade` en **rouge (« CAGADE ! »)**, `cadeau` en version festive, et `geste`/`but50` en
   **« 🌟 BUT D'ANTHOLOGIE ! »** — détail = l'annonce du moment. Le **chien sur la pelouse** (`chien`) a aussi son
   flash, avec une **« image » ASCII** (`DOG_ART`) affichée sur le panneau via le champ `o.art` de `celebreFlash`.
-- **Images de flash (« humaniser le jeu »)** : `celebreFlash` accepte aussi un champ **`o.img`** (une `data:` URI
-  embarquée) qui rend une **vignette pixel-art** avec le titre + score **en bandeau surimpression** (CSS
-  `.vignette`/`.vimg`/`.bandeau`, dégradé sombre en haut pour la lisibilité) au lieu du gros titre seul. Branché
-  pour l'instant sur la **cagade** (`cag` → `img:PICK(IMG_CAGADE)`, pas le `cadeau` ni le but d'anthologie).
-  `IMG_CAGADE` est une table de data: URI (déclarée près de `DOG_ART`) ; on **pioche au sort** à chaque cagade.
-  Les **PNG source** vivent dans `championnat/img/` (`cagade-arconada.png`, `cagade-general.png`) **uniquement
-  pour régénérer** — le jeu ne les charge pas (zéro requête réseau préservée). Pipeline d'ajout : redimensionner
-  ~300-320px côté max + quantifier la palette (~64 couleurs, renforce le pixel et allège) via Pillow, encoder en
-  base64, ajouter une entrée à `IMG_CAGADE`. **Ne pas** mettre d'images brutes 1 Mo en data: URI (poids HTML).
-  Mêmes contraintes que les autres overlays : nettoyé par `abandonneDirect()`, court-circuité en `EN_TEST`.
+- **Images de moment (« humaniser le jeu »)** : des **vignettes pixel-art** embarquées en **`data:` URI** (zéro
+  requête réseau préservée) illustrent certains temps forts. Toutes les data: URI vivent dans la table
+  **`IMG_MOMENT`** (déclarée près de `DOG_ART`), une entrée par moment, **chaque entrée est un tableau** (on
+  **pioche au sort** via `PICK` pour varier). Deux canaux d'affichage :
+  • **Flash** (`celebreFlash`) — champ **`o.img`** : rend une vignette avec titre + score **en bandeau
+    surimpression** (CSS `.vignette`/`.vimg`/`.bandeau`, dégradé sombre en haut pour la lisibilité) au lieu du
+    gros titre seul. Branché sur **`cagade`** (titre rouge, classe `contre`), **`but50`** et **`geste`** (les deux
+    en « 🌟 BUT D'ANTHOLOGIE ! ») via `img:IMG_MOMENT[lg.mo]?PICK(IMG_MOMENT[lg.mo]):null` — `cadeau` reste sans
+    image (clé absente → null).
+  • **Overlay interactif** — le moment **`coupfranc`** (`momentCoupFranc`) n'est pas un flash mais une carte de
+    choix (`cadreMoment`) : son image est un **bandeau d'illustration** en tête du corps (`<img class="momImg">`,
+    plafonné à 200px de haut, `image-rendering:pixelated`).
+  Les **PNG source** vivent dans `championnat/img/` (`cagade-arconada/general`, `lucarne` = but50,
+  `retourné` = geste, `coup-franc` = coupfranc) **uniquement pour régénérer** — le jeu ne les charge pas. Pipeline
+  d'ajout : redimensionner ~360px côté max + quantifier la palette (~64 couleurs, renforce le pixel et allège) via
+  Pillow, encoder en base64, ajouter à la bonne clé d'`IMG_MOMENT`. **Ne pas** mettre d'images brutes 1 Mo en
+  data: URI (poids HTML — l'index.html pèse déjà ~545 Ko avec ces 5 vignettes). Mêmes contraintes que les autres
+  overlays : flash nettoyé par `abandonneDirect()`, tout court-circuité en `EN_TEST`.
 - **Montée de tension** (`MONTEE_BUT` + `MONTEE_FRAPPE`, en direct seulement) : avant un but du téléscripteur **MAIS
   AUSSI avant certaines grosses occasions ratées**, l'action se construit en **deux temps**, chacun suivi d'un
   battement (`Math.max(650, tickerDelai)`) AVANT la résolution et son flash. 1er temps = l'action s'installe (ambiance
