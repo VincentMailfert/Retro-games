@@ -22,7 +22,9 @@ toujours « raconter quelque chose ».
 - **Aucun framework, aucun build, et aucune dépendance externe dans la logique de jeu.** HTML/CSS/JS pur.
   Deux entorses purement cosmétiques chargées depuis le `<head>`, sans effet sur le moteur (voir plus bas) :
   les fontes Google (VT323/Silkscreen) et le compteur GoatCounter — toutes deux dégradent proprement si le
-  réseau manque (repli `monospace`, pas de comptage).
+  réseau manque (repli `monospace`, pas de comptage). Un troisième ajout au `<head>` ne compte PAS comme une
+  dépendance : le favicon est embarqué en `data:` URI (un ballon jaune sur bleu nuit, aux couleurs du jeu) —
+  zéro requête réseau, il évite simplement le 404 `/favicon.ico`.
 - État global dans l'objet `G` (club, journée, joueurs, finances, réputation, incidents…).
 - **Sauvegarde** : sauvegarde rapide en 1 clic dans le `localStorage` (clé `SAVEKEY`) — auto à chaque
   fin de journée et à chaque transition d'écran (`montre`), plus un bouton « 💾 Sauvegarder » en pied de
@@ -200,7 +202,10 @@ toujours « raconter quelque chose ».
 - **Vitesses du téléscripteur** (boutons `#ctlVitesse` : `vR`/`vN`/`vL`/`vTL`) : 4 paliers, toute l'échelle reculée
   d'un cran après playtest (v0.48, « ça défile trop vite ») — **Rapide** 950 ms, **Normale** 1600 ms (défaut,
   `tickerDelai` à l'init et au reset de `lanceMatch`), **Lente** 2300 ms, **Très lente** 3000 ms (nouveau plancher).
-  Pur réglage de pacing UI, sans effet moteur.
+  Pur réglage de pacing UI, sans effet moteur. Le palier actif est **surligné** (jaune, comme les boutons de
+  consigne) via `surligneVitesse()` : appelé à chaque clic, au câblage des boutons, et au coup d'envoi dans
+  `lanceMatch` (qui remet d'abord `tickerDelai=1600`) — avant v0.51 les 4 boutons étaient identiques et on ne
+  voyait pas la vitesse choisie.
 - **Cycle du bouton d'action de l'écran de match** : le bloc `#preMatchAct` (un `<p>` centré) porte avant le coup
   d'envoi « Jouer le match » (`#bJouer`) + « Résultat instantané » (`#bVite`). `lanceMatch` les **masque**
   (`style.display="none"`, plus seulement `disabled`) pour qu'ils ne traînent pas pendant le direct ; au coup de

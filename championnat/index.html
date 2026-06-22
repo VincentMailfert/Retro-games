@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>D1 MANAGER — Saison 1995-96</title>
+<!-- Favicon embarqué (data URI, aucune dépendance réseau) : ballon jaune sur bleu nuit, aux couleurs du jeu. Évite le 404 /favicon.ico. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b1626'/%3E%3Ccircle cx='8' cy='8' r='5' fill='%23ffd24a'/%3E%3C/svg%3E">
 <!-- Statistiques de fréquentation (GoatCounter) : ne compte QUE sur l'URL publique HTTPS,
      jamais en local (file://, localhost) ni dans le harnais Node sans DOM. -->
 <script type="text/javascript">
@@ -176,7 +178,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.50"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.51"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2533,7 +2535,7 @@ function ecranCoupe(){
      </table>` : `<p class="dim">Votre entrée en lice se fera en ${esc(COUPE_TOURS[0].nom)}.</p>`;
   const pouc = `<div class="panel" style="border-color:#6fd6e8"><h2 class="cyan">🐭 Le Petit Poucet</h2>
      <p><b>${esc(nomCoupe(pId))}</b> <span class="dim">— ${esc(villeCoupe(pId))}</span></p>
-     ${co.poucetParcours.length ? `<p class="dim" style="font-size:12px">A déjà sorti : ${co.poucetParcours.map(p=>esc(nomCoupe(p.adv))+" ("+p.sh+"-"+p.sa+(p.tab?" tab":"")+")").join(" · ")}</p>` : `<p class="dim" style="font-size:12px">L'aventure ne fait que commencer…</p>`}
+     ${co.poucetParcours.length ? `<p class="dim" style="font-size:12px">A déjà sorti : ${co.poucetParcours.map(p=>esc(nomCoupe(p.adv))+" ("+p.sh+"-"+p.sa+(p.tab?" tab":"")+")").join(" · ")}</p>` : (co.poucetVivant ? `<p class="dim" style="font-size:12px">L'aventure ne fait que commencer…</p>` : `<p class="dim" style="font-size:12px">Sorti d'entrée, sans faire de vagues.</p>`)}
      <p class="${co.poucetVivant?"vert":"rouge"}" style="font-size:12px">${co.poucetVivant?(co.vainqueur===pId?"A REMPORTÉ LA COUPE !":"Encore en lice — le rêve continue."):"Éliminé en "+esc(co.poucetSortie||"?")+"."}</p></div>`;
   const dt = co.dernierTour ? `<div class="panel"><h2>${esc(co.dernierTour.nom)} — résultats</h2>
      <table class="fit"><tr><th>Hôte</th><th class="num">Score</th><th>Visiteur</th></tr>
@@ -3107,10 +3109,8 @@ function ecranCalendrier(){
   if(G.incident){ ouvreEre(()=>ouvreIncident(ouvreDebrief)); }
   else { ouvreEre(ouvreDebrief); }
   // toute l'échelle reculée d'un cran (le défilement par défaut respire davantage) ; « Très lente » est le nouveau plancher
-  document.getElementById("vTL").onclick=()=>tickerDelai=3000;
-  document.getElementById("vL").onclick=()=>tickerDelai=2300;
-  document.getElementById("vN").onclick=()=>tickerDelai=1600;
-  document.getElementById("vR").onclick=()=>tickerDelai=950;
+  for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
+  surligneVitesse(); // état initial : « Normale » mise en valeur
   const bA=document.getElementById("bMalAcc"); if(bA) bA.onclick=accepterAffaire;
   const bR=document.getElementById("bMalRef"); if(bR) bR.onclick=refuserAffaire;
   const bEA=document.getElementById("bExtAcc"); if(bEA) bEA.onclick=accepterOffreExt;
@@ -3128,6 +3128,13 @@ const ICO={
 };
 
 let tickerTimer=null, tickerDelai=1600, butFlashTimer=null;
+// surligne le bouton de vitesse actif (même mise en valeur que les boutons de consigne) — on doit voir d'un coup d'œil le palier choisi
+const VITESSES={vTL:3000,vL:2300,vN:1600,vR:950};
+function surligneVitesse(){
+  for(const id in VITESSES){ const b=document.getElementById(id); if(!b) continue;
+    const on=(VITESSES[id]===tickerDelai);
+    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; }
+}
 /* panneau LED clignotant ~5 s pour les temps forts (but, carton rouge…), avec détail ;
    o = {classe, gros, sub (HTML), detail (texte)} ; onDone appelé au clic OU après 5 s */
 function celebreFlash(o, onDone){
@@ -3200,7 +3207,7 @@ function lanceMatch(instant){
   const {res,monMatch}=jouerJournee();
   const tk=document.getElementById("ticker"); tk.innerHTML="";
   const ctl=document.getElementById("ctlVitesse");
-  if(ctl&&!instant) ctl.style.display="";
+  if(ctl&&!instant){ ctl.style.display=""; tickerDelai=1600; surligneVitesse(); } // vitesse par défaut + surlignage à jour au coup d'envoi
   const lignes=monMatch.ev;
   const interactif=monMatch.moment && MOMENTS_INTERACTIFS[monMatch.moment.type];
   const penIdx=interactif?lignes.findIndex(l=>l.x===monMatch.moment.annonce):-1;
@@ -3957,8 +3964,9 @@ function svgStade(cap, chantier){
 /* ---- Club ---- */
 function ecranClub(){
   const c=clubById(G.monClub);
-  const buteurs=G.clubs.flatMap(x=>x.joueurs).sort((a,b)=>b.buts-a.buts).slice(0,8);
-  const passeurs=G.clubs.flatMap(x=>x.joueurs).sort((a,b)=>(b.passes||0)-(a.passes||0)).slice(0,8);
+  // on ne classe que ceux qui ont réellement marqué/passé : sinon, en début de saison, on affichait 8 joueurs à 0 (trompeur)
+  const buteurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>j.buts>0).sort((a,b)=>b.buts-a.buts).slice(0,8);
+  const passeurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.passes||0)>0).sort((a,b)=>(b.passes||0)-(a.passes||0)).slice(0,8);
   chrome("club",`<div class="grid2">
    <div class="panel"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
      ${svgStade(c.cap, !!G.chantier)}
@@ -3989,9 +3997,9 @@ function ecranClub(){
    </div>
    <div class="panel"><h2>Buteurs &amp; passeurs</h2>
      <h3>Buteurs</h3>
-     <table class="fit">${buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join("")}</table>
+     <table class="fit">${buteurs.length?buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucun but inscrit pour l'instant.</td></tr>`}</table>
      <h3>Passeurs décisifs</h3>
-     <table class="fit">${passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join("")}</table>
+     <table class="fit">${passeurs.length?passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucune passe décisive pour l'instant.</td></tr>`}</table>
    </div></div>`);
   document.getElementById("bSt").onclick=agrandirStade;
   document.getElementById("bCe").onclick=ameliorerCentre;
