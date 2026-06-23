@@ -271,8 +271,8 @@ toujours « raconter quelque chose ».
   enfant — Trifouilly-les-Oies, Montcuq, Nœud-les-Mines… **que des faux joueurs**, et ils n'ont d'ailleurs
   pas d'effectif : un amateur n'existe qu'en tant que `force`). **Ton des noms** : on garde les communes
   réelles qui font sourire (Montcuq, Andouille, Corps-Nuds…) mais **pas de gag trop cheap** (Poil,
-  Trou-Paumé, Trécon ont été retirés en v0.54 au profit de villages à belle consonance française —
-  Saint-Amour, Montrésor, Salers). 28 entrées disponibles, 24 tirées par saison. Tirage **sans tête de série**, **le petit
+  Trou-Paumé, Trécon ont été retirés en v0.54-55 au profit de villes à belle consonance française —
+  Vierzon, Vesoul, Salers). 28 entrées disponibles, 24 tirées par saison. Tirage **sans tête de série**, **le petit
   reçoit** (`niveauCoupe` : amateur 0 < D2 1 < D1 2), **pas de match nul** (tirs au but). Un **Petit Poucet**
   est désigné chaque saison (`poucetId`, dopé de `COUPE_POUCET_BONUS`) et joue très au-dessus de son rang →
   parcours marquant, et il peut vous tomber dessus (le petit reçoit, vous jouez chez lui). **La coupe ne

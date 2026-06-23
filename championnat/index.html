@@ -187,7 +187,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.54"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.55"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2346,8 +2346,8 @@ const CLUBS_AMATEURS=[
   // de vraies communes au nom qui fait sourire
   {id:"montcuq", nom:"FC Montcuq",                   ville:"Montcuq",                   force:46},
   {id:"andouil", nom:"US Andouille",                 ville:"Andouille",                 force:42},
-  {id:"stamour", nom:"AS Saint-Amour",              ville:"Saint-Amour",               force:41},
-  {id:"montres", nom:"ES Montrésor",                ville:"Montrésor",                 force:43},
+  {id:"vierzon", nom:"FC Vierzon",                  ville:"Vierzon",                   force:41},
+  {id:"vesoul",  nom:"US Vesoul",                    ville:"Vesoul",                    force:43},
   {id:"corpsnu", nom:"FC Corps-Nuds",               ville:"Corps-Nuds",                force:45},
   {id:"vatan",   nom:"US Vatan",                     ville:"Vatan",                     force:47},
   {id:"arnacp",  nom:"AS Arnac-la-Poste",            ville:"Arnac-la-Poste",            force:44},
