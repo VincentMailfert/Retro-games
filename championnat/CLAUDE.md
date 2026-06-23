@@ -269,14 +269,18 @@ toujours « raconter quelque chose ».
   10/15/20/26/31/36 via `COUPE_TOURS`). **64 équipes aux 32es** : les **40 clubs pros (D1+D2) y entrent**,
   rejoints par 24 **clubs amateurs** de villages (`CLUBS_AMATEURS` : vraies communes + noms inventés bon
   enfant — Trifouilly-les-Oies, Montcuq, Nœud-les-Mines… **que des faux joueurs**, et ils n'ont d'ailleurs
-  pas d'effectif : un amateur n'existe qu'en tant que `force`). Tirage **sans tête de série**, **le petit
+  pas d'effectif : un amateur n'existe qu'en tant que `force`). **Ton des noms** : on garde les communes
+  réelles qui font sourire (Montcuq, Andouille, Corps-Nuds…) mais **pas de gag trop cheap** (Poil,
+  Trou-Paumé, Trécon ont été retirés en v0.54 au profit de villages à belle consonance française —
+  Saint-Amour, Montrésor, Salers). 28 entrées disponibles, 24 tirées par saison. Tirage **sans tête de série**, **le petit
   reçoit** (`niveauCoupe` : amateur 0 < D2 1 < D1 2), **pas de match nul** (tirs au but). Un **Petit Poucet**
   est désigné chaque saison (`poucetId`, dopé de `COUPE_POUCET_BONUS`) et joue très au-dessus de son rang →
   parcours marquant, et il peut vous tomber dessus (le petit reçoit, vous jouez chez lui). **La coupe ne
   touche JAMAIS les stats de championnat ni le calibrage des buts** : tout y est résolu par un modèle de
   force autonome (`forceCoupe`/`scoreCoupe`, exposant ~2,6, Poisson `poissonC`, calibrage doux), jamais par
-  `appliqueResultat`. **Dilemme du mercredi** : `G.coupe.rotation` (cadres/mixte/réserve, réglé sur l'écran
-  COUPE) module votre force en coupe ET, pour « les cadres », pose `G.coupe.fatigue=1` → **−5 % d'attaque à
+  `appliqueResultat`. **Dilemme du mercredi** : `G.coupe.rotation` (cadres/mixte/réserve, réglé soit sur
+  l'écran COUPE, soit dans la **fenêtre d'avant-match** — voir flux événementiel plus bas) module votre force
+  en coupe ET, pour « les cadres », pose `G.coupe.fatigue=1` → **−5 % d'attaque à
   VOTRE SEUL match de championnat suivant** (une ligne gardée dans `simuleMatch`, dissipée en tête de
   `finirJournee` ; **neutre quand `fatigue=0`** → le harnais joue en mixte, calibrage intact). Onglet **COUPE**
   (`ecranCoupe`, 3ᵉ de la nav) : statut, rotation, votre parcours, la fiche du Poucet, résultats du dernier
@@ -288,8 +292,25 @@ toujours « raconter quelque chose ».
   70 % bascule au budget transferts). (Re)tirée à `nouvellePartie` et à `intersaison` (nouveau tableau + nouveau Poucet), migrée par `migre`
   (`if(!G.coupe) coupeInit()`). **Équilibrage mesuré** (test dédié, 80 saisons) : club fort **~13 % de
   victoire en « cadres »** contre ~6 % en mixte (le choix de rotation pèse), Poucet en quarts+ ~10-19 % et
-  sacré très exceptionnellement. **v1** : résolution automatique des tours (pas encore de direct façon
-  championnat — piste d'évolution si on veut « jouer » son tie au téléscripteur).
+  sacré très exceptionnellement.
+  - **Flux événementiel du tour de coupe (v0.54)** : un tour de coupe où VOUS jouez n'est plus résolu en
+    silence. `coupeTick` tire d'abord les affiches (`coupeTireTour` → pose `G.coupe.aJouer={tourIdx,nom,court,
+    paires}`) **sans résoudre** ; l'écran calendrier (`ecranCalendrier`, AVANT debrief/incident/ère) détecte
+    `G.coupe.aJouer` et ouvre `ouvreCoupe(suite)` — une séquence de **trois fenêtres `#fiche`** : 1) avant-match
+    (l'affiche + l'adversaire + domicile/extérieur + **choix de l'équipe** cadres/mixte/réserve, qui écrit
+    `G.coupe.rotation`) → bouton « Jouer le match » ; 2) le **verdict** de votre match (qualifié + tour suivant
+    + recette, ou fin du parcours + dotation, ou sacre) ; 3) **tous les résultats du tour** (table scrollable,
+    le Poucet marqué 🐭, votre match en classe `me`). La résolution (`coupeResoutTour(interactif)`, ex-corps de
+    `coupeJoueTour`) se fait au clic « Jouer » (rotation déjà posée → elle pèse vraiment), et `interactif`
+    **coupe les `notif()` perso** (la fenêtre fait déjà le job ; le debrief ne les duplique pas — mais Poucet
+    et exploits restent en dépêche). **Pièges à préserver** : (a) hors UI (`EN_TEST`, harnais) **ou** si vous
+    n'avez pas de match ce tour (déjà éliminé), `coupeTick` appelle `coupeResoutTour(false)` **immédiatement**
+    → résolution muette, le harnais et la suite de la saison ne se bloquent jamais ; (b) `G.coupe.aJouer`
+    (nouveau champ, init `null`, sérialisé) reste pendant entre la fin du match de championnat et l'ouverture
+    de la fenêtre — au rechargement d'une sauvegarde mid-coupe, l'écran calendrier rouvre la fenêtre, c'est
+    voulu ; (c) la fenêtre vit dans `#fiche` avec `window._penEnCours=true` (pas de fermeture Échap tant qu'on
+    n'a pas joué), nettoyée par `fermeFiche()` au bout du flux qui enchaîne sur `suiteApresCoupe`. Pas encore
+    de direct au téléscripteur pour la coupe (piste d'évolution).
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 
