@@ -122,6 +122,24 @@ toujours « raconter quelque chose ».
   (« masquer les options non choisies »), mais sans réécrire le DOM des boutons.
 - **Incidents de vie de club** : catalogue `INCIDENTS` (~38 cartes), tiré ~1 journée sur 3,
   chacun avec un joueur, 2-3 choix, des effets via `eff(j, {…})`. Anti-répétition sur 8 journées.
+- **Conférence de presse interactive** (v0.57, `CONF_PRESSE`/`tireConfPresse`/`ouvreConf`/`effConf`,
+  `G.confPresse` la conf en attente, `G.confRecents` l'anti-répétition sur 6 journées) : pendant des
+  années la presse ne parlait qu'à sens unique (`G.declar`, un adversaire vous chambre). Désormais **on
+  vous tend le micro** autour d'un **fait saillant** et vous choisissez le **TON** de la réponse. Le
+  catalogue est **ordonné par priorité** (le 1ᵉʳ scénario éligible non récent l'emporte) : `declar`
+  (répliquer à la pique adverse — synergie avec `G.declar` affiché sur l'écran match), `scandale`
+  (`G.risque>0`), `derby`, `serie_noire`/`serie_or` (3 défaites / 3 victoires via `forme`, encodée
+  victoire=1 nul=0 défaite=−1), `releg` (zone rouge, J≥18), `titre` (top 3, J≥22), `president`
+  (`confiance<35`). Chaque ton porte un `eff{moral,reput,conf,buzz,presse}` appliqué par `effConf` (moral
+  du vestiaire, `majReput`, `G.confiance`, `G.buzz`, ligne de revue de presse) — magnitudes **modestes**,
+  c'est un nudge narratif, pas un levier. **Déclenchement** (dans `finirJournee`, après le bloc incident) :
+  seulement s'il existe un fait saillant, **jamais le même week-end qu'un incident** (`!G.incident`, pas de
+  fatigue de modale), prob 0,5 → en pratique ≈1 conf toutes les 7-8 journées. **Calibrage intact** : les
+  effets sont appliqués AU CLIC dans la modale `#fiche` (même flux/`window._penEnCours` que `ouvreIncident`,
+  option retenue mise en valeur, autres masquées) ; le harnais ne rend pas les modales (`EN_TEST` → `montre`
+  no-op), donc il n'y touche jamais. Chaînée dans `ecranCalendrier` **entre incident et debrief**
+  (`ouvreConf(ouvreDebrief)`). `G.confPresse`/`confRecents` migrés par `migre`. Étendre = ajouter une entrée
+  `{id,cond,q,rep}` au bon rang de priorité.
 - **Mallette / match truqué** (`G.affaire` l'offre, `G.truque` la victoire promise, `G.risque` le compte à
   rebours d'enquête) : un intermédiaire propose une victoire garantie (3-7 MF) ; accepter arme `G.truque`
   (match suivant gagné), puis `G.risque=RNDI(4,7)` ouvre une **fenêtre d'enquête bornée** (~10 %/journée

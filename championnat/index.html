@@ -187,7 +187,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.56"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.57"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1369,6 +1369,13 @@ function finirJournee(delta){
     G.incident=tireIncident();
     if(G.incident) G.incidentsRecents.push({id:G.incident.inc.id, j:G.journee});
   }
+  // conférence de presse interactive — seulement s'il y a un fait saillant, jamais le même week-end qu'un incident (pas de fatigue de modale)
+  G.confPresse=null;
+  G.confRecents=(G.confRecents||[]).filter(r=>G.journee-r.j<6);
+  if(G.journee<38 && !G.incident && Math.random()<0.5){
+    const cp=tireConfPresse();
+    if(cp){ G.confPresse=cp; G.confRecents.push({id:cp.id, j:G.journee}); }
+  }
   coupeTick(); // tour de Coupe de France en semaine, s'il est à l'heure
   if(G.journee>=38) finDeSaison();
   assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
@@ -1745,6 +1752,119 @@ function genPresse(res){
   else if(moi.forme.length>=3 && moi.forme.slice(-3).every(x=>x===1)) t.push(moi.nom+" enchaîne les victoires — les supporters rêvent à voix haute.");
   t.sort(()=>Math.random()-.5);
   G.presse=t.slice(0,3).map(x=>"« "+x+" »").concat(G.presse).filter((x,i,a)=>a.indexOf(x)===i).slice(0,6);
+}
+
+/* ---------- Conférence de presse interactive ----------
+   On vous tend le micro autour d'un fait saillant (un adversaire qui vous a chambré, un derby qui vient,
+   une série, la course au titre ou au maintien, un scandale, un président qui doute). Vous choisissez le
+   TON de votre réponse ; chaque ton déplace le moral du vestiaire, la réputation du club, la confiance du
+   président, le buzz, et alimente la revue de presse. Aucun effet sur le calibrage : tout est appliqué AU
+   CLIC du joueur, donc le harnais (qui ne rend pas les modales) n'y touche jamais. */
+function effConf(e, c){
+  const moi=c.moi;
+  if(e.moral)  moi.joueurs.forEach(j=>j.moral=Math.max(5,Math.min(100,(j.moral==null?65:j.moral)+e.moral)));
+  if(e.reput)  majReput(e.reput, "conférence de presse");
+  if(e.conf)   G.confiance=Math.max(0,Math.min(100,G.confiance+e.conf));
+  if(e.buzz)   G.buzz=Math.min(4,(G.buzz||0)+e.buzz);
+  if(e.presse) G.presse.unshift("« "+e.presse+" »");
+}
+function ctxPresse(){
+  const moi=clubById(G.monClub);
+  const jour=G.calendrier[G.journee];
+  const paire=jour&&jour.find(([x,y])=>x===G.monClub||y===G.monClub);
+  const adv=paire?clubById(paire[0]===G.monClub?paire[1]:paire[0]):null;
+  const cl=classement(); const rang=cl.findIndex(c=>c.id===G.monClub)+1;
+  const f=(moi.forme||[]).slice(-3);
+  return {moi, adv, rang, n:G.clubs.length,
+    derby: !!(adv && RIVAL[moi.id]===adv.id),
+    troisV: f.length>=3 && f.every(x=>x===1),
+    troisD: f.length>=3 && f.every(x=>x===-1),
+    declar: G.declar};
+}
+// catalogue : ordre = priorité (le fait le plus saillant d'abord). cond(c) éligibilité, q(c) la question, rep(c) les tons.
+const CONF_PRESSE=[
+  {id:"declar", cond:c=>!!c.declar,
+   q:c=>`${c.declar.nom} (${c.declar.club}) vous a chambré dans la presse : « ${c.declar.txt} » Le micro est pour vous.`,
+   rep:c=>[
+     {lib:"Répondre du tac au tac", issue:"« Qu'il garde sa salive pour le terrain. » La salle sourit, le vestiaire jubile.",
+      eff:{moral:2, buzz:1, reput:-1, presse:"Joute verbale avant le match : "+c.moi.nom+" ne se laisse pas marcher dessus."}},
+     {lib:"Rester élégant", issue:"« Le respect, toujours. On répondra ballon au pied. » La sobriété fait mouche.",
+      eff:{reput:3, conf:1}},
+     {lib:"En remettre une couche", issue:"« Qu'il révise le nom de NOTRE gardien — il va le répéter souvent. » Le stade s'embrase déjà.",
+      eff:{moral:3, buzz:1, reput:-3, presse:"Guerre des nerfs : "+c.moi.nom+" répond avec fracas."}}]},
+  {id:"scandale", cond:c=>(+G.risque||0)>0,
+   q:c=>`Des rumeurs de match arrangé courent sur le club. La presse vous tend le micro, l'air gourmand.`,
+   rep:c=>[
+     {lib:"Nier en bloc, l'air offusqué", issue:"« Des accusations grotesques. » Vous défendez l'honneur du club, droit dans les yeux.",
+      eff:{conf:1, reput:1}},
+     {lib:"« Je n'ai rien à déclarer »", issue:"Vous quittez l'estrade en silence. Le silence, parfois, en dit trop.",
+      eff:{reput:-1}},
+     {lib:"Ironiser sur les rumeurs", issue:"« Des valises ? Je n'ai même pas de coffre. » La pirouette amuse — mais ne convainc pas tout le monde.",
+      eff:{moral:1, buzz:1, reput:-2, presse:"« Pas de coffre » : la sortie ironique du coach de "+c.moi.nom+" fait le tour des rédactions."}}]},
+  {id:"derby", cond:c=>c.derby && !c.declar,
+   q:c=>`Le derby contre ${c.adv.nom} approche, la ville retient son souffle. Quel message envoyez-vous ?`,
+   rep:c=>[
+     {lib:"Promettre de tout donner", issue:"« On ne lâchera rien, pour eux. » Les supporters reprennent vos mots en chœur.",
+      eff:{moral:2, buzz:1, reput:-1}},
+     {lib:"Appeler au calme et au respect", issue:"« Un derby, ça se gagne sans haine. » Les sages apprécient.",
+      eff:{reput:3, conf:1}},
+     {lib:"Provoquer le camp d'en face", issue:"« Leur moitié de ville peut déjà ranger les drapeaux. » Le quartier va bouillir.",
+      eff:{moral:3, buzz:1, reput:-3, presse:"Avant le derby, "+c.moi.nom+" met le feu aux poudres."}}]},
+  {id:"serie_noire", cond:c=>c.troisD,
+   q:c=>`Trois défaites de rang. Les sifflets montent dans les tribunes. Qu'avez-vous à dire ?`,
+   rep:c=>[
+     {lib:"Assumer et protéger le groupe", issue:"« Le responsable, c'est moi. Mes joueurs, je les couvre. » Le vestiaire vous le rend.",
+      eff:{moral:2, conf:1, reput:1}},
+     {lib:"Pointer l'arbitrage et la malchance", issue:"« On n'est pas vernis, et certains coups de sifflet... » Le président tique : les excuses, peu pour lui.",
+      eff:{moral:1, reput:-2, conf:-1, presse:"À "+c.moi.nom+", on cherche des coupables ailleurs que dans le miroir."}},
+     {lib:"Secouer publiquement les joueurs", issue:"« Certains se croient arrivés. Ça va changer. » Le message passe mal dans le groupe.",
+      eff:{moral:-2, conf:1, presse:"Coup de pression public sur le vestiaire de "+c.moi.nom+"."}}]},
+  {id:"serie_or", cond:c=>c.troisV,
+   q:c=>`Trois victoires de suite, on murmure votre nom pour le haut du tableau. Vous y croyez ?`,
+   rep:c=>[
+     {lib:"Garder les pieds sur terre", issue:"« On ne s'enflamme pas, la saison est longue. » La mesure rassure tout le monde.",
+      eff:{reput:2, conf:1}},
+     {lib:"Afficher l'ambition", issue:"« Pourquoi pas nous, après tout ? » Le vestiaire se redresse, fier.",
+      eff:{moral:2, buzz:1, presse:"« Pourquoi pas nous ? » — "+c.moi.nom+" assume enfin ses ambitions."}},
+     {lib:"Recentrer, match après match", issue:"« Le prochain match, rien d'autre. » Sérieux, professionnel, imparable.",
+      eff:{conf:1, moral:1}}]},
+  {id:"releg", cond:c=>c.rang>=c.n-3 && G.journee>=18,
+   q:c=>`La zone rouge se rapproche dangereusement. Les supporters s'inquiètent. Votre discours ?`,
+   rep:c=>[
+     {lib:"Galvaniser, croire au maintien", issue:"« On va s'en sortir, tous ensemble. » Vous y mettez tellement d'âme qu'on vous croit.",
+      eff:{moral:3, conf:1, presse:"« On va s'en sortir » : "+c.moi.nom+" serre les rangs."}},
+     {lib:"Reconnaître la crise, demander du soutien", issue:"« C'est dur, on a besoin de notre public. » L'humilité touche, sans masquer le danger.",
+      eff:{reput:1, conf:-1, moral:1}},
+     {lib:"Taper du poing sur la table", issue:"« Marre des gentils perdants. » Le ton claque — reste à le suivre d'effets.",
+      eff:{moral:-1, conf:1, buzz:1}}]},
+  {id:"titre", cond:c=>c.rang<=3 && G.journee>=22,
+   q:c=>`Vous voilà ${c.rang}${c.rang===1?"er":"e"} et bien lancé dans la course au titre. La pression vous fait-elle peur ?`,
+   rep:c=>[
+     {lib:"Embrasser le rêve", issue:"« On joue le titre, et on l'assume. » Déclaration forte, le stade en frissonne.",
+      eff:{moral:2, buzz:1, presse:"« On joue le titre » — "+c.moi.nom+" sort du bois."}},
+     {lib:"Rester humble", issue:"« On verra à l'arrivée. Pour l'instant, on travaille. » La prudence en impose.",
+      eff:{reput:2, conf:1}},
+     {lib:"Renvoyer la pression aux concurrents", issue:"« La pression ? Elle est sur les autres. » Joli coup de billard psychologique.",
+      eff:{conf:1, moral:1, buzz:1}}]},
+  {id:"president", cond:c=>G.confiance<35,
+   q:c=>`On vous dit en sursis. Le président vous soutient-il encore ?`,
+   rep:c=>[
+     {lib:"Afficher l'unité avec la direction", issue:"« Le président et moi, même combat. » L'image d'un club uni rassure en haut lieu.",
+      eff:{conf:2, reput:1}},
+     {lib:"Esquiver la question", issue:"« Je ne commente pas les rumeurs. » Botté en touche — personne n'est dupe.",
+      eff:{reput:-1}},
+     {lib:"Défendre votre bilan, quitte à friser l'insolence", issue:"« Qu'on me laisse travailler. » Le vestiaire apprécie le bouclier — la direction beaucoup moins.",
+      eff:{moral:2, conf:-2, buzz:1, presse:"Bras de fer feutré entre le coach de "+c.moi.nom+" et sa direction."}}]},
+];
+function tireConfPresse(){
+  const c=ctxPresse();
+  let elig=CONF_PRESSE.filter(e=>{ try{ return e.cond(c); }catch(_){ return false; } });
+  if(!elig.length) return null;
+  const recents=(G.confRecents||[]).map(r=>r.id);
+  let pool=elig.filter(e=>!recents.includes(e.id));
+  if(!pool.length) pool=elig;
+  const e=pool[0]; // priorité = ordre du catalogue
+  return {id:e.id, q:e.q(c), reps:e.rep(c)}; // tout résolu en chaînes/objets simples (sérialisable)
 }
 
 /* ---------- La mallette ---------- */
@@ -2790,6 +2910,7 @@ function migre(){
   G.poolPromus=G.poolPromus||[];
   G.centre=G.centre||1; G.offreExt=G.offreExt||null;
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
+  G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
   G.reput=G.reput==null?75:G.reput;
   G.equip=G.equip||null; G.offresEquip=G.offresEquip||null;
   if(!G.equip && !G.offresEquip) G.offresEquip=genEquip(); // anciennes sauvegardes : proposer des offres
@@ -3130,8 +3251,9 @@ function ecranCalendrier(){
     fiche.querySelector("#bEreOk").onclick=()=>{ fermeFiche(); suite(); };
   };
   const suiteApresCoupe=()=>{
-    if(G.incident){ ouvreEre(()=>ouvreIncident(ouvreDebrief)); }
-    else { ouvreEre(ouvreDebrief); }
+    const finChaine=()=>ouvreConf(ouvreDebrief); // conf de presse (si fait saillant) puis debrief
+    if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
+    else { ouvreEre(finChaine); }
   };
   // un tour de Coupe de France attend d'être joué (milieu de semaine) ? on l'événementialise d'abord
   if(G.coupe && G.coupe.aJouer){ ouvreCoupe(suiteApresCoupe); }
@@ -3261,6 +3383,28 @@ function ouvreCoupe(suite){
     fiche.querySelector("#bCGo").onclick=montrerVerdict;
   };
   rendreAvant();
+}
+function ouvreConf(suite){
+  const cp=G.confPresse;
+  if(!cp){ return suite&&suite(); }
+  const fiche=document.getElementById("fiche");
+  fiche.innerHTML=`<div class="fbox" style="max-width:470px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2 style="color:#6fd6e8">🎙️ CONFÉRENCE DE PRESSE</h2>
+    <p style="margin:6px 0">${esc(cp.q)}</p>
+    <div id="confChoix">${cp.reps.map((r,i)=>`<button class="big confBtn" data-i="${i}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:10px 12px">${esc(r.lib)}</button>`).join("")}</div>
+    <div id="confRes"></div></div>`;
+  fiche.style.display="flex";
+  window._penEnCours=true; // pas de fermeture Échap tant qu'on n'a pas répondu
+  fiche.querySelectorAll(".confBtn").forEach(b=>b.onclick=()=>{
+    const r=cp.reps[+b.dataset.i];
+    effConf(r.eff, ctxPresse());
+    document.getElementById("confChoix").innerHTML=
+      `<div style="display:block;width:100%;margin:6px 0;padding:10px 12px;border:2px solid #6fd6e8;border-radius:4px;background:rgba(255,255,255,.04)">
+         <span style="color:#6fd6e8">✓ Votre réponse :</span> <b>${esc(r.lib)}</b></div>`;
+    document.getElementById("confRes").innerHTML=`<p class="dim" style="font-style:italic;margin-top:8px">${esc(r.issue)}</p>
+      <p style="margin-top:10px"><button class="big" id="bConfOk">Continuer</button></p>`;
+    document.getElementById("bConfOk").onclick=()=>{ window._penEnCours=false; G.confPresse=null; fermeFiche(); if(suite) suite(); };
+  });
 }
 function ouvreIncident(suite){
   const {inc,j,k}=G.incident;
