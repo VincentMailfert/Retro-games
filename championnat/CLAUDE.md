@@ -153,8 +153,15 @@ toujours « raconter quelque chose ».
 - **Sponsors maillot** : 3 familles formant un vrai dilemme image/argent — terroir/ringards (peu payés mais
   **gros bonus de réputation**, +3 à +8 selon le sponsor : on sacrifie l'argent pour l'image), propres
   (équilibré, +1), sulfureux (pont d'or mais réputation en baisse, parfois défaut de paiement). Le bonus de
-  réputation est porté par le champ `rep` de chaque entrée de `SPONSORS_RINGARDS`. Noms = pastiches inventés,
-  jamais de vraie marque déposée (risque juridique).
+  réputation à la signature est porté par le champ `rep` de chaque entrée de `SPONSORS_RINGARDS`. **Bonus
+  RÉCURRENT du terroir (v0.60)** : sans lui, le terroir n'était JAMAIS choisi (un `rep` ponctuel de +3..+8 est
+  vite lessivé face à un pont d'or qui paie ~3× plus CHAQUE journée). `genSponsors` ajoute donc à l'offre
+  terroir un champ **`repJ = rep×0,06`** (≈ +0,18 à +0,48/journée), appliqué **en silence** chaque journée dans
+  le bloc sponsor de `finirJournee` (comme la dérive du tarif billet, sans notif) → ~+7 à +18 de réputation
+  cumulés sur une saison, en plus du bonus de signature : le « petit » sponsor devient un vrai choix « image ».
+  **Réservé au terroir positif** : la seule entrée à `rep<0` (3617 Monique, minitel rose) a `repJ:0` et une
+  description distincte (pas de « le public l'adore »). Badge d'offre et `desc` exposent le bonus récurrent.
+  Noms = pastiches inventés, jamais de vraie marque déposée (risque juridique).
 - **Équipementiers** (`EQUIPEMENTIERS`, `genEquip`/`choisirEquip`) : 2e source de revenu, **se signe comme un
   sponsor** — rien au début de saison, on choisit parmi des offres (`G.offresEquip`) qui dépendent de la
   **notoriété** (prestige nuancé par la réputation) ; le contrat (`G.equip`) verse un cachet chaque journée et

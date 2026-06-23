@@ -187,7 +187,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.59"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.60"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1236,6 +1236,9 @@ function finirJournee(delta){
         if(gagneJ&&G.sponsor.prime){ G.tresorerie+=G.sponsor.prime;
           G.news.unshift(G.sponsor.nom+" verse la prime de victoire : "+(G.sponsor.prime/1e6).toFixed(2)+" MF."); }
       }
+      // le sponsor du terroir entretient l'image chaque journée (bonus de réputation RÉCURRENT, appliqué en silence
+      // comme la dérive du tarif billet) — c'est lui qui rend le « petit » sponsor un vrai choix face au pont d'or
+      if(G.sponsor.repJ) G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+G.sponsor.repJ));
     }
     const masse=clubById(G.monClub).joueurs.reduce((s,j)=>s+salaire(j),0);
     const frais=fraisJournee(clubById(G.monClub)); // entretien du stade + personnel
@@ -2373,8 +2376,11 @@ function genSponsors(mult){
   const ring=PICK(datedDispo(SPONSORS_RINGARDS));
   const sulf=PICK(sponsorsDispo());
   return [
-    {nom:ring.nom, fixe:Math.round(95000*ech*mult), prime:0, rep:ring.rep, ere:ring.ere, ringard:true,
-     desc:"sponsor du terroir — peu rémunérateur, mais le public l'adore (gros bonus d'image)"},
+    {nom:ring.nom, fixe:Math.round(95000*ech*mult), prime:0, rep:ring.rep,
+     repJ:(ring.rep>0?+(ring.rep*0.06).toFixed(2):0), ere:ring.ere, ringard:true, // bonus récurrent réservé au terroir positif (3617 Monique, image négative, n'en a pas)
+     desc:(ring.rep>0
+       ?"sponsor du terroir — peu rémunérateur, mais le public l'adore : réputation +"+ring.rep+" à la signature, puis +"+(ring.rep*0.06).toFixed(2)+"/journée (gros bonus d'image, durable)"
+       :"sponsor décalé — peu rémunérateur, et son image flirte avec le mauvais goût")},
     {nom:propres[0], fixe:Math.round(150000*ech*mult), prime:Math.round(60000*ech*mult), rep:+1,
      desc:"marque nationale — équilibré, image saine"},
     {nom:sulf.nom, fixe:Math.round(290000*ech*mult), prime:Math.round(180000*ech*mult), rep:sulf.rep,
@@ -4261,7 +4267,7 @@ function ecranFinances(){
     ${G.offresSponsor.map((o,k)=>`<p style="margin:8px 0">
       <button class="act bSp" data-k="${k}">Signer</button>
       <b class="jaune">${esc(o.nom)}</b> — ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
-      ${o.rep?`<span class="${o.rep>0?'vert':'rouge'}">[réputation ${o.rep>0?'+':''}${o.rep}]</span>`:'<span class="dim">[réputation neutre]</span>'}
+      ${o.rep?`<span class="${o.rep>0?'vert':'rouge'}">[réputation ${o.rep>0?'+':''}${o.rep}${o.repJ?", puis +"+o.repJ+"/journée":""}]</span>`:'<span class="dim">[réputation neutre]</span>'}
       <br><span class="dim" style="font-size:11px">${esc(o.desc)}${o.ere?" — « "+esc(o.ere)+" »":""}</span></p>`).join("")}
     <p class="dim" style="margin-top:6px">Un seul contrat à la fois. Choisissez selon votre confiance dans l'équipe.</p></div>`:"";
   const offresEq=(G.offresEquip && !G.equip)?
