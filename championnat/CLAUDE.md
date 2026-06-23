@@ -270,9 +270,14 @@ toujours « raconter quelque chose ».
   rejoints par 24 **clubs amateurs** de villages (`CLUBS_AMATEURS` : vraies communes + noms inventés bon
   enfant — Trifouilly-les-Oies, Montcuq, Nœud-les-Mines… **que des faux joueurs**, et ils n'ont d'ailleurs
   pas d'effectif : un amateur n'existe qu'en tant que `force`). **Ton des noms** : on garde les communes
-  réelles qui font sourire (Montcuq, Andouille, Corps-Nuds…) mais **pas de gag trop cheap** (Poil,
-  Trou-Paumé, Trécon ont été retirés en v0.54-55 au profit de villes à belle consonance française —
-  Vierzon, Vesoul, Salers). 28 entrées disponibles, 24 tirées par saison. Tirage **sans tête de série**, **le petit
+  réelles qui font sourire (Montcuq, Vatan, Arnac-la-Poste…) mais **pas de gag trop cheap** (Poil,
+  Trou-Paumé, Trécon, Andouille, Saint-Glinglin, Sainte-Cuisse, Perpète-les-Olivettes, Corps-Nuds,
+  Cornebidouille, Trifouilly-les-Oies ont été retirés v0.54→56 au profit de vraies villes à belle consonance
+  française — Vierzon, Vesoul, Salers, Romorantin, Landerneau, Carpentras, Pithiviers — plus un gag tenu
+  bon enfant, Cassolette-sur-Gers). **`CLUBS_AMATEURS` ne doit jamais descendre sous 24 entrées** : le tableau
+  a besoin de `64 − 40 pros = 24` amateurs pour un bracket qui se divise proprement (64→32→…→1) ; sous 24 le
+  champ n'est plus une puissance de 2 et `coupeTireTour` perd silencieusement l'équipe surnuméraire d'un tour
+  impair. On tient 26 entrées (marge de 2), 24 tirées par saison. Tirage **sans tête de série**, **le petit
   reçoit** (`niveauCoupe` : amateur 0 < D2 1 < D1 2), **pas de match nul** (tirs au but). Un **Petit Poucet**
   est désigné chaque saison (`poucetId`, dopé de `COUPE_POUCET_BONUS`) et joue très au-dessus de son rang →
   parcours marquant, et il peut vous tomber dessus (le petit reçoit, vous jouez chez lui). **La coupe ne
