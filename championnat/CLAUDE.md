@@ -332,8 +332,33 @@ toujours « raconter quelque chose ».
     (nouveau champ, init `null`, sérialisé) reste pendant entre la fin du match de championnat et l'ouverture
     de la fenêtre — au rechargement d'une sauvegarde mid-coupe, l'écran calendrier rouvre la fenêtre, c'est
     voulu ; (c) la fenêtre vit dans `#fiche` avec `window._penEnCours=true` (pas de fermeture Échap tant qu'on
-    n'a pas joué), nettoyée par `fermeFiche()` au bout du flux qui enchaîne sur `suiteApresCoupe`. Pas encore
-    de direct au téléscripteur pour la coupe (piste d'évolution).
+    n'a pas joué), nettoyée par `fermeFiche()` au bout du flux qui enchaîne sur `suiteApresCoupe`.
+  - **Coupe au téléscripteur (v0.59)** : depuis la fenêtre d'avant-match, deux façons de jouer VOTRE tie —
+    **« ▶ Jouer le match »** (direct) ou **« Résultat instantané »** (l'ancien flux, résolution immédiate).
+    Le **direct** est un téléscripteur dédié et ISOLÉ : `jouerDirect` tire d'abord le score par le modèle de
+    coupe (`resoudreCoupe`, donc upsets/Poucet/calibrage préservés), le mémorise dans `G.coupe.enDirect`
+    (`{hid,aid,advId,tourIdx,nom,sh,sa,tab,win}`), ferme la modale et fait `montre("coupematch")`. `ecranCoupeMatch`
+    rebâtit un écran match (mêmes ids `#pTableau/#tabScore/#tabButs/#ticker/#ctlVitesse/#preMatchAct` → les
+    helpers du direct marchent tels quels) et lance `lanceCoupe`, qui **réutilise** `ajouteLigne`, `celebreFlash`,
+    la montée de tension (`MONTEE_BUT/FRAPPE`) et les vitesses. Les événements viennent de **`genEvCoupe(H,A,r)`** :
+    pure mise en scène qui ATTERRIT sur le score `r` (buts répartis sur 3-89', occasions, ambiance, mi-temps,
+    sifflet, t.a.b. si nul). **Règle d'or maintenue** : `genEvCoupe` ne touche AUCUNE stat (les buteurs cités sont
+    des chaînes, aucun `j.buts++`) — invariant vérifié (total buts/passes des clubs inchangé après un tie). Les
+    **amateurs** (sans effectif) reçoivent un objet d'affichage via `clubAffiche` (id court `court` pour le blason
+    via `blasonAff`, écu gris générique, stade « municipal »), des **noms de buteurs générés** (`nomsAffiche` →
+    `PRENOMS`/`NOMS`) et un gardien générique (`gardienAff`) ; un pro garde son vrai blason, son `onze` et son
+    gardien. Au coup de sifflet, `lanceCoupe` affiche la feuille de match puis **`coupeResoutTour(true, r)`** —
+    le 2ᵉ argument `forced` **réinjecte le score déjà joué** pour VOTRE affiche (les 31 autres au modèle), pour que
+    tableau et direct coïncident — puis bouton « Le verdict → ». Les **fenêtres verdict/résultats sont extraites**
+    en fonctions top-level réutilisées par les deux voies : `coupeFenetreVerdict(advId,tourIdx,nom,suite)` (la
+    résolution a déjà eu lieu, elle ne fait qu'afficher) et `coupeFenetreResultats(suite)`. Côté direct, `suite`
+    = `montre("calendrier")` : on revient au calendrier (aJouer résolu → on saute `ouvreCoupe`) et le fil reprend
+    naturellement (incident/conf/debrief, qui ne **redouble pas** le verdict car `interactif=true` a coupé la
+    notif perso). **Pièges** : (a) `G.coupe.enDirect` est un nouveau champ (init `null`, sérialisé) ; abandonner
+    en cours (clic nav → `montre` → `abandonneDirect` purge `tickerTimer/butFlashTimer`) laisse aJouer/enDirect en
+    attente → on rejoue depuis l'avant-match (resume voulu) ; (b) `EN_TEST` → `montre` no-op, le harnais ne voit
+    jamais le direct (et `coupeTick` résout en muet), calibrage intact ; (c) ne jamais router une coupe par
+    `simuleMatch` (il fait `j.buts++` → pollue les buteurs, et écrase les amateurs 5-0 → tue le Poucet).
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 

@@ -187,7 +187,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.58"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.59"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2553,7 +2553,7 @@ function coupeInit(){ // (re)tirage du tableau pour la saison en cours
   G.coupe={ saison:G.saison, tourIdx:0, vivants,
     poucetId:poucet, poucetVivant:true, poucetParcours:[], poucetSortie:null,
     monParcours:[], elimine:false, tourSortie:null, vainqueur:null,
-    dernierTour:null, rotation:"mixte", fatigue:0, gains:0, aJouer:null };
+    dernierTour:null, rotation:"mixte", fatigue:0, gains:0, aJouer:null, enDirect:null };
 }
 function coupeTick(){ // appelé en fin de journée : déclenche le tour de semaine s'il est à l'heure
   if(!G.coupe || G.coupe.vainqueur || G.coupe.tourIdx>=COUPE_TOURS.length) return;
@@ -2580,12 +2580,12 @@ function coupeTireTour(tour){ // tirage sans tête de série : on fabrique les a
   }
   co.aJouer={tourIdx:co.tourIdx, nom:tour.nom, court:tour.court, paires};
 }
-function coupeResoutTour(interactif){ // résout les affiches de co.aJouer (la rotation est déjà posée) ; interactif = la fenêtre montre déjà votre verdict
+function coupeResoutTour(interactif, forced){ // résout les affiches de co.aJouer (la rotation est déjà posée) ; interactif = la fenêtre montre déjà votre verdict ; forced = résultat de VOTRE tie déjà joué au téléscripteur (même {hid,aid,sh,sa,tab,win}), pour que le tableau colle au direct
   const co=G.coupe, aj=co.aJouer; if(!aj) return;
   const tour=COUPE_TOURS[aj.tourIdx];
   const gagnants=[], faits=[];
   for(const p of aj.paires){
-    const r=resoudreCoupe(p.hid,p.aid);
+    const r=(forced && p.hid===forced.hid && p.aid===forced.aid) ? forced : resoudreCoupe(p.hid,p.aid);
     gagnants.push(r.win); faits.push(r);
   }
   co.dernierTour={nom:tour.nom, court:tour.court, faits};
@@ -2657,6 +2657,67 @@ function coupeSacre(id){
   } else {
     G.news.unshift("COUPE DE FRANCE "+co.saison+" — "+nomCoupe(id)+" remporte le trophée.");
   }
+}
+
+/* ---------- Coupe au téléscripteur : un objet d'affichage par camp + un générateur d'événements ----------
+   Le SCORE vient toujours du modèle de coupe (resoudreCoupe) — on préserve les upsets, le Poucet, le calibrage
+   du championnat. Le générateur ne fait QUE de la mise en scène : il fabrique un flux d'événements verbeux qui
+   ATTERRIT sur le score donné, sans jamais toucher aux stats de qui que ce soit (les buteurs cités sont des
+   chaînes, aucun j.buts n'est incrémenté). Les amateurs (sans effectif) reçoivent des noms générés à la volée. */
+function clubAffiche(id){ // objet club-like pour le tableau d'affichage et les lignes-but
+  if(estAmateur(id)){ const a=amaById(id);
+    const court=(a.ville.match(/[A-Za-z]/g)||["A","M","A"]).slice(0,3).join("").toUpperCase();
+    return {id, nom:a.nom, ville:a.ville, stade:"stade municipal de "+a.ville, cap:RNDI(1200,3500), amateur:true, court}; }
+  return clubById(id);
+}
+function blasonAff(c,s){ return c.amateur ? blason({id:c.court}, s) : blason(c, s); } // amateur : écu gris générique, label court lisible
+function tagAff(c){ return c.amateur ? c.court : c.id; } // étiquette courte pour les lignes système
+function nomsAffiche(aff){ // une petite liste de buteurs plausibles pour le camp (générés pour les amateurs)
+  if(!aff.amateur){ const att=onze(aff).filter(j=>"MA".includes(j.pos)).map(j=>j.nom);
+    return att.length?att:onze(aff).map(j=>j.nom); }
+  const noms=[], vus=new Set();
+  while(noms.length<6){ const n=PICK(PRENOMS)[0]+". "+PICK(NOMS); if(!vus.has(n)){ vus.add(n); noms.push(n); } }
+  return noms;
+}
+function gardienAff(aff){ return aff.amateur ? "le gardien" : gardienDe(aff); }
+const COUPE_AMB=["Quelle ambiance sur ce terrain !","Le public pousse derrière son équipe.","On joue à fond, des deux côtés.",
+  "Le rythme est haché mais l'engagement est total.","Beau mouvement collectif, mais ça butte sur la défense.","L'arbitre laisse jouer."];
+function genEvCoupe(H, A, r){ // r = {sh,sa,tab,win} déjà tiré ; renvoie {ev, aff} — pure mise en scène, aucune stat touchée
+  const ev=[], aff=H.cap?Math.round(H.cap*RND(0.55,0.95)):RNDI(1500,4000);
+  const nomsH=nomsAffiche(H), nomsA=nomsAffiche(A);
+  const tirH=()=>PICK(nomsH), tirA=()=>PICK(nomsA);
+  ev.push({m:0,t:"sys",x:"Coup d'envoi à "+H.stade+" devant "+FMT(aff)+" spectateurs. "+H.nom+" reçoit "+A.nom+"."});
+  // minutes de but réparties sur 3..89, mêlées
+  const buts=[]; for(let k=0;k<r.sh;k++) buts.push("H"); for(let k=0;k<r.sa;k++) buts.push("A");
+  const mins=[]; while(mins.length<buts.length){ const m=RNDI(3,89); if(!mins.includes(m)) mins.push(m); }
+  mins.sort((a,b)=>a-b); melange(buts);
+  let sh=0, sa=0; const butEvts=[];
+  for(let k=0;k<buts.length;k++){ const dom=buts[k]==="H"; if(dom) sh++; else sa++;
+    const cote=dom?H.id:A.id, but=dom?tirH():tirA(), pas=Math.random()<0.62?(dom?tirH():tirA()):null;
+    butEvts.push({m:mins[k],t:"but",ic:"but",g:{cote,but,pas:pas&&pas!==but?pas:null,sh,sa},
+      x:fmtC(PICK(COMM.but),{nom:but},dom?A:H)+(pas&&pas!==but?" Passe décisive de "+pas+".":"")+"  ("+tagAff(H)+" "+sh+"-"+sa+")"}); }
+  // quelques occasions manquées (avec flag de montée) et de l'ambiance, intercalées
+  const occ=[]; const nOcc=RNDI(3,6);
+  for(let k=0;k<nOcc;k++){ const m=RNDI(2,89), dom=Math.random()<0.5, tir=dom?tirH():tirA();
+    occ.push({m,t:"occ",ic:Math.random()<.5?"arret":"rate",x:fmtC(PICK(Math.random()<.5?COMM.arret:COMM.rate),{nom:tir},dom?A:H),
+      q:{but:tir,cote:dom?H.id:A.id,bu:Math.random()<MONTEE_RATEE}}); }
+  const amb=[]; const nAmb=RNDI(2,4);
+  for(let k=0;k<nAmb;k++) amb.push({m:RNDI(5,88),t:"amb",x:PICK(COUPE_AMB)});
+  // assemblage trié + mi-temps (score réel à la 45e) + sifflet
+  let hh=0, ha=0; for(const e of butEvts){ if(e.m<=45){ hh=e.g.sh; ha=e.g.sa; } }
+  const corps=butEvts.concat(occ,amb);
+  corps.push({m:45,t:"sys",x:"MI-TEMPS. "+tagAff(H)+" "+hh+" - "+ha+" "+tagAff(A)});
+  corps.sort((a,b)=>a.m-b.m);
+  for(const e of corps) ev.push(e);
+  ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+H.nom+" "+r.sh+" - "+r.sa+" "+A.nom});
+  // tirs au but si nul après 90'
+  if(r.tab){
+    ev.push({m:90,t:"sys",x:"Score nul au terme du temps réglementaire : tout se jouera aux TIRS AU BUT."});
+    ev.push({m:90,t:"amb",x:"La séance est interminable, chaque frappe fait monter la tension d'un cran…"});
+    const qualifie=clubAffiche(r.win).nom;
+    ev.push({m:90,t:"sys",x:"TIRS AU BUT : "+qualifie+" se qualifie !"});
+  }
+  return {ev, aff, sh:r.sh, sa:r.sa};
 }
 function ecranCoupe(){
   const co=G.coupe;
@@ -3136,6 +3197,7 @@ function montre(ecran){
   if(ecran==="calendrier") return ecranCalendrier();
   if(ecran==="classement") return ecranClassement();
   if(ecran==="coupe")      return ecranCoupe();
+  if(ecran==="coupematch") return ecranCoupeMatch();
   if(ecran==="effectif")   return ecranEffectif();
   if(ecran==="mercato")    return ecranMercato();
   if(ecran==="finances")   return ecranFinances();
@@ -3320,10 +3382,50 @@ function celebreFlash(o, onDone){
   d.onclick=fin;
   butFlashTimer=setTimeout(fin, 5000);
 }
-/* Coupe de France — le tour de milieu de semaine, événementialisé en trois fenêtres :
-   1) avant-match (l'affiche + choix de l'équipe : cadres / mixte / réserve)
-   2) le verdict de VOTRE match (qualifié + tour suivant + recette, ou fin du parcours + dotation)
-   3) tous les résultats du tour. Puis on enchaîne sur le reste (incident, debrief…). */
+/* Coupe de France — le tour de milieu de semaine, événementialisé. Avant-match (affiche + choix de l'équipe),
+   puis SOIT le direct au téléscripteur (ecranCoupeMatch), SOIT le résultat instantané. Dans les deux cas on
+   enchaîne sur le verdict de VOTRE match puis tous les résultats du tour, avant de reprendre le fil (incident,
+   conf de presse, debrief…). Les fenêtres verdict/résultats sont des fonctions réutilisées par les deux voies. */
+function coupeFenetreResultats(suite){ // 3) tous les résultats du tour
+  const co=G.coupe, dt=co.dernierTour, pId=co.poucetId, fiche=document.getElementById("fiche");
+  if(!dt){ if(suite) suite(); return; }
+  const lignes=dt.faits.map(x=>`<tr class="${(x.hid===G.monClub||x.aid===G.monClub)?"me":""}">
+    <td style="text-align:right">${x.win===x.hid?"<b>":""}${esc(nomCoupe(x.hid))}${x.hid===pId?" 🐭":""}${x.win===x.hid?"</b>":""}</td>
+    <td class="num" style="white-space:nowrap">${x.sh}-${x.sa}${x.tab?" <span class=dim>tab</span>":""}</td>
+    <td>${x.win===x.aid?"<b>":""}${esc(nomCoupe(x.aid))}${x.aid===pId?" 🐭":""}${x.win===x.aid?"</b>":""}</td></tr>`).join("");
+  fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
+    <h2 class="cyan">🏆 ${esc(dt.nom)} — tous les résultats</h2>
+    <table class="fit" style="width:100%"><tr><th style="text-align:right">Hôte</th><th class="num">Score</th><th>Visiteur</th></tr>${lignes}</table>
+    <p style="margin-top:12px"><button class="big" id="bCFin">Continuer</button></p></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  fiche.querySelector("#bCFin").onclick=()=>{ window._penEnCours=false; fermeFiche(); if(suite) suite(); };
+}
+function coupeFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de VOTRE match (la résolution a déjà eu lieu)
+  const co=G.coupe, fiche=document.getElementById("fiche");
+  const mp=co.monParcours[co.monParcours.length-1];
+  const sc=scoreVu(mp,G.monClub), tb=mp.tab?" t.a.b.":"";
+  let titre, coul, corps;
+  if(co.vainqueur===G.monClub){
+    titre="🏆🏆 VOUS REMPORTEZ LA COUPE !"; coul="#ffd24a";
+    corps=`Victoire <b>${sc}${tb}</b> en finale ! ${esc(nomCoupe(G.monClub))} soulève la Coupe de France ${esc(co.saison)}. La ville défile.<br>Dotation de vainqueur : <span class="jaune">${(COUPE_DOTATION_VAINQUEUR/1e6).toFixed(0)} MF</span>.`;
+  } else if(mp.gagne){
+    const suiv=COUPE_TOURS[co.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
+    titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
+    corps=`Vous éliminez <b>${esc(nomCoupe(advId))}</b> sur le score de <b>${sc}${tb}</b>. Le rêve continue.<br>Recette de billetterie : <span class="jaune">${(COUPE_RECETTE/1e6).toFixed(1)} MF</span>.<br>`+
+      (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b> — l'adversaire sera désigné au tirage.`:`Place à la finale !`);
+  } else {
+    titre="💔 FIN DU PARCOURS EN COUPE"; coul="#ff6f61";
+    const dot=COUPE_DOTATION[ajTourIdx]||0;
+    corps=`Vous tombez face à <b>${esc(nomCoupe(advId))}</b> <b>${sc}${tb}</b>${estAmateur(advId)?" — un club amateur, quelle douche froide !":""}. L'aventure s'arrête en ${esc(ajNom)}.`+
+      (dot?`<br>Dotation de la Fédération pour le parcours : <span class="jaune">${(dot/1e6).toFixed(1)} MF</span>.`:"");
+  }
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
+    <h2 style="color:${coul}">${titre}</h2>
+    <p style="margin:8px 0">${corps}</p>
+    <p style="margin-top:10px"><button class="big" id="bCRes">Voir les résultats du tour →</button></p></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  fiche.querySelector("#bCRes").onclick=()=>coupeFenetreResultats(suite);
+}
 function ouvreCoupe(suite){
   const co=G.coupe, aj=co&&co.aJouer;
   if(!aj){ return suite(); }
@@ -3332,46 +3434,20 @@ function ouvreCoupe(suite){
   const dom=f.hid===G.monClub, advId=dom?f.aid:f.hid;
   const fiche=document.getElementById("fiche");
   const poucetTag=advId===co.poucetId?` <span class="cyan">— 🐭 le Petit Poucet en personne !</span>`:"";
-  // 3) la fenêtre des résultats du tour
-  const montrerResultats=()=>{
-    const dt=co.dernierTour, pId=co.poucetId;
-    const lignes=dt.faits.map(x=>`<tr class="${(x.hid===G.monClub||x.aid===G.monClub)?"me":""}">
-      <td style="text-align:right">${x.win===x.hid?"<b>":""}${esc(nomCoupe(x.hid))}${x.hid===pId?" 🐭":""}${x.win===x.hid?"</b>":""}</td>
-      <td class="num" style="white-space:nowrap">${x.sh}-${x.sa}${x.tab?" <span class=dim>tab</span>":""}</td>
-      <td>${x.win===x.aid?"<b>":""}${esc(nomCoupe(x.aid))}${x.aid===pId?" 🐭":""}${x.win===x.aid?"</b>":""}</td></tr>`).join("");
-    fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
-      <h2 class="cyan">🏆 ${esc(dt.nom)} — tous les résultats</h2>
-      <table class="fit" style="width:100%"><tr><th style="text-align:right">Hôte</th><th class="num">Score</th><th>Visiteur</th></tr>${lignes}</table>
-      <p style="margin-top:12px"><button class="big" id="bCFin">Continuer</button></p></div>`;
-    fiche.querySelector("#bCFin").onclick=()=>{ window._penEnCours=false; fermeFiche(); if(suite) suite(); };
-  };
-  // 2) le verdict de votre match (la résolution vient d'avoir lieu)
-  const montrerVerdict=()=>{
+  // résultat instantané : on résout tout de suite (modèle de coupe), puis verdict + résultats
+  const jouerInstant=()=>{
+    const tourIdx=aj.tourIdx, nom=aj.nom;
     coupeResoutTour(true); // rotation déjà posée ; la fenêtre fait le rôle de la notif perso
-    const mp=co.monParcours[co.monParcours.length-1];
-    const sc=scoreVu(mp,G.monClub), tb=mp.tab?" t.a.b.":"";
-    let titre, coul, corps;
-    if(co.vainqueur===G.monClub){
-      titre="🏆🏆 VOUS REMPORTEZ LA COUPE !"; coul="#ffd24a";
-      corps=`Victoire <b>${sc}${tb}</b> en finale ! ${esc(nomCoupe(G.monClub))} soulève la Coupe de France ${esc(co.saison)}. La ville défile.<br>Dotation de vainqueur : <span class="jaune">${(COUPE_DOTATION_VAINQUEUR/1e6).toFixed(0)} MF</span>.`;
-    } else if(mp.gagne){
-      const suiv=COUPE_TOURS[co.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
-      titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
-      corps=`Vous éliminez <b>${esc(nomCoupe(advId))}</b> sur le score de <b>${sc}${tb}</b>. Le rêve continue.<br>Recette de billetterie : <span class="jaune">${(COUPE_RECETTE/1e6).toFixed(1)} MF</span>.<br>`+
-        (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b> — l'adversaire sera désigné au tirage.`:`Place à la finale !`);
-    } else {
-      titre="💔 FIN DU PARCOURS EN COUPE"; coul="#ff6f61";
-      const dot=COUPE_DOTATION[aj.tourIdx]||0;
-      corps=`Vous tombez face à <b>${esc(nomCoupe(advId))}</b> <b>${sc}${tb}</b>${estAmateur(advId)?" — un club amateur, quelle douche froide !":""}. L'aventure s'arrête en ${esc(aj.nom)}.`+
-        (dot?`<br>Dotation de la Fédération pour le parcours : <span class="jaune">${(dot/1e6).toFixed(1)} MF</span>.`:"");
-    }
-    fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
-      <h2 style="color:${coul}">${titre}</h2>
-      <p style="margin:8px 0">${corps}</p>
-      <p style="margin-top:10px"><button class="big" id="bCRes">Voir les résultats du tour →</button></p></div>`;
-    fiche.querySelector("#bCRes").onclick=montrerResultats;
+    coupeFenetreVerdict(advId, tourIdx, nom, suite);
   };
-  // 1) l'avant-match : l'affiche + le choix de l'équipe
+  // direct au téléscripteur : on tire VOTRE résultat maintenant, on le mémorise, et on bascule sur l'écran match
+  const jouerDirect=()=>{
+    const r=resoudreCoupe(f.hid, f.aid); // le score (modèle de coupe) ; le téléscripteur ne fait que le mettre en scène
+    co.enDirect={hid:f.hid, aid:f.aid, advId, tourIdx:aj.tourIdx, nom:aj.nom, sh:r.sh, sa:r.sa, tab:r.tab, win:r.win};
+    window._penEnCours=false; fermeFiche();
+    montre("coupematch");
+  };
+  // l'avant-match : l'affiche + le choix de l'équipe + les deux façons de jouer
   const rendreAvant=()=>{
     const rotaBtns=Object.keys(ROTATION_COUPE).map(key=>{ const on=co.rotation===key;
       return `<button class="act bCRot" data-k="${key}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:9px 11px${on?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${on?"▸ ":""}${esc(ROTATION_COUPE[key].label)} <span style="font-weight:normal;font-size:12px;opacity:.85">— ${esc(ROTATION_COUPE[key].desc)}</span></button>`; }).join("");
@@ -3381,13 +3457,101 @@ function ouvreCoupe(suite){
         <span class="dim">${esc(villeCoupe(advId))} · ${dom?'<span class="vert">vous recevez</span>':"vous vous déplacez — le petit reçoit"}</span></p>
       <p class="dim" style="font-size:12px">Quelle équipe alignez-vous pour ce tour ?</p>
       <div id="cRotChoix">${rotaBtns}</div>
-      <p style="margin-top:10px"><button class="big" id="bCGo">▶ Jouer le match</button></p></div>`;
+      <p style="margin-top:10px"><button class="big" id="bCGo">▶ Jouer le match</button>
+        <button class="act" id="bCVite" style="margin-left:8px">Résultat instantané</button></p></div>`;
     fiche.style.display="flex";
     window._penEnCours=true; // on ne ferme pas par Échap tant qu'on n'a pas joué le tour
     fiche.querySelectorAll(".bCRot").forEach(b=>b.onclick=()=>{ co.rotation=b.dataset.k; rendreAvant(); });
-    fiche.querySelector("#bCGo").onclick=montrerVerdict;
+    fiche.querySelector("#bCGo").onclick=jouerDirect;
+    fiche.querySelector("#bCVite").onclick=jouerInstant;
   };
   rendreAvant();
+}
+/* Écran du match de coupe au téléscripteur — réutilise les primitives du direct (ajouteLigne, celebreFlash,
+   montée de tension) mais sur un flux d'événements ISOLÉ (genEvCoupe), sans G._pend ni finirJournee : aucune
+   stat de championnat n'est touchée. Au coup de sifflet, on résout le tour avec le score déjà joué (forced),
+   puis verdict + résultats, et retour au calendrier (où reprend le fil incident/conf/debrief). */
+function ecranCoupeMatch(){
+  const co=G.coupe, ed=co&&co.enDirect;
+  if(!ed){ return montre("coupe"); }
+  const H=clubAffiche(ed.hid), A=clubAffiche(ed.aid);
+  chrome("coupe",`
+    <div class="panel"><h2 class="jaune">🏆 Coupe de France — ${esc(ed.nom)}</h2>
+      <p class="ctr scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blasonAff(H,30)}${esc(H.nom)} — ${esc(A.nom)}${blasonAff(A,30)}</p>
+      <p class="ctr dim">${esc(H.stade)} · ${ed.hid===G.monClub?"À DOMICILE":"À L'EXTÉRIEUR"}${ed.advId===co.poucetId?' · <span class="cyan">🐭 le Petit Poucet</span>':""}</p>
+    </div>
+    <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
+    <div class="panel"><h2>Téléscripteur
+      <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
+        Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
+      </span></h2>
+      <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
+    <p class="ctr" id="preMatchAct" style="margin-top:10px"></p>`);
+  for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
+  lanceCoupe(H, A, ed);
+}
+function lanceCoupe(H, A, ed){
+  const r={hid:ed.hid, aid:ed.aid, sh:ed.sh, sa:ed.sa, tab:ed.tab, win:ed.win};
+  const gen=genEvCoupe(H, A, r);
+  const lignes=gen.ev;
+  const tk=document.getElementById("ticker"); tk.innerHTML="";
+  const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=1600; surligneVitesse(); }
+  // tableau d'affichage
+  document.getElementById("tabScore").innerHTML=
+    blasonAff(H,34)+`<span class="tNom" style="text-align:right">${esc(H.nom)}</span>`+
+    `<span class="tSc" id="tScH">0</span><span class="tSep">—</span><span class="tSc" id="tScA">0</span>`+
+    `<span class="tNom">${esc(A.nom)}</span>`+blasonAff(A,34);
+  document.getElementById("tabButs").innerHTML=`<div class="tCol d" id="tBuH"></div><div class="tCol" id="tBuA"></div>`;
+  const majTab=l=>{ if(!l||!l.g) return;
+    document.getElementById("tScH").textContent=l.g.sh;
+    document.getElementById("tScA").textContent=l.g.sa;
+    const cible=l.g.cote===H.id?"tBuH":"tBuA";
+    document.getElementById(cible).insertAdjacentHTML("beforeend",`<div>⚽ ${esc(l.g.but)} ${l.m}'</div>`);
+  };
+  const fin=()=>{
+    if(ctl) ctl.style.display="none";
+    // feuille de match
+    const buts=lignes.filter(l=>l.g);
+    const colBut=cote=>buts.filter(l=>l.g.cote===cote).map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}</p>`).join("")||'<p class="dim">—</p>';
+    tk.insertAdjacentHTML("beforeend",`<div class="fmatch">
+      <p class="sys" style="margin-bottom:4px">— FEUILLE DE MATCH —</p>
+      <p style="text-align:center;font-size:16px"><b>${esc(H.nom)} <span class="jaune">${r.sh}</span> — <span class="jaune">${r.sa}</span> ${esc(A.nom)}</b>${r.tab?' <span class="dim">(t.a.b.)</span>':""}</p>
+      <div style="display:flex;gap:18px;margin-top:4px">
+        <div style="flex:1;text-align:right">${colBut(H.id)}</div>
+        <div style="flex:1">${colBut(A.id)}</div></div>
+      <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(gen.aff||0)} spectateurs — ${esc(H.stade)}</p>
+    </div>`);
+    tk.scrollTop=tk.scrollHeight;
+    // on résout le tour avec le score déjà joué (les 31 autres affiches au modèle), sans notif perso (le verdict suit)
+    coupeResoutTour(true, r);
+    const pa=document.getElementById("preMatchAct");
+    if(pa){ pa.innerHTML='<button class="big" id="bCNext">Le verdict →</button>';
+      document.getElementById("bCNext").onclick=()=>{ G.coupe.enDirect=null; coupeFenetreVerdict(ed.advId, ed.tourIdx, ed.nom, ()=>montre("calendrier")); }; }
+  };
+  let i=0;
+  const tic=()=>{
+    if(i>=lignes.length){ fin(); return; }
+    const lg=lignes[i];
+    const monte=lg && (lg.g || (lg.q && lg.q.bu));
+    if(monte && (lg._monte||0)<2){
+      const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
+      let txt;
+      if(etape===1){ txt=PICK(MONTEE_BUT); }
+      else { const defAff=(info.cote===H.id?A:H); txt=PICK(MONTEE_FRAPPE)(info.but, gardienAff(defAff)); }
+      ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
+      tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
+    }
+    ajouteLigne(tk,lg); majTab(lg); i++;
+    tk.scrollTop=tk.scrollHeight;
+    if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
+      celebreFlash({classe:contre?"contre":"", gros:contre?"BUT…":"⚽ BUT !",
+        sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} — ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
+    }
+    tickerTimer=setTimeout(tic,tickerDelai);
+  };
+  tickerDelai=1600; tic();
 }
 function ouvreConf(suite){
   const cp=G.confPresse;
