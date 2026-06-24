@@ -100,6 +100,13 @@ toujours « raconter quelque chose ».
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé =
   cage encore plus fragile). Les **gardiens fautent autrement** qu'un joueur de champ (`COMM.crGK`/`COMM.cjGK` :
   sortie kamikaze à la Schumacher, poings en avant, main hors surface) — branché sur `j.pos==="G"`.
+  **Ferveur du public (v0.61)** : l'avantage du terrain est **modulé par l'affluence** — `simuleMatch` calcule `aff`
+  d'abord, en tire `fill=aff/cap` et `ferveur=1+0.18*(fill−0.62)` (centré sur ~62 % = la moyenne), applique `lh*=…*ferveur`
+  et `la*=…*(2−ferveur)` : un stade plein pousse l'attaque à domicile ET gêne le visiteur, un stade vide pèse. **Centré →
+  ce que le domicile gagne, le visiteur le perd ≈ à l'identique : somme des buts ≈ constante, calibrage préservé** (mesuré
+  au harnais : inchangé). S'applique à TOUS les matchs (réaliste). **Coups francs ~0,7/match (v0.61)** : décor narratif
+  (`COMM.cf`, injecté ~0,0085/min dans le verbeux) qui **ne touche pas le score** (occasions, pas de but) → visible sans
+  impact calibrage.
 - **Consigne d'avant-match** (`CONSIGNES`, `G.consigne` ∈ `prudent`/`equilibre`/`offensif`, défaut `equilibre`) :
   un **choix restreint** avant chaque match (sélecteur sur l'écran du match, consigne active surlignée, elle
   persiste jusqu'au changement suivant). Modulateur d'agressivité appliqué **au SEUL match du joueur** dans
@@ -107,6 +114,45 @@ toujours « raconter quelque chose ».
   expose, prudent verrouille. Neutre (×1) pour tous les autres clubs et en `equilibre` → **le calibrage du
   championnat reste intact** (le harnais joue en `equilibre`). Multiplicateurs = réglages tunables. À migrer
   (`G.consigne||"equilibre"`).
+- **Changement de tactique EN DIRECT** (v0.61, retour de playtest « si on perd, pouvoir passer offensif ») :
+  le téléscripteur est pré-calculé au coup d'envoi (`jouerJournee`→`simuleMatch` verrouille score ET `j.buts`), donc
+  pour qu'un changement de consigne en cours de match pèse **vraiment**, deux mécanismes. (1) **Finalisation différée** :
+  pour un match joué au direct (`window._diffEnDirect`, posé par `lanceMatch` autour du seul appel `jouerJournee`) et
+  **sans moment**, `finirJournee(null)` n'est PAS appelé au coup d'envoi mais **au coup de sifflet** (dans `fin()`, gardé
+  par `if(G._pend)`). **EN_TEST et le résultat instantané finalisent au coup d'envoi comme avant** → harnais et calibrage
+  intacts. `abandonneDirect` et le chemin de reprise d'un `G._pend` restauré finalisent aussi (filets de sécurité). (2)
+  **Re-simulation du reste** : `simuleReste(home,away,mStart,sh,sa,mulH,mulA)` rejoue uniquement les minutes restantes
+  avec la consigne/prime **du moment** (lh/la recalculés à l'identique de `simuleMatch`) ; `rejoueDepuis(r,h,a,fromIdx,
+  mNow,mulH,mulA)` **annule les stats du tail pré-tiré** (buts/passes/suspensions, via les **`uid`** désormais portés par
+  `g`/`c`), repart du score affiché et recolle le nouveau cours + sifflet, en mutant `r.ev`/`r.sh`/`r.sa` en place. Le
+  contrôle `#ctlTactique` (boutons `.bTacD`) n'apparaît qu'en direct ; le ticker suit `liveMin`/`liveMulH`/`liveMulA`
+  (l'infériorité numérique en cours) pour passer le bon état à la re-sim. **Interdit** sur un match à **moment** (`monMatch.moment`)
+  ou **truqué** (`monMatch._truque`, sinon le re-roll effacerait la victoire achetée). Invariant vérifié au harnais
+  (somme `j.buts` == lignes-but, score == comptage par côté, 0 incohérence sur 400 re-sims).
+- **Prime de match** (v0.61, `PRIMES_MATCH` 0/10/20/30 %, `G.primeMatch`, défaut 0) : un **coup de fouet à l'attaque**
+  promis AVANT le match (sélecteur `.bPrime` sous la consigne, verrouillé au coup d'envoi). Booste votre lambda d'attaque
+  dans `simuleMatch` (`lh`/`la` ×(1+pm), **votre seul match**), **payé UNIQUEMENT en cas de victoire** (`finirJournee` :
+  `masse×pm×3` prélevé sur la trésorerie), puis **remis à 0** (opt-in à chaque match). Défaut 0 → neutre, le harnais n'y
+  touche pas → **calibrage intact**. À migrer (`+G.primeMatch||0`).
+- **Promo billets « tribunes scolaires »** (v0.61, `G.promoBillets`, `PROMO_PRIX`=15 FF) : avant un match **à domicile**
+  dont l'affluence prévue est **< 60 %** du stade, `ouvrePromo` (en fin de chaîne d'avant-match, après le debrief) propose
+  de remplir les gradins à prix cassé. Active → `affluence()` (paramètre `sansPromo` pour calculer la jauge normale) pousse
+  le taux à ≥0,92 (stade quasi comble → **ambiance + ferveur**, cf. ci-dessous), et `finirJournee` facture les places
+  ajoutées à `PROMO_PRIX` (recette maigre), puis **remet `G.promoBillets` à 0** (ponctuel). Offert une fois par journée
+  (`G._promoVue`), jamais en `EN_TEST`. À migrer (`!!G.promoBillets`). **Réputation = gain ACQUIS** : chaque promo
+  applique `majReput(2, …)` — un ajout **permanent** à `G.reput` (il ne redescend pas parce qu'on arrête la promo) ;
+  seuls les mauvais résultats, le tarif cher, etc. peuvent l'éroder **ensuite**. C'est l'attrait principal de l'opé
+  (financièrement à perte) : un investissement-image cumulable, surtout précieux pour un club décrié qui se reconstruit.
+- **Offre d'achat sur un joueur PRÊTÉ** (v0.61, `G.offrePret` ; `genOffrePret`/`accepterOffrePret`/`refuserOffrePret`) :
+  un de vos joueurs prêtés (sortant, `G.prets` `sens:"out"`) brille ailleurs et **on veut l'acheter à demeure**.
+  **L'acheteur (`o.acq`) est souvent le club d'accueil (~60 %), mais parfois un AUTRE club qui l'a flairé pendant le prêt**
+  (`o.interlope`, ~40 %, choisi dans D1+D2 hors monClub/hôte ; il paie un peu plus cher, concurrence) — un prêté n'est PAS
+  bloqué, il peut être convoité par un tiers. Généré dans `finirJournee` (~6 %/journée si un prêté `note≥70` ou `pot≥80`
+  existe), expire à la journée suivante (`G.offrePret=null` en tête de `jouerJournee`). Panneau vert sur l'écran calendrier,
+  libellé différent selon accueil/tiers (boutons `bPretAcc`/`bPretRef`). **Accepter** = vente sèche : on retire le prêt, on
+  **sort le joueur de l'effectif de l'hôte** et on l'envoie chez l'acheteur (`j.club=o.acq`, `delete j.pretOut`), l'argent
+  file au **budget transferts** — il ne reviendra pas. **Refuser** = le prêt suit son cours, il vous revient à l'échéance
+  (et progresse, cf. retour de prêt). Prix proche de la valeur (1,0-1,45× ; tiers 1,15-1,6×). À migrer (`G.offrePret||null`).
 - **Moments de match**, deux familles. **Interactifs** (`MOMENTS_INTERACTIFS` : penalty pour/contre, tacle,
   provocation) — overlay à choix. **Non interactifs qui changent le score** (`MOMENTS_BUT` : but de 50m, geste
   d'anthologie, et les **cagades de gardien** `cagade`/`cadeau`) : tirés par `tireMoment`, résolus par
@@ -176,8 +222,14 @@ toujours « raconter quelque chose ».
   fardeau). Trésorerie négative = `G.confiance−1`/journée + alerte (flag `G._deficit`). Plancher mesuré dans
   le moteur : club moyen ~+6 MF/saison sans sponsor, **D2 en déficit** (survie). Le **budget mercato `G.budget`**
   reste un pot séparé (réalimenté à 70 % par la prime de classement à l'intersaison). Les **prêts** sont un
-  appoint, pas une rente (`tarifPret` abaissé) : prêter libère surtout le salaire. Tous ces coefficients sont
-  des **réglages** à durcir/adoucir après playtest. L'écran Finances détaille chaque poste.
+  appoint, pas une rente (`tarifPret` abaissé) : prêter libère surtout le salaire. **Le prêt fait progresser (v0.61)** :
+  un prêté `sens:"out"` revient **aguerri** — `retourPret` lui rajoute de la note (jeune ≤21 : +3, ≤25 : +2, sinon +1,
+  **jamais au-dessus du potentiel `j.pot`, jamais à la baisse**) et +12 de moral (en plus du +1,5/journée pendant le
+  prêt). Tous ces coefficients sont **réglages** à durcir/adoucir après playtest. L'écran Finances détaille chaque poste.
+- **Affluence** (`affluence(home,away,sansPromo)`) : depuis v0.61, le **club hôte pèse plus que le visiteur** (`home.pres*0.022`
+  + `away.pres*0.016`, base 0,46) et le **classement** compte fort (top 3 : +0,13 ; 4-6 : +0,06 ; ≥16 : −0,06) — retour de
+  playtest « 2e avec le PSG et le stade pas plein, illogique ». Plus derby (+0,15), buzz/réputation/tarif (votre club). Le
+  paramètre `sansPromo` calcule la jauge **hors** opé scolaires (cf. promo billets). Plafonné à 1 (`min(1,taux)`).
 - **Vases communicants — pont budget ↔ trésorerie** (`transvaser(sens, montant)`, `FRAIS_VIRE`=0,10) : les
   deux poches restent **séparées** (le trésor de guerre mercato ne paie pas les salaires), mais on peut en
   **transvaser** de l'une à l'autre depuis l'écran Finances pour débloquer un projet (typiquement renflouer la
@@ -211,6 +263,9 @@ toujours « raconter quelque chose ».
   flash : `cagade` en **rouge (« CAGADE ! »)**, `cadeau` en version festive, et `geste`/`but50` en
   **« 🌟 BUT D'ANTHOLOGIE ! »** — détail = l'annonce du moment. Le **chien sur la pelouse** (`chien`) a aussi son
   flash, avec une **« image » ASCII** (`DOG_ART`) affichée sur le panneau via le champ `o.art` de `celebreFlash`.
+  **Lisibilité (v0.61, retour de playtest « on a du mal à comprendre qui a marqué »)** : la fenêtre `#butFlash .led` est
+  **plus grande** (`min-width:560px`, `max-width:640px`) et le texte d'explication `.dettxt` est **aligné à gauche**, plus
+  gros (18px), dans un encadré filet cyan — on y lit le buteur. Ne pas re-centrer ni rétrécir `.dettxt`.
 - **Images de moment (« humaniser le jeu »)** : des **vignettes pixel-art** embarquées en **`data:` URI** (zéro
   requête réseau préservée) illustrent certains temps forts. Toutes les data: URI vivent dans la table
   **`IMG_MOMENT`** (déclarée près de `DOG_ART`), une entrée par moment, **chaque entrée est un tableau** (on
@@ -282,9 +337,11 @@ toujours « raconter quelque chose ».
 - **Curation des caractères réels** (deux tables nommées, lues dans `initTraits` après `TRAITS`, clé = nom exact
   au format jeu « X. Surname ») : **`BOUCHERS`** (nom → agressivité forcée) consigne le **panthéon des bouchers
   notoires de la L1** (Di Meco « le pire » et Rool à 10, etc.) → ils portent le picto 🪝 ; ≥10 affiche la
-  variante « Boucher légendaire ». **`TIREURS_CF`** (Set) consigne les **rois du coup franc** (Juninho, Sauzée,
-  Caveglia, Zidane…) → `tireurElite=true` **d'office, quelle que soit la note** (court-circuite le seuil M/A≥79).
-  Seuls les joueurs **présents** dans le jeu matchent (Di Meco/Sauzée/Caveglia/Rool en 95-96, Juninho au vivier) ;
+  variante « Boucher légendaire ». **`TIREURS_CF`** (Set) consigne les **rois du coup franc** (Sauzée, Caveglia,
+  Zidane…) → `tireurElite=true` **d'office, quelle que soit la note** (court-circuite le seuil M/A≥79).
+  **Attention (v0.61)** : le « Juninho » de notre Middlesbrough est **Juninho Paulista**, PAS Juninho Pernambucano — il a
+  été **retiré de `TIREURS_CF`** (il peut au plus décrocher le don au hasard via le seuil M/A≥79, comme tout bon milieu).
+  Seuls les joueurs **présents** dans le jeu matchent (Di Meco/Sauzée/Caveglia/Rool en 95-96) ;
   le reste est de la donnée correcte-par-construction si un nom surgit (procédural multi-saisons). Étendre ces
   listes par simple ajout de nom au bon format d'initiale.
 - **Picto « Car. » partout** (`pictos(j, avecTireur)`) : la colonne caractère figure à l'**effectif** (sans 🎯,
@@ -312,7 +369,12 @@ toujours « raconter quelque chose ».
   l'écran COUPE, soit dans la **fenêtre d'avant-match** — voir flux événementiel plus bas) module votre force
   en coupe ET, pour « les cadres », pose `G.coupe.fatigue=1` → **−5 % d'attaque à
   VOTRE SEUL match de championnat suivant** (une ligne gardée dans `simuleMatch`, dissipée en tête de
-  `finirJournee` ; **neutre quand `fatigue=0`** → le harnais joue en mixte, calibrage intact). Onglet **COUPE**
+  `finirJournee` ; **neutre quand `fatigue=0`** → le harnais joue en mixte, calibrage intact). **La réserve fait jouer
+  d'autres noms (v0.61)** : retour de playtest « on envoie la réserve mais ce sont les mêmes joueurs ». `onzeRotation(c,rot)`
+  bâtit le onze réellement aligné (`reserve` = les moins bien notés à chaque poste, `mixte` = moitié-moitié, `cadres` = le
+  meilleur onze) ; `onzeCoupe(c)` = ce onze pour VOTRE club. Branché sur l'**affichage** du tour (`nomsAffiche`/`gardienAff`
+  → buteurs et gardien du direct). Le **score**, lui, reste piloté par `forceCoupe` (mult de rotation **inchangé** → équilibrage
+  mesuré préservé) ; seuls les noms changent. Onglet **COUPE**
   (`ecranCoupe`, 3ᵉ de la nav) : statut, rotation, votre parcours, la fiche du Poucet, résultats du dernier
   tour. **Économie** : billetterie `COUPE_RECETTE` (600 kF à chaque tour franchi) **plus une dotation
   progressive de la Fédération** `COUPE_DOTATION` (barème selon le tour ATTEINT — 0,3 / 0,6 / 1,0 / 1,8 / 3,0

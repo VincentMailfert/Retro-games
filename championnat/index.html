@@ -93,14 +93,16 @@
   /* ---- célébration de but : panneau d'affichage LED clignotant ---- */
   #butFlash{position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
     background:rgba(4,9,18,.55); pointer-events:none;}
-  #butFlash .led{font-family:'Courier New',monospace; font-weight:bold; text-align:center; padding:20px 30px;
-    max-width:92vw; box-sizing:border-box; cursor:pointer;
+  #butFlash .led{font-family:'Courier New',monospace; font-weight:bold; text-align:center; padding:24px 34px;
+    min-width:min(560px,92vw); max-width:min(640px,92vw); box-sizing:border-box; cursor:pointer;
     background:#0a0610; background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px); background-size:6px 6px;
     border:4px solid #2a2a2a; border-radius:6px; box-shadow:0 0 60px rgba(0,0,0,.85), inset 0 0 28px rgba(0,0,0,.6);}
   #butFlash .gros{font-family:var(--font-led); font-size:42px; letter-spacing:3px; color:var(--jaune); line-height:1.15;
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6); animation:butflash .4s steps(1) infinite;}
-  #butFlash .det{font-size:18px; color:#e8e8e8; margin-top:10px; letter-spacing:1px;}
-  #butFlash .dettxt{font-size:15px; color:var(--cyan); margin-top:8px; line-height:1.5; font-style:italic; max-width:420px;}
+  #butFlash .det{font-size:21px; color:#fff; margin-top:12px; letter-spacing:1px;}
+  /* le texte d'explication du but est aligné à GAUCHE et plus gros : on y lit qui a marqué, plus lisible qu'en pavé centré */
+  #butFlash .dettxt{font-size:18px; color:var(--cyan); margin:12px auto 0; line-height:1.55; text-align:left;
+    max-width:540px; background:rgba(111,214,232,.07); border-left:3px solid var(--cyan); padding:8px 12px; border-radius:3px;}
   #butFlash .hint{font-size:13px; color:var(--dim); margin-top:12px; letter-spacing:1px;}
   #butFlash.contre .gros{color:var(--rouge);}
   #butFlash .vignette{position:relative; line-height:0; border:2px solid #2a2a2a; border-radius:4px; overflow:hidden; margin:0 auto;}
@@ -187,7 +189,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.60"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.61"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -531,7 +533,9 @@ const BOUCHERS={
 // Les rois du coup franc de la L1 (classement historique des buteurs sur CPA) — don inné des balles
 // arrêtées : ceux-là deviennent tireurs d'élite (🎯) dès qu'ils foulent une pelouse, même peu notés.
 const TIREURS_CF=new Set([
- "Juninho","F. Sauzée","A. Caveglia","F. Meyrieu","Wendel","P. Pauleta","M. Bastos","T. Bertin",
+ // NB : le « Juninho » de notre Middlesbrough est Juninho Paulista, PAS Juninho Pernambucano —
+ // il n'a donc pas le don du coup franc d'office (il peut l'avoir au hasard via le seuil M/A≥79).
+ "F. Sauzée","A. Caveglia","F. Meyrieu","Wendel","P. Pauleta","M. Bastos","T. Bertin",
  "A. Asanović","C. Martins","M. Vahirua","S. Guivarc'h","J.-L. Zanon","W. Khazri","Nenê","L. Robert",
  "C. Grenier","D. Wass","F. Brisson","P. Jeannol","Z. Ibrahimović","A. Emon","B. Ferrer","B. Bellone",
  "P. Le Guen","Z. Zidane","J. Gourvennec","G. Passi","V. Halilhodžić","D. Payet","R. Boudebouz",
@@ -711,7 +715,7 @@ function nouvellePartie(clubId){
     mercatoFerme:false, rapport:[], sponsor:null, offresSponsor:null, sponsorSwitch:false, prets:[],
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
-    centre:1, offreExt:null, reput:75, consigne:"equilibre", prixBillet:2,
+    centre:1, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.rapport=genRapport();
@@ -743,6 +747,9 @@ function berger(ids){
 const FORMATION={G:1,D:4,M:4,A:2};
 /* Consigne d'avant-match : modulateur d'agressivité appliqué au SEUL match du joueur.
    att = votre attaque, adv = l'attaque adverse contre vous. Offensif marque plus mais expose ; prudent verrouille. */
+// prime de match : niveaux activables AVANT le match, payés seulement en cas de victoire (cf. finirJournee)
+const PRIMES_MATCH=[{v:0,label:"Aucune"},{v:0.10,label:"+10 %"},{v:0.20,label:"+20 %"},{v:0.30,label:"+30 %"}];
+const PROMO_PRIX=15; // tarif scolaire (FF) des places de l'opération « tribunes scolaires » : on remplit le stade à perte, pour l'ambiance
 const CONSIGNES={
   prudent:  {att:0.85, adv:0.82, label:"Prudent",   desc:"On verrouille : on encaisse moins, mais on se crée moins d'occasions."},
   equilibre:{att:1.00, adv:1.00, label:"Équilibré", desc:"Bloc mesuré, ni trop haut ni trop bas — le réglage par défaut."},
@@ -762,6 +769,31 @@ function onze(c){
     xi.push(...restants.slice(0, 11-xi.length));
   }
   return xi;
+}
+/* Le onze RÉELLEMENT aligné en coupe selon votre rotation : « cadres » = les meilleurs (= onze),
+   « réserve » = on titularise les remplaçants (les moins bien notés à chaque poste), « mixte » = moitié-moitié.
+   Sert à l'affichage du tour de coupe (buteurs, gardien) pour que la réserve fasse vraiment jouer d'autres
+   noms — retour de playtest : « on envoie la réserve mais ce sont les mêmes joueurs qui jouent ». */
+function onzeRotation(c, rot){
+  if(rot!=="reserve" && rot!=="mixte") return onze(c); // cadres (ou défaut) : le meilleur onze
+  const xi=[];
+  for(const p of ["G","D","M","A"]){
+    const pool=c.joueurs.filter(j=>j.pos===p && dispo(j)).sort((a,b)=>b.note-a.note);
+    const n=FORMATION[p];
+    let sel;
+    if(rot==="reserve"){ sel=pool.slice(-n); }                    // les moins bien notés disponibles : les remplaçants jouent
+    else { const haut=Math.ceil(n/2);                             // mixte : moitié cadres, moitié réserve
+      sel=pool.slice(0,haut).concat(pool.slice(haut).reverse().slice(0, n-haut)); }
+    xi.push(...sel);
+  }
+  if(xi.length<11){
+    const restants=c.joueurs.filter(j=>dispo(j)&&!xi.includes(j)).sort((a,b)=>((a.pos==="G")-(b.pos==="G"))||(a.note-b.note));
+    xi.push(...restants.slice(0, 11-xi.length));
+  }
+  return xi;
+}
+function onzeCoupe(c){ // le onze de coupe affiché : pour VOTRE club, il suit la rotation choisie
+  return (G.coupe && c && c.id===G.monClub) ? onzeRotation(c, G.coupe.rotation) : onze(c);
 }
 /* Qualité de meneur d'un joueur : expérience (âge) × autorité (ego) × respect (note) ×
    intégrité (vénalité), le tout modulé par sa forme du moment (moral = investissement). */
@@ -856,6 +888,15 @@ const COMM={
   "{A} surgit les deux poings en avant et assomme son adversaire — ROUGE direct pour le portier !",
   "Dernier rempart, dernier recours : {A} fauche l'attaquant filant seul au but — ROUGE logique pour le gardien.",
  ],
+ cf:[ // coup franc direct aux abords de la surface — pur décor, ne change pas le score (calibrage intact)
+  "Coup franc bien placé pour {A}... la frappe s'écrase sur le mur !",
+  "{A} l'enroule par-dessus le mur... le gardien se détend et claque en corner !",
+  "Coup franc lointain de {A}... ça frôle le poteau, le portier était battu !",
+  "{A} tente la lucarne sur coup franc... au-dessus, mais l'intention était belle.",
+  "Coup franc excentré de {A}, ballon piqué dans la surface... dégagé de justesse !",
+  "{A} arme un coup franc plein axe... le mur saute, contré !",
+  "Joli coup franc brossé de {A}... le gardien boxe des deux poings.",
+ ],
  but:[
   "{A} reprend victorieusement au second poteau... BUUUT !",
   "Frappe enroulée de {A} en pleine lucarne ! Quel geste !",
@@ -884,7 +925,8 @@ function passeur(c, buteur){
 function marque(c, sh, sa, verbeux, ev, m, prefixe){
   const j=tireur(c), p=passeur(c,j);
   j.buts++; if(p) p.passes++;
-  if(verbeux) ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa},
+  // uid/pasUid : permettent d'annuler proprement un but pré-tiré si la tactique change en cours de match (cf. rejoueDepuis)
+  if(verbeux) ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa,uid:j.uid,pasUid:p?p.uid:null},
     x:fmtC(PICK(COMM.but),j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe});
 }
 function agressif(c){
@@ -896,12 +938,22 @@ function agressif(c){
 }
 function simuleMatch(home,away,verbeux){
   const fh=forces(home), fa=forces(away);
-  let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18);
-  let la=Math.max(.20, 2.45*Math.pow(fa.att/fh.def,2.5)*0.92);
+  // ferveur du public : un stade plein pousse l'équipe à domicile et gêne le visiteur ; un stade clairsemé pèse.
+  // Centrée sur ~62 % de remplissage (la moyenne) → l'avantage du terrain moyen reste celui d'avant : calibrage préservé,
+  // car ce que le domicile gagne en attaque, le visiteur le perd à peu près à l'identique (somme des buts ≈ constante).
+  const aff=affluence(home,away);
+  const fill=Math.min(1, aff/Math.max(1,home.cap));
+  const ferveur=1+0.18*(fill-0.62);
+  let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18*ferveur);
+  let la=Math.max(.20, 2.45*Math.pow(fa.att/fh.def,2.5)*0.92*(2-ferveur));
   // consigne d'avant-match : n'affecte QUE votre match (neutre partout ailleurs → calibrage intact)
   if(home.id===G.monClub||away.id===G.monClub){
     const C=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
     if(home.id===G.monClub){ lh*=C.att; la*=C.adv; } else { la*=C.att; lh*=C.adv; }
+    // prime de match : les joueurs se transcendent pour la prime (boost d'attaque). Elle n'est PAYÉE qu'en cas de
+    // victoire (finirJournee), à activer match par match. Défaut 0 → neutre, le harnais n'y touche pas (calibrage intact).
+    const pm=+G.primeMatch||0;
+    if(pm>0){ if(home.id===G.monClub) lh*=(1+pm); else la*=(1+pm); }
   }
   // fatigue de coupe : aligner ses cadres en semaine laisse des jambes lourdes au match suivant
   // (VOTRE match uniquement, et seulement si fatigue>0 → le calibrage du championnat reste intact)
@@ -913,7 +965,6 @@ function simuleMatch(home,away,verbeux){
   if(home._coupTordu && home.id===G.monClub){ la*=0.90; home._coupTordu=false; } // vestiaire saboté : l'adversaire démarre patraque
   let mulH=1, mulA=1; // infériorité numérique : un rouge plombe l'équipe réduite pour les minutes restantes
   let sh=0, sa=0; const ev=[];
-  const aff=affluence(home,away);
   if(verbeux) ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."});
   for(let m=1;m<=90;m++){
     const elh=lh*mulH, ela=la*mulA; // attaques effectives, révisées à la baisse pour l'équipe à dix
@@ -944,25 +995,93 @@ function simuleMatch(home,away,verbeux){
         if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; }
       }
       const pool=rouge?(gardien?COMM.crGK:COMM.cr):(gardien?COMM.cjGK:COMM.cj);
-      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien},
+      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},
         x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
+    }
+    // coups francs aux abords de la surface (~0,7 par match) : du décor qui rythme la rencontre, sans toucher au score
+    if(verbeux && Math.random()<0.0085){
+      const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.cf),t,cf===home?away:home)+" ("+cf.id+")"});
     }
     if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
   }
   if(verbeux) ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom});
   return {sh,sa,ev,aff};
 }
+/* Changement de tactique EN COURS de match : on re-simule uniquement les minutes restantes avec la nouvelle
+   consigne (le harnais et le mode instantané n'y touchent pas — c'est purement le direct). lh/la sont recalculés
+   à l'identique de simuleMatch mais avec la consigne du moment, et on repart du score et de l'infériorité numérique
+   en cours. Les buts/cartons portent un uid → on annule proprement le tail pré-tiré avant de recoller (rejoueDepuis). */
+function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
+  const fh=forces(home), fa=forces(away);
+  const aff=affluence(home,away), fill=Math.min(1,aff/Math.max(1,home.cap)), ferveur=1+0.18*(fill-0.62);
+  let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18*ferveur);
+  let la=Math.max(.20, 2.45*Math.pow(fa.att/fh.def,2.5)*0.92*(2-ferveur));
+  if(home.id===G.monClub||away.id===G.monClub){
+    const Cc=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
+    if(home.id===G.monClub){ lh*=Cc.att; la*=Cc.adv; } else { la*=Cc.att; lh*=Cc.adv; }
+    const pm=+G.primeMatch||0; if(pm>0){ if(home.id===G.monClub) lh*=(1+pm); else la*=(1+pm); }
+  }
+  if(G.coupe && G.coupe.fatigue>0){ if(home.id===G.monClub) lh*=0.95; else if(away.id===G.monClub) la*=0.95; }
+  if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
+  if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
+  const derby=(RIVAL[home.id]===away.id);
+  const ev=[];
+  for(let m=mStart+1;m<=90;m++){
+    const elh=lh*mulH, ela=la*mulA, r=Math.random();
+    if(r < elh/90){
+      if(Math.random()<0.42){ sh++; marque(home,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
+      else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(home);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,away),q:{but:tir.nom,cote:home.id,bu:Math.random()<MONTEE_RATEE}}); }
+    } else if(r < (elh+ela)/90){
+      if(Math.random()<0.42){ sa++; marque(away,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
+      else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(away);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,home),q:{but:tir.nom,cote:away.id,bu:Math.random()<MONTEE_RATEE}}); }
+    } else if(Math.random()<0.028){ ev.push({m,t:"amb",x:PICK(COMM.amb)}); }
+    if(Math.random()<(derby?0.055:0.030)){
+      const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
+      const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
+      if(rouge){ j.susp=(j.susp||0)+3; const dDef=gardien?1.34:1.18;
+        if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; } }
+      const pool=rouge?(gardien?COMM.crGK:COMM.cr):(gardien?COMM.cjGK:COMM.cj);
+      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
+    }
+    if(Math.random()<0.0085){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.cf),t,cf===home?away:home)+" ("+cf.id+")"}); }
+  }
+  return {ev, sh, sa};
+}
+/* Recolle un nouveau cours de match à partir de l'index non encore joué (fromIdx) : annule les stats du tail
+   pré-tiré, repart du score affiché et re-simule. Mute monMatch (r.ev, r.sh, r.sa) en place. */
+function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
+  for(let k=fromIdx;k<r.ev.length;k++){ const l=r.ev[k];
+    if(l.g){ const b=l.g.uid&&byUid(l.g.uid); if(b) b.buts=Math.max(0,(b.buts||0)-1);
+      const p=l.g.pasUid&&byUid(l.g.pasUid); if(p) p.passes=Math.max(0,(p.passes||0)-1); }
+    if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); }
+  }
+  let sh=0,sa=0; for(let k=0;k<fromIdx;k++){ const l=r.ev[k]; if(l.g){ if(l.g.cote===h.id) sh++; else sa++; } }
+  const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA);
+  r.ev.length=fromIdx;
+  for(const e of out.ev) r.ev.push(e);
+  r.ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom});
+  r.sh=out.sh; r.sa=out.sa;
+  return out;
+}
 function fmtC(t,j,opp){ return t.replace("{A}",j.nom).replace("{G}","le gardien").replace("{D}",opp.nom); }
 
-function affluence(home,away){
+function affluence(home,away,sansPromo){
   const forme=home.forme.slice(-5).reduce((a,b)=>a+b,0); // -5..+5
-  let taux=0.50 + away.pres*0.03 + home.pres*0.01 + forme*0.028;
+  // le public vient d'abord pour SON équipe : le prestige et le classement du club hôte pèsent désormais
+  // davantage que ceux du visiteur (retour de playtest : « 2e avec le PSG et le stade pas plein, illogique »)
+  let taux=0.46 + home.pres*0.022 + away.pres*0.016 + forme*0.028;
   const rang=classement().findIndex(c=>c.id===home.id)+1;
-  if(rang>0&&rang<=3) taux+=0.06; else if(rang>=16) taux-=0.05; // la course au titre remplit, la peur vide
+  if(rang>0){ if(rang<=3) taux+=0.13; else if(rang<=6) taux+=0.06; else if(rang>=16) taux-=0.06; } // jouer le titre remplit, la peur vide
   if(RIVAL[home.id]===away.id) taux+=0.15; // le derby fait toujours guichets fermés ou presque
   if(home.id===G.monClub && (G.buzz||0)>0) taux+=0.045*Math.min(3,G.buzz); // une recrue fait vendre des billets
   if(home.id===G.monClub && G.reput!=null) taux+=(G.reput-60)*0.0016; // un club respecté attire, un club décrié lasse
   if(home.id===G.monClub) taux*=palierBillet().aff; // votre politique tarifaire : brader remplit, faire payer cher vide
+  // opération « tribunes scolaires » : on remplit un stade qui s'annonçait à moitié vide (places bradées, voir finirJournee)
+  if(home.id===G.monClub && G.promoBillets && !sansPromo) taux=Math.max(taux+0.30, 0.92);
   return Math.round(home.cap*Math.max(0.30, Math.min(1, taux)));
 }
 
@@ -1002,7 +1121,7 @@ function majReput(delta, raison){
 }
 function jouerJournee(evCb){
   G.notifs=[];
-  G.offreExt=null; // l'offre de la semaine passée expire
+  G.offreExt=null; G.offrePret=null; // les offres de la semaine passée expirent
   const day=G.calendrier[G.journee];
   const res=[];
   let monMatch=null, pend=null;
@@ -1021,6 +1140,7 @@ function jouerJournee(evCb){
         r.ev.push(fin); fin.x="COUP DE SIFFLET FINAL. "+h.nom+" "+r.sh+" - "+r.sa+" "+a.nom;
       }
       G.truque=false; G.risque=RNDI(4,7); // l'enquête reste chaude 4 à 7 journées, puis la piste se refroidit
+      r._truque=true; // victoire arrangée : pas de re-sim tactique en direct (elle effacerait le résultat acheté)
       G.news.unshift("L'intermédiaire a disparu dans la nuit. La victoire est là. Dormez bien... si vous le pouvez.");
     }
     if(!mien){
@@ -1052,7 +1172,10 @@ function jouerJournee(evCb){
   }
   G._pend={res,pend,monMatch};
   if(!pend){ finirJournee(null); return {res,monMatch}; }
-  if(!pend.r.moment){ finirJournee(null); }
+  // Match joué AU TÉLÉSCRIPTEUR (window._diffEnDirect) et sans moment : on DIFFÈRE la finalisation jusqu'au coup
+  // de sifflet, pour que le changement de tactique en direct puisse re-simuler la fin avant que rien ne soit acté.
+  // Le harnais (EN_TEST) et le résultat instantané finalisent ici, comme avant → calibrage et tests intacts.
+  if(!pend.r.moment){ if(EN_TEST() || !(typeof window!=="undefined"&&window._diffEnDirect)) finirJournee(null); }
   else if(EN_TEST() || !MOMENTS_INTERACTIFS[pend.r.moment.type]){
     finirJournee(autoMoment(pend.r.moment)); // tests et moments non interactifs : résolution immédiate
   }
@@ -1217,8 +1340,22 @@ function finirJournee(delta){
     // finances : billetterie à domicile + droits TV + sponsor
     if(hid===G.monClub){
       const aff=affluence(h,a), pb=palierBillet();
-      G.tresorerie += aff*pb.prix;
-      G.news.unshift("J"+(G.journee+1)+" — Billetterie ("+pb.nom.toLowerCase()+", "+pb.prix+" FF) : "+FMT(aff)+" spectateurs, recette "+(aff*pb.prix/1e6).toFixed(2)+" MF.");
+      let recette, libBill;
+      if(G.promoBillets){
+        // opération « tribunes scolaires » : les places ajoutées par la promo sont bradées (PROMO_PRIX), les autres au tarif normal
+        const affNorm=affluence(h,a,true), promo=Math.max(0, aff-affNorm);
+        recette=affNorm*pb.prix + promo*PROMO_PRIX;
+        libBill="Billetterie + OPÉ SCOLAIRES ("+FMT(promo)+" places à "+PROMO_PRIX+" FF) : "+FMT(aff)+" spectateurs, recette "+(recette/1e6).toFixed(2)+" MF.";
+        // le geste envers le quartier fait monter la réputation, et ce gain est ACQUIS : il ne redescend pas parce qu'on
+        // arrête la promo (seuls les mauvais résultats, le tarif, etc. peuvent éroder la réputation ensuite). Cumulable.
+        if(promo>0) majReput(2, "opération tribunes scolaires");
+        G.promoBillets=false; // opération ponctuelle : à réactiver au prochain match
+      } else {
+        recette=aff*pb.prix;
+        libBill="Billetterie ("+pb.nom.toLowerCase()+", "+pb.prix+" FF) : "+FMT(aff)+" spectateurs, recette "+(recette/1e6).toFixed(2)+" MF.";
+      }
+      G.tresorerie += recette;
+      G.news.unshift("J"+(G.journee+1)+" — "+libBill);
       // l'image du club glisse selon le tarif (cher = râleries, bradé = ferveur) — discret, mais cumulatif sur la saison
       if(pb.rep) G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+pb.rep));
       // le moral du vestiaire suit le tarif ET le remplissage : un stade plein porte, un stade vide plombe
@@ -1243,6 +1380,16 @@ function finirJournee(delta){
     const masse=clubById(G.monClub).joueurs.reduce((s,j)=>s+salaire(j),0);
     const frais=fraisJournee(clubById(G.monClub)); // entretien du stade + personnel
     G.tresorerie -= masse + frais;
+    // prime de match : promesse au vestiaire, honorée UNIQUEMENT en cas de victoire (proportionnelle à la masse
+    // salariale et au niveau choisi). Puis remise à zéro : c'est un choix à reprendre à chaque match.
+    if(+G.primeMatch>0){
+      if(gagneJ){ const cout=Math.round(masse*G.primeMatch*3);
+        G.tresorerie-=cout;
+        G.news.unshift("PRIME DE MATCH honorée (victoire, "+Math.round(G.primeMatch*100)+" %) : "+(cout/1e6).toFixed(2)+" MF reversés aux joueurs.");
+        notif("💰 Prime de victoire versée : "+(cout/1e6).toFixed(2)+" MF.");
+      }
+      G.primeMatch=0;
+    }
     if(G.tresorerie<0){ // le découvert agace le président : l'argent redevient une contrainte
       G.confiance=Math.max(0,G.confiance-1);
       if(!G._deficit){ G._deficit=true; notif("🔴 Trésorerie dans le rouge. Le président veut un retour à l'équilibre — alléger la masse salariale, vendre, ou décrocher un meilleur sponsor."); }
@@ -1300,6 +1447,12 @@ function finirJournee(delta){
     G.offreExt=genOffreExt();
     if(G.offreExt){ const jx=byUid(G.offreExt.uid);
       if(jx) notif("💰 "+G.offreExt.club+" offre "+(G.offreExt.prix/1e6).toFixed(1)+" MF pour "+jx.nom+" — réponse avant le prochain match."); }
+  }
+  // un club d'accueil peut vouloir lever l'option sur un de vos joueurs PRÊTÉS (expire à la journée suivante)
+  if(!G.offrePret && Math.random()<0.06 && G.journee>1 && G.journee<37){
+    G.offrePret=genOffrePret();
+    if(G.offrePret){ const jx=byUid(G.offrePret.uid);
+      if(jx) notif("📩 "+G.offrePret.club+" veut lever l'option sur "+jx.nom+" (prêté) : "+(G.offrePret.prix/1e6).toFixed(1)+" MF — réponse avant le prochain match."); }
   }
   // lore : derby et bête noire du club humain
   const monRes=res.find(r=>r.h.id===G.monClub||r.a.id===G.monClub);
@@ -2058,7 +2211,14 @@ function retourPret(p){
   const dest=clubById(p.sens==="in"?p.proprio:G.monClub);
   delete j.pretIn; delete j.pretOut; j.titu=false; j.club=dest.id;
   dest.joueurs.push(j);
-  if(p.sens==="out") G.news.unshift("RETOUR DE PRÊT : "+j.nom+" revient au club, aguerri.");
+  if(p.sens==="out"){
+    // un prêt, c'est du temps de jeu garanti ailleurs : le joueur revient grandi (expérience en accéléré).
+    // Les jeunes profitent le plus ; on ne dépasse jamais le potentiel, et la note ne peut que monter.
+    const av=j.note, gain=(j.age<=21?3:j.age<=25?2:1), plafond=Math.max(j.note,j.pot||j.note);
+    j.note=Math.min(plafond, j.note+gain);
+    j.moral=Math.min(100,(j.moral==null?65:j.moral)+12);
+    G.news.unshift("RETOUR DE PRÊT : "+j.nom+" revient au club, aguerri"+(j.note>av?" — la pige a payé : note "+av+" → "+j.note:"")+".");
+  }
   else G.news.unshift("FIN DE PRÊT : "+j.nom+" retourne à "+dest.nom+".");
 }
 function traiterPrets(){
@@ -2125,6 +2285,48 @@ function refuserOffreExt(){
     else if((j.ego||5)>=8) G.news.unshift(j.nom+" rêvait de "+o.club+"... Son entourage fait savoir sa déception.");
     else G.news.unshift("Offre déclinée. "+j.nom+" encaisse, le vestiaire apprécie sa loyauté.");
   } else G.news.unshift("Offre déclinée.");
+  montre("calendrier");
+}
+/* Offre d'achat sur un de vos joueurs PRÊTÉS (sortant) : il brille ailleurs, son club d'accueil veut lever l'option
+   et le garder à demeure. Le joueur vit déjà dans l'effectif de l'hôte → accepter = on supprime le prêt et on entérine
+   la vente (l'argent file au budget transferts). Refuser = le prêt suit son cours, il vous reviendra à l'échéance. */
+function genOffrePret(){
+  if(!G.prets) return null;
+  const cands=G.prets.filter(p=>p.sens==="out").map(p=>({p, j:byUid(p.uid)}))
+    .filter(x=>x.j && (x.j.note>=70 || (x.j.pot||0)>=80)); // un prêté qui a de la valeur fait envie
+  if(!cands.length) return null;
+  const {p,j}=PICK(cands), hote=clubById(p.hote);
+  // l'acheteur : souvent le club d'ACCUEIL (il le côtoie tous les jours), mais parfois un AUTRE club qui l'a flairé
+  // pendant son prêt — un prêté n'est plus « bloqué », il peut être convoité par un tiers.
+  let acq=hote, interlope=false;
+  if(Math.random()<0.4){
+    const autres=(G.clubs||[]).concat(G.autre||[]).filter(c=>c&&c.id!==G.monClub&&c.id!==p.hote);
+    if(autres.length){ acq=PICK(autres); interlope=true; }
+  }
+  // prix proche de la valeur ; un tiers paie un peu plus cher (concurrence avec le club d'accueil)
+  const base=Math.max(valeur(j), valeur({...j, note:Math.round((j.note+(j.pot||j.note))/2)}));
+  const prix=Math.round(base*RND(interlope?1.15:1.0, interlope?1.6:1.45)/1e5)*1e5;
+  return {uid:j.uid, acq:acq?acq.id:p.hote, host:p.hote, interlope, club:acq?acq.nom:"son club d'accueil", prix};
+}
+function accepterOffrePret(){
+  const o=G.offrePret; if(!o){ return; }
+  const j=byUid(o.uid), idx=G.prets.findIndex(p=>p.uid===o.uid && p.sens==="out");
+  if(!j || idx<0){ G.offrePret=null; montre("calendrier"); return; }
+  const pret=G.prets[idx], cibleId=o.acq||o.host||pret.hote;
+  const detenteur=clubById(pret.hote), acq=clubById(cibleId);
+  G.prets.splice(idx,1);            // le prêt devient une vente sèche : il ne reviendra pas
+  if(detenteur) detenteur.joueurs=detenteur.joueurs.filter(x=>x!==j); // on le retire du club d'accueil...
+  delete j.pretOut; j.titu=false; j.avendre=false; j.club=cibleId;
+  if(acq && !acq.joueurs.includes(j)) acq.joueurs.push(j);            // ...pour l'envoyer chez l'acheteur (l'hôte ou un tiers)
+  G.budget+=o.prix; G.offrePret=null;
+  G.news.unshift("VENTE : "+j.nom+" (prêté) est transféré à "+o.club+" pour "+(o.prix/1e6).toFixed(1)+" MF.");
+  notif("💸 "+j.nom+" vendu à "+o.club+" : "+(o.prix/1e6).toFixed(1)+" MF au budget transferts.");
+  montre("calendrier");
+}
+function refuserOffrePret(){
+  const o=G.offrePret; G.offrePret=null;
+  const j=o?byUid(o.uid):null;
+  if(j) G.news.unshift("Option déclinée : "+j.nom+" reste sous contrat, son prêt suit son cours et il vous reviendra.");
   montre("calendrier");
 }
 /* ---------- Marché des transferts entre clubs IA (pendant les fenêtres) ---------- */
@@ -2679,13 +2881,13 @@ function clubAffiche(id){ // objet club-like pour le tableau d'affichage et les 
 function blasonAff(c,s){ return c.amateur ? blason({id:c.court}, s) : blason(c, s); } // amateur : écu gris générique, label court lisible
 function tagAff(c){ return c.amateur ? c.court : c.id; } // étiquette courte pour les lignes système
 function nomsAffiche(aff){ // une petite liste de buteurs plausibles pour le camp (générés pour les amateurs)
-  if(!aff.amateur){ const att=onze(aff).filter(j=>"MA".includes(j.pos)).map(j=>j.nom);
-    return att.length?att:onze(aff).map(j=>j.nom); }
+  if(!aff.amateur){ const xi=onzeCoupe(aff), att=xi.filter(j=>"MA".includes(j.pos)).map(j=>j.nom); // onzeCoupe : la réserve fait jouer d'autres noms
+    return att.length?att:xi.map(j=>j.nom); }
   const noms=[], vus=new Set();
   while(noms.length<6){ const n=PICK(PRENOMS)[0]+". "+PICK(NOMS); if(!vus.has(n)){ vus.add(n); noms.push(n); } }
   return noms;
 }
-function gardienAff(aff){ return aff.amateur ? "le gardien" : gardienDe(aff); }
+function gardienAff(aff){ if(aff.amateur) return "le gardien"; const g=onzeCoupe(aff).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
 const COUPE_AMB=["Quelle ambiance sur ce terrain !","Le public pousse derrière son équipe.","On joue à fond, des deux côtés.",
   "Le rythme est haché mais l'engagement est total.","Beau mouvement collectif, mais ça butte sur la défense.","L'arbitre laisse jouer."];
 function genEvCoupe(H, A, r){ // r = {sh,sa,tab,win} déjà tiré ; renvoie {ev, aff} — pure mise en scène, aucune stat touchée
@@ -2978,9 +3180,10 @@ function migre(){
   G.prets=G.prets||[]; G.vivier=G.vivier||null;
   G.saisonIdx=G.saisonIdx||1; G.confiance=G.confiance==null?65:G.confiance;
   G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre"; G.prixBillet=(G.prixBillet==null?2:G.prixBillet);
+  G.primeMatch=+G.primeMatch||0; G.promoBillets=!!G.promoBillets; // prime de victoire (opt-in par match) + promo billets scolaires
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
-  G.centre=G.centre||1; G.offreExt=G.offreExt||null;
+  G.centre=G.centre||1; G.offreExt=G.offreExt||null; G.offrePret=G.offrePret||null;
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
   G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
   G.reput=G.reput==null?75:G.reput;
@@ -3249,6 +3452,15 @@ function ecranCalendrier(){
   const h=clubById(hid), a=clubById(aid);
   const dom=hid===G.monClub;
   const offreJ=G.offreExt?byUid(G.offreExt.uid):null;
+  const offrePretJ=G.offrePret?byUid(G.offrePret.uid):null;
+  const offrePret=(G.offrePret&&offrePretJ)?`<div class="panel" style="border-color:#62c462">
+     <h2 style="color:#62c462">Offre d'achat sur un prêté</h2>
+     <p>${G.offrePret.interlope
+        ?`<b class="jaune">${esc(G.offrePret.club)}</b> a flairé <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) pendant son prêt et veut l'acheter définitivement`
+        :`<b class="jaune">${esc(G.offrePret.club)}</b>, où <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) brille en prêt, veut lever l'option`} pour <b class="jaune">${(G.offrePret.prix/1e6).toFixed(1)} MF</b>.</p>
+     <p class="dim">Accepter, c'est encaisser tout de suite — mais le joueur ne reviendra pas. Refuser, c'est le récupérer à la fin du prêt. L'offre expire après la prochaine journée.</p>
+     <p style="margin-top:8px"><button class="act" id="bPretAcc">Vendre (${(G.offrePret.prix/1e6).toFixed(1)} MF)</button>
+     <button class="act" id="bPretRef">Refuser, il reviendra</button></p></div>`:"";
   const offre=(G.offreExt&&offreJ)?`<div class="panel" style="border-color:#6fd6e8">
      <h2 style="color:#6fd6e8">Offre venue de l'étranger</h2>
      <p><b class="jaune">${esc(G.offreExt.club)}</b> propose <b class="jaune">${(G.offreExt.prix/1e6).toFixed(1)} MF</b> pour
@@ -3264,6 +3476,7 @@ function ecranCalendrier(){
      <button class="act" id="bMalRef">Éconduire l'intermédiaire</button></p></div>`:"";
   chrome("calendrier",`
    ${offre}
+   ${offrePret}
    ${affaire}
    <div class="panel">
      <h2>Saison ${esc(G.saison)} · Journée ${G.journee+1} — votre match</h2>
@@ -3275,6 +3488,11 @@ function ecranCalendrier(){
        <span class="dim" style="font-size:12px">Consigne d'avant-match :</span><br>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne" data-k="${k}" style="margin:4px 3px 0${G.consigne===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${CONSIGNES[k].label}</button>`).join("")}
        <br><span class="dim" style="font-size:11px">${esc((CONSIGNES[G.consigne]||CONSIGNES.equilibre).desc)}</span>
+     </div>
+     <div class="ctr" style="margin-top:10px">
+       <span class="dim" style="font-size:12px">Prime de match (un coup de fouet à l'attaque — payée seulement en cas de victoire) :</span><br>
+       ${PRIMES_MATCH.map(p=>`<button class="act bPrime" data-v="${p.v}" style="margin:4px 3px 0${(+G.primeMatch||0)===p.v?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${p.label}</button>`).join("")}
+       <br><span class="dim" style="font-size:11px">${(+G.primeMatch||0)>0?"Vos joueurs se transcendent (+"+Math.round((+G.primeMatch)*100)+" % d'attaque). Facture honorée UNIQUEMENT si vous gagnez.":"Aucune prime promise : effectif au régime normal."}</span>
      </div>
      <p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
@@ -3289,6 +3507,10 @@ function ecranCalendrier(){
      <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
        Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
      </span></h2>
+     <div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:12px">
+       <span class="dim">Tactique en direct :</span>
+       ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
+     </div>
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
    ${G.presse.length?`<div class="panel"><h2>Revue de presse</h2>
      ${G.presse.slice(0,4).map(p=>`<p class="dim" style="font-style:italic">${esc(p)}</p>`).join("")}</div>`:""}
@@ -3296,8 +3518,10 @@ function ecranCalendrier(){
   document.getElementById("bJouer").onclick=()=>lanceMatch(false);
   document.getElementById("bVite").onclick=()=>lanceMatch(true);
   document.querySelectorAll(".bConsigne").forEach(b=>b.onclick=()=>{ G.consigne=b.dataset.k; montre("calendrier"); });
-  const ouvreDebrief=()=>{
-    if(!(G.notifs && G.notifs.length)) return;
+  document.querySelectorAll(".bPrime").forEach(b=>b.onclick=()=>{ G.primeMatch=+b.dataset.v; montre("calendrier"); });
+  const ouvreDebrief=(suite)=>{
+    suite=suite||(()=>{});
+    if(!(G.notifs && G.notifs.length)) return suite();
     const lst=G.notifs.slice(); G.notifs=[];
     const fiche=document.getElementById("fiche");
     fiche.innerHTML=`<div class="fbox" style="max-width:460px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
@@ -3306,7 +3530,28 @@ function ecranCalendrier(){
       ${lst.map(n=>`<p style="margin-top:6px">${esc(n)}</p>`).join("")}
       <p style="margin-top:12px"><button class="big" id="bDebOk">Compris</button></p></div>`;
     fiche.style.display="flex";
-    fiche.querySelector("#bDebOk").onclick=()=>fermeFiche();
+    fiche.querySelector("#bDebOk").onclick=()=>{ fermeFiche(); suite(); };
+  };
+  // promo billets : avant un match à domicile qui s'annonce à guichets clairsemés, on peut faire venir les scolaires
+  // pour remplir les tribunes (ambiance + perf du 12e homme via la ferveur), au prix d'une recette bradée.
+  const ouvrePromo=(suite)=>{
+    suite=suite||(()=>{});
+    if(EN_TEST() || !dom || G.promoBillets || G._promoVue===G.journee){ return suite(); }
+    const projAff=affluence(h,a,true), projFill=projAff/Math.max(1,h.cap);
+    if(projFill>=0.60){ return suite(); }
+    G._promoVue=G.journee;
+    const placesVides=Math.max(0, h.cap-projAff);
+    const fiche=document.getElementById("fiche");
+    fiche.innerHTML=`<div class="fbox" style="max-width:470px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
+      <h2 class="jaune">🎟️ Tribunes clairsemées</h2>
+      <p>Le service billetterie tire la sonnette : à ce rythme, <b>${esc(h.stade)}</b> ne sera rempli qu'à <b class="rouge">${Math.round(projFill*100)} %</b> ce week-end. Soit près de <b>${FMT(placesVides)}</b> sièges vides.</p>
+      <p style="margin-top:8px">Le directeur propose une <b>opération « tribunes scolaires »</b> : on ouvre les portes aux écoles et clubs du quartier à <b class="jaune">${PROMO_PRIX} FF</b> la place. La recette sera maigre, mais un stade plein, ça <b>pousse l'équipe</b> — et ça soigne l'image.</p>
+      <p class="dim" style="font-size:12px;margin-top:8px">Effet pour ce match : stade quasi comble (ambiance + ferveur du 12e homme), petit gain de réputation. Contrepartie : ces places-là ne rapportent presque rien.</p>
+      <p style="margin-top:12px"><button class="big" id="bPromoOui">On remplit le stade !</button>
+        <button class="act" id="bPromoNon" style="margin-left:8px">Non, tarif normal</button></p></div>`;
+    fiche.style.display="flex"; window._penEnCours=true;
+    fiche.querySelector("#bPromoOui").onclick=()=>{ G.promoBillets=true; window._penEnCours=false; fermeFiche(); suite(); };
+    fiche.querySelector("#bPromoNon").onclick=()=>{ window._penEnCours=false; fermeFiche(); suite(); };
   };
   const ouvreEre=(suite)=>{
     if(!G.nouvelleEre){ return suite(); }
@@ -3324,7 +3569,7 @@ function ecranCalendrier(){
     fiche.querySelector("#bEreOk").onclick=()=>{ fermeFiche(); suite(); };
   };
   const suiteApresCoupe=()=>{
-    const finChaine=()=>ouvreConf(ouvreDebrief); // conf de presse (si fait saillant) puis debrief
+    const finChaine=()=>ouvreConf(()=>ouvreDebrief(ouvrePromo)); // conf de presse (si fait saillant) → debrief → promo billets (avant-match)
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); }
   };
@@ -3338,6 +3583,8 @@ function ecranCalendrier(){
   const bR=document.getElementById("bMalRef"); if(bR) bR.onclick=refuserAffaire;
   const bEA=document.getElementById("bExtAcc"); if(bEA) bEA.onclick=accepterOffreExt;
   const bER=document.getElementById("bExtRef"); if(bER) bER.onclick=refuserOffreExt;
+  const bPA=document.getElementById("bPretAcc"); if(bPA) bPA.onclick=accepterOffrePret;
+  const bPR=document.getElementById("bPretRef"); if(bPR) bPR.onclick=refuserOffrePret;
 }
 
 /* ---- pictogrammes télétexte ---- */
@@ -3625,7 +3872,11 @@ function lanceMatch(instant){
   // (le match est déjà simulé par jouerJournee ; surtout, cliquer une consigne relançait montre("calendrier")
   //  → abandonneDirect() voyait G._pend et terminait le match « sans vous ». On bloque ça à la source.)
   document.querySelectorAll(".bConsigne").forEach(b=>b.disabled=true);
+  document.querySelectorAll(".bPrime").forEach(b=>b.disabled=true); // la prime est promise AVANT le coup d'envoi
+  // direct : on diffère la finalisation jusqu'au sifflet (cf. jouerJournee) → la tactique peut re-simuler la fin
+  window._diffEnDirect = !instant;
   const {res,monMatch}=jouerJournee();
+  window._diffEnDirect = false;
   const tk=document.getElementById("ticker"); tk.innerHTML="";
   const ctl=document.getElementById("ctlVitesse");
   if(ctl&&!instant){ ctl.style.display=""; tickerDelai=1600; surligneVitesse(); } // vitesse par défaut + surlignage à jour au coup d'envoi
@@ -3661,7 +3912,10 @@ function lanceMatch(instant){
     if(sif&&sif.t==="sys") sif.x="COUP DE SIFFLET FINAL. "+eM.h.nom+" "+eM.sh+" - "+eM.sa+" "+eM.a.nom;
   }
   const fin=()=>{
+    // direct sans moment : la finalisation a été différée → on l'acte ici, au coup de sifflet (score éventuellement re-simulé)
+    if(G._pend) finirJournee(null);
     if(ctl) ctl.style.display="none";
+    const ctlT=document.getElementById("ctlTactique"); if(ctlT) ctlT.style.display="none";
     // au coup de sifflet, le bouton d'avant-match laisse place au passage à la journée suivante
     const pa=document.getElementById("preMatchAct");
     if(pa){ pa.innerHTML='<button class="big" id="bNext">Prochaine journée 📆</button>';
@@ -3711,7 +3965,22 @@ function lanceMatch(instant){
     return;
   }
   tickerDelai=1600;
-  let i=0;
+  let i=0, liveMin=0, liveMulH=1, liveMulA=1; // suivi du direct (minute jouée, infériorité numérique en cours) pour la re-sim tactique
+  // contrôle de tactique EN DIRECT : on re-simule les minutes restantes avec la nouvelle consigne. Indisponible sur un
+  // match à moment (résolution spéciale à la 90e) — rare. Le bouton actif reflète G.consigne.
+  const ctlT=document.getElementById("ctlTactique");
+  const majTacBtns=()=>document.querySelectorAll(".bTacD").forEach(b=>{ const on=b.dataset.k===G.consigne;
+    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; });
+  if(ctlT && !instant && !monMatch.moment && !monMatch._truque){ ctlT.style.display="block"; majTacBtns(); }
+  const changeTactique=(k)=>{
+    if(monMatch.moment || monMatch._truque || !G._pend || i>=lignes.length || k===G.consigne) return; // match fini / arrangé / déjà finalisé / inchangé
+    G.consigne=k;
+    rejoueDepuis(monMatch, eM.h, eM.a, i, liveMin, liveMulH, liveMulA);
+    eM.sh=monMatch.sh; eM.sa=monMatch.sa; // la feuille et le tableau suivront le nouveau cours
+    ajouteLigne(tk,{m:liveMin,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
+    tk.scrollTop=tk.scrollHeight; majTacBtns();
+  };
+  document.querySelectorAll(".bTacD").forEach(b=>b.onclick=()=>changeTactique(b.dataset.k));
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
@@ -3729,6 +3998,11 @@ function lanceMatch(instant){
     }
     const courante=i;
     ajouteLigne(tk,lignes[i]); majTableau(lignes[i]); i++;
+    if(lg && lg.m) liveMin=lg.m; // minute jouée (pour une éventuelle re-sim tactique)
+    if(lg && lg.c && lg.c.rouge){ // infériorité numérique en cours : on reflète l'effet du moteur sur les attaques
+      const dDef=lg.c.gardien?1.34:1.18;
+      if(lg.c.cote===eM.h.id){ liveMulH*=0.78; liveMulA*=dDef; } else { liveMulA*=0.78; liveMulH*=dDef; }
+    }
     tk.scrollTop=tk.scrollHeight;
     if(courante===penIdx){
       ouvreMoment(monMatch,res,resoudMoment,()=>{ tickerTimer=setTimeout(tic,tickerDelai); });
