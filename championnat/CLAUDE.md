@@ -93,6 +93,24 @@ toujours « raconter quelque chose ».
   Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions**.
   Le **mercato est national** (`ecranMercato` liste D1 + D2, colonne « Div », filtre par division) ;
   la **fiche d'accueil affiche l'effectif réel curé** (STARS/STARS_D2) avant de choisir son club.
+- **Saison de départ au choix (v0.62)** : un sélecteur à l'accueil (`#selSaison`) permet de démarrer une
+  carrière neuve sur une saison **réelle** au choix — point de départ UNIQUEMENT : une fois lancée, la
+  carrière est procédurale comme avant (joueurs conservés, pas de transfert « magique »). Registre
+  **`SAISONS`** (clé → `{an, titre, d1:[ids], d2:[ids], starsD1, starsD2, sous}`) : `"1995-96"` (base,
+  pointe sur CLUBS/STARS) et `"1996-97"` (vrais effectifs curés `STARS_9697`/`STARS_D2_9697`, source
+  **Transfermarkt** `…/kader/verein/<id>/saison_id/1996`, scrapés au proxy *stealth* ; **âge_jeu = âge
+  Transfermarkt − 1** pour coller à la convention « 1996 − naissance »). `nouvellePartie(clubId, saisonKey)`
+  charge la saison choisie via `metaClub(id)` (cherche CLUBS/CLUBS_D2/**CLUBS_EXTRA** = les 4 clubs absents
+  de 95-96 : Beauvais, Briochin, Troyes, Toulon) et pose **`G.anBase`** (année civile de la 1re saison).
+  **`anneeJeu() = anBase + saisonIdx − 1`** (généralisé) ; `G.saison` et les **`HONNEURS`** (étés Euro/Mondial)
+  sont réindexés par année civile → corrects quel que soit le départ. `SAISON_ACCUEIL` = saison sélectionnée
+  à l'accueil. **Le vivier exclut désormais à l'init tout joueur déjà employé** (`genRapport`, pour ne pas
+  proposer Papin/Gallas/… déjà sous contrat en 96/97). En 96/97 : l'OM remonte en D1 (avec Caen, Nancy),
+  Saint-Étienne/Gueugnon/Martigues descendent en D2 ; la vraie D2 96/97 comptait 22 clubs → **2 écartés**
+  (Charleville, Louhans) pour tenir les 20. Doublons inter-clubs de Transfermarkt (transfert en cours de
+  saison : Coupet→STE, Luccin→CAN, Cascarino→NCY, Diao→EPI, Kosecki→NAN…) **résolus à la main**. Validation
+  dédiée : **`harness9697.cjs`** (20+20, doublons, année de base, été 98 bien daté, carrières + calibrage).
+  Pour ajouter 97/98 : scraper `saison_id/1997`, curer `STARS_9797`/etc., ajouter une entrée à `SAISONS`.
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
