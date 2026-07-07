@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.68"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.69"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -911,6 +911,7 @@ function nouvellePartie(clubId, saisonKey){
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.stade=inferStade(clubs.find(c=>c.id===clubId)); G.chantier=null; // état du stade déduit de sa taille de départ
+  G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique : postes vacants au départ
   G.rapport=genRapport();
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
@@ -1233,6 +1234,9 @@ function simuleMatch(home,away,verbeux){
     // victoire (finirJournee), à activer match par match. Défaut 0 → neutre, le harnais n'y touche pas (calibrage intact).
     const pm=+G.primeMatch||0;
     if(pm>0){ if(home.id===G.monClub) lh*=(1+pm); else la*=(1+pm); }
+    // staff technique : bonus sectoriels de VOTRE match seul (neutre sans coach, et vide au harnais → calibrage intact)
+    const cAtt=1+0.02*coachTier("attaque"), cDef=1-0.02*coachTier("defense"), cGk=1-0.015*coachTier("gardien");
+    if(home.id===G.monClub){ lh*=cAtt; la*=cDef*cGk; } else { la*=cAtt; lh*=cDef*cGk; }
   }
   // fatigue de coupe : aligner ses cadres en semaine laisse des jambes lourdes au match suivant
   // (VOTRE match uniquement, et seulement si fatigue>0 → le calibrage du championnat reste intact)
@@ -1378,7 +1382,8 @@ function appliqueResultat(h,a,sh,sa,pre){
     const sel=pick||tireSubs(c);
     sel.xi.forEach(j=>{j.matchs++; j._joue=1;
       const niv=(c.id===G.monClub)?G.centre:1;
-      const proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
+      let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
+      if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
       if(Math.random()<proba){
         let d=RNDI(1, 2+Math.round((j.fragile||5)*0.9));
         d=Math.max(1, Math.round(d*(1-0.10*(niv-1))));
@@ -1609,10 +1614,10 @@ function tireMoment(moi,adv){
     annonce:"UN CHIEN SUR LA PELOUSE ! Il slalome entre les stadiers, tribunes pliées de rire. Personne n'arrive à l'attraper."};
 }
 function autoMoment(mo){ // résolution sans intervention (tests, abandon de banc, moments non interactifs)
-  if(mo.type==="pen_pour")   return Math.random()<0.74 ? +1 : 0;
-  if(mo.type==="pen_contre") return Math.random()<0.70 ? -1 : 0;
+  if(mo.type==="pen_pour")   return Math.random()<(0.74+0.04*coachTier("cpa")) ? +1 : 0; // le spécialiste CPA aiguise la conversion
+  if(mo.type==="pen_contre") return Math.random()<(0.70-0.03*coachTier("gardien")) ? -1 : 0; // un bon coach des gardiens en sauve davantage
   if(mo.type==="coupfranc"){ const j=byUid(mo.uid); const el=!!(j&&j.tireurElite); // un spécialiste transforme bien plus souvent
-    return Math.random()<(el?0.30:0.09) ? +1 : 0; }
+    return Math.random()<((el?0.30:0.09)+0.04*coachTier("cpa")) ? +1 : 0; }
   if(mo.type==="tacle"){ const j=byUid(mo.uid); if(j) j.susp=(j.susp||0)+3; return 0; }
   if(mo.type==="provoc"){ const j=byUid(mo.uid); if(j && Math.random()<0.4) j.susp=(j.susp||0)+1; return 0; }
   if(mo.type==="but50" || mo.type==="geste" || mo.type==="gkbut"){ // but d'exception (gardien buteur inclus) : il compte, et il marque les esprits
@@ -1687,7 +1692,11 @@ function finirJournee(delta){
     }
     const masse=clubById(G.monClub).joueurs.reduce((s,j)=>s+salaire(j),0);
     const frais=fraisJournee(clubById(G.monClub)); // entretien du stade + personnel
-    G.tresorerie -= masse + frais;
+    const staffC=staffCoutJournee(); // salaires du staff technique
+    G.tresorerie -= masse + frais + staffC;
+    // préparateur mental : entretient le moral du vestiaire chaque journée
+    const mtC=coachTier("mental");
+    if(mtC) clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.min(100,(j.moral==null?65:j.moral)+0.4*mtC));
     // prime de match : promesse au vestiaire, honorée UNIQUEMENT en cas de victoire (proportionnelle à la masse
     // salariale et au niveau choisi). Puis remise à zéro : c'est un choix à reprendre à chaque match.
     if(+G.primeMatch>0){
@@ -3066,6 +3075,87 @@ function projetsHTML(){
   return btns+built;
 }
 
+/* ---------- Staff technique : les coachs spécialisés (organigramme du club) ----------
+   Six postes fonctionnels qu'on POURVOIT en recrutant un coach — modèle hybride : chaque recrue a un nom et
+   une petite phrase générés (de la saveur sans catalogue écrit à la main). Effet = NUDGE sur SON secteur, appliqué
+   au SEUL match de MON club (comme la consigne → calibrage intact, neutre en EN_TEST car G.staff est vide au harnais).
+   Chaque coach coûte une indemnité à l'embauche + un salaire/journée : encore de l'argent qui devient une contrainte. */
+const STAFF_POSTES=[
+  {id:"attaque",  nom:"Coach des attaquants",   pic:"⚔️", eff:t=>"Attaque +"+(2*t)+" % (votre match)"},
+  {id:"defense",  nom:"Coach de la défense",     pic:"🛡️", eff:t=>"Vous encaissez "+(2*t)+" % de moins"},
+  {id:"gardien",  nom:"Entraîneur des gardiens", pic:"🧤", eff:t=>"Gardien plus sûr ("+(1.5*t)+" % de buts en moins, penaltys contre)"},
+  {id:"cpa",      nom:"Spécialiste des coups de pied arrêtés", pic:"🎯", eff:t=>"Penaltys et coups francs mieux convertis (+"+(5*t)+" pts)"},
+  {id:"physique", nom:"Préparateur physique",    pic:"💪", eff:t=>"Blessures −"+(12*t)+" %"},
+  {id:"mental",   nom:"Préparateur mental",      pic:"🧠", eff:t=>"Moral du vestiaire entretenu (+"+(0.4*t).toFixed(1)+"/journée)"},
+];
+const COACH_PRENOMS=["Gérard","Guy","Raymond","Roger","Aimé","Robert","Marcel","Henri","Bernard","Jean-Claude","José","Daniel","Michel","Pierre","Lucien","Bruno","Francis","Gilbert","René","Claude"];
+const COACH_PHRASES={
+  attaque:["« Un attaquant qui ne tire pas, c'est un défenseur qui s'ignore. »","« Je veux des buts, pas des jolis gestes. »","« Marquez d'abord, on discutera après. »","« Devant, on ne réfléchit pas : on frappe. »"],
+  defense:["« Zéro derrière, et on gagne 1-0. Le foot, c'est simple. »","« Un bon défenseur, ça se salit le maillot. »","« Le clean sheet, c'est ma religion. »","« On défend à onze, ou on ne défend pas. »"],
+  gardien:["« Un gardien, ça se tait et ça arrête. »","« Les pieds d'abord, les mains ensuite. »","« Je fais des murs, pas des passoires. »","« Sur sa ligne, un portier doit être une évidence. »"],
+  cpa:["« Un coup franc, ça se travaille mille fois à l'entraînement. »","« Le penalty, c'est dans la tête, pas dans le pied. »","« Donnez-moi un ballon arrêté, je vous rends un but. »","« La feuille morte, c'est un art, jeune homme. »"],
+  physique:["« On ne joue pas au foot, on souffre au foot. »","« Trois séries de pompes avant le café. »","« Mes joueurs, eux, finissent les matchs. »","« La 90e minute, c'est là que je gagne. »"],
+  mental:["« La tête gagne les matchs que les jambes ont perdus. »","« Un vestiaire soudé, c'est dix points de plus. »","« Je répare les egos avant les tendons. »","« Le doute, ça se soigne. Je suis là pour ça. »"],
+};
+const TIER_NOM=["","prometteur","confirmé","réputé"];
+function coachTier(id){ return (G.staff && G.staff[id]) ? G.staff[id].tier : 0; }
+function staffCoutJournee(){ if(!G.staff) return 0; return STAFF_POSTES.reduce((s,p)=>s+(G.staff[p.id]?G.staff[p.id].salaire:0),0); }
+function etoiles(t){ return "★".repeat(t)+"☆".repeat(3-t); }
+// tire une qualité de candidat pondérée par le prestige du club (un grand club attire de meilleurs techniciens)
+function tirTierCoach(){ const p=(clubById(G.monClub).pres||3), r=Math.random()*10; if(r<p-3) return 3; if(r<p+1) return 2; return 1; }
+function genCandidatsCoach(id){
+  const n=3, out=[], phrases=COACH_PHRASES[id].slice().sort(()=>Math.random()-0.5); // phrases distinctes entre candidats
+  for(let i=0;i<n;i++){ const t=tirTierCoach();
+    out.push({nom:PICK(COACH_PRENOMS)+" "+PICK(NOMS), tier:t, phrase:phrases[i%phrases.length],
+      salaire:t*130000, prime:Math.round(t*1.8e6)}); }
+  return out.sort((a,b)=>b.tier-a.tier);
+}
+let _COACHCANDS=null, _COACHPOSTE=null;
+function embaucherCoach(idx){
+  const c=_COACHCANDS&&_COACHCANDS[idx], id=_COACHPOSTE, poste=STAFF_POSTES.find(p=>p.id===id);
+  if(!c||!poste) return;
+  if(G.tresorerie<c.prime){ alert("Trésorerie insuffisante pour l'indemnité de recrutement ("+(c.prime/1e6).toFixed(1)+" MF). Astuce : transvasez depuis le budget transferts (écran Finances)."); return; }
+  G.tresorerie-=c.prime;
+  G.staff[id]={nom:c.nom, tier:c.tier, phrase:c.phrase, salaire:c.salaire};
+  G.news.unshift("STAFF : "+c.nom+" ("+TIER_NOM[c.tier]+") prend en main "+poste.nom.toLowerCase()+".");
+  notif(poste.pic+" "+c.nom+" rejoint le staff — "+poste.nom.toLowerCase()+".");
+  window._penEnCours=false; fermeFiche(); montre("club");
+}
+function remercierCoach(id){ if(G.staff) G.staff[id]=null; montre("club"); }
+function ouvreRecrutement(id){
+  const poste=STAFF_POSTES.find(p=>p.id===id); if(!poste) return;
+  _COACHPOSTE=id; _COACHCANDS=genCandidatsCoach(id);
+  const fiche=document.getElementById("fiche");
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px;max-height:88vh;overflow-y:auto">
+    <h2 style="color:#6fd6e8">${poste.pic} RECRUTER — ${esc(poste.nom.toUpperCase())}</h2>
+    <p class="dim" style="font-size:12px;margin-bottom:8px">Trois candidats se présentent. Chacun réclame une indemnité à l'embauche et un salaire hebdomadaire. Un club prestigieux attire de meilleurs techniciens.</p>
+    ${_COACHCANDS.map((c,i)=>`<div style="border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:6px 0">
+       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+         <b>${esc(c.nom)}</b><span class="jaune" style="letter-spacing:1px">${etoiles(c.tier)}</span></div>
+       <p class="dim" style="font-style:italic;font-size:12px;margin:3px 0">${esc(c.phrase)}</p>
+       <p style="font-size:12px">${esc(poste.eff(c.tier))}</p>
+       <p class="dim" style="font-size:12px">Indemnité <b class="jaune">${(c.prime/1e6).toFixed(1)} MF</b> · salaire <b>${FMT(c.salaire)} FF/sem</b></p>
+       <p style="margin-top:4px"><button class="act bEngage" data-i="${i}">Engager (${(c.prime/1e6).toFixed(1)} MF)</button></p></div>`).join("")}
+    <p style="margin-top:8px"><button class="act" id="bRecrAnnul">Fermer</button></p></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  fiche.querySelectorAll(".bEngage").forEach(b=>b.onclick=()=>embaucherCoach(+b.dataset.i));
+  fiche.querySelector("#bRecrAnnul").onclick=()=>{ window._penEnCours=false; fermeFiche(); };
+}
+function staffHTML(){
+  return STAFF_POSTES.map(p=>{ const c=G.staff&&G.staff[p.id];
+    if(c) return `<div style="border:1px solid var(--line);border-radius:4px;padding:6px 8px;margin:4px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <span><b>${p.pic} ${esc(c.nom)}</b> <span class="dim" style="font-size:11px">${esc(p.nom)}</span></span>
+        <span class="jaune" style="font-size:12px;letter-spacing:1px">${etoiles(c.tier)}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:2px">
+        <span class="dim" style="font-size:11px">${esc(p.eff(c.tier))} · ${FMT(c.salaire)} FF/sem</span>
+        <button class="act bCoachOut" data-id="${p.id}" style="font-size:11px;padding:2px 8px">Remercier</button></div></div>`;
+    return `<div style="border:1px dashed var(--line);border-radius:4px;padding:6px 8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;gap:6px">
+      <span class="dim">${p.pic} ${esc(p.nom)} — <i>poste vacant</i></span>
+      <button class="act bCoachIn" data-id="${p.id}" style="font-size:12px">Recruter</button></div>`;
+  }).join("");
+}
+
 /* ---------- Fin de saison ---------- */
 /* ============================ COUPE DE FRANCE ============================
    Compétition parallèle au championnat, jouée EN MILIEU DE SEMAINE entre les
@@ -3604,6 +3694,7 @@ function migre(){
   G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
   G.arc=G.arc||null; G._arcFait=!!G._arcFait; // arc narratif de saison
   if(!G.stade) G.stade=inferStade(clubById(G.monClub)); // stade brique par brique : déduit de la taille actuelle pour les vieilles sauvegardes
+  if(!G.staff) G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique
   G.reput=G.reput==null?75:G.reput;
   G.equip=G.equip||null; G.offresEquip=G.offresEquip||null;
   if(!G.equip && !G.offresEquip) G.offresEquip=genEquip(); // anciennes sauvegardes : proposer des offres
@@ -5274,6 +5365,7 @@ function ecranFinances(){
     <tr><td>Trésorerie (fonctionnement)</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Masse salariale hebdomadaire</td><td class="num rouge">- ${FMT(masse)} FF</td></tr>
     <tr><td>Frais de fonctionnement (stade + personnel)</td><td class="num rouge">- ${FMT(fraisJournee(c))} FF/j</td></tr>
+    <tr><td>Staff technique</td><td class="num ${staffCoutJournee()>0?'rouge':'dim'}">${staffCoutJournee()>0?"- "+FMT(staffCoutJournee())+" FF/j":"—"}</td></tr>
     <tr><td>Droits TV par journée</td><td class="num vert">+ ${G.div===1?"0,45":"0,20"} MF</td></tr>
     <tr><td>Équipementier</td><td class="num">${G.equip?'<span class="vert">'+esc(G.equip.nom)+" : +"+FMT(G.equip.fixe)+" FF/j</span>":'<span class="dim">—</span>'}</td></tr>
     <tr><td>Sponsor maillot</td><td class="num">${G.sponsor?'<span class="vert">'+esc(G.sponsor.nom)+" : +"+FMT(G.sponsor.fixe)+" FF/j"+(G.sponsor.prime?" +"+FMT(G.sponsor.prime)+" FF/victoire":"")+"</span>":'<span class="dim">aucun contrat</span>'}</td></tr>
@@ -5397,6 +5489,9 @@ function ecranClub(){
      <h3 style="margin-top:12px">Centre d'entraînement — niveau ${G.centre}/5</h3>
      <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} % et soignées plus vite${G.centre>=3?" · Le staff médical réduit la fragilité chaque intersaison":""}</p>
      <p style="margin-top:4px"><button class="act" id="bCe" ${G.centre>=5?"disabled":""}>Améliorer le centre (niveau ${G.centre+1} — ${8*G.centre} MF)</button></p>
+     <h3 style="margin-top:12px">Staff technique</h3>
+     <p class="dim" style="font-size:11px">Six spécialistes à recruter — chacun donne un coup de pouce à son secteur (votre match) et coûte un salaire chaque journée. Un club prestigieux attire de meilleurs techniciens.</p>
+     <div>${staffHTML()}</div>
      <h3 style="margin-top:12px">Le président</h3>
      <p>Objectif ${esc(G.saison)} : <b class="jaune">${esc(G.objectif.label)}</b></p>
      <p>Confiance :
@@ -5423,6 +5518,8 @@ function ecranClub(){
      <table class="fit">${passeurs.length?passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucune passe décisive pour l'instant.</td></tr>`}</table>
    </div></div>`);
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>lanceProjet(b.dataset.id));
+  document.querySelectorAll(".bCoachIn").forEach(b=>b.onclick=()=>ouvreRecrutement(b.dataset.id));
+  document.querySelectorAll(".bCoachOut").forEach(b=>b.onclick=()=>remercierCoach(b.dataset.id));
   document.getElementById("bCe").onclick=ameliorerCentre;
 }
 

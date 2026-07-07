@@ -301,8 +301,21 @@ toujours « raconter quelque chose ».
   **Effets = nudge + prestige, réservés à MON club** (calibrage intact, mesuré 2,408) : chaque brique monte `c.pres`
   (→ affluence + mercato) ; **toit** = +0,025 de ferveur à domicile (`simuleMatch`, votre match seul) ; **écran/pylônes**
   = +affluence ; **loges** = +0,15 MF/match à domicile ; **boutique** = +0,08 MF/journée. Test dédié `test-stade.cjs`.
-  Prochaine étape prévue : **centre d'entraînement en organigramme + coachs spécialisés** (hybride : postes fonctionnels
-  avec nom/portrait générés), même esprit nudge + prestige.
+- **Staff technique — coachs spécialisés (v0.69)** : le 2e pilier « je construis mon club ». Six **postes fonctionnels**
+  (`STAFF_POSTES` : attaque, defense, gardien, cpa, physique, mental) qu'on POURVOIT en recrutant un coach — modèle
+  **hybride** : chaque recrue a un **nom généré** (`COACH_PRENOMS`+`NOMS`) et une **petite phrase** de caractère
+  (`COACH_PHRASES`, distinctes entre candidats). État : **`G.staff`** (objet, migré, vide au départ), chaque poste
+  `null` ou `{nom, tier (1-3), phrase, salaire}`. `genCandidatsCoach(id)` tire 3 candidats, **qualité pondérée par le
+  prestige** du club (`tirTierCoach`) ; `ouvreRecrutement(id)` (modale `#fiche`, candidats en var module `_COACHCANDS`)
+  → `embaucherCoach(idx)` (débite l'indemnité `tier*1.8 MF` de `G.tresorerie`, pose le coach) ; `remercierCoach(id)`
+  libère. Panneau `staffHTML()` sur l'écran Club (boutons `.bCoachIn`/`.bCoachOut`). **Effets = NUDGE, mon match seul**
+  (via `coachTier(id)`, neutre sans coach et vide au harnais → **calibrage intact, mesuré**) : **attaque** +2 %/tier à
+  l'attaque et **defense**/**gardien** −2 %/−1,5 %/tier sur l'adverse (`simuleMatch`, à côté de la consigne) ; **cpa**
+  +0,04/tier à la conversion penalty/coup franc (`autoMoment`) ; **gardien** aussi −0,03/tier sur le penalty contre ;
+  **physique** −12 %/tier de blessures (tirage de blessure) ; **mental** +0,4/tier de moral/journée (`finirJournee`).
+  **Salaire/journée** `tier*130 000 FF` prélevé dans `finirJournee` (`staffCoutJournee()`, affiché à l'écran Finances) —
+  l'argent reste une contrainte. Test dédié `test-staff.cjs` (embauche, salaire, effets attaque/CPA mesurés). À migrer
+  (`if(!G.staff) G.staff={…null}`). Étendre = ajouter un poste à `STAFF_POSTES` + brancher son `coachTier`.
 - **Vases communicants — pont budget ↔ trésorerie** (`transvaser(sens, montant)`, `FRAIS_VIRE`=0,10) : les
   deux poches restent **séparées** (le trésor de guerre mercato ne paie pas les salaires), mais on peut en
   **transvaser** de l'une à l'autre depuis l'écran Finances pour débloquer un projet (typiquement renflouer la
