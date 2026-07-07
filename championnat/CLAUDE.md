@@ -276,7 +276,7 @@ toujours « raconter quelque chose ».
   billetterie à domicile (`affluence×70`), droits TV (**450 kF en D1, 200 kF en D2** — remonter, c'est le
   jackpot télé), sponsor et équipementier, puis prélève **deux charges** : la **masse salariale**
   (`salaire(j)=note²×10`, grimpe vite avec la qualité — empiler des cracks coûte cher) et les **frais de
-  fonctionnement** (`fraisJournee(c)=cap×15`, entretien stade + personnel : un grand stade vide devient un
+  fonctionnement** (`fraisJournee(c)=cap×18`, entretien stade + personnel : un grand stade vide devient un
   fardeau). Trésorerie négative = `G.confiance−1`/journée + alerte (flag `G._deficit`). Plancher mesuré dans
   le moteur : club moyen ~+6 MF/saison sans sponsor, **D2 en déficit** (survie). Le **budget mercato `G.budget`**
   reste un pot séparé (réalimenté à 70 % par la prime de classement à l'intersaison). Les **prêts** sont un
@@ -288,6 +288,21 @@ toujours « raconter quelque chose ».
   + `away.pres*0.016`, base 0,46) et le **classement** compte fort (top 3 : +0,13 ; 4-6 : +0,06 ; ≥16 : −0,06) — retour de
   playtest « 2e avec le PSG et le stade pas plein, illogique ». Plus derby (+0,15), buzz/réputation/tarif (votre club). Le
   paramètre `sansPromo` calcule la jauge **hors** opé scolaires (cf. promo billets). Plafonné à 1 (`min(1,taux)`).
+- **Stade brique par brique (v0.68)** : « je construis mon club ». On bâtit **un projet à la fois** (la grue tourne
+  sur le SVG) depuis l'écran Club. Catalogue **`STADE_PROJETS`** (`{id,nom,pres,duree,cout(c),dispo(c),fait(c),applique(c)}`) :
+  **tribune** (répétable, +3 500 places, coût qui grimpe avec `cap`), **pylônes**, **toit**, **loges VIP**, **écran géant**,
+  **boutique/musée**, **pelouse chauffante**. `c.cap` reste le **socle** (affluence/finances inchangées) ; **`G.stade`**
+  (objet, migré) mémorise les superstructures + `cote` (côté de la prochaine tribune). **`inferStade(c)` DÉDUIT l'état de
+  départ de la taille réelle** (`toit` si cap≥30k, `pylônes` si cap≥18k — mêmes seuils que le dessin d'avant → **rien ne
+  change à la migration** ; conforts à bâtir pour tous). Flux : `lanceProjet(id)` (débite `G.tresorerie`, pose `G.chantier=
+  {reste,id}`) → `avanceChantier()` (dans `finirJournee`) applique `p.applique(c)` + `p.pres` à la livraison ; ancien
+  `G.chantier={reste,places}` toujours honoré (rétro-compat). `svgStade(cap,chantier,G.stade)` fait **apparaître** toit/
+  pylônes/écran/loges selon `G.stade` ; `projetsHTML()` liste les projets dispo (boutons `.bProj`→`lanceProjet`).
+  **Effets = nudge + prestige, réservés à MON club** (calibrage intact, mesuré 2,408) : chaque brique monte `c.pres`
+  (→ affluence + mercato) ; **toit** = +0,025 de ferveur à domicile (`simuleMatch`, votre match seul) ; **écran/pylônes**
+  = +affluence ; **loges** = +0,15 MF/match à domicile ; **boutique** = +0,08 MF/journée. Test dédié `test-stade.cjs`.
+  Prochaine étape prévue : **centre d'entraînement en organigramme + coachs spécialisés** (hybride : postes fonctionnels
+  avec nom/portrait générés), même esprit nudge + prestige.
 - **Vases communicants — pont budget ↔ trésorerie** (`transvaser(sens, montant)`, `FRAIS_VIRE`=0,10) : les
   deux poches restent **séparées** (le trésor de guerre mercato ne paie pas les salaires), mais on peut en
   **transvaser** de l'une à l'autre depuis l'écran Finances pour débloquer un projet (typiquement renflouer la

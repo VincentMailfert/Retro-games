@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.67"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.68"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -910,6 +910,7 @@ function nouvellePartie(clubId, saisonKey){
     centre:1, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
+  G.stade=inferStade(clubs.find(c=>c.id===clubId)); G.chantier=null; // état du stade déduit de sa taille de départ
   G.rapport=genRapport();
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
@@ -1220,7 +1221,8 @@ function simuleMatch(home,away,verbeux){
   // car ce que le domicile gagne en attaque, le visiteur le perd à peu près à l'identique (somme des buts ≈ constante).
   const aff=affluence(home,away);
   const fill=Math.min(1, aff/Math.max(1,home.cap));
-  const ferveur=1+0.18*(fill-0.62);
+  let ferveur=1+0.18*(fill-0.62);
+  if(home.id===G.monClub && G.stade && G.stade.toit) ferveur+=0.025; // un stade couvert rugit : léger bonus d'ambiance à domicile (votre match seul → calibrage préservé)
   let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18*ferveur);
   let la=Math.max(.20, 2.45*Math.pow(fa.att/fh.def,2.5)*0.92*(2-ferveur));
   // consigne d'avant-match : n'affecte QUE votre match (neutre partout ailleurs → calibrage intact)
@@ -1358,6 +1360,7 @@ function affluence(home,away,sansPromo){
   if(RIVAL[home.id]===away.id) taux+=0.15; // le derby fait toujours guichets fermés ou presque
   if(home.id===G.monClub && (G.buzz||0)>0) taux+=0.045*Math.min(3,G.buzz); // une recrue fait vendre des billets
   if(home.id===G.monClub && G.reput!=null) taux+=(G.reput-60)*0.0016; // un club respecté attire, un club décrié lasse
+  if(home.id===G.monClub && G.stade){ if(G.stade.ecran) taux+=0.02; if(G.stade.pylones) taux+=0.015; } // le spectacle et les soirs de match remplissent un peu plus
   if(home.id===G.monClub) taux*=palierBillet().aff; // votre politique tarifaire : brader remplit, faire payer cher vide
   // opération « tribunes scolaires » : on remplit un stade qui s'annonçait à moitié vide (places bradées, voir finirJournee)
   if(home.id===G.monClub && G.promoBillets && !sansPromo) taux=Math.max(taux+0.30, 0.92);
@@ -1658,6 +1661,7 @@ function finirJournee(delta){
         libBill="Billetterie ("+pb.nom.toLowerCase()+", "+pb.prix+" FF) : "+FMT(aff)+" spectateurs, recette "+(recette/1e6).toFixed(2)+" MF.";
       }
       G.tresorerie += recette;
+      if(G.stade && G.stade.loges){ G.tresorerie += 150000; libBill+=" + loges VIP 0,15 MF."; } // recette premium des loges, à domicile
       G.news.unshift("J"+(G.journee+1)+" — "+libBill);
       // l'image du club glisse selon le tarif (cher = râleries, bradé = ferveur) — discret, mais cumulatif sur la saison
       if(pb.rep) G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+pb.rep));
@@ -1666,6 +1670,7 @@ function finirJournee(delta){
       if(nudge) clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.max(0,Math.min(100,(j.moral==null?65:j.moral)+nudge)));
     }
     G.tresorerie += (G.div===1?450000:200000); // droits TV par journée — bien moindres en D2 : remonter, c'est aussi décrocher le jackpot télé
+    if(G.stade && G.stade.boutique) G.tresorerie += 80000; // boutique & musée : petite rentrée chaque journée
     const gagneJ=(hid===G.monClub&&r.sh>r.sa)||(aid===G.monClub&&r.sa>r.sh);
     if(G.equip){ G.tresorerie += G.equip.fixe; if(gagneJ&&G.equip.prime) G.tresorerie += G.equip.prime; } // contrat équipementier
     if(G.sponsor){
@@ -2986,24 +2991,79 @@ function choisirEquip(k){
   G.news.unshift("ÉQUIPEMENTIER : "+G.equip.nom+" habille le club ("+FMT(G.equip.fixe)+" FF/journée"+(G.equip.prime?" + "+FMT(G.equip.prime)+" FF par victoire":"")+").");
   montre("finances");
 }
-function agrandirStade(){
-  const c=clubById(G.monClub), cout=15e6;
+/* ---------- Construction du stade, brique par brique ----------
+   On bâtit UN projet à la fois (la grue tourne sur le SVG). c.cap reste le socle (affluence/finances) ;
+   G.stade mémorise les superstructures construites (toit, pylônes, écran, loges, boutique, pelouse chauffante).
+   inferStade() DÉDUIT l'état de départ de la taille réelle du stade → rien ne change à la migration, on ne
+   construit que ce qui manque. Chaque livraison apparaît sur le SVG et applique un effet : nudge + prestige. */
+const COTES=["Nord","Sud","Est","Ouest"];
+const STADE_PROJETS=[
+  {id:"tribune", nom:"Nouvelle tribune", pres:1, duree:3, places:3500,
+   cout:c=>Math.round((9e6+c.cap*280)/1e5)*1e5, // plus le stade est grand, plus la tribune coûte
+   dispo:c=>c.cap<62000, fait:()=>false,
+   label:c=>"Tribune "+COTES[(G.stade.cote||0)%4]+" (+"+FMT(3500)+" places)",
+   applique:c=>{ const cote=COTES[(G.stade.cote||0)%4]; c.cap+=3500; G.stade.cote=(G.stade.cote||0)+1;
+     return "TRIBUNE "+cote.toUpperCase()+" LIVRÉE ! "+c.stade+" passe à "+FMT(c.cap)+" places."; }},
+  {id:"pylones", nom:"Éclairage nocturne", pres:1, duree:2, cout:()=>6e6,
+   dispo:c=>!G.stade.pylones, fait:()=>G.stade.pylones,
+   applique:c=>{ G.stade.pylones=true; return "PROJECTEURS ALLUMÉS ! Les soirs de match, "+c.stade+" brille — et le public répond présent."; }},
+  {id:"toit", nom:"Toiture des tribunes", pres:1, duree:4, cout:()=>12e6,
+   dispo:c=>!G.stade.toit && c.cap>=13000, fait:()=>G.stade.toit,
+   applique:c=>{ G.stade.toit=true; return "TOITURE POSÉE ! Un stade couvert, ça rugit : l'ambiance à domicile monte d'un cran."; }},
+  {id:"loges", nom:"Loges VIP", pres:1, duree:3, cout:()=>9e6,
+   dispo:c=>!G.stade.loges, fait:()=>G.stade.loges,
+   applique:c=>{ G.stade.loges=true; return "LOGES VIP LIVRÉES ! Sponsors et notables paient cher leur soirée — recette premium à chaque match à domicile."; }},
+  {id:"ecran", nom:"Écran géant", pres:0, duree:2, cout:()=>5e6,
+   dispo:c=>!G.stade.ecran, fait:()=>G.stade.ecran,
+   applique:c=>{ G.stade.ecran=true; return "ÉCRAN GÉANT INSTALLÉ ! Ralentis et animations : le spectacle gagne les tribunes."; }},
+  {id:"boutique", nom:"Boutique & musée", pres:0, duree:2, cout:()=>4e6,
+   dispo:c=>!G.stade.boutique, fait:()=>G.stade.boutique,
+   applique:c=>{ G.stade.boutique=true; return "BOUTIQUE & MUSÉE OUVERTS ! Écharpes, maillots, souvenirs : une petite rentrée d'argent chaque journée."; }},
+  {id:"chauffante", nom:"Pelouse chauffante", pres:0, duree:2, cout:()=>7e6,
+   dispo:c=>!G.stade.chauffante, fait:()=>G.stade.chauffante,
+   applique:c=>{ G.stade.chauffante=true; return "PELOUSE CHAUFFANTE ! Fini les patinoires de décembre : le beau jeu même en plein hiver."; }},
+];
+// état de départ déduit de la taille actuelle : les seuils collent au dessin existant (pylônes ≥18k, toit ≥30k)
+// → aucune sauvegarde ne change d'aspect ; les conforts (écran/loges/boutique/chauffante) restent à bâtir pour tous.
+function inferStade(c){ return { toit:(c?c.cap:0)>=30000, pylones:(c?c.cap:0)>=18000, ecran:false, loges:false, boutique:false, chauffante:false, cote:0 }; }
+function projetById(id){ return STADE_PROJETS.find(x=>x.id===id); }
+function nomChantier(){ const p=G.chantier&&projetById(G.chantier.id); return p?(p.label?p.label(clubById(G.monClub)):p.nom):"Tribune"; }
+function lanceProjet(id){
+  const c=clubById(G.monClub), p=projetById(id);
+  if(!p) return;
   if(G.chantier) return alert("Un chantier est déjà en cours (livraison dans "+G.chantier.reste+" journée(s)).");
-  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : 15 MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
+  if(!p.dispo(c)) return;
+  const cout=p.cout(c);
+  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : "+(cout/1e6).toFixed(1)+" MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
   G.tresorerie-=cout;
-  G.chantier={reste:3, places:3000};
-  G.news.unshift("TRAVAUX : le chantier d'une nouvelle tribune démarre à "+c.stade+". Livraison dans 3 journées.");
+  G.chantier={reste:p.duree, id:id};
+  G.news.unshift("TRAVAUX : "+(p.label?p.label(c):p.nom)+" — chantier lancé à "+c.stade+". Livraison dans "+p.duree+" journées.");
   montre("club");
 }
 function avanceChantier(){
   if(!G.chantier) return;
   G.chantier.reste--;
   if(G.chantier.reste<=0){
-    const c=clubById(G.monClub);
-    c.cap+=G.chantier.places;
-    G.news.unshift("TRIBUNE LIVRÉE ! "+c.stade+" passe à "+FMT(c.cap)+" places. Le public répond présent.");
+    const c=clubById(G.monClub), p=projetById(G.chantier.id);
+    let msg;
+    if(p){ msg=p.applique(c); if(p.pres) c.pres=Math.min(10,(c.pres||0)+p.pres); }
+    else { c.cap+=(G.chantier.places||3000); c.pres=Math.min(10,(c.pres||0)+1); msg=c.stade+" passe à "+FMT(c.cap)+" places."; } // ancien chantier « places »
+    G.news.unshift("✅ "+msg);
     G.chantier=null;
   }
+}
+const EFFET_PROJ={tribune:"+ de places, + d'affluence et de prestige", pylones:"les soirs de match : + d'affluence, + de prestige",
+  toit:"+ de ferveur à domicile, + de prestige", loges:"recette premium à chaque match à domicile, + prestige",
+  ecran:"ambiance renforcée dans les tribunes", boutique:"une rentrée d'argent chaque journée", chauffante:"plus jamais de match reporté en hiver"};
+function projetsHTML(){
+  const c=clubById(G.monClub);
+  const dispo=STADE_PROJETS.filter(p=>!p.fait(c) && p.dispo(c));
+  const btns=dispo.map(p=>{ const cout=p.cout(c), pauvre=G.tresorerie<cout;
+    return `<button class="act bProj" data-id="${p.id}" ${G.chantier?"disabled":""} title="${esc(EFFET_PROJ[p.id]||"")}" style="margin:3px 3px 0${pauvre&&!G.chantier?";opacity:.55":""}">${esc(p.label?p.label(c):p.nom)} — ${(cout/1e6).toFixed(1)} MF</button>`;
+  }).join("");
+  const faits=STADE_PROJETS.filter(p=>p.fait(c));
+  const built=faits.length?`<p class="dim" style="font-size:11px;margin-top:8px">✔ Déjà en place : ${faits.map(p=>esc(p.nom)).join(" · ")}</p>`:"";
+  return btns+built;
 }
 
 /* ---------- Fin de saison ---------- */
@@ -3543,6 +3603,7 @@ function migre(){
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
   G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
   G.arc=G.arc||null; G._arcFait=!!G._arcFait; // arc narratif de saison
+  if(!G.stade) G.stade=inferStade(clubById(G.monClub)); // stade brique par brique : déduit de la taille actuelle pour les vieilles sauvegardes
   G.reput=G.reput==null?75:G.reput;
   G.equip=G.equip||null; G.offresEquip=G.offresEquip||null;
   if(!G.equip && !G.offresEquip) G.offresEquip=genEquip(); // anciennes sauvegardes : proposer des offres
@@ -5257,7 +5318,7 @@ function etapeStade(cap){
   if(cap<30000) return "Grande enceinte";
   return "Enceinte internationale";
 }
-function svgStade(cap, chantier){
+function svgStade(cap, chantier, stade){
   const rangs=Math.max(1,Math.min(8,Math.round((cap-7000)/4500)+1)); // 1 à 8 rangées par tribune
   const W=440,H=320, px=120,py=95,pw=200,ph=130;
   let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:460px;display:block;margin:0 auto" role="img" aria-label="Vue du stade">`;
@@ -5283,17 +5344,26 @@ function svgStade(cap, chantier){
           <rect x="${px+pw+o}" y="${py+ph+o}" width="${a}" height="${a}" fill="#1c3556"/>`;
     }
   }
-  if(rangs>=6){ // toiture : liseré clair sur la couronne extérieure
+  if(stade?stade.toit:rangs>=6){ // toiture : liseré clair sur la couronne extérieure
     const o=6+(rangs-1)*7+6;
     s+=`<rect x="${px-o-2}" y="${py-o-2}" width="${pw+2*o+4}" height="${ph+2*o+4}" fill="none" stroke="#6fd6e8" stroke-width="1.6"/>`;
   }
-  if(cap>=18000){ // quatre pylônes de projecteurs
+  if(stade?stade.pylones:cap>=18000){ // quatre pylônes de projecteurs
     const o=6+rangs*7+14;
     const pyl=(x,y)=>`<g stroke="#ffd24a" stroke-width="2" fill="none">
       <line x1="${x}" y1="${y}" x2="${x}" y2="${y-14}"/>
       <line x1="${x-5}" y1="${y-14}" x2="${x+5}" y2="${y-14}"/>
       <line x1="${x-5}" y1="${y-17}" x2="${x+5}" y2="${y-17}"/></g>`;
     s+=pyl(px-o,py-o+10)+pyl(px+pw+o,py-o+10)+pyl(px-o,py+ph+o+8)+pyl(px+pw+o,py+ph+o+8);
+  }
+  if(stade&&stade.loges){ // rangée de loges VIP dorées au-dessus de la tribune principale (nord)
+    const oN=6+(rangs-1)*7;
+    s+=`<rect x="${px-oN-6}" y="${py-oN-16}" width="${pw+2*oN+12}" height="7" fill="#ffd24a" opacity="0.9" stroke="#0b1626" stroke-width="0.6"/>`;
+  }
+  if(stade&&stade.ecran){ // écran géant, coin haut-droit
+    s+=`<rect x="${W-64}" y="12" width="46" height="28" fill="#0e1d35" stroke="#6fd6e8" stroke-width="1.5"/>
+        <rect x="${W-60}" y="16" width="38" height="20" fill="#123a5c"/>
+        <line x1="${W-41}" y1="40" x2="${W-41}" y2="50" stroke="#6fd6e8" stroke-width="1.5"/>`;
   }
   if(chantier){ // grue
     const gx=px+pw+rangs*7+22, gy=py+ph+rangs*7;
@@ -5320,10 +5390,10 @@ function ecranClub(){
   const passeurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.passes||0)>0).sort((a,b)=>(b.passes||0)-(a.passes||0)).slice(0,8);
   chrome("club",`<div class="grid2">
    <div class="panel"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
-     ${svgStade(c.cap, !!G.chantier)}
+     ${svgStade(c.cap, !!G.chantier, G.stade)}
      <p class="ctr">${esc(c.stade)} — <b class="jaune">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
-     ${G.chantier?`<p class="ctr" style="color:#ffd24a">⚠ Tribune en travaux — livraison dans ${G.chantier.reste} journée${G.chantier.reste>1?"s":""} (+${FMT(G.chantier.places)} places)</p>`:""}
-     <p class="ctr" style="margin-top:10px"><button class="act" id="bSt" ${G.chantier?"disabled":""}>Agrandir le stade (+3 000 places — 15 MF)</button></p>
+     ${G.chantier?`<p class="ctr" style="color:#ffd24a">🏗 ${esc(nomChantier())} en travaux — livraison dans ${G.chantier.reste} journée${G.chantier.reste>1?"s":""}</p>`:`<p class="ctr dim" style="font-size:11px;margin-top:6px">Un projet à la fois — chaque livraison apparaît sur le stade et renforce le club.</p>`}
+     <div class="ctr" style="margin-top:8px">${projetsHTML()}</div>
      <h3 style="margin-top:12px">Centre d'entraînement — niveau ${G.centre}/5</h3>
      <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} % et soignées plus vite${G.centre>=3?" · Le staff médical réduit la fragilité chaque intersaison":""}</p>
      <p style="margin-top:4px"><button class="act" id="bCe" ${G.centre>=5?"disabled":""}>Améliorer le centre (niveau ${G.centre+1} — ${8*G.centre} MF)</button></p>
@@ -5352,7 +5422,7 @@ function ecranClub(){
      <h3>Passeurs décisifs</h3>
      <table class="fit">${passeurs.length?passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucune passe décisive pour l'instant.</td></tr>`}</table>
    </div></div>`);
-  document.getElementById("bSt").onclick=agrandirStade;
+  document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>lanceProjet(b.dataset.id));
   document.getElementById("bCe").onclick=ameliorerCentre;
 }
 
