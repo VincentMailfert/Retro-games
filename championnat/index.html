@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.65"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.66"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4424,6 +4424,56 @@ const ARCS={
              : {res:"Trop tard : "+a.nom+", déjà ailleurs dans sa tête, prend mal ce énième refus. Il finira par forcer son départ, au rabais.", sell:{prix:prix*0.5, mode:"rabais"}, eff:{moral:-5, conf:-4}}; }},
        ]};
    },
+  },
+ },
+ shopi:{
+  titre:"🛍️ LE SAC SHOPI",
+  couleur:"#e8a13a",
+  // une caisse noire à la billetterie, du temps où la confiance n'est ni au zénith ni au plancher
+  cond:()=>{ const c=G.confiance==null?65:G.confiance; return G.journee>=10 && G.journee<=24 && c>=35 && c<=65; },
+  start:()=>({preuves:false, route:null}),
+  beats:{
+   b1:(a)=>({
+     txt:"Mme Josiane, la comptable, a posé un dossier sur votre bureau avec un post-it : « C'est peut-être rien. » Ce n'est pas rien : samedi dernier, le stade comptait 2 300 spectateurs de plus que de billets en souche. Soit les gens passent à travers les murs, soit quelqu'un imprime ses propres tickets. Et la billetterie, c'est le pré carré de Gégé Brémont, vice-président, lunettes fumées par tous les temps.",
+     choix:[
+       {lib:"Creuser. Discrètement.", go:a=>({res:"Vous ouvrez l'enquête en catimini. Personne ne doit savoir, surtout pas Gégé.", data:{route:"enquete"}, next:"b2", gap:2})},
+       {lib:"En parler au président", go:a=>({res:"Le président blêmit et fixe ses chaussures : Gégé est son beau-frère. Vous venez de lui gâcher son dimanche.", eff:{conf:-2}, data:{route:"politique"}, next:"b2", gap:2})},
+       {lib:"Classer le dossier", go:a=>{ return Math.random()<0.5
+           ? {res:"Vous glissez le dossier au fond d'un tiroir. Parfois, ne pas savoir, c'est plus reposant.", eff:{reput:-1}}
+           : {res:"Vous enterrez l'affaire... pour l'instant. Ce genre de chose a la vie dure.", data:{route:"enterre"}, next:"bEclate", gap:4}; }},
+     ]}),
+   b2:(a)=>{
+     const chaud=_arcGagneDepuis(a);
+     return {
+       txt:"Le fils du kiosquier, contre deux places en tribune présidentielle, a parlé : Gégé revend des « places debout fantômes » à l'entrée nord et empoche le parking en liquide. "+(chaud?"Le club gagne, la presse a le nez ailleurs — vous avez le temps de bien faire.":"Le club perd, et un pigiste de La Dépêche rôde déjà autour de la buvette : chaque semaine d'attente rapproche la fuite."),
+       choix:[
+         {lib:"Le piège : des billets marqués au feutre invisible", go:a=>{ return Math.random()<0.6
+             ? {res:"Les billets marqués ressortent à la revente : preuves en béton. Gégé ne le sait pas encore.", data:{preuves:true}, next:"b3", gap:2}
+             : {res:"Gégé a flairé le coup et s'est fait tout sucre tout miel. Pas de preuve tangible, mais vous savez.", data:{preuves:false}, next:"b3", gap:2}; }},
+         {lib:"La confrontation directe, porte fermée", go:a=>{ return Math.random()<0.5
+             ? {res:"Il craque à demi-mot, en nettoyant ses lunettes fumées. Vous tenez un début d'aveu.", data:{preuves:true}, next:"b3", gap:2}
+             : {res:"Il nie tout, impassible derrière ses verres teintés. Ce sera votre parole contre la sienne.", data:{preuves:false}, next:"b3", gap:2}; }},
+         {lib:"L'arrangement : tu rembourses, tu disparais", go:a=>{ return Math.random()<(chaud?0.7:0.5)
+             ? {res:"Gégé livre 1,5 MF en liquide dans un sac Shopi, sur le parking, à la nuit tombée. Affaire classée entre gens de bonne compagnie.", eff:{arg:+1.5e6, reput:-1}}
+             : {res:"Gégé livre son sac Shopi bourré de billets... mais le pigiste de La Dépêche a tout vu depuis sa 205 garée en face.", eff:{arg:+1.5e6}, data:{route:"enterre"}, next:"bEclate", gap:3}; }},
+       ]};
+   },
+   b3:(a)=>({
+     txt:"Tout est sur la table. Gégé Brémont est assis en face de vous. Pour la première fois en six ans, il a ôté ses lunettes fumées : il a les yeux de quelqu'un qui compte très vite."+(a.preuves?" Et cette fois, vous avez les preuves.":" Mais vous n'avez, au fond, que des soupçons."),
+     choix:[
+       {lib:"Le livrer au président", go:a=>{ return a.preuves
+           ? {res:"Preuves à l'appui, le président tranche : Gégé démissionne « pour raisons de santé » et rembourse 2,4 MF. Mme Josiane est augmentée, le vestiaire respire — un club propre, ça se sent jusqu'à la pelouse.", eff:{arg:+2.4e6, conf:8, reput:3, moral:2, presse:"Enfin un club qui n'attend pas les juges : "+clubById(G.monClub).nom+" fait le ménage."}}
+           : {res:"Sans preuve, le beau-frère s'en tire par une pirouette : il « démissionne pour convenances personnelles » et ne rembourse que 0,8 MF. Mieux que rien.", eff:{arg:+0.8e6, conf:2, reput:1}}; }},
+       {lib:"Le livrer à la presse", go:a=>({res:"La Dépêche sort quatre pages, lunettes fumées en une. Le public adore le courage — mais le président ne vous pardonne pas le linge sale lavé dehors. Gégé remboursera 1,8 MF, en 36 mensualités.", eff:{reput:5, conf:-8, buzz:1, arg:+0.3e6, presse:"« Lunettes fumées » : "+clubById(G.monClub).nom+" déballe l'affaire de la billetterie."}})},
+       {lib:"Étouffer contre remboursement intégral", go:a=>{ return Math.random()<0.7
+           ? {res:"Marché conclu en coulisses : Gégé rembourse 2,4 MF et l'affaire n'existe plus. Le président vous en sera discrètement reconnaissant.", eff:{arg:+2.4e6, conf:2}}
+           : {res:"Vous empochez le remboursement... mais un dossier pareil finit toujours par ressortir.", eff:{arg:+2.4e6}, data:{route:"enterre"}, next:"bEclate", gap:3}; }},
+     ]}),
+   bEclate:(a)=>({
+     txt:"Un contrôleur, venu à l'origine pour une banale histoire de photocopieuse, tombe sur TOUT le reste : souches, sacs Shopi, parking en liquide. Le pot aux roses éclate au grand jour — et cette fois, vous êtes en première ligne pour l'avoir su.",
+     choix:[
+       {lib:"Encaisser le scandale", go:a=>({res:"Amende de 3 MF, réputation écornée, président furieux. Gégé, lui, s'en tire par une pirouette dont il a le secret : trois mois plus tard, on le retrouve derrière la buvette... vendeur de merguez.", eff:{arg:-3e6, reput:-6, conf:-10, presse:"Scandale de la billetterie à "+clubById(G.monClub).nom+" : la facture est salée."}})},
+     ]}),
   },
  },
 };

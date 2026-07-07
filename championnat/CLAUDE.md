@@ -230,10 +230,13 @@ toujours « raconter quelque chose ».
   mais le joueur **finit la saison chez vous** (flag `j._departMome`, purgé à l'`intersaison` juste après montées/
   descentes). **Le harnais ne couvre pas les arcs** (EN_TEST les neutralise) → test dédié `test-arcs.cjs` (armement,
   chemins narratifs, `effArc`, rendu `ouvreArc`, ET pour diamant : vente sèche / prêt / écusson embrassé). Arcs livrés :
-  **`sortilege`** (« Le sortilège de la buvette » — 4 sans victoire → superstition/Professeur Wamba) et **`diamant`**
+  **`sortilege`** (« Le sortilège de la buvette » — 4 sans victoire → superstition/Professeur Wamba), **`diamant`**
   (« Le diamant brut » — pépite ≤20 ans/pot≥86 convoitée post-Bosman, 3 chapitres, 4 dénouements : embrasse l'écusson /
-  pont d'or / clash / vendu-mais-prêté). Écrits par **Fable 5** (reste à intégrer : la caisse noire du vice-président).
-  Étendre = ajouter une entrée à `ARCS`.
+  pont d'or / clash / vendu-mais-prêté) et **`shopi`** (« Le sac Shopi » — caisse noire du vice-président Gégé Brémont,
+  confiance 35-65, effets argent/réputation/confiance seulement ; chapitre `bEclate` = le scandale qui ressort si on
+  enterre l'affaire ; une fin recase Gégé **vendeur de merguez** → clin d'œil bouclant avec `sortilege`). Les trois
+  écrits par **Fable 5**. **Piège** : dans les `go:a=>({…})` (retour d'objet fléché), bien fermer `}})` (objet + parenthèse) ;
+  un `}}` manquant casse la syntaxe. Étendre = ajouter une entrée à `ARCS`.
 - **Mallette / match truqué** (`G.affaire` l'offre, `G.truque` la victoire promise, `G.risque` le compte à
   rebours d'enquête) : un intermédiaire propose une victoire garantie (3-7 MF) ; accepter arme `G.truque`
   (match suivant gagné), puis `G.risque=RNDI(4,7)` ouvre une **fenêtre d'enquête bornée** (~10 %/journée
