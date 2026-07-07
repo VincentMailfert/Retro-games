@@ -204,6 +204,36 @@ toujours « raconter quelque chose ».
   no-op), donc il n'y touche jamais. Chaînée dans `ecranCalendrier` **entre incident et debrief**
   (`ouvreConf(ouvreDebrief)`). `G.confPresse`/`confRecents` migrés par `migre`. Étendre = ajouter une entrée
   `{id,cond,q,rep}` au bon rang de priorité.
+- **Arcs narratifs de saison (v0.64)** : là où incidents et confs étaient des événements ISOLÉS, un **arc**
+  est un feuilleton qui s'installe, monte et se dénoue sur **plusieurs journées**, avec des embranchements qui
+  RÉAGISSENT à vos choix ET à vos résultats. Un seul objet d'état : **`G.arc = {id, beat, prochaine, data}`**
+  (`beat` = clé du chapitre en attente, `null` = terminé ; `prochaine` = journée à partir de laquelle il
+  s'affiche ; `data` = variables de l'arc, dont **`data.mark`** = `forme.length` au dernier chapitre, pour lire
+  « ce qui s'est passé depuis » via **`_arcGagneDepuis(a)`** = une victoire est-elle tombée depuis). Catalogue
+  **`ARCS`** (clé → `{titre, couleur, cond(), start(), beats}`) ; chaque `beats[clé](a)` renvoie `{txt, choix}`
+  et chaque choix `{lib, go(a)}` où `go` renvoie `{res, eff?, next?, gap?}` (**pas de `next` = dénouement**).
+  Les chapitres se **résolvent à l'ouverture** (une fonction de `a`) → ils peuvent lire `forme` et brancher sur
+  le résultat sportif au dernier moment. **Effets par `effArc(e)`** (`{arg,moral(vestiaire),reput,conf,buzz,
+  presse}`) — AUCUN effet moteur, rien ne touche le calibrage. **Cycle de vie** : `armeArc()` (dans
+  `finirJournee`, jamais en `EN_TEST`, **un seul arc/saison** via `G._arcFait`, fenêtre J4-30, prob 0,5 si
+  éligible) pose l'arc au chapitre `b1` ; `migre` fait `G.arc||null` + `G._arcFait` ; `intersaison` **remet les
+  deux à zéro** (un arc ne straddle pas deux saisons). **Exclusivité du week-end** : quand un chapitre est mûr
+  (`arcDu` en tête du bloc incident de `finirJournee`), on **saute incident ET conf** ce jour-là (une seule
+  modale). `ouvreArc(suite)` est **chaîné en tête** dans `ecranCalendrier` (`ouvreArc(()=>ouvreConf(()=>
+  ouvreDebrief(ouvrePromo)))`), même flux/modale `#fiche`/`window._penEnCours` que `ouvreIncident` (choix →
+  résultat mis en valeur → Continuer). **Séparation pur/impératif** : `go(a)` **reste PUR** (renvoie un descriptif,
+  aucun effet de bord) → exerçable N fois au test ; les mutations vivent dans **`appliqueArc(a,out)`** (appelé une
+  seule fois, sur le choix cliqué) qui applique `out.eff` via `effArc(e,a)`, une **vente** `out.sell` via `vendMome`,
+  et fusionne `out.data` dans `a` (route, vitrine, offreBonus…). **`effArc(e,a)`** gère les effets club (`arg,budget,
+  moral,reput,conf,buzz,presse`) ET ciblés sur le joueur `a.uid` (`egoJ,moralJ,noteJ`). **`vendMome(a,{prix,mode})`** :
+  `sec`/`rabais` = départ immédiat (retiré de l'effectif, budget crédité, `assureCapitaine`) ; `pret` = payé maintenant
+  mais le joueur **finit la saison chez vous** (flag `j._departMome`, purgé à l'`intersaison` juste après montées/
+  descentes). **Le harnais ne couvre pas les arcs** (EN_TEST les neutralise) → test dédié `test-arcs.cjs` (armement,
+  chemins narratifs, `effArc`, rendu `ouvreArc`, ET pour diamant : vente sèche / prêt / écusson embrassé). Arcs livrés :
+  **`sortilege`** (« Le sortilège de la buvette » — 4 sans victoire → superstition/Professeur Wamba) et **`diamant`**
+  (« Le diamant brut » — pépite ≤20 ans/pot≥86 convoitée post-Bosman, 3 chapitres, 4 dénouements : embrasse l'écusson /
+  pont d'or / clash / vendu-mais-prêté). Écrits par **Fable 5** (reste à intégrer : la caisse noire du vice-président).
+  Étendre = ajouter une entrée à `ARCS`.
 - **Mallette / match truqué** (`G.affaire` l'offre, `G.truque` la victoire promise, `G.risque` le compte à
   rebours d'enquête) : un intermédiaire propose une victoire garantie (3-7 MF) ; accepter arme `G.truque`
   (match suivant gagné), puis `G.risque=RNDI(4,7)` ouvre une **fenêtre d'enquête bornée** (~10 %/journée

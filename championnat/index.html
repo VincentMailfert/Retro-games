@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.63"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.65"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1812,22 +1812,26 @@ function finirJournee(delta){
   }
   G.histo.push(res);
   genPresse(res);
+  // un arc narratif a-t-il un chapitre mûr pour la journée à venir ? si oui, il a l'EXCLUSIVITÉ (ni incident ni conf ce week-end)
+  const arcDu = !!(G.arc && G.arc.beat && G.journee>=G.arc.prochaine);
   // un incident de la vie du club ?
   G.incident=null;
   clubById(G.monClub).joueurs.forEach(j=>{ delete j._reposIncident; });
   // l'historique récent expire au fil des journées (fraîcheur sur ~8 journées)
   G.incidentsRecents=(G.incidentsRecents||[]).filter(r=>G.journee-r.j<8);
-  if(G.journee<38 && Math.random()<0.34){
+  if(!arcDu && G.journee<38 && Math.random()<0.34){
     G.incident=tireIncident();
     if(G.incident) G.incidentsRecents.push({id:G.incident.inc.id, j:G.journee});
   }
   // conférence de presse interactive — seulement s'il y a un fait saillant, jamais le même week-end qu'un incident (pas de fatigue de modale)
   G.confPresse=null;
   G.confRecents=(G.confRecents||[]).filter(r=>G.journee-r.j<6);
-  if(G.journee<38 && !G.incident && Math.random()<0.5){
+  if(!arcDu && G.journee<38 && !G.incident && Math.random()<0.5){
     const cp=tireConfPresse();
     if(cp){ G.confPresse=cp; G.confRecents.push({id:cp.id, j:G.journee}); }
   }
+  // pas de nouvel arc le même week-end qu'un incident/conf (une seule modale) ; armeArc gère test/unicité/fenêtre
+  if(!G.incident && !G.confPresse) armeArc();
   coupeTick(); // tour de Coupe de France en semaine, s'il est à l'heure
   if(G.journee>=38) finDeSaison();
   assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
@@ -3386,6 +3390,7 @@ function classementAbstrait(clubs){
 }
 function intersaison(){
   const rec=[];
+  G.arc=null; G._arcFait=false; // un arc ne straddle pas deux saisons ; on rouvre la porte pour la suivante
   // classements : MA division (réel) + l'autre (abstrait, selon la force des effectifs)
   const maDiv=classement();
   const autreDiv=classementAbstrait(G.autre);
@@ -3402,6 +3407,10 @@ function intersaison(){
   else { G.div=2; G.clubs=nd2; G.autre=nd1; }
   if(montent.includes(monC)) rec.push("★ VOTRE CLUB MONTE EN DIVISION 1 ! L'élite vous attend.");
   if(descendent.includes(monC)) rec.push("▼ VOTRE CLUB EST RELÉGUÉ EN DIVISION 2. La reconquête commence.");
+  // pépites vendues « avec prêt d'un an » (arc Le Diamant brut) : elles rejoignent leur acheteur cet été
+  { const mc=clubById(G.monClub); if(mc){ const partis=mc.joueurs.filter(j=>j._departMome);
+      partis.forEach(j=>rec.push(j.nom+" rejoint "+j._departMome+" cet été, comme convenu la saison passée."));
+      if(partis.length){ mc.joueurs=mc.joueurs.filter(j=>!j._departMome); assureCapitaine(); } } }
   // vieillissement, retraites, nouvelles générations + remise à zéro — sur LES DEUX divisions (l'autre évolue aussi)
   for(const c of G.clubs.concat(G.autre)) vieillirClub(c, rec);
   for(const c of G.clubs.concat(G.autre)) razStatsClub(c);
@@ -3521,6 +3530,7 @@ function migre(){
   G.centre=G.centre||1; G.offreExt=G.offreExt||null; G.offrePret=G.offrePret||null;
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
   G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
+  G.arc=G.arc||null; G._arcFait=!!G._arcFait; // arc narratif de saison
   G.reput=G.reput==null?75:G.reput;
   G.equip=G.equip||null; G.offresEquip=G.offresEquip||null;
   if(!G.equip && !G.offresEquip) G.offresEquip=genEquip(); // anciennes sauvegardes : proposer des offres
@@ -3915,7 +3925,7 @@ function ecranCalendrier(){
     fiche.querySelector("#bEreOk").onclick=()=>{ fermeFiche(); suite(); };
   };
   const suiteApresCoupe=()=>{
-    const finChaine=()=>ouvreConf(()=>ouvreDebrief(ouvrePromo)); // conf de presse (si fait saillant) → debrief → promo billets (avant-match)
+    const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDebrief(ouvrePromo))); // chapitre d'arc (exclusif) → conf de presse → debrief → promo billets (avant-match)
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); }
   };
@@ -4212,6 +4222,211 @@ function ouvreIncident(suite){
     document.getElementById("bIncOk").onclick=()=>{ window._penEnCours=false; G.incident=null; fermeFiche(); if(suite) suite(); };
   });
 }
+
+/* ---------- Arcs narratifs de saison ---------- */
+/* Un feuilleton qui s'installe, monte et se dénoue sur plusieurs journées, avec des embranchements qui
+   RÉAGISSENT à vos choix ET à vos résultats. État porté par un seul objet G.arc = {id, beat, prochaine, data} :
+   - beat = la clé du chapitre en attente d'affichage (null = arc terminé) ;
+   - prochaine = la journée à partir de laquelle ce chapitre s'affiche ;
+   - data = les variables de l'arc (dont data.mark = longueur de forme au dernier chapitre, pour lire « ce qui
+     s'est passé depuis » — victoire ou non). Un seul arc par saison (G._arcFait), jamais en EN_TEST, et un
+     chapitre mûr a l'EXCLUSIVITÉ du week-end (ni incident ni conf ce jour-là). Aucun effet moteur : tout passe
+     par effArc (argent + club), rien ne touche le calibrage. Étendre = ajouter une entrée à ARCS. */
+function effArc(e, a){
+  if(!e) return;
+  const moi=clubById(G.monClub);
+  if(e.arg)   G.tresorerie += e.arg;   // francs (positif = encaisse, négatif = dépense)
+  if(e.budget)G.budget += e.budget;    // pot mercato (pour une vente)
+  if(e.moral) moi.joueurs.forEach(j=>j.moral=Math.max(5,Math.min(100,(j.moral==null?65:j.moral)+e.moral)));
+  if(e.reput) majReput(e.reput, "feuilleton de club");
+  if(e.conf)  G.confiance=Math.max(0,Math.min(100,G.confiance+e.conf));
+  if(e.buzz)  G.buzz=Math.min(4,(G.buzz||0)+e.buzz);
+  if(e.presse) G.presse.unshift("« "+e.presse+" »");
+  // effets ciblés sur LE joueur de l'arc (a.uid), s'il existe encore
+  if(a && a.uid!=null){ const j=byUid(a.uid); if(j){
+    if(e.egoJ)   j.ego=Math.max(1,Math.min(10,(j.ego||5)+e.egoJ));
+    if(e.moralJ) j.moral=Math.max(5,Math.min(100,(j.moral==null?65:j.moral)+e.moralJ));
+    if(e.noteJ){ j.note=Math.max(40,j.note+e.noteJ); if(e.noteJ>0&&j.pot<j.note)j.pot=j.note; }
+  }}
+}
+// applique le descriptif renvoyé par un choix : effets (dont ciblés), vente éventuelle, mutations de données.
+// go(a) reste PUR (aucun effet de bord) → on peut l'exercer plusieurs fois au test ; les mutations vivent ici.
+function appliqueArc(a, out){
+  if(!out) return;
+  if(out.eff)  effArc(out.eff, a);
+  if(out.sell) vendMome(a, out.sell);
+  if(out.data) Object.assign(a, out.data);
+}
+// vente du joueur de l'arc. mode "sec"/"rabais" = départ immédiat ; "pret" = payé maintenant, il finit la saison
+// chez vous puis rejoint l'acheteur à l'intersaison (flag j._departMome, purgé dans intersaison).
+function vendMome(a, sell){
+  const moi=clubById(G.monClub), j=byUid(a.uid); if(!j) return;
+  const prix=Math.max(0, Math.round((sell.prix||0)/1e5)*1e5);
+  if(sell.mode==="pret"){
+    G.budget += prix; j._departMome=a.cador;
+    notif("💫 "+j.nom+" est vendu à "+a.cador+" pour "+(prix/1e6).toFixed(1)+" MF — mais prêté au club jusqu'à l'intersaison. Chaque but de lui sera un adieu.");
+    G.news.unshift("TRANSFERT : "+j.nom+" rejoindra "+a.cador+" à l'intersaison ("+(prix/1e6).toFixed(1)+" MF), en prêt d'ici là.");
+  } else {
+    moi.joueurs=moi.joueurs.filter(x=>x!==j); G.budget += prix;
+    notif("💸 DÉPART : "+j.nom+" file à "+a.cador+" pour "+(prix/1e6).toFixed(1)+" MF.");
+    G.news.unshift("DÉPART : "+j.nom+" quitte le club pour "+a.cador+" ("+(prix/1e6).toFixed(1)+" MF).");
+    assureCapitaine();
+  }
+}
+// a-t-on gagné au moins un match depuis le repère posé au dernier chapitre ?
+function _arcGagneDepuis(a){ return clubById(G.monClub).forme.slice(a.mark||0).includes(1); }
+// buts+passes du joueur de l'arc, et l'offre ferme du cador (majorée si la pépite brille sous les projecteurs)
+function _momeStat(a){ const j=byUid(a.uid); return j?((j.buts||0)+(j.passes||0)):0; }
+function _momeOffre(a){ const brille=a.vitrine && _momeStat(a)>(a.statMark||0); return a.offre*(brille?1.5:1)*(a.offreBonus||1); }
+// tente d'armer un arc en fin de journée (appelé par finirJournee, jamais si un incident/conf occupe déjà le week-end)
+function armeArc(){
+  if(EN_TEST() || G.arc || G._arcFait) return;
+  if(G.journee<4 || G.journee>30) return; // laisser de la place aux 3 chapitres
+  const elig=Object.keys(ARCS).filter(id=>{ try{ return ARCS[id].cond(); }catch(_){ return false; } });
+  if(!elig.length || Math.random()>=0.5) return;
+  const id=PICK(elig), A=ARCS[id];
+  let data=A.start?A.start():{};
+  if(!data) return; // arc momentanément non armable (ex : la pépite a filé) — on réessaiera
+  data.mark=clubById(G.monClub).forme.length;
+  G.arc={id, beat:"b1", prochaine:G.journee, data};
+  G._arcFait=true;
+}
+// affiche le chapitre mûr (même flux/modale que ouvreIncident : choix → résultat mis en valeur → Continuer)
+function ouvreArc(suite){
+  suite=suite||(()=>{});
+  if(EN_TEST() || !(G.arc && G.arc.beat && G.journee>=G.arc.prochaine)) return suite();
+  const A=ARCS[G.arc.id];
+  if(!A || !A.beats[G.arc.beat]){ G.arc=null; return suite(); } // sauvegarde d'une version où l'arc n'existe plus
+  const a=G.arc.data, coul=A.couleur||"#b388e8";
+  const bdef=A.beats[G.arc.beat](a);
+  const fiche=document.getElementById("fiche");
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2 style="color:${coul}">${A.titre}</h2>
+    <p style="margin:6px 0">${esc(bdef.txt)}</p>
+    <div id="arcChoix">${bdef.choix.map((c,i)=>`<button class="big arcBtn" data-i="${i}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:10px 12px">${esc(c.lib)}</button>`).join("")}</div>
+    <div id="arcRes"></div></div>`;
+  fiche.style.display="flex";
+  window._penEnCours=true; // pas de fermeture Échap tant qu'on n'a pas tranché
+  fiche.querySelectorAll(".arcBtn").forEach(b=>b.onclick=()=>{
+    const c=bdef.choix[+b.dataset.i], out=c.go(a)||{};
+    appliqueArc(a, out);
+    if(out.next){ G.arc.beat=out.next; G.arc.prochaine=G.journee+(out.gap||1); G.arc.data.mark=clubById(G.monClub).forme.length; }
+    else { G.arc=null; } // dénouement
+    document.getElementById("arcChoix").innerHTML=
+      `<div style="display:block;width:100%;margin:6px 0;padding:10px 12px;border:2px solid ${coul};border-radius:4px;background:rgba(255,255,255,.04)">
+         <span style="color:${coul}">✓ Votre décision :</span> <b>${esc(c.lib)}</b></div>`;
+    document.getElementById("arcRes").innerHTML=`<p class="dim" style="font-style:italic;margin-top:8px">${esc(out.res||"")}</p>
+      <p style="margin-top:10px"><button class="big" id="bArcOk">Continuer</button></p>`;
+    document.getElementById("bArcOk").onclick=()=>{ window._penEnCours=false; fermeFiche(); suite(); };
+  });
+}
+// Catalogue des arcs. cond() = déclencheur ; start() = données initiales ; beats[clé](a) = {txt, choix:[{lib, go(a)}]}
+// go(a) renvoie {res, eff?, next?, gap?} — pas de next = dénouement. Les chapitres lisent forme via _arcGagneDepuis(a).
+const ARCS={
+ sortilege:{
+  titre:"🐈‍⬛ LE SORTILÈGE DE LA BUVETTE",
+  couleur:"#b388e8",
+  // quatre matchs de rang sans la moindre victoire : le club bascule dans la superstition
+  cond:()=>{ const f=clubById(G.monClub).forme.slice(-4); return f.length>=4 && !f.includes(1) && G.journee>=8 && G.journee<=26; },
+  start:()=>({}),
+  beats:{
+   b1:(a)=>({
+     txt:"Le kiné a sorti son calepin, et son calepin est formel : la série noire a commencé le jour EXACT où la buvette a changé de fournisseur de merguez. Le même jour, précise l'intendant, un chat noir s'est installé dans les gouttières de la tribune Est. Il fixe la pelouse pendant les matchs. Il ne cligne jamais des yeux.",
+     choix:[
+       {lib:"« On est un club de football, pas un cirque. »", go:a=>({res:"Vous refusez d'entrer là-dedans. La dignité est sauve — mais dans le vestiaire, personne n'a l'air convaincu.", eff:{moral:-2}, next:"b2", gap:2})},
+       {lib:"Laisser courir, sourire en coin", go:a=>({res:"Vous haussez les épaules et changez de sujet. On verra bien où mène cette histoire de merguez.", next:"b2", gap:2})},
+       {lib:"Faire analyser la merguez", go:a=>({res:"Prélèvement envoyé au labo, cordon sanitaire autour de la buvette. La presse locale s'empare de l'affaire, ravie de l'aubaine.", eff:{moral:3, buzz:1}, next:"b2", gap:2})},
+     ]}),
+   b2:(a)=>{
+     if(_arcGagneDepuis(a)) return {
+       txt:"Une victoire est tombée entre-temps ! Mais attention : ce jour-là, le gardien avait mis ses gants dans le désordre, le capitaine son short à l'envers, et le bus avait pris la départementale au lieu de la nationale. Le vestiaire est formel : samedi, on refait TOUT pareil. Même hôtel, même short, même départementale. Le chauffeur du bus réclame une confirmation écrite.",
+       choix:[
+         {lib:"Bénir le rituel jusqu'au bout", go:a=>({res:"Short à l'envers et départementale : le rituel est désormais sacré. Le vestiaire jubile de tenir enfin une explication à tout.", eff:{moral:6, buzz:1}, next:"b3", gap:2})},
+         {lib:"Refuser la départementale (défier les dieux)", go:a=>({res:"« Le coach défie les dieux du bitume », s'inquiète-t-on à voix basse. On saura vite qui avait raison.", eff:{moral:-4}, next:"b3", gap:2})},
+       ]};
+     return {
+       txt:"Toujours rien. Un homme en boubou impeccable attend devant le vestiaire : Professeur Wamba, guérisseur agréé (par lui-même), carte de visite plastifiée — « Retour de l'être aimé, permis de conduire, maintien en Division 1 ». Il propose de lever le sort pour 300 000 francs : cérémonie au rond central, un jeudi, à la pleine lune.",
+       choix:[
+         {lib:"Payer la cérémonie (0,3 MF)", go:a=>{ return Math.random()<0.4
+             ? {res:"Bougies et incantations sous la pleine lune. Le lendemain, la presse titre : « Le club a un sorcier salarié. » Le président s'étrangle avec son café.", eff:{arg:-0.3e6, moral:8, buzz:1, reput:-1}, next:"b3", gap:2}
+             : {res:"Encens, poudre et formules au rond central, à la nuit tombée. Le vestiaire y croit dur comme fer — et ça, curieusement, ça soulève une équipe.", eff:{arg:-0.3e6, moral:8, buzz:1}, next:"b3", gap:2}; }},
+         {lib:"Refuser tout net", go:a=>({res:"Vous éconduisez le Professeur. Les joueurs, eux, se cotisent en douce pour la cérémonie — et ça finit dans la presse. Vous voilà le dernier informé de votre propre club.", eff:{moral:-4, buzz:1, reput:-1}, next:"b3", gap:2})},
+         {lib:"La solution laïque : rappeler l'ancien fournisseur de merguez", go:a=>({res:"« Le club écoute son peuple. » On rebranche l'ancienne merguez, celle d'avant la poisse. Le vestiaire respire, la buvette exulte.", eff:{arg:-0.05e6, moral:5, reput:1}, next:"b3", gap:2})},
+       ]};
+   },
+   b3:(a)=>{
+     if(_arcGagneDepuis(a)) return {
+       txt:"Tout le monde avait fait sa part : le short à l'envers, la merguez d'origine, le chat nourri (par superstition, pas par tendresse, jure l'intendant). Et ça a payé — LA VICTOIRE EST REVENUE ! Le sort est levé.",
+       choix:[
+         {lib:"Savourer la délivrance", go:a=>({res:"La buvette rebaptise sa merguez « La Victorieuse » (et la majore de 2 francs au passage). Le chat, lui, reste : on l'appelle désormais Kopa, il a son rond de serviette dans la légende du club.", eff:{moral:10, buzz:2, reput:2, presse:clubById(G.monClub).nom+" a levé le sortilège de la buvette — et adopté un chat nommé Kopa."}})},
+       ]};
+     return {
+       txt:"Toujours pas de victoire. Le Professeur Wamba, joint au téléphone, est catégorique : il fallait la formule PREMIUM. « Vous comprenez, un sort de tribune Est, c'est du lourd. » La presse titre : « Points envolés, merguez avalées. »",
+       choix:[
+         {lib:"Raccrocher au nez du Professeur", go:a=>({res:"Vous raccrochez sec. Le vestiaire, soudé par le ridicule de toute l'affaire, se jure de s'en sortir par le terrain — et rien d'autre. Il était temps.", eff:{moral:2, conf:-2, reput:-1, presse:"Le sortilège aura au moins ressoudé le vestiaire de "+clubById(G.monClub).nom+", à défaut de rapporter des points."}})},
+       ]};
+   },
+  },
+ },
+ diamant:{
+  titre:"💎 LE DIAMANT BRUT",
+  couleur:"#6fd6e8",
+  // une pépite du centre (≤20 ans, gros potentiel, déjà performante) commence à faire tourner les têtes en Europe
+  cond:()=>{ const m=clubById(G.monClub); return G.journee>=5 && G.journee<=22 && m.joueurs.some(j=>j.age<=20 && j.pot>=86 && j.note>=72); },
+  start:()=>{
+    const m=clubById(G.monClub);
+    const cands=m.joueurs.filter(j=>j.age<=20 && j.pot>=86 && j.note>=72).sort((x,y)=>y.pot-x.pot);
+    if(!cands.length) return null;
+    const j=cands[0];
+    return {uid:j.uid, nom:j.nom, cador:PICK(["le Milan AC","l'Ajax Amsterdam","le FC Barcelone","le Bayern Munich","la Juventus"]),
+      offre:RNDI(8,14), statMark:(j.buts||0)+(j.passes||0), vitrine:false};
+  },
+  beats:{
+   b1:(a)=>({
+     txt:"Dimanche, crachin, tribune presque vide. Et pourtant, rang 14, un homme seul en imper prend des notes dans un carnet à spirale. L'intendant l'a reconnu : c'est l'œil de "+a.cador+". Il n'est pas venu pour la buvette, mais pour "+a.nom+", votre diamant brut du centre. L'arrêt Bosman vient de tomber : les frontières s'ouvrent, et les carnets à spirale voyagent vite.",
+     choix:[
+       {lib:"Le couver — une demi-heure en fin de match, pas plus", go:a=>({res:a.nom+" ronge son frein sur le banc. On le protège des regards... et de lui-même.", eff:{moralJ:-3}, data:{vitrine:false}, next:"b2", gap:2})},
+       {lib:"Le mettre en vitrine, pleins feux", go:a=>({res:"Titulaire, projecteurs braqués, micros tendus. Qu'il montre de quoi il est capable — advienne que pourra.", eff:{buzz:1}, data:{vitrine:true}, next:"b2", gap:2})},
+       {lib:"Le déclarer grippé, cacher le joyau", go:a=>{ return Math.random()<0.5
+           ? {res:"Le recruteur repart bredouille sous la pluie. L'affaire en reste là... mais "+a.nom+" l'apprendra par son agent, et n'aimera pas qu'on l'ait « caché comme un jambon de contrebande ».", eff:{moralJ:-6, presse:"On raconte que "+clubById(G.monClub).nom+" a planqué sa pépite en tribune."}}
+           : {res:a.cador+" n'est pas dupe et s'entête. Le carnet à spirale repassera.", data:{vitrine:false}, next:"b2", gap:2}; }},
+     ]}),
+   b2:(a)=>({
+     txt:"Un fax de douze pages est arrivé ce matin, en italien, en anglais et en mauvais français. Signé Me Ricardo Vazzoli, agent FIFA, Rolex au poignet. "+a.cador+" propose "+Math.round(_momeOffre(a))+" MF pour "+a.nom+". Le gamin, lui, est arrivé à l'entraînement en lunettes de soleil. Il pleuvait.",
+     choix:[
+       {lib:"Refus net, par fax, en majuscules", go:a=>({res:"« PAS À VENDRE. » Le président adore la fermeté. "+a.nom+", beaucoup moins : il s'enferme dans un mutisme boudeur.", eff:{conf:2, moralJ:-8, egoJ:2}, data:{route:"bouderie"}, next:"b3", gap:2})},
+       {lib:"Écouter... et faire monter les enchères", go:a=>({res:"Vous décrochez le téléphone. Puisqu'on en est là, autant en tirer le meilleur prix.", eff:{egoJ:2}, data:{route:"poker"}, next:"b3", gap:2})},
+       {lib:"Le prolonger d'abord (prime 1,2 MF), on parlera ensuite", go:a=>({res:a.nom+" signe un nouveau bail, ému. Sa cote grimpe — et vous négocierez en position de force.", eff:{arg:-1.2e6, moralJ:10, egoJ:1}, data:{route:"poker", offreBonus:1.4}, next:"b3", gap:2})},
+     ]}),
+   b3:(a)=>{
+     const prix=Math.round(_momeOffre(a))*1e6;
+     if(a.route==="bouderie") return {
+       txt:a.nom+" s'entraîne à l'écart, casque de walkman sur les oreilles. Sa mère a appelé une radio périphérique : « Mon fils, on l'empêche de devenir quelqu'un. » Le vestiaire compte les points.",
+       choix:[
+         {lib:"Tête-à-tête dans le bureau", go:a=>{ return Math.random()<0.6
+             ? {res:"Vous crevez l'abcès. "+a.nom+" ressort réconcilié, regonflé — et il reste. « C'est ici que je veux jouer, coach. »", eff:{moralJ:12, noteJ:2, reput:4, conf:3, buzz:2, presse:a.nom+" embrasse l'écusson de "+clubById(G.monClub).nom+" et refuse "+a.cador+"."}}
+             : {res:"Rien à faire, il reste braqué. À contrecœur, vous le laissez filer avant que ça ne pourrisse le groupe — au rabais.", sell:{prix:prix*0.5, mode:"rabais"}, eff:{moral:-6, conf:-5}}; }},
+         {lib:"Le mettre en tribune, qu'il redescende sur terre", go:a=>({res:"Bras de fer. Il ne cède pas, vous non plus — et il part au rabais, le survêtement du club renvoyé plié au carré par colis recommandé.", sell:{prix:prix*0.5, mode:"rabais"}, eff:{moral:-6, conf:-5, reput:-1}})},
+         {lib:"Céder et négocier au mieux", go:a=>({res:a.cador+" emporte le morceau. "+a.nom+" file vers la lumière, et le chèque renfloue le mercato. Trois semaines plus tard, une carte postale : « Il pleut aussi ici. »", sell:{prix:prix, mode:"sec"}, eff:{reput:-2, moral:-3, buzz:1}})},
+       ]};
+     const chaud=_arcGagneDepuis(a); // route poker : l'arc regarde vos résultats depuis le fax
+     return {
+       txt:chaud
+         ? "Vous restez sur une bonne série, et Vazzoli le sait : il remonte son offre de 30 %, « le contexte valorise l'actif », dit-il en mordant dans une chocolatine."
+         : "La série est mauvaise, et la presse locale pousse : « Vendre pour rebâtir. » Le président lui-même glisse qu'un peu d'oxygène ne ferait pas de mal.",
+       choix:[
+         {lib:"Vendre maintenant (le pont d'or)", go:a=>({res:a.nom+" part à "+a.cador+" : le pont d'or garnit le budget mercato. Deux cadres en profitent pour renégocier à la hausse, le vestiaire encaisse le départ.", sell:{prix:prix*(chaud?1.3:1), mode:"sec"}, eff:{reput:-2, moral:-3, buzz:1}})},
+         {lib:"Exiger qu'il soit vendu MAIS prêté un an", go:a=>{ return Math.random()<0.55
+             ? {res:"Marché de patron : "+a.cador+" achète, mais "+a.nom+" reste une saison de plus à la maison. Vous négociez mieux que Tapie, et le stade savoure chaque match comme un adieu.", sell:{prix:prix*1.05, mode:"pret"}, eff:{reput:2, moralJ:6, buzz:1}}
+             : {res:"Vazzoli rit au téléphone : pas de prêt qui tienne, c'est tout ou rien. Vous cédez, vente sèche.", sell:{prix:prix, mode:"sec"}, eff:{reput:-1, moral:-2}}; }},
+         {lib:"Refuser une dernière fois", go:a=>{ const j=byUid(a.uid), m=j?(j.moral==null?65:j.moral):65; return m>=60
+             ? {res:a.nom+", touché qu'on se batte pour lui, prolonge et embrasse l'écusson. Le genre de moment qui soude un club.", eff:{moralJ:10, noteJ:1, reput:4, conf:2, buzz:2, presse:a.nom+" reste à "+clubById(G.monClub).nom+" : « On m'a fait sentir chez moi. »"}}
+             : {res:"Trop tard : "+a.nom+", déjà ailleurs dans sa tête, prend mal ce énième refus. Il finira par forcer son départ, au rabais.", sell:{prix:prix*0.5, mode:"rabais"}, eff:{moral:-5, conf:-4}}; }},
+       ]};
+   },
+  },
+ },
+};
 
 function lanceMatch(instant){
   // le coup d'envoi est donné : on retire les boutons d'avant-match (ils reviendront en « Prochaine journée 📆 » au sifflet)
