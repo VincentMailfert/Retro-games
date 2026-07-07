@@ -465,6 +465,10 @@ toujours « raconter quelque chose ».
 - Résumer les changements à l'auteur en français, style article de presse, à la fin.
 
 ## Pièges connus (déjà corrigés, ne pas réintroduire)
+- Les lignes de commentaire du direct (`COMM.amb`/`arret`/`rate`/`but`/`cj`/`cr`/`cf`…) sont rendues
+  par `fmtC`, qui ne remplace QUE trois jetons : `{A}` (le joueur concerné), `{G}` (« le gardien »)
+  et `{D}` (l'adversaire). **Pas de `{B}`** : une ligne qui nomme un second joueur (passeur, etc.)
+  afficherait « {B} » en clair. Pour évoquer un relais, rester générique (« un relais traverse… »).
 - L'overlay d'un moment de match ne doit jamais surgir hors d'un match : `abandonneDirect()`
   sur chaque transition d'écran nettoie le ticker.
 - Reset des stats de TOUS les clubs à l'intersaison (`razStatsClub`), y compris ceux qui restent.
