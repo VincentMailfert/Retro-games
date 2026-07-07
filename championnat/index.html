@@ -100,6 +100,9 @@
   #butFlash .gros{font-family:var(--font-led); font-size:42px; letter-spacing:3px; color:var(--jaune); line-height:1.15;
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6); animation:butflash .4s steps(1) infinite;}
   #butFlash .det{font-size:21px; color:#fff; margin-top:12px; letter-spacing:1px;}
+  /* nom du buteur en capitales blanches sous la ligne de score, façon tableau d'affichage (CANTONA 56' ⚽) */
+  #butFlash .buteur{font-family:var(--font-led); font-size:24px; color:#fff; letter-spacing:2px; margin-top:10px;
+    text-transform:uppercase; text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
   /* le texte d'explication du but est aligné à GAUCHE et plus gros : on y lit qui a marqué, plus lisible qu'en pavé centré */
   #butFlash .dettxt{font-size:18px; color:var(--cyan); margin:12px auto 0; line-height:1.55; text-align:left;
     max-width:540px; background:rgba(111,214,232,.07); border-left:3px solid var(--cyan); padding:8px 12px; border-radius:3px;}
@@ -116,7 +119,7 @@
   @keyframes butflash{50%{opacity:.2;}}
   @media (prefers-reduced-motion:reduce){#butFlash .gros{animation:none;}}
   @media(max-width:700px){ #butFlash .gros{font-size:26px; letter-spacing:2px;} #butFlash .led{padding:14px 18px;}
-    #butFlash .bandeau .gros{font-size:24px;} }
+    #butFlash .bandeau .gros{font-size:24px;} #butFlash .buteur{font-size:20px;} }
   .scoreline{font-family:var(--font-led); font-size:16px; color:var(--jaune); text-align:center; padding:6px 0; letter-spacing:1px;}
   .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
@@ -189,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.62"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.63"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1044,12 +1047,30 @@ const COMM={
   "Centre repoussé de la tête au premier poteau.",
   "Le ballon traîne dans la surface... dégagé en catastrophe !",
   "Le banc s'agite, les consignes pleuvent.",
+  "Oh là là, quelle touche longue ! Le ballon traverse la surface sans trouver preneur.",
+  "Les deux entraîneurs gesticulent sur le bord de la pelouse, chacun dans sa langue.",
+  "Petit pont dans le rond central, le public apprécie en connaisseur.",
+  "Le ballon file en touche, un ramasseur de balles le renvoie d'une main experte.",
+  "Ça chambre dans le virage, les tambours donnent le tempo.",
+  "L'arbitre de touche lève son drapeau... puis le rabaisse. Plus de peur que de mal.",
+  "Long ballon dans le vent, personne n'en veut, ça flotte comme un mois de novembre.",
+  "Le gardien prend son temps sur le six mètres, sifflets dans les tribunes.",
+  "Duel d'entraîneurs à distance : l'un note sur son calepin, l'autre mâche son chewing-gum.",
+  "Une mêlée indescriptible dans la surface, et finalement... rien. Ouf pour tout le monde.",
  ],
  arret:[ // arrêt du gardien
   "{A} s'infiltre dans la surface, frappe... le gardien s'interpose !",
   "Frappe puissante de {A}... détournée en corner !",
   "Tête piquée de {A}... le portier claque le ballon au-dessus !",
   "{A} se présente seul... mais bute sur le gardien sorti à merveille !",
+  "{A} décoche une praline des vingt mètres... et le gardien s'envole pour la détourner ! Quel réflexe, mes amis !",
+  "Talonnade de {A} dans la surface... le portier gagne son face-à-face d'un pied ferme !",
+  "{A} croise sa frappe au ras du poteau... claquette du gardien ! Il était battu, il ne l'est plus !",
+  "Coup de casque de {A} sur corner... arrêt sur la ligne ! Ah, il y avait but, j'en mettrais ma main au feu !",
+  "{A} tente le lob des quarante mètres, culotté... le gardien recule, recule... et cueille le ballon sous sa barre !",
+  "Reprise de volée de {A}... en pleine poitrine du portier, qui ne veut rien savoir ce soir !",
+  "{A} slalome entre trois défenseurs, ouvre son pied... et le gardien sort le grand jeu du bout du gant !",
+  "Frappe à bout portant de {A}... le portier fait le mur à lui tout seul ! C'est un miracle, ni plus ni moins !",
  ],
  rate:[ // tir manqué
   "{A} en pivot, reprise instantanée... à côté de peu !",
@@ -1057,15 +1078,32 @@ const COMM={
   "{A} élimine son vis-à-vis et frappe... sur le poteau !!",
   "Coup franc de {A}... qui frôle la lucarne !",
   "{A} déborde et centre fort... personne à la réception !",
+  "{A} seul face au but... et il dévisse complètement ! Le ballon finit chez les photographes !",
+  "Retourné acrobatique de {A}... au-dessus ! C'était pour la beauté du geste, et le geste était beau.",
+  "{A} croit à la lucarne... la transversale en tremble encore !",
+  "Le centre est pour {A} au second poteau... qui glisse au moment de conclure ! Ah, la pelouse est traîtresse !",
+  "{A} enrhume son défenseur, arme... et sa frappe frôle le montant ! À un cheveu, mes amis, à un cheveu !",
+  "Contre éclair, {A} lancé comme un TGV... mais son plat du pied manque de conviction, le gardien s'en empare.",
+  "{A} tente la roulette dans la surface, y croit, frappe... dans le petit filet ! Le public y a cru avec lui !",
+  "Deux poteaux ! DEUX poteaux sur la même action, et {A} qui se prend la tête à deux mains ! Ce soir, le cadre est contre lui !",
  ],
  cj:[
   "Carton jaune pour {A} après un tacle appuyé.",
   "{A} averti pour contestation.",
   "Faute d'antijeu de {A} — avertissement logique.",
+  "Semelle appuyée de {A} : jaune, et c'est tout sauf volé.",
+  "{A} retient son adversaire par le maillot, l'étirement est spectaculaire... carton jaune, logique.",
+  "Ballon dégagé en tribune après le coup de sifflet : {A} prend un jaune pour son mauvais caractère.",
+  "{A} conteste, conteste encore... et l'arbitre sort le jaune pour lui rafraîchir les idées.",
+  "Obstruction grossière de {A} : jaune, et le public d'en face lui chante une petite chanson.",
  ],
  cr:[
   "CARTON ROUGE ! {A} laisse les siens à dix après un geste d'humeur !",
   "Expulsion de {A} pour une semelle dangereuse ! Le stade gronde.",
+  "CARTON ROUGE ! Le tacle de {A} arrive à hauteur du genou, l'arbitre n'a pas hésité une seconde !",
+  "ROUGE DIRECT ! {A} s'essuie les crampons sur le mollet adverse, et il peut prendre la direction des vestiaires sans discuter !",
+  "Deuxième jaune pour {A}... et donc ROUGE ! Il quitte la pelouse en applaudissant l'arbitre, ce qui ne va rien arranger !",
+  "CARTON ROUGE ! {A} joue les derniers remparts avec la main, c'est la faute du désespoir et c'est la douche avant tout le monde !",
  ],
  cjGK:[ // faute de gardien (jaune) — un portier ne taclant pas, il faute autrement
   "Sortie ratée de {A} qui fauche l'attaquant à la limite de la surface — jaune pour le gardien !",
@@ -1085,6 +1123,11 @@ const COMM={
   "Coup franc excentré de {A}, ballon piqué dans la surface... dégagé de justesse !",
   "{A} arme un coup franc plein axe... le mur saute, contré !",
   "Joli coup franc brossé de {A}... le gardien boxe des deux poings.",
+  "Coup franc excentré pour {A}... son enroulé fuit le cadre d'un rien, le gardien n'aurait rien pu faire.",
+  "{A} se place derrière le ballon, trois pas d'élan... sa frappe passe au-dessus du mur ET au-dessus de la barre !",
+  "Coup franc aux vingt mètres : {A} tente la feuille morte... le gardien boxe des deux poings !",
+  "{A} frappe fort et à ras de terre, sous le mur qui saute... le portier était resté sur ses appuis !",
+  "Combinaison sur coup franc : {A} feint la frappe, glisse à côté... mais le tir de son coéquipier est contré. C'était bien manigancé, pourtant !",
  ],
  but:[
   "{A} reprend victorieusement au second poteau... BUUUT !",
@@ -1093,6 +1136,16 @@ const COMM={
   "Centre au cordeau, TÊTE DE {A} ! Le gardien est battu !",
   "{A} surgit sur le ballon relâché... BUT ! Le stade explose !",
   "Contre fulgurant conclu par {A} ! Imparable !",
+  "{A} monte plus haut que tout le monde... coup de tête rageur... BUUUT ! Quel cou, quel casque, quel joueur !",
+  "Volée pure de {A} à l'entrée de la surface... PLEINE LUCARNE ! Ah, celle-là, on la reverra dans vingt ans !",
+  "Contre assassin : un relais traverse tout le terrain et sert {A} sur un plateau... BUUUT ! Ça, c'est du billard !",
+  "Oh le malheureux ! Le centre est dévié par un défenseur... et ça finit au fond ! But contre son camp, {A} en profite pour l'inscrire au tableau !",
+  "Roulette de {A} dans la surface — la Marseillaise, mesdames et messieurs ! — et du gauche... BUUUT ! Le grand frisson !",
+  "PRALINE DE TRENTE MÈTRES ! {A} a armé une mine, le gardien n'a vu que du feu ! Mais quel obus, mes amis !",
+  "Une-deux dans l'axe, talonnade, et {A} qui pousse le ballon dans le but vide... BUUUT ! C'est du jeu à la nantaise, ça !",
+  "Corner rentrant... et personne ne touche le ballon ! BUT DIRECT ! {A} jure qu'il l'a fait exprès, on veut bien le croire !",
+  "{A} au duel avec le gardien... petit piqué tout en douceur... BUUUT ! Quel sang-froid, on dirait qu'il joue en pantoufles !",
+  "La reprise de {A} est contrée, revient, il insiste, pousse... BUUUT ! Pas le plus beau de sa carrière, mais ils comptent tous double dans un soir pareil !",
  ],
 };
 function quelconque(c){ return PICK(onze(c)); }
@@ -1117,6 +1170,41 @@ function marque(c, sh, sa, verbeux, ev, m, prefixe){
   // uid/pasUid : permettent d'annuler proprement un but pré-tiré si la tactique change en cours de match (cf. rejoueDepuis)
   if(verbeux) ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa,uid:j.uid,pasUid:p?p.uid:null},
     x:fmtC(PICK(COMM.but),j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe});
+}
+/* Commentaire lié au nombre de buts d'un joueur dans le match : doublé, triplé… et le COUP DU CHAPEAU
+   (trois buts d'affilée, sans qu'un autre joueur — coéquipier ou adversaire — n'ait marqué entre-temps). */
+function comButs(nom, nb, chapeau){
+  if(chapeau) return "🎩 COUP DU CHAPEAU POUR "+nom.toUpperCase()+" !";
+  if(nb===2) return "Le doublé pour "+nom+" !";
+  if(nb===3) return "Triplé de "+nom+" !";
+  if(nb===4) return "Oh la la, le quadruplé de "+nom+" !";
+  if(nb===5) return "Et de cinq pour "+nom+"… Incroyable !";
+  if(nb>=6) return "Et de "+nb+" pour "+nom+"… du jamais vu !";
+  return "";
+}
+/* Post-traitement de la liste d'évènements (chronologique) : annote chaque but du décompte du buteur dans le
+   match (g.nb), du flag coup du chapeau (g.chapeau), et glisse le commentaire dans le téléscripteur (e.x).
+   Idempotent (garde-fou _com) pour survivre à une re-simulation tactique (rejoueDepuis annote à nouveau la liste
+   recollée — nb/chapeau recalculés sur tout le fil, sans dupliquer le texte des lignes déjà commentées). */
+function annoteButs(ev){
+  let prevKey=null, streak=0; const compte={};
+  for(const e of ev){ if(!e.g) continue;
+    const key=e.g.uid||e.g.but;
+    const nb=(compte[key]=(compte[key]||0)+1);
+    streak=(key===prevKey)?streak+1:1; prevKey=key;
+    const chapeau=(streak===3);
+    e.g.nb=nb; e.g.chapeau=chapeau;
+    if(!e.g._com){ const com=comButs(e.g.but, nb, chapeau); if(com){ e.g._com=com; e.x=e.x+"  "+com; } }
+  }
+}
+/* Titre du flash LED selon le palier de buts du joueur (doublé, triplé, coup du chapeau…) */
+function titreBut(g, contre){
+  if(g.chapeau) return "🎩 COUP DU CHAPEAU !";
+  if(g.nb===2) return "⚽⚽ DOUBLÉ !";
+  if(g.nb===3) return "⚽⚽⚽ TRIPLÉ !";
+  if(g.nb===4) return "QUADRUPLÉ !!!";
+  if(g.nb>=5) return "⚽×"+g.nb+" — DÉCHAÎNÉ !";
+  return contre?"BUT…":"⚽ BUT !";
 }
 function agressif(c){
   const xi=onze(c);
@@ -1194,7 +1282,8 @@ function simuleMatch(home,away,verbeux){
     }
     if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
   }
-  if(verbeux) ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom});
+  if(verbeux){ ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom});
+    annoteButs(ev); }
   return {sh,sa,ev,aff};
 }
 /* Changement de tactique EN COURS de match : on re-simule uniquement les minutes restantes avec la nouvelle
@@ -1254,6 +1343,7 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
   for(const e of out.ev) r.ev.push(e);
   r.ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom});
   r.sh=out.sh; r.sa=out.sa;
+  annoteButs(r.ev); // re-décompte des buts/coups du chapeau sur tout le fil recollé
   return out;
 }
 function fmtC(t,j,opp){ return t.replace("{A}",j.nom).replace("{G}","le gardien").replace("{D}",opp.nom); }
@@ -1390,6 +1480,12 @@ const MONTEE_BUT=[
   "Une-deux dans l'axe, la dernière passe arrive…",
   "Tout le monde se projette dans la surface…",
   "Ouverture limpide dans le dos des défenseurs…",
+  "Le ballon brûle dans la surface, plus personne ne respire dans le stade…",
+  "Contre-attaque à trois contre deux, ça sent la poudre…",
+  "Le corner est joué à deux, la défense flotte, ça se referme…",
+  "Oh là là, le ballon traîne aux dix-huit mètres, personne ne dégage…",
+  "Le stade se lève d'un seul homme, l'action est chaude, très chaude…",
+  "Une percée plein axe, la défense recule, recule… c'est le moment ou jamais…",
 ];
 // étape 2 — le porteur (le futur buteur) se présente, le gardien adverse est nommé (p = joueur, gk = gardien).
 // AGNOSTIQUE au geste : on installe le danger sans dire « frappe » ni « tête » (sinon contradiction avec la
@@ -1402,6 +1498,12 @@ const MONTEE_FRAPPE=[
   (p,gk)=>"Dernière passe pour "+p+", l'occasion est immense…",
   (p,gk)=>p+" jaillit dans la surface face à "+gk+"…",
   (p,gk)=>"Tout converge vers "+p+", le danger est à son comble…",
+  (p,gk)=>p+" arme son geste, "+gk+" écarte les bras et se fait tout grand…",
+  (p,gk)=>p+" se présente seul devant "+gk+", tout le stade debout…",
+  (p,gk)=>"Le ballon revient sur "+p+", "+gk+" est à contre-pied, mes amis…",
+  (p,gk)=>p+" prend sa chance des vingt mètres, "+gk+" tutoie déjà sa lucarne du regard…",
+  (p,gk)=>p+" fixe "+gk+" droit dans les yeux, le duel du soir, c'est maintenant…",
+  (p,gk)=>"Centre au cordeau pour "+p+" au point de penalty, "+gk+" hurle mais personne n'écoute…",
 ];
 function gardienDe(club){ const g=club&&onze(club).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
 // l'envahisseur à quatre pattes, façon panneau d'affichage de stade
@@ -1989,6 +2091,47 @@ const INCIDENTS=[
   choix:[
    {lib:"Encourager et y participer", issue:j=>{eff(j,{moral:+4}); const moi=clubById(G.monClub); moi.joueurs.forEach(x=>x.moral=Math.min(100,(x.moral||65)+3)); return `Soirée mémorable. Tout le groupe revient ressoudé — la cohésion grimpe d'un cran.`;}},
    {lib:"Décliner, repos avant tout", issue:j=>{eff(j,{moral:-2,groupe:-1}); return `Vous préférez préserver la récupération. ${j.nom} comprend, un peu déçu.`;}},
+  ]},
+ {id:"vhs_espion", poids:0.5, a:2003, test:j=>(j.venal||5)>=5 && j.matchs>=5,
+  txt:j=>`${j.nom} débarque avec une cassette VHS tournée par son cousin, perché dans un platane : la séance tactique à huis clos de votre prochain adversaire. Image tremblante, mais tout y est.`,
+  choix:[
+   {lib:"Visionner en cachette avec le staff", issue:j=>{const ok=Math.random()<0.6; if(ok){eff(j,{moral:+4,groupe:+2}); return `Magnétoscope, rideaux tirés : vous connaissez désormais leur combine sur corner. Motus.`;} else {eff(j,{moral:-4,conf:-3}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Un stagiaire vend la mèche : « Watergate à la buvette », titre la presse. Le président fulmine.`;}}},
+   {lib:"Renvoyer la cassette à l'adversaire, avec un mot fleuri", issue:j=>{eff(j,{moral:-2}); majReput(+2,"cassette rendue"); return `« On vous battra sans magnétoscope. » Le mot fait le tour des vestiaires de France.`;}},
+   {lib:"Effacer la bande en enregistrant du tennis dessus", issue:j=>{eff(j,{moral:-3,conf:+1}); return `Preuve détruite, conscience tranquille. Le cousin redescend du platane, vexé.`;}},
+  ]},
+ {id:"minitel_corbeau", poids:0.5, a:2001, test:j=>(j.venal||5)>=6,
+  txt:j=>`Stupeur : le mystérieux « Corbeau » qui vend les secrets du vestiaire sur un serveur Minitel payant — compos, embrouilles, surnoms du staff — n'est autre que ${j.nom}. Le 3615 tourne à plein régime.`,
+  choix:[
+   {lib:"Le démasquer devant tout le groupe", issue:j=>{eff(j,{arg:+0.5e6,moral:-9,groupe:+3,conf:+2}); return `Amende salée et Minitel confisqué. Le vestiaire savoure la chute du Corbeau.`;}},
+   {lib:"Racheter son silence... et le serveur", issue:j=>{eff(j,{arg:-0.4e6,moral:+3}); return `Le club est désormais propriétaire du 3615. Le Corbeau ne publie plus que des éloges.`;}},
+   {lib:"En faire votre attaché de presse officieux", issue:j=>{eff(j,{moral:+5,groupe:-3}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Les fausses rumeurs savamment distillées affolent les journalistes. Machiavélique — mais au vestiaire, plus personne ne se confie.`;}},
+  ]},
+ {id:"loto", poids:0.4, test:()=>true,
+  txt:j=>`${j.nom} a coché les six bons numéros au Loto. Il arrive à l'entraînement en limousine avec chauffeur et parle de « raccrocher pour ouvrir un golf ».`,
+  choix:[
+   {lib:"Le convaincre de jouer « pour le plaisir »", issue:j=>{eff(j,{moral:+8,ego:+1}); return `Libéré de tout souci d'argent, ${j.nom} rejoue comme un gamin. Il offre la tournée à la buvette chaque vendredi.`;}},
+   {lib:"Le vendre avant qu'il ne raccroche", issue:j=>{eff(j,{vend:0.75}); return `Transféré avant le premier trou de golf. L'acheteur ignore que sa recrue est millionnaire et s'en moque éperdument du foot.`;}},
+   {lib:"Lui suggérer d'investir dans le club", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{arg:+1.2e6,moral:+4,conf:+2}); return `Marché conclu : ${j.nom} injecte 1,2 MF et se découvre une âme de dirigeant. Il joue ET signe les chèques.`;} else {eff(j,{moral:-5}); return `« Je gagne au Loto et vous me tendez la sébile ? » Vexé, il repart en limousine.`;}}},
+  ]},
+ {id:"chasse", poids:0.5, duo:true, test:j=>j.age>=24,
+  txt:(j,k)=>`${j.nom} a emmené ${k.nom} à l'ouverture de la chasse dans son village. Bilan : zéro faisan, mais ${k.nom} revient avec trois plombs dans le mollet. « Un buisson qui a bougé », jure ${j.nom}.`,
+  choix:[
+   {lib:"Interdire la chasse à tout l'effectif", issue:(j,k)=>{eff(k,{bless:+RNDI(2,4)}); eff(j,{moral:-5}); return `Fusils au râtelier jusqu'à nouvel ordre. ${j.nom} maudit ce règlement « de citadins ».`;}},
+   {lib:"Couvrir : « chute à l'entraînement »", issue:(j,k)=>{eff(k,{bless:+RNDI(2,4),moral:+3}); eff(j,{moral:+3}); const ok=Math.random()<0.65; if(ok){return `Version officielle gobée. Le radiologue, lui, garde le cliché des plombs en souvenir.`;} else {G.buzz=Math.min(4,(G.buzz||0)+1); majReput(-2,"mensonge éventé"); return `Un infirmier bavard vend la mèche : la France entière compte les plombs. Fou rire national.`;}}},
+   {lib:"Envoyer la note du chirurgien au tireur", issue:(j,k)=>{eff(j,{arg:+0.3e6,moral:-4}); eff(k,{bless:+RNDI(2,4),moral:+2}); return `Pollueur-payeur. ${j.nom} règle la facture en ronchonnant, ${k.nom} encadre la radio dans son salon.`;}},
+  ]},
+ {id:"sosie", poids:0.5, test:j=>(j.venal||5)>=6 && (j.ego||5)>=5,
+  txt:j=>`Découverte ahurissante : ${j.nom} paie un sosie pour inaugurer à sa place supermarchés et foires agricoles, cachets empochés. Le pot aux roses éclate quand le sosie signe son nom avec deux fautes.`,
+  choix:[
+   {lib:"Amende et corvées promo doublées", issue:j=>{eff(j,{arg:+0.4e6,moral:-6,conf:+2}); return `${j.nom} inaugurera lui-même le rayon charcuterie de Trifouillis. En personne, et avec le sourire.`;}},
+   {lib:"Embaucher le sosie officiellement", issue:j=>{eff(j,{arg:-0.2e6,moral:+4,groupe:+2}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Le sosie pose désormais avec la mascotte pendant que le vrai s'entraîne. La presse adore, tout le monde y gagne.`;}},
+   {lib:"Fermer les yeux contre la moitié des cachets", issue:j=>{eff(j,{arg:+0.2e6,moral:+2,conf:-2}); return `Petit arrangement entre amis. Le président ignore d'où vient cette ligne « divers » dans les comptes.`;}},
+  ]},
+ {id:"bac", poids:0.6, bon:true, pondJeune:2, test:j=>j.age<=19,
+  txt:j=>`${j.nom} passe le bac la semaine du déplacement. Sa mère a appelé le club : « le foot, d'accord, mais le diplôme d'abord ». Le gamin n'ose rien demander.`,
+  choix:[
+   {lib:"Le libérer pour réviser", issue:j=>{const ok=Math.random()<0.75; if(ok){eff(j,{moral:+8,groupe:+2}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Mention assez bien ! Le stade entier chante « il a eu le bac » à son retour. Sa mère vous envoie une tarte.`;} else {eff(j,{moral:+4}); return `Recalé d'un point en philo, mais reconnaissant. « Je me rattraperai sur le terrain, coach. »`;}}},
+   {lib:"Dans le groupe, révisions dans le bus", issue:j=>{eff(j,{moral:-3}); return `Fiches de philo entre deux causeries. Kant à l'aller, 4-4-2 au retour.`;}},
   ]},
 ];
 function anneeJeu(){ return (G.anBase||1995)+(G.saisonIdx||1)-1; } // année civile de DÉBUT de la saison en cours ; anBase = 1re saison de la carrière (1995 par défaut, 1996 si départ en 96/97…)
@@ -3116,6 +3259,7 @@ function genEvCoupe(H, A, r){ // r = {sh,sa,tab,win} déjà tiré ; renvoie {ev,
     const qualifie=clubAffiche(r.win).nom;
     ev.push({m:90,t:"sys",x:"TIRS AU BUT : "+qualifie+" se qualifie !"});
   }
+  annoteButs(ev); // doublé/triplé/coup du chapeau au téléscripteur de coupe aussi
   return {ev, aff, sh:r.sh, sa:r.sa};
 }
 function ecranCoupe(){
@@ -3818,11 +3962,13 @@ function celebreFlash(o, onDone){
     ? `<div class="vignette"><img class="vimg" src="${o.img}" alt="">
          <div class="bandeau"><div class="gros">${o.gros}</div>${o.sub?`<div class="det">${o.sub}</div>`:""}</div>
        </div>
+       ${o.buteur?`<div class="buteur">${esc(o.buteur)}</div>`:""}
        ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}
        <div class="hint">▸ cliquez pour continuer</div>`
     : `<div class="gros">${o.gros}</div>
        ${o.art?`<pre style="font-family:monospace;white-space:pre;line-height:1.05;font-size:14px;color:#ffd24a;margin:8px 0;text-shadow:0 0 6px rgba(255,210,74,.5)">${o.art}</pre>`:""}
        ${o.sub?`<div class="det">${o.sub}</div>`:""}
+       ${o.buteur?`<div class="buteur">${esc(o.buteur)}</div>`:""}
        ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}
        <div class="hint">▸ cliquez pour continuer</div>`;
   d.innerHTML=`<div class="led">${corps}</div>`;
@@ -3999,8 +4145,9 @@ function lanceCoupe(H, A, ed){
     ajouteLigne(tk,lg); majTab(lg); i++;
     tk.scrollTop=tk.scrollHeight;
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
-      celebreFlash({classe:contre?"contre":"", gros:contre?"BUT…":"⚽ BUT !",
+      celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} — ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
+        buteur:`${lg.g.but} ${lg.m}' ⚽`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
@@ -4102,7 +4249,7 @@ function lanceMatch(instant){
     document.getElementById("tScA").textContent=l.g.sa;
     const cible=l.g.cote===eM.h.id?"tBuH":"tBuA";
     document.getElementById(cible).insertAdjacentHTML("beforeend",
-      `<div>⚽ ${esc(l.g.but)} ${l.m}'${l.g.pen?" (sp)":""}</div>`);
+      `<div>⚽ ${esc(l.g.but)} ${l.m}'${l.g.cf?" (cf)":l.g.pen?" (sp)":""}</div>`);
   };
   const extra=[];
   // moments-buts non interactifs (cagade, cadeau, but50, geste) : déjà résolus par finirJournee.
@@ -4126,23 +4273,38 @@ function lanceMatch(instant){
     const toutes=lignes.concat(extra);
     const buts=toutes.filter(l=>l.g), cartons=toutes.filter(l=>l.c);
     const colBut=(cote,droite)=>buts.filter(l=>l.g.cote===cote)
-      .map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}${l.g.pen?' <span class="dim">(sp)</span>':""}</p>`).join("")||'<p class="dim">—</p>';
-    tk.insertAdjacentHTML("beforeend",`<div class="fmatch">
-      <p class="sys" style="margin-bottom:4px">— FEUILLE DE MATCH —</p>
-      <p style="text-align:center;font-size:16px"><b>${esc(eM.h.nom)} <span class="jaune">${eM.sh}</span> — <span class="jaune">${eM.sa}</span> ${esc(eM.a.nom)}</b></p>
-      <div style="display:flex;gap:18px;margin-top:4px">
-        <div style="flex:1;text-align:right">${colBut(eM.h.id)}</div>
-        <div style="flex:1">${colBut(eM.a.id)}</div>
-      </div>
-      ${cartons.length?`<p style="margin-top:6px;text-align:center">${cartons.map(l=>`<span class="${l.c.rouge?"rouge":"jaune"}">▮</span> ${l.m}' ${esc(l.c.nom)} <span class="dim">(${l.c.cote})</span>`).join(" &nbsp;·&nbsp; ")}</p>`:""}
-      <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(monMatch.aff||0)} spectateurs — ${esc(eM.h.stade)}</p>
-    </div>`);
-    const autres=res.filter(r=>r.h.id!==G.monClub&&r.a.id!==G.monClub)
-      .map(r=>`<p class="dim">${esc(r.h.nom)} ${r.sh} - ${r.sa} ${esc(r.a.nom)}</p>`).join("");
-    tk.insertAdjacentHTML("beforeend",`<p class="sys">— Les autres résultats de la journée —</p>${autres}
-      <p style="margin-top:6px"><button class="big" id="bSuite">Prochaine journée 📆</button></p>`);
-    tk.scrollTop=tk.scrollHeight;
-    document.getElementById("bSuite").onclick=()=>montre("calendrier");
+      .map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}${l.g.cf?' <span class="dim">(cf)</span>':l.g.pen?' <span class="dim">(sp)</span>':""}</p>`).join("")||'<p class="dim">—</p>';
+    const afficheFeuille=()=>{
+      tk.insertAdjacentHTML("beforeend",`<div class="fmatch">
+        <p class="sys" style="margin-bottom:4px">— FEUILLE DE MATCH —</p>
+        <p style="text-align:center;font-size:16px"><b>${esc(eM.h.nom)} <span class="jaune">${eM.sh}</span> — <span class="jaune">${eM.sa}</span> ${esc(eM.a.nom)}</b></p>
+        <div style="display:flex;gap:18px;margin-top:4px">
+          <div style="flex:1;text-align:right">${colBut(eM.h.id)}</div>
+          <div style="flex:1">${colBut(eM.a.id)}</div>
+        </div>
+        ${cartons.length?`<p style="margin-top:6px;text-align:center">${cartons.map(l=>`<span class="${l.c.rouge?"rouge":"jaune"}">▮</span> ${l.m}' ${esc(l.c.nom)} <span class="dim">(${l.c.cote})</span>`).join(" &nbsp;·&nbsp; ")}</p>`:""}
+        <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(monMatch.aff||0)} spectateurs — ${esc(eM.h.stade)}</p>
+      </div>`);
+      const autres=res.filter(r=>r.h.id!==G.monClub&&r.a.id!==G.monClub)
+        .map(r=>`<p class="dim">${esc(r.h.nom)} ${r.sh} - ${r.sa} ${esc(r.a.nom)}</p>`).join("");
+      tk.insertAdjacentHTML("beforeend",`<p class="sys">— Les autres résultats de la journée —</p>${autres}
+        <p style="margin-top:6px"><button class="big" id="bSuite">Prochaine journée 📆</button></p>`);
+      tk.scrollTop=tk.scrollHeight;
+      document.getElementById("bSuite").onclick=()=>montre("calendrier");
+    };
+    // coup(s) du chapeau du match : une fenêtre dédiée avant la feuille, le héros repart avec le ballon
+    const chaps=[...new Set(buts.filter(l=>l.g&&l.g.chapeau).map(l=>l.g.but))]
+      .map(nom=>({nom, nb:buts.filter(l=>l.g.but===nom).reduce((mx,l)=>Math.max(mx,l.g.nb||1),0)}));
+    if(chaps.length){
+      (function next(i){
+        if(i>=chaps.length){ afficheFeuille(); return; }
+        const c=chaps[i];
+        celebreFlash({gros:"🎩 COUP DU CHAPEAU !", buteur:c.nom+" ⚽⚽⚽",
+          sub:`<b class="jaune">${esc(c.nom)}</b>`,
+          detail:"Coup du chapeau pour "+c.nom+" qui repart avec le ballon ⚽⚽⚽"+(c.nb>3?" — et même "+c.nb+" buts au total !":"")},
+          ()=>next(i+1));
+      })(0);
+    } else afficheFeuille();
   };
   // résolution d'un moment : delta de score, ligne de résultat, sifflet réécrit, phase B
   const resoudMoment=(delta,lx,lic,butCote,butNom,suite)=>{
@@ -4150,9 +4312,10 @@ function lanceMatch(instant){
     const e=res.find(r=>r.mien);
     const sifflet=lignes[lignes.length-1];
     sifflet.x="COUP DE SIFFLET FINAL. "+e.h.nom+" "+e.sh+" - "+e.sa+" "+e.a.nom;
+    const cf=(monMatch.moment&&monMatch.moment.type==="coupfranc"); // coup franc → étiquette (cf), pas (sp)
     const penL={m:90,t:delta?"but":"occ",ic:lic,
       x:lx.replace("{SCORE}","("+e.h.id+" "+e.sh+"-"+e.sa+")"),
-      g:delta?{cote:butCote,but:butNom,pas:null,sh:e.sh,sa:e.sa,pen:true}:null};
+      g:delta?{cote:butCote,but:butNom,pas:null,sh:e.sh,sa:e.sa,pen:!cf,cf}:null};
     extra.push(penL); // la feuille de match le verra, sans doubler le téléscripteur
     ajouteLigne(tk,penL); majTableau(penL);
     tk.scrollTop=tk.scrollHeight;
@@ -4212,8 +4375,9 @@ function lanceMatch(instant){
     }
     if(lg && lg.g){ // BUT
       const contre=lg.g.cote!==G.monClub;
-      celebreFlash({classe:contre?"contre":"", gros:contre?"BUT…":"⚽ BUT !",
+      celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(eM.h.nom)} ${lg.g.sh} — ${lg.g.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
+        buteur:`${lg.g.but} ${lg.m}' ⚽`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
