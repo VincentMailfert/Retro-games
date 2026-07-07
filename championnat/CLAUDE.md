@@ -178,6 +178,13 @@ toujours « raconter quelque chose ».
   restent cohérents (sinon le flash affiche un score que le sifflet contredit). Les **cagades** = bourdes de
   gardien (Arconada, relance dans les pieds, sortie ratée, faux rebond sur passe en retrait), **but sec dans les
   deux sens** : `cagade` (le vôtre se troue) / `cadeau` (celui d'en face).
+  **Trois moments rares (v0.67), écrits par Fable 5** : **`gkbut`** (« LE GARDIEN MARQUE ! » — votre portier monte sur
+  le dernier corner et catapulte le ballon au fond) est un **MOMENTS_BUT** de plus (`autoMoment`→+1, buteur = votre
+  gardien via `buteurMoment`, titre de flash dédié) — freak absolu, slice de ~1,5 % dans `tireMoment`, **impact
+  calibrage négligeable** (moments = MON match seul ; mesuré : 2,407 buts/match, inchangé). **`pigeon`** (volatile
+  assommé, `PIGEON_ART`) et **`streaker`** (intrus en bottes) sont du **PUR DÉCOR** (`autoMoment`→0, absents de
+  MOMENTS_BUT) affichés comme le `chien` via `celebreFlash` ; la queue de `tireMoment` tire au sort `chien`/`pigeon`/
+  `streaker`. Vérifiés par `test-moments.cjs`.
   **Retour visuel du choix** : un overlay interactif tranché ne laisse plus tous les boutons en jaune. `finMoment`
   reçoit le **bouton cliqué** (4ᵉ argument) et applique les classes `.choisi` (le retenu s'illumine en jaune + coche
   ✅, via `dataset.coche` pour ne préfixer qu'une fois) et `.ecarte` (les autres en fond sombre estompé). Tous les
