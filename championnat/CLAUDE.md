@@ -545,11 +545,20 @@ toujours « raconter quelque chose ».
   nationale) : `resoudreEuroTie(a,b,neutre)` joue deux manches (aller chez a, retour chez b), **cumul des buts**,
   **but à l'extérieur double** (règle de l'époque), t.a.b. si tout est à égalité ; **sauf la finale** = match sec
   sur terrain neutre (`neutre=true`, sans `EURO_TERRAIN`). L'aller-retour **resserre aussi la distribution** (deux
-  manches = moins d'upsets) : élite ~68 vs modestes ~6 sur 120 C1, réaliste. **Qualification : champion de D1 → C1**
-  (`G._euroC1`, posé à l'intersaison sur le
-  champion et à l'init par `SAISONS[key].euroC1` — siège français réel : **Nantes** en 95-96, **Auxerre** en
-  96-97). Seule VOTRE compétition a un tableau détaillé ; **qualifié ou non, une C1 se joue toujours** (siège
-  français = Nantes `EURO_SIEGE_FR="NAN"`) pour désigner un vainqueur → la scène européenne vit sa vie.
+  manches = moins d'upsets) : élite ~68 vs modestes ~6 sur 120 C1, réaliste.
+  **Registre multi-compétitions (v0.75, lot 2 étape 3) : C1 + C3.** `COMPETS={C1,C3}` (nom, emoji ⭐/🌍, `pool` de
+  clubs, `siege` français, dotations, recette) ; `competActif()` = la compétition en cours (`G.euro.compet`). **La C3
+  — Coupe UEFA** ajoute **15 clubs étrangers curés** (`CLUBS_EUROPE_C3`/`STARS_EUROPE_C3`, champ 95-96 TRÈS relevé :
+  Milan/Barça/Bayern/Inter/Liverpool y jouaient car seuls les champions allaient en C1 → **la C3 est plus dure que la
+  C1**). `G.europe` fusionne les deux pools (30 clubs) ; `EUROCLUBS`=toutes les métadonnées ; `euroMeta`/`estEuropeen`
+  balaient les deux. **Qualification (`G.euroCompet` ∈ C1/C3/null, remplace l'ancien booléen `G._euroC1`) : champion de
+  D1 → C1, 2ᵉ-4ᵉ → C3** (posé à l'intersaison selon le rang, à l'init par `SAISONS[key].euroC1`/`euroC3`). Sièges
+  français réels : **Nantes** (C1) / **Bordeaux** (C3, l'épopée 96 vs Milan) en 95-96 ; **Auxerre**/**PSG-Monaco-Metz**
+  en 96-97. Seule VOTRE compétition (celle où vous êtes qualifié) a un tableau ; **qualifié ou non, une compétition se
+  joue toujours** (C1 par défaut, siège français) pour désigner un vainqueur → la scène européenne vit sa vie.
+  **Réconciliation joker↔Europe étendue** : en plus de `acheterJoker` (vous), le bloc « la concurrence rôde sur le
+  vivier » (un club IA prestigieux rafle un joker dans `finirJournee`) appelle aussi **`retireDEurope`** → un joker
+  raflé par l'IA quitte son club européen (sinon doublon curé sur deux terrains — ex. Papin vivier→Monaco ET Bayern).
   **Flux événementiel interactif (v0.73, lot 2 étape 1)** : `euroTick` **tire** les affiches (`euroTireTour` → pose
   `G.euro.aJouer`, sérialisé/migré) **sans résoudre** ; `euroResoutTour(interactif)` résout `aJouer`. Hors UI
   (`EN_TEST`) **ou** si ce n'est pas votre tie (déjà éliminé) → résolution muette immédiate ; sinon `ecranCalendrier`
@@ -582,9 +591,10 @@ toujours « raconter quelque chose ».
   contrairement à l'interdiction club-français ↔ vivier. Validation dédiée : **`harness-euro.cjs`** (vivier 15×18,
   plafond 90, tableau à 16, résolution complète, qualif du champion, réconciliation, zéro doublon **curé**
   Europe↔France — les homonymies de jeunes **procéduraux** sont tolérées comme entre deux clubs français, et le
-  test les ignore ; F = sanity de la distribution des vainqueurs). **Progressif** : lot 2 = C2 (Coupe des Coupes,
-  vainqueur Coupe de France) + C3 (Coupe UEFA, 2ᵉ-4ᵉ) avec leurs viviers curés, avant-match interactif + direct
-  (deux manches jouables = deux nuits européennes par tour) ; lot 4 (option) = phase de poules de la C1.
+  test les ignore ; F = distribution des vainqueurs ; G = C3 : Bordeaux → Coupe UEFA, pool C3, résolution). **Reste** :
+  **C2 — Coupe des Coupes** (pour le vainqueur de la Coupe de France, siège PSG) avec son vivier curé (même méthode :
+  scraper le champ C2 95-96 sur Transfermarkt, filtrer été-96) + brancher sa qualif (`G.coupe.vainqueur===G.monClub →
+  "C2"`) dans le registre `COMPETS` ; lot 4 (option) = phase de poules de la C1.
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 

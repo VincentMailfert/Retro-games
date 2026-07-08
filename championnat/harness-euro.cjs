@@ -36,8 +36,8 @@ console.log("A) Vivier européen (structure)");
 try {
   api.nouvellePartie("NAN"); // Nantes = siège français de la C1 95-96 → qualifié d'entrée
   const G = api.getG();
-  if (!G.europe || G.europe.length !== 15) fail("G.europe = " + (G.europe ? G.europe.length : "absent") + " clubs (attendu 15)");
-  else ok("15 clubs européens construits");
+  if (!G.europe || G.europe.length !== 30) fail("G.europe = " + (G.europe ? G.europe.length : "absent") + " clubs (attendu 30 : 15 C1 + 15 C3)");
+  else ok("30 clubs européens construits (15 C1 + 15 C3)");
   let bad = 0;
   for (const c of G.europe) { const n = c.joueurs.length; if (n < 16) { bad++; } }
   if (bad) fail(bad + " clubs européens sous 16 joueurs"); else ok("tous les clubs ont un effectif complet (≥16)");
@@ -155,6 +155,24 @@ try {
   if (elite <= modestes) fail("le modèle de force ne favorise pas assez l'élite (élite " + elite + " ≤ modestes " + modestes + ")");
   else ok("l'élite domine les modestes (élite " + elite + " vs modestes " + modestes + ")");
 } catch (e) { fail("exception F : " + e.stack); }
+
+/* ===== G) C3 : Coupe UEFA (registre multi-compétitions) ===== */
+console.log("G) C3 : Bordeaux qualifié en Coupe UEFA (siège français), pool C3");
+try {
+  api.nouvellePartie("BOR"); // Bordeaux = siège C3 95-96
+  let G = api.getG();
+  if (G.euro.compet !== "C3") fail("compétition = " + G.euro.compet + " (attendu C3)");
+  else ok("Bordeaux dispute la Coupe UEFA (compet=C3)");
+  if (!G.euro.enLice) fail("Bordeaux devrait être en lice en C3");
+  else ok("en lice d'entrée");
+  const hasMIL = G.euro.vivants.includes("MIL"), hasJUV = G.euro.vivants.includes("JUV");
+  if (hasMIL && !hasJUV) ok("tableau tiré dans le pool C3 (Milan présent, clubs C1 absents)");
+  else fail("pool C3 incorrect (MIL=" + hasMIL + " JUV=" + hasJUV + ")");
+  for (let d = 0; d < 38; d++) api.jouerJournee();
+  G = api.getG();
+  if (!G.euro.vainqueur) fail("pas de vainqueur de C3 après 38 journées");
+  else ok("C3 résolue : vainqueur = " + G.euro.vainqueur);
+} catch (e) { fail("exception G : " + e.stack); }
 
 console.log(FAILS ? ("\n❌ HARNAIS EUROPE : " + FAILS + " ÉCHEC(S)") : "\n✅ HARNAIS EUROPE : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);
