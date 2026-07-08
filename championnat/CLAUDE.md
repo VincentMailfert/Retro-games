@@ -556,9 +556,22 @@ toujours « raconter quelque chose ».
   ouvre **`ouvreEuro(suite)`** — trois fenêtres `#fiche` calquées sur `ouvreCoupe` : avant-match (affiche + **choix de
   rotation** cadres/mixte/réserve) → `euroFenetreVerdict` → `euroFenetreResultats`, chaînées **avant** la Coupe de
   France (`ouvreEuro(apresEuro)`, journées distinctes). **La rotation « cadres » active enfin la fatigue** (pose
-  `G.coupe.fatigue=1` → −5 % au match de championnat suivant, mécanisme partagé). Le **téléscripteur direct** des nuits
-  européennes (deux manches jouables au direct, réutilisant `lanceCoupe`/`genEvCoupe`) reste pour l'étape suivante ;
-  en attendant, la résolution derrière la fenêtre est instantanée (verdict = cumul + détail des manches).
+  `G.coupe.fatigue=1` → −5 % au match de championnat suivant, mécanisme partagé). Deux façons de jouer : **« ▶ Jouer au
+  direct »** ou **« Résultat instantané »**.
+  **Téléscripteur direct des nuits européennes (v0.74, lot 2 étape 2)** : `jouerDirect` tire le tie (`resoudreEuroTie`),
+  le mémorise dans **`G.euro.enDirect`** (`{aid,bid,advId,tourIdx,nom,finale,tie,leg}`, sérialisé/migré) et bascule sur
+  **`ecranEuroMatch`** → **`lanceEuroLeg`** (jumeau AUTONOME de `lanceCoupe` — dupliqué à dessein pour ne rien risquer sur
+  le direct de la Coupe de France) : réutilise `genEvCoupe`/`celebreFlash`/la montée de tension sur un flux **ISOLÉ**
+  (aucune stat de championnat touchée). **Deux manches jouées à la suite** : aller (bouton « Match retour → ») puis retour ;
+  chaque manche atterrit sur son score (`tie.l1`/`tie.l2`), t.a.b. sur l'ensemble annoncés au sifflet du retour ; **finale =
+  manche unique** sur terrain neutre (les t.a.b. y passent par `genEvCoupe`). Au sifflet de la dernière manche,
+  `euroResoutTour(true, forced)` **réinjecte** le tie déjà joué (les 7 autres affiches au modèle) pour que tableau et direct
+  coïncident, puis `euroFenetreVerdict`→résultats, retour au calendrier (le fil reprend). Trois adaptations « europe-aware » :
+  **`clubAffiche`** trouve les clubs de `G.europe`, **`onzeEuro(c)`** applique la rotation `G.euro` à VOTRE club (au lieu de
+  `G.coupe`), et `nomsAffiche`/`gardienAff`/`genEvCoupe` prennent une **fonction `onze` optionnelle** (défaut `onzeCoupe`) →
+  les buteurs cités sont de **vrais joueurs des deux clubs** (curés). Les clubs européens ont un **stade + capacité** réels
+  (`CLUBS_EUROPE`) pour l'ambiance. Abandon en cours (nav → `abandonneDirect` purge les timers) : `aJouer` reste, on reprend
+  depuis l'avant-match (resume voulu). **Court-circuité en `EN_TEST`** (montre no-op) → harnais/calibrage intacts.
   **Économie** : `EURO_RECETTE` (1,2 MF/tour franchi) + `EURO_DOTATION` (barème UEFA 2/4/7/12 MF selon le tour
   atteint) + `EURO_DOTATION_VAINQUEUR` (20 MF au sacre). Onglet **EUROPE** (`ecranEurope`, 4ᵉ de la nav, calqué
   sur `ecranCoupe`) : statut, parcours, résultats du dernier tour, vainqueur. Migré (`G.europe`/`G.euro`/`G._euroC1`).
