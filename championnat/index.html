@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.69"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.70"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3090,7 +3090,7 @@ const STAFF_POSTES=[
 ];
 const COACH_PRENOMS=["Gérard","Guy","Raymond","Roger","Aimé","Robert","Marcel","Henri","Bernard","Jean-Claude","José","Daniel","Michel","Pierre","Lucien","Bruno","Francis","Gilbert","René","Claude"];
 const COACH_PHRASES={
-  attaque:["« Un attaquant qui ne tire pas, c'est un défenseur qui s'ignore. »","« Je veux des buts, pas des jolis gestes. »","« Marquez d'abord, on discutera après. »","« Devant, on ne réfléchit pas : on frappe. »"],
+  attaque:["« Du droit, du gauche, de la piche s'il le faut : je vais t'apprendre à la mettre au fond. »","« Avec moi, tu vas en nettoyer des lucarnes. »","« Si tu tires pas, tu marques pas. »","« Devant, on ne réfléchit pas : on frappe. »","« Je veux des buts, pas des jolis gestes. »"],
   defense:["« Zéro derrière, et on gagne 1-0. Le foot, c'est simple. »","« Un bon défenseur, ça se salit le maillot. »","« Le clean sheet, c'est ma religion. »","« On défend à onze, ou on ne défend pas. »"],
   gardien:["« Un gardien, ça se tait et ça arrête. »","« Les pieds d'abord, les mains ensuite. »","« Je fais des murs, pas des passoires. »","« Sur sa ligne, un portier doit être une évidence. »"],
   cpa:["« Un coup franc, ça se travaille mille fois à l'entraînement. »","« Le penalty, c'est dans la tête, pas dans le pied. »","« Donnez-moi un ballon arrêté, je vous rends un but. »","« La feuille morte, c'est un art, jeune homme. »"],
@@ -3101,14 +3101,12 @@ const TIER_NOM=["","prometteur","confirmé","réputé"];
 function coachTier(id){ return (G.staff && G.staff[id]) ? G.staff[id].tier : 0; }
 function staffCoutJournee(){ if(!G.staff) return 0; return STAFF_POSTES.reduce((s,p)=>s+(G.staff[p.id]?G.staff[p.id].salaire:0),0); }
 function etoiles(t){ return "★".repeat(t)+"☆".repeat(3-t); }
-// tire une qualité de candidat pondérée par le prestige du club (un grand club attire de meilleurs techniciens)
-function tirTierCoach(){ const p=(clubById(G.monClub).pres||3), r=Math.random()*10; if(r<p-3) return 3; if(r<p+1) return 2; return 1; }
 function genCandidatsCoach(id){
-  const n=3, out=[], phrases=COACH_PHRASES[id].slice().sort(()=>Math.random()-0.5); // phrases distinctes entre candidats
-  for(let i=0;i<n;i++){ const t=tirTierCoach();
-    out.push({nom:PICK(COACH_PRENOMS)+" "+PICK(NOMS), tier:t, phrase:phrases[i%phrases.length],
-      salaire:t*130000, prime:Math.round(t*1.8e6)}); }
-  return out.sort((a,b)=>b.tier-a.tier);
+  // toujours un choix VARIÉ : un as (★★★), un confirmé (★★☆), un espoir (★☆☆). Tout le monde peut viser l'as,
+  // mais son indemnité et son salaire le réservent de fait aux clubs qui en ont les moyens (le prestige pèse par l'argent).
+  const phrases=COACH_PHRASES[id].slice().sort(()=>Math.random()-0.5); // phrases distinctes entre candidats
+  return [3,2,1].map((t,i)=>({nom:PICK(COACH_PRENOMS)+" "+PICK(NOMS), tier:t, phrase:phrases[i%phrases.length],
+    salaire:t*130000, prime:Math.round(t*1.8e6)}));
 }
 let _COACHCANDS=null, _COACHPOSTE=null;
 function embaucherCoach(idx){
@@ -3128,7 +3126,7 @@ function ouvreRecrutement(id){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px;max-height:88vh;overflow-y:auto">
     <h2 style="color:#6fd6e8">${poste.pic} RECRUTER — ${esc(poste.nom.toUpperCase())}</h2>
-    <p class="dim" style="font-size:12px;margin-bottom:8px">Trois candidats se présentent. Chacun réclame une indemnité à l'embauche et un salaire hebdomadaire. Un club prestigieux attire de meilleurs techniciens.</p>
+    <p class="dim" style="font-size:12px;margin-bottom:8px">Un as, un confirmé et un espoir se présentent. Chacun réclame une indemnité à l'embauche et un salaire hebdomadaire — l'as se paie cher, à vous de voir ce que vos finances permettent.</p>
     ${_COACHCANDS.map((c,i)=>`<div style="border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:6px 0">
        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
          <b>${esc(c.nom)}</b><span class="jaune" style="letter-spacing:1px">${etoiles(c.tier)}</span></div>
@@ -5490,7 +5488,7 @@ function ecranClub(){
      <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} % et soignées plus vite${G.centre>=3?" · Le staff médical réduit la fragilité chaque intersaison":""}</p>
      <p style="margin-top:4px"><button class="act" id="bCe" ${G.centre>=5?"disabled":""}>Améliorer le centre (niveau ${G.centre+1} — ${8*G.centre} MF)</button></p>
      <h3 style="margin-top:12px">Staff technique</h3>
-     <p class="dim" style="font-size:11px">Six spécialistes à recruter — chacun donne un coup de pouce à son secteur (votre match) et coûte un salaire chaque journée. Un club prestigieux attire de meilleurs techniciens.</p>
+     <p class="dim" style="font-size:11px">Six spécialistes à recruter — chacun donne un coup de pouce à son secteur (votre match) et coûte un salaire chaque journée. À chaque poste, un as / un confirmé / un espoir : l'as se paie cher.</p>
      <div>${staffHTML()}</div>
      <h3 style="margin-top:12px">Le président</h3>
      <p>Objectif ${esc(G.saison)} : <b class="jaune">${esc(G.objectif.label)}</b></p>

@@ -305,8 +305,10 @@ toujours « raconter quelque chose ».
   (`STAFF_POSTES` : attaque, defense, gardien, cpa, physique, mental) qu'on POURVOIT en recrutant un coach — modèle
   **hybride** : chaque recrue a un **nom généré** (`COACH_PRENOMS`+`NOMS`) et une **petite phrase** de caractère
   (`COACH_PHRASES`, distinctes entre candidats). État : **`G.staff`** (objet, migré, vide au départ), chaque poste
-  `null` ou `{nom, tier (1-3), phrase, salaire}`. `genCandidatsCoach(id)` tire 3 candidats, **qualité pondérée par le
-  prestige** du club (`tirTierCoach`) ; `ouvreRecrutement(id)` (modale `#fiche`, candidats en var module `_COACHCANDS`)
+  `null` ou `{nom, tier (1-3), phrase, salaire}`. `genCandidatsCoach(id)` offre **toujours un éventail fixe** — un
+  **as (★★★)**, un **confirmé (★★☆)**, un **espoir (★☆☆)** — pour que le choix soit vrai (v0.70 : avant, deux ★★★
+  identiques pouvaient sortir) ; le prestige ne gate plus la qualité, c'est l'**indemnité + le salaire** qui réservent
+  l'as aux clubs qui en ont les moyens. `ouvreRecrutement(id)` (modale `#fiche`, candidats en var module `_COACHCANDS`)
   → `embaucherCoach(idx)` (débite l'indemnité `tier*1.8 MF` de `G.tresorerie`, pose le coach) ; `remercierCoach(id)`
   libère. Panneau `staffHTML()` sur l'écran Club (boutons `.bCoachIn`/`.bCoachOut`). **Effets = NUDGE, mon match seul**
   (via `coachTier(id)`, neutre sans coach et vide au harnais → **calibrage intact, mesuré**) : **attaque** +2 %/tier à
