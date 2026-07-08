@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.71"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.72"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -866,9 +866,9 @@ const STARS_D2_9697={
 const D1_9697=["PSG","MON","BOR","AUX","NAN","LEN","LYO","MET","STR","MTP","REN","LEH","BAS","GUI","NIC","CAN","LIL","CAE","NCY","OM"];
 const D2_9697=["STE","TOU","SOC","MAR","GUE","LOR","NIO","LMN","LAV","RST","CHA","AMI","MUL","VAL","PER","EPI","BEA","BRI","TRO","TON"];
 const SAISONS={
- "1995-96":{ an:1995, titre:"1995-96", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2,
+ "1995-96":{ an:1995, titre:"1995-96", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2, euroC1:["NAN"],
    sous:"La saison fondatrice. L'OM purge sa relégation en D2 (affaire VA-OM) — à vous de le ramener dans l'élite." },
- "1996-97":{ an:1996, titre:"1996-97", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697,
+ "1996-97":{ an:1996, titre:"1996-97", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AUX"],
    sous:"L'OM est de retour dans l'élite ; Saint-Étienne, Gueugnon et Martigues découvrent la Division 2. Henry et Trezeguet percent à Monaco." },
 };
 const SAISON_DEFAUT="1995-96";
@@ -917,6 +917,9 @@ function nouvellePartie(clubId, saisonKey){
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
   coupeInit();       // tirage de la Coupe de France de la saison
+  G.europe=construitDivision(CLUBS_EUROPE, STARS_EUROPE); // vivier européen (vrais effectifs C1 95-96)
+  G._euroC1=(S.euroC1||[]).includes(clubId);              // qualification C1 de la 1re saison (siège français réel)
+  euroInit();        // tirage de la Ligue des Champions
   majTitre(); montre("calendrier");
 }
 
@@ -1860,6 +1863,7 @@ function finirJournee(delta){
   // pas de nouvel arc le même week-end qu'un incident/conf (une seule modale) ; armeArc gère test/unicité/fenêtre
   if(!G.incident && !G.confPresse) armeArc();
   coupeTick(); // tour de Coupe de France en semaine, s'il est à l'heure
+  euroTick();  // tour de Ligue des Champions en semaine, s'il est à l'heure
   if(G.journee>=38) finDeSaison();
   assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
   sauvegardeLocale(true); // sauvegarde auto en fin de journée
@@ -2891,7 +2895,8 @@ function acheterJoker(k){
   G.budget-=o.prix;
   G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle de la recrue
   G.vivier[o.type]=G.vivier[o.type].filter(e=>e[0]!==o.j.nom); // signé : ne reviendra plus
-  G.news.unshift("RECRUE JOKER : "+o.j.nom+" ("+o.j.lieu+") signe pour "+(o.prix/1e6).toFixed(1)+" MF.");
+  const exEuro=retireDEurope(o.j.nom); // réconciliation : s'il jouait dans un club européen, il le quitte
+  G.news.unshift("RECRUE JOKER : "+o.j.nom+" ("+o.j.lieu+") signe pour "+(o.prix/1e6).toFixed(1)+" MF."+(exEuro?" Il quitte "+exEuro.nom+".":""));
   G.rapport.splice(k,1);
   rafraichir();
 }
@@ -3165,6 +3170,172 @@ function staffHTML(){
    très au-dessus de son rang — parfois il va loin, parfois il vous tombe dessus.
    Règle d'or : la coupe ne touche JAMAIS les stats de championnat (c.bp/c.j) ni
    le calibrage des buts — tout y est résolu par un modèle de force autonome. */
+/* ============================================================================
+   COUPE D'EUROPE — vivier des clubs européens (Ligue des Champions 95-96).
+   Vrais effectifs curés depuis Transfermarkt (saison_id/1995), filtrés des
+   arrivées de l'été 96 et des jeunes non utilisés. Format [nom, poste, âge, note, pot],
+   âge = 1995 − année de naissance. Plafond de note 90 comme la D1 ; potentiels 91-96
+   réservés aux futurs monstres (Raúl, Kluivert, Titov, S. Iversen, Grønkjær, A. Ilie…).
+   Ces clubs vivent dans G.europe, sont simulés en coupe par un modèle de force autonome
+   (jamais par simuleMatch → calibrage championnat intact), et vieillissent à l'intersaison
+   comme les divisions françaises. Un joker signé (VIVIER/JOKERS_RESERVE) qui porte le même
+   nom qu'un joueur européen le retire de son club (retireDEurope) : Deschamps signé quitte
+   la Juve. Nantes = club français déjà dans le jeu (occupe le siège français de la C1). */
+const CLUBS_EUROPE=[
+  {id:"JUV",nom:"Juventus",           pays:"Italie",     pres:6},
+  {id:"AJA",nom:"Ajax Amsterdam",     pays:"Pays-Bas",   pres:6},
+  {id:"RMA",nom:"Real Madrid",        pays:"Espagne",    pres:6},
+  {id:"DOR",nom:"Borussia Dortmund",  pays:"Allemagne",  pres:6},
+  {id:"RAN",nom:"Glasgow Rangers",    pays:"Écosse",     pres:5},
+  {id:"FCP",nom:"FC Porto",           pays:"Portugal",   pres:5},
+  {id:"BLB",nom:"Blackburn Rovers",   pays:"Angleterre", pres:5},
+  {id:"SPM",nom:"Spartak Moscou",     pays:"Russie",     pres:5},
+  {id:"PAN",nom:"Panathinaïkos",      pays:"Grèce",      pres:4},
+  {id:"STB",nom:"Steaua Bucarest",    pays:"Roumanie",   pres:4},
+  {id:"GRA",nom:"Grasshopper Zurich", pays:"Suisse",     pres:4},
+  {id:"LEG",nom:"Legia Varsovie",     pays:"Pologne",    pres:4},
+  {id:"ROS",nom:"Rosenborg",          pays:"Norvège",    pres:4},
+  {id:"FER",nom:"Ferencváros",        pays:"Hongrie",    pres:3},
+  {id:"AAB",nom:"Aalborg BK",         pays:"Danemark",   pres:3},
+];
+const STARS_EUROPE={
+  JUV:[
+    ["A. Peruzzi","G",25,84,86],["M. Rampulla","G",33,71,71],
+    ["C. Ferrara","D",28,83,84],["P. Vierchowod","D",36,78,78],["G. Pessotto","D",25,79,81],
+    ["M. Torricelli","D",25,77,79],["S. Porrini","D",27,75,77],
+    ["P. Sousa","M",25,84,86],["D. Deschamps","M",27,84,85],["A. Conte","M",26,82,83],
+    ["V. Jugović","M",26,81,83],["A. Di Livio","M",29,77,79],["A. Tacchinardi","M",20,73,84],
+    ["A. Del Piero","A",21,86,93],["F. Ravanelli","A",27,85,85],["G. Vialli","A",31,84,84],
+    ["A. Lombardo","A",30,80,81],["M. Padovano","A",29,76,79],
+  ],
+  AJA:[
+    ["E. van der Sar","G",25,84,88],["F. Grim","G",30,71,71],
+    ["D. Blind","D",34,79,79],["F. de Boer","D",25,84,85],["W. Bogarde","D",25,79,82],
+    ["M. Reiziger","D",22,78,86],["S. Silooy","D",32,74,74],["M. Santos","D",26,76,78],
+    ["J. Litmanen","M",24,85,88],["E. Davids","M",22,81,89],["R. de Boer","M",25,82,84],
+    ["M. Overmars","M",22,83,89],["F. George","M",24,81,84],["A. Scholten","M",33,72,72],
+    ["P. Kluivert","A",19,80,93],["N. Kanu","A",19,76,89],["K. Musampa","A",18,68,84],
+    ["N. Wooter","A",18,66,80],
+  ],
+  RMA:[
+    ["P. Buyo","G",37,78,78],["S. Cañizares","G",26,80,83],
+    ["F. Hierro","D",27,85,86],["M. Sanchís","D",30,80,80],["R. Alkorta","D",27,79,79],
+    ["M. Lasa","D",24,74,76],["Quique Flores","D",30,74,74],["Nando","D",28,74,74],
+    ["F. Redondo","M",26,85,87],["Luis Enrique","M",25,83,86],["Míchel","M",32,79,79],
+    ["J. Amavisca","M",24,77,79],["L. Milla","M",29,77,77],["F. Rincón","M",29,79,80],
+    ["M. Laudrup","A",31,85,85],["Raúl","A",18,80,94],["I. Zamorano","A",28,83,83],
+    ["J. Esnáider","A",22,76,82],
+  ],
+  DOR:[
+    ["S. Klos","G",24,80,83],["W. de Beer","G",31,72,72],
+    ["M. Sammer","D",28,86,87],["J. Kohler","D",30,83,84],["Júlio César","D",32,78,78],
+    ["S. Reuter","D",29,80,80],["M. Kree","D",30,74,74],["B. Schmidt","D",28,74,74],
+    ["A. Möller","M",28,84,85],["M. Zorc","M",33,79,79],["P. Berger","M",22,80,86],
+    ["S. Freund","M",25,78,78],["L. Ricken","M",19,76,88],["K. Reinhardt","M",27,75,75],
+    ["S. Chapuisat","A",26,83,84],["K. Riedle","A",30,82,82],["H. Herrlich","A",24,78,80],
+    ["R. Sosa","A",29,78,79],
+  ],
+  RAN:[
+    ["A. Goram","G",31,82,83],["B. Thomson","G",37,68,68],
+    ["R. Gough","D",33,80,80],["A. McLaren","D",24,77,77],["G. Petric","D",26,76,76],
+    ["D. Robertson","D",27,76,76],["A. Cleland","D",25,73,73],["S. Wright","D",24,72,74],
+    ["P. Gascoigne","M",28,85,86],["B. Laudrup","M",26,85,86],["S. McCall","M",31,78,78],
+    ["I. Ferguson","M",28,75,75],["I. Durrant","M",29,75,75],["T. Steven","M",32,76,76],
+    ["A. McCoist","A",33,80,80],["G. Durie","A",30,78,78],["O. Salenko","A",26,78,80],
+    ["P. van Vossen","A",27,74,74],
+  ],
+  FCP:[
+    ["V. Baía","G",26,84,86],["V. Nóvoa","G",33,70,70],
+    ["Jorge Costa","D",24,80,83],["Aloísio","D",32,78,78],["Zé Carlos","D",30,75,75],
+    ["Rui Jorge","D",22,76,80],["João M. Pinto","D",22,74,78],["João Pinto","D",34,72,72],
+    ["Emerson","M",23,80,84],["Rui Barros","M",30,79,79],["L. Drulović","M",27,79,80],
+    ["Paulinho Santos","M",25,77,77],["Semedo","M",30,76,76],["R. Latapy","M",27,77,78],
+    ["Domingos","A",26,80,82],["Edmílson","A",24,78,80],["A. Folha","A",24,76,78],
+    ["G. Mielcarski","A",24,74,76],
+  ],
+  BLB:[
+    ["T. Flowers","G",28,83,84],["B. Mimms","G",32,68,68],
+    ["C. Hendry","D",30,80,80],["H. Berg","D",26,80,83],["G. Le Saux","D",27,82,84],
+    ["J. Kenna","D",25,76,77],["I. Pearce","D",21,74,80],["C. Coleman","D",25,75,76],
+    ["T. Sherwood","M",26,80,80],["D. Batty","M",27,80,81],["J. Wilcox","M",24,78,80],
+    ["S. Ripley","M",28,77,77],["L. Bohinen","M",26,77,78],["B. McKinlay","M",26,74,74],
+    ["A. Shearer","A",25,88,88],["C. Sutton","A",22,82,86],["K. Gallacher","A",29,78,78],
+    ["M. Newell","A",30,76,76],
+  ],
+  SPM:[
+    ["R. Nigmatullin","G",21,76,84],["D. Tyapushkin","G",31,70,70],
+    ["V. Onopko","D",26,82,84],["Y. Nikiforov","D",25,80,82],["R. Mamedov","D",23,76,78],
+    ["D. Khlestov","D",24,76,77],["V. Kulkov","D",29,75,75],["A. Ivanov","D",28,73,73],
+    ["I. Tsymbalar","M",26,81,83],["D. Alenichev","M",23,80,85],["A. Tikhonov","M",25,81,84],
+    ["A. Pyatnitskiy","M",28,77,77],["E. Titov","M",19,72,88],["V. Kechinov","M",21,78,84],
+    ["S. Rodionov","A",33,76,76],["M. Mukhamadiev","A",29,77,77],["A. Shirko","A",19,72,82],
+    ["S. Nagornyak","A",24,72,76],
+  ],
+  PAN:[
+    ["A. Nikopolidis","G",24,78,82],["J. Wandzik","G",32,72,72],
+    ["G. Kalitzakis","D",29,76,76],["A. Kolitsidakis","D",29,74,74],["M. Ouzounidis","D",27,75,75],
+    ["S. Apostolakis","D",31,76,76],["G. Kapouranis","D",29,72,72],["G. Goumas","D",20,72,82],
+    ["G. Georgiadis","M",23,78,82],["G. Donis","M",26,79,82],["J. Borrelli","M",25,77,77],
+    ["N. Nioplias","M",30,76,76],["S. Marangos","M",28,74,74],["G. Kafes","M",22,72,78],
+    ["K. Warzycha","A",31,80,80],["A. Alexoudis","A",23,74,74],["D. Markos","A",24,73,73],
+    ["A. Lagonikakis","A",23,72,72],
+  ],
+  STB:[
+    ["B. Stelea","G",28,78,80],["D. Gherasim","G",31,70,70],
+    ["D. Prodan","D",23,78,80],["I. Filipescu","D",21,76,82],["A. Doboș","D",30,74,74],
+    ["A. Panait","D",27,73,73],["B. Bucur","D",25,72,72],["T. Csik","D",24,71,71],
+    ["C. Gâlcă","M",23,78,82],["D. Militaru","M",28,73,73],["I. Pârvu","M",25,73,73],
+    ["M. Mitu","M",19,70,82],["N. Răducan","M",21,73,76],["L. Roșu","M",20,72,78],
+    ["M. Lăcătuș","A",31,79,79],["A. Ilie","A",21,78,86],["I. Vlădoiu","A",27,74,74],
+    ["M. Dună","A",28,72,72],
+  ],
+  GRA:[
+    ["P. Zuberbühler","G",24,76,82],["R. Böckli","G",36,68,68],
+    ["R. Vega","D",24,78,82],["M. Yakin","D",21,76,82],["A. Geiger","D",35,76,76],
+    ["M. Gren","D",32,72,72],["P. Thüler","D",25,72,72],["H. Gämperle","D",27,72,72],
+    ["J. Vogel","M",18,72,88],["M. Lombardo","M",22,74,76],["M. Koller","M",35,72,72],
+    ["J. Magnin","M",24,73,73],["A. Comisetti","M",22,73,76],["G. Nemtsoudis","M",22,72,72],
+    ["K. Türkyılmaz","A",28,80,80],["N. Subiat","A",29,76,76],["E. Viscaal","A",27,74,74],
+    ["T. Erceg","A",24,74,76],
+  ],
+  LEG:[
+    ["M. Szczęsny","G",30,76,76],["G. Szamotulski","G",19,68,80],
+    ["J. Zieliński","D",28,76,76],["M. Jałocha","D",24,74,74],["K. Ratajczyk","D",22,72,74],
+    ["M. Jóźwiak","D",28,74,74],["P. Mosor","D",21,71,74],["Z. Mandziejewicz","D",33,70,70],
+    ["R. Michalski","M",26,76,77],["L. Pisz","M",29,74,74],["A. Fedoruk","M",29,73,73],
+    ["T. Wieszczycki","M",24,74,74],["R. Staniek","M",24,74,74],["G. Lewandowski","M",26,72,72],
+    ["J. Podbrożny","A",29,75,75],["C. Kucharski","A",23,74,78],["A. Kubica","A",23,72,72],
+    ["J. Aziz","A",21,70,74],
+  ],
+  ROS:[
+    ["O. By Rise","G",35,74,74],["J. Jamtfall","G",29,70,70],
+    ["E. Hoftun","D",26,76,76],["B. Bragstad","D",24,73,74],["J. O. Hjelde","D",23,74,78],
+    ["B. T. Kvarme","D",23,74,80],["V. Heggem","D",20,74,84],["K. Løken","D",29,72,72],
+    ["R. Strand","M",25,78,82],["B. Skammelsrud","M",29,77,77],["K. Ingebrigtsen","M",30,75,75],
+    ["T. Soltvedt","M",28,74,74],["T. K. Staurvik","M",25,72,72],["E. Solheim","M",19,68,80],
+    ["H. Brattbakk","A",24,80,82],["M. Jakobsen","A",30,76,76],["S. Iversen","A",19,74,88],
+    ["A. Winsnes","A",21,70,72],
+  ],
+  FER:[
+    ["J. Szeiler","G",30,73,73],["A. Hajdu","G",24,71,71],
+    ["A. Telek","D",25,74,74],["T. Simon","D",30,73,73],["M. Szűcs","D",25,72,72],
+    ["S. Kuznetsov","D",32,73,73],["Á. Koller","D",21,70,74],["N. Nagy","D",26,70,70],
+    ["K. Lisztes","M",19,74,84],["O. Vincze","M",21,74,76],["Z. Páling","M",26,73,73],
+    ["Z. Kecskés","M",30,72,72],["Zs. Nagy","M",27,72,72],["L. Schultz","M",18,66,80],
+    ["E. Nyilas","A",26,74,74],["G. Kopunović","A",28,73,73],["Z. Kuntić","A",28,72,72],
+    ["L. Arany","A",24,70,70],
+  ],
+  AAB:[
+    ["T. Gill","G",30,72,72],["L. Winde","G",20,66,76],
+    ["B. Kristensen","D",32,73,73],["T. Boye","D",29,73,73],["I. Simonsen","D",31,72,72],
+    ["S. Thorst","D",30,71,71],["L. Thomsen","D",23,70,70],["C. Facius","D",24,70,70],
+    ["J. Mølby","M",26,74,74],["T. Thomasberg","M",21,72,76],["T. Hjermitslev","M",24,71,71],
+    ["J. Pedersen","M",29,71,71],["J. Jessen","M",28,71,71],["H. Rasmussen","M",27,72,72],
+    ["S. Andersen","A",25,76,78],["J. Grønkjær","A",18,70,88],["P. Rasmussen","A",28,72,72],
+    ["P. Lassen","A",29,70,70],
+  ],
+};
+
 const CLUBS_AMATEURS=[
   // les villes et villages suggérés par l'auteur
   {id:"colliou", nom:"US Collioure",                 ville:"Collioure",                 force:46},
@@ -3473,6 +3644,173 @@ function ecranCoupe(){
   if(peutRegler) app.querySelectorAll(".bRot").forEach(b=>b.onclick=()=>{ G.coupe.rotation=b.dataset.k; montre("coupe"); });
 }
 
+function ecranEurope(){
+  const eu=G.euro;
+  if(!eu){ chrome("europe",`<div class="panel"><h2 class="jaune">⭐ Ligue des Champions</h2><p class="dim">Le tirage n'est pas encore connu.</p></div>`); return; }
+  const dr=id=>`<span class="dim" style="font-size:11px">(${esc(paysEuro(id))})</span>`;
+  let statut;
+  if(!eu.enLice){
+    statut=`<p class="dim">Votre club n'est pas qualifié cette saison. <span class="cyan">Terminez champion de Division 1</span> pour disputer la Ligue des Champions.</p>`;
+    statut += eu.vainqueur
+      ? `<p class="dim">La C1 ${esc(eu.saison)} a été remportée par <b>${esc(nomEuro(eu.vainqueur))}</b> ${dr(eu.vainqueur)}.</p>`
+      : `<p class="dim">La compétition suit son cours sans vous — ${eu.vivants.length} clubs encore en lice.</p>`;
+  } else if(eu.vainqueur===G.monClub){
+    statut=`<p class="jaune"><b>VOUS AVEZ REMPORTÉ LA LIGUE DES CHAMPIONS ${esc(eu.saison)} !</b> L'Europe est à vos pieds.</p>`;
+  } else if(eu.elimine){
+    statut=`<p class="rouge">Éliminé en ${esc(eu.tourSortie||"?")}. ${eu.vainqueur?"Vainqueur : "+esc(nomEuro(eu.vainqueur))+".":"La compétition continue sans vous."}</p>`;
+  } else {
+    statut=`<p class="vert">Toujours en lice — ${eu.vivants.length} clubs encore en course pour les grandes oreilles.</p>`;
+  }
+  if(eu.gains) statut+=`<p class="dim" style="font-size:12px">Billetterie + dotations UEFA encaissées : <span class="jaune">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
+  const tourLabel = eu.vainqueur ? "Épreuve terminée" :
+     (eu.tourIdx<EURO_TOURS.length ? "Prochain tour : "+EURO_TOURS[eu.tourIdx].nom+" (en semaine, vers la J"+EURO_TOURS[eu.tourIdx].j+")" : "—");
+  const parc = (eu.enLice && eu.monParcours.length) ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Résultat</th><th></th></tr>
+     ${eu.monParcours.map(p=>`<tr><td>${esc(p.tour)}</td><td>${esc(nomEuro(p.advId))} ${dr(p.advId)}${p.finale?' <span class="dim">(finale)</span>':''}</td><td class="num">${esc(p.sc)}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`).join("")}
+     </table>` : (eu.enLice?`<p class="dim">Votre entrée en lice se fera en ${esc(EURO_TOURS[0].nom)}.</p>`:`<p class="dim">—</p>`);
+  const dtF = eu.dernierTour && eu.dernierTour.finale;
+  const dt = eu.dernierTour ? `<div class="panel"><h2>${esc(eu.dernierTour.nom)} — résultats</h2>
+     <p class="dim" style="font-size:11px">${dtF?"Match sec sur terrain neutre.":"Aller-retour · cumul des buts (but à l'extérieur double)."}</p>
+     <table class="fit"><tr><th>Équipe</th><th class="num">${dtF?"Score":"Cumul"}</th><th>Équipe</th></tr>
+     ${eu.dernierTour.faits.map(f=>{ const a=f.aid,b=f.bid,
+        sa=f.neutre?f.s[0]:f.agg[0], sb=f.neutre?f.s[1]:f.agg[1],
+        legs=f.neutre?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`;
+       return `<tr class="${(a===G.monClub||b===G.monClub)?"me":""}">
+         <td>${f.win===a?"<b>":""}${esc(nomEuro(a))}${f.win===a?"</b>":""}</td>
+         <td class="num">${sa}-${sb}${f.tab?" <span class=dim>tab</span>":""}</td>
+         <td>${f.win===b?"<b>":""}${esc(nomEuro(b))}${f.win===b?"</b>":""}${legs}</td></tr>`;}).join("")}
+     </table></div>` : "";
+  chrome("europe",`
+    <div class="panel"><h2 class="jaune">⭐ Ligue des Champions ${esc(eu.saison)}</h2>
+      ${statut}
+      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Élimination directe à 16 · le champion de France dispute la C1. <span class="cyan">Coupe des Coupes et Coupe UEFA à venir.</span></p>
+    </div>
+    <div class="panel"><h2>Votre parcours</h2>${parc}</div>
+    ${dt}`);
+}
+
+/* ============================================================================
+   COUPE D'EUROPE — Ligue des Champions (élimination directe à 16).
+   Modèle de force AUTONOME (réutilise scoreCoupe/poissonC → JAMAIS simuleMatch,
+   calibrage championnat intact, comme la Coupe de France). Seule VOTRE compétition
+   a un tableau détaillé ; qualifié ou non, une C1 se joue toujours (siège français
+   = Nantes) pour désigner un vainqueur — la scène européenne vit sa vie. Résolution
+   ABSTRAITE en fin de journée (lot 1, pas d'écran direct). Court-circuité hors UI.
+   Qualification : champion de D1 → C1 (siège français). Clubs dans G.europe. */
+const EURO_TOURS=[
+  {nom:"Huitièmes de finale", court:"8es",    j:8},
+  {nom:"Quarts de finale",    court:"Quarts", j:16},
+  {nom:"Demi-finales",        court:"Demies", j:27},
+  {nom:"Finale",              court:"Finale", j:33},
+];
+const EURO_TERRAIN=4;                     // avantage du terrain, un cran sous la coupe nationale
+const EURO_RECETTE=1.2e6;                 // billetterie d'un grand soir européen, par tour franchi
+const EURO_DOTATION=[2e6,4e6,7e6,12e6];   // 8es · quarts · demies · finaliste battu — barème UEFA, plus gras que la Coupe de France
+const EURO_DOTATION_VAINQUEUR=20e6;       // le sacre : jackpot des grandes oreilles
+const EURO_SIEGE_FR="NAN";                // le siège français de la C1 95-96 (Nantes, champion 94-95)
+
+function euroClub(id){ // objet club vivant (européen OU français), pour forceClub/onze
+  if(!id) return null;
+  const e=(G.europe||[]).find(c=>c.id===id); if(e) return e;
+  return clubById(id);
+}
+function euroMeta(id){ return CLUBS_EUROPE.find(c=>c.id===id); }
+function estEuropeen(id){ return CLUBS_EUROPE.some(c=>c.id===id); }
+function nomEuro(id){ const e=euroMeta(id); if(e) return e.nom; const c=clubById(id); return c?c.nom:id; }
+function paysEuro(id){ const e=euroMeta(id); return e?e.pays:"France"; }
+function forceEuro(id){
+  const c=euroClub(id); let f=c?forceClub(c):55;
+  if(id===G.monClub && G.euro) f*=(ROTATION_COUPE[G.euro.rotation]||ROTATION_COUPE.mixte).mult; // votre rotation pèse (préparé pour le lot 2)
+  return f;
+}
+function euroManche(hid,aid){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
+  return scoreCoupe(forceEuro(hid)+EURO_TERRAIN, forceEuro(aid)); // [buts hôte, buts visiteur]
+}
+function resoudreEuroTie(a,b,neutre){ // double confrontation (aller chez a, retour chez b), sauf finale = match sec neutre
+  if(neutre){ // FINALE : terrain neutre, pas d'avantage du terrain
+    const fh=forceEuro(a), fa=forceEuro(b);
+    let [sa,sb]=scoreCoupe(fh,fa);
+    let tab=false, win;
+    if(sa>sb) win=a; else if(sb>sa) win=b; else { tab=true; win=(Math.random()<fh/(fh+fa))?a:b; }
+    return {aid:a, bid:b, neutre:true, s:[sa,sb], tab, win};
+  }
+  const [a1,b1]=euroManche(a,b);            // aller chez a → [buts a, buts b]
+  const [b2,a2]=euroManche(b,a);            // retour chez b → [buts b, buts a]
+  const aggA=a1+a2, aggB=b1+b2;             // cumul
+  const awayA=a2, awayB=b1;                 // buts marqués à l'extérieur (a chez b ; b chez a)
+  let tab=false, win;
+  if(aggA>aggB) win=a; else if(aggB>aggA) win=b;             // cumul
+  else if(awayA>awayB) win=a; else if(awayB>awayA) win=b;    // but à l'extérieur double (règle de l'époque)
+  else { tab=true; win=(Math.random()<forceEuro(a)/(forceEuro(a)+forceEuro(b)))?a:b; } // t.a.b.
+  return {aid:a, bid:b, neutre:false, l1:[a1,b1], l2:[b2,a2], agg:[aggA,aggB], tab, win};
+}
+function euroInit(){ // (re)tirage de la Ligue des Champions de la saison
+  if(!G||!G.europe) return;
+  const foreign=CLUBS_EUROPE.map(c=>c.id);          // 15 clubs étrangers curés
+  const inC1=!!G._euroC1;                            // MON club est-il qualifié ?
+  const siege=inC1?G.monClub:EURO_SIEGE_FR;          // le 16e : vous si qualifié, sinon Nantes
+  const vivants=melange(foreign.concat([siege]));
+  G.euro={ saison:G.saison, compet:"C1", enLice:inC1, tourIdx:0, vivants,
+    monParcours:[], elimine:!inC1, tourSortie:null, vainqueur:null,
+    dernierTour:null, rotation:"mixte", gains:0 };
+}
+function euroTick(){ // appelé en fin de journée (comme coupeTick) : résout le tour s'il est à l'heure
+  const eu=G.euro; if(!eu || eu.vainqueur || eu.tourIdx>=EURO_TOURS.length) return;
+  const tour=EURO_TOURS[eu.tourIdx];
+  if(G.journee!==tour.j) return;
+  euroResoutTour();
+}
+function euroResoutTour(){ // tirage + résolution abstraite d'un tour (aller-retour, sauf finale = match sec neutre)
+  const eu=G.euro, tour=EURO_TOURS[eu.tourIdx];
+  const finale=(eu.vivants.length===2); // dernier tour : finale sèche sur terrain neutre
+  const ids=melange(eu.vivants.slice());
+  const gagnants=[], faits=[];
+  for(let i=0;i+1<ids.length;i+=2){
+    const r=resoudreEuroTie(ids[i], ids[i+1], finale);
+    gagnants.push(r.win); faits.push(r);
+  }
+  eu.dernierTour={nom:tour.nom, court:tour.court, finale, faits};
+  // VOTRE affiche
+  if(eu.enLice && !eu.elimine){
+    const f=faits.find(x=>x.aid===G.monClub||x.bid===G.monClub);
+    if(f){
+      const moiA=(f.aid===G.monClub), advId=moiA?f.bid:f.aid, gagne=f.win===G.monClub;
+      const me = f.neutre?(moiA?f.s[0]:f.s[1]):(moiA?f.agg[0]:f.agg[1]);
+      const lui= f.neutre?(moiA?f.s[1]:f.s[0]):(moiA?f.agg[1]:f.agg[0]);
+      const sc = me+"-"+lui + (f.neutre?"":" cumul") + (f.tab?" (t.a.b.)":"");
+      eu.monParcours.push({tour:tour.court, advId, sc, gagne, finale:f.neutre});
+      if(eu.rotation==="cadres" && G.coupe) G.coupe.fatigue=1; // cadres épuisés → jambes lourdes au championnat (mécanisme partagé, dormant en lot 1)
+      if(gagne){
+        G.tresorerie+=EURO_RECETTE; eu.gains+=EURO_RECETTE;
+        notif("⭐ LIGUE DES CHAMPIONS — "+tour.court+" : QUALIFIÉ ! "+sc+" face à "+nomEuro(advId)+".");
+        G.news.unshift("LIGUE DES CHAMPIONS — "+tour.court+" : "+nomEuro(G.monClub)+" élimine "+nomEuro(advId)+" ("+sc+"). La grande nuit continue.");
+      } else {
+        eu.elimine=true; eu.tourSortie=tour.nom;
+        const dot=EURO_DOTATION[eu.tourIdx]||0;
+        if(dot){ G.tresorerie+=dot; eu.gains+=dot; }
+        notif("💔 LIGUE DES CHAMPIONS — "+tour.court+" : éliminé "+sc+" par "+nomEuro(advId)+"."+(dot?" Dotation UEFA : "+(dot/1e6).toFixed(0)+" MF.":""));
+        G.news.unshift("LIGUE DES CHAMPIONS — "+tour.court+" : élimination "+sc+" face à "+nomEuro(advId)+(dot?". Dotation UEFA : "+(dot/1e6).toFixed(0)+" MF.":"."));
+      }
+    }
+  }
+  eu.vivants=gagnants; eu.tourIdx++;
+  if(eu.vivants.length===1){
+    eu.vainqueur=eu.vivants[0];
+    if(eu.vainqueur===G.monClub){
+      G.tresorerie+=EURO_DOTATION_VAINQUEUR; eu.gains+=EURO_DOTATION_VAINQUEUR;
+      G.palmares.push("Vainqueur de la Ligue des Champions "+eu.saison);
+      G.news.unshift("🏆🏆 LIGUE DES CHAMPIONS REMPORTÉE ! "+nomEuro(G.monClub)+" est sur le toit de l'Europe. Dotation : "+(EURO_DOTATION_VAINQUEUR/1e6).toFixed(0)+" MF.");
+      notif("🏆🏆 VOUS REMPORTEZ LA LIGUE DES CHAMPIONS "+eu.saison+" !");
+    } else {
+      G.news.unshift("LIGUE DES CHAMPIONS "+eu.saison+" — "+nomEuro(eu.vainqueur)+" ("+paysEuro(eu.vainqueur)+") remporte la coupe aux grandes oreilles.");
+    }
+  }
+}
+function retireDEurope(nom){ // un joker signé qui porte le nom d'un joueur européen le retire de son club (réconciliation)
+  if(!G.europe) return null;
+  for(const c of G.europe){ const i=c.joueurs.findIndex(j=>j.nom===nom); if(i>=0){ c.joueurs.splice(i,1); return c; } }
+  return null;
+}
+
 function finDeSaison(){
   for(const p of G.prets.slice()) retourPret(p);
   G.prets=[];
@@ -3557,6 +3895,7 @@ function intersaison(){
   const autreDiv=classementAbstrait(G.autre);
   const d1=G.div===1?maDiv:autreDiv, d2=G.div===1?autreDiv:maDiv;
   const monC=maDiv.find(c=>c.id===G.monClub);
+  G._euroC1=(d1[0].id===G.monClub); // champion de D1 → Ligue des Champions la saison prochaine
   rec.push("— Bilan "+G.saison+" : "+d1[0].nom+" champion de France · "+d2[0].nom+" sacré en Division 2. —");
   // 3 montées / 3 descentes entre D1 et D2
   const descendent=d1.slice(-3), montent=d2.slice(0,3);
@@ -3575,6 +3914,8 @@ function intersaison(){
   // vieillissement, retraites, nouvelles générations + remise à zéro — sur LES DEUX divisions (l'autre évolue aussi)
   for(const c of G.clubs.concat(G.autre)) vieillirClub(c, rec);
   for(const c of G.clubs.concat(G.autre)) razStatsClub(c);
+  // le vivier européen vieillit lui aussi (mêmes règles que les divisions françaises)
+  for(const c of (G.europe||[])){ vieillirClub(c, rec); razStatsClub(c); }
   // l'été international : ce que dit l'histoire
   const HONNEURS={ // indexés par ANNÉE CIVILE de l'été (= anneeJeu()+1, saisonIdx pas encore incrémenté) → corrects quel que soit le point de départ
     1996:"ÉTÉ 96 — Euro en Angleterre : l'Allemagne sacrée à Wembley, but en or de Bierhoff. Shearer meilleur buteur.",
@@ -3622,6 +3963,7 @@ function intersaison(){
   G.journee=0; G.histo=[]; G.finie=false; G.presse=[]; G.affaire=null; G.truque=false; G.risque=0;
   G.calendrier=berger(G.clubs.map(c=>c.id));
   coupeInit(); // nouveau tableau de Coupe de France et nouveau Petit Poucet
+  euroInit();  // nouveau tirage de la Ligue des Champions (qualification selon le champion de D1)
   G.sponsor=null; G.offresSponsor=genSponsors(1+0.06*G.saisonIdx); G.sponsorSwitch=false;
   G.equip=null; G.offresEquip=genEquip(); // l'équipementier est à re-signer chaque saison, selon la notoriété
   // une nouvelle ère de sponsoring s'ouvre-t-elle cette saison ?
@@ -3720,6 +4062,9 @@ function migre(){
     }
   }
   if(!G.coupe) coupeInit(); // vieilles sauvegardes : on ouvre la Coupe de France en cours de route
+  if(!G.europe) G.europe=construitDivision(CLUBS_EUROPE, STARS_EUROPE); // Coupe d'Europe : vivier européen
+  G._euroC1=!!G._euroC1;
+  if(!G.euro) euroInit(); // vieilles sauvegardes : on ouvre la Ligue des Champions
   assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
@@ -3848,7 +4193,7 @@ function chrome(actif, corps){
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
      <span class="r">${esc(G.saison)} · <b class="${G.div===2?'cyan':'jaune'}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
    </div>
-   <nav>${["calendrier","classement","coupe","effectif","mercato","finances","club","apropos"]
+   <nav>${["calendrier","classement","coupe","europe","effectif","mercato","finances","club","apropos"]
      .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s==="apropos"?"À PROPOS":s.toUpperCase()}</button>`).join("")}
    </nav>
    <div id="corps">${corps}</div>
@@ -3926,6 +4271,7 @@ function montre(ecran){
   if(ecran==="calendrier") return ecranCalendrier();
   if(ecran==="classement") return ecranClassement();
   if(ecran==="coupe")      return ecranCoupe();
+  if(ecran==="europe")     return ecranEurope();
   if(ecran==="coupematch") return ecranCoupeMatch();
   if(ecran==="effectif")   return ecranEffectif();
   if(ecran==="mercato")    return ecranMercato();

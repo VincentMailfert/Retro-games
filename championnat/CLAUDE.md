@@ -531,6 +531,40 @@ toujours « raconter quelque chose ».
     attente → on rejoue depuis l'avant-match (resume voulu) ; (b) `EN_TEST` → `montre` no-op, le harnais ne voit
     jamais le direct (et `coupeTick` résout en muet), calibrage intact ; (c) ne jamais router une coupe par
     `simuleMatch` (il fait `j.buts++` → pollue les buteurs, et écrase les amateurs 5-0 → tue le Poucet).
+- **Coupe d'Europe — Ligue des Champions (v0.72, lot 1 d'une livraison progressive)** : 2ᵉ compétition
+  parallèle, bâtie sur le **moule de la Coupe de France** — modèle de force **autonome** (`forceEuro`
+  réutilise `forceClub` + `scoreCoupe`/`poissonC`, exposant 2,6), **jamais `simuleMatch`** → **calibrage
+  championnat intact par construction** (mesuré : 2,400 buts/match inchangé). **Vrais effectifs européens
+  curés** (`CLUBS_EUROPE` métadonnées + `STARS_EUROPE`, 15 clubs × 18 joueurs, vrais joueurs 95-96 scrapés
+  sur **Transfermarkt** `saison_id/1995`, filtrés des arrivées été 96 via la colonne « Joined » et des jeunes
+  non utilisés ; plafond de note 90 comme la D1, potentiels 91-96 pour les futurs monstres — Raúl, Kluivert,
+  Titov, S. Iversen, Grønkjær, A. Ilie). Les clubs vivent dans **`G.europe`** (bâti par `construitDivision` à
+  `nouvellePartie`, **vieilli à l'intersaison** comme les divisions françaises → dérive procédurale des noms en
+  carrière longue, même compromis que D1/D2 ; per-country name pools = raffinement futur). **Élimination directe
+  à 16, en ALLER-RETOUR** (`EURO_TOURS` : 8es/quarts/demies/finale, journées **8/16/27/33** distinctes de la coupe
+  nationale) : `resoudreEuroTie(a,b,neutre)` joue deux manches (aller chez a, retour chez b), **cumul des buts**,
+  **but à l'extérieur double** (règle de l'époque), t.a.b. si tout est à égalité ; **sauf la finale** = match sec
+  sur terrain neutre (`neutre=true`, sans `EURO_TERRAIN`). L'aller-retour **resserre aussi la distribution** (deux
+  manches = moins d'upsets) : élite ~68 vs modestes ~6 sur 120 C1, réaliste. **Qualification : champion de D1 → C1**
+  (`G._euroC1`, posé à l'intersaison sur le
+  champion et à l'init par `SAISONS[key].euroC1` — siège français réel : **Nantes** en 95-96, **Auxerre** en
+  96-97). Seule VOTRE compétition a un tableau détaillé ; **qualifié ou non, une C1 se joue toujours** (siège
+  français = Nantes `EURO_SIEGE_FR="NAN"`) pour désigner un vainqueur → la scène européenne vit sa vie.
+  **Résolution ABSTRAITE** en fin de journée (`euroTick`→`euroResoutTour`, à côté de `coupeTick`) — **lot 1 sans
+  écran direct** ; l'avant-match interactif + le téléscripteur des nuits européennes viennent au **lot 2**.
+  **Économie** : `EURO_RECETTE` (1,2 MF/tour franchi) + `EURO_DOTATION` (barème UEFA 2/4/7/12 MF selon le tour
+  atteint) + `EURO_DOTATION_VAINQUEUR` (20 MF au sacre). Onglet **EUROPE** (`ecranEurope`, 4ᵉ de la nav, calqué
+  sur `ecranCoupe`) : statut, parcours, résultats du dernier tour, vainqueur. Migré (`G.europe`/`G.euro`/`G._euroC1`).
+  **Réconciliation joker ↔ Europe** (retour de l'auteur) : les stars européennes sont **aussi** signables via
+  `VIVIER`/`JOKERS_RESERVE` (Deschamps, Del Piero, tout l'Ajax…) — on ne les exclut PAS du vivier ; à la
+  signature (`acheterJoker`), **`retireDEurope(nom)`** retire le joueur de son club européen (« Deschamps signé
+  quitte la Juve »). Le chevauchement **club européen ↔ joker est donc VOLONTAIRE** (résolu à la signature),
+  contrairement à l'interdiction club-français ↔ vivier. Validation dédiée : **`harness-euro.cjs`** (vivier 15×18,
+  plafond 90, tableau à 16, résolution complète, qualif du champion, réconciliation, zéro doublon **curé**
+  Europe↔France — les homonymies de jeunes **procéduraux** sont tolérées comme entre deux clubs français, et le
+  test les ignore ; F = sanity de la distribution des vainqueurs). **Progressif** : lot 2 = C2 (Coupe des Coupes,
+  vainqueur Coupe de France) + C3 (Coupe UEFA, 2ᵉ-4ᵉ) avec leurs viviers curés, avant-match interactif + direct
+  (deux manches jouables = deux nuits européennes par tour) ; lot 4 (option) = phase de poules de la C1.
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 
