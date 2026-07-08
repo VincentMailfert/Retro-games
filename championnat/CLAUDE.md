@@ -301,6 +301,21 @@ toujours « raconter quelque chose ».
   **Effets = nudge + prestige, réservés à MON club** (calibrage intact, mesuré 2,408) : chaque brique monte `c.pres`
   (→ affluence + mercato) ; **toit** = +0,025 de ferveur à domicile (`simuleMatch`, votre match seul) ; **écran/pylônes**
   = +affluence ; **loges** = +0,15 MF/match à domicile ; **boutique** = +0,08 MF/journée. Test dédié `test-stade.cjs`.
+  **Stade vivant (v0.71)** : `svgStade(cap, chantier, stade, aff, chInfo, tribune)` a gagné trois arguments. (1) **`aff`** =
+  ratio de remplissage 0..1 : les rangées **basses (près de la pelouse) se garnissent d'abord** (bleu vif + sièges plus clairs),
+  la couronne extérieure reste **éteinte et estompée** tant que le stade n'est pas plein (`rempli=round(aff*rangs)`, teinte/opacité
+  par rangée au lieu de l'ancienne alternance fixe sur l'index). (2) **`chInfo={label,reste}`** = **badge de travaux dessiné DANS
+  le SVG** (encadré jaune coin haut-gauche, « 🏗 <label> — J-<reste> ») qui **remplace** l'ancienne ligne `<p>` « en travaux »
+  sous le stade — placé en haut-gauche et non collé à la grue (bas-droite) car un libellé long y déborderait. (3) **`tribune=
+  {id,label}`** = si le projet « tribune » est **dispo** (pas de chantier, `cap<62000`), chaque `<rect>` de gradin devient
+  **cliquable** (`class="stTrib"` + `data-id="tribune"` + `cursor:pointer` + `<title>` d'info-bulle) → `ecranClub` câble
+  `.stTrib`→`lanceProjet(id)`, **même pattern que `.bProj`**. **Donnée d'affluence** : il n'existait aucune mémoire persistante
+  du remplissage par match ; **`G.affHist`** (migré `||[]`) est une **file glissante des 8 derniers taux à domicile**, poussée
+  dans `finirJournee` là où `fill` est déjà calculé (bloc domicile), court-circuitée hors UI comme le reste. **`affMoyenne(c)`**
+  renvoie la moyenne de `G.affHist`, sinon (début de carrière) une **estimation d'attente** `0.42 + pres*0.03 + (reput−60)*0.002
+  + (confiance−50)*0.0015` (bornée) — signalée « (estim.) » à l'écran jusqu'au 1er match réel. Sous le stade, une **jauge
+  d'affluence moyenne** calquée sur la barre de confiance (vert>75 %, jaune>50 %, rouge sinon). **Purement cosmétique →
+  calibrage intact** (harnais inchangés : 2,396 / 2,343 buts/match ; `G.affHist` n'est qu'une lecture de `fill`).
 - **Staff technique — coachs spécialisés (v0.69)** : le 2e pilier « je construis mon club ». Six **postes fonctionnels**
   (`STAFF_POSTES` : attaque, defense, gardien, cpa, physique, mental) qu'on POURVOIT en recrutant un coach — modèle
   **hybride** : chaque recrue a un **nom généré** (`COACH_PRENOMS`+`NOMS`) et une **petite phrase** de caractère
