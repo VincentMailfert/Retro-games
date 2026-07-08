@@ -36,8 +36,8 @@ console.log("A) Vivier européen (structure)");
 try {
   api.nouvellePartie("NAN"); // Nantes = siège français de la C1 95-96 → qualifié d'entrée
   const G = api.getG();
-  if (!G.europe || G.europe.length !== 30) fail("G.europe = " + (G.europe ? G.europe.length : "absent") + " clubs (attendu 30 : 15 C1 + 15 C3)");
-  else ok("30 clubs européens construits (15 C1 + 15 C3)");
+  if (!G.europe || G.europe.length !== 45) fail("G.europe = " + (G.europe ? G.europe.length : "absent") + " clubs (attendu 45 : 15 C1 + 15 C2 + 15 C3)");
+  else ok("45 clubs européens construits (15 C1 + 15 C2 + 15 C3)");
   let bad = 0;
   for (const c of G.europe) { const n = c.joueurs.length; if (n < 16) { bad++; } }
   if (bad) fail(bad + " clubs européens sous 16 joueurs"); else ok("tous les clubs ont un effectif complet (≥16)");
@@ -173,6 +173,22 @@ try {
   if (!G.euro.vainqueur) fail("pas de vainqueur de C3 après 38 journées");
   else ok("C3 résolue : vainqueur = " + G.euro.vainqueur);
 } catch (e) { fail("exception G : " + e.stack); }
+
+/* ===== H) C2 : Coupe des Coupes (vainqueur de la Coupe de France) ===== */
+console.log("H) C2 : PSG qualifié en Coupe des Coupes (siège français), pool C2");
+try {
+  api.nouvellePartie("PSG"); // PSG = siège C2 95-96
+  let G = api.getG();
+  if (G.euro.compet !== "C2") fail("compétition = " + G.euro.compet + " (attendu C2)");
+  else ok("PSG dispute la Coupe des Coupes (compet=C2)");
+  const hasPAR = G.euro.vivants.includes("PAR"), hasMIL = G.euro.vivants.includes("MIL");
+  if (hasPAR && !hasMIL) ok("tableau tiré dans le pool C2 (Parme présent, clubs C3 absents)");
+  else fail("pool C2 incorrect (PAR=" + hasPAR + " MIL=" + hasMIL + ")");
+  for (let d = 0; d < 38; d++) api.jouerJournee();
+  G = api.getG();
+  if (!G.euro.vainqueur) fail("pas de vainqueur de C2 après 38 journées");
+  else ok("C2 résolue : vainqueur = " + G.euro.vainqueur);
+} catch (e) { fail("exception H : " + e.stack); }
 
 console.log(FAILS ? ("\n❌ HARNAIS EUROPE : " + FAILS + " ÉCHEC(S)") : "\n✅ HARNAIS EUROPE : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

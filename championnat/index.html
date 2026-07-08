@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.75"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.76"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -866,9 +866,9 @@ const STARS_D2_9697={
 const D1_9697=["PSG","MON","BOR","AUX","NAN","LEN","LYO","MET","STR","MTP","REN","LEH","BAS","GUI","NIC","CAN","LIL","CAE","NCY","OM"];
 const D2_9697=["STE","TOU","SOC","MAR","GUE","LOR","NIO","LMN","LAV","RST","CHA","AMI","MUL","VAL","PER","EPI","BEA","BRI","TRO","TON"];
 const SAISONS={
- "1995-96":{ an:1995, titre:"1995-96", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2, euroC1:["NAN"], euroC3:["BOR","LEN","MON","LYO"],
+ "1995-96":{ an:1995, titre:"1995-96", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2, euroC1:["NAN"], euroC2:["PSG"], euroC3:["BOR","LEN","MON","LYO"],
    sous:"La saison fondatrice. L'OM purge sa relégation en D2 (affaire VA-OM) — à vous de le ramener dans l'élite." },
- "1996-97":{ an:1996, titre:"1996-97", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AUX"], euroC3:["PSG","MON","MET"],
+ "1996-97":{ an:1996, titre:"1996-97", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AUX"], euroC2:["GUI"], euroC3:["MON","MET","LEN"],
    sous:"L'OM est de retour dans l'élite ; Saint-Étienne, Gueugnon et Martigues découvrent la Division 2. Henry et Trezeguet percent à Monaco." },
 };
 const SAISON_DEFAUT="1995-96";
@@ -917,8 +917,8 @@ function nouvellePartie(clubId, saisonKey){
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
   coupeInit();       // tirage de la Coupe de France de la saison
-  G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C3), Object.assign({}, STARS_EUROPE, STARS_EUROPE_C3)); // vivier européen (C1 + C3)
-  G.euroCompet=(S.euroC1||[]).includes(clubId)?"C1":((S.euroC3||[]).includes(clubId)?"C3":null); // compétition européenne de la 1re saison (sièges français réels)
+  G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3), Object.assign({}, STARS_EUROPE, STARS_EUROPE_C2, STARS_EUROPE_C3)); // vivier européen (C1 + C2 + C3)
+  G.euroCompet=(S.euroC1||[]).includes(clubId)?"C1":((S.euroC2||[]).includes(clubId)?"C2":((S.euroC3||[]).includes(clubId)?"C3":null)); // compétition européenne de la 1re saison (sièges français réels)
   euroInit();        // tirage de la compétition européenne
   majTitre(); montre("calendrier");
 }
@@ -3413,7 +3413,7 @@ const STARS_EUROPE_C3={
     ["Dimas","D",26,77,77],["Kenedy","D",21,73,76],["Marinho","D",25,72,72],
     ["P. Bento","M",26,78,78],["Calado","M",21,74,80],["Valdo","M",31,79,79],
     ["B. Panduru","M",25,76,76],["I. Iliev","M",27,74,74],["Maniche","M",18,66,82],
-    ["João V. Pinto","A",24,82,84],["Aílton","A",27,76,76],["H. Nader","A",30,74,74],["Paulão","A",26,73,73],
+    ["J. Pinto","A",24,82,84],["Aílton","A",27,76,76],["H. Nader","A",30,74,74],["Paulão","A",26,73,73],
   ],
   PSV:[
     ["R. Waterreus","G",25,79,81],["S. Menzo","G",32,71,71],
@@ -3478,6 +3478,150 @@ const STARS_EUROPE_C3={
     ["A. Roos","M",31,75,75],["M. Hamann","M",27,75,75],["M. Wagner","M",27,78,78],
     ["B. Hollerbach","M",26,73,73],["D. Flock","M",23,72,72],["C.-D. Wollitz","M",30,72,72],
     ["P. Kuka","A",27,79,79],["O. Marschall","A",29,79,79],["H. Siegl","A",26,76,76],["D. Anders","A",29,72,72],
+  ],
+};
+
+/* C2 — Coupe des Coupes 1995-96 (lot 2 étape 4). 15 clubs étrangers curés, filtrés été-96. Siège français
+   = PSG (vainqueur 96). Plateau plus modeste (vainqueurs de coupes nationales), quelques stars : Zola/Stoichkov
+   (Parme), Bebeto (Deportivo), Effenberg (M'gladbach), Kanchelskis (Everton). Pépites : Buffon (94), Cannavaro
+   (90), Ljungberg (90), van Bronckhorst/Larsson (88). */
+const CLUBS_EUROPE_C2=[
+  {id:"PAR",nom:"Parme",              pays:"Italie",     pres:5, stade:"le Tardini",           cap:28000},
+  {id:"DEP",nom:"Deportivo La Corogne",pays:"Espagne",   pres:5, stade:"Riazor",              cap:34000},
+  {id:"FEY",nom:"Feyenoord",          pays:"Pays-Bas",   pres:5, stade:"De Kuip",             cap:51000},
+  {id:"CEL",nom:"Celtic Glasgow",     pays:"Écosse",     pres:4, stade:"le Celtic Park",      cap:50000},
+  {id:"EVE",nom:"Everton",            pays:"Angleterre", pres:4, stade:"Goodison Park",       cap:40000},
+  {id:"ZAR",nom:"Real Saragosse",     pays:"Espagne",    pres:4, stade:"La Romareda",         cap:34000},
+  {id:"SPO",nom:"Sporting Portugal",  pays:"Portugal",   pres:4, stade:"José-Alvalade",       cap:52000},
+  {id:"BRU",nom:"Club Bruges",        pays:"Belgique",   pres:4, stade:"le Jan-Breydel",      cap:29000},
+  {id:"MGL",nom:"M'gladbach",         pays:"Allemagne",  pres:4, stade:"le Bökelbergstadion", cap:34000},
+  {id:"RAP",nom:"Rapid Vienne",       pays:"Autriche",   pres:4, stade:"le stade Hanappi",    cap:19000},
+  {id:"DYN",nom:"Dynamo Moscou",      pays:"Russie",     pres:3, stade:"le stade Dynamo",     cap:36000},
+  {id:"AEK",nom:"AEK Athènes",        pays:"Grèce",      pres:3, stade:"le stade Nikos-Goumas",cap:33000},
+  {id:"TRA",nom:"Trabzonspor",        pays:"Turquie",    pres:3, stade:"le stade Avni-Aker",  cap:20000},
+  {id:"CPH",nom:"FC Copenhague",      pays:"Danemark",   pres:3, stade:"Parken",             cap:38000},
+  {id:"HAL",nom:"Halmstad",           pays:"Suède",      pres:3, stade:"l'Örjans Vall",       cap:15000},
+];
+const STARS_EUROPE_C2={
+  PAR:[
+    ["G. Galli","G",37,74,74],["G. Buffon","G",17,68,94],
+    ["L. Minotti","D",28,78,78],["L. Apolloni","D",28,76,76],["F. Couto","D",26,80,82],
+    ["R. Sensini","D",29,80,80],["A. Benarrivo","D",27,77,77],["R. Mussi","D",32,74,74],["F. Cannavaro","D",22,74,90],
+    ["D. Baggio","M",24,82,83],["M. Crippa","M",30,76,76],["G. Pin","M",33,72,72],["M. Brambilla","M",22,72,74],
+    ["G. Zola","A",29,85,85],["H. Stoichkov","A",29,86,86],["F. Asprilla","A",26,84,84],
+    ["F. Inzaghi","A",22,76,86],["A. Melli","A",26,74,74],
+  ],
+  DEP:[
+    ["F. Liaño","G",31,82,82],["J. Canales","G",29,70,70],
+    ["M. Djukić","D",29,80,80],["P. Jémez","D",25,78,78],["Voro","D",32,74,74],
+    ["J. M. Aira","D",19,71,78],["L. Rekarte","D",33,72,72],["J. L. Ribera","D",30,73,73],
+    ["Mauro Silva","M",27,82,82],["Donato","M",33,78,78],["Fran","M",26,80,80],
+    ["A. Aldana","M",29,74,74],["J. Manjarín","M",26,77,78],["A. Santaelena","M",28,73,73],
+    ["Bebeto","A",31,84,84],["R. Martín Vázquez","A",30,78,78],["Txiki Begiristain","A",31,77,77],["D. Radchenko","A",25,75,75],
+  ],
+  FEY:[
+    ["E. de Goey","G",29,79,81],
+    ["R. Koeman","D",32,82,82],["H. Fraser","D",29,76,76],["E. Refos","D",25,73,73],
+    ["G. van Bronckhorst","D",20,74,88],["U. van Gobbel","D",24,76,76],["R. Heus","D",34,72,72],
+    ["P. Bosz","M",32,75,75],["R. Maas","M",26,74,74],["O. Trustfull","M",25,75,75],
+    ["T. Iwan","M",24,74,76],["G. Boateng","M",20,72,84],["J.-P. van Gastel","M",23,74,74],
+    ["H. Larsson","A",24,78,88],["G. Taument","A",25,76,76],["R. Blinker","A",26,76,76],["A. Vidmar","A",28,73,73],
+  ],
+  CEL:[
+    ["G. Marshall","G",31,74,74],["P. Bonner","G",35,72,72],
+    ["T. Boyd","D",30,78,78],["T. McKinlay","D",31,74,74],["B. O'Neil","D",23,74,74],
+    ["M. Mackay","D",23,73,74],["J. Hughes","D",31,73,73],["S. Gray","D",22,72,72],
+    ["P. McStay","M",31,80,80],["J. Collins","M",27,80,80],["P. Grant","M",30,74,74],
+    ["P. O'Donnell","M",23,75,76],["S. Donnelly","M",21,74,78],["J. McNamara","M",22,74,78],
+    ["P. van Hooijdonk","A",26,80,80],["J. Cadete","A",27,80,80],["A. Thom","A",30,79,79],["A. Walker","A",30,72,72],
+  ],
+  EVE:[
+    ["N. Southall","G",37,82,82],["J. Kearton","G",26,68,68],
+    ["D. Watson","D",34,78,78],["C. Short","D",27,76,76],["M. Jackson","D",24,75,75],
+    ["G. Ablett","D",30,74,74],["A. Hinchcliffe","D",26,76,76],["E. Barrett","D",28,74,74],
+    ["A. Kanchelskis","M",26,83,84],["A. Limpar","M",30,78,78],["J. Ebbrell","M",26,74,74],
+    ["V. Samways","M",27,75,75],["J. Parkinson","M",24,74,74],["G. Stuart","M",25,76,76],
+    ["D. Ferguson","A",24,79,80],["D. Amokachi","A",23,77,78],["P. Rideout","A",31,74,74],["S. Barlow","A",27,72,72],
+  ],
+  ZAR:[
+    ["A. Cedrún","G",35,76,76],["J. Belman","G",24,70,70],
+    ["F. Cáceres","D",26,79,79],["X. Aguado","D",27,78,78],["A. Belsué","D",27,76,76],
+    ["Ch. Solana","D",31,73,73],["Paqui","D",25,72,72],["C. Cuartero","D",20,72,76],
+    ["Nayim","M",29,80,80],["G. Poyet","M",28,80,81],["García Sanjuán","M",24,74,74],
+    ["S. Aragón","M",27,73,73],["A. Gay","M",30,73,73],["S. Berti","M",26,74,74],
+    ["M. Pardeza","A",30,78,78],["F. Morientes","A",19,77,88],["Higuera","A",30,73,73],["G. López","A",22,75,80],
+  ],
+  SPO:[
+    ["Costinha","G",22,74,74],["L. Vasco","G",29,70,70],
+    ["N. Naybet","D",25,82,83],["M. Aurélio","D",28,74,74],["B. Vujačić","D",31,73,73],
+    ["N. Valente","D",21,73,78],["Nélson","D",24,73,73],["L. Miguel","D",24,72,72],
+    ["Oceano","M",33,76,76],["C. Xavier","M",33,73,73],["P. Martins","M",25,74,74],
+    ["P. Barbosa","M",25,78,78],["I. Yordanov","M",27,75,75],["J. L. Vidigal","M",22,74,78],
+    ["E. Amunike","A",25,79,80],["Dani","A",19,74,86],["P. Alves","A",26,74,74],["C. Conde","A",30,72,72],
+  ],
+  BRU:[
+    ["D. Verlinden","G",32,76,76],["J. Belpaire","G",22,68,68],
+    ["P. Plovie","D",30,74,74],["V. Borkelmans","D",32,74,74],["D. Medved","D",27,73,73],
+    ["P. Renier","D",24,73,73],["S. Van Der Heyden","D",26,73,73],["T. De Brul","D",22,72,72],
+    ["F. Van der Elst","M",34,78,78],["L. Staelens","M",31,78,78],["P. Okon","M",23,78,80],
+    ["S. Vermant","M",22,74,78],["G. Verjans","M",22,72,72],["G. Claessens","M",23,72,72],
+    ["G. Verheyen","A",25,78,78],["M. Stanić","A",23,78,80],["R. Spehar","A",25,75,75],["Y. Buelinckx","A",23,72,72],
+  ],
+  MGL:[
+    ["U. Kamps","G",31,78,78],["J. Kässmann","G",29,70,70],
+    ["P. Andersson","D",24,80,82],["M. Klinkert","D",27,74,74],["T. Eichin","D",29,73,73],
+    ["M. Frontzeck","D",31,74,74],["T. Kastenmaier","D",29,72,72],["J. Stadler","D",25,72,72],
+    ["S. Effenberg","M",27,83,84],["C. Hochstätter","M",32,75,75],["K. Pflipsen","M",25,76,76],
+    ["M. Schneider","M",27,73,73],["M. Sternkopf","M",25,74,74],["P. Wynhoff","M",27,73,73],
+    ["J. Pettersson","A",20,74,80],["D. Krznarić","A",20,72,76],["M. Huiberts","A",25,72,72],["D. Wolf","A",23,72,72],
+  ],
+  RAP:[
+    ["M. Konsel","G",33,80,80],["R. Hedl","G",21,66,74],
+    ["P. Schöttel","D",28,76,76],["T. Ivanov","D",30,78,78],["P. Jovanović","D",22,73,76],
+    ["M. Hatz","D",25,72,72],["S. Mandreko","D",24,74,74],["R. Haller","D",22,71,72],
+    ["D. Kühbauer","M",24,80,82],["A. Heraf","M",28,75,75],["P. Guggi","M",28,73,73],
+    ["S. Marasek","M",25,73,73],["Z. Barišić","M",25,74,74],["R. Pivarník","M",28,72,72],
+    ["P. Stöger","A",29,78,78],["C. Jancker","A",21,74,84],["G. Frigård","A",25,73,73],["M. Śliwowski","A",28,72,72],
+  ],
+  DYN:[
+    ["A. Smetanin","G",26,74,74],["V. Kleymenov","G",30,72,72],
+    ["Y. Kovtun","D",25,78,80],["E. Yakhimovich","D",27,75,75],["S. Shtanyuk","D",22,74,78],
+    ["S. Nekrasov","D",22,72,72],["A. Tochilin","D",21,72,74],["O. Samatov","D",30,72,72],
+    ["A. Kobelev","M",27,78,80],["A. Grishin","M",24,75,76],["Y. Kuznetsov","M",21,73,76],
+    ["V. Safronov","M",22,73,73],["V. Semenov","M",23,72,72],["S. Lemeshko","M",23,72,72],
+    ["O. Terekhin","A",25,78,79],["Y. Tishkov","A",24,74,74],["D. Cheryshev","A",26,75,75],["A. Kutsenko","A",23,73,73],
+  ],
+  AEK:[
+    ["I. Atmatsidis","G",26,76,76],["S. Ikonomopoulos","G",36,68,68],
+    ["S. Manolas","D",34,76,76],["N. Kostenoglou","D",25,75,75],["M. Vlachos","D",28,74,74],
+    ["G. Koutoulas","D",28,73,73],["M. Kasapis","D",24,73,73],["V. Karagiannis","D",27,72,72],
+    ["R. Sabanadžović","M",30,75,75],["T. Savevski","M",32,76,76],["S. Stamatis","M",29,73,73],
+    ["C. Kopitsis","M",26,73,73],["T. Ketsbaia","M",27,79,80],["D. Saravakos","M",34,76,76],
+    ["V. Dimitriadis","A",29,78,78],["D. Batista","A",31,74,74],["C. Kostis","A",23,73,74],["C. Maladenis","A",21,72,74],
+  ],
+  TRA:[
+    ["N. Tümkaya","G",24,74,74],["M. Mert","G",30,70,70],
+    ["O. Temizkanoğlu","D",26,76,77],["H. Aslan","D",28,74,74],["O. Özköylü","D",24,73,73],
+    ["C. Atila","D",29,73,73],["İ. Eroğlu","D",26,72,72],["O. Özke","D",18,68,80],
+    ["T. Kafkas","M",27,76,76],["L. Çelik","M",29,74,74],["A. Ercan","M",24,75,76],
+    ["Ü. Karaman","M",29,76,76],["O. Çıkırıkçı","M",28,74,74],["S. Boz","M",27,73,73],
+    ["S. Arveladze","A",22,79,82],["A. Arveladze","A",22,77,79],["H. Özer","A",21,73,73],["M. İpek","A",19,72,80],
+  ],
+  CPH:[
+    ["K. Zaza","G",20,70,80],["A. Briaunys","G",31,68,68],
+    ["D. Tur","D",24,73,73],["M. Falch","D",22,72,72],["T. Schönnemann","D",25,72,72],
+    ["C. Jensen","D",32,72,72],["M. Mio Nielsen","D",30,73,73],["M. Nielsen","D",24,72,72],
+    ["P. Frandsen","M",25,78,80],["M. Johansen","M",23,76,77],["C. Lønstrup","M",24,73,73],
+    ["J. Sørensen","M",22,72,72],["L. Højer","M",25,72,72],["I. Uldbjerg","M",27,72,72],
+    ["K. Pérez","A",21,74,82],["R. Tengstedt","A",19,72,76],["C. Hallum","A",26,72,72],["C. Cliford","A",18,68,76],
+  ],
+  HAL:[
+    ["H. Svensson","G",25,73,73],["B. Nordberg","G",29,68,68],
+    ["J. Borgstrand","D",23,73,74],["J. Mattsson","D",27,73,73],["T. Andersson","D",31,72,72],
+    ["F. Andersson","D",24,72,72],["R. Svensson","D",24,72,72],["P. Vougt","D",21,71,74],
+    ["M. Svensson","M",26,74,74],["T. Arvidsson","M",27,72,72],["P. Lennartsson","M",22,72,72],
+    ["F. Ljungberg","M",18,70,90],["N. Alexandersson","M",24,76,80],["N. Gudmundsson","M",23,74,74],
+    ["R. Andersson","A",24,73,73],["T. Stierna","A",26,72,72],["A. Smith","A",27,71,71],
   ],
 };
 
@@ -3799,7 +3943,7 @@ function ecranEurope(){
   const dr=id=>`<span class="dim" style="font-size:11px">(${esc(paysEuro(id))})</span>`;
   let statut;
   if(!eu.enLice){
-    statut=`<p class="dim">Votre club n'est pas qualifié cette saison. <span class="cyan">Finissez 1ᵉʳ (Ligue des Champions) ou 2ᵉ-4ᵉ (Coupe UEFA)</span> de Division 1 pour disputer une coupe d'Europe.</p>`;
+    statut=`<p class="dim">Votre club n'est pas qualifié cette saison. <span class="cyan">Champion de D1 (Ligue des Champions), vainqueur de la Coupe de France (Coupe des Coupes) ou 2ᵉ-4ᵉ (Coupe UEFA)</span> : à vous d'accrocher l'Europe.</p>`;
     statut += eu.vainqueur
       ? `<p class="dim">La ${esc(competActif().nom)} ${esc(eu.saison)} a été remportée par <b>${esc(nomEuro(eu.vainqueur))}</b> ${dr(eu.vainqueur)}.</p>`
       : `<p class="dim">La compétition suit son cours sans vous — ${eu.vivants.length} clubs encore en lice.</p>`;
@@ -3831,7 +3975,7 @@ function ecranEurope(){
   chrome("europe",`
     <div class="panel"><h2 class="jaune">${competActif().emoji} ${esc(competActif().nom)} ${esc(eu.saison)}</h2>
       ${statut}
-      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Élimination directe à 16, aller-retour · champion → Ligue des Champions, 2ᵉ-4ᵉ → Coupe UEFA. <span class="cyan">Coupe des Coupes à venir.</span></p>
+      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Élimination directe à 16, aller-retour · champion → Ligue des Champions ⭐, vainqueur Coupe de France → Coupe des Coupes 🏆, 2ᵉ-4ᵉ → Coupe UEFA 🌍.</p>
     </div>
     <div class="panel"><h2>Votre parcours</h2>${parc}</div>
     ${dt}`);
@@ -3857,14 +4001,17 @@ const EURO_DOTATION=[2e6,4e6,7e6,12e6];   // 8es · quarts · demies · finalist
 const EURO_DOTATION_VAINQUEUR=20e6;       // le sacre : jackpot des grandes oreilles
 const EURO_SIEGE_FR="NAN";                // le siège français de la C1 95-96 (Nantes, champion 94-95)
 const EURO_DOTATION_C3=[1.2e6,2.5e6,4.5e6,8e6]; // barème UEFA de la C3 (moins riche que la C1)
+const EURO_DOTATION_C2=[1e6,2e6,3.5e6,6.5e6];   // barème de la Coupe des Coupes (la plus modeste des trois)
 /* Registre des compétitions européennes. Chaque saison, MON club dispute AU PLUS une compétition
-   (celle où il est qualifié) : champion de D1 → C1, 2ᵉ-4ᵉ → C3 (siège français Bordeaux). Qualifié ou
-   non, une compétition se joue toujours (siège français par défaut) et couronne un vainqueur. */
+   (celle où il est qualifié) : champion de D1 → C1, vainqueur de la Coupe de France → C2, 2ᵉ-4ᵉ → C3
+   (sièges français Nantes/PSG/Bordeaux). Qualifié ou non, une compétition se joue toujours (siège
+   français par défaut) et couronne un vainqueur. */
 const COMPETS={
   C1:{nom:"Ligue des Champions", court:"C1", emoji:"⭐", pool:CLUBS_EUROPE.map(c=>c.id),    siege:"NAN", dot:EURO_DOTATION,    dotV:EURO_DOTATION_VAINQUEUR, recette:EURO_RECETTE},
+  C2:{nom:"Coupe des Coupes",    court:"C2", emoji:"🏆", pool:CLUBS_EUROPE_C2.map(c=>c.id), siege:"PSG", dot:EURO_DOTATION_C2, dotV:10e6,                      recette:0.7e6},
   C3:{nom:"Coupe UEFA",          court:"C3", emoji:"🌍", pool:CLUBS_EUROPE_C3.map(c=>c.id), siege:"BOR", dot:EURO_DOTATION_C3, dotV:12e6,                      recette:0.8e6},
 };
-const EUROCLUBS=CLUBS_EUROPE.concat(CLUBS_EUROPE_C3); // toutes les métadonnées de clubs européens (C1 + C3)
+const EUROCLUBS=CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3); // toutes les métadonnées (C1 + C2 + C3)
 function competDe(k){ return COMPETS[k]||COMPETS.C1; }
 function competActif(){ return competDe(G.euro&&G.euro.compet); }
 
@@ -4067,8 +4214,12 @@ function intersaison(){
   const autreDiv=classementAbstrait(G.autre);
   const d1=G.div===1?maDiv:autreDiv, d2=G.div===1?autreDiv:maDiv;
   const monC=maDiv.find(c=>c.id===G.monClub);
-  { const monRang=maDiv.findIndex(c=>c.id===G.monClub)+1; // qualification européenne la saison prochaine, selon le rang en D1
-    G.euroCompet=(G.div===1)?(monRang===1?"C1":(monRang>=2&&monRang<=4?"C3":null)):null; } // 1ᵉʳ → C1 · 2ᵉ-4ᵉ → Coupe UEFA
+  { const monRang=maDiv.findIndex(c=>c.id===G.monClub)+1; // qualification européenne la saison prochaine
+    const cdf=(G.coupe && G.coupe.vainqueur===G.monClub); // vainqueur de la Coupe de France → Coupe des Coupes
+    G.euroCompet = (G.div===1 && monRang===1) ? "C1"        // champion de D1 → Ligue des Champions (priorité)
+                 : cdf ? "C2"                                // sinon vainqueur Coupe de France → Coupe des Coupes
+                 : (G.div===1 && monRang>=2 && monRang<=4) ? "C3" // sinon 2ᵉ-4ᵉ de D1 → Coupe UEFA
+                 : null; }
   rec.push("— Bilan "+G.saison+" : "+d1[0].nom+" champion de France · "+d2[0].nom+" sacré en Division 2. —");
   // 3 montées / 3 descentes entre D1 et D2
   const descendent=d1.slice(-3), montent=d2.slice(0,3);
@@ -4235,8 +4386,9 @@ function migre(){
     }
   }
   if(!G.coupe) coupeInit(); // vieilles sauvegardes : on ouvre la Coupe de France en cours de route
-  if(!G.europe) G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C3), Object.assign({}, STARS_EUROPE, STARS_EUROPE_C3)); // Coupe d'Europe : vivier C1 + C3
-  else if(!G.europe.some(c=>c.id==="MIL")) G.europe=G.europe.concat(construitDivision(CLUBS_EUROPE_C3, STARS_EUROPE_C3)); // vieux vivier C1-seul (v0.72-0.74) → on ajoute la C3
+  if(!G.europe) G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3), Object.assign({}, STARS_EUROPE, STARS_EUROPE_C2, STARS_EUROPE_C3)); // Coupe d'Europe : vivier C1 + C2 + C3
+  else { if(!G.europe.some(c=>c.id==="MIL")) G.europe=G.europe.concat(construitDivision(CLUBS_EUROPE_C3, STARS_EUROPE_C3)); // vieux vivier C1-seul (v0.72-0.74) → C3
+         if(!G.europe.some(c=>c.id==="PAR")) G.europe=G.europe.concat(construitDivision(CLUBS_EUROPE_C2, STARS_EUROPE_C2)); } // vivier C1+C3 (v0.75) → on ajoute la C2
   if(G.euroCompet===undefined) G.euroCompet=G._euroC1?"C1":null; // migration : booléen C1 → registre de compétitions
   if(!G.euro) euroInit(); // vieilles sauvegardes : on ouvre la compétition européenne
   else { if(G.euro.aJouer===undefined) G.euro.aJouer=null; if(G.euro.enDirect===undefined) G.euro.enDirect=null; if(G.euro.compet===undefined) G.euro.compet="C1"; } // sauvegardes v0.72-0.74

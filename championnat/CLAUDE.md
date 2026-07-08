@@ -546,16 +546,17 @@ toujours « raconter quelque chose ».
   **but à l'extérieur double** (règle de l'époque), t.a.b. si tout est à égalité ; **sauf la finale** = match sec
   sur terrain neutre (`neutre=true`, sans `EURO_TERRAIN`). L'aller-retour **resserre aussi la distribution** (deux
   manches = moins d'upsets) : élite ~68 vs modestes ~6 sur 120 C1, réaliste.
-  **Registre multi-compétitions (v0.75, lot 2 étape 3) : C1 + C3.** `COMPETS={C1,C3}` (nom, emoji ⭐/🌍, `pool` de
-  clubs, `siege` français, dotations, recette) ; `competActif()` = la compétition en cours (`G.euro.compet`). **La C3
-  — Coupe UEFA** ajoute **15 clubs étrangers curés** (`CLUBS_EUROPE_C3`/`STARS_EUROPE_C3`, champ 95-96 TRÈS relevé :
-  Milan/Barça/Bayern/Inter/Liverpool y jouaient car seuls les champions allaient en C1 → **la C3 est plus dure que la
-  C1**). `G.europe` fusionne les deux pools (30 clubs) ; `EUROCLUBS`=toutes les métadonnées ; `euroMeta`/`estEuropeen`
-  balaient les deux. **Qualification (`G.euroCompet` ∈ C1/C3/null, remplace l'ancien booléen `G._euroC1`) : champion de
-  D1 → C1, 2ᵉ-4ᵉ → C3** (posé à l'intersaison selon le rang, à l'init par `SAISONS[key].euroC1`/`euroC3`). Sièges
-  français réels : **Nantes** (C1) / **Bordeaux** (C3, l'épopée 96 vs Milan) en 95-96 ; **Auxerre**/**PSG-Monaco-Metz**
-  en 96-97. Seule VOTRE compétition (celle où vous êtes qualifié) a un tableau ; **qualifié ou non, une compétition se
-  joue toujours** (C1 par défaut, siège français) pour désigner un vainqueur → la scène européenne vit sa vie.
+  **Registre multi-compétitions (v0.75-0.76, lot 2 étapes 3-4) : LES TROIS COUPES C1 + C2 + C3.** `COMPETS={C1,C2,C3}`
+  (nom, emoji ⭐/🏆/🌍, `pool` de clubs, `siege` français, dotations, recette) ; `competActif()` = la compétition en cours
+  (`G.euro.compet`). Chacune ajoute **15 clubs étrangers curés** (`CLUBS_EUROPE_C2`/`_C3` + `STARS_EUROPE_C2`/`_C3`) :
+  **C3 — Coupe UEFA** (champ TRÈS relevé — Milan/Barça/Bayern/Inter/Liverpool, car seuls les champions allaient en C1 →
+  **plus dure que la C1**) ; **C2 — Coupe des Coupes** (plateau plus modeste, vainqueurs de coupes nationales : Parme/
+  Deportivo/Feyenoord…). `G.europe` fusionne les **45 clubs** ; `EUROCLUBS`=toutes les métadonnées ; `euroMeta`/`estEuropeen`
+  balaient les trois. **Qualification (`G.euroCompet` ∈ C1/C2/C3/null, remplace l'ancien booléen `G._euroC1`) : champion de
+  D1 → C1 (priorité), sinon vainqueur de la Coupe de France → C2, sinon 2ᵉ-4ᵉ → C3** (posé à l'intersaison, à l'init par
+  `SAISONS[key].euroC1`/`euroC2`/`euroC3`). Sièges français réels : **Nantes** (C1) / **PSG** (C2, vainqueur 96) / **Bordeaux**
+  (C3, l'épopée 96 vs Milan) en 95-96. Seule VOTRE compétition a un tableau ; **qualifié ou non, une compétition se joue
+  toujours** (C1 par défaut, siège français) pour désigner un vainqueur → la scène européenne vit sa vie.
   **Réconciliation joker↔Europe étendue** : en plus de `acheterJoker` (vous), le bloc « la concurrence rôde sur le
   vivier » (un club IA prestigieux rafle un joker dans `finirJournee`) appelle aussi **`retireDEurope`** → un joker
   raflé par l'IA quitte son club européen (sinon doublon curé sur deux terrains — ex. Papin vivier→Monaco ET Bayern).
@@ -591,10 +592,13 @@ toujours « raconter quelque chose ».
   contrairement à l'interdiction club-français ↔ vivier. Validation dédiée : **`harness-euro.cjs`** (vivier 15×18,
   plafond 90, tableau à 16, résolution complète, qualif du champion, réconciliation, zéro doublon **curé**
   Europe↔France — les homonymies de jeunes **procéduraux** sont tolérées comme entre deux clubs français, et le
-  test les ignore ; F = distribution des vainqueurs ; G = C3 : Bordeaux → Coupe UEFA, pool C3, résolution). **Reste** :
-  **C2 — Coupe des Coupes** (pour le vainqueur de la Coupe de France, siège PSG) avec son vivier curé (même méthode :
-  scraper le champ C2 95-96 sur Transfermarkt, filtrer été-96) + brancher sa qualif (`G.coupe.vainqueur===G.monClub →
-  "C2"`) dans le registre `COMPETS` ; lot 4 (option) = phase de poules de la C1.
+  test les ignore ; F = distribution des vainqueurs ; G/H = C3/C2 : Bordeaux → Coupe UEFA, PSG → Coupe des Coupes, pools
+  et résolutions vérifiés). **Les trois compétitions sont livrées.** Reste (optionnel) : lot 4 = phase de poules de la C1.
+  **Convention de désambiguïsation des noms (consigne auteur)** : deux joueurs RÉELS différents affichés pareil (frères,
+  homonymes) → **préfixer l'initiale du prénom** au nom (ex. Benfica « J. Pinto » vs Porto « João Pinto »), plutôt que
+  d'écarter un vrai joueur ou d'utiliser une initiale de 2ᵉ prénom. Si l'initiale du prénom collisionne aussi (deux « R.
+  Witschge » : Richard/Rob ; deux « Nando »/Fernando), garder l'autre vrai joueur du club scrapé (ex. Iwan, Aira). Le
+  balayage anti-doublon interdit toute collision de nom **curé** entre clubs français (STARS/STARS_D2 base) et européens.
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
 
