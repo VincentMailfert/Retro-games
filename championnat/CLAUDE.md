@@ -550,8 +550,15 @@ toujours « raconter quelque chose ».
   champion et à l'init par `SAISONS[key].euroC1` — siège français réel : **Nantes** en 95-96, **Auxerre** en
   96-97). Seule VOTRE compétition a un tableau détaillé ; **qualifié ou non, une C1 se joue toujours** (siège
   français = Nantes `EURO_SIEGE_FR="NAN"`) pour désigner un vainqueur → la scène européenne vit sa vie.
-  **Résolution ABSTRAITE** en fin de journée (`euroTick`→`euroResoutTour`, à côté de `coupeTick`) — **lot 1 sans
-  écran direct** ; l'avant-match interactif + le téléscripteur des nuits européennes viennent au **lot 2**.
+  **Flux événementiel interactif (v0.73, lot 2 étape 1)** : `euroTick` **tire** les affiches (`euroTireTour` → pose
+  `G.euro.aJouer`, sérialisé/migré) **sans résoudre** ; `euroResoutTour(interactif)` résout `aJouer`. Hors UI
+  (`EN_TEST`) **ou** si ce n'est pas votre tie (déjà éliminé) → résolution muette immédiate ; sinon `ecranCalendrier`
+  ouvre **`ouvreEuro(suite)`** — trois fenêtres `#fiche` calquées sur `ouvreCoupe` : avant-match (affiche + **choix de
+  rotation** cadres/mixte/réserve) → `euroFenetreVerdict` → `euroFenetreResultats`, chaînées **avant** la Coupe de
+  France (`ouvreEuro(apresEuro)`, journées distinctes). **La rotation « cadres » active enfin la fatigue** (pose
+  `G.coupe.fatigue=1` → −5 % au match de championnat suivant, mécanisme partagé). Le **téléscripteur direct** des nuits
+  européennes (deux manches jouables au direct, réutilisant `lanceCoupe`/`genEvCoupe`) reste pour l'étape suivante ;
+  en attendant, la résolution derrière la fenêtre est instantanée (verdict = cumul + détail des manches).
   **Économie** : `EURO_RECETTE` (1,2 MF/tour franchi) + `EURO_DOTATION` (barème UEFA 2/4/7/12 MF selon le tour
   atteint) + `EURO_DOTATION_VAINQUEUR` (20 MF au sacre). Onglet **EUROPE** (`ecranEurope`, 4ᵉ de la nav, calqué
   sur `ecranCoupe`) : statut, parcours, résultats du dernier tour, vainqueur. Migré (`G.europe`/`G.euro`/`G._euroC1`).

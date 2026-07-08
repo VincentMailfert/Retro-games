@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.72"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.73"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3751,21 +3751,32 @@ function euroInit(){ // (re)tirage de la Ligue des Champions de la saison
   const vivants=melange(foreign.concat([siege]));
   G.euro={ saison:G.saison, compet:"C1", enLice:inC1, tourIdx:0, vivants,
     monParcours:[], elimine:!inC1, tourSortie:null, vainqueur:null,
-    dernierTour:null, rotation:"mixte", gains:0 };
+    dernierTour:null, rotation:"mixte", gains:0, aJouer:null };
 }
-function euroTick(){ // appelé en fin de journée (comme coupeTick) : résout le tour s'il est à l'heure
+function euroTick(){ // appelé en fin de journée (comme coupeTick) : TIRE le tour s'il est à l'heure, sans résoudre
   const eu=G.euro; if(!eu || eu.vainqueur || eu.tourIdx>=EURO_TOURS.length) return;
   const tour=EURO_TOURS[eu.tourIdx];
   if(G.journee!==tour.j) return;
-  euroResoutTour();
+  euroTireTour(); // pose eu.aJouer (les affiches) sans résoudre
+  const jeJoue = eu.enLice && !eu.elimine && eu.aJouer.paires.some(p=>p[0]===G.monClub||p[1]===G.monClub);
+  // hors UI (harnais) ou pas votre tie (déjà éliminé) : résolution muette immédiate.
+  // sinon eu.aJouer reste en attente : ecranCalendrier ouvrira le flux interactif (ouvreEuro → fenêtres).
+  if(EN_TEST() || !jeJoue) euroResoutTour(false);
 }
-function euroResoutTour(){ // tirage + résolution abstraite d'un tour (aller-retour, sauf finale = match sec neutre)
+function euroTireTour(){ // tirage des affiches du tour (sans résoudre)
   const eu=G.euro, tour=EURO_TOURS[eu.tourIdx];
-  const finale=(eu.vivants.length===2); // dernier tour : finale sèche sur terrain neutre
+  const finale=(eu.vivants.length===2); // dernier tour = finale sèche sur terrain neutre
   const ids=melange(eu.vivants.slice());
+  const paires=[];
+  for(let i=0;i+1<ids.length;i+=2) paires.push([ids[i], ids[i+1]]);
+  eu.aJouer={tourIdx:eu.tourIdx, nom:tour.nom, court:tour.court, finale, paires};
+}
+function euroResoutTour(interactif){ // résout eu.aJouer (aller-retour, sauf finale = match sec neutre) ; interactif = la fenêtre montre déjà votre verdict
+  const eu=G.euro, aj=eu.aJouer; if(!aj) return;
+  const tour=EURO_TOURS[aj.tourIdx], finale=aj.finale;
   const gagnants=[], faits=[];
-  for(let i=0;i+1<ids.length;i+=2){
-    const r=resoudreEuroTie(ids[i], ids[i+1], finale);
+  for(const p of aj.paires){
+    const r=resoudreEuroTie(p[0], p[1], finale);
     gagnants.push(r.win); faits.push(r);
   }
   eu.dernierTour={nom:tour.nom, court:tour.court, finale, faits};
@@ -3778,21 +3789,21 @@ function euroResoutTour(){ // tirage + résolution abstraite d'un tour (aller-re
       const lui= f.neutre?(moiA?f.s[1]:f.s[0]):(moiA?f.agg[1]:f.agg[0]);
       const sc = me+"-"+lui + (f.neutre?"":" cumul") + (f.tab?" (t.a.b.)":"");
       eu.monParcours.push({tour:tour.court, advId, sc, gagne, finale:f.neutre});
-      if(eu.rotation==="cadres" && G.coupe) G.coupe.fatigue=1; // cadres épuisés → jambes lourdes au championnat (mécanisme partagé, dormant en lot 1)
+      if(eu.rotation==="cadres" && G.coupe) G.coupe.fatigue=1; // cadres épuisés → jambes lourdes au championnat suivant
       if(gagne){
         G.tresorerie+=EURO_RECETTE; eu.gains+=EURO_RECETTE;
-        notif("⭐ LIGUE DES CHAMPIONS — "+tour.court+" : QUALIFIÉ ! "+sc+" face à "+nomEuro(advId)+".");
+        if(!interactif) notif("⭐ LIGUE DES CHAMPIONS — "+tour.court+" : QUALIFIÉ ! "+sc+" face à "+nomEuro(advId)+".");
         G.news.unshift("LIGUE DES CHAMPIONS — "+tour.court+" : "+nomEuro(G.monClub)+" élimine "+nomEuro(advId)+" ("+sc+"). La grande nuit continue.");
       } else {
         eu.elimine=true; eu.tourSortie=tour.nom;
         const dot=EURO_DOTATION[eu.tourIdx]||0;
         if(dot){ G.tresorerie+=dot; eu.gains+=dot; }
-        notif("💔 LIGUE DES CHAMPIONS — "+tour.court+" : éliminé "+sc+" par "+nomEuro(advId)+"."+(dot?" Dotation UEFA : "+(dot/1e6).toFixed(0)+" MF.":""));
+        if(!interactif) notif("💔 LIGUE DES CHAMPIONS — "+tour.court+" : éliminé "+sc+" par "+nomEuro(advId)+"."+(dot?" Dotation UEFA : "+(dot/1e6).toFixed(0)+" MF.":""));
         G.news.unshift("LIGUE DES CHAMPIONS — "+tour.court+" : élimination "+sc+" face à "+nomEuro(advId)+(dot?". Dotation UEFA : "+(dot/1e6).toFixed(0)+" MF.":"."));
       }
     }
   }
-  eu.vivants=gagnants; eu.tourIdx++;
+  eu.vivants=gagnants; eu.tourIdx++; eu.aJouer=null;
   if(eu.vivants.length===1){
     eu.vainqueur=eu.vivants[0];
     if(eu.vainqueur===G.monClub){
@@ -4065,6 +4076,7 @@ function migre(){
   if(!G.europe) G.europe=construitDivision(CLUBS_EUROPE, STARS_EUROPE); // Coupe d'Europe : vivier européen
   G._euroC1=!!G._euroC1;
   if(!G.euro) euroInit(); // vieilles sauvegardes : on ouvre la Ligue des Champions
+  else if(G.euro.aJouer===undefined) G.euro.aJouer=null; // sauvegardes v0.72 (avant le flux interactif)
   assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
@@ -4439,9 +4451,11 @@ function ecranCalendrier(){
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); }
   };
-  // un tour de Coupe de France attend d'être joué (milieu de semaine) ? on l'événementialise d'abord
-  if(G.coupe && G.coupe.aJouer){ ouvreCoupe(suiteApresCoupe); }
-  else { suiteApresCoupe(); }
+  // un tour de coupe attend d'être joué en milieu de semaine ? on l'événementialise d'abord — Europe puis France
+  // (journées distinctes, donc un seul à la fois en pratique ; on chaîne par sécurité)
+  const apresEuro=()=>{ if(G.coupe && G.coupe.aJouer){ ouvreCoupe(suiteApresCoupe); } else { suiteApresCoupe(); } };
+  if(G.euro && G.euro.aJouer){ ouvreEuro(apresEuro); }
+  else { apresEuro(); }
   // toute l'échelle reculée d'un cran (le défilement par défaut respire davantage) ; « Très lente » est le nouveau plancher
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
   surligneVitesse(); // état initial : « Normale » mise en valeur
@@ -4585,6 +4599,81 @@ function ouvreCoupe(suite){
     fiche.querySelectorAll(".bCRot").forEach(b=>b.onclick=()=>{ co.rotation=b.dataset.k; rendreAvant(); });
     fiche.querySelector("#bCGo").onclick=jouerDirect;
     fiche.querySelector("#bCVite").onclick=jouerInstant;
+  };
+  rendreAvant();
+}
+/* Coupe d'Europe — le tour de C1 en milieu de semaine, événementialisé (aller-retour).
+   Avant-match (affiche + choix de l'équipe, qui active la rotation/fatigue) → résolution → verdict → résultats.
+   Miroir du flux Coupe de France ; le téléscripteur direct des nuits européennes viendra à l'étape suivante. */
+function euroFenetreResultats(suite){ // 3) tous les résultats du tour
+  const eu=G.euro, dt=eu.dernierTour, fiche=document.getElementById("fiche");
+  if(!dt){ if(suite) suite(); return; }
+  const lignes=dt.faits.map(f=>{ const a=f.aid,b=f.bid,
+      sa=f.neutre?f.s[0]:f.agg[0], sb=f.neutre?f.s[1]:f.agg[1],
+      legs=f.neutre?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`;
+    return `<tr class="${(a===G.monClub||b===G.monClub)?"me":""}">
+      <td style="text-align:right">${f.win===a?"<b>":""}${esc(nomEuro(a))}${f.win===a?"</b>":""}</td>
+      <td class="num" style="white-space:nowrap">${sa}-${sb}${f.tab?" <span class=dim>tab</span>":""}</td>
+      <td>${f.win===b?"<b>":""}${esc(nomEuro(b))}${f.win===b?"</b>":""}${legs}</td></tr>`;}).join("");
+  fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
+    <h2 class="cyan">⭐ ${esc(dt.nom)} — tous les résultats</h2>
+    <p class="dim" style="font-size:11px">${dt.finale?"Finale sèche sur terrain neutre.":"Aller-retour · cumul des buts (but à l'extérieur double)."}</p>
+    <table class="fit" style="width:100%"><tr><th style="text-align:right">Équipe</th><th class="num">${dt.finale?"Score":"Cumul"}</th><th>Équipe</th></tr>${lignes}</table>
+    <p style="margin-top:12px"><button class="big" id="bEFin">Continuer</button></p></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  fiche.querySelector("#bEFin").onclick=()=>{ window._penEnCours=false; fermeFiche(); if(suite) suite(); };
+}
+function euroFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de VOTRE tie (déjà résolu)
+  const eu=G.euro, fiche=document.getElementById("fiche");
+  const mp=eu.monParcours[eu.monParcours.length-1];
+  let titre, coul, corps;
+  if(eu.vainqueur===G.monClub){
+    titre="🏆🏆 VOUS REMPORTEZ LA LIGUE DES CHAMPIONS !"; coul="#ffd24a";
+    corps=`Victoire <b>${esc(mp.sc)}</b> en finale ! ${esc(nomEuro(G.monClub))} est sur le toit de l'Europe. La ville ne dormira pas.<br>Dotation de vainqueur : <span class="jaune">${(EURO_DOTATION_VAINQUEUR/1e6).toFixed(0)} MF</span>.`;
+  } else if(mp.gagne){
+    const suiv=EURO_TOURS[eu.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
+    titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
+    corps=`Vous éliminez <b>${esc(nomEuro(advId))}</b> sur le score de <b>${esc(mp.sc)}</b>. La grande nuit continue.<br>Recette : <span class="jaune">${(EURO_RECETTE/1e6).toFixed(1)} MF</span>.<br>`+
+      (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b> — l'adversaire sera désigné au tirage.`:`Place à la finale !`);
+  } else {
+    titre="💔 FIN DU PARCOURS EUROPÉEN"; coul="#ff6f61";
+    const dot=EURO_DOTATION[ajTourIdx]||0;
+    corps=`Vous tombez face à <b>${esc(nomEuro(advId))}</b> <b>${esc(mp.sc)}</b>. L'aventure européenne s'arrête en ${esc(ajNom)}.`+
+      (dot?`<br>Dotation UEFA pour le parcours : <span class="jaune">${(dot/1e6).toFixed(0)} MF</span>.`:"");
+  }
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
+    <h2 style="color:${coul}">${titre}</h2>
+    <p style="margin:8px 0">${corps}</p>
+    <p style="margin-top:10px"><button class="big" id="bERes">Voir les résultats du tour →</button></p></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  fiche.querySelector("#bERes").onclick=()=>euroFenetreResultats(suite);
+}
+function ouvreEuro(suite){
+  const eu=G.euro, aj=eu&&eu.aJouer;
+  if(!aj){ return suite(); }
+  const pair=aj.paires.find(p=>p[0]===G.monClub||p[1]===G.monClub);
+  if(!pair){ euroResoutTour(false); return suite(); } // sécurité : pas votre tie → résolution muette
+  const advId = pair[0]===G.monClub?pair[1]:pair[0];
+  const fiche=document.getElementById("fiche");
+  const jouer=()=>{
+    const tourIdx=aj.tourIdx, nom=aj.nom;
+    euroResoutTour(true); // rotation déjà posée ; la fenêtre fait le rôle de la notif perso
+    euroFenetreVerdict(advId, tourIdx, nom, suite);
+  };
+  const rendreAvant=()=>{
+    const rotaBtns=Object.keys(ROTATION_COUPE).map(key=>{ const on=eu.rotation===key;
+      return `<button class="act bERot" data-k="${key}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:9px 11px${on?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${on?"▸ ":""}${esc(ROTATION_COUPE[key].label)} <span style="font-weight:normal;font-size:12px;opacity:.85">— ${esc(ROTATION_COUPE[key].desc)}</span></button>`; }).join("");
+    fiche.innerHTML=`<div class="fbox" style="max-width:490px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
+      <h2 class="jaune">⭐ LIGUE DES CHAMPIONS — ${esc(aj.nom)}</h2>
+      <p style="margin:6px 0">Grand rendez-vous européen ! Vous affrontez <b>${esc(nomEuro(advId))}</b> <span class="dim">(${esc(paysEuro(advId))})</span><br>
+        <span class="dim">${aj.finale?"Finale — match sec sur terrain neutre.":"Double confrontation : un match aller, un match retour, cumul des buts."}</span></p>
+      <p class="dim" style="font-size:12px">Quelle équipe alignez-vous ?</p>
+      <div>${rotaBtns}</div>
+      <p style="margin-top:10px"><button class="big" id="bEGo">▶ Jouer ${aj.finale?"la finale":"la double confrontation"}</button></p></div>`;
+    fiche.style.display="flex";
+    window._penEnCours=true; // pas de fermeture Échap tant qu'on n'a pas joué le tour
+    fiche.querySelectorAll(".bERot").forEach(b=>b.onclick=()=>{ eu.rotation=b.dataset.k; rendreAvant(); });
+    fiche.querySelector("#bEGo").onclick=jouer;
   };
   rendreAvant();
 }
