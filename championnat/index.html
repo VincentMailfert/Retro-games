@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.76"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.77"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4448,6 +4448,13 @@ function statutClub(c){
   return {tag:"LUTTE POUR LE MAINTIEN", coul:"#e8643c",
     amb:"Chaque point est une bataille. L'objectif tient en un mot : survivre, et déjouer les pronostics.", obj:o};
 }
+function euroSeedDe(id, S){ // compétition européenne à laquelle un club est qualifié pour la 1re saison (accueil)
+  if(!S) return null;
+  if((S.euroC1||[]).includes(id)) return "C1";
+  if((S.euroC2||[]).includes(id)) return "C2";
+  if((S.euroC3||[]).includes(id)) return "C3";
+  return null;
+}
 function ficheClubAccueil(id){
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   const c=metaClub(id);
@@ -4462,6 +4469,7 @@ function ficheClubAccueil(id){
     <p style="margin-top:8px">${esc(st.amb)}</p>
     <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="jaune">${esc(st.obj.label)}</b></p>
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${(c.budget/1e6).toFixed(0)} MF</p>
+    ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="jaune">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
     ${riv?`<p><span class="dim">Rival historique :</span> <b class="rouge">${esc(riv.nom)}</b> — ${esc(nomRivalite(c.id,riv.id))}</p>`:""}
     ${MALEDICTIONS[c.id]?`<p style="margin-top:8px;font-style:italic;border-left:2px solid ${st.coul};padding-left:8px">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
     ${(()=>{
@@ -4485,8 +4493,8 @@ function ecranAccueil(){
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   const cD1=S.d1.map(metaClub), cD2=S.d2.map(metaClub);
   const opts=Object.keys(SAISONS).map(k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>Saison ${esc(SAISONS[k].titre)}</option>`).join("");
-  const carte=c=>{ const st=statutClub(c); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:10px">
-        ${blason(c,26)}<span style="flex:1"><b>${esc(c.nom)}</b><br><span style="color:${st.coul};font-size:11px;letter-spacing:.5px">${st.tag}</span></span><span class="badge">prestige ${c.pres}/10</span></button>`; };
+  const carte=c=>{ const st=statutClub(c); const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:10px">
+        ${blason(c,26)}<span style="flex:1"><b>${esc(c.nom)}</b><br><span style="color:${st.coul};font-size:11px;letter-spacing:.5px">${st.tag}</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}<span class="badge">prestige ${c.pres}/10</span></button>`; };
   app.innerHTML=`
    <div class="topbar"><span>D1 MANAGER · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
    ${sv?`<div class="panel" style="border-color:#62c462">

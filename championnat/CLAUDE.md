@@ -557,6 +557,9 @@ toujours « raconter quelque chose ».
   `SAISONS[key].euroC1`/`euroC2`/`euroC3`). Sièges français réels : **Nantes** (C1) / **PSG** (C2, vainqueur 96) / **Bordeaux**
   (C3, l'épopée 96 vs Milan) en 95-96. Seule VOTRE compétition a un tableau ; **qualifié ou non, une compétition se joue
   toujours** (C1 par défaut, siège français) pour désigner un vainqueur → la scène européenne vit sa vie.
+  **Qualif visible à l'accueil (v0.77)** : `euroSeedDe(id, S)` lit la graine de la saison de départ ; l'écran de choix
+  de club affiche une **pastille** (⭐ C1 / 🏆 C2 / 🌍 C3) sur la carte, et la **fiche club** une ligne « Coupe d'Europe :
+  <compét> dès la 1re saison » — on sait donc AVANT de choisir quel club joue quelle coupe.
   **Réconciliation joker↔Europe étendue** : en plus de `acheterJoker` (vous), le bloc « la concurrence rôde sur le
   vivier » (un club IA prestigieux rafle un joker dans `finirJournee`) appelle aussi **`retireDEurope`** → un joker
   raflé par l'IA quitte son club européen (sinon doublon curé sur deux terrains — ex. Papin vivier→Monaco ET Bayern).
