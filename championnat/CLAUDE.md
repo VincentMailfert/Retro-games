@@ -407,6 +407,22 @@ toujours « raconter quelque chose ».
   consigne) via `surligneVitesse()` : appelé à chaque clic, au câblage des boutons, et au coup d'envoi dans
   `lanceMatch` (qui remet d'abord `tickerDelai=1600`) — avant v0.51 les 4 boutons étaient identiques et on ne
   voyait pas la vitesse choisie.
+- **Mode direct plein écran (v0.79, retour de playtest « le match est trop petit et noyé sur mobile »)** : au coup
+  d'envoi, la page bascule en **immersion totale** — le match prend tout l'écran, tout le reste s'efface. Mécanique
+  volontairement **100 % CSS + une classe** : `lanceMatch`, `lanceCoupe` et `lanceEuroLeg` posent
+  `document.body.classList.add("mode-direct")` au coup d'envoi ; **`abandonneDirect`** la retire (`classList.remove`)
+  — c'est le **point de passage obligé** de toute transition (`montre` l'appelle en tête), donc le coup de sifflet
+  suivant comme la sortie mid-match nettoient le mode sans code dédié. En `mode-direct`, le CSS masque `.topbar`,
+  `nav`, `.footer` et **tous les `#corps > .panel`** (offres, consignes, revue de presse, dépêches), puis ré-affiche
+  les deux seuls utiles : `#pTableau` (le score, figé en haut) et le panneau du téléscripteur — marqué de la classe
+  **`.panelDirect`** — qui s'étire en `flex:1` pour prendre toute la hauteur, `#ticker` en `font-size:19px` (contre
+  13 sur mobile) pour la lisibilité. **Piège** : en championnat, `#preMatchAct` (le bouton « Prochaine journée ») vit
+  DANS le panneau consignes, donc masqué en mode-direct → c'est le bouton `#bSuite` en bas du téléscripteur (dans la
+  feuille de match) qui assure la continuation. En coupe/europe, `#preMatchAct` est un `<p>` frère direct de `#corps`
+  (pas un `.panel`) → il reste visible et porte le « verdict → ». **Profite aux trois compétitions** (même
+  téléscripteur/ids). **Purement cosmétique, aucun effet moteur** : les launchers ne tournent jamais en `EN_TEST`
+  (montre no-op), calibrage intact (harnais verts, mesuré). Étendre = si on ajoute un écran de match, marquer son
+  panneau téléscripteur `.panelDirect` et poser la classe dans son launcher.
 - **Cycle du bouton d'action de l'écran de match** : le bloc `#preMatchAct` (un `<p>` centré) porte avant le coup
   d'envoi « Jouer le match » (`#bJouer`) + « Résultat instantané » (`#bVite`). `lanceMatch` les **masque**
   (`style.display="none"`, plus seulement `disabled`) pour qu'ils ne traînent pas pendant le direct ; au coup de
