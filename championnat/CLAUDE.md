@@ -1,4 +1,4 @@
-# D1 MANAGER 95-96 — mémoire projet
+# MULTIPLEX 95 — mémoire projet
 
 ## Ce que c'est
 Jeu de management de football rétro, **fichier HTML unique autonome** (`index.html`).
@@ -6,6 +6,15 @@ Saison de départ : France 1995-96, deux divisions jouables (D1 et **D2 — où 
 post-affaire VA-OM**), vrais clubs et joueurs, puis carrière multi-saisons avec montées/descentes.
 Hébergé sur GitHub Pages dans le repo `retro-games`, servi à l'URL `…/championnat/`.
 Joué par la famille et les amis de l'auteur, qui remontent des retours de playtest.
+**Nom & identité (v0.82)** : le jeu s'appelle **MULTIPLEX 95** (le multiplex radio — « tous les stades en
+direct », l'oreille collée au transistor, très 1995). Le logo (`logoMultiplex(s, sombre)`, à côté de `blason`)
+est un **SVG géométrique embarqué** — un transistor dont le haut-parleur est un filet de but avec un ballon logé
+dedans, molette, antenne, ondes cyan (zéro requête réseau, comme le favicon et les blasons ; `sombre=true` trace
+en `#16243c` pour un fond jaune). Marque affichée à l'accueil (bandeau + pieds de page + `<title>`/`majTitre`),
+mais **le bandeau EN JEU reste au club** (blason + nom). **Piège** : le rebranding est cosmétique et ne touche
+NI la clé de sauvegarde `SAVEKEY` (`d1manager_sauvegarde_v1`) NI le compte GoatCounter (`d1manager`) — les
+changer casserait les sauvegardes des testeurs et l'historique de stats. L'ancien nom « D1 MANAGER » ne subsiste
+donc volontairement que dans ces deux identifiants techniques.
 
 Philosophie de design : **« la contrainte est le produit »**. On n'ajoute une fonctionnalité que si
 elle crée un moment mémorable, dont on parle — pas juste du contenu en plus. L'entre-match doit
@@ -33,7 +42,7 @@ toujours « raconter quelque chose ».
   transfert entre appareils. Le `localStorage` ne porte PAS de logique de jeu — juste la sérialisation de
   `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne pas peser sur le harnais.
 - Numéro de version centralisé dans la constante `const VERSION` (en tête de script) et recopié aux **deux**
-  pieds de page — l'accueil (`Prototype vX.Y`) et le jeu (`D1 MANAGER 95-96 · vX.Y ·`). L'incrémenter à
+  pieds de page — l'accueil (`Multiplex 95 — prototype vX.Y ·`) et le jeu (`MULTIPLEX 95 · vX.Y ·`). L'incrémenter à
   chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils
   jouent, et pour éviter que les deux pieds de page se désynchronisent.
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
