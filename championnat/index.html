@@ -151,6 +151,23 @@
 #tabButs .tCol.d{text-align:right}
 .fmatch{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:10px;margin-top:10px}
 
+/* ---------- mode direct : le match occupe tout l'écran (immersion, surtout sur mobile) ----------
+   Posé sur <body> par lanceMatch/lanceCoupe/lanceEuroLeg au coup d'envoi, retiré par abandonneDirect
+   (le point de passage obligé de toute transition d'écran) au coup de sifflet suivant ou à la sortie.
+   On masque tout — barre de titre, onglets, offres, consignes, revue de presse, dépêches, pied de page —
+   sauf le tableau de score (figé en haut) et le téléscripteur, qui s'étire pour prendre la hauteur
+   restante. Texte agrandi pour la lisibilité au téléphone. Purement cosmétique : aucun effet moteur. */
+body.mode-direct{overflow:hidden}
+body.mode-direct .topbar, body.mode-direct nav, body.mode-direct .footer{display:none}
+body.mode-direct #app{height:100vh;height:100dvh;padding:6px 8px;display:flex;flex-direction:column}
+body.mode-direct #corps{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+body.mode-direct #corps>.panel{display:none}
+body.mode-direct #corps>#pTableau{display:block;flex:0 0 auto;margin-bottom:6px}
+body.mode-direct #corps>.panelDirect{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;margin-bottom:6px}
+body.mode-direct #ticker{flex:1 1 auto;max-height:none;min-height:0;font-size:19px}
+body.mode-direct #ticker p{margin-bottom:5px}
+body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton verdict/prochaine journée (coupe & europe) */
+
 /* ---------- mobile ---------- */
 @media(max-width:700px){
   body{font-size:15px}
@@ -192,7 +209,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.78"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.79"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4587,6 +4604,7 @@ const EN_TEST=()=>typeof window!=="undefined"&&window.__TEST__;
 function fermeFiche(){ if(window._penEnCours) return; if(fiche&&fiche.style) fiche.style.display="none"; }
 function rafraichir(){ if(EN_TEST())return; if(VUECLUB) ecranClubVue(VUECLUB); else montre(ECRAN); }
 function abandonneDirect(){
+  if(typeof document!=="undefined" && document.body) document.body.classList.remove("mode-direct"); // on quitte le plein écran match
   if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; }
   if(butFlashTimer){ clearTimeout(butFlashTimer); butFlashTimer=null; }
   const bf=document.getElementById("butFlash"); if(bf) bf.remove();
@@ -4706,7 +4724,7 @@ function ecranCalendrier(){
      <div id="tabScore"></div>
      <div id="tabButs"></div>
    </div>
-   <div class="panel"><h2>Téléscripteur
+   <div class="panel panelDirect"><h2>Téléscripteur
      <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
        Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
      </span></h2>
@@ -5026,7 +5044,7 @@ function ecranCoupeMatch(){
       <p class="ctr dim">${esc(H.stade)} · ${ed.hid===G.monClub?"À DOMICILE":"À L'EXTÉRIEUR"}${ed.advId===co.poucetId?' · <span class="cyan">🐭 le Petit Poucet</span>':""}</p>
     </div>
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
-    <div class="panel"><h2>Téléscripteur
+    <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
         Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
       </span></h2>
@@ -5036,6 +5054,7 @@ function ecranCoupeMatch(){
   lanceCoupe(H, A, ed);
 }
 function lanceCoupe(H, A, ed){
+  if(document.body) document.body.classList.add("mode-direct"); // nuit de coupe en plein écran
   const r={hid:ed.hid, aid:ed.aid, sh:ed.sh, sa:ed.sa, tab:ed.tab, win:ed.win};
   const gen=genEvCoupe(H, A, r);
   const lignes=gen.ev;
@@ -5121,7 +5140,7 @@ function ecranEuroMatch(){
       <p class="ctr dim">${esc(sousTitre)}${ed.finale?"":(chezMoi?" · à domicile":" · à l'extérieur")}</p>
     </div>
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
-    <div class="panel"><h2>Téléscripteur
+    <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
         Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
       </span></h2>
@@ -5131,6 +5150,7 @@ function ecranEuroMatch(){
   lanceEuroLeg(H, A, ed, legScore);
 }
 function lanceEuroLeg(H, A, ed, legScore){
+  if(document.body) document.body.classList.add("mode-direct"); // nuit européenne en plein écran
   const derniere = ed.finale || ed.leg===2;                 // dernière manche → on finalise le tie
   const tab = ed.finale ? ed.tie.tab : false;               // seule la finale (match sec) porte les t.a.b. dans une manche
   const win = legScore[0]>legScore[1]?H.id:(legScore[1]>legScore[0]?A.id:(ed.finale?ed.tie.win:null));
@@ -5521,6 +5541,8 @@ const ARCS={
 };
 
 function lanceMatch(instant){
+  // le coup d'envoi est donné : on passe en mode direct plein écran (le match prend tout l'écran), retiré au sifflet par abandonneDirect
+  if(document.body) document.body.classList.add("mode-direct");
   // le coup d'envoi est donné : on retire les boutons d'avant-match (ils reviendront en « Prochaine journée 📆 » au sifflet)
   document.getElementById("bJouer").style.display="none";
   document.getElementById("bVite").style.display="none";
