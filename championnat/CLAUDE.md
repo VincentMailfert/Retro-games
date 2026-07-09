@@ -661,7 +661,26 @@ toujours « raconter quelque chose ».
   `MERCF`, pas dans des locales de `ecranMercato` : un achat passe par `rafraichir()`→`montre("mercato")` qui
   ré-exécute tout l'écran, et sans `MERCF` chaque achat réinitialiserait les filtres (la case « Mes favoris »
   se décochait). `rend()` recopie l'état dans `MERCF` à chaque rendu, les contrôles le reflètent (`selected`/
-  `checked`/`value`), et `nouvellePartie` le remet à neuf.
+  `checked`/`value`), et `nouvellePartie` le remet à neuf. **Depuis v0.81, `MERCF` porte AUSSI `page` (pagination)
+  et `sel` (uid du joueur dont la fiche est ouverte)** — les deux à réinitialiser comme le reste à `nouvellePartie`.
+- **Écran mercato refondu (v0.81, 100 % présentation, calibrage intact)** : le **rapport du recruteur** est en
+  **cartes** (`carteJoker`, panneau à filet cyan, `.mercRap` en grille 3 colonnes desktop / empilées mobile),
+  un **bandeau d'état** dédié (filet vert si `fenetreOuverte()`, rouge sinon) porte `msgMercato()` + le budget
+  transferts, et les trois `<select>` (poste/âge/division) sont devenus des **chips segmentées** (`.mChip`,
+  `data-f`/`data-v`, classe `on` = jaune, `onD2` = cyan pour la seule chip D2) plus la recherche texte et un
+  bouton chip « ★ Favoris ». **Pagination** (`PAR_PAGE=20`) : plus de `slice(0,60)` + « masqués », un vrai pageur
+  `◀ Précédente · Page x/y · N correspondants · Suivante ▶` rend **tout le pool national atteignable** ; tout
+  changement de filtre/tri fait `page=1`. **Fiche joueur mercato** : la modale `ouvreFiche` n'est PLUS appelée
+  depuis le tableau — le clic sur une ligne pose `MERCF.sel=j.uid` et affiche `ficheMercato(j)` dans un
+  **panneau latéral sticky** (`.mercWrap` grille `1fr 360px`, `#ficheM`) sur desktop, **ET** dans une **ligne
+  dépliée** (`<tr class="mercDet"><td colspan="11">…`) sous la ligne cliquée sur mobile — les deux canaux
+  rendent le MÊME HTML, CSS masque celui qui ne sert pas (`@media(min-width:701px){tr.mercDet{display:none}}` /
+  `.mercFiche{display:none}` en mobile). **Piège** : la fiche existe donc en double dans le DOM → ses boutons
+  sont câblés **par classe** (`.mfBuy`/`.mfLoan`/`.mfFav` via `querySelectorAll`), **jamais par id** (id
+  dupliqué = invalide), en fermant sur le seul `selJ` sélectionné. Le `.mercDetInner` est `position:sticky;
+  left:0;max-width:calc(100vw−44px)` pour que le bouton ACHETER reste dans le viewport malgré le scroll
+  horizontal de la table. `ouvreFiche` reste utilisée partout ailleurs (effectif, clic sur une carte joker…)
+  — ne pas la supprimer. Aucun effet moteur : le harnais ne rend pas l'écran, calibrage mesuré inchangé.
 - Le penalty CONTRE (`momentPenContre`) : la narration doit coller à l'issue réelle. Plonger du bon côté ne
   garantit pas l'arrêt (les frappes pures passent quand même) ; le texte ne doit donc jamais clamer la réussite
   (« vous aviez lu son regard ! ») quand le but rentre — d'où le verdict « BUT QUAND MÊME — la frappe était
