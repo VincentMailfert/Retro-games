@@ -192,7 +192,7 @@
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.77"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.78"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3954,7 +3954,7 @@ function ecranEurope(){
   } else {
     statut=`<p class="vert">Toujours en lice — ${eu.vivants.length} clubs encore en course pour les grandes oreilles.</p>`;
   }
-  if(eu.gains) statut+=`<p class="dim" style="font-size:12px">Billetterie + dotations UEFA encaissées : <span class="jaune">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
+  if(eu.gains) statut+=`<p class="dim" style="font-size:12px">Billetterie + primes UEFA encaissées : <span class="jaune">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
   const tourLabel = eu.vainqueur ? "Épreuve terminée" :
      (eu.tourIdx<EURO_TOURS.length ? "Prochain tour : "+EURO_TOURS[eu.tourIdx].nom+" (en semaine, vers la J"+EURO_TOURS[eu.tourIdx].j+")" : "—");
   const parc = (eu.enLice && eu.monParcours.length) ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Résultat</th><th></th></tr>
@@ -3997,19 +3997,21 @@ const EURO_TOURS=[
 ];
 const EURO_TERRAIN=4;                     // avantage du terrain, un cran sous la coupe nationale
 const EURO_RECETTE=1.2e6;                 // billetterie d'un grand soir européen, par tour franchi
-const EURO_DOTATION=[2e6,4e6,7e6,12e6];   // 8es · quarts · demies · finaliste battu — barème UEFA, plus gras que la Coupe de France
-const EURO_DOTATION_VAINQUEUR=20e6;       // le sacre : jackpot des grandes oreilles
+const EURO_DOTATION_VAINQUEUR=20e6;       // le sacre : jackpot des grandes oreilles (trophée C1)
 const EURO_SIEGE_FR="NAN";                // le siège français de la C1 95-96 (Nantes, champion 94-95)
-const EURO_DOTATION_C3=[1.2e6,2.5e6,4.5e6,8e6]; // barème UEFA de la C3 (moins riche que la C1)
-const EURO_DOTATION_C2=[1e6,2e6,3.5e6,6.5e6];   // barème de la Coupe des Coupes (la plus modeste des trois)
+// Prime UEFA versée à CHAQUE tour REMPORTÉ (en plus de la billetterie), CROISSANTE à l'approche de la
+// finale et pondérée par le prestige de la compétition. Indices = 8es · quarts · demies · finale.
+const EURO_PRIME_C1=[2e6, 3.5e6, 6e6, 10e6];      // Ligue des Champions (la plus riche)
+const EURO_PRIME_C3=[1.3e6, 2.3e6, 3.9e6, 6.5e6]; // Coupe UEFA
+const EURO_PRIME_C2=[1e6, 1.75e6, 3e6, 5e6];      // Coupe des Coupes (la plus modeste)
 /* Registre des compétitions européennes. Chaque saison, MON club dispute AU PLUS une compétition
    (celle où il est qualifié) : champion de D1 → C1, vainqueur de la Coupe de France → C2, 2ᵉ-4ᵉ → C3
    (sièges français Nantes/PSG/Bordeaux). Qualifié ou non, une compétition se joue toujours (siège
    français par défaut) et couronne un vainqueur. */
 const COMPETS={
-  C1:{nom:"Ligue des Champions", court:"C1", emoji:"⭐", pool:CLUBS_EUROPE.map(c=>c.id),    siege:"NAN", dot:EURO_DOTATION,    dotV:EURO_DOTATION_VAINQUEUR, recette:EURO_RECETTE},
-  C2:{nom:"Coupe des Coupes",    court:"C2", emoji:"🏆", pool:CLUBS_EUROPE_C2.map(c=>c.id), siege:"PSG", dot:EURO_DOTATION_C2, dotV:10e6,                      recette:0.7e6},
-  C3:{nom:"Coupe UEFA",          court:"C3", emoji:"🌍", pool:CLUBS_EUROPE_C3.map(c=>c.id), siege:"BOR", dot:EURO_DOTATION_C3, dotV:12e6,                      recette:0.8e6},
+  C1:{nom:"Ligue des Champions", court:"C1", emoji:"⭐", pool:CLUBS_EUROPE.map(c=>c.id),    siege:"NAN", prime:EURO_PRIME_C1, dotV:EURO_DOTATION_VAINQUEUR, recette:EURO_RECETTE},
+  C2:{nom:"Coupe des Coupes",    court:"C2", emoji:"🏆", pool:CLUBS_EUROPE_C2.map(c=>c.id), siege:"PSG", prime:EURO_PRIME_C2, dotV:10e6,                      recette:0.7e6},
+  C3:{nom:"Coupe UEFA",          court:"C3", emoji:"🌍", pool:CLUBS_EUROPE_C3.map(c=>c.id), siege:"BOR", prime:EURO_PRIME_C3, dotV:12e6,                      recette:0.8e6},
 };
 const EUROCLUBS=CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3); // toutes les métadonnées (C1 + C2 + C3)
 function competDe(k){ return COMPETS[k]||COMPETS.C1; }
@@ -4099,15 +4101,14 @@ function euroResoutTour(interactif, forced){ // résout eu.aJouer (aller-retour,
       eu.monParcours.push({tour:tour.court, advId, sc, gagne, finale:f.neutre});
       if(eu.rotation==="cadres" && G.coupe) G.coupe.fatigue=1; // cadres épuisés → jambes lourdes au championnat suivant
       if(gagne){
-        G.tresorerie+=CP.recette; eu.gains+=CP.recette;
-        if(!interactif) notif(EMO+" "+NOM+" — "+tour.court+" : QUALIFIÉ ! "+sc+" face à "+nomEuro(advId)+".");
-        G.news.unshift(NOM+" — "+tour.court+" : "+nomEuro(G.monClub)+" élimine "+nomEuro(advId)+" ("+sc+"). La grande nuit continue.");
+        const prime=CP.prime[eu.tourIdx]||0; // prime UEFA du tour REMPORTÉ (croissante à l'approche de la finale)
+        G.tresorerie+=CP.recette+prime; eu.gains+=CP.recette+prime;
+        if(!interactif) notif(EMO+" "+NOM+" — "+tour.court+" : QUALIFIÉ ! "+sc+" face à "+nomEuro(advId)+". Prime UEFA : "+(prime/1e6).toFixed(1)+" MF.");
+        G.news.unshift(NOM+" — "+tour.court+" : "+nomEuro(G.monClub)+" élimine "+nomEuro(advId)+" ("+sc+"). Prime UEFA : "+(prime/1e6).toFixed(1)+" MF. La grande nuit continue.");
       } else {
         eu.elimine=true; eu.tourSortie=tour.nom;
-        const dot=CP.dot[eu.tourIdx]||0;
-        if(dot){ G.tresorerie+=dot; eu.gains+=dot; }
-        if(!interactif) notif("💔 "+NOM+" — "+tour.court+" : éliminé "+sc+" par "+nomEuro(advId)+"."+(dot?" Dotation UEFA : "+(dot/1e6).toFixed(0)+" MF.":""));
-        G.news.unshift(NOM+" — "+tour.court+" : élimination "+sc+" face à "+nomEuro(advId)+(dot?". Dotation UEFA : "+(dot/1e6).toFixed(0)+" MF.":"."));
+        if(!interactif) notif("💔 "+NOM+" — "+tour.court+" : éliminé "+sc+" par "+nomEuro(advId)+". Parcours européen : "+(eu.gains/1e6).toFixed(1)+" MF encaissés.");
+        G.news.unshift(NOM+" — "+tour.court+" : élimination "+sc+" face à "+nomEuro(advId)+". Parcours européen : "+(eu.gains/1e6).toFixed(1)+" MF encaissés.");
       }
     }
   }
@@ -4953,17 +4954,18 @@ function euroFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de
   let titre, coul, corps;
   if(eu.vainqueur===G.monClub){
     titre="🏆🏆 VOUS REMPORTEZ LA "+CP.nom.toUpperCase()+" !"; coul="#ffd24a";
-    corps=`Victoire <b>${esc(mp.sc)}</b> en finale ! ${esc(nomEuro(G.monClub))} est sur le toit de l'Europe. La ville ne dormira pas.<br>Dotation de vainqueur : <span class="jaune">${(CP.dotV/1e6).toFixed(0)} MF</span>.`;
+    const bouquet=(CP.prime[ajTourIdx]||0)+CP.dotV; // prime de la finale + trophée
+    corps=`Victoire <b>${esc(mp.sc)}</b> en finale ! ${esc(nomEuro(G.monClub))} est sur le toit de l'Europe. La ville ne dormira pas.<br>Prime de finale + trophée : <span class="jaune">${(bouquet/1e6).toFixed(0)} MF</span>. <span class="dim">Total du parcours : ${(eu.gains/1e6).toFixed(1)} MF.</span>`;
   } else if(mp.gagne){
     const suiv=EURO_TOURS[eu.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
+    const prime=CP.prime[ajTourIdx]||0;
     titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
-    corps=`Vous éliminez <b>${esc(nomEuro(advId))}</b> sur le score de <b>${esc(mp.sc)}</b>. La grande nuit continue.<br>Recette : <span class="jaune">${(CP.recette/1e6).toFixed(1)} MF</span>.<br>`+
+    corps=`Vous éliminez <b>${esc(nomEuro(advId))}</b> sur le score de <b>${esc(mp.sc)}</b>. La grande nuit continue.<br>Billetterie + <b>prime UEFA</b> : <span class="jaune">${((CP.recette+prime)/1e6).toFixed(1)} MF</span> <span class="dim">(dont prime ${(prime/1e6).toFixed(1)} MF — elle grimpe à chaque tour).</span><br>`+
       (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b> — l'adversaire sera désigné au tirage.`:`Place à la finale !`);
   } else {
     titre="💔 FIN DU PARCOURS EUROPÉEN"; coul="#ff6f61";
-    const dot=CP.dot[ajTourIdx]||0;
     corps=`Vous tombez face à <b>${esc(nomEuro(advId))}</b> <b>${esc(mp.sc)}</b>. L'aventure européenne s'arrête en ${esc(ajNom)}.`+
-      (dot?`<br>Dotation UEFA pour le parcours : <span class="jaune">${(dot/1e6).toFixed(0)} MF</span>.`:"");
+      `<br>Total encaissé sur le parcours (billetterie + primes) : <span class="jaune">${(eu.gains/1e6).toFixed(1)} MF</span>.`;
   }
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
     <h2 style="color:${coul}">${titre}</h2>

@@ -585,9 +585,13 @@ toujours « raconter quelque chose ».
   les buteurs cités sont de **vrais joueurs des deux clubs** (curés). Les clubs européens ont un **stade + capacité** réels
   (`CLUBS_EUROPE`) pour l'ambiance. Abandon en cours (nav → `abandonneDirect` purge les timers) : `aJouer` reste, on reprend
   depuis l'avant-match (resume voulu). **Court-circuité en `EN_TEST`** (montre no-op) → harnais/calibrage intacts.
-  **Économie** : `EURO_RECETTE` (1,2 MF/tour franchi) + `EURO_DOTATION` (barème UEFA 2/4/7/12 MF selon le tour
-  atteint) + `EURO_DOTATION_VAINQUEUR` (20 MF au sacre). Onglet **EUROPE** (`ecranEurope`, 4ᵉ de la nav, calqué
-  sur `ecranCoupe`) : statut, parcours, résultats du dernier tour, vainqueur. Migré (`G.europe`/`G.euro`/`G._euroC1`).
+  **Économie — prime UEFA par tour (v0.78)** : au-delà de la billetterie (`CP.recette`/tour franchi), une **prime UEFA
+  versée à CHAQUE tour REMPORTÉ**, **croissante** à l'approche de la finale et **pondérée par le prestige** (`CP.prime` =
+  barème 8es/quarts/demies/finale : C1 `EURO_PRIME_C1` 2/3,5/6/10 · C3 1,3/2,3/3,9/6,5 · C2 1/1,75/3/5 MF) + `CP.dotV` au
+  sacre (trophée : C1 20 · C3 12 · C2 10 MF). Payée dans le bloc « gagne » de `euroResoutTour` (`CP.prime[eu.tourIdx]`) →
+  un finaliste banque 3 primes croissantes, un vainqueur de C1 ≈ 46 MF cumulés. Remplace l'ancienne dotation-en-un-coup à
+  l'élimination (le verdict d'élimination affiche désormais le **total du parcours** `eu.gains`). Onglet **EUROPE**
+  (`ecranEurope`, 4ᵉ de la nav, calqué sur `ecranCoupe`) : statut, parcours, résultats du dernier tour, vainqueur.
   **Réconciliation joker ↔ Europe** (retour de l'auteur) : les stars européennes sont **aussi** signables via
   `VIVIER`/`JOKERS_RESERVE` (Deschamps, Del Piero, tout l'Ajax…) — on ne les exclut PAS du vivier ; à la
   signature (`acheterJoker`), **`retireDEurope(nom)`** retire le joueur de son club européen (« Deschamps signé
