@@ -135,6 +135,18 @@
   }
   .startclub:hover{border-color:var(--jaune);}
   .startclub b{color:var(--jaune);}
+  /* ---- accueil : groupes d'ambition (2 colonnes desktop, onglets D1/D2 mobile) ---- */
+  .accCols{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;align-items:start;}
+  .accDivHead{border-bottom:2px solid var(--jaune);padding-bottom:4px;margin-bottom:4px;
+    display:flex;justify-content:space-between;align-items:baseline;}
+  .accDivHead.d2{border-color:var(--cyan);}
+  .grpHead{display:flex;align-items:baseline;gap:8px;margin:14px 0 2px;}
+  .grpHead .trait{flex:1;height:1px;opacity:.35;align-self:center;}
+  .grpAmb{color:var(--dim);font-size:12px;font-style:italic;margin:0 0 6px;}
+  .startclub .sous{color:var(--dim);font-size:11px;}
+  .pips{font-size:14px;letter-spacing:1px;white-space:nowrap;}
+  .pips .off{color:#31486b;}
+  .accTabs{display:none;}
   .badge{display:inline-block; border:1px solid var(--line); padding:0 6px; color:var(--dim); font-size:14px;}
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px;}
   #fiche .card{background:var(--panel); border:2px solid var(--jaune); max-width:460px; width:100%; padding:14px 16px;}
@@ -191,6 +203,16 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .scoreline{font-size:13px !important;flex-wrap:wrap}
   .zPen{padding:12px 2px !important;font-size:12px}
   .act{padding:7px 8px}
+  .accCols{grid-template-columns:1fr;}
+  .accTabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;}
+  .accTabs button{font-family:inherit;font-size:15px;font-weight:bold;letter-spacing:1px;
+    padding:10px 4px;min-height:44px;background:var(--panel2);color:var(--dim);
+    border:1px solid var(--line);cursor:pointer;}
+  .accTabs button.onD1{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
+  .accTabs button.onD2{background:var(--cyan);color:#16243c;border-color:var(--cyan);}
+  .accCols[data-div="1"] .colD2{display:none;}
+  .accCols[data-div="2"] .colD1{display:none;}
+  .pips{font-size:12px;letter-spacing:.5px;}
 }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -209,7 +231,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.79"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.80"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4506,13 +4528,29 @@ function ficheClubAccueil(id){
   document.getElementById("bLance").onclick=()=>{ fiche.style.display="none"; nouvellePartie(id, SAISON_ACCUEIL); };
   document.getElementById("bRetour").onclick=()=>{ fiche.style.display="none"; };
 }
+let ACCUEIL_DIV = 1; // onglet de division affiché sur mobile (persiste tant qu'on reste sur l'accueil)
+function pipsHTML(pres){
+  return `<span class="pips"><span class="jaune">${"●".repeat(pres)}</span><span class="off">${"○".repeat(10-pres)}</span></span>`;
+}
+function grpAccueil(clubs){ // regroupe une division (déjà triée par prestige) par statut d'ambition
+  const out=[];
+  clubs.forEach(c=>{ const st=statutClub(c);
+    const g=out.find(x=>x.tag===st.tag);
+    if(g) g.clubs.push(c); else out.push({tag:st.tag,coul:st.coul,amb:st.amb,clubs:[c]});
+  });
+  return out;
+}
 function ecranAccueil(){
   const sv=infoSauvegarde();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   const cD1=S.d1.map(metaClub), cD2=S.d2.map(metaClub);
   const opts=Object.keys(SAISONS).map(k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>Saison ${esc(SAISONS[k].titre)}</option>`).join("");
-  const carte=c=>{ const st=statutClub(c); const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:10px">
-        ${blason(c,26)}<span style="flex:1"><b>${esc(c.nom)}</b><br><span style="color:${st.coul};font-size:11px;letter-spacing:.5px">${st.tag}</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}<span class="badge">prestige ${c.pres}/10</span></button>`; };
+  const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:9px">
+        ${blason(c,22)}<span style="flex:1;line-height:1.1"><b>${esc(c.nom)}</b><br><span class="sous">${esc(c.stade)} · ${FMT(c.cap)} places</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</button>`; };
+  const colonne=groupes=>groupes.map(g=>`
+      <div class="grpHead"><span style="color:${g.coul};font-size:12px;letter-spacing:1px"><b>${g.tag}</b></span><span class="dim" style="font-size:11px">${g.clubs.length} club${g.clubs.length>1?"s":""}</span><span class="trait" style="background:${g.coul}"></span></div>
+      <p class="grpAmb">${esc(g.amb)}</p>
+      ${g.clubs.map(carte).join("")}`).join("");
   app.innerHTML=`
    <div class="topbar"><span>D1 MANAGER · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
    ${sv?`<div class="panel" style="border-color:#62c462">
@@ -4527,16 +4565,29 @@ function ecranAccueil(){
    </div>
    <div class="panel">
      <h2>Choisissez votre club</h2>
-     <p class="dim" style="margin-bottom:8px">Deux divisions, quarante clubs, leurs effectifs réels de la saison. Cliquez sur un club pour découvrir son ambition, puis prenez les rênes.</p>
-     <p class="dim" style="margin:8px 0 4px"><b class="jaune">━━ DIVISION 1 ━━</b></p>
-     ${cD1.slice().sort((a,b)=>b.pres-a.pres).map(carte).join("")}
-     <p class="dim" style="margin:14px 0 4px"><b class="cyan">━━ DIVISION 2 ━━</b> <span style="font-size:11px">— ramenez votre club dans l'élite</span></p>
-     ${cD2.slice().sort((a,b)=>b.pres-a.pres).map(carte).join("")}
+     <p class="dim" style="margin-bottom:8px">Quarante clubs, classés par ambition. Cliquez sur un club pour découvrir sa fiche, puis prenez les rênes.</p>
+     <div class="accTabs">
+       <button id="tabD1" class="${ACCUEIL_DIV===1?"onD1":""}">DIVISION 1</button>
+       <button id="tabD2" class="${ACCUEIL_DIV===2?"onD2":""}">DIVISION 2</button>
+     </div>
+     <div class="accCols" data-div="${ACCUEIL_DIV}">
+       <div class="colD1">
+         <div class="accDivHead"><b class="jaune" style="letter-spacing:1px">DIVISION 1</b><span class="dim" style="font-size:12px">20 clubs · l'élite</span></div>
+         ${colonne(grpAccueil(cD1.slice().sort((a,b)=>b.pres-a.pres)))}
+       </div>
+       <div class="colD2">
+         <div class="accDivHead d2"><b class="cyan" style="letter-spacing:1px">DIVISION 2</b><span class="dim" style="font-size:12px">20 clubs · ramenez le vôtre dans l'élite</span></div>
+         ${colonne(grpAccueil(cD2.slice().sort((a,b)=>b.pres-a.pres)))}
+       </div>
+     </div>
    </div>
    <p class="footer">Prototype v${VERSION} — données d'époque approximatives.</p>`;
   app.querySelectorAll(".startclub").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id));
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
   const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale();
+  const t1=document.getElementById("tabD1"), t2=document.getElementById("tabD2");
+  if(t1) t1.onclick=()=>{ ACCUEIL_DIV=1; ecranAccueil(); };
+  if(t2) t2.onclick=()=>{ ACCUEIL_DIV=2; ecranAccueil(); };
 }
 
 function chrome(actif, corps){
