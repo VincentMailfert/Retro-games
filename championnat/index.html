@@ -147,6 +147,34 @@
   .pips{font-size:14px;letter-spacing:1px;white-space:nowrap;}
   .pips .off{color:#31486b;}
   .accTabs{display:none;}
+  /* ---- mercato : chips, pageur, fiche latérale ---- */
+  .mChip{font-family:inherit;font-size:14px;padding:5px 9px;background:var(--panel2);
+    color:var(--dim);border:1px solid var(--line);cursor:pointer;font-weight:bold;white-space:nowrap;}
+  .mChip.on{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
+  .mChip.onD2{background:var(--cyan);color:#16243c;border-color:var(--cyan);}
+  .mercRap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .mercRap .carte{background:var(--panel2);border:1px solid var(--line);padding:8px 10px;
+    display:flex;flex-direction:column;gap:4px;cursor:pointer;}
+  .mercRap .carte:hover{border-color:var(--cyan);}
+  #listeM tr.sel td{background:rgba(255,210,74,.09);}
+  .mercWrap{display:grid;grid-template-columns:1fr 360px;gap:0 16px;align-items:start;}
+  .mercFiche{position:sticky;top:12px;background:var(--panel2);border:2px solid var(--jaune);padding:12px 14px;}
+  .mercFiche .noteLed, tr.mercDet .noteLed{font-family:var(--font-led);font-size:26px;color:var(--jaune);
+    text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
+  .mercFiche .avis, tr.mercDet .avis{font-size:14px;border-left:3px solid var(--cyan);background:rgba(111,214,232,.07);
+    padding:6px 10px;color:var(--cyan);margin:10px 0 0;}
+  .mercPag{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  .mercPag span{flex:1;text-align:center;color:var(--dim);font-size:13px;}
+  tr.mercDet td{background:var(--panel2);padding:9px 10px;}
+  tr.mercDet .mercDetInner{position:sticky;left:0;max-width:calc(100vw - 44px);} /* reste dans le viewport même si la table scrolle */
+  @media(min-width:701px){ tr.mercDet{display:none;} }   /* détail déplié = mobile uniquement */
+  @media(max-width:700px){
+    .mercRap{grid-template-columns:1fr;}
+    .mercWrap{grid-template-columns:1fr;}
+    .mercFiche{display:none;}                            /* la fiche vit dans la ligne dépliée */
+    .mChip{padding:10px 6px;min-height:44px;flex:1;}
+    .mercPag button{min-height:44px;}
+  }
   .badge{display:inline-block; border:1px solid var(--line); padding:0 6px; color:var(--dim); font-size:14px;}
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px;}
   #fiche .card{background:var(--panel); border:2px solid var(--jaune); max-width:460px; width:100%; padding:14px 16px;}
@@ -231,7 +259,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.80"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.81"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -932,7 +960,7 @@ function construitDivision(listeClubs, starsMap){
 }
 function nouvellePartie(clubId, saisonKey){
   const S=SAISONS[saisonKey]||SAISONS[SAISON_DEFAUT]; // saison de départ choisie (vrais effectifs d'époque)
-  MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*"}; // filtres mercato à neuf
+  MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*", page:1, sel:null}; // filtres mercato à neuf
   const d1=construitDivision(S.d1.map(metaClub), S.starsD1);
   const d2=construitDivision(S.d2.map(metaClub), S.starsD2);
   const enD1=S.d1.includes(clubId);
@@ -6200,21 +6228,39 @@ function ouvreFiche(j){
 }
 
 /* ---- Mercato ---- */
-let MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*"};
+let MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*", page:1, sel:null};
 function ecranMercato(){
   // état des filtres conservé entre deux rendus (achat, tri…) — voir MERCF
-  let posF=MERCF.posF, txtF=MERCF.txtF, ageF=MERCF.ageF, favSeul=MERCF.favSeul, triCle=MERCF.triCle, triDir=MERCF.triDir, divF=MERCF.divF;
+  let posF=MERCF.posF, txtF=MERCF.txtF, ageF=MERCF.ageF, favSeul=MERCF.favSeul, triCle=MERCF.triCle, triDir=MERCF.triDir, divF=MERCF.divF, page=MERCF.page||1;
   const autreNum=G.div===1?2:1, autreIds=new Set((G.autre||[]).map(c=>c.id));
   const divOf=j=>autreIds.has(j.club)?autreNum:(G.div||1); // le mercato est national : D1 + D2
   const valTri=(j,k)=>k==="prix"?prixAchat(j):(k==="club"?clubById(j.club).nom:(k==="nom"?j.nom:(k==="prog"?j.note-(j.note0||j.note):j[k])));
+  // fiche joueur (partagée par le panneau latéral desktop ET la ligne dépliée mobile) — boutons câblés par classe
+  const ficheMercato=j=>{ const dv=divOf(j); return `
+    <h2 style="margin:0 0 2px">${esc(j.nom)}</h2>
+    <p style="margin:0"><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · <span class="dim">${esc(clubById(j.club).nom)}</span> <b class="${dv===1?'jaune':'cyan'}">D${dv}</b></p>
+    <p style="margin:8px 0 4px">Note <span class="noteLed">${j.note}</span>${j.note>(j.note0||j.note)?' <span class="vert">▲+'+(j.note-j.note0)+'</span>':""}</p>
+    <p style="margin:0">Prix demandé : <b class="jaune">${(prixAchat(j)/1e6).toFixed(1)} MF</b></p>
+    <p style="margin:2px 0 0" class="dim">Salaire : ${FMT(salaire(j))} FF/sem</p>
+    <p class="avis">« ${esc(avisRecruteur(j))} »</p>
+    <p style="margin:8px 0 0">${pictos(j,true)} <span class="dim">Caractère</span></p>
+    <p style="margin:10px 0 0">
+      <button class="big mfBuy" ${fenetreOuverte()?"":"disabled"} style="display:block;width:100%;margin-bottom:6px">ACHETER — ${(prixAchat(j)/1e6).toFixed(1)} MF</button>
+      <button class="act mfLoan" ${fenetreOuverte()?"":"disabled"}>Prêt</button>
+      <button class="act mfFav">${j.fav?"★ Suivi":"☆ Suivre"}</button>
+    </p>`; };
   const rend=()=>{
-    MERCF={posF,txtF,ageF,favSeul,triCle,triDir,divF}; // mémorise les filtres pour le prochain rendu
+    MERCF={posF,txtF,ageF,favSeul,triCle,triDir,divF,page,sel:MERCF.sel}; // mémorise l'état pour le prochain rendu
     const tous=G.clubs.concat(G.autre||[]).filter(c=>c.id!==G.monClub).flatMap(c=>c.joueurs)
       .filter(j=>!j.pretIn&&!j.pretOut)
       .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (divF==="*"||divOf(j)===+divF) && j.nom.toLowerCase().includes(txtF.toLowerCase()))
       .sort((a,b)=>{const va=valTri(a,triCle),vb=valTri(b,triCle);
         return (typeof va==="string"? va.localeCompare(vb) : va-vb)*triDir;});
-    const dispo=tous.slice(0,60);
+    const PAR_PAGE=20;
+    const totalP=Math.max(1, Math.ceil(tous.length/PAR_PAGE));
+    page=Math.min(page, totalP); MERCF.page=page;             // clamp si un filtre a réduit la liste
+    const dispo=tous.slice((page-1)*PAR_PAGE, page*PAR_PAGE);
+    const selJ=MERCF.sel!=null ? tous.find(j=>j.uid===MERCF.sel) : null;
     const fl=k=>triCle===k?(triDir<0?" ▼":" ▲"):"";
     document.getElementById("listeM").innerHTML=
      `<table><tr>
@@ -6228,7 +6274,7 @@ function ecranMercato(){
         <th class="click" data-c="club">Club${fl("club")}</th>
         <th>Div</th>
         <th class="num click" data-c="prix">Prix${fl("prix")}</th><th></th></tr>
-      ${dispo.map((j,i)=>`<tr class="click" data-k="${i}">
+      ${dispo.map((j,i)=>`<tr class="click${j.uid===MERCF.sel?' sel':''}" data-k="${i}">
         <td><button class="act bF" data-k="${i}" title="Suivre ce joueur">${j.fav?'<span class="jaune">★</span>':"☆"}</button></td>
         <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
         <td class="num">${j.age}</td><td class="num"><b>${j.note}</b></td>
@@ -6238,53 +6284,83 @@ function ecranMercato(){
         <td><b class="${divOf(j)===1?'jaune':'cyan'}">D${divOf(j)}</b></td>
         <td class="num">${(prixAchat(j)/1e6).toFixed(1)} MF</td>
         <td><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button>
-            <button class="act bP" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Prêt</button></td></tr>`).join("")}
+            <button class="act bP" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Prêt</button></td></tr>${
+        j.uid===MERCF.sel?`<tr class="mercDet"><td colspan="11"><div class="mercDetInner">${ficheMercato(j)}</div></td></tr>`:""}`).join("")}
       </table>
-      ${tous.length>60?'<p class="dim" style="margin-top:6px">'+(tous.length-60)+' autres joueurs masqués — affinez la recherche.</p>':""}`;
+      <p class="mercPag">
+        <button class="act" id="pgPrev" ${page<=1?"disabled":""}>◀ Précédente</button>
+        <span>Page ${page}/${totalP} · ${tous.length} joueur${tous.length>1?"s":""} correspondant${tous.length>1?"s":""}</span>
+        <button class="act" id="pgNext" ${page>=totalP?"disabled":""}>Suivante ▶</button>
+      </p>`;
+    document.getElementById("ficheM").innerHTML = selJ ? ficheMercato(selJ)
+      : '<p class="dim" style="margin:0">Cliquez sur un joueur pour afficher sa fiche, l\'avis du recruteur et les options.</p>';
     document.querySelectorAll("#listeM th.click").forEach(th=>th.onclick=()=>{
       const c=th.dataset.c;
       if(triCle===c) triDir*=-1; else {triCle=c; triDir=(c==="nom"||c==="club")?1:-1;}
-      rend();
+      page=1; rend();
     });
+    const pp=document.getElementById("pgPrev"); if(pp) pp.onclick=()=>{ if(page>1){page--; rend();} };
+    const pn=document.getElementById("pgNext"); if(pn) pn.onclick=()=>{ page++; rend(); };
     document.querySelectorAll("#listeM tr.click").forEach(tr=>tr.onclick=e=>{
-      if(e.target.closest(".bA")||e.target.closest(".bF")||e.target.closest(".bP"))return; ouvreFiche(dispo[+tr.dataset.k]);
+      if(e.target.closest(".bA")||e.target.closest(".bF")||e.target.closest(".bP"))return;
+      const j=dispo[+tr.dataset.k]; MERCF.sel = (MERCF.sel===j.uid ? null : j.uid); rend();
     });
     document.querySelectorAll("#listeM .bA").forEach(b=>b.onclick=()=>acheter(dispo[+b.dataset.k]));
     document.querySelectorAll("#listeM .bP").forEach(b=>b.onclick=()=>modalPret(dispo[+b.dataset.k],"in"));
     document.querySelectorAll("#listeM .bF").forEach(b=>b.onclick=()=>{dispo[+b.dataset.k].fav=!dispo[+b.dataset.k].fav; rend();});
+    // boutons de la fiche (côté latéral desktop + ligne dépliée mobile) — un seul joueur sélectionné à la fois
+    if(selJ){
+      document.querySelectorAll(".mfBuy").forEach(b=>b.onclick=()=>acheter(selJ));
+      document.querySelectorAll(".mfLoan").forEach(b=>b.onclick=()=>modalPret(selJ,"in"));
+      document.querySelectorAll(".mfFav").forEach(b=>b.onclick=()=>{selJ.fav=!selJ.fav; rend();});
+    }
   };
+  const carteJoker=(o,k)=>`<div class="carte click rj" data-k="${k}">
+    <span class="cyan" style="font-size:12px">${esc(o.type)}</span>
+    <b class="jaune">${esc(o.j.nom)}</b>
+    <span style="font-size:12px"><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b>${o.j.note}</b></span>
+    <span class="dim" style="font-size:11px">${esc(o.j.lieu)}</span>
+    <span style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
+      <b class="jaune">${(o.prix/1e6).toFixed(1)} MF</b>
+      <button class="act bJ" data-k="${k}">Signer</button></span>
+  </div>`;
+  const chip=(f,v,lib,active)=>`<button class="mChip ${active?(f==="div"&&v==="2"?"onD2":"on"):""}" data-f="${f}" data-v="${v}">${lib}</button>`;
+  const chipsPos=[["*","TOUS"],["G","G"],["D","D"],["M","M"],["A","A"]].map(([v,l])=>chip("pos",v,l,posF===v)).join("");
+  const chipsAge=[["99","Tout âge"],["20","≤20"],["23","≤23"],["27","≤27"]].map(([v,l])=>chip("age",v,l,ageF===+v)).join("");
+  const chipsDiv=[["*","D1 + D2"],["1","D1"],["2","D2"]].map(([v,l])=>chip("div",v,l,divF===v)).join("");
   chrome("mercato",`
-   <div class="panel">
-    <h2>Le rapport du recruteur <span class="dim">— recrues joker, signables hors fenêtre, offres valables cette semaine seulement</span></h2>
-    ${G.rapport.length? `<table><tr><th>Profil</th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th>Origine</th><th class="num">Prix</th><th></th></tr>
-      ${G.rapport.map((o,k)=>`<tr class="click rj" data-k="${k}">
-        <td class="cyan">${esc(o.type)}</td><td>${esc(o.j.nom)}</td>
-        <td class="pos-${o.j.pos}">${o.j.pos}</td><td class="num">${o.j.age}</td>
-        <td class="num"><b>${o.j.note}</b></td><td class="dim">${esc(o.j.lieu)}</td>
-        <td class="num">${(o.prix/1e6).toFixed(1)} MF</td>
-        <td><button class="act bJ" data-k="${k}">Signer</button></td></tr>`).join("")}</table>`
+   <div class="panel" style="border-color:#6fd6e8">
+    <h2>Le rapport du recruteur <span class="dim">— recrues joker, signables hors fenêtre, valables cette semaine seulement</span></h2>
+    ${G.rapport.length? `<div class="mercRap">${G.rapport.map(carteJoker).join("")}</div>`
       : '<p class="dim">Le recruteur n\'a rien à proposer cette semaine.</p>'}
    </div>
+   <div class="panel" style="border-color:${fenetreOuverte()?'#5fd98f':'#ff6f61'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+    <b class="${fenetreOuverte()?'vert':'rouge'}" style="letter-spacing:.5px">${esc(msgMercato())}</b>
+    <span class="dim">Budget transferts <b class="jaune" style="font-size:18px">${(G.budget/1e6).toFixed(1)} MF</b></span>
+   </div>
    <div class="panel">
-    <h2>Mercato — <span class="${fenetreOuverte()?"vert":"rouge"}">${esc(msgMercato())}</span></h2>
-    <p class="dim">Budget transferts : <b class="jaune">${(G.budget/1e6).toFixed(1)} MF</b> ·
-      Cliquez sur les en-têtes pour trier · ☆ pour suivre un joueur · L'avis des recruteurs (clic sur le joueur) révèle les pépites.</p>
-    <p class="row" style="margin:8px 0">
-      <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:180px" value="${esc(txtF)}">
-      <select id="selP"><option value="*"${posF==="*"?" selected":""}>Tous postes</option><option${posF==="G"?" selected":""}>G</option><option${posF==="D"?" selected":""}>D</option><option${posF==="M"?" selected":""}>M</option><option${posF==="A"?" selected":""}>A</option></select>
-      <select id="selA"><option value="99"${ageF===99?" selected":""}>Tout âge</option><option value="20"${ageF===20?" selected":""}>≤ 20 ans</option><option value="23"${ageF===23?" selected":""}>≤ 23 ans</option><option value="27"${ageF===27?" selected":""}>≤ 27 ans</option></select>
-      <select id="selDiv"><option value="*"${divF==="*"?" selected":""}>D1 + D2</option><option value="1"${divF==="1"?" selected":""}>D1 seule</option><option value="2"${divF==="2"?" selected":""}>D2 seule</option></select>
-      <label><input type="checkbox" id="chkF"${favSeul?" checked":""}> Mes favoris ★</label>
-    </p>
-    <div id="listeM"></div></div>`);
-  document.getElementById("selP").onchange=e=>{posF=e.target.value;rend();};
-  document.getElementById("selA").onchange=e=>{ageF=+e.target.value;rend();};
-  document.getElementById("selDiv").onchange=e=>{divF=e.target.value;rend();};
-  document.getElementById("chkF").onchange=e=>{favSeul=e.target.checked;rend();};
-  document.getElementById("inpN").oninput=e=>{txtF=e.target.value;rend();};
+    <h2>Le marché des transferts</h2>
+    <p class="dim" style="margin-bottom:6px">Cliquez sur les en-têtes pour trier · ☆ pour suivre un joueur · cliquez une ligne pour l'avis du recruteur et les options.</p>
+    <div class="row" style="margin:8px 0;flex-wrap:wrap;gap:8px;align-items:center">
+      <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:150px" value="${esc(txtF)}">
+      <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsPos}</span>
+      <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsAge}</span>
+      <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsDiv}</span>
+      <button class="mChip ${favSeul?'on':''}" id="chkF">★ Favoris</button>
+    </div>
+    <div class="mercWrap"><div id="listeM"></div><div class="mercFiche" id="ficheM"></div></div></div>`);
+  document.getElementById("inpN").oninput=e=>{txtF=e.target.value;page=1;rend();};
+  document.getElementById("chkF").onclick=e=>{favSeul=!favSeul;e.target.classList.toggle("on",favSeul);page=1;rend();};
+  document.querySelectorAll(".mChip[data-f]").forEach(ch=>ch.onclick=()=>{
+    const f=ch.dataset.f, v=ch.dataset.v;
+    document.querySelectorAll(`.mChip[data-f="${f}"]`).forEach(o=>o.classList.remove("on","onD2"));
+    ch.classList.add(f==="div"&&v==="2"?"onD2":"on");
+    if(f==="pos") posF=v; else if(f==="age") ageF=+v; else if(f==="div") divF=v;
+    page=1; rend();
+  });
   document.querySelectorAll(".bJ").forEach(b=>b.onclick=()=>acheterJoker(+b.dataset.k));
-  document.querySelectorAll("tr.rj").forEach(tr=>tr.onclick=e=>{
-    if(e.target.closest(".bJ"))return; ouvreFiche(G.rapport[+tr.dataset.k].j);
+  document.querySelectorAll(".carte.rj").forEach(el=>el.onclick=e=>{
+    if(e.target.closest(".bJ"))return; ouvreFiche(G.rapport[+el.dataset.k].j);
   });
   rend();
 }
