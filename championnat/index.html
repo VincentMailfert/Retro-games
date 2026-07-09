@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>D1 MANAGER — Saison 1995-96</title>
-<!-- Favicon embarqué (data URI, aucune dépendance réseau) : ballon jaune sur bleu nuit, aux couleurs du jeu. Évite le 404 /favicon.ico. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b1626'/%3E%3Ccircle cx='8' cy='8' r='5' fill='%23ffd24a'/%3E%3C/svg%3E">
+<title>MULTIPLEX 95 — Saison 1995-96</title>
+<!-- Favicon embarqué (data URI, aucune dépendance réseau) : le transistor Multiplex 95 (bloc jaune, ballon blanc, molette) sur bleu nuit. Évite le 404 /favicon.ico. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230b1626'/%3E%3Cpath d='M7 9 L3.5 3.5' stroke='%23ffd24a' stroke-width='1.6'/%3E%3Crect x='4' y='9' width='16' height='11' fill='%23ffd24a'/%3E%3Crect x='5.5' y='10.5' width='8' height='8' fill='%230b1626'/%3E%3Ccircle cx='8' cy='13' r='1.8' fill='%23ffffff'/%3E%3Ccircle cx='16.8' cy='14.5' r='2.2' fill='none' stroke='%230b1626' stroke-width='1.4'/%3E%3C/svg%3E">
 <!-- Statistiques de fréquentation (GoatCounter) : ne compte QUE sur l'URL publique HTTPS,
      jamais en local (file://, localhost) ni dans le harnais Node sans DOM. -->
 <script type="text/javascript">
@@ -254,12 +254,12 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
 <script>
 "use strict";
 /* =====================================================================
-   D1 MANAGER 95-96 — prototype monofichier
+   MULTIPLEX 95 — prototype monofichier
    Données : clubs et joueurs réels de la D1 1995-96 (effectifs curés à la main,
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.81"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.82"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -714,6 +714,24 @@ function blason(c,s){
     <defs><clipPath id="${id}"><path d="${ecu}"/></clipPath></defs>
     <path d="${ecu}" fill="${B.a}"/>${motif}${txt}
     <path d="${ecu}" fill="none" stroke="#e8e8e8" stroke-width="1" opacity=".75"/></svg>`;
+}
+
+/* ---- Logo MULTIPLEX 95 : transistor au filet de but en haut-parleur ---- */
+function logoMultiplex(s, sombre){ // s = largeur px ; sombre=true → tracés #16243c (pour fond jaune)
+  const enc=sombre?"#16243c":"#0b1626", clair=sombre?"#16243c":"#d9e4f2";
+  return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" style="vertical-align:middle;flex:none;image-rendering:pixelated">
+    <path d="M7 9 L3.5 3.5" stroke="${clair}" stroke-width="1.2"/>
+    <circle cx="3.5" cy="3.5" r="1" fill="${clair}"/>
+    <rect x="4" y="9" width="16" height="11" fill="#ffd24a"/>
+    <rect x="5.5" y="10.5" width="8" height="8" fill="${enc}"/>
+    <path d="M7.1 10.5 V18.5 M8.7 10.5 V18.5 M10.3 10.5 V18.5 M11.9 10.5 V18.5" stroke="#ffd24a" stroke-width=".5"/>
+    <path d="M5.5 12.1 H13.5 M5.5 13.7 H13.5 M5.5 15.3 H13.5 M5.5 16.9 H13.5" stroke="#ffd24a" stroke-width=".5"/>
+    <circle cx="8" cy="13" r="1.6" fill="#d9e4f2"/>
+    <path d="M8 12.3 L8.7 12.8 L8.4 13.6 H7.6 L7.3 12.8 Z" fill="${enc}"/>
+    <circle cx="16.8" cy="14.5" r="2.2" fill="none" stroke="${enc}" stroke-width="1.2"/>
+    <path d="M16.8 14.5 L18.1 13.2" stroke="${enc}" stroke-width="1"/>
+    <path d="M18 5.5 Q20 7.5 18 9.5 M20 3.5 Q23.5 7.5 20 11.5" fill="none" stroke="#6fd6e8" stroke-width="1.1"/>
+  </svg>`;
 }
 
 let G=null; // état global de la partie
@@ -4411,7 +4429,7 @@ function classement(){
 function exporter(){
   const blob=new Blob([JSON.stringify(G)],{type:"application/json"});
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download="d1manager-sauvegarde.json"; a.click();
+  a.href=URL.createObjectURL(blob); a.download="multiplex95-sauvegarde.json"; a.click();
 }
 function migre(){
   G.rapport=G.rapport||[]; G.sponsor=G.sponsor||null;
@@ -4500,7 +4518,7 @@ const fiche=document.getElementById("fiche");
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
 function majTitre(){
-  document.title="D1 MANAGER — "+(G?clubById(G.monClub).nom:"Saison 1995-96");
+  document.title="MULTIPLEX 95 — "+(G?clubById(G.monClub).nom:"Saison 1995-96");
 }
 
 function statutClub(c){
@@ -4580,7 +4598,7 @@ function ecranAccueil(){
       <p class="grpAmb">${esc(g.amb)}</p>
       ${g.clubs.map(carte).join("")}`).join("");
   app.innerHTML=`
-   <div class="topbar"><span>D1 MANAGER · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
+   <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20,true)}MULTIPLEX 95 · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
    ${sv?`<div class="panel" style="border-color:#62c462">
      <button class="big" id="bReprendre" style="display:block;width:100%;background:#62c462;color:#06210f">▶ REPRENDRE — ${esc(sv.club)} · ${esc(sv.saison)}, J${sv.journee}/38</button>
      <p class="dim" style="margin-top:6px;text-align:center;font-size:11px">Votre dernière partie est sauvegardée dans ce navigateur. Choisir un club ci-dessous démarre une nouvelle carrière (et remplacera cette sauvegarde).</p>
@@ -4609,7 +4627,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Prototype v${VERSION} — données d'époque approximatives.</p>`;
+   <p class="footer">Multiplex 95 — prototype v${VERSION} · données d'époque approximatives.</p>`;
   app.querySelectorAll(".startclub").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id));
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
   const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale();
@@ -4629,7 +4647,7 @@ function chrome(actif, corps){
      .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s==="apropos"?"À PROPOS":s.toUpperCase()}</button>`).join("")}
    </nav>
    <div id="corps">${corps}</div>
-   <p class="footer">D1 MANAGER 95-96 · v${VERSION} ·
+   <p class="footer">MULTIPLEX 95 · v${VERSION} ·
      <button class="act" id="bSave">💾 Sauvegarder</button>
      <button class="act" id="bExp">Exporter (fichier)</button>
      <label class="act" style="cursor:pointer">Importer (fichier)<input type="file" accept=".json" style="display:none" id="bImp"></label>
@@ -4653,7 +4671,7 @@ function ecranApropos(){
      <h2 class="jaune">À propos</h2>
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
        et qui est coincé dans l'ascenseur depuis.</p>
-     <p class="dim" style="font-size:12px;line-height:1.5">D1 MANAGER 95-96 — prototype v${VERSION}</p>
+     <p class="dim" style="font-size:12px;line-height:1.5">MULTIPLEX 95 — prototype v${VERSION}</p>
    </div>
    <div class="panel">
      <h2 class="cyan">Une remarque ? Un scandale ?</h2>
@@ -4672,7 +4690,7 @@ function ecranApropos(){
     const obj=document.getElementById("ctcObjet").value;
     const msg=document.getElementById("ctcMsg").value;
     const c=clubById(G.monClub)||{};
-    const sujet="[D1 Manager v"+VERSION+"] "+obj;
+    const sujet="[Multiplex 95 v"+VERSION+"] "+obj;
     const corps=msg+"\n\n— "+(c.nom||"")+" · "+(G.saison||"")+" · J"+Math.min((G.journee||0)+1,38)+"/38";
     window.location.href="mailto:"+CONTACT_MAIL+"?subject="+encodeURIComponent(sujet)+"&body="+encodeURIComponent(corps);
   };
