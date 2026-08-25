@@ -256,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.84"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.85"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1370,14 +1370,33 @@ const ETAT=[
 ];
 function ligneEtat(m,sh,sa){ const e=ETAT.find(x=>x.cond(m,sh,sa)); return e?PICK(e.lignes):null; }
 /* Météo du match (v0.84, lot 2). Tirée au coup d'envoi, annoncée dans la ligne d'engagement,
-   puis distillée en lignes d'ambiance pendant la rencontre. Elle TOURNE AVEC LE CALENDRIER
-   (on joue d'août à mai) : soleil en août, boue et brouillard en décembre.
+   puis distillée en lignes d'ambiance pendant la rencontre. Elle TOURNE AVEC LE CALENDRIER.
+   RÈGLE FONDAMENTALE : une saison de football va d'AOÛT à FIN MAI — les 38 journées couvrent
+   quatre saisons de jeu bien distinctes, et le titre comme la descente se jouent au PRINTEMPS,
+   sous les meilleures conditions de l'année (aucune excuse à invoquer, c'est plus cruel ainsi) :
+     J1-J7   été indien (août-sept)  : soleil rasant, terrain sec
+     J8-J15  automne   (oct-nov)     : la pluie s'installe, le terrain se gâte
+     J16-J26 hiver     (déc-fév)     : froid de canard et parfois des conditions dantesques
+     J27-J38 printemps (mars-mai)    : les meilleures conditions — et le dénouement
    PIÈGE : ces lignes sont poussées en t:"amb", donc SANS fmtC -> aucun jeton dedans.
    Aucun effet moteur : la météo ne touche ni au score ni à l'affluence (calibrage intact). */
 const METEO=[
  { cle:"clair", ouv:"", amb:[
    "Pelouse impeccable et pas un souffle de vent : aucune excuse aujourd'hui.",
    "Les conditions sont idéales, le ballon file tout seul sur le gazon ras.",
+   "Un temps à jouer au football, tout simplement. Le gazon est ras, l'air est doux, tout le monde a les jambes légères.",
+ ]},
+ { cle:"eteIndien", ouv:" Un soleil rasant de fin d'été inonde la pelouse.", amb:[
+   "Le soleil rasant tape droit dans les yeux du gardien qui défend face à la tribune. Il baisse sa casquette et prie.",
+   "Il fait encore chaud pour la saison. On réclame de l'eau à chaque arrêt de jeu, et l'arbitre laisse faire.",
+   "La lumière dorée de fin d'après-midi étire les ombres jusqu'au rond central. C'est très beau, et ça n'aide personne à voir clair.",
+   "Le terrain est sec et dur comme du béton. Le ballon file plus vite que prévu et les contrôles s'allongent de deux mètres.",
+ ]},
+ { cle:"neige", ouv:" Il neige sur le stade.", amb:[
+   "La neige tombe dru. On a passé un coup de balai sur les lignes à la pause, elles ont déjà disparu.",
+   "Le ballon ne roule plus, il s'arrête net dans la poudreuse. On joue au football à la pelle.",
+   "Les intendants ont sorti le ballon orange. Il était temps, on ne voyait plus le blanc.",
+   "Les mains dans les manches et les bonnets enfoncés jusqu'aux yeux : le public est héroïque ce soir.",
  ]},
  { cle:"pluie", ouv:" Il pleut sans discontinuer.", amb:[
    "La pluie redouble. Le ballon fait des ricochets et les gardiens ont les gants trempés.",
@@ -1410,10 +1429,14 @@ const METEO=[
 function tireMeteo(j){
   const J=+j||1;
   let pool;
-  if(J<=7)       pool=["clair","clair","clair","clair","vent","pluie"];                  // août-septembre
-  else if(J<=16) pool=["clair","clair","pluie","pluie","vent","boue"];                   // octobre-novembre
-  else if(J<=26) pool=["froid","froid","pluie","brouillard","boue","boue","clair"];      // décembre-février
-  else           pool=["clair","clair","clair","pluie","vent","boue"];                   // mars-mai
+  // ÉTÉ INDIEN (août-septembre) : soleil rasant, terrain sec, on joue en manches courtes
+  if(J<=7)       pool=["eteIndien","eteIndien","eteIndien","clair","clair","vent","pluie"];
+  // AUTOMNE (octobre-novembre) : la pluie s'installe, le terrain se gâte
+  else if(J<=15) pool=["pluie","pluie","pluie","boue","boue","vent","vent","brouillard","clair","clair"];
+  // HIVER (décembre-février) : froid de canard et, PARFOIS, des conditions dantesques
+  else if(J<=26) pool=["froid","froid","froid","froid","boue","boue","pluie","pluie","brouillard","neige","clair"];
+  // PRINTEMPS (mars-mai) : les meilleures conditions de l'année — et c'est là que tout se joue
+  else           pool=["clair","clair","clair","clair","clair","clair","clair","vent","pluie"];
   const c=PICK(pool);
   return METEO.find(x=>x.cle===c)||METEO[0];
 }
