@@ -260,6 +260,16 @@ toujours « raconter quelque chose ».
   **Ne JAMAIS** rendre `G.risque` permanent : l'ancien booléen valait ~94 % de scandale, donc refuser était
   toujours optimal et le dilemme était mort. L'intermédiaire **rôde davantage quand le club coule** (confiance
   < 45 ou bas de tableau). `G.risque` est un entier (migrer `+G.risque||0`).
+- **CALENDRIER DE LA SAISON — règle fondamentale (consigne auteur, v0.85)** : une saison de football va
+  d'**AOÛT à FIN MAI**. Les 38 journées traversent **quatre saisons de jeu bien distinctes**, et tout contenu
+  daté dans la saison doit s'y conformer : **J1-J7 = été indien** (août-septembre, soleil rasant, terrain sec),
+  **J8-J15 = automne** (octobre-novembre, la pluie s'installe, le terrain se gâte), **J16-J26 = hiver**
+  (décembre-février, froid de canard et parfois des conditions dantesques), **J27-J38 = printemps**
+  (mars-mai, les meilleures conditions de l'année). **Corollaire à ne jamais perdre de vue : le titre, la
+  descente et le maintien se jouent au PRINTEMPS**, sous un ciel dégagé — jamais dans la gadoue de novembre.
+  Erreur commise une fois, à ne pas refaire : situer une lutte pour le maintien en plein automne. La règle
+  vaut pour la météo (`tireMeteo`) mais aussi pour tout futur contenu daté à l'intérieur d'une saison
+  (incidents saisonniers, arcs narratifs, dépêches).
 - **Datation par époque** : chaque incident/sponsor peut porter `de:` et/ou `a:` (années).
   `anneeJeu()` = 1994 + saisonIdx. **Toujours dater un contenu marqué par son époque**
   (réseaux sociaux ≥ 2009, paris en ligne ≥ 2010, etc.). L'anachronisme casse l'immersion.
@@ -434,11 +444,12 @@ toujours « raconter quelque chose ».
   SoFoot rend tout le match au premier chargement ; L'Équipe n'affiche que les 20 dernières minutes mais sa
   page appelle une API interne `sdwh.lequipe.fr/iPhoneDatas/EFR/STD/ALL/V1/Football/Commentaires/<2 derniers
   chiffres de l'id>/<id>.json` qui contient tout, chaque entrée déjà étiquetée par type (`picto_web`).
-- **Météo de match (v0.84, lot 2)** : le même corpus signalait un événement `pluie` qu'on n'avait pas.
-  **`METEO`** = 6 temps (`clair`, `pluie`, `vent`, `froid`, `brouillard`, `boue`), chacun avec un `ouv`
-  (fragment ajouté à la ligne de coup d'envoi) et un jeu de lignes `amb` distillées pendant la rencontre.
-  **`tireMeteo(journee)` fait tourner le climat AVEC LE CALENDRIER** (on joue d'août à mai) : ~65 % de beau
-  temps en août-septembre, boue et froid dominants en décembre-février, embellie au printemps — mesuré.
+- **Météo de match (v0.84, affinée v0.85)** : le même corpus signalait un événement `pluie` qu'on n'avait pas.
+  **`METEO`** = 8 temps (`clair`, `eteIndien`, `pluie`, `vent`, `froid`, `brouillard`, `boue`, `neige`), chacun
+  avec un `ouv` (fragment ajouté à la ligne de coup d'envoi) et un jeu de lignes `amb` distillées pendant la
+  rencontre. **`tireMeteo(journee)` fait tourner le climat AVEC LE CALENDRIER RÉEL DU FOOTBALL** (cf. la règle
+  des quatre saisons de jeu ci-dessous) : été indien 44 % en août, pluie 31 % en octobre, froid 37 % dont 10 %
+  de neige en janvier, et **77 % de conditions parfaites au printemps** — mesuré.
   Le tirage a lieu **une fois au coup d'envoi** et est mémorisé dans la variable de module **`METEO_MATCH`**,
   **relue par `simuleReste`** pour qu'un changement de tactique en direct ne change pas le temps qu'il fait.
   **Aucun effet moteur** : la météo ne touche ni au score ni à l'affluence (choix assumé — c'est du décor,
