@@ -434,6 +434,21 @@ toujours « raconter quelque chose ».
   SoFoot rend tout le match au premier chargement ; L'Équipe n'affiche que les 20 dernières minutes mais sa
   page appelle une API interne `sdwh.lequipe.fr/iPhoneDatas/EFR/STD/ALL/V1/Football/Commentaires/<2 derniers
   chiffres de l'id>/<id>.json` qui contient tout, chaque entrée déjà étiquetée par type (`picto_web`).
+- **Météo de match (v0.84, lot 2)** : le même corpus signalait un événement `pluie` qu'on n'avait pas.
+  **`METEO`** = 6 temps (`clair`, `pluie`, `vent`, `froid`, `brouillard`, `boue`), chacun avec un `ouv`
+  (fragment ajouté à la ligne de coup d'envoi) et un jeu de lignes `amb` distillées pendant la rencontre.
+  **`tireMeteo(journee)` fait tourner le climat AVEC LE CALENDRIER** (on joue d'août à mai) : ~65 % de beau
+  temps en août-septembre, boue et froid dominants en décembre-février, embellie au printemps — mesuré.
+  Le tirage a lieu **une fois au coup d'envoi** et est mémorisé dans la variable de module **`METEO_MATCH`**,
+  **relue par `simuleReste`** pour qu'un changement de tactique en direct ne change pas le temps qu'il fait.
+  **Aucun effet moteur** : la météo ne touche ni au score ni à l'affluence (choix assumé — c'est du décor,
+  le calibrage reste étalonné). Rien à migrer (transitoire, pas dans `G`). Étendre = ajouter une entrée à
+  `METEO` et la citer dans le `pool` de la bonne période dans `tireMeteo`.
+  Le même lot ajoute **`poteau`** (6 lignes, le bois) et **`refuse`** (5, le but refusé — **pas de vidéo en
+  1995**, la décision est sans appel, ce qui est un ressort narratif et non une limite), trois variantes de
+  **contre son camp** dans `but` (narration seule, le buteur reste crédité comme avant, **aucun changement
+  moteur**), et l'**annonce du temps additionnel** juste avant le coup de sifflet final. Le téléscripteur
+  atteint **22,0 lignes par match** (contre ~13 avant le lot 1). Calibrage mesuré : 2,381.
 - **Vitesses du téléscripteur** (boutons `#ctlVitesse` : `vR`/`vN`/`vL`/`vTL`) : 4 paliers, toute l'échelle reculée
   d'un cran après playtest (v0.48, « ça défile trop vite ») — **Rapide** 950 ms, **Normale** 1600 ms (défaut,
   `tickerDelai` à l'init et au reset de `lanceMatch`), **Lente** 2300 ms, **Très lente** 3000 ms (nouveau plancher).

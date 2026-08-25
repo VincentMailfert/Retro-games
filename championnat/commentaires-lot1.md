@@ -313,9 +313,31 @@ en clair et mesure la fréquence réelle de chaque famille sur 400 matchs verbeu
 
 ---
 
-# LOT 2 — pistes ouvertes par le corpus
-Types d'événements repérés dans les lives et toujours absents du jeu :
-`poteau` (0,24/match), `but_refuse` (0,18), `but_contre_son_camp` (0,06), et la **météo**
-(`pluie`) — un match sous la pluie qui change l'ambiance serait dans l'esprit « la contrainte
-est le produit ». Le `temps_additionnel` (1,47/match) est aussi une annonce qui manque au
-coup de sifflet.
+# LOT 2 — LIVRÉ (v0.84)
+
+Les quatre pistes ouvertes par le corpus ont toutes été traitées.
+
+- **Météo de match** (la pièce maîtresse) : `METEO`, 6 temps, tirée au coup d'envoi et
+  **variable selon le calendrier** via `tireMeteo(journee)`. Mesuré : ~65 % de clair en
+  août-septembre, boue + froid dominants en décembre-février. Mémorisée dans `METEO_MATCH`,
+  relue par `simuleReste` pour qu'un changement de tactique ne change pas le temps qu'il fait.
+- **`poteau`** (6 lignes, réglage 0,004/min → 0,36/match ; corpus 0,24).
+- **`refuse`** (5 lignes, 0,003/min → 0,27/match ; corpus 0,18). Pas de vidéo en 1995 :
+  la décision est sans appel, ce qui est un ressort et non une limite.
+- **Contre son camp** : 3 variantes de narration dans `but`, aucun changement moteur.
+- **Temps additionnel** annoncé au coup de sifflet (1,00/match).
+
+Téléscripteur : **22,0 lignes par match** (contre ~13 avant le lot 1).
+Calibrage : 2,381 · 96-97 à 2,360 · Europe vert.
+
+---
+
+# LOT 3 — pistes encore ouvertes
+Ce que le corpus contient et que le jeu n'exploite toujours pas :
+- **`connect_stats`** (7,29/match, 2ᵉ poste du corpus !) : les encarts statistiques en cours de
+  match. Le moteur a déjà toute la donnée (tirs, possession implicite, séries, historique des
+  confrontations) — il ne la dit jamais pendant le direct.
+- **`transfert`** (8,94/match, 1ᵉʳ poste) : les remplacements. Le jeu n'a pas de banc qui entre
+  en cours de match ; ce serait un vrai système, pas une ligne de texte.
+- Le **`envoye_special`** (0,65/match) : la note d'ambiance signée, façon reporter au bord du
+  terrain — un registre de plus, distinct du reporter et du chambreur.
