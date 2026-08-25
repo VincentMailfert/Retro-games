@@ -108,18 +108,15 @@
     max-width:540px; background:rgba(111,214,232,.07); border-left:3px solid var(--cyan); padding:8px 12px; border-radius:3px;}
   #butFlash .hint{font-size:13px; color:var(--dim); margin-top:12px; letter-spacing:1px;}
   #butFlash.contre .gros{color:var(--rouge);}
-  #butFlash .vignette{position:relative; line-height:0; border:2px solid #2a2a2a; border-radius:4px; overflow:hidden; margin:0 auto;}
+  /* la vignette du but s'affiche EN ENTIER (plus de bandeau texte par-dessus) : titre au-dessus, détail en dessous */
+  #butFlash .vignette{line-height:0; border:2px solid #2a2a2a; border-radius:4px; overflow:hidden; margin:14px auto 0; width:fit-content;}
   #butFlash .vimg{display:block; width:100%; max-width:min(360px,80vw); height:auto; image-rendering:pixelated;}
-  #butFlash .bandeau{position:absolute; left:0; right:0; top:0; padding:8px 12px 22px; line-height:1.1;
-    background:linear-gradient(to bottom, rgba(4,9,18,.9) 35%, rgba(4,9,18,0));}
-  #butFlash .bandeau .gros{font-size:30px; letter-spacing:2px; text-shadow:0 0 2px currentColor, 0 2px 3px rgba(0,0,0,.95);}
-  #butFlash .bandeau .det{margin-top:6px; text-shadow:0 1px 3px rgba(0,0,0,.95);}
   .momImg{display:block; margin:0 auto 8px; width:auto; max-width:100%; max-height:200px; image-rendering:pixelated;
     border:2px solid #2a2a2a; border-radius:4px;}
   @keyframes butflash{50%{opacity:.2;}}
   @media (prefers-reduced-motion:reduce){#butFlash .gros{animation:none;}}
   @media(max-width:700px){ #butFlash .gros{font-size:26px; letter-spacing:2px;} #butFlash .led{padding:14px 18px;}
-    #butFlash .bandeau .gros{font-size:24px;} #butFlash .buteur{font-size:20px;} }
+    #butFlash .buteur{font-size:20px;} }
   .scoreline{font-family:var(--font-led); font-size:16px; color:var(--jaune); text-align:center; padding:6px 0; letter-spacing:1px;}
   .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
@@ -259,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.82"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.83"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1147,6 +1144,14 @@ const COMM={
   "Le gardien prend son temps sur le six mètres, sifflets dans les tribunes.",
   "Duel d'entraîneurs à distance : l'un note sur son calepin, l'autre mâche son chewing-gum.",
   "Une mêlée indescriptible dans la surface, et finalement... rien. Ouf pour tout le monde.",
+  "Le terrain est gras au milieu, ça glisse à chaque appui. Les crampons vissés vont faire la différence.",
+  "Un ballon de rechange traverse la pelouse, l'arbitre le chasse du pied comme on chasse une mouche.",
+  "Fumigène dans le virage, la fumée traverse la pelouse. On joue dans le brouillard pendant une minute.",
+  "Un entraîneur sort de sa zone technique une fois de trop : l'arbitre le renvoie en tribune, et il n'y monte pas de bon cœur !",
+  "Le speaker annonce l'affluence du soir. Le chiffre est accueilli par un mélange d'applaudissements polis et de ricanements francs.",
+  "Un joueur remet ses protège-tibias en marchant, chaussettes à mi-mollet et short au ras du nombril. On est en 1995, et ça se voit.",
+  "Passe en retrait au gardien, qui la prend au pied en soupirant. Trois ans que c'est interdit à la main, et certains cherchent encore.",
+  "Le quatrième arbitre tente de calmer les deux bancs, qui se répondent par-dessus lui. Il note quelque chose sur sa feuille, et personne ne saura jamais quoi.",
  ],
  arret:[ // arrêt du gardien
   "{A} s'infiltre dans la surface, frappe... le gardien s'interpose !",
@@ -1161,6 +1166,11 @@ const COMM={
   "Reprise de volée de {A}... en pleine poitrine du portier, qui ne veut rien savoir ce soir !",
   "{A} slalome entre trois défenseurs, ouvre son pied... et le gardien sort le grand jeu du bout du gant !",
   "Frappe à bout portant de {A}... le portier fait le mur à lui tout seul ! C'est un miracle, ni plus ni moins !",
+  "Double parade ! {A} frappe, {G} repousse, il insiste, reprend... et le portier se couche une seconde fois !",
+  "{A} enroule à l'entrée de la surface, ça part sous la barre... {G} sort une horizontale du gant gauche ! On applaudit debout !",
+  "Frappe vicieuse de {A} qui rebondit devant {G}... détournée du bout des doigts en corner ! Le rebond était traître.",
+  "{A} se retourne dans un mouchoir et frappe des deux côtés coup sur coup — {G} dit non, et redit non !",
+  "{A} tente le lob sur {G} monté trop haut. Le portier recule en marche arrière comme une Safrane dans un parking, et boxe au-dessus de sa barre !",
  ],
  rate:[ // tir manqué
   "{A} en pivot, reprise instantanée... à côté de peu !",
@@ -1176,6 +1186,10 @@ const COMM={
   "Contre éclair, {A} lancé comme un TGV... mais son plat du pied manque de conviction, le gardien s'en empare.",
   "{A} tente la roulette dans la surface, y croit, frappe... dans le petit filet ! Le public y a cru avec lui !",
   "Deux poteaux ! DEUX poteaux sur la même action, et {A} qui se prend la tête à deux mains ! Ce soir, le cadre est contre lui !",
+  "{A} arrive lancé sur le centre en retrait... et sa reprise part dans le décor ! Il se prend la tête à deux mains.",
+  "{A} croit avoir le temps, contrôle, réajuste... et le retour du défenseur contre sa frappe. Il fallait la mettre du premier coup.",
+  "{A} est trouvé au second poteau, tout seul, but ouvert, gardien à terre... et il glisse. La pelouse a encore frappé.",
+  "Contre à trois contre deux. {A} garde le ballon pour lui, tente le crochet de trop, se fait reprendre. Ses deux coéquipiers lèvent les bras au ciel et l'y laisseront un moment.",
  ],
  cj:[
   "Carton jaune pour {A} après un tacle appuyé.",
@@ -1186,6 +1200,14 @@ const COMM={
   "Ballon dégagé en tribune après le coup de sifflet : {A} prend un jaune pour son mauvais caractère.",
   "{A} conteste, conteste encore... et l'arbitre sort le jaune pour lui rafraîchir les idées.",
   "Obstruction grossière de {A} : jaune, et le public d'en face lui chante une petite chanson.",
+  "{A} arrête le contre d'une faute cynique au milieu : jaune, et c'est de bonne guerre.",
+  "Tacle glissé de {A}, un peu haut, un peu tard : l'arbitre s'approche, dialogue deux secondes, puis sort le jaune.",
+  "Coup de coude discret de {A} dans un duel aérien. L'arbitre l'a vu, lui : avertissement.",
+  "{A} envoie son adversaire dans le panneau publicitaire ! Jaune, et une main tendue pour se faire pardonner.",
+  "Simulation de {A} dans la surface ! Personne n'y a cru, sauf lui. Jaune, et le public d'en face jubile.",
+  "{A} met les mains sur le ballon pour empêcher le coup franc rapide. Jaune pour l'astuce — c'était bien tenté, mais ça se voit depuis la tribune d'honneur.",
+  "{A} fait un pas de trop vers l'arbitre et entreprend de lui expliquer son métier. L'arbitre lui explique le sien : jaune.",
+  "{A} traîne à sortir au moment du changement. Il marche comme s'il traversait un champ de betteraves : jaune pour perte de temps.",
  ],
  cr:[
   "CARTON ROUGE ! {A} laisse les siens à dix après un geste d'humeur !",
@@ -1194,16 +1216,28 @@ const COMM={
   "ROUGE DIRECT ! {A} s'essuie les crampons sur le mollet adverse, et il peut prendre la direction des vestiaires sans discuter !",
   "Deuxième jaune pour {A}... et donc ROUGE ! Il quitte la pelouse en applaudissant l'arbitre, ce qui ne va rien arranger !",
   "CARTON ROUGE ! {A} joue les derniers remparts avec la main, c'est la faute du désespoir et c'est la douche avant tout le monde !",
+  "ROUGE ! {A} règle un compte loin du ballon, l'arbitre n'a rien manqué. Vestiaire.",
+  "{A} retient l'attaquant par le maillot alors qu'il filait au but : faute du dernier défenseur, c'est ROUGE.",
+  "ROUGE ! Le tacle de {A} arrive en retard, très en retard, et par-derrière. Personne ne discute celui-là.",
+  "CARTON ROUGE POUR {A} ! Le coude est parti tout seul, paraît-il. L'arbitre n'a pas cette lecture des faits.",
+  "Rouge pour {A} ! Il a poussé l'arbitre du doigt — un doigt de trop. Ses coéquipiers l'écartent avant qu'il n'invente pire.",
+  "Deuxième jaune pour {A}, pour une simulation grossière... et donc ROUGE ! Tomber tout seul et se faire expulser, il faut le faire.",
  ],
  cjGK:[ // faute de gardien (jaune) — un portier ne taclant pas, il faute autrement
   "Sortie ratée de {A} qui fauche l'attaquant à la limite de la surface — jaune pour le gardien !",
   "{A} sort poings devant et percute son homme au lieu du ballon — l'arbitre brandit le jaune.",
   "Main de {A} hors de sa surface pour casser le contre — le portier est averti !",
+  "{A} sort de sa surface et contrôle de la main, croyant être dedans. Il n'y était pas : avertissement.",
+  "{A} s'assoit sur le ballon pour gagner du temps, sourire aux lèvres. L'arbitre ne rit pas : jaune.",
+  "Six mètres interminable de {A}, quatrième rappel à l'ordre... et cette fois le jaune tombe. Il avait pourtant l'air sincèrement surpris.",
  ],
  crGK:[ // faute de gardien (rouge)
   "SORTIE KAMIKAZE À LA SCHUMACHER ! {A} aplatit l'attaquant lancé — ROUGE, le gardien est exclu !",
   "{A} surgit les deux poings en avant et assomme son adversaire — ROUGE direct pour le portier !",
   "Dernier rempart, dernier recours : {A} fauche l'attaquant filant seul au but — ROUGE logique pour le gardien.",
+  "ROUGE ! {A} plonge dans les jambes bien après le ballon. L'attaquant s'envole, le gardien s'en va.",
+  "{A} déblaie l'attaquant d'un coup d'épaule à vingt mètres de sa cage : ROUGE pour le portier, et son remplaçant enfile les gants en catastrophe !",
+  "{A} repousse l'attaquant des deux mains hors de sa surface. Ce n'est plus du football, c'est du catch : ROUGE.",
  ],
  cf:[ // coup franc direct aux abords de la surface — pur décor, ne change pas le score (calibrage intact)
   "Coup franc bien placé pour {A}... la frappe s'écrase sur le mur !",
@@ -1218,6 +1252,9 @@ const COMM={
   "Coup franc aux vingt mètres : {A} tente la feuille morte... le gardien boxe des deux poings !",
   "{A} frappe fort et à ras de terre, sous le mur qui saute... le portier était resté sur ses appuis !",
   "Combinaison sur coup franc : {A} feint la frappe, glisse à côté... mais le tir de son coéquipier est contré. C'était bien manigancé, pourtant !",
+  "{A} pose le ballon à vingt-deux mètres, recule de cinq pas, souffle... et sa frappe s'écrase sur la barre ! Le stade se prend la tête !",
+  "Coup franc de {A} dévié par le mur... et le gardien, parti de l'autre côté, se retourne pour voir le ballon filer à côté ! Il a eu chaud.",
+  "{A} et un coéquipier se disputent le ballon au-dessus du point de faute. Ils s'expliquent, ils négocient, ils tirent... et personne ne trouve le cadre. Trop de démocratie.",
  ],
  but:[
   "{A} reprend victorieusement au second poteau... BUUUT !",
@@ -1236,9 +1273,85 @@ const COMM={
   "Corner rentrant... et personne ne touche le ballon ! BUT DIRECT ! {A} jure qu'il l'a fait exprès, on veut bien le croire !",
   "{A} au duel avec le gardien... petit piqué tout en douceur... BUUUT ! Quel sang-froid, on dirait qu'il joue en pantoufles !",
   "La reprise de {A} est contrée, revient, il insiste, pousse... BUUUT ! Pas le plus beau de sa carrière, mais ils comptent tous double dans un soir pareil !",
+  "Corner au second poteau, {A} monte au-dessus de la mêlée et pique sa tête dans le petit filet... BUUUT !",
+  "{A} récupère un ballon mal dégagé aux vingt mètres et le remet dedans du premier coup... BUUUT ! Punition immédiate !",
+  "Contre-attaque menée tambour battant, {A} au bout de la course... il croise du plat du pied... BUUUT ! Le gardien n'a pas bougé !",
+  "{A} arrive lancé sur le centre à ras de terre et pousse le ballon au fond ! BUT ! Le plus simple du monde, encore fallait-il être là !",
+ ],
+ sauve:[ // le sauvetage défensif — premier poste d'un vrai live, {A} = l'attaquant qui a tenté
+  "Le centre traverse toute la surface, {A} n'a plus qu'à pousser... SAUVÉ SUR LA LIGNE ! Un défenseur sorti de nulle part !",
+  "{A} croit conclure du bout du pied... un crampon adverse traîne et détourne en corner !",
+  "Tête piquée de {A}, le gardien est battu... et un défenseur dégage sous la barre ! Le stade avait déjà crié but !",
+  "{A} arme dans la surface... contré par un tacle providentiel ! Le défenseur y est allé de tout son corps.",
+  "{A} déborde et s'apprête à conclure... retour héroïque d'un défenseur qui le tacle proprement, ballon en touche !",
+  "Le ballon traîne devant la ligne, {A} tend la jambe... dégagé en catastrophe par la défense de {D} ! Ça sentait le roussi.",
+  "{A} pense avoir fait le plus dur... mais un défenseur de {D} surgit et détourne du crâne ! Le sauvetage du siècle, rien de moins !",
+  "Le portier avait relâché, {A} suit... un défenseur arrive à fond de train et dégage en tribune ! Ouf pour les siens.",
+  "{A} est à deux mètres du but vide. Un défenseur de {D} se transforme en gardien, en mur et en pompier volontaire dans le même geste : dégagé !",
+  "{A} n'en revient pas : il avait tout bien fait, et un défenseur a mis le tibia là où il ne fallait pas. Le football est une science cruelle.",
+  "Sauvetage sur la ligne devant {A} ! Le défenseur se relève et hurle sur tout le monde, histoire de faire croire que c'était prévu.",
+ ],
+ corner:[ // le coup de pied de coin — {A} = le tireur
+  "Corner pour {D}, le centre fuse au second poteau... et finit dans les gants du gardien, tranquille.",
+  "{A} place son corner au point de penalty... la défense sort le poing et éloigne le danger.",
+  "Corner de {A}, tout le monde saute, personne ne touche... et ça ressort de l'autre côté !",
+  "{A} tire son corner à ras de terre au premier poteau... dévié, mais ça file juste à côté !",
+  "Corner de {A}, mêlée furieuse dans les six mètres... et l'arbitre siffle une faute sur le gardien.",
+  "{A} s'installe au drapeau, prend son temps... son centre est trop long, ça sort directement en six mètres.",
+  "Corner rentrant de {A} : le gardien sort dans les airs et cueille le ballon à deux mains. Autorité totale.",
+  "{A} joue le corner à deux. On se fait des passes, on cherche l'ouverture, on réfléchit... et on perd le ballon. Le banc a fermé les yeux.",
+  "Corner de {A}. Les grands montent, les petits font semblant de marquer quelqu'un, et le ballon file directement en six mètres. Un classique du genre.",
+ ],
+ hj:[ // le hors-jeu — {A} = l'attaquant signalé
+  "{A} part au but, seul... le drapeau se lève ! Hors-jeu d'une demi-semelle, et le banc de {D} respire.",
+  "Superbe ouverture pour {A}, qui va au bout et loge le ballon au fond... mais le juge de touche avait tranché depuis longtemps.",
+  "{A} croit ouvrir le score... hors-jeu ! Il conteste, il montre la ligne, il lève les bras : rien n'y fait.",
+  "Le drapeau se lève sur la percée de {A}. À la vitesse où il courait, il n'aurait pas fallu grand-chose.",
+  "{A} est signalé hors-jeu. Le stade siffle le juge de touche, le juge de touche regarde ailleurs : chacun son métier.",
+  "Hors-jeu pour {A}, et de très peu. Un jour on aura une machine pour trancher ces choses-là ; en attendant, c'est un monsieur avec un drapeau, et il a toujours raison.",
+ ],
+ soin:[ // le choc et l'infirmerie — {A} = le joueur touché
+  "{A} reste à terre après un choc à la tête. Le soigneur arrive avec l'éponge magique et le bidon.",
+  "Choc violent entre {A} et son vis-à-vis : les deux restent au sol, l'arbitre arrête le jeu.",
+  "{A} prend le dégagement en pleine figure à bout portant ! Il met un moment à retrouver ses esprits.",
+  "{A} se tient la cuisse et grimace. Il fait signe au banc : ça sent le remplacement.",
+  "{A} se relève en boitant, refuse de sortir, repart en clopinant et fait un signe rassurant à son banc. Personne n'est rassuré.",
+  "Éponge magique sur {A}, spray glacé, deux tapes dans le dos, et le voilà reparti. La médecine du sport a fait des progrès fulgurants depuis dix minutes.",
  ],
 };
 function quelconque(c){ return PICK(onze(c)); }
+/* État du match : lignes d'ambiance CONDITIONNÉES par le score et la minute, au lieu d'être
+   tirées au hasard. Calqué sur ce que fait un vrai live (~7 % de ses entrées). Ordre = priorité.
+   Aucun effet moteur : c'est du décor, le calibrage n'y touche pas. */
+const ETAT=[
+ { cle:"reprise", cond:(m,sh,sa)=> m>=46 && m<=50, lignes:[
+   "Retour des vestiaires, et on sent que ça a parlé fort à la pause : le rythme est tout autre.",
+   "Les vingt-deux acteurs reviennent sur la pelouse. Un changement de chaque côté, ça va s'expliquer.",
+ ]},
+ { cle:"large", cond:(m,sh,sa)=> m>=60 && Math.abs(sh-sa)>=3, lignes:[
+   "L'écart est fait, le match a perdu de son sel. On joue les figurants.",
+   "Les bancs font tourner, on donne du temps de jeu aux jeunes. La messe est dite.",
+   "Têtes basses d'un côté, petits ponts gratuits de l'autre. Le public commence à siffler, et il a raison.",
+ ]},
+ { cle:"serre", cond:(m,sh,sa)=> m>=75 && sh===sa, lignes:[
+   "Personne ne veut perdre, personne n'ose gagner. Le match se ferme comme une huître.",
+   "Le match est tendu, chaque duel se gagne au chausson. Un rien fera la différence.",
+   "Les deux équipes se regardent, le ballon circule sans jamais avancer. On sent qu'un point arrangerait tout le monde, y compris le public, qui pense déjà au parking.",
+ ]},
+ { cle:"finTendue", cond:(m,sh,sa)=> m>=75 && Math.abs(sh-sa)===1, lignes:[
+   "L'équipe menée a fait monter tout le monde, même les défenseurs. On joue à une seule cage.",
+   "Ça défend à onze devant la surface, on dégage loin devant, et le banc hurle de tenir.",
+   "Le ballon part se cacher dans le coin du terrain. On gagne des secondes, et les sifflets montent d'un cran.",
+   "Les minutes filent et le ballon repart toujours devant. Ça sent la dernière cartouche.",
+ ]},
+ { cle:"mou", cond:(m,sh,sa)=> m>=55 && m<=72, lignes:[
+   "Le jeu se fait décousu, les passes se perdent, les jambes sont lourdes des deux côtés.",
+   "Rien à signaler depuis un moment. Le ballon fait des allers-retours au milieu, et l'ambiance retombe.",
+   "Long temps mort. Les entraîneurs font passer des consignes, les joueurs hochent la tête, et personne ne changera quoi que ce soit.",
+ ]},
+];
+function ligneEtat(m,sh,sa){ const e=ETAT.find(x=>x.cond(m,sh,sa)); return e?PICK(e.lignes):null; }
+
 function tireur(c){
   const xi=onze(c), att=xi.filter(j=>"MA".includes(j.pos));
   const pond=att.map(j=>j.pos==="A"?j.note*2:j.note);
@@ -1370,10 +1483,21 @@ function simuleMatch(home,away,verbeux){
         x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
     }
     // coups francs aux abords de la surface (~0,7 par match) : du décor qui rythme la rencontre, sans toucher au score
-    if(verbeux && Math.random()<0.0085){
+    if(verbeux && Math.random()<0.014){
       const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.cf),t,cf===home?away:home)+" ("+cf.id+")"});
     }
+    // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
+    // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
+    if(verbeux && Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(onze(c));
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.corner),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(verbeux && Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
+      if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(PICK(COMM.sauve),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(verbeux && Math.random()<0.010){ const c=Math.random()<0.5?home:away, t=tireur(c);
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.hj),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(verbeux && Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
+      if(t) ev.push({m,t:"amb",x:fmtC(PICK(COMM.soin),t,c===home?away:home)}); }
+    if(verbeux && Math.random()<0.014){ const el=ligneEtat(m,sh,sa); if(el) ev.push({m,t:"amb",x:el}); }
     if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
   }
   if(verbeux){ ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom});
@@ -1418,8 +1542,19 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
       const pool=rouge?(gardien?COMM.crGK:COMM.cr):(gardien?COMM.cjGK:COMM.cj);
       ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
     }
-    if(Math.random()<0.0085){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
+    if(Math.random()<0.014){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.cf),t,cf===home?away:home)+" ("+cf.id+")"}); }
+    // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
+    // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
+    if(Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(onze(c));
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.corner),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
+      if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(PICK(COMM.sauve),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(Math.random()<0.010){ const c=Math.random()<0.5?home:away, t=tireur(c);
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.hj),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
+      if(t) ev.push({m,t:"amb",x:fmtC(PICK(COMM.soin),t,c===home?away:home)}); }
+    if(Math.random()<0.014){ const el=ligneEtat(m,sh,sa); if(el) ev.push({m,t:"amb",x:el}); }
   }
   return {ev, sh, sa};
 }
@@ -4933,9 +5068,9 @@ function celebreFlash(o, onDone){
   const d=document.createElement("div");
   d.id="butFlash"; if(o.classe) d.className=o.classe;
   const corps=o.img
-    ? `<div class="vignette"><img class="vimg" src="${o.img}" alt="">
-         <div class="bandeau"><div class="gros">${o.gros}</div>${o.sub?`<div class="det">${o.sub}</div>`:""}</div>
-       </div>
+    ? `<div class="gros">${o.gros}</div>
+       <div class="vignette"><img class="vimg" src="${o.img}" alt=""></div>
+       ${o.sub?`<div class="det">${o.sub}</div>`:""}
        ${o.buteur?`<div class="buteur">${esc(o.buteur)}</div>`:""}
        ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}
        <div class="hint">▸ cliquez pour continuer</div>`

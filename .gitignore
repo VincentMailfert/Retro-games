@@ -9,3 +9,9 @@ desktop.ini
 
 # Local Claude settings (machine-specific)
 .claude/settings.local.json
+
+# Corpus de travail des lives (extraction navigateur, non versionne)
+.playwright-mcp/
+
+# Artefact de validation (regenere a chaque run du harnais)
+championnat/game.js
