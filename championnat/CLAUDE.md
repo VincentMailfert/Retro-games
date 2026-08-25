@@ -409,6 +409,31 @@ toujours « raconter quelque chose ».
   (le tireur nommé + le flag de montée) ; `tic()` déclenche les deux temps si `lg.g || (lg.q && lg.q.bu)` via le
   **compteur** `lg._monte` (0→1→2), en piochant `info=lg.g||lg.q` pour le nom du porteur et le camp. N'altère ni le
   score ni le calibrage (purement cosmétique). Le harnais ne rend pas le direct, donc rien à vérifier côté moteur.
+- **Commentaires du direct — enrichissement sur corpus réel (v0.83, lot 1)** : le téléscripteur ne
+  racontait que le tir et le carton. Dépouillement de **17 lives réels de L1** (1 539 entrées, minute 1
+  au coup de sifflet) + 5 lives SoFoot, qui a dicté les réglages plutôt que l'intuition. Enseignements :
+  un vrai live tient **90,5 entrées/match**, dont **54 % de texte courant** parlant de ce que le jeu
+  ignorait — le **sauvetage défensif en premier poste**, puis les parades, les débordements, l'état du
+  rapport de force. D'où **4 familles nouvelles** dans `COMM` : **`sauve`** (11 lignes, `{A}` = l'attaquant
+  qui a tenté, le sauveur reste anonyme), **`corner`** (9, `{A}` = le tireur), **`hj`** (6, hors-jeu,
+  `{A}` = l'attaquant signalé), **`soin`** (6, choc/infirmerie, `{A}` = le joueur touché). Et surtout le
+  bloc **`ETAT`** (15 lignes en 5 groupes **conditionnés par score et minute** : `reprise`, `large`,
+  `serre`, `finTendue`, `mou` ; **l'ordre vaut priorité**), lu par **`ligneEtat(m,sh,sa)`** — c'est lui qui
+  fait passer le direct de « phrases au hasard » à « on suit un match ». Familles maigres renforcées
+  (`amb` +8, `cj` +8, `cr` +6, `arret` +5, `but` +4, `rate` +4, `cjGK`/`crGK`/`cf` +3) : **`COMM` passe de
+  90 à 194 lignes**, et de ~13 à **20,6 lignes affichées par match**. **Fréquences** (par minute, calées sur
+  le corpus mais **volontairement en retrait du réel** — un vrai live à 90 entrées noierait un téléscripteur
+  qui se lit en 90 tics) : `corner` 0,020 · `sauve` 0,018 · `cf` **0,014** · `etat` 0,014 (plus condition) ·
+  `hj` 0,010 · `soin` 0,008. Le **coup franc était 3× sous-injecté** (0,0085 alors que le réel est à 0,024) —
+  corrigé. **Branché aux DEUX points d'injection** : `simuleMatch` (gardé par `verbeux`) **et** `simuleReste`
+  (re-simulation après changement de tactique en direct), sinon le direct retomberait dans l'ancien vocabulaire
+  au premier changement de consigne. **Aucune de ces lignes ne touche au score** (même statut que `cf`) →
+  **calibrage intact par construction**, mesuré : 2,412 buts/match. Registre : ~70 % « reporter » (la mécanique
+  de l'action) / ~30 % « chambreur » (l'ironie SoFoot **transposée en 1995** — on garde le procédé comique,
+  jamais les références modernes). **Méthode d'extraction des lives** consignée dans `commentaires-lot1.md` :
+  SoFoot rend tout le match au premier chargement ; L'Équipe n'affiche que les 20 dernières minutes mais sa
+  page appelle une API interne `sdwh.lequipe.fr/iPhoneDatas/EFR/STD/ALL/V1/Football/Commentaires/<2 derniers
+  chiffres de l'id>/<id>.json` qui contient tout, chaque entrée déjà étiquetée par type (`picto_web`).
 - **Vitesses du téléscripteur** (boutons `#ctlVitesse` : `vR`/`vN`/`vL`/`vTL`) : 4 paliers, toute l'échelle reculée
   d'un cran après playtest (v0.48, « ça défile trop vite ») — **Rapide** 950 ms, **Normale** 1600 ms (défaut,
   `tickerDelai` à l'init et au reset de `lanceMatch`), **Lente** 2300 ms, **Très lente** 3000 ms (nouveau plancher).
@@ -654,6 +679,15 @@ toujours « raconter quelque chose ».
   par `fmtC`, qui ne remplace QUE trois jetons : `{A}` (le joueur concerné), `{G}` (« le gardien »)
   et `{D}` (l'adversaire). **Pas de `{B}`** : une ligne qui nomme un second joueur (passeur, etc.)
   afficherait « {B} » en clair. Pour évoquer un relais, rester générique (« un relais traverse… »).
+  **Deux corollaires découverts à l'écriture du lot 1 (v0.83), qui ont tous deux fait apparaître des
+  jetons en clair à l'écran** : (a) `fmtC` fait un `String.replace` avec une *chaîne*, donc il ne
+  remplace que la **PREMIÈRE occurrence** de chaque jeton — une ligne qui emploie deux fois `{A}` ou
+  `{G}` affiche le second en clair, donc **un jeton au plus une fois par ligne** ; (b) les lignes
+  d'ambiance **ne passent PAS par `fmtC`** (`ev.push({t:"amb",x:PICK(COMM.amb)})`, brut) — `COMM.amb`
+  et les lignes de `ETAT` ne doivent donc contenir **aucun jeton**, et `ETAT` doit rester de
+  formulation **neutre** (dans `simuleMatch` on ne sait pas de quel côté est le joueur). Contrôle
+  utile avant livraison : balayer toutes les familles à la recherche d'un jeton doublé, puis simuler
+  quelques centaines de matchs verbeux en comptant les `{A}`/`{G}`/`{D}` restés visibles (doit être 0).
 - L'overlay d'un moment de match ne doit jamais surgir hors d'un match : `abandonneDirect()`
   sur chaque transition d'écran nettoie le ticker.
 - Reset des stats de TOUS les clubs à l'intersaison (`razStatsClub`), y compris ceux qui restent.
