@@ -256,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.86"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.87"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1183,13 +1183,13 @@ const COMM={
   "{A} croit à la lucarne... la transversale en tremble encore !",
   "Le centre est pour {A} au second poteau... qui glisse au moment de conclure ! Ah, la pelouse est traîtresse !",
   "{A} enrhume son défenseur, arme... et sa frappe frôle le montant ! À un cheveu, mes amis, à un cheveu !",
-  "Contre éclair, {A} lancé comme un TGV... mais son plat du pied manque de conviction, le gardien s'en empare.",
+  "{A} déboule dans le couloir comme un TGV... mais son plat du pied manque de conviction, le gardien s'en empare.",
   "{A} tente la roulette dans la surface, y croit, frappe... dans le petit filet ! Le public y a cru avec lui !",
   "Deux poteaux ! DEUX poteaux sur la même action, et {A} qui se prend la tête à deux mains ! Ce soir, le cadre est contre lui !",
   "{A} arrive lancé sur le centre en retrait... et sa reprise part dans le décor ! Il se prend la tête à deux mains.",
   "{A} croit avoir le temps, contrôle, réajuste... et le retour du défenseur contre sa frappe. Il fallait la mettre du premier coup.",
   "{A} est trouvé au second poteau, tout seul, but ouvert, gardien à terre... et il glisse. La pelouse a encore frappé.",
-  "Contre à trois contre deux. {A} garde le ballon pour lui, tente le crochet de trop, se fait reprendre. Ses deux coéquipiers lèvent les bras au ciel et l'y laisseront un moment.",
+  "Deux appels au point de penalty, et {A} garde le ballon pour lui, tente le crochet de trop, se fait reprendre. Ses coéquipiers lèvent les bras au ciel et l'y laisseront un moment.",
  ],
  cj:[
   "Carton jaune pour {A} après un tacle appuyé.",
@@ -1200,7 +1200,7 @@ const COMM={
   "Ballon dégagé en tribune après le coup de sifflet : {A} prend un jaune pour son mauvais caractère.",
   "{A} conteste, conteste encore... et l'arbitre sort le jaune pour lui rafraîchir les idées.",
   "Obstruction grossière de {A} : jaune, et le public d'en face lui chante une petite chanson.",
-  "{A} arrête le contre d'une faute cynique au milieu : jaune, et c'est de bonne guerre.",
+  "{A} arrête l'attaque adverse d'une faute cynique au milieu : jaune, et c'est de bonne guerre.",
   "Tacle glissé de {A}, un peu haut, un peu tard : l'arbitre s'approche, dialogue deux secondes, puis sort le jaune.",
   "Coup de coude discret de {A} dans un duel aérien. L'arbitre l'a vu, lui : avertissement.",
   "{A} envoie son adversaire dans le panneau publicitaire ! Jaune, et une main tendue pour se faire pardonner.",
@@ -1226,7 +1226,7 @@ const COMM={
  cjGK:[ // faute de gardien (jaune) — un portier ne taclant pas, il faute autrement
   "Sortie ratée de {A} qui fauche l'attaquant à la limite de la surface — jaune pour le gardien !",
   "{A} sort poings devant et percute son homme au lieu du ballon — l'arbitre brandit le jaune.",
-  "Main de {A} hors de sa surface pour casser le contre — le portier est averti !",
+  "Main de {A} hors de sa surface pour casser l'attaque — le portier est averti !",
   "{A} sort de sa surface et contrôle de la main, croyant être dedans. Il n'y était pas : avertissement.",
   "{A} s'assoit sur le ballon pour gagner du temps, sourire aux lèvres. L'arbitre ne rit pas : jaune.",
   "Six mètres interminable de {A}, quatrième rappel à l'ordre... et cette fois le jaune tombe. Il avait pourtant l'air sincèrement surpris.",
@@ -1262,10 +1262,10 @@ const COMM={
   "{A} se joue du gardien et marque dans le but vide ! BUT !",
   "Centre au cordeau, TÊTE DE {A} ! Le gardien est battu !",
   "{A} surgit sur le ballon relâché... BUT ! Le stade explose !",
-  "Contre fulgurant conclu par {A} ! Imparable !",
+  "Une combinaison à trois dans la surface, et {A} conclut ! Imparable !",
   "{A} monte plus haut que tout le monde... coup de tête rageur... BUUUT ! Quel cou, quel casque, quel joueur !",
   "Volée pure de {A} à l'entrée de la surface... PLEINE LUCARNE ! Ah, celle-là, on la reverra dans vingt ans !",
-  "Contre assassin : un relais traverse tout le terrain et sert {A} sur un plateau... BUUUT ! Ça, c'est du billard !",
+  "Le ballon voyage d'un bout à l'autre du terrain et revient sur {A}, servi sur un plateau... BUUUT ! Ça, c'est du billard !",
   "Oh le malheureux ! Le centre est dévié par un défenseur... et ça finit au fond ! But contre son camp, {A} en profite pour l'inscrire au tableau !",
   "Roulette de {A} dans la surface — la Marseillaise, mesdames et messieurs ! — et du gauche... BUUUT ! Le grand frisson !",
   "PRALINE DE TRENTE MÈTRES ! {A} a armé une mine, le gardien n'a vu que du feu ! Mais quel obus, mes amis !",
@@ -1275,7 +1275,7 @@ const COMM={
   "La reprise de {A} est contrée, revient, il insiste, pousse... BUUUT ! Pas le plus beau de sa carrière, mais ils comptent tous double dans un soir pareil !",
   "Corner au second poteau, {A} monte au-dessus de la mêlée et pique sa tête dans le petit filet... BUUUT !",
   "{A} récupère un ballon mal dégagé aux vingt mètres et le remet dedans du premier coup... BUUUT ! Punition immédiate !",
-  "Contre-attaque menée tambour battant, {A} au bout de la course... il croise du plat du pied... BUUUT ! Le gardien n'a pas bougé !",
+  "Action patiemment construite, {A} au bout de la chaîne... il croise du plat du pied... BUUUT ! Le gardien n'a pas bougé !",
   "{A} arrive lancé sur le centre à ras de terre et pousse le ballon au fond ! BUT ! Le plus simple du monde, encore fallait-il être là !",
   "Le centre de {A} traverse toute la surface, un défenseur tend la jambe pour dégager... et catapulte le ballon dans sa propre lucarne ! BUUUT ! On le mettra au crédit du centreur, soyons généreux.",
   "Frappe de {A} contrée par un défenseur, le ballon prend une trajectoire impossible et lobe son propre gardien... BUUUT ! Il y a des soirs comme ça.",
@@ -1320,6 +1320,28 @@ const COMM={
   "{A} se tient la cuisse et grimace. Il fait signe au banc : ça sent le remplacement.",
   "{A} se relève en boitant, refuse de sortir, repart en clopinant et fait un signe rassurant à son banc. Personne n'est rassuré.",
   "Éponge magique sur {A}, spray glacé, deux tapes dans le dos, et le voilà reparti. La médecine du sport a fait des progrès fulgurants depuis dix minutes.",
+ ],
+ butContre:[ // BUT sur contre — n'est tiré QUE si le ballon était à l'adversaire (cf. estContre)
+  "Contre fulgurant conclu par {A} ! Trois passes, vingt secondes, et le ballon est au fond ! BUUUT !",
+  "{A} termine la contre-attaque du plat du pied ! BUT ! Ils étaient tous montés, ils le paient cash !",
+  "Le contre se termine par un centre en retrait, {A} n'a plus qu'à pousser... BUUUT ! Une punition d'école !",
+  "Trois contre deux à la finition, {A} prend son temps et croise... BUUUT ! Le contre parfait, mes amis !",
+  "{A} avale quarante mètres balle au pied et fusille le gardien ! BUUUT ! Personne ne l'a rattrapé !",
+  "Le contre file droit au but et {A} conclut sans trembler... BUUUT ! Cruel pour ceux qui poussaient !",
+ ],
+ rateContre:[ // contre AVORTÉ — {D} = le camp qui défend, donc « l'a échappé belle » est correct
+  "Le contre est idéal, {A} arrive lancé... et il écrase complètement sa frappe ! L'occasion était énorme.",
+  "Trois contre deux, {A} garde le ballon pour lui, tente le crochet de trop... et se fait reprendre ! Le banc lève les bras au ciel.",
+  "{A} avale le terrain sur le contre, lève la tête, choisit mal... et sa dernière passe se perd. Dommage.",
+  "Le contre file droit au but, {A} arme des vingt mètres... au-dessus ! Il y avait mieux à faire.",
+  "{A} est lancé seul sur le contre... mais il traîne, temporise, et le retour du défenseur le prive de tout.",
+  "Contre parfaitement mené, {A} à la conclusion... et il glisse au moment de frapper ! {D} l'a échappé belle.",
+ ],
+ arretContre:[ // contre STOPPÉ par le gardien
+  "Le contre est tranchant, {A} se présente face à {G}... et le portier ferme l'angle ! Quelle sortie !",
+  "{A} conclut le contre d'une frappe croisée... {G} détourne du bout des gants en corner !",
+  "Contre à toute vitesse, {A} arme sans réfléchir... et {G} se détend pour repousser ! Il a sauvé les siens.",
+  "{A} arrive seul au bout du contre... mais {G} sort loin de sa cage et gagne le duel !",
  ],
  poteau:[ // le bois — {A} = le tireur. Rare (0,24/match dans le corpus) donc marquant.
   "{A} arme et trouve le POTEAU ! Le montant tremble encore, le gardien n'avait pas bougé !",
@@ -1460,12 +1482,24 @@ function passeur(c, buteur){
   for(let i=0;i<xi.length;i++){ t-=pond[i]; if(t<=0) return xi[i]; }
   return null;
 }
-function marque(c, sh, sa, verbeux, ev, m, prefixe){
+/* Mémoire de la dernière action offensive du match : c'est elle qui autorise (ou non) le
+   vocabulaire de contre. RÈGLE : on ne contre que si le ballon était à l'adversaire.
+   Remise à zéro à chaque coup d'envoi. Purement narratif, aucun effet sur le score. */
+let DERN_ATT={cote:null,m:-99,but:false};
+function estContre(c,m){
+  if(!DERN_ATT.cote) return Math.random()<0.10;          // début de match : récupération spontanée, rare
+  const dt=m-DERN_ATT.m, mien=(DERN_ATT.cote===c.id);
+  if(mien && dt<=3) return false;                        // on attaquait DÉJÀ : un contre est impossible
+  if(!mien && DERN_ATT.but && dt<=2) return false;       // ils viennent de marquer : on engage, on ne contre pas
+  if(!mien && dt<=2) return Math.random()<0.70;          // leur attaque vient d'échouer : le contre est logique
+  return Math.random()<0.12;                             // ballon récupéré hors phase, plus rare
+}
+function marque(c, sh, sa, verbeux, ev, m, prefixe, contre){
   const j=tireur(c), p=passeur(c,j);
   j.buts++; if(p) p.passes++;
   // uid/pasUid : permettent d'annuler proprement un but pré-tiré si la tactique change en cours de match (cf. rejoueDepuis)
-  if(verbeux) ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa,uid:j.uid,pasUid:p?p.uid:null},
-    x:fmtC(PICK(COMM.but),j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe});
+  if(verbeux) ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa,uid:j.uid,pasUid:p?p.uid:null,contre:!!contre},
+    x:fmtC(PICK(contre?COMM.butContre:COMM.but),j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe});
 }
 /* Commentaire lié au nombre de buts d'un joueur dans le match : doublé, triplé… et le COUP DU CHAPEAU
    (trois buts d'affilée, sans qu'un autre joueur — coéquipier ou adversaire — n'ait marqué entre-temps). */
@@ -1542,24 +1576,29 @@ function simuleMatch(home,away,verbeux){
   if(home._coupTordu && home.id===G.monClub){ la*=0.90; home._coupTordu=false; } // vestiaire saboté : l'adversaire démarre patraque
   let mulH=1, mulA=1; // infériorité numérique : un rouge plombe l'équipe réduite pour les minutes restantes
   let sh=0, sa=0; const ev=[];
+  DERN_ATT={cote:null,m:-99,but:false}; // nouvelle rencontre : personne n'a encore attaqué
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
     ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv}); }
   for(let m=1;m<=90;m++){
     const elh=lh*mulH, ela=la*mulA; // attaques effectives, révisées à la baisse pour l'équipe à dix
     const r=Math.random();
     if(r < elh/90){ // évènement côté domicile
-      if(Math.random()<0.42){ sh++; marque(home,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
+      const ct=estContre(home,m);
+      if(Math.random()<0.42){ sh++; marque(home,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); if(verbeux) DERN_ATT={cote:home.id,m,but:true}; }
       else if(verbeux&&Math.random()<.7){
         const arr=Math.random()<.5, tir=tireur(home);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,away),
-          q:{but:tir.nom,cote:home.id,bu:Math.random()<MONTEE_RATEE}}); // q = de quoi monter le suspense avant une occasion qui peut ne rien donner
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,away),
+          q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}}); // q = de quoi monter le suspense ; un contre joue toujours sa mise en place
+        DERN_ATT={cote:home.id,m,but:false}; // la mémoire ne retient que ce qui est AFFICHÉ au téléscripteur
       }
     } else if(r < (elh+ela)/90){
-      if(Math.random()<0.42){ sa++; marque(away,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
+      const ct=estContre(away,m);
+      if(Math.random()<0.42){ sa++; marque(away,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); if(verbeux) DERN_ATT={cote:away.id,m,but:true}; }
       else if(verbeux&&Math.random()<.7){
         const arr=Math.random()<.5, tir=tireur(away);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,home),
-          q:{but:tir.nom,cote:away.id,bu:Math.random()<MONTEE_RATEE}});
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,home),
+          q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+        DERN_ATT={cote:away.id,m,but:false};
       }
     } else if(verbeux && Math.random()<0.028){
       ev.push({m,t:"amb",x:PICK(COMM.amb)});
@@ -1629,13 +1668,17 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
   for(let m=mStart+1;m<=90;m++){
     const elh=lh*mulH, ela=la*mulA, r=Math.random();
     if(r < elh/90){
-      if(Math.random()<0.42){ sh++; marque(home,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
+      const ct=estContre(home,m);
+      if(Math.random()<0.42){ sh++; marque(home,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); DERN_ATT={cote:home.id,m,but:true}; }
       else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(home);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,away),q:{but:tir.nom,cote:home.id,bu:Math.random()<MONTEE_RATEE}}); }
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,away),q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+        DERN_ATT={cote:home.id,m,but:false}; }
     } else if(r < (elh+ela)/90){
-      if(Math.random()<0.42){ sa++; marque(away,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")"); }
+      const ct=estContre(away,m);
+      if(Math.random()<0.42){ sa++; marque(away,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); DERN_ATT={cote:away.id,m,but:true}; }
       else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(away);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?COMM.arret:COMM.rate),tir,home),q:{but:tir.nom,cote:away.id,bu:Math.random()<MONTEE_RATEE}}); }
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,home),q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+        DERN_ATT={cote:away.id,m,but:false}; }
     } else if(Math.random()<0.028){ ev.push({m,t:"amb",x:PICK(COMM.amb)}); }
     if(Math.random()<(derby?0.055:0.030)){
       const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
@@ -1821,7 +1864,7 @@ const MONTEE_BUT=[
   "Tout le monde se projette dans la surface…",
   "Ouverture limpide dans le dos des défenseurs…",
   "Le ballon brûle dans la surface, plus personne ne respire dans le stade…",
-  "Contre-attaque à trois contre deux, ça sent la poudre…",
+  "Deux appels croisés dans la surface, ça sent la poudre…",
   "Le corner est joué à deux, la défense flotte, ça se referme…",
   "Oh là là, le ballon traîne aux dix-huit mètres, personne ne dégage…",
   "Le stade se lève d'un seul homme, l'action est chaude, très chaude…",
@@ -1846,6 +1889,22 @@ const MONTEE_FRAPPE=[
   (p,gk)=>"Centre au cordeau pour "+p+" au point de penalty, "+gk+" hurle mais personne n'écoute…",
 ];
 function gardienDe(club){ const g=club&&onze(club).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
+/* Premier temps d'un CONTRE (v0.87). Comme MONTEE_FRAPPE, ce sont des fonctions : elles nomment
+   le récupérateur (r) ET l'adversaire dépossédé (v) — impossible avec fmtC, qui ne connaît qu'un
+   seul joueur. Trois origines, conformes à la consigne auteur : le ballon piqué au milieu,
+   l'incompréhension adverse, et la passe hasardeuse dans leur propre défense. */
+const MONTEE_CONTRE=[
+  (r,v)=> r+" pique le ballon dans les pieds de "+v+" au milieu… ÇA PART EN CONTRE !",
+  (r,v)=> "Incompréhension entre "+v+" et son partenaire, "+r+" s'en empare… le contre est lancé !",
+  (r,v)=> "Passe hasardeuse de "+v+" dans sa propre défense, "+r+" surgit… ça sent le roussi !",
+  (r,v)=> r+" intercepte la passe de "+v+" alors que tout le monde était monté… CONTRE ÉCLAIR !",
+  (r,v)=> "Le ballon fuit "+v+" à vingt mètres de sa cage, "+r+" ne se pose aucune question…",
+  (r,v)=> r+" anticipe et coupe la ligne de passe de "+v+"… trois joueurs partent devant !",
+  (r,v)=> "Tacle propre de "+r+" devant "+v+", le ballon file vers l'avant… la défense est à découvert !",
+  (r,v)=> v+" temporise une seconde de trop, "+r+" lui saute dessus… et le terrain s'ouvre en grand !",
+  (r,v)=> "Relance ratée de "+v+", "+r+" récupère aux abords de la surface… l'occasion est énorme !",
+  (r,v)=> r+" dépossède "+v+" au duel, personne n'est revenu défendre… ça va très vite !",
+];
 // l'envahisseur à quatre pattes, façon panneau d'affichage de stade
 const DOG_ART=["    / \\__","   (    @\\___","   /         O","  /   (_____/"," /_____/   U"].join("\n");
 const PIGEON_ART=["   .__.","  (x  x)  tweet?","   > w <","  ~~~~~~"].join("\n"); // le volatile sonné du moment « pigeon »
@@ -5441,7 +5500,13 @@ function lanceCoupe(H, A, ed){
     if(monte && (lg._monte||0)<2){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
-      if(etape===1){ txt=PICK(MONTEE_BUT); }
+      if(etape===1){
+        if(info.contre){ // le contre a sa propre mise en place : on nomme le voleur et sa victime
+          const camp=(info.cote===H.id?H:A), advC=(info.cote===H.id?A:H);
+          let rec=quelconque(camp); if(rec.nom===info.but){ rec=quelconque(camp); }
+          txt=PICK(MONTEE_CONTRE)(rec.nom, quelconque(advC).nom);
+        } else txt=PICK(MONTEE_BUT);
+      }
       else { const defAff=(info.cote===H.id?A:H); txt=PICK(MONTEE_FRAPPE)(info.but, gardienAff(defAff)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
