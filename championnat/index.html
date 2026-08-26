@@ -256,12 +256,26 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.87"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.88"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
 const RNDI=(a,b)=>Math.floor(RND(a,b+1));
 const PICK=a=>a[Math.floor(Math.random()*a.length)];
+// PICK avec anti-répétition : évite de retirer une ligne déjà servie récemment (fenêtre
+// `garde`), pour qu'une même vanne de commentaire (ex. le hors-jeu « chacun son métier »)
+// ne retombe pas deux fois dans le même match. `vus` = mémoire PAR MATCH (tableau muté en
+// place) ; si tout le pool a déjà été vu, on repart sur le pool complet. Purement cosmétique.
+// garde=40 : large exprès pour couvrir TOUT un match (un match compte ~10-25 lignes de décor,
+// bien moins que 40), donc aucune ligne ne se répète dans une même rencontre. Aucun risque
+// d'épuiser un pool : les familles rares (hors-jeu, soin…) ne sont tirées qu'~1 fois/match.
+const pickNR=(pool,vus,garde=40)=>{
+  const libres=pool.filter(x=>!vus.includes(x));
+  const src=libres.length?libres:pool;
+  const choix=src[Math.floor(Math.random()*src.length)];
+  vus.push(choix); if(vus.length>garde) vus.shift();
+  return choix;
+};
 const uidGen=()=>Math.random().toString(36).slice(2,10);
 
 /* ---------- Clubs D1 1995-96 (les 20 vrais) ---------- */
@@ -1575,7 +1589,7 @@ function simuleMatch(home,away,verbeux){
   const derby=(RIVAL[home.id]===away.id);
   if(home._coupTordu && home.id===G.monClub){ la*=0.90; home._coupTordu=false; } // vestiaire saboté : l'adversaire démarre patraque
   let mulH=1, mulA=1; // infériorité numérique : un rouge plombe l'équipe réduite pour les minutes restantes
-  let sh=0, sa=0; const ev=[];
+  let sh=0, sa=0; const ev=[], vusC=[]; // vusC = mémoire anti-répétition des lignes de commentaire (par match)
   DERN_ATT={cote:null,m:-99,but:false}; // nouvelle rencontre : personne n'a encore attaqué
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
     ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv}); }
@@ -1601,7 +1615,7 @@ function simuleMatch(home,away,verbeux){
         DERN_ATT={cote:away.id,m,but:false};
       }
     } else if(verbeux && Math.random()<0.028){
-      ev.push({m,t:"amb",x:PICK(COMM.amb)});
+      ev.push({m,t:"amb",x:pickNR(COMM.amb,vusC)});
     }
     if(verbeux && Math.random()<(derby?0.055:0.030)){ // discipline (le derby chauffe les esprits)
       const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
@@ -1618,24 +1632,24 @@ function simuleMatch(home,away,verbeux){
     // coups francs aux abords de la surface (~0,7 par match) : du décor qui rythme la rencontre, sans toucher au score
     if(verbeux && Math.random()<0.014){
       const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.cf),t,cf===home?away:home)+" ("+cf.id+")"});
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.cf,vusC),t,cf===home?away:home)+" ("+cf.id+")"});
     }
     // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
     // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
     if(verbeux && Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(onze(c));
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.corner),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(PICK(COMM.sauve),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.010){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.hj),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.hj,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
-      if(t) ev.push({m,t:"amb",x:fmtC(PICK(COMM.soin),t,c===home?away:home)}); }
+      if(t) ev.push({m,t:"amb",x:fmtC(pickNR(COMM.soin,vusC),t,c===home?away:home)}); }
     if(verbeux && Math.random()<0.014){ const el=ligneEtat(m,sh,sa); if(el) ev.push({m,t:"amb",x:el}); }
     // lot 2 : le bois, le but refusé, la météo. PUR DÉCOR, aucun effet sur le score.
     if(verbeux && Math.random()<0.004){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.poteau),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.poteau,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.003){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.refuse),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:PICK(METEO_MATCH.amb)}); }
     if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
   }
@@ -1664,7 +1678,7 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
   if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
   const derby=(RIVAL[home.id]===away.id);
-  const ev=[];
+  const ev=[], vusC=[]; // mémoire anti-répétition des commentaires, propre au reste de match re-simulé
   for(let m=mStart+1;m<=90;m++){
     const elh=lh*mulH, ela=la*mulA, r=Math.random();
     if(r < elh/90){
@@ -1679,7 +1693,7 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
       else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(away);
         ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,home),q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
         DERN_ATT={cote:away.id,m,but:false}; }
-    } else if(Math.random()<0.028){ ev.push({m,t:"amb",x:PICK(COMM.amb)}); }
+    } else if(Math.random()<0.028){ ev.push({m,t:"amb",x:pickNR(COMM.amb,vusC)}); }
     if(Math.random()<(derby?0.055:0.030)){
       const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
       const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
@@ -1689,23 +1703,23 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
       ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
     }
     if(Math.random()<0.014){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.cf),t,cf===home?away:home)+" ("+cf.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.cf,vusC),t,cf===home?away:home)+" ("+cf.id+")"}); }
     // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
     // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
     if(Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(onze(c));
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.corner),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(PICK(COMM.sauve),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.010){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.hj),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.hj,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
-      if(t) ev.push({m,t:"amb",x:fmtC(PICK(COMM.soin),t,c===home?away:home)}); }
+      if(t) ev.push({m,t:"amb",x:fmtC(pickNR(COMM.soin,vusC),t,c===home?away:home)}); }
     if(Math.random()<0.014){ const el=ligneEtat(m,sh,sa); if(el) ev.push({m,t:"amb",x:el}); }
     // lot 2 : le bois, le but refusé, la météo. PUR DÉCOR, aucun effet sur le score.
     if(Math.random()<0.004){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.poteau),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.poteau,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.003){ const c=Math.random()<0.5?home:away, t=tireur(c);
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(PICK(COMM.refuse),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:PICK(METEO_MATCH.amb)}); }
   }
   return {ev, sh, sa};

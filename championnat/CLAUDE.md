@@ -444,6 +444,18 @@ toujours « raconter quelque chose ».
   SoFoot rend tout le match au premier chargement ; L'Équipe n'affiche que les 20 dernières minutes mais sa
   page appelle une API interne `sdwh.lequipe.fr/iPhoneDatas/EFR/STD/ALL/V1/Football/Commentaires/<2 derniers
   chiffres de l'id>/<id>.json` qui contient tout, chaque entrée déjà étiquetée par type (`picto_web`).
+  **Anti-répétition des lignes de commentaire (v0.88, retour de playtest « le "chacun son métier" du hors-jeu
+  revient trop vite »)** : les familles de décor étaient tirées au `PICK` uniforme, sans mémoire → dans un match
+  à deux hors-jeu, la même vanne pouvait tomber deux fois. Nouveau helper **`pickNR(pool, vus, garde=40)`** (à
+  côté de `PICK`) qui **écarte les lignes déjà servies récemment** (fenêtre `garde`, repli sur le pool complet si
+  tout a été vu). Une **mémoire par match `vusC`** (tableau, déclarée en tête de `simuleMatch` ET de `simuleReste`)
+  est passée à chaque tirage de décor : `amb`, `cf`, `corner`, `sauve`, `hj`, `soin`, `poteau`, `refuse` (les DEUX
+  points d'injection, comme les fréquences). `garde=40` est **volontairement large** pour couvrir tout un match
+  (~10-25 lignes de décor) → **aucune ligne de décor ne se répète dans une même rencontre** ; aucun risque
+  d'épuiser un pool (les familles rares ne sortent qu'~1×/match). **Purement cosmétique** (ne touche ni au score,
+  ni aux `uid`, ni aux stats) → calibrage intact (harnais vert, 2,417) et invariants de re-sim préservés. Le
+  `PICK(COMM.but)` du flash de but reste en tirage simple (contexte différent, hors boucle de décor). Vérifié par
+  un test dédié (5 000 matchs verbeux : 1 125 avaient 2+ hors-jeu, **0 répétition** d'une même ligne).
 - **Météo de match (v0.84, affinée v0.85)** : le même corpus signalait un événement `pluie` qu'on n'avait pas.
   **`METEO`** = 8 temps (`clair`, `eteIndien`, `pluie`, `vent`, `froid`, `brouillard`, `boue`, `neige`), chacun
   avec un `ouv` (fragment ajouté à la ligne de coup d'envoi) et un jeu de lignes `amb` distillées pendant la
