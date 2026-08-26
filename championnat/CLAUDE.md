@@ -714,6 +714,16 @@ toujours « raconter quelque chose ».
   formulation **neutre** (dans `simuleMatch` on ne sait pas de quel côté est le joueur). Contrôle
   utile avant livraison : balayer toutes les familles à la recherche d'un jeton doublé, puis simuler
   quelques centaines de matchs verbeux en comptant les `{A}`/`{G}`/`{D}` restés visibles (doit être 0).
+- **UNE SEULE VOIX POUR LE TEMPS QU'IL FAIT (v0.86)** : depuis la météo (v0.84), `METEO_MATCH` est le
+  **seul** propriétaire du ciel et de l'état du terrain. Les lignes génériques — `COMM.amb` et les groupes
+  de `ETAT` — ne doivent **JAMAIS affirmer** qu'il pleut, qu'il gèle, que le terrain est gras ou sec, etc.
+  Sinon deux tirages indépendants se contredisent **dans le même match** : bug remonté en playtest, un
+  « terrain gras, ça glisse » à la 67ᵉ suivi d'un « terrain sec et dur comme du béton » à la 82ᵉ. Les deux
+  lignes fautives (terrain gras, ballon flottant dans le vent) ont été **déplacées dans le bon temps**
+  (`boue` et `vent`) plutôt que supprimées, et remplacées dans `amb` par des lignes neutres. Contrôle avant
+  livraison : balayer `COMM.amb` et `ETAT` à la recherche du vocabulaire météo (pluie, boue, gras, soleil,
+  froid, neige, brouillard, flaque, crampons vissés…) — doit être vide. Une métaphore reste piégeuse : la
+  ligne du fumigène disait « on joue dans le brouillard », reformulée pour lever l'ambiguïté.
 - L'overlay d'un moment de match ne doit jamais surgir hors d'un match : `abandonneDirect()`
   sur chaque transition d'écran nettoie le ticker.
 - Reset des stats de TOUS les clubs à l'intersaison (`razStatsClub`), y compris ceux qui restent.

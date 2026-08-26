@@ -256,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.85"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.86"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1140,13 +1140,13 @@ const COMM={
   "Le ballon file en touche, un ramasseur de balles le renvoie d'une main experte.",
   "Ça chambre dans le virage, les tambours donnent le tempo.",
   "L'arbitre de touche lève son drapeau... puis le rabaisse. Plus de peur que de mal.",
-  "Long ballon dans le vent, personne n'en veut, ça flotte comme un mois de novembre.",
+  "Le capitaine rassemble tout le monde à la limite de la surface pour dire deux mots. On ne sait pas lesquels, mais ils sont sentis.",
   "Le gardien prend son temps sur le six mètres, sifflets dans les tribunes.",
   "Duel d'entraîneurs à distance : l'un note sur son calepin, l'autre mâche son chewing-gum.",
   "Une mêlée indescriptible dans la surface, et finalement... rien. Ouf pour tout le monde.",
-  "Le terrain est gras au milieu, ça glisse à chaque appui. Les crampons vissés vont faire la différence.",
+  "Un supporter a lancé un rouleau de papier qui déroule sa banderole improvisée jusqu'au poteau de corner.",
   "Un ballon de rechange traverse la pelouse, l'arbitre le chasse du pied comme on chasse une mouche.",
-  "Fumigène dans le virage, la fumée traverse la pelouse. On joue dans le brouillard pendant une minute.",
+  "Fumigène dans le virage, la fumée traverse la pelouse. On ne voit plus grand-chose pendant une minute.",
   "Un entraîneur sort de sa zone technique une fois de trop : l'arbitre le renvoie en tribune, et il n'y monte pas de bon cœur !",
   "Le speaker annonce l'affluence du soir. Le chiffre est accueilli par un mélange d'applaudissements polis et de ricanements francs.",
   "Un joueur remet ses protège-tibias en marchant, chaussettes à mi-mollet et short au ras du nombril. On est en 1995, et ça se voit.",
@@ -1408,6 +1408,7 @@ const METEO=[
    "Le vent rabat chaque dégagement. Le gardien tape, et le ballon lui revient presque dans les pieds.",
    "Une bourrasque emporte le corner directement derrière le but. Il faut composer avec, ce soir.",
    "Les drapeaux de corner sont à l'horizontale. Plus personne ne maîtrise vraiment sa passe longue.",
+   "Long ballon porté par le vent, personne n'en veut, ça flotte et ça n'en finit pas de redescendre.",
  ]},
  { cle:"froid", ouv:" Il gèle à pierre fendre.", amb:[
    "On voit la buée sortir des bouches à chaque effort, et les remplaçants ont enfilé trois couches.",
@@ -1423,6 +1424,7 @@ const METEO=[
    "Il n'y a plus un brin d'herbe dans la surface, juste de la terre retournée.",
    "On patine, on glisse, on s'étale. Les maillots sont marron des deux côtés, on ne distingue plus les équipes.",
    "Le ballon s'enfonce dans la boue au lieu de rebondir. Le beau jeu attendra des jours meilleurs.",
+   "Le terrain est gras au milieu, ça glisse à chaque appui. Les crampons vissés vont faire la différence.",
  ]},
 ];
 /* Le climat suit le calendrier : J1 en août, J38 en mai. */
