@@ -714,6 +714,26 @@ toujours « raconter quelque chose ».
   formulation **neutre** (dans `simuleMatch` on ne sait pas de quel côté est le joueur). Contrôle
   utile avant livraison : balayer toutes les familles à la recherche d'un jeton doublé, puis simuler
   quelques centaines de matchs verbeux en comptant les `{A}`/`{G}`/`{D}` restés visibles (doit être 0).
+- **UNE LIGNE NE DOIT JAMAIS AFFIRMER UNE PHASE DE JEU QU'ELLE NE CONNAÎT PAS (v0.87)** : même famille
+  d'erreur que la météo, sur le **contre**. Cinq lignes de `but`/`rate` et une de `MONTEE_BUT` disaient
+  « contre fulgurant », « contre éclair », « contre-attaque » alors qu'elles sont **tirées au hasard, sans
+  accès au contexte** — d'où le bug de playtest : l'équipe est en pleine attaque et le direct annonce un
+  contre. Or un contre naît **forcément** d'une attaque adverse avortée. Correctif : (a) **purge** de tout
+  vocabulaire de contre des pools génériques (reformulés en attaque construite) ; (b) **`DERN_ATT`** mémorise
+  la dernière action offensive et **`estContre(c,m)`** décide — jamais si le même camp attaquait déjà
+  (`dt<=3` → `false`, interdit **par construction**), jamais juste après avoir encaissé (on engage), 70 %
+  si l'attaque adverse vient d'échouer, 12 % hors phase ; (c) mise en scène **en trois temps** : le premier
+  temps devient **`MONTEE_CONTRE`** (10 formulations, des **fonctions** `(récupérateur, dépossédé)` comme
+  `MONTEE_FRAPPE` — `fmtC` ne connaît qu'un seul joueur, donc nommer deux personnes impose ce format ;
+  trois origines conformes à la consigne auteur : ballon piqué au milieu, incompréhension adverse, passe
+  hasardeuse dans leur défense), puis le porteur arme, puis la résolution tirée de **`butContre`** /
+  **`rateContre`** / **`arretContre`**. Un contre force toujours sa mise en place (`q.bu=true`).
+  **PIÈGE MAJEUR, découvert au test** : `DERN_ATT` ne doit être mise à jour que quand l'événement est
+  **réellement poussé dans `ev`**, donc **affiché**. En la mettant à jour sur tout événement du moteur, on
+  autorisait un contre après une attaque adverse que le joueur **n'avait jamais vue** (l'occasion n'avait pas
+  passé le filtre `Math.random()<.7`) — la séquence restait illogique à l'écran. **La narration doit se caler
+  sur ce qui est montré, pas sur ce que le moteur sait.** Vérification : zéro violation sur 600 matchs,
+  ~0,70 contre/match. Aucun événement créé, aucun score modifié → calibrage intact (2,376).
 - **UNE SEULE VOIX POUR LE TEMPS QU'IL FAIT (v0.86)** : depuis la météo (v0.84), `METEO_MATCH` est le
   **seul** propriétaire du ciel et de l'état du terrain. Les lignes génériques — `COMM.amb` et les groupes
   de `ETAT` — ne doivent **JAMAIS affirmer** qu'il pleut, qu'il gèle, que le terrain est gras ou sec, etc.
