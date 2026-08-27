@@ -256,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.89"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.90"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -276,6 +276,12 @@ const pickNR=(pool,vus,garde=40)=>{
   vus.push(choix); if(vus.length>garde) vus.shift();
   return choix;
 };
+// Anti-répétition des lignes de MONTÉE (téléscripteur en direct). La mémoire vit sur le
+// tableau `lignes` du match (`._vusM`), donc automatiquement une par rencontre — même
+// esprit que pickNR, mais utilisable dans les trois tic() (championnat/coupe/europe) sans
+// déclarer de variable. Évite qu'une même montée (« X prend sa chance des vingt mètres… »)
+// retombe deux fois dans le même match.
+const pickM=(pool,ctx)=>pickNR(pool, ctx._vusM||(ctx._vusM=[]));
 const uidGen=()=>Math.random().toString(36).slice(2,10);
 
 /* ---------- Clubs D1 1995-96 (les 20 vrais) ---------- */
@@ -5526,10 +5532,10 @@ function lanceCoupe(H, A, ed){
         if(info.contre){ // le contre a sa propre mise en place : on nomme le voleur et sa victime
           const camp=(info.cote===H.id?H:A), advC=(info.cote===H.id?A:H);
           let rec=quelconque(camp); if(rec.nom===info.but){ rec=quelconque(camp); }
-          txt=PICK(MONTEE_CONTRE)(rec.nom, quelconque(advC).nom);
-        } else txt=PICK(MONTEE_BUT);
+          txt=pickM(MONTEE_CONTRE,lignes)(rec.nom, quelconque(advC).nom);
+        } else txt=pickM(MONTEE_BUT,lignes);
       }
-      else { const defAff=(info.cote===H.id?A:H); txt=PICK(MONTEE_FRAPPE)(info.but, gardienAff(defAff)); }
+      else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
@@ -5637,8 +5643,8 @@ function lanceEuroLeg(H, A, ed, legScore){
     if(monte && (lg._monte||0)<2){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
-      if(etape===1){ txt=PICK(MONTEE_BUT); }
-      else { const defAff=(info.cote===H.id?A:H); txt=PICK(MONTEE_FRAPPE)(info.but, gardienAff(defAff, onzeEuro)); }
+      if(etape===1){ txt=pickM(MONTEE_BUT,lignes); }
+      else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff, onzeEuro)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
@@ -6113,8 +6119,8 @@ function lanceMatch(instant){
     if(monte && (lg._monte||0)<2){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
-      if(etape===1){ txt=PICK(MONTEE_BUT); }
-      else { const defClub=eM?(info.cote===eM.h.id?eM.a:eM.h):null; txt=PICK(MONTEE_FRAPPE)(info.but, gardienDe(defClub)); }
+      if(etape===1){ txt=pickM(MONTEE_BUT,lignes); }
+      else { const defClub=eM?(info.cote===eM.h.id?eM.a:eM.h):null; txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienDe(defClub)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }

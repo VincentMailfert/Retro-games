@@ -456,6 +456,14 @@ toujours « raconter quelque chose ».
   ni aux `uid`, ni aux stats) → calibrage intact (harnais vert, 2,417) et invariants de re-sim préservés. Le
   `PICK(COMM.but)` du flash de but reste en tirage simple (contexte différent, hors boucle de décor). Vérifié par
   un test dédié (5 000 matchs verbeux : 1 125 avaient 2+ hors-jeu, **0 répétition** d'une même ligne).
+  **Extension aux lignes de MONTÉE (v0.90, retour de playtest « la montée "prend sa chance des vingt mètres" revient
+  à la 16e et à la 19e »)** : les montées de tension (`MONTEE_BUT`/`MONTEE_FRAPPE`/`MONTEE_CONTRE`) sont générées
+  dans le **téléscripteur en direct** (`tic()`), PAS dans `simuleMatch`, donc hors de portée de `vusC`. Nouveau
+  helper **`pickM(pool, lignes)`** (à côté de `pickNR`) dont la mémoire vit sur le tableau `lignes` du match
+  (`lignes._vusM`, créé à la volée) → **une mémoire par rencontre, sans déclarer de variable**, réutilisable dans
+  les **trois** `tic()` (championnat/coupe/europe, qui ont tous `lignes` en portée). Les 7 `PICK(MONTEE_*)` passent
+  en `pickM(...,lignes)`. Purement cosmétique (le direct ne touche jamais le moteur). Vérifié : 3 000 matchs de
+  5 montées, **0 montée répétée**.
   **Vrai « deuxième jaune » (v0.89, retour de playtest « un 2e jaune sans qu'on ait vu le 1er, ça étonne »)** : les
   lignes de rouge « Deuxième jaune… et donc ROUGE » sortaient au hasard du pool `cr`, même quand le joueur n'avait
   jamais été averti. Elles sont **isolées dans une famille dédiée `cr2j`** (retirées de `cr`, qui ne contient plus
