@@ -456,6 +456,23 @@ toujours « raconter quelque chose ».
   ni aux `uid`, ni aux stats) → calibrage intact (harnais vert, 2,417) et invariants de re-sim préservés. Le
   `PICK(COMM.but)` du flash de but reste en tirage simple (contexte différent, hors boucle de décor). Vérifié par
   un test dédié (5 000 matchs verbeux : 1 125 avaient 2+ hors-jeu, **0 répétition** d'une même ligne).
+  **Vrai « deuxième jaune » (v0.89, retour de playtest « un 2e jaune sans qu'on ait vu le 1er, ça étonne »)** : les
+  lignes de rouge « Deuxième jaune… et donc ROUGE » sortaient au hasard du pool `cr`, même quand le joueur n'avait
+  jamais été averti. Elles sont **isolées dans une famille dédiée `cr2j`** (retirées de `cr`, qui ne contient plus
+  QUE des rouges directs), et une **mémoire par match `booked`** (Set d'`uid`, déclarée en tête de `simuleMatch`
+  ET de `simuleReste`) note qui a déjà pris un jaune. À l'expulsion : `cr2j` **uniquement si `booked.has(uid)`**,
+  sinon rouge direct (`cr`/`crGK`) ; chaque jaune (`cj`/`cjGK`) ajoute l'uid à `booked`. **Purement narratif** : le
+  taux de rouges et les effets (`susp`, `mulH`/`mulA`) sont INCHANGÉS → calibrage intact (harnais 2,383). Les
+  familles de cartons passent aussi en `pickNR` (anti-répétition). Vérifié : 8 000 matchs, 92 « deuxième jaune »,
+  **0 sans un premier jaune préalable**.
+  **Le coup franc est une phase à part (v0.89, retour de playtest « une montée sur le but ne peut pas finir en coup
+  franc »)** : la ligne « Coup franc de {A}… qui frôle la lucarne ! » était mal rangée dans **`COMM.rate`** (le pool
+  du tir manqué en JEU OUVERT, qui porte le flag de montée `q.bu`). Une montée de tension (« l'attaque déboule », « X
+  à la conclusion ») pouvait donc se dénouer sur un coup franc — incohérent. Cette ligne est **remplacée par un tir
+  manqué de jeu ouvert** ; les coups francs vivent **exclusivement** dans `COMM.cf`, injecté comme une **phase
+  distincte** (sans `q`, donc jamais précédé d'une montée). Règle générale : **aucune ligne de balle arrêtée dans les
+  pools d'occasion de jeu ouvert** (`rate`/`arret`/`rateContre`/`arretContre`). Vérifié : 8 000 matchs, 11 815
+  occasions montées, **0 coup franc en résolution de montée**.
 - **Météo de match (v0.84, affinée v0.85)** : le même corpus signalait un événement `pluie` qu'on n'avait pas.
   **`METEO`** = 8 temps (`clair`, `eteIndien`, `pluie`, `vent`, `froid`, `brouillard`, `boue`, `neige`), chacun
   avec un `ouv` (fragment ajouté à la ligne de coup d'envoi) et un jeu de lignes `amb` distillées pendant la

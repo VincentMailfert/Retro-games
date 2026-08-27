@@ -256,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.88"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.89"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1186,11 +1186,11 @@ const COMM={
   "{A} se retourne dans un mouchoir et frappe des deux côtés coup sur coup — {G} dit non, et redit non !",
   "{A} tente le lob sur {G} monté trop haut. Le portier recule en marche arrière comme une Safrane dans un parking, et boxe au-dessus de sa barre !",
  ],
- rate:[ // tir manqué
+ rate:[ // tir manqué — JEU OUVERT uniquement (le coup franc a sa propre phase, cf. COMM.cf)
   "{A} en pivot, reprise instantanée... à côté de peu !",
   "Une-deux dans l'axe, {A} à la conclusion... au-dessus !",
   "{A} élimine son vis-à-vis et frappe... sur le poteau !!",
-  "Coup franc de {A}... qui frôle la lucarne !",
+  "{A} arme des vingt mètres... et ça frôle la lucarne ! Le gardien n'a pas bougé, il n'aurait rien pu faire.",
   "{A} déborde et centre fort... personne à la réception !",
   "{A} seul face au but... et il dévisse complètement ! Le ballon finit chez les photographes !",
   "Retourné acrobatique de {A}... au-dessus ! C'était pour la beauté du geste, et le geste était beau.",
@@ -1223,18 +1223,20 @@ const COMM={
   "{A} fait un pas de trop vers l'arbitre et entreprend de lui expliquer son métier. L'arbitre lui explique le sien : jaune.",
   "{A} traîne à sortir au moment du changement. Il marche comme s'il traversait un champ de betteraves : jaune pour perte de temps.",
  ],
- cr:[
+ cr:[ // ROUGE DIRECT (faute grave) — jamais de « deuxième jaune » ici (cf. cr2j)
   "CARTON ROUGE ! {A} laisse les siens à dix après un geste d'humeur !",
   "Expulsion de {A} pour une semelle dangereuse ! Le stade gronde.",
   "CARTON ROUGE ! Le tacle de {A} arrive à hauteur du genou, l'arbitre n'a pas hésité une seconde !",
   "ROUGE DIRECT ! {A} s'essuie les crampons sur le mollet adverse, et il peut prendre la direction des vestiaires sans discuter !",
-  "Deuxième jaune pour {A}... et donc ROUGE ! Il quitte la pelouse en applaudissant l'arbitre, ce qui ne va rien arranger !",
   "CARTON ROUGE ! {A} joue les derniers remparts avec la main, c'est la faute du désespoir et c'est la douche avant tout le monde !",
   "ROUGE ! {A} règle un compte loin du ballon, l'arbitre n'a rien manqué. Vestiaire.",
   "{A} retient l'attaquant par le maillot alors qu'il filait au but : faute du dernier défenseur, c'est ROUGE.",
   "ROUGE ! Le tacle de {A} arrive en retard, très en retard, et par-derrière. Personne ne discute celui-là.",
   "CARTON ROUGE POUR {A} ! Le coude est parti tout seul, paraît-il. L'arbitre n'a pas cette lecture des faits.",
   "Rouge pour {A} ! Il a poussé l'arbitre du doigt — un doigt de trop. Ses coéquipiers l'écartent avant qu'il n'invente pire.",
+ ],
+ cr2j:[ // DEUXIÈME jaune -> rouge : ne sort QUE si {A} avait déjà pris un jaune dans ce match
+  "Deuxième jaune pour {A}... et donc ROUGE ! Il quitte la pelouse en applaudissant l'arbitre, ce qui ne va rien arranger !",
   "Deuxième jaune pour {A}, pour une simulation grossière... et donc ROUGE ! Tomber tout seul et se faire expulser, il faut le faire.",
  ],
  cjGK:[ // faute de gardien (jaune) — un portier ne taclant pas, il faute autrement
@@ -1589,7 +1591,7 @@ function simuleMatch(home,away,verbeux){
   const derby=(RIVAL[home.id]===away.id);
   if(home._coupTordu && home.id===G.monClub){ la*=0.90; home._coupTordu=false; } // vestiaire saboté : l'adversaire démarre patraque
   let mulH=1, mulA=1; // infériorité numérique : un rouge plombe l'équipe réduite pour les minutes restantes
-  let sh=0, sa=0; const ev=[], vusC=[]; // vusC = mémoire anti-répétition des lignes de commentaire (par match)
+  let sh=0, sa=0; const ev=[], vusC=[], booked=new Set(); // vusC = anti-répétition des commentaires ; booked = joueurs déjà avertis (uid), pour un vrai « 2e jaune »
   DERN_ATT={cote:null,m:-99,but:false}; // nouvelle rencontre : personne n'a encore attaqué
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
     ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv}); }
@@ -1625,9 +1627,12 @@ function simuleMatch(home,away,verbeux){
         const dDef=gardien?1.34:1.18; // un de moins : on attaque moins, on encaisse plus — sans gardien, la cage est une passoire
         if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; }
       }
-      const pool=rouge?(gardien?COMM.crGK:COMM.cr):(gardien?COMM.cjGK:COMM.cj);
+      // « Deuxième jaune » UNIQUEMENT si le joueur avait déjà un jaune ce match ; sinon rouge direct.
+      const secondJaune=rouge&&booked.has(j.uid);
+      const pool=rouge?(secondJaune?COMM.cr2j:(gardien?COMM.crGK:COMM.cr)):(gardien?COMM.cjGK:COMM.cj);
+      if(!rouge) booked.add(j.uid); // le joueur est désormais averti pour la suite du match
       ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},
-        x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
+        x:fmtC(pickNR(pool,vusC),j,cote)+" ("+cote.id+")"});
     }
     // coups francs aux abords de la surface (~0,7 par match) : du décor qui rythme la rencontre, sans toucher au score
     if(verbeux && Math.random()<0.014){
@@ -1678,7 +1683,7 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
   if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
   const derby=(RIVAL[home.id]===away.id);
-  const ev=[], vusC=[]; // mémoire anti-répétition des commentaires, propre au reste de match re-simulé
+  const ev=[], vusC=[], booked=new Set(); // anti-répétition + joueurs avertis (uid), propres au reste de match re-simulé
   for(let m=mStart+1;m<=90;m++){
     const elh=lh*mulH, ela=la*mulA, r=Math.random();
     if(r < elh/90){
@@ -1699,8 +1704,11 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
       const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
       if(rouge){ j.susp=(j.susp||0)+3; const dDef=gardien?1.34:1.18;
         if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; } }
-      const pool=rouge?(gardien?COMM.crGK:COMM.cr):(gardien?COMM.cjGK:COMM.cj);
-      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},x:fmtC(PICK(pool),j,cote)+" ("+cote.id+")"});
+      // « Deuxième jaune » UNIQUEMENT si le joueur avait déjà un jaune ce match ; sinon rouge direct.
+      const secondJaune=rouge&&booked.has(j.uid);
+      const pool=rouge?(secondJaune?COMM.cr2j:(gardien?COMM.crGK:COMM.cr)):(gardien?COMM.cjGK:COMM.cj);
+      if(!rouge) booked.add(j.uid); // le joueur est désormais averti pour la suite du match
+      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},x:fmtC(pickNR(pool,vusC),j,cote)+" ("+cote.id+")"});
     }
     if(Math.random()<0.014){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.cf,vusC),t,cf===home?away:home)+" ("+cf.id+")"}); }
