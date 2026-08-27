@@ -372,6 +372,44 @@ toujours « raconter quelque chose ».
   (`pb.moral+(fill−0.70)×0.8`, centré sur ~70 % de remplissage → club moyen quasi neutre). **Le palier 2
   (Normal, ×1, neutre) préserve le calibrage** : le harnais ne touche pas `G.prixBillet`, l'économie et les
   buts restent étalonnés. À migrer (`G.prixBillet==null?2:…`).
+- **PLANCHER RÉGLEMENTAIRE DE L'EFFECTIF (v0.91)** — le garde-fou qui manquait, remonté en playtest :
+  « j'ai vendu mes deux gardiens et j'ai quand même pu jouer ; ensuite j'ai vendu presque tous mes joueurs
+  et j'ai perdu 36-0 ». Rien n'empêchait de vider son effectif, et `forces()` divise l'attaque par 6 et la
+  défense par 5 **quel que soit le nombre de joueurs présents** → un onze à quatre s'effondre à −37 de
+  différence de buts. La règle posée est celle de la Ligue de l'époque : **une feuille de match, c'est
+  11 titulaires + 5 remplaçants, dont deux gardiens**, donc un club engagé tient en permanence
+  **`PLANCHER_TOTAL`=16 joueurs sous contrat** et **`PLANCHER={G:2,D:4,M:4,A:2}`** (de quoi aligner le 4-4-2
+  avec un portier de rechange). Trois pièces :
+  • **`manqueEffectif(c, sansJ)`** = ce qui manque à un club, le départ de `sansJ` déjà déduit (objet vide =
+    en règle) ; **`refusDepart(c, j)`** = le motif de refus d'un **départ volontaire**, ou `null`. Branché sur
+    **TOUTES** les sorties choisies : `listerVente`, `ventesEnCours` (un départ déjà listé est **gelé**, pas
+    exécuté), `venteEclair`, `preteJoueur` (un prêté sort de `moi.joueurs`, donc de la feuille de match) et
+    `accepterOffreExt`. Les boutons « Vendre »/« Prêter » de l'écran effectif sont **grisés avec le motif en
+    infobulle** (calculé une fois par poste dans `blocVente`), et le bouton « Accepter » de l'offre étrangère
+    aussi — on ne découvre pas le refus après coup.
+  • **`veilleEffectif()`** = le filet de sécurité, passé **avant chaque journée** (tête de `jouerJournee`,
+    après `ventesEnCours` dans `finirJournee`, tête de `ecranCalendrier`) et dans **`migre()`** (une
+    sauvegarde déjà saccagée se remet en règle au chargement). Il balaie **les deux divisions** : tout club
+    sous le plancher signe des joueurs libres (**`pige()`**, note ~45-60, jamais un crack), et tout club dont
+    `onze()` ne rend pas 11 disponibles (cascade de blessures) est complété de même. Pour VOTRE club c'est
+    **facturé** (0,25 MF par pige) et annoncé (dépêche + notif) ; les clubs IA se dépannent en silence —
+    **c'est ce qui fait qu'un adversaire à qui on prend son gardien en rachète un autre** au lieu de jouer
+    sans portier. Idempotent, donc appelable partout sans risque.
+  • **La soupape** : les petits clubs démarrent PILE à 16 (Le Havre, Bastia…) → sans issue, ils ne pourraient
+    rien vendre de la saison. **`monteeCentre(pos)`** fait monter un jeune du centre de formation en pro,
+    **`MONTEES_MAX`=2 par saison** (compteur `G.montees`, remis à zéro à l'intersaison), qualité indexée sur
+    `G.centre` — boutons G/D/M/A sous la ligne de plancher de l'écran effectif. On retrouve de la marge en
+    échange d'un joueur **brut**, pas d'un renfort : la contrainte reste une contrainte. (À partir de la 2ᵉ
+    saison le problème se pose moins : `vieillirClub` ajoute déjà un jeune de plus que `CIBLE` chaque été.)
+  **L'adversaire n'est pas un supermarché** : `acheter()` refuse au-delà de **`QUOTA_CESSIONS`=2 joueurs par
+  club et par saison**, et de **`QUOTA_CESSIONS_G`=1 gardien** (compteurs `c._cedes`/`c._cedesG`, remis à zéro
+  par `razStatsClub`). En contrepartie `finaliseAchat` **ne fabrique plus un clone à chaque vente** (c'était un
+  `genJoueur` systématique, donc un faux nom de plus par transfert) : le vendeur **encaisse 90 % du prix** sur
+  son budget et ne se dépanne que s'il passe réellement sous le plancher, via `veilleEffectif()`. **Aucun effet
+  moteur** (rien dans `simuleMatch`) → calibrage intact, mesuré 2,392 / 2,371. Validation dédiée :
+  **`harness-effectif.cjs`**. **Piège à ne pas rouvrir** : toute NOUVELLE façon de faire sortir un joueur de
+  l'effectif doit passer par `refusDepart` si elle est volontaire ; si elle est subie (arc narratif `vendMome`,
+  retraite), la laisser passer et compter sur `veilleEffectif` — jamais bloquer une décision de scénario.
 - **Marché des transferts IA** (`transfertIA`) : pendant les fenêtres (`fenetreOuverte`), un club IA achète
   un joueur à un autre, dans la limite de **son** budget (`c.budget`, réapprovisionné à l'intersaison). Règles :
   ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et
@@ -730,6 +768,9 @@ toujours « raconter quelque chose ».
    pas de joueur 36+ actif après vieillissement, incidents sans exception.
 3. Pour l'UI : capture **Playwright** (voir `/audit-ui`), en desktop ET en mobile 390px.
 4. Toujours tester une **carrière multi-saisons** (au moins 6 saisons) pour les régressions.
+5. Harnais spécialisés à repasser quand on touche à leur domaine (tous doivent finir « TOUT EST VERT ») :
+   `harness9697.cjs` (saison de départ 96/97), `harness-euro.cjs` (les trois coupes d'Europe),
+   `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →

@@ -256,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.90"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.91"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -661,6 +661,76 @@ function pictos(j, avecTireur){
 /* effectif cible : 2 G, 5 D, 5 M, 4 A = 16 joueurs */
 const CIBLE={G:2,D:5,M:5,A:4};
 
+/* ---------- LE PLANCHER RÉGLEMENTAIRE DE L'EFFECTIF (v0.91) ---------- */
+/* Retour de playtest : on pouvait vendre ses DEUX gardiens, puis presque tout l'effectif, et jouer
+   quand même — résultat, un 36-0. Le règlement de la Ligue tranche : une feuille de match, c'est
+   11 titulaires et 5 remplaçants, dont deux gardiens. Un club engagé en championnat tient donc en
+   permanence 16 joueurs sous contrat, et de quoi aligner le 4-4-2. En dessous, il n'y a pas de match.
+   Le plancher est vérifié à chaque DÉPART VOLONTAIRE (mise en vente, vente éclair, prêt sortant,
+   offre étrangère) et rattrapé par veilleEffectif() pour tout ce qui échappe au joueur (retraites,
+   départ imposé par un arc narratif, cascade de blessures). */
+const PLANCHER={G:2, D:4, M:4, A:2};   // de quoi aligner le 4-4-2 avec un gardien de rechange sur le banc
+const PLANCHER_TOTAL=16;               // 11 titulaires + 5 remplaçants : la feuille de match de l'époque
+const QUOTA_CESSIONS=2;                // un club adverse ne vous cède pas plus de 2 joueurs par saison...
+const QUOTA_CESSIONS_G=1;              // ...et jamais ses deux gardiens
+const LIB_POSTE={G:"gardien", D:"défenseur", M:"milieu", A:"attaquant"};
+const LIB_POSTES={G:"gardiens", D:"défenseurs", M:"milieux", A:"attaquants"}; // « milieux », pas « milieus »
+/* ce qui manque à un club pour être en règle, le départ de sansJ déjà déduit — objet vide = tout va bien */
+function manqueEffectif(c, sansJ){
+  const js=((c&&c.joueurs)||[]).filter(j=>j!==sansJ);
+  const m={};
+  for(const p of ["G","D","M","A"]){
+    const n=js.filter(j=>j.pos===p).length;
+    if(n<PLANCHER[p]) m[p]=PLANCHER[p]-n;
+  }
+  if(js.length<PLANCHER_TOTAL) m.total=PLANCHER_TOTAL-js.length;
+  return m;
+}
+/* motif de refus d'un départ volontaire, ou null si la Ligue laisse passer */
+function refusDepart(c, j){
+  const m=manqueEffectif(c, j), poste=["G","D","M","A"].find(p=>m[p]);
+  if(poste) return "Le règlement impose au moins "+PLANCHER[poste]+" "+LIB_POSTES[poste]+" sous contrat — il ne vous en resterait que "+(PLANCHER[poste]-m[poste])+". Recrutez d'abord à ce poste.";
+  if(m.total) return "Votre effectif est au plancher réglementaire ("+PLANCHER_TOTAL+" joueurs : 11 titulaires et 5 remplaçants). Recrutez avant de céder.";
+  return null;
+}
+/* un joueur libre signé en catastrophe : la « pige » de l'époque, jamais un crack */
+function pige(c, pos){
+  const j=genJoueur(pos, Math.max(1,(c.pres||5)-2));
+  j.age=RNDI(24,34);
+  j.note=Math.max(45, j.note-RNDI(5,10));
+  j.pot=Math.max(j.note, (j.pot||j.note)-6);
+  Object.assign(j,{club:c.id,avendre:false,buts:0,passes:0,matchs:0,note0:j.note,
+                   fav:false,titu:false,uid:uidGen(),bless:0,susp:0,moral:RNDI(55,70),sansJouer:0});
+  c.joueurs.push(j);
+  return j;
+}
+/* Filet de sécurité passé avant chaque journée : AUCUN club ne descend sous le plancher, et aucun ne
+   se présente avec un onze incomplet. Ce qui manque est comblé par des joueurs libres. Votre club paie
+   et est prévenu ; les clubs IA se dépannent en silence — c'est ce qui fait qu'un adversaire à qui on
+   prend son gardien en rachète un autre au lieu de jouer sans portier. */
+function veilleEffectif(){
+  if(!G || !G.clubs) return;
+  for(const c of (G.clubs||[]).concat(G.autre||[])){
+    if(!c || !c.joueurs) continue;
+    const mien=(c.id===G.monClub), venus=[];
+    for(let garde=0; garde<12; garde++){
+      const m=manqueEffectif(c), poste=["G","D","M","A"].find(p=>m[p]);
+      if(!poste && !m.total) break;
+      venus.push(pige(c, poste || PICK(["D","M","M","A"])));
+    }
+    // le onze doit rester alignable : une cascade de blessures peut vider l'effectif DISPONIBLE
+    for(let garde=0; garde<12 && onze(c).length<11; garde++) venus.push(pige(c, PICK(["D","D","M","M","A"])));
+    if(mien && venus.length){
+      const cout=venus.length*250000; // indemnité de signature d'un joueur libre en cours de saison
+      G.tresorerie-=cout;
+      (G.news=G.news||[]).unshift("EFFECTIF INCOMPLET : la Ligue exige "+PLANCHER_TOTAL+" joueurs sur la feuille de match. Signature d'urgence de "+
+        venus.map(j=>j.nom+" ("+j.pos+", "+j.age+" ans, note "+j.note+")").join(", ")+" — "+(cout/1e6).toFixed(2)+" MF d'indemnités.");
+      notif("🚑 EFFECTIF SOUS LE PLANCHER : "+venus.length+" joueur"+(venus.length>1?"s":"")+" libre"+(venus.length>1?"s":"")+" signé"+(venus.length>1?"s":"")+" en catastrophe ("+(cout/1e6).toFixed(2)+" MF). Recrutez pour de bon avant que ça ne recommence.");
+      assureCapitaine();
+    }
+  }
+}
+
 /* ---------- Lore : rivalités et malédictions ---------- */
 const RIVAL={PSG:"OM",OM:"PSG",LEN:"LIL",LIL:"LEN",LYO:"STE",STE:"LYO",NAN:"BOR",BOR:"NAN",
  NIC:"MON",MON:"NIC",GUI:"REN",REN:"GUI",MET:"NCY",NCY:"MET",CAE:"LEH",LEH:"CAE"};
@@ -1009,7 +1079,7 @@ function nouvellePartie(clubId, saisonKey){
     mercatoFerme:false, rapport:[], sponsor:null, offresSponsor:null, sponsorSwitch:false, prets:[],
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
-    centre:1, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
+    centre:1, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.stade=inferStade(clubs.find(c=>c.id===clubId)); G.chantier=null; // état du stade déduit de sa taille de départ
@@ -1810,6 +1880,7 @@ function majReput(delta, raison){
   if(delta) notif((delta>0?"🕊️ Réputation +":"⚠️ Réputation ")+delta+(raison?" ("+raison+")":"")+" → "+Math.round(G.reput)+"/100");
 }
 function jouerJournee(evCb){
+  veilleEffectif(); // aucun club ne prend le départ d'une journée avec un effectif hors des clous
   G.notifs=[];
   G.offreExt=null; G.offrePret=null; // les offres de la semaine passée expirent
   const day=G.calendrier[G.journee];
@@ -2138,6 +2209,7 @@ function finirJournee(delta){
   G.prets.filter(p=>p.sens==="out").forEach(p=>{ const j=byUid(p.uid); if(j){ j._joue=1; j.moral=Math.min(100,(j.moral==null?65:j.moral)+1.5); } }); // titulaire ailleurs : il joue et reprend du poil de la bête
   progression();
   ventesEnCours();
+  veilleEffectif(); // après les départs de la semaine : on repasse tous les effectifs au contrôle réglementaire
   avanceChantier();
   // blessures et suspensions : une journée de purgée
   for(const c of G.clubs) for(const j of c.joueurs){
@@ -2852,9 +2924,16 @@ function msgMercato(){
 }
 function prixAchat(j){ const v=valeur(j); return Math.round(v*(j.note>=85?1.6:1.3)); }
 function acheter(j){
-  const prix=prixAchat(j);
+  const prix=prixAchat(j), vendeur=clubById(j.club);
   if(j.pretIn||j.pretOut) return alert("Ce joueur est en cours de prêt : intransférable.");
   if(!fenetreOuverte()) return alert("Le mercato est fermé. Prochaine fenêtre : janvier (J20-J24).");
+  // on ne dévalise pas un adversaire : deux joueurs par saison et par club, et jamais ses deux gardiens
+  if(vendeur){
+    if(j.pos==="G" && (vendeur._cedesG||0)>=QUOTA_CESSIONS_G)
+      return alert(vendeur.nom+" a déjà cédé un gardien cette saison et refuse net : « On ne va pas jouer sans portier. »");
+    if((vendeur._cedes||0)>=QUOTA_CESSIONS)
+      return alert(vendeur.nom+" a déjà lâché "+QUOTA_CESSIONS+" joueurs cette saison et ferme la porte : « On n'est pas un supermarché. » Revenez la saison prochaine.");
+  }
   if(prix>G.budget) return alert("Budget transferts insuffisant ("+(G.budget/1e6).toFixed(1)+" MF disponibles).");
   // le joueur (surtout s'il est vénal ou vedette) réclame une prime à la signature, payée cash
   const venal=(j.venal||5);
@@ -2899,9 +2978,9 @@ function demandePrime(j, prix, prime){
 function finaliseAchat(j, prix, prime){
   const vendeur=clubById(j.club), acheteur=clubById(G.monClub);
   vendeur.joueurs=vendeur.joueurs.filter(x=>x!==j);
-  const rgn=Object.assign(genJoueur(j.pos,vendeur.pres),{club:vendeur.id,buts:0,passes:0,matchs:0,avendre:false,fav:false,titu:false,uid:uidGen()});
-  rgn.note0=rgn.note;
-  vendeur.joueurs.push(rgn);
+  vendeur._cedes=(vendeur._cedes||0)+1;
+  if(j.pos==="G") vendeur._cedesG=(vendeur._cedesG||0)+1;
+  vendeur.budget=(vendeur.budget||0)+Math.round(prix*0.9); // l'argent du transfert lui sert à se refaire
   j.club=G.monClub; j.titu=false; acheteur.joueurs.push(j);
   G.budget-=prix; if(prime) G.tresorerie-=prime;
   G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle de la recrue
@@ -2909,11 +2988,17 @@ function finaliseAchat(j, prix, prime){
   if((j.ego||5)>=8 && (j.venal||5)>=7) majReput(-4, "recrue mercenaire");
   else if((j.ego||5)<=3 && (j.venal||5)<=3) majReput(+2, "recrue exemplaire");
   G.news.unshift("TRANSFERT : "+j.nom+" rejoint le club pour "+(prix/1e6).toFixed(1)+" MF"+(prime?" (+ "+(prime/1e6).toFixed(2)+" MF de prime à la signature)":"")+".");
+  veilleEffectif(); // si le vendeur passe sous le plancher, il se dépanne aussitôt sur le marché des libres
   rafraichir();
 }
-function listerVente(j){ j.avendre=!j.avendre; montre("effectif"); }
+function listerVente(j){
+  if(!j.avendre){ const r=refusDepart(clubById(G.monClub), j);
+    if(r) return alert("Impossible de mettre "+j.nom+" sur la liste des transferts.\n\n"+r); }
+  j.avendre=!j.avendre; montre("effectif");
+}
 function venteEclair(j){
   if(j.pretIn) return alert("Ce joueur est prêté par un autre club : impossible de le vendre.");
+  { const r=refusDepart(clubById(G.monClub), j); if(r) return alert("Vente éclair impossible.\n\n"+r); }
   const prix=Math.round(valeur(j)*0.6/1e5)*1e5;
   if(!confirm("Vente éclair de "+j.nom+" pour "+(prix/1e6).toFixed(1)+" MF (décote de 40 %) ?\nDépart immédiat, même hors mercato.")) return;
   const moi=clubById(G.monClub);
@@ -2981,6 +3066,7 @@ function empruntJoueur(j,d,tarif){
 function preteJoueur(j,d,tarif,hote){
   if(j.pretIn) return alert("Ce joueur est déjà en prêt chez vous.");
   const moi=clubById(G.monClub);
+  { const r=refusDepart(moi, j); if(r) return alert("Prêt impossible : un joueur prêté ne compte plus sur votre feuille de match.\n\n"+r); }
   hote=hote||PICK(G.clubs.filter(c=>c.id!==G.monClub && c.pres<=moi.pres))||PICK(G.clubs.filter(c=>c.id!==G.monClub));
   moi.joueurs=moi.joueurs.filter(x=>x!==j);
   j.pretOut=true; j.titu=false; j.club=hote.id; hote.joueurs.push(j);
@@ -3017,8 +3103,10 @@ const GRANDS_ETR=["Real Madrid","FC Barcelone","Milan AC","Inter Milan","Juventu
 function ventesEnCours(){
   const moi=clubById(G.monClub);
   const ouverte=fenetreOuverte();
+  let geles=0;
   for(const j of moi.joueurs.slice()){
     if(!j.avendre || j.pretIn) continue;
+    if(refusDepart(moi, j)){ geles++; continue; } // la Ligue ne validerait plus la feuille de match
     if(ouverte && Math.random()<0.5){ // acheteur français pendant la fenêtre
       const prix=Math.round(valeur(j)*RND(0.85,1.1));
       moi.joueurs=moi.joueurs.filter(x=>x!==j);
@@ -3036,6 +3124,7 @@ function ventesEnCours(){
       notif("💰 VENDU À L'ÉTRANGER : "+dest+" s'offre "+j.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
     }
   }
+  if(geles) G.news.unshift("MERCATO : "+geles+" départ"+(geles>1?"s":"")+" gelé"+(geles>1?"s":"")+" — l'effectif est au plancher réglementaire ("+PLANCHER_TOTAL+" joueurs). Recrutez avant de vendre.");
 }
 
 /* ---------- Offres étrangères spontanées ---------- */
@@ -3052,6 +3141,7 @@ function accepterOffreExt(){
   const o=G.offreExt; if(!o) return;
   const j=byUid(o.uid); if(!j){G.offreExt=null;return;}
   const moi=clubById(G.monClub);
+  { const r=refusDepart(moi, j); if(r) return alert("Vous ne pouvez pas accepter cette offre.\n\n"+r); }
   moi.joueurs=moi.joueurs.filter(x=>x!==j);
   G.budget+=o.prix; G.offreExt=null;
   G.news.unshift("TRANSFERT RECORD : "+j.nom+" rejoint "+o.club+" pour "+(o.prix/1e6).toFixed(1)+" MF !");
@@ -4606,6 +4696,7 @@ function ajouteJeune(c,pos,rec,centre){
 }
 function razStatsClub(c){
   c.pts=0;c.j=0;c.g=0;c.n=0;c.p=0;c.bp=0;c.bc=0;c.forme=[];
+  c._cedes=0; c._cedesG=0; // le quota de joueurs qu'un club accepte de vous vendre se recharge chaque saison
   for(const j of c.joueurs){ j.buts=0;j.passes=0;j.matchs=0;j.note0=j.note;j.avendre=false;j.bless=0;j.susp=0; }
 }
 function construireEffectif(p){
@@ -4626,6 +4717,7 @@ function classementAbstrait(clubs){
 function intersaison(){
   const rec=[];
   G.arc=null; G._arcFait=false; // un arc ne straddle pas deux saisons ; on rouvre la porte pour la suivante
+  G.montees=0;                  // le centre de formation refait le plein de promotions
   // classements : MA division (réel) + l'autre (abstrait, selon la force des effectifs)
   const maDiv=classement();
   const autreDiv=classementAbstrait(G.autre);
@@ -4810,6 +4902,9 @@ function migre(){
   if(!G.euro) euroInit(); // vieilles sauvegardes : on ouvre la compétition européenne
   else { if(G.euro.aJouer===undefined) G.euro.aJouer=null; if(G.euro.enDirect===undefined) G.euro.enDirect=null; if(G.euro.compet===undefined) G.euro.compet="C1"; } // sauvegardes v0.72-0.74
   assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
+  G.clubs.forEach(c=>{ c._cedes=c._cedes||0; c._cedesG=c._cedesG||0; });
+  G.montees=G.montees||0;
+  veilleEffectif(); // sauvegardes d'avant le plancher (effectif bradé jusqu'à l'os) : remise en règle immédiate
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
     if(r && r.pen && !r.moment) r.moment={type:"pen_pour", uid:r.pen.uid};
@@ -5096,11 +5191,16 @@ function ecranCalendrier(){
     document.getElementById("bInter").onclick=()=>{intersaison();montre("calendrier");};
     return;
   }
+  veilleEffectif(); // avant d'annoncer le match : tous les effectifs repassent au contrôle réglementaire
   const day=G.calendrier[G.journee];
   const [hid,aid]=day.find(([h,a])=>h===G.monClub||a===G.monClub);
   const h=clubById(hid), a=clubById(aid);
   const dom=hid===G.monClub;
+  // la feuille de match : 11 titulaires + 5 remplaçants. Sans onze complet, il n'y a pas de match.
+  const moiC=clubById(G.monClub), xiMoi=onze(moiC), dispoMoi=moiC.joueurs.filter(dispo).length;
+  const bancMoi=Math.max(0, dispoMoi-11), feuilleOk=xiMoi.length>=11;
   const offreJ=G.offreExt?byUid(G.offreExt.uid):null;
+  const blocOffre=offreJ?refusDepart(moiC, offreJ):null;
   const offrePretJ=G.offrePret?byUid(G.offrePret.uid):null;
   const offrePret=(G.offrePret&&offrePretJ)?`<div class="panel" style="border-color:#62c462">
      <h2 style="color:#62c462">Offre d'achat sur un prêté</h2>
@@ -5115,7 +5215,8 @@ function ecranCalendrier(){
      <p><b class="jaune">${esc(G.offreExt.club)}</b> propose <b class="jaune">${(G.offreExt.prix/1e6).toFixed(1)} MF</b> pour
        <b>${esc(offreJ.nom)}</b> (${offreJ.pos}, ${offreJ.age} ans, note ${offreJ.note}) — qui n'est pourtant pas à vendre.</p>
      <p class="dim">Leur recruteur a vu quelque chose. L'offre expire après la prochaine journée.</p>
-     <p style="margin-top:8px"><button class="act" id="bExtAcc">Accepter (${(G.offreExt.prix/1e6).toFixed(1)} MF)</button>
+     ${blocOffre?`<p class="rouge">Vous ne pouvez pas accepter : ${esc(blocOffre)}</p>`:""}
+     <p style="margin-top:8px"><button class="act" id="bExtAcc" ${blocOffre?"disabled":""}>Accepter (${(G.offreExt.prix/1e6).toFixed(1)} MF)</button>
      <button class="act" id="bExtRef">Refuser</button></p></div>`:"";
   const affaire=G.affaire?`<div class="panel" style="border-color:#b86a2e">
      <h2 style="color:#ffd24a">Un intermédiaire vous approche...</h2>
@@ -5143,10 +5244,17 @@ function ecranCalendrier(){
        ${PRIMES_MATCH.map(p=>`<button class="act bPrime" data-v="${p.v}" style="margin:4px 3px 0${(+G.primeMatch||0)===p.v?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${p.label}</button>`).join("")}
        <br><span class="dim" style="font-size:11px">${(+G.primeMatch||0)>0?"Vos joueurs se transcendent (+"+Math.round((+G.primeMatch)*100)+" % d'attaque). Facture honorée UNIQUEMENT si vous gagnez.":"Aucune prime promise : effectif au régime normal."}</span>
      </div>
-     <p class="ctr" id="preMatchAct" style="margin-top:10px">
+     <p class="ctr ${feuilleOk?(bancMoi>=5?"dim":"jaune"):"rouge"}" style="margin-top:12px;font-size:12px">
+       FEUILLE DE MATCH : <b>${Math.min(11,xiMoi.length)}/11</b> titulaires · <b>${Math.min(5,bancMoi)}/5</b> remplaçants${
+         feuilleOk?(bancMoi<5?" — banc incomplet (blessés, suspendus), mais le match peut se jouer":""):" — LA LIGUE REFUSE LA FEUILLE DE MATCH"}
+     </p>
+     ${feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
        <button class="act" id="bVite" style="margin-left:8px">Résultat instantané</button>
-     </p>
+     </p>`:`<p class="ctr" id="preMatchAct" style="margin-top:10px">
+       <span class="rouge">Impossible d'aligner onze joueurs : le coup d'envoi ne peut pas être donné.</span><br>
+       <button class="big" id="bRenfort" style="margin-top:6px">Piocher en urgence chez les joueurs libres</button>
+     </p>`}
    </div>
    <div class="panel" id="pTableau" style="display:none">
      <div id="tabScore"></div>
@@ -5164,8 +5272,9 @@ function ecranCalendrier(){
    ${G.presse.length?`<div class="panel"><h2>Revue de presse</h2>
      ${G.presse.slice(0,4).map(p=>`<p class="dim" style="font-style:italic">${esc(p)}</p>`).join("")}</div>`:""}
    <div class="panel"><h2>Dépêches</h2>${G.news.slice(0,6).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
-  document.getElementById("bJouer").onclick=()=>lanceMatch(false);
-  document.getElementById("bVite").onclick=()=>lanceMatch(true);
+  { const bJ=document.getElementById("bJouer"); if(bJ) bJ.onclick=()=>lanceMatch(false);
+    const bV=document.getElementById("bVite");  if(bV) bV.onclick=()=>lanceMatch(true);
+    const bR=document.getElementById("bRenfort"); if(bR) bR.onclick=()=>{ veilleEffectif(); montre("calendrier"); }; }
   document.querySelectorAll(".bConsigne").forEach(b=>b.onclick=()=>{ G.consigne=b.dataset.k; montre("calendrier"); });
   document.querySelectorAll(".bPrime").forEach(b=>b.onclick=()=>{ G.primeMatch=+b.dataset.v; montre("calendrier"); });
   const ouvreDebrief=(suite)=>{
@@ -5978,8 +6087,8 @@ function lanceMatch(instant){
   // le coup d'envoi est donné : on passe en mode direct plein écran (le match prend tout l'écran), retiré au sifflet par abandonneDirect
   if(document.body) document.body.classList.add("mode-direct");
   // le coup d'envoi est donné : on retire les boutons d'avant-match (ils reviendront en « Prochaine journée 📆 » au sifflet)
-  document.getElementById("bJouer").style.display="none";
-  document.getElementById("bVite").style.display="none";
+  { const bJ=document.getElementById("bJouer"); if(bJ&&bJ.style) bJ.style.display="none";
+    const bV=document.getElementById("bVite");  if(bV&&bV.style) bV.style.display="none"; }
   // la consigne est un choix d'AVANT-match : une fois le coup d'envoi donné, on verrouille les boutons.
   // (le match est déjà simulé par jouerJournee ; surtout, cliquer une consigne relançait montre("calendrier")
   //  → abandonneDirect() voyait G._pend et terminait le match « sans vous ». On bloque ça à la source.)
@@ -6468,10 +6577,33 @@ function titulariser(j){
   } else j.titu=false;
   montre("effectif");
 }
+/* La soupape du plancher : un club au ras des 16 ne peut plus rien vendre. Plutôt que de bloquer sec
+   toute une saison (les petits clubs démarrent PILE à 16), le centre de formation fait monter un jeune
+   en pro — deux par saison, pas un de plus, et d'autant meilleur que le centre est développé. C'est la
+   voie de sortie honnête : on retrouve de la marge en échange d'un joueur brut, pas d'un renfort. */
+const MONTEES_MAX=2;
+function monteeCentre(pos){
+  const c=clubById(G.monClub);
+  if((G.montees||0)>=MONTEES_MAX) return alert("Le centre de formation a déjà fait monter "+MONTEES_MAX+" joueurs cette saison. La promotion suivante attendra l'intersaison.");
+  const niv=G.centre||1;
+  const j=genJoueur(pos, c.pres);
+  j.age=RNDI(17,20);
+  j.note=Math.max(45, Math.min(72, j.note-RNDI(6,12)+2*niv));
+  j.pot=Math.min(92, Math.max(j.note, j.note+RNDI(4,12)+2*niv));
+  Object.assign(j,{club:c.id,avendre:false,buts:0,passes:0,matchs:0,note0:j.note,
+                   fav:false,titu:false,uid:uidGen(),bless:0,susp:0,moral:RNDI(65,80),sansJouer:0});
+  c.joueurs.push(j);
+  G.montees=(G.montees||0)+1;
+  G.news.unshift("CENTRE DE FORMATION : "+j.nom+" ("+j.age+" ans, "+LIB_POSTE[pos]+", note "+j.note+", potentiel "+j.pot+") signe son premier contrat professionnel.");
+  notif("🎓 "+j.nom+" monte du centre de formation : l'effectif respire.");
+  montre("effectif");
+}
 function ecranEffectif(){
   const c=clubById(G.monClub);
   const js=c.joueurs.slice().sort((a,b)=>"GDMA".indexOf(a.pos)-"GDMA".indexOf(b.pos)||b.note-a.note);
   const xi=onze(c);
+  // un départ est refusé par poste (ou par le total) : on grise le bouton plutôt que d'alerter après coup
+  const blocVente={}; for(const p of ["G","D","M","A"]){ const ech=c.joueurs.find(j=>j.pos===p); blocVente[p]=ech?refusDepart(c,ech):null; }
   chrome("effectif",`<div class="panel"><h2>Effectif — ${esc(c.nom)}</h2>
    <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th><th></th></tr>
    ${js.map((j,i)=>`<tr class="click" data-i="${c.joueurs.indexOf(j)}">
@@ -6485,9 +6617,25 @@ function ecranEffectif(){
      <td class="num">${(valeur(j)/1e6).toFixed(1)} MF</td>
      <td class="num">${j.buts}</td><td class="num">${j.passes||0}</td>
      <td><button class="act bT" data-i="${c.joueurs.indexOf(j)}">${j.titu?"Libérer":"Titulariser"}</button>
-         <button class="act bV" data-i="${c.joueurs.indexOf(j)}">${j.avendre?"Retirer":"Vendre"}</button></td>
-     <td>${j.pretIn?'<span class="dim">—</span>':`<button class="act bL" data-i="${c.joueurs.indexOf(j)}" title="Prêter à un club où il jouera titulaire">Prêter</button>`}</td></tr>`).join("")}
+         <button class="act bV" data-i="${c.joueurs.indexOf(j)}"${!j.avendre&&blocVente[j.pos]?` disabled title="${esc(blocVente[j.pos])}"`:""}>${j.avendre?"Retirer":"Vendre"}</button></td>
+     <td>${j.pretIn?'<span class="dim">—</span>':`<button class="act bL" data-i="${c.joueurs.indexOf(j)}"${blocVente[j.pos]?` disabled title="${esc(blocVente[j.pos])}"`:' title="Prêter à un club où il jouera titulaire"'}>Prêter</button>`}</td></tr>`).join("")}
    </table>
+   ${(()=>{ // le plancher réglementaire, expliqué là où l'on vend
+     const n=c.joueurs.length, marge=n-PLANCHER_TOTAL, mq=manqueEffectif(c);
+     const bloques=["G","D","M","A"].filter(p=>c.joueurs.filter(j=>j.pos===p).length<=PLANCHER[p]);
+     const hors=["G","D","M","A"].filter(p=>mq[p]);
+     const cls=hors.length?"rouge":(marge<=0?"jaune":"dim");
+     const liste=t=>t.length<2?t.join(""):t.slice(0,-1).join(", ")+" et "+t[t.length-1];
+     const etat=hors.length
+       ? "EFFECTIF HORS DES CLOUS : il manque "+liste(hors.map(p=>mq[p]+" "+(mq[p]>1?LIB_POSTES[p]:LIB_POSTE[p])))+"."
+       : (marge<=0 ? "Effectif AU PLANCHER : aucun départ possible tant que vous n'avez pas recruté."
+                   : "Vous pouvez céder "+marge+" joueur"+(marge>1?"s":"")+" avant de toucher le plancher.");
+     const reste=MONTEES_MAX-(G.montees||0);
+     const cf=reste>0
+       ? `<p style="margin-top:4px;font-size:12px">🎓 Le centre de formation (niveau ${G.centre||1}) peut faire monter un jeune en pro — <b>${reste}</b> promotion${reste>1?"s":""} restante${reste>1?"s":""} cette saison, de quoi reprendre de la marge : ${["G","D","M","A"].map(p=>`<button class="act bCF" data-p="${p}">${LIB_POSTE[p][0].toUpperCase()+LIB_POSTE[p].slice(1)}</button>`).join(" ")}</p>`
+       : `<p class="dim" style="margin-top:4px;font-size:12px">🎓 Le centre de formation a donné ses ${MONTEES_MAX} jeunes de la saison — les suivants monteront à l'intersaison.</p>`;
+     return `<p class="${cls}" style="margin-top:8px;font-size:12px">⚖️ Plancher réglementaire : <b>${PLANCHER_TOTAL} joueurs</b> sous contrat (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — 11 titulaires et 5 remplaçants sur la feuille de match. Effectif actuel : <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
+   })()}
    <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême. Survolez pour le détail, ouvrez la fiche pour tout savoir.</p>
    <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le 4-4-2 même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
@@ -6504,6 +6652,7 @@ function ecranEffectif(){
   app.querySelectorAll(".bV").forEach(b=>b.onclick=()=>listerVente(c.joueurs[+b.dataset.i]));
   app.querySelectorAll(".bT").forEach(b=>b.onclick=()=>titulariser(c.joueurs[+b.dataset.i]));
   app.querySelectorAll(".bL").forEach(b=>b.onclick=()=>modalPret(c.joueurs[+b.dataset.i],"out"));
+  app.querySelectorAll(".bCF").forEach(b=>b.onclick=()=>monteeCentre(b.dataset.p));
   app.querySelectorAll("tr.pret").forEach(tr=>tr.onclick=()=>{const j=byUid(tr.dataset.u); if(j) ouvreFiche(j);});
 }
 
@@ -6696,6 +6845,7 @@ function ecranMercato(){
    <div class="panel">
     <h2>Le marché des transferts</h2>
     <p class="dim" style="margin-bottom:6px">Cliquez sur les en-têtes pour trier · ☆ pour suivre un joueur · cliquez une ligne pour l'avis du recruteur et les options.</p>
+    <p class="dim" style="margin-bottom:6px">⚖️ Un club ne vous cède pas plus de <b>${QUOTA_CESSIONS} joueurs par saison</b>, et jamais son second gardien : on ne vide pas l'effectif d'un adversaire. De votre côté, la Ligue impose <b>${PLANCHER_TOTAL} joueurs sous contrat</b> (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — recrutez avant de vendre.</p>
     <div class="row" style="margin:8px 0;flex-wrap:wrap;gap:8px;align-items:center">
       <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:150px" value="${esc(txtF)}">
       <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsPos}</span>
