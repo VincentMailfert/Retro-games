@@ -119,7 +119,33 @@ toujours « raconter quelque chose ».
   (Charleville, Louhans) pour tenir les 20. Doublons inter-clubs de Transfermarkt (transfert en cours de
   saison : Coupet→STE, Luccin→CAN, Cascarino→NCY, Diao→EPI, Kosecki→NAN…) **résolus à la main**. Validation
   dédiée : **`harness9697.cjs`** (20+20, doublons, année de base, été 98 bien daté, carrières + calibrage).
-  Pour ajouter 97/98 : scraper `saison_id/1997`, curer `STARS_9797`/etc., ajouter une entrée à `SAISONS`.
+  **1997-98 (v0.92)** : `STARS_9798`/`STARS_D2_9798`, `D1_9798`/`D2_9798`, `an:1997` (le Mondial 98 tombe dès la
+  1re intersaison). **La vraie D1 97/98 n'avait que 18 clubs** (4 relégués en 96/97 pour 2 promus : Toulouse,
+  Châteauroux) et la D2 en comptait 22 → 18 + 22 = 40 pile : **Caen et Nancy, meilleurs relégués de 96/97 (37 pts),
+  sont REPÊCHÉS en D1** (choix de l'auteur, moteur intact à 20 clubs/38 journées) et la D2 retombe à 20 sans écarter
+  aucun club réel. Deux clubs neufs dans `CLUBS_EXTRA` : **Nîmes** (`NIM`, Costières) et **Wasquehal** (`WAS`, Stadium
+  Nord de Villeneuve-d'Ascq, jaune et noir), avec blason et malédiction. Sièges européens réels : Monaco + PSG en C1,
+  **Nice en C2 depuis la D2** (vainqueur de la Coupe 97, relégué), Nantes/Bordeaux/Metz/Strasbourg/Auxerre/Lyon/Bastia
+  en C3. **Méthode de relevé (à réutiliser pour 98/99)** : DEUX pages Transfermarkt par club — l'effectif détaillé
+  `…/kader/verein/<id>/saison_id/1997/plus/1` (naissance, poste) ET les temps de jeu
+  `…/leistungsdaten/verein/<id>/reldata/%261997/plus/1` (matchs, minutes, et surtout la mention « Pas dans l'effectif
+  cette saison » qui démasque les erreurs de TM — Lamouchi listé à Monaco alors qu'il n'y arrive qu'en 1998). **Piège** :
+  la colonne « Membre depuis » ne donne que la DERNIÈRE arrivée au club (Wallemme « depuis 2001 » à Lens) → inutilisable
+  pour dater un transfert. Effectifs = joueurs ayant joué, triés par minutes (20 en D1, 18 en D2, minimums 2-5-5-4),
+  plus quelques jeunes notables forcés (Malbranque, Gallas, Malouda, Maoulida) ; 36 ans et plus écartés. Un joueur
+  présent dans DEUX clubs (29 cas) est rangé à son club du **coup d'envoi d'août 1997** (Giuly à Lyon, Kaba Diawara à
+  Bordeaux, Libbra à l'OM). Notes : les joueurs déjà curés repartent de leur note 96/97 (+2 jusqu'à 21 ans, +1 jusqu'à
+  24, −1 de 30 à 32, −2 au-delà), les autres sont notés à la main (médiane D1 70, D2 67, plafond 87 — Barthez).
+  Homonymes à initiale identique (deux « S. N'Diaye », « L. Leroy », « B. Clément ») → l'un est remplacé par un autre
+  vrai joueur de son club (convention de désambiguïsation). Si la page TM oppose un anti-robot, le domaine
+  `transfermarkt.com` passe. Validation dédiée : **`harness9798.cjs`**.
+  **Réconciliation France ↔ Europe au coup d'envoi (v0.92)** : les clubs européens restent figés en 95-96, donc un
+  joueur passé en France depuis (Ravanelli à l'OM, Simone au PSG, Papin à Bordeaux, Collins à Monaco dès 96/97…)
+  aurait joué sur deux terrains. `nouvellePartie` **retire désormais des effectifs européens tout nom présent dans les
+  effectifs français de la saison choisie** (avant `construitDivision`, qui recomplète) — sans effet en 95-96 (aucune
+  collision), correctif rétroactif pour 96/97.
+  Pour ajouter 98/99 : même méthode avec `saison_id/1998`, entrée `"1998-99"` dans `SAISONS`, harnais calqué sur
+  `harness9798.cjs`.
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
@@ -769,7 +795,8 @@ toujours « raconter quelque chose ».
 3. Pour l'UI : capture **Playwright** (voir `/audit-ui`), en desktop ET en mobile 390px.
 4. Toujours tester une **carrière multi-saisons** (au moins 6 saisons) pour les régressions.
 5. Harnais spécialisés à repasser quand on touche à leur domaine (tous doivent finir « TOUT EST VERT ») :
-   `harness9697.cjs` (saison de départ 96/97), `harness-euro.cjs` (les trois coupes d'Europe),
+   `harness9697.cjs` (saison de départ 96/97), `harness9798.cjs` (saison de départ 97/98 : repêchés, Nice en C2,
+   réconciliation France ↔ Europe), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation).
 
 ## Workflow de livraison
