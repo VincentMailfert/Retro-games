@@ -256,7 +256,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.92"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.93"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -733,10 +733,11 @@ function veilleEffectif(){
 
 /* ---------- Lore : rivalités et malédictions ---------- */
 const RIVAL={PSG:"OM",OM:"PSG",LEN:"LIL",LIL:"LEN",LYO:"STE",STE:"LYO",NAN:"BOR",BOR:"NAN",
- NIC:"MON",MON:"NIC",GUI:"REN",REN:"GUI",MET:"NCY",NCY:"MET",CAE:"LEH",LEH:"CAE"};
+ NIC:"MON",MON:"NIC",GUI:"REN",REN:"GUI",MET:"NCY",NCY:"MET",CAE:"LEH",LEH:"CAE",
+ AJA:"BAS",BAS:"AJA"};
 const NOMS_RIVALITES={"PSG-OM":"Le Classique","LEN-LIL":"Le derby du Nord","LYO-STE":"Le derby du Rhône",
  "NAN-BOR":"Le derby de l'Atlantique","NIC-MON":"Le derby de la Côte d'Azur","GUI-REN":"Le derby breton",
- "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand"};
+ "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand","AJA-BAS":"Le derby corse"};
 function nomRivalite(a,b){ return NOMS_RIVALITES[a+"-"+b]||NOMS_RIVALITES[b+"-"+a]||"Le derby"; }
 const JAMAIS_CHAMPION=new Set(["AUX","LEN","MET","MTP","REN","BAS","GUI","LEH","CAN","MAR","GUE","TOU","CAE","NCY","LYO"]);
 const MALEDICTIONS={
@@ -766,6 +767,8 @@ const MALEDICTIONS={
  NCY:"Platini est parti depuis vingt ans. Marcel-Picot attend un héritier.",
  NIM:"Finalistes de la Coupe en 1996 depuis le National. Les Crocodiles ont encore faim d'élite.",
  WAS:"Un club de quartier dans le grand Stadium Nord : deux mille fidèles et seize mille sièges vides.",
+ SED:"Deux Coupes de France au temps du noir et blanc, puis quarante ans de purgatoire ardennais.",
+ AJA:"Champion du National, et déjà toute la Corse sur le dos — avec Bastia qui ricane d'en face.",
 };
 
 /* ---------- Blasons : imitations aux couleurs des clubs ---------- */
@@ -787,6 +790,7 @@ const BLASONS={
  NIO:{a:"#f7d917",b:"#1d6bb5",st:"uni"},  LAV:{a:"#ff7b00",b:"#111111",st:"uni"},
  LOR:{a:"#ff7b00",b:"#111111",st:"uni"},  PER:{a:"#d40026",b:"#f7d917",st:"ray"},
  NIM:{a:"#d40026",b:"#ffffff",st:"uni"},  WAS:{a:"#f7d917",b:"#111111",st:"v"},
+ SED:{a:"#1c7c3a",b:"#d40026",st:"v"},    AJA:{a:"#d40026",b:"#ffffff",st:"ray"},
 };
 let _blN=0;
 function blason(c,s){
@@ -874,6 +878,8 @@ const CLUBS_EXTRA=[ // clubs présents en 96/97 mais absents de la base 95-96
  {id:"TON", nom:"SC Toulon",        stade:"Bon-Rencontre",    cap:15000, pres:3, budget:6e6},
  {id:"NIM", nom:"Nîmes Olympique",  stade:"Costières",        cap:18000, pres:4, budget:8e6}, // 97/98
  {id:"WAS", nom:"ES Wasquehal",     stade:"Stadium Nord",     cap:18000, pres:2, budget:5e6}, // 97/98
+ {id:"SED", nom:"CS Sedan-Ardennes",stade:"Émile-Albeau",     cap:12000, pres:3, budget:6e6}, // 98/99
+ {id:"AJA", nom:"AC Ajaccio",       stade:"François-Coty",    cap:10000, pres:3, budget:6e6}, // 98/99
 ];
 function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===id)||CLUBS_EXTRA.find(c=>c.id===id); }
 const STARS_9697={
@@ -1214,6 +1220,176 @@ const STARS_D2_9798={
    ["P. Marquet","M",31,68,70],["D. Rabat","M",31,66,70],["H. Malek","M",25,65,68],["P. Mazzuchetti","M",30,65,66],["D. Maresu","M",26,64,67],
    ["P. Revelles","A",29,70,70],["V. Agali","A",19,68,80],["D. McDougald","A",22,63,70],["C. Darrigade","A",22,60,66]],
 };
+/* ---------- Saison de départ 1998-99 (vrais effectifs curés, source Transfermarkt saison_id/1998) ---------- */
+const STARS_9899={
+ BOR:[["U. Ramé","G",26,76,82],["M. Delaroche","G",27,70,73],
+   ["V. Torres Mestre","D",28,75,75],["N. Saveljić","D",28,74,76],["F. Grenet","D",23,74,81],["H. Alicarte","D",24,70,78],["D. Jemmali","D",24,70,77],["R. Ferrier","D",22,67,74],["K. Afanou","D",21,66,78],
+   ["A. Benarbia","M",30,82,82],["J. Micoud","M",25,79,86],["M. Pavon","M",30,74,77],["L. Diabaté","M",24,70,77],["B. Da Rocha","M",21,65,72],["I. Vukomanovic","M",21,65,74],
+   ["L. Laslandes","A",27,81,83],["S. Wiltord","A",24,79,88],["K. Musampa","A",21,74,84],["K. Diawara","A",23,73,82],["P. Feindouno","A",17,60,84]],
+ OM:[["S. Porato","G",25,74,79],["F. Lemasson","G",35,68,73],
+   ["L. Blanc","D",33,85,85],["C. Domoraud","D",27,78,80],["P. Blondeau","D",30,75,77],["W. Gallas","D",21,73,88],["P. Colleter","D",33,72,76],["P. Issa","D",23,71,78],["H. Jambay","D",23,70,75],["E. Canhão","D",21,64,71],
+   ["R. Pirès","M",25,83,91],["É. Roy","M",31,76,79],["J. Gourvennec","M",26,74,77],["P. Luccin","M",19,72,85],["D. Bravo","M",35,72,74],["F. Brando","M",25,69,73],
+   ["F. Ravanelli","A",30,83,84],["F. Maurice","A",24,82,86],["C. Dugarry","A",26,82,86],["T. Camara","A",26,80,84]],
+ LYO:[["G. Coupet","G",26,78,86],["S. Socié","G",22,60,68],
+   ["F. Laville","D",25,77,82],["J. Bąk","D",25,77,82],["H. Fournier","D",31,73,75],["P. Carteron","D",28,72,74],["C. Delmotte","D",29,72,74],["C. Bassila","D",21,67,80],["J. Bréchet","D",19,67,83],["C. Uras","D",21,66,74],
+   ["V. Dhorasoo","M",25,75,84],["P. Violeau","M",28,75,77],["D. Linarès","M",23,68,76],["D. Hellebuyck","M",19,67,78],["S. Malbranque","M",18,64,86],
+   ["C. Cocard","A",31,76,78],["A. Caveglia","A",30,74,75],["M. Grassi","A",30,73,75],["J.-D. Job","A",21,70,80],["F. Kanouté","A",21,70,85]],
+ MON:[["F. Barthez","G",27,88,90],["J.-M. Aubry","G",29,74,76],
+   ["F. Dumas","D",30,78,79],["M. Djetou","D",24,78,85],["P. Léonard","D",24,77,80],["M. Konjic","D",28,75,77],["C. Pignol","D",29,74,76],["D. Diawara","D",23,74,80],["W. Sagnol","D",21,73,86],["P. Christanval","D",20,70,86],["J. Riise","D",18,63,84],
+   ["S. Lamouchi","M",27,79,84],["S. Legwinski","M",25,74,82],["F. Gava","M",28,73,75],["Costinha","M",24,73,84],["S. Diao","M",21,70,82],
+   ["V. Ikpeba","A",25,82,85],["D. Trezeguet","A",21,79,92],["L. Giuly","A",22,78,85],["T. Henry","A",21,77,95]],
+ REN:[["C. Revault","G",26,75,80],["T. Heurtebis","G",23,74,80],
+   ["D. Sommeil","D",24,72,80],["J.-L. Dogon","D",31,72,74],["D. Arribagé","D",27,71,76],["P. Weiser","D",27,71,73],["Y. Rossi","D",25,70,73],["A. Réveillère","D",19,69,85],["P. Brinquin","D",27,69,72],
+   ["C. Bardon","M",22,72,78],["C. Le Roux","M",29,72,74],["L. Huard","M",25,72,75],["Y. Bigné","M",21,69,78],["S. Grégoire","M",30,68,71],["É. Cissé","M",20,66,80],
+   ["S. Nonda","A",21,76,87],["R. Salaün","A",29,70,71],["N. Goussé","A",22,69,78],["F. Fernandes","A",19,66,82],["C. Yapi","A",18,62,74]],
+ LEN:[["G. Warmuz","G",28,81,84],["C. Marichez","G",24,67,71],
+   ["F. Déhu","D",26,80,86],["E. Sikora","D",30,77,78],["C. Rool","D",23,74,80],["V. Ismaël","D",23,74,83],["X. Méride","D",23,72,76],["N. Laspalles","D",27,72,73],["Y. Lachor","D",22,71,78],["C. Magnier","D",29,70,71],
+   ["M.-V. Foé","M",23,82,88],["V. Smicer","M",25,81,86],["M. Debève","M",28,75,77],["A. Nyarko","M",25,74,78],["P. Brunel","M",25,72,75],["S. Dalmat","M",19,68,86],
+   ["T. Vairelles","A",25,76,84],["P. Nouma","A",26,74,78],["D. Moreira","A",21,71,80],["W. Eloi","A",25,70,73]],
+ NAN:[["M. Landreau","G",19,73,86],["E. Loussouarn","G",24,64,69],
+   ["N. Fabbri","D",30,78,78],["É. Decroix","D",29,73,74],["J.-M. Chanelet","D",30,71,74],["N. Savinaud","D",23,70,76],["N. Gillet","D",22,67,80],["Y. Deroff","D",20,66,74],["P. Delhommeau","D",20,64,73],
+   ["A. Sibierski","M",24,72,82],["É. Carrière","M",25,71,84],["S. Piocelle","M",20,67,76],["C. Devineau","M",19,64,73],["M. Leroy","M",20,64,73],["S. Olembé","M",18,62,82],
+   ["F. Da Rocha","A",24,71,80],["O. Monterrubio","A",22,68,80],["P. Suffo","A",20,68,79],["D. Bustos","A",24,65,68],["A. Touré","A",20,64,78]],
+ MTP:[["S. Cassard","G",26,72,78],["P. Flucklinger","G",35,65,67],
+   ["F. Silvestre","D",31,73,75],["M. dos Santos","D",24,71,74],["P. Fugier","D",30,69,71],["P. Baills","D",34,68,72],["N. Dzodic","D",21,67,75],["M. Rodriguez","D",20,64,74],
+   ["F. Sauzée","M",33,78,80],["P. Delaye","M",23,76,80],["J.-C. Rouvière","M",24,72,76],["M. Mahouvé","M",25,70,74],["C. Barbosa","M",22,67,73],["C. Serredszum","M",27,67,70],
+   ["N. Ouédec","A",27,81,83],["X. Gravelaine","A",30,78,80],["I. Bakayoko","A",22,76,85],["L. Robert","A",23,74,86],["D. Thimothée","A",28,71,72],["T. Maoulida","A",19,64,82]],
+ PSG:[["B. Lama","G",35,83,88],["D. Casagrande","G",27,73,78],
+   ["C. Wörns","D",26,80,81],["A. Goma","D",26,76,84],["J. Algérino","D",27,74,77],["F. Llacer","D",27,74,77],["B. Carotti","D",26,71,75],["D. Domi","D",20,68,84],["G. Paisley","D",21,65,73],
+   ["J.-J. Okocha","M",25,84,85],["I. Yanovskiy","M",24,76,79],["É. Rabésandratana","M",26,74,78],["A. Cissé","M",22,73,82],["Y. Lachuer","M",26,72,76],["J. Leroy","M",24,72,83],["P. Ducrocq","M",22,67,80],
+   ["M. Simone","A",29,82,82],["M. Madar","A",30,75,76],["B. Rodriguez","A",26,74,78],["Adaílton","A",21,68,80]],
+ MET:[["L. Létizi","G",25,78,84],["A. Biancarelli","G",28,70,72],
+   ["S. Kastendeuch","D",35,75,77],["J. Strasser","D",24,75,82],["D. Régis","D",30,73,75],["P. Pierre","D",30,71,73],["S. Schemmel","D",23,71,78],["P. Gaillot","D",33,69,72],["G. Toyes","D",25,68,73],
+   ["F. Meyrieu","M",30,76,77],["D. Boffin","M",33,72,74],["F. Rizzetto","M",27,70,72],["L. Asuar","M",22,67,74],["F. Histilloles","M",25,67,71],["G. Proment","M",20,64,76],
+   ["C. Horlaville","A",29,75,76],["V. Lukic","A",28,74,76],["N. Jestrovic","A",22,68,78],["J. Jäger","A",20,62,72],["G. Van Handenhoven","A",20,61,70]],
+ NCY:[["F. Roux","G",25,70,72],["B. Laquait","G",21,62,72],
+   ["M. Méniri","D",21,74,80],["F. Biancalani","D",24,71,75],["V. Hognon","D",24,71,78],["P. Fischer","D",29,70,72],["C. Lécluse","D",26,69,72],["D. Ferreira","D",24,68,71],["M. Rodrigues","D",21,62,70],
+   ["C. Bastien","M",22,71,78],["L. Moracchini","M",30,71,73],["J. Savine","M",22,69,74],["Y. Moustaïd","M",22,65,72],["E. Oliseh","M",18,60,72],
+   ["O. Rambo","A",24,71,72],["P. Correa","A",31,71,74],["S. Wiart","A",25,69,72],["A. Ouadah","A",23,67,74],["S. Koné","A",18,64,76],["J. Li","A",21,64,71]],
+ STR:[["A. Vencel","G",31,74,77],["T. Debès","G",24,65,70],
+   ["J. Suchoparek","D",29,77,78],["G. Okpara","D",26,72,77],["T. Bertin","D",29,71,72],["H. Beye","D",21,68,80],["M. Nielsen","D",27,67,67],["L. Zavagno","D",21,64,76],
+   ["C. Martins","M",29,81,81],["F. Arpinon","M",29,73,74],["O. Echouafni","M",26,72,77],["S. Collet","M",26,69,72],["G. Amzine","M",25,68,71],["B. Hemdani","M",20,68,80],["R. Miceli","M",22,67,74],
+   ["D. Zitelli","A",30,75,76],["L. Rouxel","A",28,74,77],["D. Conteh","A",23,69,74],["P. Pedersen","A",29,69,69],["P. Luyindula","A",19,67,84]],
+ BAS:[["E. Durand","G",33,70,72],["A. Boumnijel","G",32,69,73],
+   ["P. Valéry","D",29,75,77],["S. Pérez","D",25,75,80],["M. Soumah","D",27,72,74],["C. Deguerville","D",28,71,73],["P. Moreau","D",25,70,74],["F. Jurietti","D",23,70,78],["Clayton","D",24,69,72],["F. Mendy","D",25,68,72],["F. Modesto","D",20,65,78],
+   ["P. Świerczewski","M",26,76,80],["S. Odet","M",22,72,78],["D. Mazzoncini","M",27,71,73],["L. Casanova","M",27,68,71],["F. Matingou","M",19,64,74],
+   ["F. Née","A",23,72,80],["P.-Y. André","A",24,72,80],["P. Laurent","A",28,69,72],["P. Alves","A",29,65,65]],
+ AUX:[["F. Cool","G",26,71,79],["R. Le Crom","G",24,70,76],
+   ["F. Danjou","D",24,75,80],["T. Klos","D",25,73,75],["O. Dieng","D",26,71,71],["L. Ciechelski","D",27,71,74],["P. Reyes","D",26,70,70],["É. Assati","D",24,66,70],["F. Jay","D",22,66,74],["J.-S. Jaurès","D",21,66,78],
+   ["C. Jeunechamp","M",23,73,80],["S. Carnot","M",26,69,72],["K. Agboh","M",21,66,74],["B. Nivet","M",21,62,76],["T. Tainio","M",19,61,78],
+   ["B. Diomède","A",24,79,84],["S. Marlet","A",24,74,84],["G. Baticle","A",29,72,73],["T. Deniaud","A",27,69,72],["D. Cissé","A",17,60,89]],
+ LEH:[["S. Hamel","G",23,71,77],["N. Douchez","G",18,58,80],
+   ["M. Ouzounidis","D",30,73,74],["L. Pollet","D",28,73,74],["J. Hénin","D",21,68,74],["N. Weber","D",28,67,70],["J.-A. Boumsong","D",19,64,86],
+   ["L. Nalis","M",27,72,78],["M. Pantic","M",32,72,72],["Y. Soloy","M",28,70,71],["D. Novak","M",29,70,72],["N. Huysman","M",30,70,72],["T. De Neef","M",32,68,71],["M. Mamouni","M",22,67,73],["Y. Mansouri","M",20,63,73],
+   ["C. Pouget","A",26,76,80],["M. Becanovic","A",25,72,75],["M. Sylla","A",21,68,78],["O. Sané","A",23,65,72],["A. Custovic","A",20,63,73]],
+ LOR:[["A. Hugues","G",32,71,74],["S. Le Garrec","G",29,70,73],
+   ["Y. Fischer","D",24,69,73],["G. Kerhuiel","D",29,68,70],["J.-L. Montero","D",27,67,70],["A. Le Lan","D",20,67,78],["L. Druon","D",27,66,70],["I. Triki","D",31,64,64],
+   ["S. Ripoll","M",27,72,76],["S. Pédron","M",27,71,75],["P. Camadini","M",26,69,72],["E. Dugbatey","M",25,67,70],["P. Le Bert","M",28,67,70],["C. Le Grix","M",25,66,71],["N. Cloarec","M",21,64,70],["P. Bédrossian","M",24,63,66],
+   ["P. Loko","A",28,78,80],["A. Bouafia","A",34,65,70],["O. Soumah","A",25,63,65],["Emerson","A",25,63,65]],
+ SOC:[["V. Fernandez","G",23,71,74],["F. Petereyns","G",29,68,68],
+   ["J.-G. Wallemme","D",31,78,80],["M. Flachez","D",26,71,76],["E. Manac'h","D",27,68,71],["P. Raschke","D",31,68,71],["B. Maraval","D",27,67,70],["Y. Bouger","D",28,67,70],["O. Daf","D",21,64,74],["M. Ravaux","D",19,59,70],
+   ["D. Lang","M",28,72,73],["S. Dedebant","M",28,70,72],["O. Baudry","M",25,70,73],["A. Chedli","M",22,67,78],["C. Meriem","M",19,63,80],
+   ["B. Bouger","A",28,70,71],["S. Dallet","A",25,68,72],["D. Ljuboja","A",20,65,80],["P.-A. Frau","A",18,63,80],["E.-H. Diouf","A",17,63,88]],
+ TOU:[["T. Richert","G",24,73,80],["A. Gouaméné","G",32,71,72],
+   ["J. Cobos","D",30,74,76],["L. Diatta","D",23,72,80],["L. Guyot","D",29,72,74],["J. Galdames","D",28,70,72],["D. Santini","D",30,70,72],["N. Paviot","D",23,69,73],["Y. Rott","D",24,68,72],["A. Sankharé","D",20,62,72],
+   ["L. Batlles","M",23,70,80],["T. Moreau","M",31,68,71],["D.-O. Sié","M",28,66,66],["A. Préget","M",26,65,69],["F. Jau","M",20,63,71],
+   ["S. Ipoua","A",25,74,76],["A. Maharzi","A",28,70,72],["V. Petrovic","A",26,69,69],["R. Malm","A",25,69,73],["C. Lauwers","A",26,63,63]],
+ GUI:[["R. Thomas","G",24,69,74],["S. Trévisan","G",25,69,72],
+   ["G. Anselmini","D",28,71,73],["M. Jozwiak","D",31,70,73],["P.-E. Bourdeau","D",23,68,73],["N. Baudoin","D",28,68,71],["J. Foulon","D",27,67,70],
+   ["A. Tasfaout","M",29,74,76],["C.-E. Coridon","M",25,73,78],["S. Deplace","M",26,70,74],["Y. Baret","M",26,69,72],["C. Michel","M",27,69,71],["F. Patouillard","M",24,68,72],["P. Celdran","M",25,68,72],["J. Tamazout","M",26,65,65],["S. Prat","M",24,63,66],["L. Hervé","M",22,63,69],
+   ["J.-P. Papin","A",35,76,78],["F. Fiorèse","A",23,69,82],["J. Toutain","A",22,60,66]],
+ CHA:[["O. Pédémas","G",30,69,73],["F. Gueguen","G",28,67,71],
+   ["F. Coly","D",25,69,78],["F. Moulin","D",25,68,70],["L. Morestin","D",22,67,72],["L. Clément","D",22,66,71],["S. Bah","D",24,66,70],["K. El-Khebir","D",24,63,66],
+   ["C. Daury","M",29,70,72],["R. Guerreiro","M",30,70,72],["P. Chavrondier","M",27,67,71],["M. Verschuère","M",26,66,70],["F. Garin","M",23,65,70],["J. Brocard","M",24,64,69],["A. Behi","M",20,62,70],
+   ["J. Mayélé","A",22,71,77],["L. Compan","A",21,68,78],["L. Dufresne","A",26,67,71],["F. Malouda","A",18,64,86],["F. Fouret","A",24,63,66]]
+};
+
+const STARS_D2_9899={
+ STE:[["J. Alonzo","G",26,70,75],["J. Janot","G",21,64,80],
+   ["L. Mettomo","D",21,71,79],["L. Potillon","D",24,71,75],["C. Fichaux","D",29,71,73],["R. Billong","D",28,70,72],["P. Guillou","D",28,67,70],["G. Leclerc","D",31,65,69],
+   ["K. Ferhaoui","M",33,69,73],["P. Sarr","M",21,67,78],["F. Boudarène","M",20,67,78],["J. Sablé","M",18,66,79],["M. Zanotti","M",23,66,71],
+   ["P. Revelles","A",30,69,70],["B. Fayolle","A",23,68,73],["A. Ponsard","A",23,68,73],["N. Subiat","A",32,67,67],["C. Robert","A",34,67,71]],
+ SED:[["N. Sachy","G",31,73,73],
+   ["E. Oliveira","D",26,72,72],["C. Borbiconi","D",25,71,74],["L. Satorra","D",29,67,70],["C. Elzéard","D",23,67,71],["H. Dangbeto","D",29,66,70],
+   ["O. Quint","M",27,74,74],["P. Deblock","M",25,71,74],["E. Crosnier","M",26,69,71],["M. Adjaoud","M",27,68,68],["B. Pabois","M",29,67,67],["S. Laquait","M",25,67,71],["F. Rodrigues","M",29,67,70],["J.-P. Faure","M",32,66,70],
+   ["P. N'Diefi","A",23,78,82],["C. Mionnet","A",24,72,75],["A. Di Rocco","A",28,69,73],["A. Lecomte","A",18,62,75]],
+ TRO:[["L. Weber","G",26,72,77],["N. Dehon","G",30,66,70],
+   ["R. Jezierski","D",27,67,70],["D. Hamed","D",24,67,71],["É. Thomas","D",27,66,70],["M. Bradja","D",29,66,69],["Y. Lalisse","D",26,66,70],
+   ["E. Rival","M",27,69,71],["O. Fugen","M",28,69,70],["S. Morisot","M",20,68,78],["C.-A. Rivenet","M",26,68,72],["F. Adam","M",25,67,72],["J. Monier","M",27,66,70],["J.-D. Périatambée","M",23,66,71],
+   ["S. Lobé","A",31,70,71],["S. Djukic","A",32,68,70],["L. Tomczyk","A",27,66,69],["J.-N. Cabezas","A",32,66,70]],
+ LIL:[["G. Wimbée","G",27,73,76],["B. Clément","G",29,67,70],
+   ["P. Cygan","D",24,74,80],["F. Dindeleux","D",24,74,78],["F. Leclercq","D",26,71,72],["M. Camara","D",23,67,72],["C. Tourenne","D",26,67,70],["A. Koot","D",35,67,71],["G. Sanz","D",21,65,72],
+   ["R. Hitoto","M",29,70,72],["P. Collot","M",31,70,73],["C. Landrin","M",21,70,78],["B. Cheyrou","M",20,67,82],["B. Sénoussi","M",32,67,71],
+   ["L. Peyrelade","A",28,71,73],["J.-L. Valois","A",25,71,76],["D. Boutoille","A",23,70,76],["O. Pickeu","A",28,70,72]],
+ CAE:[["F. Catherine","G",25,64,70],["J. Hiaumet","G",19,56,68],
+   ["M. Glonek","D",30,71,73],["J. Hébert","D",26,69,72],["G. Tafforeau","D",22,69,79],["J.-P. Caillet","D",21,68,75],["R. Lecour","D",25,67,71],["O. Bellisi","D",23,66,71],["B. Mendy","D",17,58,82],
+   ["S. Tanguy","M",23,69,75],["J. Rothen","M",20,68,84],["J. Gallon","M",20,66,76],["R. Brouard","M",31,66,69],["A. Deroin","M",19,65,76],
+   ["W. Loko","A",26,71,73],["S. Boutal","A",29,68,71],["S. Lemarchand","A",27,67,70],["T. Kharif","A",22,64,70]],
+ GUE:[["P. Montanier","G",34,67,72],["R. Trivino","G",21,58,65],
+   ["F. Safanjon","D",26,67,70],["P. Correia","D",27,67,70],["E. Deloumeaux","D",25,66,72],["T. Saxemard","D",31,66,70],["J. Acédo","D",34,65,70],
+   ["F. Weber","M",25,69,70],["S. Poinçon","M",25,69,73],["Y. Chandioux","M",23,68,73],["K. Kerkar","M",21,66,74],["S. Roda","M",25,65,67],["A. Bettagno","M",30,64,67],["G. G'Badié","M",21,62,70],
+   ["A. Traoré","A",33,71,73],["N. Esceth-N'Zi","A",21,69,76],["K. Cherrad","A",24,68,71],["S. Flauto","A",21,66,76]],
+ AJA:[["D. Klein","G",25,70,72],["T. Maqua","G",21,62,70],
+   ["P. Burle","D",25,69,71],["P. Maroselli","D",32,68,71],["E. Colling","D",27,67,70],["O. Féron","D",24,67,70],["A. Bibi","D",25,66,68],["S. Opinel","D",21,62,70],
+   ["C. Granon","M",26,71,72],["O. De Luca","M",25,66,68],["N. Bonnal","M",22,65,70],["O. Pantaloni","M",32,65,65],["Y. Toursel","M",21,64,71],["L. Courtois","M",20,63,75],
+   ["D. Faderne","A",28,72,72],["D. Prso","A",24,71,82],["V. Petit","A",24,70,74],["J.-R. Testa","A",34,62,62]],
+ LAV:[["C. Gardié","G",34,64,70],["C. Potel","G",25,60,64],
+   ["S. Moreau","D",27,72,74],["C. Ferron","D",28,68,71],["A. Ben Askar","D",22,68,73],["S. Pichot","D",22,67,76],["J.-M. Stephanopoli","D",26,66,69],["M. Buzaré","D",22,66,71],["D. Traoré","D",18,58,78],
+   ["U. Le Pen","M",24,73,77],["R. Calenda","M",26,68,68],["J.-J. Houzé","M",27,66,69],["C. Cazarelly","M",23,65,70],["A. El Khanchaf","M",21,64,72],
+   ["M. Chaouch","A",32,70,74],["H. Diallo","A",22,68,73],["K. Mouzaoui","A",23,64,68],["E. Sitruk","A",20,62,72]],
+ NIO:[["G. Malicki","G",25,71,76],["P. Landais","G",19,58,69],
+   ["B. Piton","D",28,69,72],["B. Beaumet","D",31,67,71],["H. Lhommedet","D",25,67,71],["P. Braud","D",30,66,68],["D. Bridonneau","D",23,64,69],
+   ["P. Gomes","M",28,70,72],["D. Le Frapper","M",27,69,72],["L. Debrosse","M",29,68,68],["F. Azzopardi","M",28,68,71],["H. Schreiner","M",24,68,73],["A. Ferreira","M",22,66,72],
+   ["P. Chanlot","A",31,68,72],["D. Cousin","A",21,68,78],["J. Bossis","A",33,66,70],["M. de Vries","A",23,63,72],["O. Bangoura","A",19,60,70]],
+ CAN:[["S. Chabbert","G",20,64,74],["Y. Quesnel","G",25,64,66],
+   ["J.-L. Vannuchi","D",28,70,72],["M. Blake","D",31,67,67],["B. Baldé","D",23,67,78],["L. Jeannel","D",23,67,72],["P. Barul","D",21,67,74],["G. Bagnon","D",20,62,72],["J. Escudé","D",19,62,82],
+   ["D. Belmadi","M",22,73,80],["J.-M. Capoue","M",26,70,73],["M. Marsiglia","M",23,68,74],["A. Boutobba","M",21,68,74],["S. Chabaud","M",21,66,72],["K. Assignon","M",24,66,69],
+   ["M. Libbra","A",26,71,76],["W. Gohel","A",30,70,72],["C. Eboki-Poh","A",19,58,69]],
+ NIM:[["E. Allibert","G",22,66,72],["S. Karwat","G",33,64,68],
+   ["L. Strzelczak","D",27,70,72],["J. Ecker","D",25,68,76],["A. Vosahlo","D",23,67,72],["J. Charpenet","D",22,66,71],["J.-F. Soucasse","D",26,65,69],
+   ["D. Darmon","M",24,69,72],["D. Friio","M",25,69,74],["R. Loret","M",26,68,72],["O. Belbey","M",25,67,70],["C. Zugna","M",22,66,72],["A. Masudi","M",20,60,70],
+   ["É. Mendy","A",29,70,72],["J. Lempereur","A",25,68,72],["L. Sakho","A",21,65,74],["N. Marx","A",24,65,70],["E. Sabin","A",23,64,69]],
+ NIC:[["B. Valencony","G",30,71,73],["D. Grégorini","G",19,63,77],
+   ["C. Carrez","D",24,72,74],["B. Tchato","D",23,68,74],["B. Calégari","D",23,68,72],["A. Gauvin","D",25,68,72],["F. Tatarian","D",28,67,70],["D. Angan","D",24,66,72],["M. Rol","D",22,65,72],
+   ["F. Gioria","M",29,71,74],["D. Aulanier","M",25,68,71],["M. Nogueira","M",30,67,71],["S. Roche","M",28,64,64],["P. Rodríguez","M",21,60,68],
+   ["A. Mizrahi","A",27,68,68],["L. Prat","A",27,67,70],["D. Andréani","A",22,64,70],["A. Mané","A",20,63,72]],
+ WAS:[["J.-M. Sibille","G",30,65,68],["E. Bourgois","G",26,62,67],
+   ["S. Dailly","D",22,77,82],["P. Scrimenti","D",27,66,69],["T. Cygan","D",23,66,71],["G. Benon","D",23,65,71],["J. Keller","D",33,65,69],["P. Leroy","D",28,65,68],
+   ["D. Abed","M",29,70,71],["L. Bonadei","M",29,68,71],["F. Cadiou","M",29,67,69],["S. Bizasène","M",28,66,69],["J. Antunes","M",30,65,68],["R. Debaets","M",31,65,67],
+   ["C. Oudjani","A",34,68,72],["X. Dablemont","A",23,67,72],["J.-J. Allais","A",29,66,68],["E. Clément-Demange","A",28,65,67]],
+ AMI:[["P. Poil","G",30,68,72],["J. Lachuer","G",22,62,68],
+   ["J. Erceau","D",25,67,71],["B. Maurice","D",27,67,71],["X. Collin","D",24,66,72],["W. Rosset","D",29,65,67],["A. Lebrun","D",25,62,64],
+   ["D. François","M",28,71,72],["L. Jumel","M",29,68,71],["C. Pinho","M",29,68,70],["S. Meilley","M",31,65,67],["O. Ewolo","M",20,65,75],["J. Frétard","M",23,64,70],["E. Duchemin","M",19,64,76],
+   ["E. Desgeorges","A",28,68,70],["S. Lecocq","A",22,68,74],["A. Petitjean","A",24,67,73],["X. Chalier","A",24,66,69]],
+ LMN:[["W. Guéret","G",25,68,73],["P. Regnault","G",24,67,71],
+   ["D. Fanzel","D",32,68,70],["D. Arnaud","D",25,66,70],["W. Bolivard","D",23,66,71],["C. Penaud","D",35,66,71],["Y. Poulard","D",22,60,66],
+   ["M. Haddadou","M",24,69,71],["C. Revillet","M",24,68,71],["É. Darbelet","M",25,67,71],["R. Beunardeau","M",32,65,68],["J.-L. Escayol","M",26,65,68],["J. Drouin","M",21,62,70],["D. Camara","M",22,62,68],
+   ["R. Ray","A",30,70,72],["D. Bakari","A",24,69,77],["B. Chagnaud","A",26,67,71],["D. Drogba","A",20,57,90]],
+ VAL:[["C. Eggimann","G",22,62,68],["F. Bruneau","G",29,62,62],
+   ["L. Sergi","D",27,70,72],["J. Monnier","D",24,69,71],["N. Forge","D",27,68,71],["D. Valour","D",33,65,70],["B. Fabra","D",20,64,72],["C. Ramond","D",18,57,70],
+   ["C. Chabert","M",25,67,72],["L. Lambert","M",32,67,71],["M. Stéphan","M",23,64,70],["O. Sorlin","M",19,62,78],["F. Machado","M",23,62,67],
+   ["Y. Mangione","A",34,67,72],["M. Maufroy","A",28,66,70],["L. Delamontagne","A",33,62,65],["M. Wangu","A",22,62,68],["E. Kroupi","A",19,56,67]],
+ RST:[["J.-P. Forêt","G",30,70,73],["S. Lucas","G",20,62,72],
+   ["F. Darras","D",32,67,71],["D. Guion","D",31,66,70],["S. Diawara","D",20,66,74],["G. Bouisset","D",25,64,66],["A. Méïté","D",18,61,80],["C. Oponga","D",20,60,68],
+   ["J.-Y. De Blasiis","M",25,71,75],["T. Agasson","M",25,67,71],["S. Crucet","M",28,66,68],["F. Valeri","M",24,66,70],["K. Fellahi","M",24,66,70],["J. André","M",26,65,68],
+   ["F. Bonora","A",31,69,70],["G. Mauricio","A",24,68,73],["S. Michel","A",27,68,72],["H. Saci","A",21,58,66]],
+ BEA:[["X. Poitrinal","G",28,68,72],["W. Levet","G",23,60,65],
+   ["C. Raymond","D",29,70,71],["F. Haise","D",27,68,71],["O. Frapolli","D",27,67,70],["C. Courtin","D",27,67,70],["Y. Bouzin","D",24,66,69],
+   ["L. David","M",27,68,71],["J.-P. Delpech","M",31,68,72],["M. Engel","M",28,68,71],["H. Hagard","M",27,66,70],["D. Ferrère","M",24,62,65],["D. De Freitas","M",19,60,71],
+   ["É. Assadourian","A",32,70,73],["O. Vandevoorde","A",29,68,71],["S. Demoulin","A",25,67,71],["B. Roux","A",35,65,67],["E. Groeleken","A",32,59,59]],
+ LOU:[["A. Margueritte","G",25,71,75],["C. De Cicco","G",20,60,70],
+   ["E. Dufournet","D",29,69,69],["S. Allegro","D",20,64,74],["A. Ba","D",22,64,72],["V. Dyduch","D",24,64,68],["C. Chagot","D",22,64,70],["S. Poncet","D",21,58,66],
+   ["J. Ducloux","M",24,70,74],["N. Mermet-Maréchal","M",28,68,71],["M. Piutti","M",27,66,69],["J. Bayle","M",25,65,69],["F. Chow-Yuen","M",25,64,66],["J. Converso","M",23,62,67],["G. Da Silva","M",20,58,68],
+   ["M. Bradaïa","A",27,68,72],["J.-L. Lima","A",31,66,70],["L. Chavériat","A",21,65,72]],
+ MAR:[["J.-D. Padovani","G",18,62,74],
+   ["O. Bochu","D",27,68,71],["É. Chelle","D",21,66,74],["F. Artès","D",20,66,76],["J.-M. Edouard","D",25,66,68],["J.-M. Moulin","D",25,66,70],["N. Pamarot","D",19,65,80],["A. Kehiha","D",21,60,68],["C. Borios","D",17,58,72],
+   ["L. Adjali","M",26,71,73],["H. Malek","M",26,65,68],["M. Aït-Atmane","M",21,64,72],["K. Malagouen","M",22,62,68],["A. Kara","M",22,60,66],["F. Bagarri","M",22,60,66],["M. Kaprielian","M",18,56,69],
+   ["J. Remy","A",26,64,64],["A. Boinahéri","A",22,63,70]]
+};
+
+const D1_9899=["BOR","OM","LYO","MON","REN","LEN","NAN","MTP","PSG","MET","NCY","STR","BAS","AUX","LEH","LOR","SOC","TOU","GUI","CHA"];
+const D2_9899=["STE","SED","TRO","LIL","CAE","GUE","AJA","LAV","NIO","CAN","NIM","NIC","WAS","AMI","LMN","VAL","RST","BEA","LOU","MAR"];
+
 const D1_9798=["LEN","MET","MON","OM","BOR","LYO","BAS","AUX","PSG","MTP","TOU","STR","REN","NAN","LEH","CHA","CAN","GUI","CAE","NCY"];
 const D2_9798=["NIM","BEA","WAS","MUL","VAL","AMI","GUE","MAR","LMN","NIO","NIC","LOR","RST","TRO","LIL","LAV","SOC","LOU","STE","TON"];
 const SAISONS={
@@ -1223,6 +1399,8 @@ const SAISONS={
    sous:"L'OM est de retour dans l'élite ; Saint-Étienne, Gueugnon et Martigues découvrent la Division 2. Henry et Trezeguet percent à Monaco." },
  "1997-98":{ an:1997, titre:"1997-98", d1:D1_9798, d2:D2_9798, starsD1:STARS_9798, starsD2:STARS_D2_9798, euroC1:["MON","PSG"], euroC2:["NIC"], euroC3:["NAN","BOR","MET","STR","AUX","LYO","BAS"],
    sous:"L'année du Mondial à domicile. Blanc et Ravanelli débarquent à l'OM ; Nice, vainqueur de la Coupe, joue la Coupe des Coupes depuis la D2. La D1 passe à 18 : Caen et Nancy sont repêchés pour tenir la vingtaine." },
+ "1998-99":{ an:1998, titre:"1998-99", d1:D1_9899, d2:D2_9899, starsD1:STARS_9899, starsD2:STARS_D2_9899, euroC1:["LEN","MET"], euroC2:["PSG"], euroC3:["MON","OM","BOR","BAS","AUX","LYO"],
+   sous:"L'après-Mondial : les champions du monde sont des dieux. Bordeaux et Marseille se tirent la bourre jusqu'au dernier jour, Lens découvre la Ligue des Champions, Okocha débarque au PSG pour un pont d'or. En D2, Saint-Étienne veut sortir du purgatoire — et un certain Didier Drogba, vingt ans, cire le banc du Mans." },
 };
 const SAISON_DEFAUT="1995-96";
 let SAISON_ACCUEIL=SAISON_DEFAUT; // saison sélectionnée à l'écran d'accueil

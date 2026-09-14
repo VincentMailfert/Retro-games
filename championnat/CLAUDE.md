@@ -144,8 +144,37 @@ toujours « raconter quelque chose ».
   aurait joué sur deux terrains. `nouvellePartie` **retire désormais des effectifs européens tout nom présent dans les
   effectifs français de la saison choisie** (avant `construitDivision`, qui recomplète) — sans effet en 95-96 (aucune
   collision), correctif rétroactif pour 96/97.
-  Pour ajouter 98/99 : même méthode avec `saison_id/1998`, entrée `"1998-99"` dans `SAISONS`, harnais calqué sur
-  `harness9798.cjs`.
+  **1998-99 (v0.93)** : `STARS_9899`/`STARS_D2_9899`, `D1_9899`/`D2_9899`, `an:1998` (aucun tournoi à la 1re intersaison —
+  l'Euro 2000 tombe à la 2e). **La vraie D1 98/99 n'avait que 18 clubs et la D2 exactement 20** : le compte ne tombait plus
+  juste comme en 97/98, d'où un **double repêchage, dans les deux sens** — **Guingamp (35 pts) et Châteauroux (31)**,
+  meilleurs relégués de D1 97/98, montent en D1 (qui passe à 20) ; la D2 retombant alors à 18, **Louhans-Cuiseaux (49 pts)
+  et Martigues (45)**, meilleurs relégués de D2 97/98, y sont repêchés à leur tour. **Toulon, pourtant 20e et donc
+  prioritaire, a été écarté** : Transfermarkt ne lui connaît qu'UN joueur en 98/99 (le club s'effondrait financièrement),
+  son effectif aurait été procédural à 95 %. Deux clubs neufs dans `CLUBS_EXTRA` : **Sedan** (`SED`, Émile-Albeau, vert et
+  rouge) et **Ajaccio** (`AJA`, François-Coty, champion du National), avec blason et malédiction ; Ajaccio apporte au
+  passage **le derby corse** (`RIVAL` + `NOMS_RIVALITES`, dormant tant que les deux Corses ne sont pas dans la même
+  division). Sièges européens réels : **Lens (champion) et Metz en C1**, **PSG en C2** (vainqueur de la Coupe 98),
+  Monaco/OM/Bordeaux **plus les trois vainqueurs de l'Intertoto 98 — Bastia, Auxerre, Lyon** — en C3.
+  **Méthode de relevé** : identique à 97/98 (deux pages TM par club), mais **l'extraction passe par Firecrawl en proxy
+  *stealth*** — WebFetch est bloqué par Transfermarkt. **Découverte qui simplifie tout** : l'âge affiché par TM sur une page
+  de saison passée est celui **au 30 juin**, donc décalé d'un an pour les joueurs nés au second semestre ; mais comme
+  `âge_jeu = 1998 − naissance`, **un joueur déjà curé en 97/98 se contente de `âge + 1`** (vérifié joueur par joueur sur
+  Bordeaux). **Notes** : les 600+ noms déjà curés repartent de leur note 97/98 **vieillie** (+2 jusqu'à 21 ans, +1 jusqu'à
+  24, −1 de 30 à 32, −2 au-delà ; plafond remonté à **88** pour Barthez, champion du monde) ; les ~90 noms neufs reçoivent
+  une **note de base calculée** (médiane D1 70 / D2 67, modulée par le rang réel du club en 98/99 et par le rang de temps de
+  jeu dans l'effectif), puis une **table d'ajustements à la main** pour tout ce qui se reconnaît (Okocha 84, Wörns 80,
+  Nonda 76…). **Sélection** : joueurs ayant joué, triés par minutes (20 en D1, 18 en D2, minimums 2-5-5-4), 36 ans et plus
+  écartés — Cascarino et Oceano sautent ainsi, alors qu'ils étaient titulaires.
+  **PIÈGE DU TRI PAR MINUTES, à ne pas rouvrir** : il écarte les pépites qui n'ont pas encore joué — **Thierry Henry
+  (993 min, 5e attaquant de Monaco) passait à la trappe**. D'où une liste de **forçage** des jeunes notables (Henry, Riise,
+  Drogba, Malouda, D. Cissé, Diouf, Feindouno, Méité, Frau, Djimi Traoré…), à rallonger si l'on ajoute une saison.
+  **Second piège** : le format « X. Surname » se déduit du PREMIER mot, donc un prénom composé sans trait d'union donne un
+  nom faux (« J. Arne Riise ») — passer en revue tous les noms à trois mots avant livraison ; les particules Le/De/Da/Van,
+  elles, sont correctement gardées dans le patronyme. Un joueur listé dans deux clubs (26 cas) est rangé **là où il a le
+  plus joué** (arbitrage plus sûr que « club du coup d'envoi », la colonne « Membre depuis » de TM étant inutilisable).
+  Validation dédiée : **`harness9899.cjs`**.
+  Pour ajouter 99/00 : même méthode avec `saison_id/1999`, entrée `"1999-00"` dans `SAISONS`, harnais calqué sur
+  `harness9899.cjs`.
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
@@ -796,7 +825,8 @@ toujours « raconter quelque chose ».
 4. Toujours tester une **carrière multi-saisons** (au moins 6 saisons) pour les régressions.
 5. Harnais spécialisés à repasser quand on touche à leur domaine (tous doivent finir « TOUT EST VERT ») :
    `harness9697.cjs` (saison de départ 96/97), `harness9798.cjs` (saison de départ 97/98 : repêchés, Nice en C2,
-   réconciliation France ↔ Europe), `harness-euro.cjs` (les trois coupes d'Europe),
+   réconciliation France ↔ Europe), `harness9899.cjs` (saison de départ 98/99 : double repêchage, clubs neufs
+   Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation).
 
 ## Workflow de livraison
