@@ -265,7 +265,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.94"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.95"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -843,7 +843,10 @@ function valeur(j){ // valeur de marché en francs — indexée sur la note VISI
   const ageF = (j.age>=23 && j.age<=28) ? 1.15 : (j.age<21 ? 0.8 : (j.age>30 ? 0.6 : 1));
   return Math.round(Math.pow(j.note/100,3.1) * 95e6 * ageF / 1e5)*1e5;
 }
-function salaire(j){ return Math.round(j.note*j.note*10); } // FF / semaine — la masse salariale est la principale dépense, et grimpe vite avec la qualité (un crack coûte cher)
+// FF / semaine — la masse salariale est la principale dépense, et grimpe vite avec la qualité (un crack coûte cher).
+// `salMult` (défaut 1) majore le salaire d'un joueur en particulier : c'est le prix d'un transfert à zéro franc
+// (le joueur libre ne coûte rien au vendeur, donc il se rattrape sur la fiche de paie — grand classique).
+function salaire(j){ return Math.round(j.note*j.note*10*(j.salMult||1)); }
 function fraisJournee(c){ return Math.round((c?c.cap:0)*18); } // FF / journée — entretien du stade + personnel : croît avec la taille du club et contrebalance la manne de la billetterie
 // Politique tarifaire de la billetterie : recette à l'unité contre ferveur populaire. Brader remplit le stade,
 // soigne l'image et le moral ; faire payer cher gonfle la caisse mais vide les gradins et écorne la réputation.
@@ -1448,8 +1451,10 @@ function nouvellePartie(clubId, saisonKey){
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
     centre:1, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
+    flash:null, intro:null,
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
+  G.intro=S.an; // mot d'ouverture de la toute première saison de la carrière
   G.stade=inferStade(clubs.find(c=>c.id===clubId)); G.chantier=null; // état du stade déduit de sa taille de départ
   G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique : postes vacants au départ
   G.rapport=genRapport();
@@ -2678,6 +2683,13 @@ function finirJournee(delta){
       }
     }
   }
+  // LE COUP À FAIRE : l'occasion de la semaine ne vaut qu'une journée. Passé ce délai, un club du
+  // championnat se sert — et le debrief vous le met sous le nez.
+  if(G.flash && G.flash.jour<G.journee){ const f=G.flash; G.flash=null; flashRafle(f); }
+  if(!G.flash && G.journee>=1 && G.journee<37 && Math.random()<FLASH_PROB){
+    const f=genFlash();
+    if(f){ const n=flashNotif(f); if(n){ G.flash=f; notif(n); } }
+  }
   G.rapport=genRapport(); // nouvelles offres du recruteur chaque semaine
   if(fenetreOuverte() && Math.random()<0.6) transfertIA(); // le marché vit : les clubs IA se renforcent
   if(G.journee===19){ G.offresSponsor=genSponsors(1.35); G.sponsorSwitch=true;
@@ -3610,6 +3622,8 @@ function transfertIA(){
   j.club=ach.id; j.titu=false; j.avendre=false; ach.joueurs.push(j);
   ach.budget-=prix; c.budget=(c.budget||0)+Math.round(prix*0.9);
   G.news.unshift("MERCATO : "+ach.nom+" recrute "+j.nom+" ("+c.nom+") pour "+(prix/1e6).toFixed(1)+" MF.");
+  // le marché des autres se faisait jusqu'ici en silence : on l'annonce au debrief de fin de journée
+  notif("🔁 Mercato : "+ach.nom+" s'offre "+j.nom+" ("+j.pos+", note "+j.note+") à "+c.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
   if(Math.random()<0.4) G.presse.unshift("« "+ach.nom+" frappe un grand coup : "+j.nom+" débarque de "+c.nom+". »");
 }
 
@@ -3682,6 +3696,8 @@ const VIVIER={
    ["M. Desailly","D",27,89,89,"Milan AC"],
    ["D. Deschamps","M",27,86,86,"Juventus Turin"],
  ]},
+ // Bac d'accueil des jokers que le temps a rattrapés : personne n'y naît, on y arrive en vieillissant (voir profilJoker).
+ "Vétéran en fin de carrière":{m:0.55, l:[]},
 };
 /* Réserve de vrais noms pour regarnir le vivier au fil des saisons (objectif ≈90% de vrais joueurs).
    [nom, poste, âge, note, pot, club/lieu, profil] — figures marquantes des années 90. */
@@ -3749,27 +3765,274 @@ const JOKERS_RESERVE=[
  ["D. Beckham","M",20,72,90,"Manchester Utd","Jeune espoir étranger"],
  ["P. Scholes","M",21,74,88,"Manchester Utd","Jeune espoir étranger"],
  ["G. Neville","D",21,73,84,"Manchester Utd","Jeune espoir étranger"],
+ // — Deuxième vague (v0.95) : le vivier manquait de profondeur, on retombait sur les mêmes têtes chaque saison.
+ // Serie A
+ ["R. Mancini","A",31,84,84,"Sampdoria","International confirmé"],
+ ["G. Signori","A",27,84,84,"Lazio Rome","International confirmé"],
+ ["D. Albertini","M",24,82,86,"Milan AC","International confirmé"],
+ ["A. Costacurta","D",29,83,83,"Milan AC","International confirmé"],
+ ["C. Panucci","D",22,78,86,"Milan AC","Jeune espoir étranger"],
+ ["G. Lentini","A",26,78,80,"Milan AC","En froid avec son club — décote"],
+ ["A. Conte","M",26,80,82,"Juventus","International confirmé"],
+ ["G. Ferrara","D",28,80,80,"Juventus","International confirmé"],
+ ["V. Jugović","M",26,80,82,"Juventus","International confirmé"],
+ ["A. Di Livio","M",29,77,77,"Juventus","International confirmé"],
+ ["J. Kohler","D",30,82,82,"Juventus","International confirmé"],
+ ["Rui Costa","M",23,83,89,"Fiorentina","Jeune espoir étranger"],
+ ["F. Toldo","G",24,78,86,"Fiorentina","Jeune espoir étranger"],
+ ["F. Couto","D",26,81,83,"Parme","International confirmé"],
+ ["D. Baggio","M",24,80,84,"Parme","International confirmé"],
+ ["E. Chiesa","A",25,80,83,"Sampdoria","International confirmé"],
+ ["C. Lombardo","M",29,78,78,"Sampdoria","International confirmé"],
+ ["G. Pagliuca","G",29,82,82,"Inter Milan","International confirmé"],
+ ["G. Casiraghi","A",26,79,80,"Lazio Rome","International confirmé"],
+ ["R. Ayala","D",22,77,87,"Naples","Jeune espoir étranger"],
+ ["P. Futre","A",29,80,80,"Milan AC","En froid avec son club — décote"],
+ ["H. Nakata","M",18,68,86,"Bellmare Hiratsuka","Jeune espoir étranger"],
+ // Liga
+ ["F. Hierro","D",27,85,86,"Real Madrid","International confirmé"],
+ ["J. Alkorta","D",27,80,80,"Real Madrid","International confirmé"],
+ ["Raúl","A",18,74,93,"Real Madrid","Jeune espoir étranger"],
+ ["S. Cañizares","G",26,78,84,"Real Madrid","International confirmé"],
+ ["L. Enrique","M",25,81,85,"Real Madrid","International confirmé"],
+ ["A. Zubizarreta","G",34,80,80,"Valence CF","International confirmé"],
+ ["G. Amor","M",28,79,79,"FC Barcelone","International confirmé"],
+ ["M. Nadal","D",29,80,80,"FC Barcelone","International confirmé"],
+ ["A. Ferrer","D",25,79,81,"FC Barcelone","International confirmé"],
+ ["Sergi","D",24,79,83,"FC Barcelone","International confirmé"],
+ ["Abelardo","D",25,80,82,"FC Barcelone","International confirmé"],
+ ["I. de la Peña","M",19,72,88,"FC Barcelone","Jeune espoir étranger"],
+ ["Kiko","A",23,79,84,"Atlético Madrid","Jeune espoir étranger"],
+ ["J. Caminero","M",28,80,80,"Atlético Madrid","International confirmé"],
+ ["J. Guerrero","M",21,78,88,"Athletic Bilbao","Jeune espoir étranger"],
+ ["V. Karpin","M",26,79,83,"Real Sociedad","International confirmé"],
+ ["Bebeto","A",31,84,84,"Deportivo La Corogne","International confirmé"],
+ ["Mauro Silva","M",27,80,80,"Deportivo La Corogne","International confirmé"],
+ ["Fran","M",26,79,80,"Deportivo La Corogne","International confirmé"],
+ // Premier League
+ ["T. Adams","D",29,83,83,"Arsenal","International confirmé"],
+ ["D. Platt","M",29,82,82,"Arsenal","International confirmé"],
+ ["P. Merson","M",27,79,80,"Arsenal","En froid avec son club — décote"],
+ ["R. Keane","M",24,83,88,"Manchester Utd","International confirmé"],
+ ["G. Pallister","D",30,81,81,"Manchester Utd","International confirmé"],
+ ["N. Butt","M",20,72,84,"Manchester Utd","Jeune espoir étranger"],
+ ["R. Gullit","M",33,84,84,"Chelsea","International confirmé"],
+ ["M. Hughes","A",32,81,81,"Chelsea","International confirmé"],
+ ["D. Wise","M",29,77,77,"Chelsea","International confirmé"],
+ ["D. Petrescu","D",28,79,81,"Chelsea","International confirmé"],
+ ["J. Barnes","M",32,80,80,"Liverpool","International confirmé"],
+ ["S. Redknapp","M",22,77,84,"Liverpool","Jeune espoir étranger"],
+ ["S. Collymore","A",24,80,85,"Liverpool","En froid avec son club — décote"],
+ ["G. Le Saux","D",27,79,81,"Blackburn Rovers","International confirmé"],
+ ["C. Sutton","A",22,79,84,"Blackburn Rovers","Jeune espoir étranger"],
+ ["L. Ferdinand","A",29,82,82,"Newcastle United","International confirmé"],
+ ["P. Beardsley","M",34,78,78,"Newcastle United","International confirmé"],
+ ["D. Anderton","M",23,79,84,"Tottenham","Jeune espoir étranger"],
+ ["I. Walker","G",24,76,82,"Tottenham","Jeune espoir étranger"],
+ ["G. Southgate","D",25,78,82,"Aston Villa","International confirmé"],
+ ["G. Speed","M",26,78,80,"Leeds United","International confirmé"],
+ ["T. Yeboah","A",29,82,82,"Leeds United","International confirmé"],
+ ["T. Brolin","A",26,79,82,"Leeds United","En froid avec son club — décote"],
+ ["N. Barmby","M",21,76,84,"Middlesbrough","Jeune espoir étranger"],
+ ["S. Pearce","D",33,80,80,"Nottingham Forest","International confirmé"],
+ ["A. Kanchelskis","M",26,81,81,"Everton","International confirmé"],
+ ["F. Amokachi","A",23,78,81,"Everton","International confirmé"],
+ ["P. Gascoigne","M",28,84,84,"Glasgow Rangers","En froid avec son club — décote"],
+ ["A. McCoist","A",33,79,79,"Glasgow Rangers","International confirmé"],
+ // Bundesliga
+ ["L. Matthäus","M",34,85,85,"Bayern Munich","International confirmé"],
+ ["O. Kahn","G",26,82,90,"Bayern Munich","International confirmé"],
+ ["T. Helmer","D",30,79,79,"Bayern Munich","International confirmé"],
+ ["M. Babbel","D",23,76,85,"Bayern Munich","Jeune espoir étranger"],
+ ["C. Ziege","D",23,78,84,"Bayern Munich","Jeune espoir étranger"],
+ ["M. Sammer","D",28,86,86,"Borussia Dortmund","International confirmé"],
+ ["A. Möller","M",28,83,83,"Borussia Dortmund","International confirmé"],
+ ["K. Riedle","A",30,80,80,"Borussia Dortmund","International confirmé"],
+ ["S. Chapuisat","A",26,81,82,"Borussia Dortmund","International confirmé"],
+ ["U. Kirsten","A",30,82,82,"Bayer Leverkusen","International confirmé"],
+ ["M. Basler","M",27,82,84,"Werder Brême","International confirmé"],
+ ["A. Herzog","M",27,79,80,"Werder Brême","International confirmé"],
+ ["T. Häßler","M",29,81,81,"Karlsruher SC","International confirmé"],
+ ["F. Bobic","A",24,77,83,"VfB Stuttgart","Jeune espoir étranger"],
+ ["Dunga","M",32,82,82,"VfB Stuttgart","International confirmé"],
+ ["M. Dahlin","A",27,80,82,"Borussia Mönchengladbach","International confirmé"],
+ // Portugal, Europe centrale, Scandinavie
+ ["V. Baía","G",26,81,85,"FC Porto","International confirmé"],
+ ["S. Conceição","M",21,73,85,"FC Porto","Jeune espoir étranger"],
+ ["N. Gomes","A",19,70,88,"Boavista","Jeune espoir étranger"],
+ ["K. Poborský","M",23,78,84,"Slavia Prague","Jeune espoir étranger"],
+ ["V. Šmicer","M",22,76,85,"Slavia Prague","Jeune espoir étranger"],
+ ["P. Berger","M",22,75,84,"Slavia Prague","Jeune espoir étranger"],
+ ["P. Kouba","G",26,78,80,"Sparta Prague","International confirmé"],
+ ["F. Răducioiu","A",25,78,80,"Espanyol Barcelone","International confirmé"],
+ ["R. Jarni","D",27,80,82,"Real Betis","International confirmé"],
+ ["T. A. Flo","A",22,75,83,"SK Brann","Jeune espoir étranger"],
+ ["O. Solskjær","A",22,76,86,"Molde FK","Jeune espoir étranger"],
+ ["S. Hyypiä","D",22,72,84,"MyPa","Jeune espoir étranger"],
+ // Amérique du Sud
+ ["Cafu","D",25,82,86,"São Paulo","International confirmé"],
+ ["Leonardo","M",26,81,85,"Kashima Antlers","International confirmé"],
+ ["Edmundo","A",24,80,85,"Flamengo","En froid avec son club — décote"],
+ ["Sávio","A",21,76,86,"Flamengo","Jeune espoir étranger"],
+ ["Djalminha","M",25,79,84,"Palmeiras","Jeune espoir étranger"],
+ ["Zé Roberto","M",21,74,86,"Portuguesa","Jeune espoir étranger"],
+ ["Emerson","M",19,70,87,"Grêmio","Jeune espoir étranger"],
+ ["Amoroso","A",21,75,86,"Guarani","Jeune espoir étranger"],
+ ["A. Ortega","A",21,78,87,"River Plate","Jeune espoir étranger"],
+ ["M. Gallardo","M",19,72,88,"River Plate","Jeune espoir étranger"],
+ ["J. Sorín","D",19,70,85,"River Plate","Jeune espoir étranger"],
+ ["C. López","A",21,77,86,"Racing Club","Jeune espoir étranger"],
+ ["C. Valderrama","M",34,81,81,"Tampa Bay Mutiny","International confirmé"],
+ ["F. Rincón","M",29,78,78,"Naples","International confirmé"],
+ ["R. Higuita","G",29,77,77,"Atlético Nacional","En froid avec son club — décote"],
+ // Afrique + un Français barré à l'étranger
+ ["G. Weah","A",29,88,88,"Milan AC","International confirmé"],
+ ["S. Oliseh","M",21,75,84,"FC Cologne","Jeune espoir étranger"],
+ ["C. Babayaro","D",17,66,85,"RSC Anderlecht","Jeune espoir étranger"],
+ ["P. Vieira","M",19,72,90,"Milan AC","Français en quête de come-back"],
 ];
+/* Seconde réserve, ancrée sur l'été 2002 (8ᵉ élément = année de référence) : une carrière longue finissait
+   par ne plus croiser que des noms inventés, la réserve 95 ayant pris sa retraite. Ces noms-là n'entrent
+   dans le vivier qu'à partir de leur époque (vieillitJoker refuse de remonter le temps). */
+const JOKERS_RESERVE_2000=[
+ ["C. Ronaldo","A",17,70,96,"Sporting Portugal","Jeune espoir étranger",2002],
+ ["W. Rooney","A",17,72,94,"Everton","Jeune espoir étranger",2002],
+ ["L. Messi","A",15,64,97,"FC Barcelone","Jeune espoir étranger",2002],
+ ["Kaká","M",20,78,92,"São Paulo","Jeune espoir étranger",2002],
+ ["A. Robben","M",18,72,90,"FC Groningue","Jeune espoir étranger",2002],
+ ["A. Iniesta","M",18,70,92,"FC Barcelone","Jeune espoir étranger",2002],
+ ["Xavi","M",22,82,88,"FC Barcelone","International confirmé",2002],
+ ["C. Puyol","D",24,80,85,"FC Barcelone","International confirmé",2002],
+ ["F. Torres","A",18,73,90,"Atlético Madrid","Jeune espoir étranger",2002],
+ ["I. Casillas","G",21,82,90,"Real Madrid","International confirmé",2002],
+ ["S. Ramos","D",16,62,91,"FC Séville","Jeune espoir étranger",2002],
+ ["X. Alonso","M",21,76,87,"Real Sociedad","Jeune espoir étranger",2002],
+ ["D. Villa","A",21,74,88,"Sporting Gijón","Jeune espoir étranger",2002],
+ ["P. Čech","G",20,76,90,"Sparta Prague","Jeune espoir étranger",2002],
+ ["J. Terry","D",22,78,88,"Chelsea","Jeune espoir étranger",2002],
+ ["F. Lampard","M",24,80,88,"Chelsea","International confirmé",2002],
+ ["S. Gerrard","M",22,83,90,"Liverpool","International confirmé",2002],
+ ["R. van Nistelrooy","A",26,86,88,"Manchester Utd","International confirmé",2002],
+ ["A. Pirlo","M",23,80,89,"Milan AC","International confirmé",2002],
+ ["G. Gattuso","M",24,79,84,"Milan AC","International confirmé",2002],
+ ["Roque Júnior","D",26,79,81,"Milan AC","International confirmé",2002],
+ ["A. Cassano","A",20,76,88,"AS Roma","En froid avec son club — décote",2002],
+ ["D. De Rossi","M",19,68,87,"AS Roma","Jeune espoir étranger",2002],
+ ["Adriano","A",20,76,90,"Inter Milan","Jeune espoir étranger",2002],
+ ["Z. Ibrahimović","A",21,76,91,"Ajax Amsterdam","Jeune espoir étranger",2002],
+ ["W. Sneijder","M",18,70,88,"Ajax Amsterdam","Jeune espoir étranger",2002],
+ ["R. van der Vaart","M",19,75,88,"Ajax Amsterdam","Jeune espoir étranger",2002],
+ ["R. van Persie","A",19,72,89,"Feyenoord","Jeune espoir étranger",2002],
+ ["M. van Bommel","M",25,80,84,"PSV Eindhoven","International confirmé",2002],
+ ["M. Ballack","M",26,85,88,"Bayer Leverkusen","International confirmé",2002],
+ ["Lúcio","D",24,81,86,"Bayer Leverkusen","International confirmé",2002],
+ ["M. Klose","A",24,79,85,"Kaiserslautern","International confirmé",2002],
+ ["P. Lahm","D",19,68,88,"Bayern Munich","Jeune espoir étranger",2002],
+ ["B. Schweinsteiger","M",18,68,88,"Bayern Munich","Jeune espoir étranger",2002],
+ ["S. Eto'o","A",21,80,90,"RCD Majorque","Jeune espoir étranger",2002],
+ ["Y. Touré","M",19,70,88,"KSK Beveren","Jeune espoir étranger",2002],
+ ["N. Vidić","D",21,72,86,"Étoile Rouge Belgrade","Jeune espoir étranger",2002],
+ ["J. Riquelme","M",24,84,88,"Boca Juniors","International confirmé",2002],
+ ["C. Tévez","A",18,74,89,"Boca Juniors","Jeune espoir étranger",2002],
+ ["Robinho","A",18,72,90,"Santos FC","Jeune espoir étranger",2002],
+ ["Diego","M",17,68,88,"Santos FC","Jeune espoir étranger",2002],
+ ["Park Ji-sung","M",21,72,82,"Kyoto Purple Sanga","Jeune espoir étranger",2002],
+];
+/* ---------- Le vivier vieillit avec le monde ---------- */
+/* Retour de playtest : « on retrouve les mêmes jokers à chaque saison, et ils ont toujours le même âge ».
+   Chaque tuple de vivier est ancré sur un été de référence (1995 par défaut, 8ᵉ élément sinon) ; on le
+   projette à l'année en cours. Les gamins éclosent vers leur potentiel, les trentenaires déclinent, et
+   passé l'âge de raison ils raccrochent — donc le vivier se renouvelle tout seul, saison après saison. */
+const JOKER_AN_REF=1995;
+function ageJoker(t){ // fait prendre UN an à un tuple [nom,pos,age,note,pot,lieu] ; false = il raccroche
+  t[2]++;
+  const age=t[2], pot=t[4];
+  if(age >= (t[1]==="G"?38:35)) return false;
+  if(age<=22)      t[3]=Math.min(pot, t[3]+RNDI(2,4)); // il éclot
+  else if(age<=25) t[3]=Math.min(pot, t[3]+RNDI(1,3)); // il s'installe
+  else if(age<=29) t[3]=Math.min(pot, t[3]+RNDI(0,1)); // il tient son rang
+  else if(age<=32) t[3]=Math.max(40, t[3]-RNDI(1,2));  // les jambes parlent
+  else             t[3]=Math.max(40, t[3]-RNDI(2,4));  // la fin de l'histoire
+  if(t[3]>t[4]) t[4]=t[3];
+  return true;
+}
+function vieillitJoker(e, an){ // projette un tuple de réserve à l'année `an` ; null = plus l'âge (ou pas encore l'époque)
+  const ref=(e.length>7 && e[7])?e[7]:JOKER_AN_REF;
+  const d=(an|0)-ref;
+  if(d<0) return null;            // ce nom-là n'existe pas encore à cette époque
+  const t=e.slice();
+  for(let k=0;k<d;k++) if(!ageJoker(t)) return null;
+  return t;
+}
+// Le profil affiché suit l'âge : un « jeune espoir » de 27 ans n'en est plus un, et à 33 on est un vétéran.
+function profilJoker(t, age){
+  if(age>=33) return "Vétéran en fin de carrière";
+  if(t==="Pépite de Division 2" && age>=23) return "Français en quête de come-back";
+  if(t==="Jeune espoir étranger" && age>=25) return "International confirmé";
+  return VIVIER[t]?t:"International confirmé";
+}
+function reserveJokers(){ return JOKERS_RESERVE.concat(JOKERS_RESERVE_2000); }
+const VIVIER_CIBLE=36;    // taille visée du vivier (28 avant v0.95 : on tombait trop souvent sur les mêmes)
+const RAPPORT_CARTES=4;   // nombre de jokers proposés chaque semaine par le recruteur (3 avant v0.95)
+/* Recomplète le vivier jusqu'à `cible` avec de VRAIS noms (réserves curées, projetées à l'année en cours) ;
+   une pépite procédurale ne sert que de dépannage, si la réserve d'époque est momentanément épuisée. */
+function regarnitVivier(cible){
+  const an=anneeJeu();
+  const enJeu=new Set();
+  for(const c of G.clubs.concat(G.autre||[])) for(const jj of (c.joueurs||[])) enJeu.add(jj.nom);
+  for(const t in G.vivier) for(const e of G.vivier[t]) enJeu.add(e[0]);
+  const total=()=>Object.values(G.vivier).reduce((s,l)=>s+l.length,0);
+  let garde=0;
+  while(total()<cible && garde++<400){
+    const dispo=reserveJokers().filter(e=>!enJeu.has(e[0]));
+    if(dispo.length){
+      const e=PICK(dispo); enJeu.add(e[0]);              // marqué même s'il est recalé : pas de boucle infinie
+      const v=vieillitJoker(e, an); if(!v) continue;      // il a déjà raccroché — ou son époque n'est pas venue
+      if(v[2]>=33 && Math.random()<0.7) continue;         // les vétérans restent une garniture, pas le plat principal
+      const t=profilJoker(v[6], v[2]);
+      (G.vivier[t]=G.vivier[t]||[]).push(v.slice(0,6));
+    } else {
+      const j=genJoueur(PICK(["D","M","A"]),6), nom=PICK(PRENOMS)+" "+PICK(NOMS); enJeu.add(nom);
+      (G.vivier["Pépite de Division 2"]=G.vivier["Pépite de Division 2"]||[]).push([nom,j.pos,RNDI(16,19),RNDI(54,64),RNDI(78,90),"D2 française"]);
+    }
+  }
+}
+/* Fabrique un joueur à partir d'un tuple de vivier — partagé par le rapport du recruteur ET les jokers éphémères. */
+function joueurDeVivier(e, t){
+  const j={nom:e[0],pos:e[1],age:e[2],note:e[3],pot:e[4],lieu:e[5],
+           buts:0,passes:0,matchs:0,avendre:false,fav:false,titu:false,club:"EXT",uid:uidGen(),bless:0,susp:0,
+           reel:true, moral:RNDI(58,75), sansJouer:0,
+           nat:(t.includes("Division 2")||t.includes("come-back")||["E. Cantona"].includes(e[0]))?"FR":"ETR"};
+  j.note0=j.note;
+  initTraits(j);
+  return j;
+}
+function offreJoker(e, t){
+  const j=joueurDeVivier(e, t);
+  return {j, type:t, prix:Math.round(valeur(j)*((VIVIER[t]&&VIVIER[t].m)||1)/1e5)*1e5};
+}
 function genRapport(){
   if(!G.vivier){ // copie de travail : un joueur signé disparaît du vivier
     const enJeu=new Set(); // un joueur déjà sous contrat (selon la saison de départ choisie) ne traîne pas aussi dans le vivier
     for(const c of G.clubs.concat(G.autre||[])) for(const jj of (c.joueurs||[])) enJeu.add(jj.nom);
+    const an=anneeJeu();
     G.vivier={};
-    for(const t in VIVIER) G.vivier[t]=VIVIER[t].l.filter(e=>!enJeu.has(e[0])).map(e=>e.slice());
+    // les cibles de l'été 95 sont PROJETÉES à l'année de départ : sur une carrière lancée en 98, Ronaldo n'a plus 18 ans
+    for(const t in VIVIER) for(const e of VIVIER[t].l){
+      if(enJeu.has(e[0])) continue;
+      const v=vieillitJoker(e, an); if(!v) continue;
+      const nt=profilJoker(t, v[2]);
+      (G.vivier[nt]=G.vivier[nt]||[]).push(v.slice(0,6));
+    }
+    regarnitVivier(VIVIER_CIBLE); // et on complète aussitôt avec la réserve de l'époque
   }
-  const types=Object.keys(G.vivier).filter(t=>G.vivier[t].length>0);
-  const choix=types.sort(()=>Math.random()-.5).slice(0,3);
-  const out=[];
-  for(const t of choix){
-    const e=PICK(G.vivier[t]);
-    const j={nom:e[0],pos:e[1],age:e[2],note:e[3],pot:e[4],lieu:e[5],
-             buts:0,passes:0,matchs:0,avendre:false,fav:false,titu:false,club:"EXT",uid:uidGen(),bless:0,susp:0,
-             reel:true, moral:RNDI(58,75), sansJouer:0,
-             nat:(t.includes("Division 2")||t.includes("come-back")||["E. Cantona"].includes(e[0]))?"FR":"ETR"};
-    j.note0=j.note;
-    initTraits(j);
-    out.push({j, type:t, prix:Math.round(valeur(j)*VIVIER[t].m/1e5)*1e5});
-  }
+  const types=Object.keys(G.vivier).filter(t=>G.vivier[t].length>0).sort(()=>Math.random()-.5);
+  const out=[], pris=new Set();
+  for(const t of types){ if(out.length>=RAPPORT_CARTES) break;   // un profil différent par carte, d'abord
+    const e=PICK(G.vivier[t]); pris.add(e); out.push(offreJoker(e,t)); }
+  for(const t of types){ if(out.length>=RAPPORT_CARTES) break;   // pas assez de profils distincts : on complète sans doublon
+    const libres=G.vivier[t].filter(e=>!pris.has(e));
+    if(libres.length){ const e=PICK(libres); pris.add(e); out.push(offreJoker(e,t)); } }
   return out;
 }
 function acheterJoker(k){
@@ -3784,6 +4047,177 @@ function acheterJoker(k){
   G.news.unshift("RECRUE JOKER : "+o.j.nom+" ("+o.j.lieu+") signe pour "+(o.prix/1e6).toFixed(1)+" MF."+(exEuro?" Il quitte "+exEuro.nom+".":""));
   G.rapport.splice(k,1);
   rafraichir();
+}
+
+/* ---------- LE COUP À FAIRE : le joker éphémère d'une seule journée ---------- */
+/* Retour de playtest : le mercato manquait d'urgence. Une occasion tombe, elle ne vaut QUE cette journée,
+   et si vous ne la saisissez pas un club du championnat la saisit à votre place — vous l'apprendrez dans
+   le debrief, ce qui fait mal au bon endroit. Deux familles :
+   · `solde` — un club a besoin de liquidités et brade un joueur de valeur (moitié prix environ) ;
+   · `libre` — un joueur libéré de son contrat : ZÉRO franc de transfert, mais un salaire qui pique
+     (`salMult`), parce qu'un joueur libre monnaie toujours sa liberté sur la fiche de paie.
+   Les deux sont des dossiers JOKER : signables même mercato fermé, comme le rapport du recruteur. */
+const FLASH_PROB=0.16;   // ~6 occasions par saison : assez rare pour rester un événement
+const FLASH_SOLDE=[
+ "La commission de contrôle a mis le club sous surveillance : il faut rentrer de l'argent avant la fin du mois.",
+ "Le chantier de la nouvelle tribune a coûté le double du devis. Le président doit boucler son budget, et vite.",
+ "Un sponsor a fait défaut : la trésorerie est à sec et la masse salariale tombe vendredi.",
+ "Le club paie encore les folies de l'été dernier. On solde pour éponger, et on ne discute pas le prix.",
+ "Un redressement fiscal est arrivé au courrier. Il faut trouver l'argent tout de suite.",
+ "Le propriétaire veut vendre le club, et personne ne rachète un passif. Alors on allège.",
+ "La banque a coupé le découvert. Le trésorier a fait le tour des vestiaires avec une calculette.",
+];
+const FLASH_FIN_COURSE=[
+ "En fin de contrat et en bout de course à {club}, il a été libéré d'un commun accord. Il veut prouver qu'il lui reste une saison dans les jambes.",
+ "{club} rajeunit son effectif et l'a remercié poliment, une gerbe de fleurs à la main. Il n'a pas trouvé ça drôle.",
+ "Trois mois d'infirmerie, un retour raté, un vestiaire qui gronde : {club} a préféré couper court et déchirer le contrat.",
+ "Le nouvel entraîneur de {club} lui a fait comprendre qu'il ne comptait plus sur lui. Il est parti sans claquer la porte — mais il est parti.",
+];
+const FLASH_SCANDALE=[
+ "Une sortie de route très commentée — une nuit, une voiture, et un procès-verbal : {club} a résilié son contrat dès le lendemain.",
+ "Une explication avec son entraîneur dans le couloir des vestiaires, et des témoins de trop. {club} l'a mis à la porte le soir même.",
+ "Il a traité son président de « marchand de tapis » devant les caméras. Le contrat a été rompu avant la fin du journal télévisé.",
+ "Une note de bar longue comme le bras et une photo dans un hebdomadaire : {club} a jugé l'image du club abîmée et l'a libéré.",
+ "Un pari sur un match — pas le sien, jure-t-il. La fédération a fermé les yeux ; {club}, non.",
+];
+function flashJ(f){ // le joueur concerné (byUid ne balaie que MA division : un solde peut venir de l'autre)
+  if(!f) return null;
+  if(f.kind!=="solde") return f.j;
+  const c=clubById(f.club);
+  return c ? (c.joueurs.find(j=>j.uid===f.uid)||null) : null;
+}
+/* Une occasion est annoncée une journée AVANT d'être signée. Entre les deux, le vendeur a pu perdre du
+   monde (blessures, retraites, autres départs) : on revérifie donc le plancher réglementaire au moment
+   de la signature, et pas seulement à l'annonce — sinon un club pouvait tomber sous les 16 joueurs,
+   ou lâcher son second gardien, sans que personne ne s'en aperçoive. */
+function cessionFlashOK(vend, j){ return !!vend && !Object.keys(manqueEffectif(vend, j)).length; }
+function genFlashSolde(){
+  const pool=[];
+  for(const c of G.clubs.concat(G.autre||[])){
+    if(c.id===G.monClub || c.joueurs.length<=PLANCHER_TOTAL) continue;
+    for(const p in CIBLE){ // on ne touche jamais à l'ossature : seul le surplus au poste est bradable
+      const atPos=c.joueurs.filter(j=>j.pos===p && !j.pretIn && !j.pretOut).sort((a,b)=>b.note-a.note);
+      for(const j of atPos.slice(CIBLE[p])) if(j.note>=66) pool.push({j,c});
+    }
+  }
+  if(!pool.length) return null;
+  pool.sort((a,b)=>b.j.note-a.j.note);
+  const o=PICK(pool.slice(0, Math.min(14, pool.length))); // parmi les plus beaux morceaux du marché aux puces
+  const plein=prixAchat(o.j);
+  const prix=Math.max(1e5, Math.round(plein*(0.42+Math.random()*0.22)/1e5)*1e5);
+  return {kind:"solde", uid:o.j.uid, club:o.c.id, prix, plein, motif:PICK(FLASH_SOLDE), jour:G.journee};
+}
+function genFlashLibre(){
+  if(!G.vivier) return null;
+  const cands=[];
+  for(const t in G.vivier) for(const e of G.vivier[t]) if(e[3]>=70) cands.push({t,e});
+  if(!cands.length) return null;
+  const chevronnes=cands.filter(x=>x.e[2]>=28);
+  const c=PICK((chevronnes.length && Math.random()<0.7)?chevronnes:cands); // le plus souvent un homme d'expérience
+  const j=joueurDeVivier(c.e, c.t);
+  j.salMult=Math.round((1.5+Math.random()*0.8)*100)/100; // gratuit au transfert, cher à la fiche de paie
+  const scandale=(c.e[2]<29) || Math.random()<0.4;
+  const motif=PICK(scandale?FLASH_SCANDALE:FLASH_FIN_COURSE).split("{club}").join(j.lieu);
+  return {kind:"libre", type:c.t, j, prix:0, motif, scandale, jour:G.journee};
+}
+function genFlash(){
+  return Math.random()<0.5 ? (genFlashSolde()||genFlashLibre()) : (genFlashLibre()||genFlashSolde());
+}
+function flashNotif(f){
+  const j=flashJ(f); if(!j) return "";
+  if(f.kind==="solde"){
+    const v=clubById(f.club);
+    return "🔥 COUP À FAIRE — "+(v?v.nom:"un club")+" brade "+j.nom+" ("+j.pos+", "+j.age+" ans, note "+j.note+") à "
+      +(f.prix/1e6).toFixed(1)+" MF au lieu de "+(f.plein/1e6).toFixed(1)+". Valable cette journée SEULEMENT : écran MERCATO ou CALENDRIER.";
+  }
+  return "🆓 COUP À FAIRE — "+j.nom+" ("+j.pos+", "+j.age+" ans, note "+j.note+") est LIBRE de tout contrat. Zéro franc de transfert, "
+    +FMT(salaire(j))+" FF de salaire par semaine. Valable cette journée SEULEMENT.";
+}
+/* Personne ne vous attend : l'occasion non saisie part chez un club du championnat, et on vous le fait savoir. */
+function flashRafle(f){
+  const j=flashJ(f); if(!j) return;
+  const preneurs=(G.clubs.concat(G.autre||[])).filter(c=>c.id!==G.monClub && c.id!==f.club);
+  if(!preneurs.length) return;
+  const riches=preneurs.filter(c=>(c.pres||4)>=5);
+  const ach=PICK(riches.length?riches:preneurs);
+  if(f.kind==="solde"){
+    const vend=clubById(f.club); if(!vend) return;
+    if(!cessionFlashOK(vend, j)){ // le vendeur n'est plus en règle : personne ne l'emporte
+      G.news.unshift("MERCATO : "+j.nom+" devait partir, mais "+vend.nom+" ne peut plus s'en séparer — l'effectif est au plancher réglementaire. L'affaire tombe à l'eau.");
+      return;
+    }
+    vend.joueurs=vend.joueurs.filter(x=>x!==j);
+    j.club=ach.id; j.titu=false; j.avendre=false; ach.joueurs.push(j);
+    vend.budget=(vend.budget||0)+f.prix; ach.budget=Math.max(0,(ach.budget||0)-f.prix);
+    G.news.unshift("MERCATO : "+ach.nom+" rafle "+j.nom+" ("+vend.nom+") pour "+(f.prix/1e6).toFixed(1)+" MF. L'occasion est passée.");
+    notif("😤 Trop tard : "+ach.nom+" a raflé "+j.nom+" pour "+(f.prix/1e6).toFixed(1)+" MF. C'était le coup de la semaine.");
+  } else {
+    j.club=ach.id; j.titu=false; ach.joueurs.push(j);
+    if(G.vivier && G.vivier[f.type]) G.vivier[f.type]=G.vivier[f.type].filter(e=>e[0]!==j.nom);
+    retireDEurope(j.nom); // réconciliation : s'il traînait dans un club européen, il le quitte
+    G.news.unshift("MERCATO : "+ach.nom+" s'offre "+j.nom+", libre de tout contrat. Pas un franc de transfert.");
+    notif("😤 Trop tard : "+j.nom+", libre de tout contrat, a signé à "+ach.nom+". Le salaire, eux, ils l'assument.");
+  }
+}
+function saisirFlash(){
+  const f=G.flash; if(!f) return;
+  const j=flashJ(f);
+  if(!j){ G.flash=null; return rafraichir(); } // le joueur s'est volatilisé entre-temps
+  const moi=clubById(G.monClub);
+  if(f.kind==="solde"){
+    if(f.prix>G.budget) return alert("Budget transferts insuffisant : "+(f.prix/1e6).toFixed(1)+" MF demandés, "+(G.budget/1e6).toFixed(1)+" MF disponibles.");
+    const vend=clubById(f.club);
+    if(!cessionFlashOK(vend, j)){
+      G.flash=null;
+      alert((vend?vend.nom:"Le club")+" a perdu trop de monde cette semaine : céder "+j.nom+" le ferait passer sous le plancher réglementaire. L'affaire est annulée.");
+      return rafraichir();
+    }
+    vend.joueurs=vend.joueurs.filter(x=>x!==j);
+    vend.budget=(vend.budget||0)+f.prix;
+    vend._cedes=(vend._cedes||0)+1; if(j.pos==="G") vend._cedesG=(vend._cedesG||0)+1;
+    j.club=G.monClub; j.titu=false; j.avendre=false; j.fav=false; moi.joueurs.push(j);
+    G.budget-=f.prix;
+    G.news.unshift("LE COUP DE LA SEMAINE : "+j.nom+" arrive de "+vend.nom+" pour "+(f.prix/1e6).toFixed(1)+" MF — la moitié de sa valeur.");
+    G.presse.unshift("« Personne ne comprend comment "+moi.nom+" a fait signer "+j.nom+" à ce prix-là. »");
+  } else {
+    j.club=G.monClub; moi.joueurs.push(j);
+    if(G.vivier && G.vivier[f.type]) G.vivier[f.type]=G.vivier[f.type].filter(e=>e[0]!==j.nom);
+    const exEuro=retireDEurope(j.nom);
+    G.news.unshift("JOUEUR LIBRE : "+j.nom+" signe sans la moindre indemnité de transfert — mais à "+FMT(salaire(j))+" FF par semaine."+(exEuro?" Il quitte "+exEuro.nom+".":""));
+    G.presse.unshift("« Gratuit à l'achat, ruineux à l'entretien : "+moi.nom+" mise sur "+j.nom+". »");
+  }
+  G.flash=null;
+  G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle du coup
+  assureCapitaine();
+  veilleEffectif();
+  rafraichir();
+}
+function laisserFlash(){
+  const f=G.flash; if(!f) return;
+  G.flash=null;
+  flashRafle(f); // on ne laisse pas traîner : un autre club se sert immédiatement
+  rafraichir();
+}
+/* Panneau partagé par l'écran calendrier et l'écran mercato (boutons câblés PAR CLASSE, jamais par id). */
+function panneauFlash(){
+  const f=G.flash; if(!f) return "";
+  const j=flashJ(f); if(!j) return "";
+  const solde=f.kind==="solde", vend=solde?clubById(f.club):null;
+  const cout=solde?(f.prix/1e6).toFixed(1)+" MF":"0 FRANC";
+  return `<div class="panel" style="border-color:#ff8a3d">
+   <h2 style="color:#ff8a3d">${solde?"🔥 LE COUP À FAIRE — cette journée seulement":"🆓 JOUEUR LIBRE — cette journée seulement"}</h2>
+   <p><b class="jaune">${esc(j.nom)}</b> · <span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b>${j.note}</b>${
+     solde?` · <span class="dim">${esc(vend?vend.nom:"")}</span>`:` · <span class="dim">ex-${esc(j.lieu)}</span>`}</p>
+   <p style="margin-top:6px;font-style:italic">« ${esc(f.motif)} »</p>
+   <p style="margin-top:6px">Transfert : <b class="jaune">${cout}</b>${solde?` <span class="dim">(au lieu de ${(f.plein/1e6).toFixed(1)} MF)</span>`:""}
+     · Salaire : <b class="${(j.salMult||1)>1.2?"rouge":"jaune"}">${FMT(salaire(j))} FF/sem</b>${(j.salMult||1)>1.2?' <span class="dim">— il monnaie sa liberté</span>':""}</p>
+   <p class="dim" style="font-size:12px;margin-top:6px">Dossier joker : signable même mercato fermé. Mais l'occasion ne dure qu'une journée — si vous ne la prenez pas, un club du championnat la prendra.</p>
+   <p style="margin-top:8px"><button class="big bFlashOui">${solde?"SAISIR L'OCCASION ("+(f.prix/1e6).toFixed(1)+" MF)":"LE FAIRE SIGNER (0 FF de transfert)"}</button>
+   <button class="act bFlashNon" style="margin-left:8px">Laisser filer</button></p></div>`;
+}
+function cableFlash(){
+  document.querySelectorAll(".bFlashOui").forEach(b=>b.onclick=saisirFlash);
+  document.querySelectorAll(".bFlashNon").forEach(b=>b.onclick=laisserFlash);
 }
 
 /* ---------- Sponsors ---------- */
@@ -5092,6 +5526,89 @@ function forceClub(c){ const xi=onze(c); return xi.length? xi.reduce((s,j)=>s+j.
 function classementAbstrait(clubs){
   return clubs.map(c=>({c, s:forceClub(c)+RND(-6,6)})).sort((a,b)=>b.s-a.s).map(x=>x.c);
 }
+/* ---------- LE MOT D'OUVERTURE : chaque saison est une histoire à part entière ---------- */
+/* Une carrière enchaînait les saisons sans qu'on sente le temps passer. On ouvre désormais chaque
+   exercice par un grand écran qui raconte l'époque où l'on met les pieds — et ce qui attend le club.
+   Indexé par l'ANNÉE CIVILE du coup d'envoi (août), donc correct quelle que soit la saison de départ.
+   Rappel du calendrier : la saison va d'août à fin mai, le tournoi international tombe APRÈS, en juin. */
+const TOURNOIS_ETE={
+ 1996:"l'Euro, en Angleterre",
+ 1998:"LA COUPE DU MONDE, EN FRANCE",
+ 2000:"l'Euro, aux Pays-Bas et en Belgique",
+ 2002:"la Coupe du monde, en Corée et au Japon",
+ 2004:"l'Euro, au Portugal",
+ 2006:"la Coupe du monde, en Allemagne",
+ 2008:"l'Euro, en Autriche et en Suisse",
+ 2010:"la Coupe du monde, en Afrique du Sud",
+ 2012:"l'Euro, en Pologne et en Ukraine",
+ 2014:"la Coupe du monde, au Brésil",
+ 2016:"l'Euro, EN FRANCE",
+ 2018:"la Coupe du monde, en Russie",
+ 2020:"l'Euro, aux quatre coins du continent",
+ 2022:"la Coupe du monde, au Qatar",
+};
+const INTRO_SAISONS={
+ 1995:{titre:"LA DERNIÈRE SAISON D'AVANT", txt:"Personne ne le sait encore, mais un milieu de terrain belge au chômage, un certain Jean-Marc Bosman, attend un arrêt de la Cour de justice des Communautés européennes. Il tombera en décembre, en plein hiver, et il fera sauter d'un coup les quotas d'étrangers et les indemnités de fin de contrat. D'ici là, le championnat vit sa dernière saison à l'ancienne : des effectifs courts, trois étrangers sur la feuille de match, et des présidents qui dorment encore tranquilles."},
+ 1996:{titre:"L'ANNÉE D'APRÈS BOSMAN", txt:"L'arrêt est tombé et le football ne s'en remet pas. Les joueurs en fin de contrat partent libres, les agents ont pignon sur rue, et les vestiaires se remplissent d'accents qu'on n'entendait pas ici. Les gros empilent, les petits regardent. La question de la saison est simple : allez-vous profiter du désordre, ou le subir ?"},
+ 1997:{titre:"LE MONDIAL EN LIGNE DE MIRE", txt:"Au bout de cette saison, il y a la Coupe du monde. En France. Chez nous. Le Stade de France sort de terre à Saint-Denis et sera inauguré en janvier, en plein cœur de l'hiver. Chaque joueur de ce championnat sait qu'Aimé Jacquet regarde et que vingt-deux places valent une carrière. Attendez-vous à des jambes qui tremblent au printemps — et à des recrues qui se vendent au prix fort."},
+ 1998:{titre:"CHAMPIONS DU MONDE", txt:"On a gagné. Le pays ne s'en est pas remis, et le football français non plus : les tribunes se remplissent, les sponsors font la queue, et l'Europe entière vient faire son marché dans nos vestiaires. Tout coûte plus cher, tout rapporte plus. La gloire a un prix, et il se paie cash."},
+ 1999:{titre:"LE FOOT PASSE À L'AN 2000", txt:"Les droits télé s'envolent, les agents parlent en dizaines de millions, et tout le monde jure la main sur le cœur que ses ordinateurs survivront au 1er janvier. Les salaires montent plus vite que les recettes, et les présidents commencent à transpirer dans leurs costumes."},
+ 2000:{titre:"CHAMPIONS DU MONDE ET D'EUROPE", txt:"Le doublé. Le marché des transferts perd complètement la tête : on parle désormais en centaines de millions, et des clubs se battent pour un adolescent qu'aucun d'eux n'a vu jouer. C'est la grande fête — et ceux qui ont connu les précédentes savent très bien comment elles finissent."},
+ 2001:{titre:"LA FÊTE EST FINIE", txt:"Les chaînes qui promettaient des fortunes déposent le bilan les unes après les autres. L'argent du câble s'évapore, les contrats signés trop haut se retournent contre les clubs, et la commission de contrôle sort la calculette. Cette saison, on ne recrute plus : on tient."},
+ 2002:{titre:"LA GUEULE DE BOIS", txt:"Éliminés au premier tour, sans marquer le moindre but. Le pays boude, les gendarmes du budget serrent la vis, et les grands noms s'en vont monnayer leur talent ailleurs. Il va falloir gagner autrement : avec des gamins, du travail, et beaucoup de patience."},
+ 2003:{titre:"LE FOOT BUSINESS", txt:"Maillots à prix d'or, écrans géants, loges d'affaires, boutique à la sortie : le stade devient un centre commercial avec une pelouse au milieu. Les puristes râlent, les comptables sourient. Reste à savoir ce que vous voulez vendre — des places, ou une équipe."},
+ 2004:{titre:"LA GÉNÉRATION D'APRÈS", txt:"Les champions du monde raccrochent un par un, et le pays cherche déjà les suivants. Les centres de formation français n'ont jamais aussi bien produit, et toute l'Europe le sait : nos meilleurs partent à vingt ans. Former, c'est bien. Retenir, c'est un autre métier."},
+ 2005:{titre:"L'EUROPE À DEUX VITESSES", txt:"Entre les clubs qui jouent l'Europe chaque année et les autres, l'écart se creuse au point d'en devenir gênant. Une qualification européenne ne vaut plus seulement un trophée : elle vaut un budget, et donc la saison suivante."},
+ 2006:{titre:"L'ARGENT VENU DE LOIN", txt:"Des investisseurs qu'on ne connaissait pas rachètent des clubs qu'on croyait imprenables. Les noms sur les maillots viennent de plus en plus loin, et les questions qu'on pose de moins en moins souvent. Le football se mondialise ; les tribunes, elles, restent du quartier."},
+};
+/* Au-delà du registre daté, un fond de roulement : cinq visages d'une même époque, choisi par l'année
+   pour qu'une carrière reste cohérente d'une partie à l'autre. */
+const INTRO_GEN=[
+ {titre:"UNE SAISON DE PLUS", txt:"Nouveaux diffuseurs, nouveaux propriétaires, nouveaux prix du maillot : le football change plus vite que les habitudes. Une chose n'a pas bougé d'un pouce — il faut encore gagner le samedi soir, sous la pluie, devant des gens qui ont payé leur place."},
+ {titre:"L'ANNÉE DES COMPTABLES", txt:"Les budgets sont épluchés ligne à ligne, la commission de contrôle rôde, et les clubs qui ont vécu au-dessus de leurs moyens paient l'addition. Ceux qui ont formé sourient. Ceux qui ont acheté comptent."},
+ {titre:"LA RUÉE SUR LES GAMINS", txt:"Toute l'Europe court après les mêmes adolescents, et les prix suivent. Un joueur de vingt ans coûte désormais plus cher qu'un international de trente. Le centre de formation n'a jamais été un aussi bon placement — à condition de savoir garder ce qu'on y produit."},
+ {titre:"LE PUBLIC REPREND LA MAIN", txt:"Les tribunes grondent, les abonnés écrivent au président, et les tarifs deviennent un sujet de conversation. On redécouvre que le football appartient d'abord à ceux qui viennent le voir. Un stade plein vaut encore une demi-équipe."},
+ {titre:"TOUT LE MONDE VEUT L'EUROPE", txt:"La coupe d'Europe a changé d'échelle : elle fait les budgets, les carrières et les réputations. Entre ceux qui la jouent et ceux qui la regardent, il y a désormais un fossé — et une place de plus à prendre au printemps."},
+];
+/* Assemble le mot d'ouverture : le contexte de l'époque, puis le chapitre de VOTRE club. */
+function introSaison(){
+  const an=+G.intro || anneeJeu();
+  const e=INTRO_SAISONS[an] || INTRO_GEN[an%INTRO_GEN.length];
+  const moi=clubById(G.monClub), puces=[];
+  puces.push("🏟️ <b>Division "+G.div+"</b> — le président a fixé la barre : <b class=\"jaune\">"+esc(G.objectif.label)+"</b>.");
+  if(G.euroCompet && COMPETS[G.euroCompet])
+    puces.push(COMPETS[G.euroCompet].emoji+" Vous êtes engagé en <b class=\"jaune\">"+esc(COMPETS[G.euroCompet].nom)+"</b> : des nuits de semaine, des primes, et de la fatigue le samedi.");
+  else
+    puces.push("🌍 Pas d'Europe cette saison : le championnat, la Coupe de France, et rien pour se cacher derrière.");
+  const t=TOURNOIS_ETE[an+1];
+  if(t) puces.push("🗓️ Au bout de la route, en juin, il y a <b class=\"jaune\">"+esc(t)+"</b>. Vos internationaux joueront leur place toute la saison.");
+  if(G.nouvelleEre) puces.push("💸 Nouveauté de la saison : "+esc(G.nouvelleEre.ere)+" De nouvelles offres de sponsoring vont frapper à votre porte.");
+  if(moi){
+    const cracks=moi.joueurs.slice().sort((a,b)=>b.note-a.note);
+    if(cracks[0]) puces.push("⭐ L'homme sur qui on compte : <b>"+esc(cracks[0].nom)+"</b> ("+cracks[0].pos+", "+cracks[0].age+" ans, note "+cracks[0].note+").");
+    const riv=RIVAL[G.monClub], rc=riv?clubById(riv):null;
+    if(rc && G.clubs.some(c=>c.id===riv)) puces.push("🔥 Le derby contre <b>"+esc(rc.nom)+"</b> est la date que tout le monde entoure sur le calendrier.");
+  }
+  if(G.tresorerie<0) puces.push("🔴 Les caisses sont dans le rouge : avant les rêves de grandeur, le président veut un budget à l'équilibre.");
+  if(G.palmares && G.palmares.length) puces.push("🏆 Au mur du club : "+esc(G.palmares.join(", "))+".");
+  return {an, titre:e.titre, txt:e.txt, puces};
+}
+function ecranIntro(){
+  const I=introSaison(), moi=clubById(G.monClub);
+  chrome("calendrier",`
+   <div class="panel" style="border-color:#b388e8;text-align:center">
+     <p class="dim" style="letter-spacing:2px;margin:0">SAISON ${esc(G.saison)} · ${esc(moi?moi.nom:"")}</p>
+     <h2 style="color:#b388e8;font-size:26px;line-height:1.1;margin:6px 0 10px">${esc(I.titre)}</h2>
+     <div style="margin:0 auto;max-width:640px;text-align:left">
+       <p style="font-size:17px;line-height:1.45">${esc(I.txt)}</p>
+       <div style="margin-top:14px;border-top:1px solid #27466e;padding-top:10px">
+         ${I.puces.map(p=>`<p style="margin:6px 0">${p}</p>`).join("")}
+       </div>
+     </div>
+     <p style="margin-top:16px"><button class="big" id="bIntro">COUP D'ENVOI DE LA SAISON ${esc(G.saison)}</button></p>
+   </div>`);
+  document.getElementById("bIntro").onclick=()=>{ G.intro=null; montre("calendrier"); };
+}
 function intersaison(){
   const rec=[];
   G.arc=null; G._arcFait=false; // un arc ne straddle pas deux saisons ; on rouvre la porte pour la suivante
@@ -5184,6 +5701,7 @@ function intersaison(){
   if(modernesActifs.length) G.nouvelleEre=modernesActifs[0];
   G.confiance=65;
   G.objectif=objectifPour(clubById(G.monClub).pres);
+  G.intro=anneeJeu(); // le mot d'ouverture de la nouvelle saison, affiché après le bilan d'intersaison
   // état de grâce : chaque saison, ~40 % de chance qu'un joueur du club vive la saison de sa vie
   const moi=clubById(G.monClub);
   moi.joueurs.forEach(j=>{ if(j.grace){ j.note=Math.max(40,j.note-j.graceBonus); delete j.grace; delete j.graceBonus; } });
@@ -5198,24 +5716,20 @@ function intersaison(){
   }
   // budgets de transfert des clubs IA : réapprovisionnés chaque saison selon le prestige (marché vivant)
   for(const c of G.clubs.concat(G.autre||[])) if(c.id!==G.monClub) c.budget=Math.max(c.budget||0, (c.pres||4)*4e6+6e6);
-  // le vivier du recruteur se régénère : ~50% de rotation, et il reste à ~90% de vrais noms
+  // Le vivier du recruteur VIEILLIT d'un an, tourne, puis se recomplète en vrais noms de l'époque.
+  // Avant v0.95 il ne faisait que tourner : on recroisait les mêmes jokers, au même âge, saison après saison.
   if(G.vivier){
-    const enJeu=new Set();
-    for(const c of G.clubs.concat(G.d2||[])) for(const jj of (c.joueurs||[])) enJeu.add(jj.nom);
-    for(const t in G.vivier) for(const e of G.vivier[t]) enJeu.add(e[0]);
-    // 1) rotation : la moitié des offres se périment
-    for(const t in G.vivier) G.vivier[t]=G.vivier[t].filter(()=>Math.random()<0.5);
-    // 2) recomplément vers 28 : vrais noms (réserve curée) en priorité ; pépite procédurale
-    //    seulement si la réserve est momentanément épuisée → le vivier reste à ~90%+ de vrais noms
-    const total=()=>Object.values(G.vivier).reduce((s,l)=>s+l.length,0);
-    let garde=0;
-    while(total()<28 && garde++<120){
-      const dispo=JOKERS_RESERVE.filter(e=>!enJeu.has(e[0]));
-      if(dispo.length){ const e=PICK(dispo); enJeu.add(e[0]);
-        (G.vivier[e[6]]=G.vivier[e[6]]||[]).push(e.slice(0,6)); }
-      else { const j=genJoueur(PICK(["D","M","A"]),6), nom=PICK(PRENOMS)+" "+PICK(NOMS); enJeu.add(nom);
-        G.vivier["Pépite de Division 2"].push([nom,j.pos,RNDI(16,19),RNDI(54,64),RNDI(78,90),"D2 française"]); }
+    const restant={}, raccroche=[];
+    for(const t in G.vivier) for(const e of G.vivier[t]){
+      if(!ageJoker(e)){ raccroche.push(e[0]); continue; }  // l'âge a parlé : il sort définitivement du vivier
+      if(Math.random()>=0.45) continue;                     // rotation : une piste sur deux se périme
+      const nt=profilJoker(t, e[2]);                        // le profil suit l'âge (un « jeune espoir » de 26 ans n'en est plus un)
+      (restant[nt]=restant[nt]||[]).push(e);
     }
+    G.vivier=restant;
+    regarnitVivier(VIVIER_CIBLE);
+    if(raccroche.length) rec.push("Le recruteur raye des noms de sa liste : "+raccroche.slice(0,3).join(", ")+
+      (raccroche.length>3?" et "+(raccroche.length-3)+" autre"+(raccroche.length>4?"s":""):"")+" raccroche"+(raccroche.length>1?"nt":"")+" les crampons.");
   }
   G.rapport=genRapport();
   G.news.unshift("SAISON "+G.saison+" — Objectif du président : "+G.objectif.label+".");
@@ -5246,6 +5760,7 @@ function migre(){
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
   G.centre=G.centre||1; G.offreExt=G.offreExt||null; G.offrePret=G.offrePret||null;
+  G.flash=G.flash||null; G.intro=(G.intro==null?null:G.intro); // occasion de la semaine + mot d'ouverture de saison
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
   G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
   G.arc=G.arc||null; G._arcFait=!!G._arcFait; // arc narratif de saison
@@ -5704,6 +6219,7 @@ function ecranCalendrier(){
     document.getElementById("bGo").onclick=()=>{G.recap=null;montre("calendrier");};
     return;
   }
+  if(G.intro) return ecranIntro(); // le mot d'ouverture : ce que raconte la saison où l'on entre
   if(G.finie){
     const cl=classement(); const rang=cl.findIndex(c=>c.id===G.monClub)+1;
     const relegue=G.div===1 && rang>=cl.length-2, promu=G.div===2 && rang<=3;
@@ -5751,6 +6267,7 @@ function ecranCalendrier(){
      <p style="margin-top:8px"><button class="act" id="bMalAcc">Accepter la mallette (${(G.affaire.prix/1e6).toFixed(0)} MF)</button>
      <button class="act" id="bMalRef">Éconduire l'intermédiaire</button></p></div>`:"";
   chrome("calendrier",`
+   ${panneauFlash()}
    ${offre}
    ${offrePret}
    ${affaire}
@@ -5871,6 +6388,7 @@ function ecranCalendrier(){
   const bER=document.getElementById("bExtRef"); if(bER) bER.onclick=refuserOffreExt;
   const bPA=document.getElementById("bPretAcc"); if(bPA) bPA.onclick=accepterOffrePret;
   const bPR=document.getElementById("bPretRef"); if(bPR) bPR.onclick=refuserOffrePret;
+  cableFlash(); // le coup à faire de la semaine
 }
 
 /* ---- pictogrammes télétexte ---- */
@@ -7359,6 +7877,7 @@ function ecranMercato(){
   const chipsAge=[["99","Tout âge"],["20","≤20"],["23","≤23"],["27","≤27"]].map(([v,l])=>chip("age",v,l,ageF===+v)).join("");
   const chipsDiv=[["*","D1 + D2"],["1","D1"],["2","D2"]].map(([v,l])=>chip("div",v,l,divF===v)).join("");
   chrome("mercato",`
+   ${panneauFlash()}
    <div class="panel" style="border-color:#6fd6e8">
     <h2>Le rapport du recruteur <span class="dim">— recrues joker, signables hors fenêtre, valables cette semaine seulement</span></h2>
     ${G.rapport.length? `<div class="mercRap">${G.rapport.map(carteJoker).join("")}</div>`
@@ -7393,6 +7912,7 @@ function ecranMercato(){
   document.querySelectorAll(".carte.rj").forEach(el=>el.onclick=e=>{
     if(e.target.closest(".bJ"))return; ouvreFiche(G.rapport[+el.dataset.k].j);
   });
+  cableFlash(); // le coup à faire de la semaine
   rend();
 }
 
