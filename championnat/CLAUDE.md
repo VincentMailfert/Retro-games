@@ -35,12 +35,31 @@ toujours « raconter quelque chose ».
   dépendance : le favicon est embarqué en `data:` URI (un ballon jaune sur bleu nuit, aux couleurs du jeu) —
   zéro requête réseau, il évite simplement le 404 `/favicon.ico`.
 - État global dans l'objet `G` (club, journée, joueurs, finances, réputation, incidents…).
-- **Sauvegarde** : sauvegarde rapide en 1 clic dans le `localStorage` (clé `SAVEKEY`) — auto à chaque
-  fin de journée et à chaque transition d'écran (`montre`), plus un bouton « 💾 Sauvegarder » en pied de
-  page et un bouton « Reprendre » sur l'accueil (`sauvegardeLocale`/`chargeLocale`/`infoSauvegarde`, qui
-  réutilisent `migre()`). L'export/import d'un fichier JSON reste pour la sauvegarde de secours et le
-  transfert entre appareils. Le `localStorage` ne porte PAS de logique de jeu — juste la sérialisation de
-  `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne pas peser sur le harnais.
+- **Sauvegarde — PLUSIEURS CARRIÈRES EN PARALLÈLE (v0.94)** : le `localStorage` garde jusqu'à
+  **`MAX_PARTIES` = 4 carrières** de front. Chacune a **sa propre clé** (`PARTPFX`+id), et un **index
+  léger** (`IDXKEY`) retient leur carte d'identité — club, saison, journée, division, trophées, date de
+  dernière partie, nom personnalisé — pour dresser la liste de l'accueil **sans relire les sauvegardes**,
+  qui pèsent ~500 Ko pièce. `PARTIE` = {id, clé} de la carrière dans laquelle on écrit ; la sauvegarde est
+  auto à chaque fin de journée et à chaque transition d'écran (`montre`), plus le bouton « 💾 Sauvegarder »
+  en pied de page. L'accueil liste les carrières (`panneauCarrieres`) : la dernière jouée en gros bouton
+  vert « ▶ REPRENDRE », les autres en lignes avec blason, et sur chacune ✏️ (`renommePartie`, via `prompt`)
+  et 🗑️ (`supprimePartie`). En jeu, « 📁 Mes carrières » (`retourAccueil`) sauvegarde et rend la main à la
+  liste. API : `partiesListe`/`sauvegardeLocale`/`chargeLocale(id)`/`supprimePartie`/`renommePartie`/
+  `placeDispo`/`ficheDe`/`ilYA`, toutes au-dessus de `migre()`.
+  **La clé historique `SAVEKEY` n'est pas migrée mais ADOPTÉE** : la carrière d'un testeur d'avant v0.94
+  entre dans l'index en gardant SA clé (l'index porte un champ `k` par entrée), donc elle continue de
+  s'écrire au même endroit — rien n'est recopié, rien n'est perdu, et une ancienne version du jeu la
+  relirait encore. L'index **se répare tout seul** : entrée dont la sauvegarde a disparu → retirée ;
+  sauvegarde absente de l'index → adoptée par balayage des clés (`clesParties`), remise en ordre grâce à
+  `G._maj` (la date que chaque sauvegarde porte en elle).
+  **Mémoire pleine** : `setItem` qui déborde ne casse plus rien — `SAVE_KO` passe à vrai, le joueur est
+  prévenu **une seule fois par session** (`SAVE_CRIE`) avec la marche à suivre, un bandeau rouge s'affiche
+  en pied de page, et la partie continue de se jouer.
+  L'export/import d'un fichier JSON reste pour la sauvegarde de secours et le transfert entre appareils
+  (nom de fichier parlant : `multiplex95-rc-lens-1995-96-J12.json`) ; **un import ouvre toujours une
+  carrière DE PLUS**, il n'écrase jamais celles du navigateur. Le `localStorage` ne porte PAS de logique de
+  jeu — juste la sérialisation de `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne
+  pas peser sur le harnais (`harness-sauvegardes.cjs` lève le drapeau le temps de l'appel pour les tester).
 - Numéro de version centralisé dans la constante `const VERSION` (en tête de script) et recopié aux **deux**
   pieds de page — l'accueil (`Multiplex 95 — prototype vX.Y ·`) et le jeu (`MULTIPLEX 95 · vX.Y ·`). L'incrémenter à
   chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils
@@ -827,7 +846,9 @@ toujours « raconter quelque chose ».
    `harness9697.cjs` (saison de départ 96/97), `harness9798.cjs` (saison de départ 97/98 : repêchés, Nice en C2,
    réconciliation France ↔ Europe), `harness9899.cjs` (saison de départ 98/99 : double repêchage, clubs neufs
    Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness-euro.cjs` (les trois coupes d'Europe),
-   `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation).
+   `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation),
+   `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
+   index qui se répare, mémoire pleine).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →
@@ -879,6 +900,18 @@ toujours « raconter quelque chose ».
   livraison : balayer `COMM.amb` et `ETAT` à la recherche du vocabulaire météo (pluie, boue, gras, soleil,
   froid, neige, brouillard, flaque, crampons vissés…) — doit être vide. Une métaphore reste piégeuse : la
   ligne du fumigène disait « on joue dans le brouillard », reformulée pour lever l'ambiguïté.
+- **NE JAMAIS RANGER UN OBJET CLUB DANS `G` (v0.94)** — le piège le plus coûteux trouvé à ce jour, parce
+  qu'il ne se voit nulle part à l'écran. `G.histo.push(res)` archivait les résultats de la journée avec les
+  **objets clubs passés par référence** : à la sérialisation, `JSON.stringify` les déplie en entier, chaque
+  journée pesait ~100 Ko et une sauvegarde de milieu de saison atteignait **2,6 Mo** (5 Mo une fois comptée
+  en UTF-16). Au-delà du quota du navigateur, `setItem` lève — et comme la sauvegarde auto était
+  *silencieuse*, **elle échouait sans un mot** : le joueur revenait le lendemain sur une partie figée des
+  semaines plus tôt. Une carrière de 16 saisons montait à 5 Mo de texte, donc n'était plus sauvegardable du
+  tout. Correctif : l'historique n'archive que **les ID et le score**, les dépêches (`G.news`, dont on
+  n'affiche que les 10 dernières) sont plafonnées à 60, `migre()` allège les vieilles sauvegardes au
+  chargement (−76 % mesuré sur un cas réel) et `sauvegardeLocale` prévient désormais quand la mémoire est
+  pleine. Règle : dans `G`, on référence un club **par son `id`** (`clubById` fait le reste) ; tout tableau
+  qui grossit sans fin doit être plafonné.
 - L'overlay d'un moment de match ne doit jamais surgir hors d'un match : `abandonneDirect()`
   sur chaque transition d'écran nettoie le ticker.
 - Reset des stats de TOUS les clubs à l'intersaison (`razStatsClub`), y compris ceux qui restent.

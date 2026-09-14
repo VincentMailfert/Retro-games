@@ -141,6 +141,11 @@
   .grpHead .trait{flex:1;height:1px;opacity:.35;align-self:center;}
   .grpAmb{color:var(--dim);font-size:12px;font-style:italic;margin:0 0 6px;}
   .startclub .sous{color:var(--dim);font-size:11px;}
+  /* ---- accueil : la liste des carrières sauvegardées ---- */
+  .carLigne{display:flex;gap:4px;align-items:stretch;margin-bottom:4px;}
+  .carLigne .startclub{flex:1;margin-bottom:0;}
+  .carSous{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;}
+  .carSous .act,.carLigne .act{font-size:13px;padding:4px 8px;}
   .pips{font-size:14px;letter-spacing:1px;white-space:nowrap;}
   .pips .off{color:#31486b;}
   .accTabs{display:none;}
@@ -256,7 +261,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.93"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.94"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1456,6 +1461,7 @@ function nouvellePartie(clubId, saisonKey){
   G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3), starsEur);
   G.euroCompet=(S.euroC1||[]).includes(clubId)?"C1":((S.euroC2||[]).includes(clubId)?"C2":((S.euroC3||[]).includes(clubId)?"C3":null)); // compétition européenne de la 1re saison (sièges français réels)
   euroInit();        // tirage de la compétition européenne
+  PARTIE=partieNeuve(); G.pid=PARTIE.id; // une carrière DE PLUS : celles déjà ouvertes sont conservées
   majTitre(); montre("calendrier");
 }
 
@@ -2693,7 +2699,11 @@ function finirJournee(delta){
       }
     }
   }
-  G.histo.push(res);
+  // On n'archive que les ID et le score : y pousser `res` tel quel embarquait les OBJETS clubs
+  // (passés par référence), soit ~100 Ko de sauvegarde par journée. En milieu de saison le fichier
+  // dépassait le quota du navigateur et la sauvegarde automatique échouait en silence.
+  G.histo.push(res.map(e=>({h:e.h.id, a:e.a.id, sh:e.sh, sa:e.sa, mien:!!e.mien})));
+  if(G.news.length>60) G.news.length=60; // on n'affiche que les 10 dernières dépêches : le reste est du poids mort
   genPresse(res);
   // un arc narratif a-t-il un chapitre mûr pour la journée à venir ? si oui, il a l'EXCLUSIVITÉ (ni incident ni conf ce week-end)
   const arcDu = !!(G.arc && G.arc.beat && G.journee>=G.arc.prochaine);
@@ -5213,10 +5223,14 @@ function classement(){
 }
 
 /* ---------- Sauvegarde ---------- */
-function exporter(){
+function exporter(){ // nom de fichier parlant : on doit reconnaître la carrière sans l'ouvrir
+  const c=clubById(G.monClub);
+  const slug=t=>String(t).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase();
   const blob=new Blob([JSON.stringify(G)],{type:"application/json"});
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download="multiplex95-sauvegarde.json"; a.click();
+  a.href=URL.createObjectURL(blob);
+  a.download="multiplex95-"+slug(c?c.nom:"partie")+"-"+slug(G.saison)+"-J"+Math.min((G.journee||0)+1,38)+".json";
+  a.click();
 }
 function migre(){
   G.rapport=G.rapport||[]; G.sponsor=G.sponsor||null;
@@ -5269,6 +5283,10 @@ function migre(){
   G.clubs.forEach(c=>{ c._cedes=c._cedes||0; c._cedesG=c._cedesG||0; });
   G.montees=G.montees||0;
   veilleEffectif(); // sauvegardes d'avant le plancher (effectif bradé jusqu'à l'os) : remise en règle immédiate
+  // allègement des sauvegardes d'avant v0.94 : l'historique archivait les clubs entiers, les dépêches s'empilaient sans fin
+  G.histo=(G.histo||[]).map(j=>Array.isArray(j)?j.map(e=>(e&&e.h&&typeof e.h==="object")?{h:e.h.id,a:e.a.id,sh:e.sh,sa:e.sa,mien:!!e.mien}:e):j);
+  if(G.news && G.news.length>60) G.news.length=60;
+  if(G.presse && G.presse.length>40) G.presse.length=40;
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
     if(r && r.pen && !r.moment) r.moment={type:"pen_pour", uid:r.pen.uid};
@@ -5277,27 +5295,132 @@ function migre(){
 }
 function importer(ev){
   const f=ev.target.files[0]; if(!f)return;
+  if(!placeDispo()) return;
   const r=new FileReader();
-  r.onload=()=>{ G=JSON.parse(r.result); migre(); majTitre(); montre("calendrier"); };
+  r.onload=()=>{
+    let o=null;
+    try{ o=JSON.parse(r.result); }catch(e){ o=null; }
+    if(!o || !o.monClub || !o.clubs) return alert("Ce fichier n'est pas une sauvegarde MULTIPLEX 95.");
+    G=o;
+    PARTIE=partieNeuve(); G.pid=PARTIE.id; // un fichier importé ouvre une carrière DE PLUS : il n'écrase jamais celles du navigateur
+    migre(); sauvegardeLocale(true); majTitre(); montre("calendrier");
+  };
   r.readAsText(f);
 }
 /* ---------- Sauvegarde rapide en 1 clic (localStorage, sans fichier) ---------- */
-const SAVEKEY="d1manager_sauvegarde_v1";
+/* PLUSIEURS CARRIÈRES cohabitent dans le navigateur : chacune a sa propre clé, et un petit index
+   (IDXKEY) garde leur carte d'identité (club, saison, journée, date) pour dresser la liste de
+   l'accueil SANS relire les sauvegardes elles-mêmes, qui pèsent plusieurs centaines de Ko.
+   La carrière d'un joueur d'avant le multi-parties garde la clé historique SAVEKEY : l'index
+   l'ADOPTE telle quelle, sans recopie — rien n'est perdu, rien n'est dupliqué, et une ancienne
+   version du jeu la relirait encore. */
+const SAVEKEY="d1manager_sauvegarde_v1"; // clé de la carrière d'avant le multi-parties — NE JAMAIS RENOMMER (sauvegardes des testeurs)
+const IDXKEY="d1manager_parties_v1";     // index des carrières : [{id,k,nom,club,clubId,saison,journee,div,titres,maj}]
+const PARTPFX="d1manager_partie_";       // préfixe de clé d'une carrière ouverte depuis le multi-parties
+const MAX_PARTIES=4;                     // les ~5 Mo du navigateur se comptent en UTF-16 (~2,5 M de caractères) et une carrière pèse ~500 Ko : au-delà de 4, ça déborde
+let PARTIE=null;                         // la carrière dans laquelle on écrit {id,k}
+let SAVE_KO=false, SAVE_CRIE=false;      // dernière sauvegarde en échec ? alerte déjà poussée une fois ?
+
+function lsLit(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsEfface(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function idxLit(){ try{ const a=JSON.parse(lsLit(IDXKEY)||"[]"); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function idxEcrit(l){ try{ localStorage.setItem(IDXKEY, JSON.stringify(l)); }catch(e){} }
+function partieNeuve(){ const id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); return {id, k:PARTPFX+id}; }
+function ficheDe(o){ // carte d'identité d'une carrière, lue dans la sauvegarde
+  const c=metaClub(o.monClub);
+  return {clubId:o.monClub, club:c?c.nom:"Club inconnu", saison:o.saison||"?",
+          journee:Math.min((o.journee||0)+1,38), div:o.div||1, titres:(o.palmares||[]).length};
+}
+function clesParties(){ // balayage des clés du navigateur (pour récupérer une carrière absente de l'index)
+  const out=[];
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(PARTPFX)===0) out.push(k); } }catch(e){}
+  return out;
+}
+function partiesListe(){ // la liste de l'accueil, la plus récente d'abord — et qui se répare toute seule
+  const idx=idxLit(), vues={}, out=[];
+  let repare=false;
+  for(const e of idx){
+    if(!e || !e.k || vues[e.k]){ repare=true; continue; }
+    if(lsLit(e.k)==null){ repare=true; continue; } // sauvegarde effacée sous nos pieds : l'entrée saute
+    vues[e.k]=1; out.push(e);
+  }
+  for(const k of [SAVEKEY].concat(clesParties())){ // adoption : ancienne carrière, ou index perdu
+    if(vues[k]) continue;
+    const s=lsLit(k); if(s==null) continue;
+    try{ const o=JSON.parse(s); if(!o || !o.monClub) continue;
+      out.push(Object.assign({id:o.pid||("adopt_"+k), k, nom:null, maj:o._maj||0}, ficheDe(o)));
+      vues[k]=1; repare=true;
+    }catch(e){}
+  }
+  out.sort((a,b)=>(b.maj||0)-(a.maj||0));
+  if(repare) idxEcrit(out);
+  return out;
+}
+function placeDispo(){ // reste-t-il de la place pour une carrière de plus ?
+  if(partiesListe().length<MAX_PARTIES) return true;
+  alert("Vous avez déjà "+MAX_PARTIES+" carrières en cours, c'est le maximum que le navigateur peut retenir.\n\nSupprimez-en une sur l'accueil pour en commencer une nouvelle.");
+  return false;
+}
 function sauvegardeLocale(silencieux){
   if(EN_TEST()||!G) return false;
-  try{ localStorage.setItem(SAVEKEY, JSON.stringify(G)); return true; }
-  catch(e){ if(!silencieux) alert("Sauvegarde impossible : le stockage du navigateur est indisponible (navigation privée ?). Utilisez l'export en fichier."); return false; }
+  if(!PARTIE){ PARTIE=partieNeuve(); G.pid=PARTIE.id; } // filet : une partie arrivée là sans carrière attitrée
+  try{
+    G._maj=Date.now(); // la sauvegarde porte sa propre date : l'index se reconstruit même s'il est perdu
+    localStorage.setItem(PARTIE.k, JSON.stringify(G));
+    const l=idxLit(), i=l.findIndex(e=>e&&e.id===PARTIE.id), anc=i>=0?l[i]:null;
+    if(i>=0) l.splice(i,1);
+    l.unshift(Object.assign({id:PARTIE.id, k:PARTIE.k, nom:anc?anc.nom:null}, ficheDe(G), {maj:G._maj}));
+    idxEcrit(l);
+    SAVE_KO=false; return true;
+  }catch(e){
+    SAVE_KO=true;
+    const plein=e&&(e.name==="QuotaExceededError"||e.name==="NS_ERROR_DOM_QUOTA_REACHED"||e.code===22||e.code===1014);
+    if(!silencieux || !SAVE_CRIE){ SAVE_CRIE=true; // en sauvegarde auto, on ne crie qu'une fois par session
+      alert(plein?"Sauvegarde impossible : la mémoire du navigateur est pleine.\n\nExportez cette carrière en fichier, puis supprimez-en une ancienne depuis l'accueil."
+                 :"Sauvegarde impossible : le stockage du navigateur est indisponible (navigation privée ?). Utilisez l'export en fichier.");
+    }
+    return false;
+  }
 }
-function infoSauvegarde(){
-  try{ const s=localStorage.getItem(SAVEKEY); if(!s) return null;
-    const o=JSON.parse(s); const c=CLUBS.find(x=>x.id===o.monClub)||CLUBS_D2.find(x=>x.id===o.monClub);
-    return {club:c?c.nom:"?", saison:o.saison||"?", journee:Math.min((o.journee||0)+1,38), div:o.div||1};
-  }catch(e){ return null; }
+function chargeLocale(id){ // reprendre une carrière (sans argument : la plus récente)
+  const l=partiesListe(), p=id?l.find(e=>e.id===id):l[0];
+  if(!p) return false;
+  try{ const s=lsLit(p.k); if(s==null) return false;
+    G=JSON.parse(s); PARTIE={id:p.id, k:p.k}; G.pid=p.id;
+    migre(); majTitre(); montre("calendrier"); return true;
+  }catch(e){ alert("Impossible de charger cette carrière (données corrompues)."); return false; }
 }
-function chargeLocale(){
-  try{ const s=localStorage.getItem(SAVEKEY); if(!s) return false;
-    G=JSON.parse(s); migre(); majTitre(); montre("calendrier"); return true;
-  }catch(e){ alert("Impossible de charger la sauvegarde (données corrompues)."); return false; }
+function supprimePartie(id){
+  const p=partiesListe().find(e=>e.id===id); if(!p) return;
+  if(!confirm("Supprimer définitivement la carrière \u00ab "+(p.nom||p.club)+" \u00bb ("+p.saison+", J"+p.journee+"/38) ?\n\nElle sera perdue, sauf si vous l'avez exportée en fichier.")) return;
+  lsEfface(p.k);
+  idxEcrit(idxLit().filter(e=>e&&e.id!==id));
+  if(PARTIE && PARTIE.id===id){ PARTIE=null; G=null; }
+  ecranAccueil();
+}
+function renommePartie(id){
+  const l=idxLit(), i=l.findIndex(e=>e&&e.id===id); if(i<0) return;
+  const n=prompt("Nom de cette carrière (pour la reconnaître d'un coup d'œil) :", l[i].nom||l[i].club);
+  if(n===null) return;
+  l[i].nom=n.trim().slice(0,40)||null; idxEcrit(l); ecranAccueil();
+}
+function retourAccueil(){ // quitter la carrière en cours pour la liste — en la sauvegardant au passage
+  if(G){ abandonneDirect(); sauvegardeLocale(true); }
+  if(fiche && fiche.style) fiche.style.display="none";
+  G=null; VUECLUB=null; ECRAN="calendrier"; majTitre(); ecranAccueil();
+}
+function ilYA(ts){ // « il y a trois jours » : le repère le plus parlant pour retrouver sa partie
+  if(!ts) return "";
+  const h=Math.max(0,Date.now()-ts)/36e5;
+  if(h<1) return "il y a quelques minutes";
+  if(h<2) return "il y a une heure";
+  if(h<24) return "il y a "+Math.floor(h)+" heures";
+  const j=Math.floor(h/24);
+  if(j===1) return "hier";
+  if(j<7) return "il y a "+j+" jours";
+  if(j<14) return "il y a une semaine";
+  if(j<61) return "il y a "+Math.floor(j/7)+" semaines";
+  return "il y a "+Math.floor(j/30)+" mois";
 }
 
 /* =====================================================================
@@ -5361,7 +5484,10 @@ function ficheClubAccueil(id){
       <button class="act" id="bRetour" style="display:block;width:100%">← Choisir un autre club</button>
     </p></div>`;
   fiche.style.display="flex";
-  document.getElementById("bLance").onclick=()=>{ fiche.style.display="none"; nouvellePartie(id, SAISON_ACCUEIL); };
+  document.getElementById("bLance").onclick=()=>{
+    if(!placeDispo()) return; // le navigateur ne peut pas retenir une carrière de plus
+    fiche.style.display="none"; nouvellePartie(id, SAISON_ACCUEIL);
+  };
   document.getElementById("bRetour").onclick=()=>{ fiche.style.display="none"; };
 }
 let ACCUEIL_DIV = 1; // onglet de division affiché sur mobile (persiste tant qu'on reste sur l'accueil)
@@ -5376,8 +5502,36 @@ function grpAccueil(clubs){ // regroupe une division (déjà triée par prestige
   });
   return out;
 }
+function panneauCarrieres(parties){ // l'étagère des carrières en cours, la dernière jouée en tête
+  const imp=`<label class="act" style="cursor:pointer">📂 Importer un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`;
+  if(!parties.length) return `<div class="panel">
+     <h2>Reprendre une carrière</h2>
+     <p class="dim" style="font-size:12px;margin-bottom:8px">Aucune carrière sauvegardée dans ce navigateur. Choisissez un club plus bas : la partie se sauvegarde toute seule, et vous la retrouverez ici à votre prochaine visite. Rien n'oblige à n'en mener qu'une.</p>
+     <p class="carSous">${imp}</p>
+   </div>`;
+  const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}`;
+  const p0=parties[0], reste=parties.slice(1);
+  return `<div class="panel" style="border-color:var(--vert)">
+     <h2 style="color:var(--vert)">Vos carrières (${parties.length})</h2>
+     <button class="big" id="bReprendre" data-id="${esc(p0.id)}" style="display:block;width:100%;background:var(--vert);color:#06210f">▶ REPRENDRE — ${esc((p0.nom||p0.club).toUpperCase())} · ${sous(p0)}</button>
+     <p class="carSous"><span class="dim" style="flex:1">${esc(ilYA(p0.maj))}</span>
+       <button class="act carRen" data-id="${esc(p0.id)}">✏️ Renommer</button>
+       <button class="act carDel" data-id="${esc(p0.id)}">🗑️ Supprimer</button></p>
+     ${reste.length?`<p class="dim" style="font-size:12px;margin:12px 0 4px">Vos autres carrières :</p>`:""}
+     ${reste.map(p=>`<div class="carLigne">
+       <button class="startclub carGo" data-id="${esc(p.id)}" style="display:flex;align-items:center;gap:9px">
+         ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span></span><span class="dim">▶</span>
+       </button>
+       <button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>
+       <button class="act carDel" data-id="${esc(p.id)}" title="Supprimer">🗑️</button>
+     </div>`).join("")}
+     <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:11px">${parties.length>=MAX_PARTIES
+       ? "Vous avez atteint le maximum de "+MAX_PARTIES+" carrières : supprimez-en une pour en commencer une autre."
+       : "Choisir un club ci-dessous ouvre une <b>nouvelle</b> carrière — celles-ci sont conservées."}</span>${imp}</p>
+   </div>`;
+}
 function ecranAccueil(){
-  const sv=infoSauvegarde();
+  const parties=partiesListe();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   const cD1=S.d1.map(metaClub), cD2=S.d2.map(metaClub);
   const opts=Object.keys(SAISONS).map(k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>Saison ${esc(SAISONS[k].titre)}</option>`).join("");
@@ -5389,10 +5543,7 @@ function ecranAccueil(){
       ${g.clubs.map(carte).join("")}`).join("");
   app.innerHTML=`
    <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20,true)}MULTIPLEX 95 · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
-   ${sv?`<div class="panel" style="border-color:#62c462">
-     <button class="big" id="bReprendre" style="display:block;width:100%;background:#62c462;color:#06210f">▶ REPRENDRE — ${esc(sv.club)} · ${esc(sv.saison)}, J${sv.journee}/38</button>
-     <p class="dim" style="margin-top:6px;text-align:center;font-size:11px">Votre dernière partie est sauvegardée dans ce navigateur. Choisir un club ci-dessous démarre une nouvelle carrière (et remplacera cette sauvegarde).</p>
-   </div>`:""}
+   ${panneauCarrieres(parties)}
    <div class="panel" style="border-color:#6fd6e8">
      <label style="display:block;font-size:12px" class="cyan"><b>Saison de départ</b>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
@@ -5418,9 +5569,13 @@ function ecranAccueil(){
      </div>
    </div>
    <p class="footer">Multiplex 95 — prototype v${VERSION} · données d'époque approximatives.</p>`;
-  app.querySelectorAll(".startclub").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id));
+  app.querySelectorAll(".startclub:not(.carGo)").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id)); // .carGo = une carrière, pas un club : son data-id n'est pas un club
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
-  const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale();
+  const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale(br.dataset.id);
+  app.querySelectorAll(".carGo").forEach(b=>b.onclick=()=>chargeLocale(b.dataset.id));
+  app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
+  app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
+  const bia=document.getElementById("bImpAcc"); if(bia) bia.onchange=importer;
   const t1=document.getElementById("tabD1"), t2=document.getElementById("tabD2");
   if(t1) t1.onclick=()=>{ ACCUEIL_DIV=1; ecranAccueil(); };
   if(t2) t2.onclick=()=>{ ACCUEIL_DIV=2; ecranAccueil(); };
@@ -5439,8 +5594,10 @@ function chrome(actif, corps){
    <div id="corps">${corps}</div>
    <p class="footer">MULTIPLEX 95 · v${VERSION} ·
      <button class="act" id="bSave">💾 Sauvegarder</button>
+     <button class="act" id="bMenu">📁 Mes carrières</button>
      <button class="act" id="bExp">Exporter (fichier)</button>
      <label class="act" style="cursor:pointer">Importer (fichier)<input type="file" accept=".json" style="display:none" id="bImp"></label>
+     ${SAVE_KO?`<b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Exportez en fichier, puis supprimez une vieille carrière.</b>`:""}
    </p>`;
   app.querySelectorAll("nav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
   document.getElementById("bSave").onclick=()=>{
@@ -5448,6 +5605,7 @@ function chrome(actif, corps){
       b.textContent="✓ Partie sauvegardée"; b.disabled=true;
       setTimeout(()=>{ const bb=document.getElementById("bSave"); if(bb){ bb.textContent="💾 Sauvegarder"; bb.disabled=false; } },1600); }
   };
+  document.getElementById("bMenu").onclick=retourAccueil;
   document.getElementById("bExp").onclick=exporter;
   document.getElementById("bImp").onchange=importer;
 }
