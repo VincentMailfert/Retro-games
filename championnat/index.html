@@ -41,6 +41,10 @@
     justify-content:space-between; gap:4px 16px; margin-bottom:6px;
   }
   .topbar .r{font-weight:normal;}
+  /* La division, sur le bandeau JAUNE : pastille inversée. Un simple .jaune y était invisible
+     (jaune sur jaune) et le .cyan de la D2 y était illisible — fond sombre, texte coloré. */
+  .topbar .divTag{background:#16243c; color:var(--jaune); padding:0 5px; letter-spacing:0;}
+  .topbar .divTag.d2{color:var(--cyan);}
   nav{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;}
   nav button{
     background:var(--panel); color:var(--txt); border:1px solid var(--line);
@@ -5586,7 +5590,7 @@ function chrome(actif, corps){
   app.innerHTML=`
    <div class="topbar">
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
-     <span class="r">${esc(G.saison)} · <b class="${G.div===2?'cyan':'jaune'}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
+     <span class="r">${esc(G.saison)} · <b class="divTag${G.div===2?' d2':''}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
    </div>
    <nav>${["calendrier","classement","coupe","europe","effectif","mercato","finances","club","apropos"]
      .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s==="apropos"?"À PROPOS":s.toUpperCase()}</button>`).join("")}

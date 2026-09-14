@@ -912,6 +912,14 @@ toujours « raconter quelque chose ».
   chargement (−76 % mesuré sur un cas réel) et `sauvegardeLocale` prévient désormais quand la mémoire est
   pleine. Règle : dans `G`, on référence un club **par son `id`** (`clubById` fait le reste) ; tout tableau
   qui grossit sans fin doit être plafonné.
+- **RIEN DE JAUNE NI DE CYAN SUR LE BANDEAU (v0.94)** : `.topbar` a un fond `var(--jaune)`. La division
+  y était rendue par `<b class="jaune">D1</b>` — **jaune sur jaune, contraste 1,00:1, purement invisible**
+  (et le `.cyan` de la D2 plafonnait à 1,17:1). Le défaut a vécu des mois sans être vu : à l'œil, la ligne
+  se lit « 1995-96 ·  · J12/38 », avec un trou qu'on prend pour une espace. Correctif : une **pastille
+  inversée** `.topbar .divTag` (fond `#16243c`, texte jaune, cyan en `.d2`) — 10,78:1 et 9,22:1. Règle
+  générale : les classes de couleur `.jaune`/`.cyan`/`.vert`/`.dim` sont pensées pour le **fond bleu nuit** ;
+  sur un fond clair (bandeau, bouton `.big`, ligne sélectionnée) il faut inverser, jamais les réutiliser
+  telles quelles. Contrôle : mesurer le contraste rendu, pas le juger sur le code.
 - L'overlay d'un moment de match ne doit jamais surgir hors d'un match : `abandonneDirect()`
   sur chaque transition d'écran nettoie le ticker.
 - Reset des stats de TOUS les clubs à l'intersaison (`razStatsClub`), y compris ceux qui restent.
