@@ -71,10 +71,18 @@
   }
   button.act:hover{border-color:var(--jaune); color:var(--jaune);}
   button.act:disabled{opacity:.4; cursor:default;}
-  button.big{font-size:18px; padding:8px 18px; background:var(--jaune); color:#16243c; font-weight:bold; border:none;}
-  /* moment de match : une fois le choix tranché, la décision retenue s'illumine (✅) et les autres s'effacent */
-  .zPen.choisi, .zChoix.choisi{background:var(--jaune)!important; color:#16243c!important; border:1px solid var(--jaune)!important; font-weight:bold; opacity:1!important;}
-  .zPen.ecarte, .zChoix.ecarte{background:#0b1626!important; border:1px solid #6b5a22!important; color:var(--dim)!important; opacity:.55!important;}
+  button.big{font-size:18px; padding:8px 18px; background:var(--jaune); color:#16243c; font-weight:bold; border:2px solid transparent;}
+  /* RÈGLE D'AFFICHAGE DES BOUTONS (v1.02) : le JAUNE PLEIN ne se porte que sur une action ENCORE
+     OFFERTE. Dès qu'un bouton s'éteint — indisponible faute d'argent ou de fenêtre, ou choix déjà
+     tranché — il s'INVERSE : fond bleu nuit, cadre et typo jaune. On lit toujours ce qu'il dit, on
+     ne le prend plus pour un clic possible. (Retour de playtest : après avoir négocié une prime à
+     la signature, les trois boutons restaient jaune plein alors qu'un seul, « Signer », cliquait
+     encore.) Le bord transparent du bouton plein est là pour que l'inversion ne décale rien. */
+  button.big:disabled{background:#0b1626; color:#c9a63a; border-color:#6b5a22; cursor:default;}
+  /* Choix tranché (moment de match, négociation…) : la décision retenue s'inverse avec sa coche ✅,
+     les écartées s'effacent — voir figeChoix(). */
+  button.choisi, .zPen.choisi, .zChoix.choisi{background:#0b1626!important; color:var(--jaune)!important; border:2px solid var(--jaune)!important; font-weight:bold; opacity:1!important;}
+  button.ecarte, .zPen.ecarte, .zChoix.ecarte{background:#0b1626!important; border:1px solid #6b5a22!important; color:var(--dim)!important; opacity:.55!important;}
   /* ---- téléscripteur ---- */
   #ticker{
     background:#060d18; border:1px solid var(--line); min-height:240px; max-height:340px;
@@ -265,7 +273,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.01"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.02"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3491,11 +3499,51 @@ function acheter(j){
   if(prix>G.budget) return alert("Budget transferts insuffisant ("+(G.budget/1e6).toFixed(1)+" MF disponibles).");
   // le joueur (surtout s'il est vénal ou vedette) réclame une prime à la signature, payée cash
   const venal=(j.venal||5);
-  if(venal>=5 || j.note>=80){
-    const prime=Math.round(prix*(0.04+0.012*venal)/1e5)*1e5;
-    return demandePrime(j, prix, prime);
-  }
-  finaliseAchat(j, prix, 0);
+  const suite=()=>{
+    if(venal>=5 || j.note>=80) demandePrime(j, prix, Math.round(prix*(0.04+0.012*venal)/1e5)*1e5);
+    else finaliseAchat(j, prix, 0);
+  };
+  // On ne signe JAMAIS en un seul clic : récapitulatif d'abord (retour de playtest, v1.02 — un
+  // « Acheter » dans l'effectif adverse engageait 23 MF sans rien demander).
+  const vd=clubById(j.club);
+  modalSignature({
+    titre:"✍️ Signer "+j.nom+" ?",
+    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="jaune">${j.note}</b>${vd?' · <span class="dim">'+esc(vd.nom)+'</span>':""}</p>
+      <p style="margin-top:6px">Indemnité réclamée : <b class="jaune">${(prix/1e6).toFixed(1)} MF</b>, prélevée sur le budget transferts.</p>
+      <p class="dim">Il vous resterait ${((G.budget-prix)/1e6).toFixed(1)} MF de budget · salaire ${FMT(salaire(j))} FF/sem.</p>
+      ${(venal>=5||j.note>=80)?`<p class="dim" style="margin-top:6px">Son agent n'a pas encore dit son dernier mot.</p>`:""}`,
+    ok:"Signer — "+(prix/1e6).toFixed(1)+" MF",
+    onOk:suite
+  });
+}
+/* Écran de confirmation d'un engagement financier — on récapitule ce qu'on signe et ce que ça laisse
+   en caisse avant de trancher. Les DEUX boutons restent en jaune plein : ici, les deux sont cliquables.
+   Neutre au harnais (EN_TEST), qui n'a pas de DOM pour cliquer et doit garder le chemin direct. */
+function modalSignature(o){
+  if(EN_TEST()) return o.onOk();
+  const fiche=document.getElementById("fiche");
+  fiche.innerHTML=`<div class="fbox" style="max-width:460px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2 class="jaune">${esc(o.titre)}</h2>
+    ${o.corps}
+    <div style="margin-top:10px">
+      <button class="big" id="bSigOk" style="display:block;width:100%;margin:6px 0">${esc(o.ok)}</button>
+      <button class="big" id="bSigNon" style="display:block;width:100%;margin:6px 0">${esc(o.annul||"Annuler")}</button>
+    </div></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  const fin=()=>{ window._penEnCours=false; fermeFiche(); };
+  document.getElementById("bSigOk").onclick=()=>{ fin(); o.onOk(); };
+  document.getElementById("bSigNon").onclick=()=>{ fin(); if(o.onNon) o.onNon(); };
+}
+/* Fige une série de boutons dont le choix vient d'être tranché : celui qu'on a retenu s'inverse et
+   reçoit une coche ✅, les autres s'effacent. Après ce passage, le SEUL bouton resté en jaune plein
+   à l'écran est celui qui attend encore un clic (cf. la règle d'affichage, dans le <style>). */
+function figeChoix(noeuds, choisi){
+  noeuds.forEach(x=>{
+    x.disabled=true;
+    if(!choisi) return;
+    if(x===choisi){ x.classList.remove("ecarte"); x.classList.add("choisi"); if(!x.dataset.coche){ x.dataset.coche="1"; x.innerHTML="✅ "+x.innerHTML; } }
+    else x.classList.add("ecarte");
+  });
 }
 function demandePrime(j, prix, prime){
   const fiche=document.getElementById("fiche");
@@ -3517,7 +3565,9 @@ function demandePrime(j, prix, prime){
   document.getElementById("bPrimeNeg").onclick=()=>{
     const r=Math.random();
     const div=document.getElementById("primeRes");
-    document.querySelectorAll("#bPrimeOk,#bPrimeNeg,#bPrimeNon").forEach(b=>b.disabled=true);
+    // le choix est tranché : « Négocier » s'inverse et se coche, les deux autres s'effacent.
+    // Seul le bouton de la suite (Signer / Tant pis / Encaisser l'échec) reste en jaune plein.
+    figeChoix(document.querySelectorAll("#bPrimeOk,#bPrimeNeg,#bPrimeNon"), document.getElementById("bPrimeNeg"));
     if(r<0.5){ // accepte une prime réduite
       const reduite=Math.round(prime*0.5/1e5)*1e5;
       if(G.tresorerie<reduite){ div.innerHTML=`<p class="rouge" style="margin-top:8px">L'agent baisse à ${(reduite/1e6).toFixed(2)} MF... mais même ça, vous ne l'avez pas en caisse.</p><p style="margin-top:8px"><button class="big" id="bX">Tant pis</button></p>`; div.querySelector("#bX").onclick=()=>{fin();G.news.unshift("Transfert de "+j.nom+" abandonné, faute de liquidités.");rafraichir();}; return; }
@@ -3554,18 +3604,31 @@ function venteEclair(j){
   if(j.pretIn) return alert("Ce joueur est prêté par un autre club : impossible de le vendre.");
   { const r=refusDepart(clubById(G.monClub), j); if(r) return alert("Vente éclair impossible.\n\n"+r); }
   const prix=Math.round(valeur(j)*0.6/1e5)*1e5;
-  if(!confirm("Vente éclair de "+j.nom+" pour "+(prix/1e6).toFixed(1)+" MF (décote de 40 %) ?\nDépart immédiat, même hors mercato.")) return;
-  const moi=clubById(G.monClub);
-  moi.joueurs=moi.joueurs.filter(x=>x!==j);
-  const dest=PICK(G.clubs.filter(c=>c.id!==G.monClub));
-  j.club=dest.id; j.avendre=false; j.titu=false; dest.joueurs.push(j);
-  G.budget+=prix;
-  G.news.unshift("VENTE ÉCLAIR : "+j.nom+" bradé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
-  notif("💰 VENDU : "+j.nom+" bradé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF (vente éclair).");
-  // brader un cadre fidèle (ancien, capitaine, ou international maison) abîme l'image
-  if(j.capitaine || j.selA || (j.matchs||0)>=38) majReput(-6, "départ forcé d'un cadre");
-  fermeFiche();
-  rafraichir();
+  // le confirm() du navigateur cassait le décor 1995 et ne disait rien de ce qu'on perd : même écran
+  // de confirmation que les signatures, avec la décote et le cadre bradé écrits en rouge
+  modalSignature({
+    titre:"💰 Brader "+j.nom+" ?",
+    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="jaune">${j.note}</b>${j.capitaine?' · <span class="jaune">©️ capitaine</span>':""}</p>
+      <p style="margin-top:6px">Vous en tirez <b class="jaune">${(prix/1e6).toFixed(1)} MF</b> — soit une <b class="rouge">décote de 40 %</b> sur sa valeur.</p>
+      <p class="dim">Départ immédiat, même hors mercato, et vous ne choisissez pas son club.</p>
+      ${(j.capitaine||j.selA||(j.matchs||0)>=38)?`<p class="rouge" style="margin-top:6px">C'est un cadre de la maison : le brader abîmera l'image du club.</p>`:""}`,
+    ok:"Vendre — "+(prix/1e6).toFixed(1)+" MF",
+    annul:"Le garder",
+    onNon:()=>ouvreFiche(j), // on revient à sa fiche, d'où l'on vient : renoncer ne doit rien faire perdre
+    onOk:()=>{
+      const moi=clubById(G.monClub);
+      moi.joueurs=moi.joueurs.filter(x=>x!==j);
+      const dest=PICK(G.clubs.filter(c=>c.id!==G.monClub));
+      j.club=dest.id; j.avendre=false; j.titu=false; dest.joueurs.push(j);
+      G.budget+=prix;
+      G.news.unshift("VENTE ÉCLAIR : "+j.nom+" bradé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
+      notif("💰 VENDU : "+j.nom+" bradé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF (vente éclair).");
+      // brader un cadre fidèle (ancien, capitaine, ou international maison) abîme l'image
+      if(j.capitaine || j.selA || (j.matchs||0)>=38) majReput(-6, "départ forcé d'un cadre");
+      fermeFiche();
+      rafraichir();
+    }
+  });
 }
 
 /* ---------- Prêts ---------- */
@@ -3796,9 +3859,20 @@ function ameliorerCentre(){
   if(G.centre>=5) return alert("Le centre d'entraînement est déjà au niveau maximal.");
   const cout=8e6*G.centre;
   if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : "+(cout/1e6)+" MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
-  G.tresorerie-=cout; G.centre++;
-  G.news.unshift("CENTRE D'ENTRAÎNEMENT niveau "+G.centre+" : progression accélérée, blessures mieux soignées.");
-  montre("club");
+  const niv=G.centre+1;
+  modalSignature({
+    titre:"🌱 Passer le centre au niveau "+niv+" ?",
+    corps:`<p>Progression des jeunes <b class="vert">+${(niv-1)*10} %</b> · blessures <b class="vert">−${(niv-1)*7} %</b> et soignées plus vite${niv>=3?" · le staff médical réduit la fragilité chaque intersaison":""}.</p>
+      <p style="margin-top:6px">Coût : <b class="jaune">${(cout/1e6)} MF</b> pris sur la trésorerie.</p>
+      <p class="dim">Il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse.</p>`,
+    ok:"Financer les travaux — "+(cout/1e6)+" MF",
+    onOk:()=>{
+      if(G.centre>=5 || G.tresorerie<cout) return;
+      G.tresorerie-=cout; G.centre++;
+      G.news.unshift("CENTRE D'ENTRAÎNEMENT niveau "+G.centre+" : progression accélérée, blessures mieux soignées.");
+      montre("club");
+    }
+  });
 }
 
 /* ---------- Vases communicants : budget transferts ↔ trésorerie ---------- */
@@ -4203,6 +4277,20 @@ function genRapport(){
 function acheterJoker(k){
   const o=G.rapport[k]; if(!o) return;
   if(o.prix>G.budget) return alert("Budget transferts insuffisant pour cette recrue joker.");
+  // même règle que le mercato : un joker se signe en deux temps, pas d'un clic sur une carte
+  modalSignature({
+    titre:"✍️ Signer "+o.j.nom+" ?",
+    corps:`<p><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b class="jaune">${o.j.note}</b> · <span class="dim">${esc(o.j.lieu||"")}</span></p>
+      <p style="margin-top:6px">Indemnité : <b class="jaune">${(o.prix/1e6).toFixed(1)} MF</b>, prélevée sur le budget transferts.</p>
+      <p class="dim">Il vous resterait ${((G.budget-o.prix)/1e6).toFixed(1)} MF de budget · salaire ${FMT(salaire(o.j))} FF/sem.</p>
+      <p class="dim" style="margin-top:6px">Dossier joker : signable même mercato fermé, mais l'offre ne vaut que cette semaine.</p>`,
+    ok:"Signer — "+(o.prix/1e6).toFixed(1)+" MF",
+    onOk:()=>signeJoker(k)
+  });
+}
+function signeJoker(k){
+  const o=G.rapport[k]; if(!o) return;
+  if(o.prix>G.budget) return alert("Budget transferts insuffisant pour cette recrue joker.");
   const moi=clubById(G.monClub);
   o.j.club=G.monClub; moi.joueurs.push(o.j);
   G.budget-=o.prix;
@@ -4534,10 +4622,22 @@ function lanceProjet(id){
   if(!p.dispo(c)) return;
   const cout=p.cout(c);
   if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : "+(cout/1e6).toFixed(1)+" MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
-  G.tresorerie-=cout;
-  G.chantier={reste:p.duree, id:id};
-  G.news.unshift("TRAVAUX : "+(p.label?p.label(c):p.nom)+" — chantier lancé à "+c.stade+". Livraison dans "+p.duree+" journées.");
-  montre("club");
+  // un chantier immobilise la caisse ET le seul créneau de travaux disponible : on confirme avant
+  modalSignature({
+    titre:"🏗️ Lancer les travaux ?",
+    corps:`<p><b class="jaune">${esc(p.label?p.label(c):p.nom)}</b> à ${esc(c.stade)}.</p>
+      <p class="dim" style="margin-top:4px">${esc(EFFET_PROJ[p.id]||"")}</p>
+      <p style="margin-top:6px">Coût : <b class="jaune">${(cout/1e6).toFixed(1)} MF</b> pris sur la trésorerie · livraison dans ${p.duree} journées.</p>
+      <p class="dim">Il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse, et aucun autre chantier possible d'ici là.</p>`,
+    ok:"Lancer le chantier — "+(cout/1e6).toFixed(1)+" MF",
+    onOk:()=>{
+      if(G.chantier || G.tresorerie<cout) return; // la situation a pu changer entre-temps
+      G.tresorerie-=cout;
+      G.chantier={reste:p.duree, id:id};
+      G.news.unshift("TRAVAUX : "+(p.label?p.label(c):p.nom)+" — chantier lancé à "+c.stade+". Livraison dans "+p.duree+" journées.");
+      montre("club");
+    }
+  });
 }
 function avanceChantier(){
   if(!G.chantier) return;
@@ -7673,13 +7773,9 @@ function zoneGardien(){
 }
 function finMoment(fiche, html, onOk, choisi){
   const div=fiche.querySelector("#penRes");
-  // on fige les choix : le bouton retenu s'illumine et reçoit une coche ✅, les autres s'effacent
-  fiche.querySelectorAll(".zPen,.zChoix").forEach(x=>{
-    x.disabled=true;
-    if(!choisi) return;
-    if(x===choisi){ x.classList.add("choisi"); if(!x.dataset.coche){ x.dataset.coche="1"; x.innerHTML="✅ "+x.innerHTML; } }
-    else x.classList.add("ecarte");
-  });
+  // on fige les choix : le bouton retenu s'inverse et reçoit une coche ✅, les autres s'effacent —
+  // « Reprendre le match » devient ainsi le seul bouton en jaune plein de l'écran
+  figeChoix(fiche.querySelectorAll(".zPen,.zChoix"), choisi);
   div.innerHTML=html+`<p style="margin-top:8px"><button class="big" id="bPenOk">Reprendre le match</button></p>`;
   div.querySelector("#bPenOk").onclick=()=>{ window._penEnCours=false; fermeFiche(); onOk(); };
 }

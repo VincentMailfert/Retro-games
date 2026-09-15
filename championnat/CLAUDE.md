@@ -1088,6 +1088,40 @@ toujours « raconter quelque chose ».
   générale : les classes de couleur `.jaune`/`.cyan`/`.vert`/`.dim` sont pensées pour le **fond bleu nuit** ;
   sur un fond clair (bandeau, bouton `.big`, ligne sélectionnée) il faut inverser, jamais les réutiliser
   telles quelles. Contrôle : mesurer le contraste rendu, pas le juger sur le code.
+- **LE JAUNE PLEIN NE SE PORTE QUE SUR UNE ACTION ENCORE OFFERTE (v1.02)** — cousin du piège précédent,
+  mais sur le SENS de la couleur plutôt que sur son contraste. Retour de playtest, sur la prime à la
+  signature : « après qu'on ait négocié, tous les boutons restent en jaune ce qui crée de la confusion ».
+  Cause : `demandePrime` faisait `b.disabled=true` sur ses trois boutons, or **`button.big` n'avait AUCUN
+  style `:disabled`** (seul `button.act` en avait un) — trois boutons éteints restaient donc strictement
+  identiques au seul qui cliquait encore (« Signer »). Règle posée : **fond jaune plein = cliquable
+  maintenant** ; dès qu'un bouton s'éteint il **s'inverse** (fond bleu nuit, cadre et typo jaune) — on lit
+  toujours ce qu'il dit, on ne le prend plus pour une action. Trois états dans le `<style>` :
+  `button.big:disabled` (indisponible : jaune éteint `#c9a63a`, cadre `#6b5a22`), `button.choisi`
+  (la décision qu'on a prise : cadre et typo jaune vif + coche ✅) et `button.ecarte` (les options que ce
+  choix a fermées : gris, opacité .55). Le `.big` plein porte un `border:2px solid transparent` pour que
+  l'inversion ne décale rien. **Un seul helper les pose** : `figeChoix(noeuds, choisi)`, partagé par
+  `finMoment` (moments de match) et `demandePrime`. Le correctif a aussi rattrapé trois écrans où la même
+  ambiguïté dormait : la zone de penalty retenue était **jaune plein comme « Reprendre le match »**
+  (deux boutons pleins, un seul cliquable), et « ACHETER » / « Payer la prime » restaient pleins quand la
+  fenêtre de mercato ou la caisse les interdisaient. Contrôle : après un choix tranché, **compter les
+  boutons au fond jaune plein à l'écran — il doit y en avoir exactement un** (ou zéro s'il n'y a plus
+  rien à faire), et le mesurer au `getComputedStyle` en Playwright, pas à la lecture du code.
+- **ON NE S'ENGAGE JAMAIS SUR DES MILLIONS EN UN SEUL CLIC (v1.02)** — retour de playtest : « il me semble
+  avoir acheté un joueur en 1 seul clic sur l'écran de l'effectif d'une équipe, ça m'a surpris ». Exact :
+  `acheter()` n'ouvrait la modale de prime que pour les joueurs **vénaux ou vedettes** (`venal>=5 ||
+  note>=80`) ; pour tous les autres, le bouton « Acheter » de `ecranClubVue` appelait `finaliseAchat`
+  séance tenante. Le geste engageait donc 23 MF sans un mot, et de façon **imprévisible** — parfois un
+  écran, parfois rien, selon un trait du joueur que rien n'affiche. Correctif : un helper
+  **`modalSignature({titre, corps, ok, annul, onOk, onNon})`** qui récapitule ce qu'on signe, ce que ça
+  coûte et ce qu'il reste en caisse, branché sur **les cinq engagements irréversibles** — achat mercato
+  (`acheter`, en amont de la prime, qui reste le second temps de la négociation), recrue joker
+  (`acheterJoker` → le corps est passé à `signeJoker`), vente éclair (`venteEclair`, qui abandonne au
+  passage le `confirm()` du navigateur, hors décor et muet sur ce qu'on perd), chantier de stade
+  (`lanceProjet`) et centre de formation (`ameliorerCentre`). Les deux derniers **re-vérifient leurs
+  conditions dans `onOk`** : entre l'ouverture et la confirmation, la situation a pu changer.
+  **`modalSignature` court-circuite en `EN_TEST()`** (appel direct de `onOk`) — sans quoi
+  `harness-euro.cjs`, qui appelle `acheterJoker(0)` sans DOM pour cliquer, dormirait les yeux ouverts.
+  L'embauche d'un coach n'a PAS été touchée : `ouvreRecrutement` est déjà un écran de choix chiffré.
 - L'overlay d'un moment de match ne doit jamais surgir hors d'un match : `abandonneDirect()`
   sur chaque transition d'écran nettoie le ticker.
 - Reset des stats de TOUS les clubs à l'intersaison (`razStatsClub`), y compris ceux qui restent.
