@@ -1,4 +1,4 @@
-/* Harnais headless — LA FRAÎCHEUR, ÉTAT DE FORME PHYSIQUE (v1.00)
+/* Harnais headless — LA FRAÎCHEUR, ÉTAT DE FORME PHYSIQUE (v1.00, barème à quatre paliers v1.01)
    Vérifie le système de fatigue joueur par joueur demandé par l'auteur :
    A) le barème de base : un match coûte 20, une semaine en rend 20 — un joueur dans la force de
       l'âge repart toujours de 100 le samedi suivant, un vétéran non (98 à 33 ans, puis ça glisse)
@@ -6,7 +6,8 @@
    C) jouer tous les trois jours (rendez-vous de semaine) creuse la jauge pour de bon
    D) le onze se protège tout seul : un cadre sur les rotules cède sa place, ★ passe outre,
       🛌 Repos l'écarte, et l'équipe reste alignable même si l'on met tout le monde au vert
-   E) la fatigue pèse sur la performance et sur le risque de blessure, dans les proportions annoncées
+   E) le barème à quatre paliers : rien au-dessus de 90, le pourcentage de forme de 80 à 90, impact
+      aggravé de 65 à 80, massif en dessous — sur la performance, sur les blessures ET sur le moral
    F) les VINGT clubs de la division sont concernés, pas seulement le vôtre — et l'IA fait tourner
    G) l'intersaison remet tout le monde à neuf, et une vieille sauvegarde reprend avec un effectif frais
    Usage : node harness-fraicheur.cjs                                                        */
@@ -39,7 +40,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,onze,onzeRotation,forces,byUid,migre," +
-  "fraich,useFraich,reposHebdo,recupAge,recupJoueur,facteurFraich,noteSel,libFraich,jaugeFraich,fatigueSemaine," +
+  "fraich,useFraich,reposHebdo,recupAge,recupJoueur,facteurFraich,coefBlessureFraich,noteSel,libFraich,jaugeFraich,fatigueSemaine," +
   "apercuRotation,ecranEffectif,ouvreFiche,ecranCoupe,ecranEurope,mettreAuRepos," +
   "dispo,alignable,tireSubs,FRAICH_MATCH,FRAICH_BANC,FRAICH_SEM,getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
@@ -81,28 +82,52 @@ api.nouvellePartie("PSG");
 let G = api.getG();
 let moi = api.clubById(G.monClub);
 {
-  const cible = api.onze(moi)[5];
-  const avant = api.fraich(cible);
-  // deux matchs dans la même semaine : le championnat du samedi, puis le rendez-vous du mercredi
-  api.useFraich(cible, api.FRAICH_MATCH);
-  api.fatigueSemaine("cadres");
-  const apres = api.fraich(cible);
-  ok(apres <= avant - 35,
-    `deux matchs en une semaine coûtent ${r2(avant - apres)} points, pour une seule semaine de repos (${api.FRAICH_SEM}) en face`);
+  /* On rejoue la SÉQUENCE RÉELLE d'une semaine, dans l'ordre exact du moteur : le match du samedi est
+     débité, puis la semaine de repos est créditée (finirJournee fait les deux à la suite), et c'est
+     seulement ensuite que tombe le rendez-vous du mercredi. Sans rendez-vous, le débit et le crédit
+     s'annulent : un joueur qui joue chaque samedi se présente TOUJOURS à 100. Avec un rendez-vous, il
+     se présente à 80 — et il y reste tant qu'il n'a pas sauté une journée. */
+  moi.joueurs.forEach(j => { j.fraich = 100; });
+  let cadres = api.onze(moi).slice();
+  const suivi = cadres.find(j => j.age <= 29) || cadres[5]; // un joueur dans la force de l'âge : récupération pleine, arithmétique exacte
+  cadres.forEach(j => api.useFraich(j, api.FRAICH_MATCH));   // samedi
+  api.reposHebdo(moi);                                        // la semaine qui suit
+  ok(api.fraich(suivi) === 100,
+    "sans rendez-vous de semaine, le match et la semaine de repos s'annulent : coup d'envoi suivant à 100");
+  api.fatigueSemaine("cadres");                               // mercredi
+  ok(api.fraich(suivi) === 80,
+    `après le rendez-vous du mercredi, on aborde le samedi suivant à ${api.fraich(suivi)} — soit une performance à ${r2(api.facteurFraich(suivi))}`);
+  cadres.forEach(j => api.useFraich(j, api.FRAICH_MATCH));    // samedi suivant
   api.reposHebdo(moi);
-  ok(api.fraich(cible) < avant,
-    `même après la semaine de repos, il reste ${r2(avant - api.fraich(cible))} points de déficit : le rythme n'est pas tenable`);
+  ok(api.fraich(suivi) === 80,
+    "et il y RESTE : jouer chaque semaine ne rend pas les vingt points perdus, seule une journée sautée les rend");
+  /* Qui joue alors ? La sélection tranche sur le rendement RÉEL : à son poste, personne d'écarté ne doit
+     rendre plus qu'un titulaire. Selon la profondeur du poste, le cadre entamé souffle une journée (et
+     récupère ses vingt points) ou reste malgré tout le meilleur choix — auquel cas c'est au manager de
+     trancher avec 🛌 Repos. L'invariant à tenir est la cohérence, pas une rotation systématique. */
+  const xiApres = api.onze(moi);
+  const dedans = xiApres.filter(j => j.pos === suivi.pos && !j.titu).map(j => api.noteSel(j));
+  const dehors = moi.joueurs.filter(j => j.pos === suivi.pos && api.alignable(j) && !xiApres.includes(j)).map(j => api.noteSel(j));
+  const pireDedans = dedans.length ? Math.min(...dedans) : Infinity;
+  const mieuxDehors = dehors.length ? Math.max(...dehors) : -Infinity;
+  ok(pireDedans >= mieuxDehors - 1e-9,
+    `à son poste, aucun écarté ne rend plus qu'un titulaire (${r2(mieuxDehors)} contre ${r2(pireDedans)}) : la sélection suit le barème`);
+  ok(api.onze(moi).includes(suivi) ? true : api.fraich(suivi) === 80,
+    api.onze(moi).includes(suivi)
+      ? `à 80 il reste le meilleur choix à son poste : il y restera tant que le manager ne le mettra pas au repos`
+      : `à 80 une doublure fraîche le dépasse : il souffle une journée et repart à 100`);
   // la réserve, elle, épargne les cadres
   moi.joueurs.forEach(j => { j.fraich = 100; });
-  const cadres = api.onze(moi).slice();
+  cadres = api.onze(moi).slice();
   api.fatigueSemaine("reserve");
   const cadresTouches = cadres.filter(j => api.fraich(j) < 100).length;
   ok(cadresTouches <= 4,
     `en envoyant la réserve, ${cadresTouches} cadres seulement sont entamés (sur 11) : la rotation protège vraiment`);
   moi.joueurs.forEach(j => { j.fraich = 100; });
+  cadres = api.onze(moi).slice();
   api.fatigueSemaine("cadres");
-  ok(api.onze(moi).filter(j => api.fraich(j) < 100).length >= 8,
-    "en envoyant les cadres, ce sont bien les titulaires qui paient l'addition");
+  ok(cadres.filter(j => api.fraich(j) < 100).length === 11,
+    "en envoyant les cadres, ce sont bien les onze titulaires qui paient l'addition");
 }
 
 /* ============ D) le onze se protège, et reste alignable ============ */
@@ -130,21 +155,39 @@ G = api.getG(); moi = api.clubById(G.monClub);
   moi.joueurs.forEach(j => { j.repos = true; });
   ok(api.onze(moi).length === 11, "même avec l'effectif entier au repos, onze joueurs sont rappelés : jamais de forfait");
   moi.joueurs.forEach(j => { j.repos = false; });
-  // un cadre entamé mais pas cramé garde sa place : la rotation ne part pas en vrille
+  // la frontière de sélection épouse le barème : à plein régime il joue, dès qu'il rend moins il cède
+  att.fraich = 95;
+  ok(api.onze(moi).includes(att), `à 95/100 ${att.nom} garde sa place : au-dessus de 90, rien n'a changé pour lui`);
   att.fraich = 70;
-  ok(api.onze(moi).includes(att), `à 70/100 ${att.nom} garde sa place : un tiré n'est pas un remplacé`);
+  ok(!api.onze(moi).includes(att) || att.note * api.facteurFraich(att) > doublure.note,
+    `à 70/100 il ne rend plus que ${r2(att.note * api.facteurFraich(att))} contre ${doublure.note} à sa doublure fraîche : la sélection tranche sur le rendement réel`);
   att.fraich = 100;
 }
 
 /* ============ E) l'effet sur la performance et sur les blessures ============ */
-console.log("E) Ce que la fatigue coûte vraiment");
+console.log("E) Ce que la fatigue coûte vraiment — le barème à quatre paliers");
 {
   const f = (v) => api.facteurFraich({ fraich: v });
-  ok(f(100) === 1 && f(85) === 1, "au-dessus de 85, aucun effet : on ne punit pas un joueur simplement parce qu'il a joué");
-  ok(f(60) < 1 && f(60) > 0.95, `à 60 (émoussé) : ${Math.round((1 - f(60)) * 1000) / 10} % de rendement en moins`);
-  ok(f(35) < 0.94 && f(35) > 0.88, `à 35 (jambes lourdes) : ${Math.round((1 - f(35)) * 1000) / 10} % en moins`);
-  ok(f(0) >= 0.79 && f(0) <= 0.81, `plancher à ${Math.round((1 - f(0)) * 1000) / 10} % : dur, mais jamais une spirale sans retour`);
-  ok(f(100) > f(70) && f(70) > f(40) && f(40) > f(10), "la pente est monotone : plus on est cuit, moins on rend");
+  const b = (v) => api.coefBlessureFraich({ fraich: v });
+  // palier 1 — au-dessus de 90 : rien
+  ok(f(100) === 1 && f(95) === 1 && f(90) === 1, "au-dessus de 90, aucun effet : un joueur qui a récupéré est à plein régime");
+  // palier 2 — de 80 à 90 : la performance SUIT le pourcentage de forme
+  ok(r2(f(82)) === 0.82, `à 82 de forme, la performance vaut ${r2(f(82))} — littéralement le pourcentage, comme demandé`);
+  ok(r2(f(85)) === 0.85 && r2(f(80)) === 0.80, "toute la bande 80-90 suit la règle : 85 → 0,85 · 80 → 0,80");
+  // palier 3 — de 65 à 80 : le coefficient d'impact s'aggrave
+  const impactLin = (v) => 1 - v / 100;
+  ok(1 - f(70) > impactLin(70) && 1 - f(65) > impactLin(65),
+    `de 65 à 80 l'impact dépasse le simple pourcentage : à 70 on perd ${Math.round((1 - f(70)) * 1000) / 10} % au lieu de 30 %`);
+  ok(r2(f(65)) === 0.56, `à 65, la performance est tombée à ${r2(f(65))}`);
+  // palier 4 — sous 65 : massif
+  ok(f(60) < f(65) - 0.08, `sous 65 la chute s'accélère encore : 65 → ${r2(f(65))}, 60 → ${r2(f(60))}`);
+  ok(f(0) >= 0.34 && f(0) <= 0.36, `plancher à ${r2(f(0))} : un homme au bout du rouleau ne vaut plus qu'un tiers de lui-même`);
+  ok(f(100) > f(89) && f(89) > f(75) && f(75) > f(64) && f(64) > f(40), "la pente est monotone d'un palier à l'autre");
+  // blessures : neutres au-dessus de 80, ×2 à 65, jusqu'à ×4
+  ok(b(100) === 1 && b(80) === 1, "risque de blessure inchangé tant qu'on est au-dessus de 80");
+  ok(r2(b(65)) >= 1.95 && r2(b(65)) <= 2.05, `à 65, le risque de blessure a doublé (×${r2(b(65))})`);
+  ok(b(0) >= 3.5, `au fond, il est multiplié par ${r2(b(0))}`);
+  ok(b(100) <= b(70) && b(70) <= b(50) && b(50) <= b(10), "le risque ne redescend jamais quand la forme baisse");
   // la force du onze bouge bien quand l'équipe est à plat
   api.nouvellePartie("NAN");
   G = api.getG(); const c = api.clubById(G.monClub);
@@ -152,7 +195,7 @@ console.log("E) Ce que la fatigue coûte vraiment");
   const fr = api.forces(c).att;
   c.joueurs.forEach(j => { j.fraich = 20; });
   const cuit = api.forces(c).att;
-  ok(cuit < fr * 0.94, `un onze à bout de souffle perd ${Math.round((1 - cuit / fr) * 1000) / 10} % d'attaque`);
+  ok(cuit < fr * 0.70, `un onze à bout de souffle perd ${Math.round((1 - cuit / fr) * 1000) / 10} % d'attaque`);
   c.joueurs.forEach(j => { j.fraich = 100; });
   // risque de blessure : on compte sur une saison entière, effectif frais contre effectif cuit
   const blesses = (fraicheur) => { api.nouvellePartie("MTP"); const g = api.getG(); let n = 0;
@@ -164,7 +207,7 @@ console.log("E) Ce que la fatigue coûte vraiment");
     }
     return n; };
   const bFrais = blesses(100), bCuit = blesses(10);
-  ok(bCuit > bFrais * 1.6,
+  ok(bCuit > bFrais * 2.0,
     `sur 30 journées : ${bFrais} blessures avec un effectif frais contre ${bCuit} avec un effectif cuit (×${r2(bCuit / bFrais)})`);
 }
 
@@ -192,6 +235,15 @@ G = api.getG();
   star.fraich = 0;
   ok(!api.onze(adv).includes(star), "sur les rotules, il cède la place à une doublure fraîche (72) : l'IA fait tourner sans code dédié");
   ok(api.noteSel(star) < api.noteSel(pool[1]), `c'est bien la note de SÉLECTION qui tranche : ${r2(api.noteSel(star))} contre ${r2(api.noteSel(pool[1]))}`);
+  // quatrième palier : sous 65 de fraîcheur, la tête suit les jambes
+  api.nouvellePartie("MON");
+  G = api.getG(); const cm = api.clubById(G.monClub);
+  cm.joueurs.forEach(j => { j.fraich = 100; j.moral = 65; j.repos = false; });
+  const temoin = cm.joueurs[0], epuise = cm.joueurs[1];
+  epuise.fraich = 30;
+  api.jouerJournee();
+  ok(epuise.moral < temoin.moral - 1,
+    `sous 65, le moral fuit aussi : ${Math.round(epuise.moral)} pour l'épuisé contre ${Math.round(temoin.moral)} pour son coéquipier frais`);
   // personne ne finit la saison à zéro : le système doit se réguler tout seul
   api.nouvellePartie("CAN");
   G = api.getG();

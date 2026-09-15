@@ -440,11 +440,19 @@ toujours « raconter quelque chose ».
   la mi-saison. Le jeune, lui, repart toujours de 100 : le rythme d'une semaine est tenable, et il DOIT l'être.
   `recupJoueur(j,c)` ajoute vos investissements (centre d'entraînement + préparateur physique, ≤ 0,70 de « soin »)
   qui **comblent une partie du déficit de l'âge sans jamais le supprimer** (`k+(1-k)*soin+0,08*soin`).
-  **Trois effets, tous branchés sur `facteurFraich(j)`** (`1-0,20d²-0,06d`, `d=(85−f)/85`, plancher 0,80) :
-  (a) **rendement** — dans `eff()` de `forces()`, à côté du moral : nul au-dessus de 85, −3,5 % à 60, −10 % à 35,
-  −20 % au fond ; (b) **blessures** — la proba du tirage de `appliqueResultat` est multipliée par
-  `1+1,5*max(0,(70−f)/70)`, soit jusqu'à ×2,5 (mesuré ×1,9-2,1 sur une saison) ; (c) **sélection** — `noteSel(j)`
-  = note × facteur, **moins un malus de préservation sous 40** (`(40−f)*0,35`). C'est (c) qui fait que
+  **BARÈME À QUATRE PALIERS, posé par l'auteur (v1.01) — `facteurFraich(j)`** : au-dessus de **90**, RIEN ;
+  de **80 à 90**, la performance suit LITTÉRALEMENT le pourcentage de forme (à 82 on rend 82 %) ; de **65 à 80**,
+  le coefficient d'impact s'aggrave (pente 0,016/point au lieu de 0,010) ; **sous 65**, impact massif
+  (pente 0,020/point, plancher 0,35) **et le moral se met à fuir**. Table : 100→1,00 · 90→1,00 · 89→0,89 ·
+  85→0,85 · 80→0,80 · 75→0,72 · 70→0,64 · 65→0,56 · 60→0,46 · 54 et moins→0,35. **Il y a une MARCHE assumée
+  à 90** (1,00 → 0,899) : c'est la consigne, et elle rend le décrochage très lisible — ne pas la « lisser »
+  sans l'accord de l'auteur. **Quatre effets** : (a) **rendement** — dans `eff()` de `forces()`, à côté du moral ;
+  (b) **blessures** — `coefBlessureFraich(j)` multiplie la proba du tirage de `appliqueResultat` : neutre au-dessus
+  de 80, ×2 à 65, jusqu'à ×4 au fond (mesuré ×3,5 sur une saison d'effectif cuit) ; (c) **moral** — dans
+  `majMoral`, sous 65 : `d -= 0,08*(65−f)` (−1,2/journée à 50, −2,8 à 30), **qu'il joue ou non** — c'est un état,
+  pas une sanction de banc, et le seul remède est le repos ; une notification une fois par descente (`j._cuit`,
+  levé à 75) ; (d) **sélection** — `noteSel(j)` = note × facteur, **sans autre malus** (la courbe suffit désormais ;
+  l'ancien malus de préservation sous 40 a été retiré). C'est (d) qui fait que
   **`onze()` fait tourner tout seul, pour VOUS COMME POUR L'IA, avec la même fonction et sans code dédié** :
   un cadre à 84 sur les rotules passe derrière une doublure fraîche à 72. **Le ★ (`j.titu`) reste plus fort que
   tout** — on peut toujours assumer un cadre cramé. **🛌 `j.repos`** (bouton de l'écran Effectif, `mettreAuRepos`)
@@ -455,13 +463,23 @@ toujours « raconter quelque chose ».
   tourner `sansJouer`** — sinon ménager un cadre le punissait DEUX fois (jambes lourdes + moral en berne) et la
   décision que la fraîcheur rend nécessaire devenait une faute. Un homme qu'on ménage n'est pas un homme qu'on écarte.
   **Affichage** (jauge + mot d'époque, choix auteur) : colonne « Forme » de l'écran Effectif (`jaugeFraich`/
-  `libFraich` → Frais / En jambes / Émoussé / Jambes lourdes / Sur les rotules, ⏳ sur les 30 ans et plus),
+  `libFraich` → Frais ≥ 90 / Entamé ≥ 80 / Émoussé ≥ 65 / Jambes lourdes ≥ 50 / Sur les rotules — **les paliers
+  d'affichage épousent EXACTEMENT les bornes du barème**, le mot lu et la sanction encaissée désignent la même
+  chose ; toucher à l'un impose de toucher à l'autre. ⏳ sur les 30 ans et plus),
   ligne détaillée dans la fiche joueur, `apercuRotation(rot)` sous les boutons de rotation des trois écrans de
   rendez-vous de semaine, et un **avertissement d'avant-match** sous la feuille de match quand des titulaires sont
-  sous 55. **Remises à zéro** : `razStatsClub` (intersaison — deux mois sans match, tout le monde à 100, `repos`
+  sous 90 (rouge sous 65). **ÉQUILIBRE À CONNAÎTRE** : `FRAICH_MATCH` = `FRAICH_SEM` = 20, et `finirJournee`
+  débite le match PUIS crédite la semaine — donc un joueur qui joue chaque samedi se présente **toujours à 100**,
+  mais un seul rendez-vous de semaine le laisse **à 80 durablement** : jouer chaque semaine ne rend jamais les
+  vingt points perdus, seule une journée sautée les rend. C'est la rotation automatique qui la lui offre — et si
+  sa doublure est trop faible pour le dépasser même à 80 %, c'est au manager de trancher avec 🛌 Repos.
+  **Remises à zéro** : `razStatsClub` (intersaison — deux mois sans match, tout le monde à 100, `repos`
   levé) et `migre()` (`j.fraich=100`, `j.repos=false` → une carrière en cours reprend au frais).
   **Calibrage intact** : l'effet est SYMÉTRIQUE (les 20 clubs le subissent, l'IA tourne comme vous), donc ce que
-  l'attaque perd, la défense adverse le perd aussi — mesuré 2,419 → 2,400 buts/match sur 15 120 matchs.
+  l'attaque perd, la défense adverse le perd aussi — mesuré 2,419 (sans fatigue) → 2,432 buts/match sur 15 120
+  matchs. **Contre-intuitif mais vérifié** : un barème PLUS dur laisse les effectifs PLUS frais en fin de saison
+  (98/100 en championnat seul, 87 avec une campagne européenne jouée à fond), parce que la sélection écarte plus
+  tôt et que personne n'a le temps de sombrer ; en contrepartie un cadre ne joue plus que ~21-28 journées sur 34.
   Une **trêve internationale** coûte 8 points aux sélectionnés (`selections`) : la trêve n'en est une que pour
   ceux qui restent. Harnais dédié : **`harness-fraicheur.cjs`** (barème, saison du vétéran, rythme à trois jours,
   sélection, effets mesurés, symétrie IA, intersaison/migration, et un **test de rendu** qui appelle réellement

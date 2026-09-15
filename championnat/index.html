@@ -265,7 +265,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.00"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.01"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1576,13 +1576,36 @@ function recupJoueur(j, c){
 }
 function reposHebdo(c){ for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)); }
 function useFraich(j, cout){ j.fraich=Math.max(0, fraich(j)-cout); }
-// rendement du jour : rien au-dessus de 85, puis une pente qui mord pour de bon dans le rouge (plancher −20 %)
-function facteurFraich(j){ const d=Math.max(0,(85-fraich(j))/85); return Math.max(0.80, 1-0.20*d*d-0.06*d); }
-/* Note de SÉLECTION : le rendement du jour, plus un malus de préservation sous 40 — le staff ménage un
-   homme sur les rotules même s'il reste le mieux noté du groupe. C'est ce malus qui fait tourner les
-   dix-neuf clubs de l'IA tout seuls, avec la même fonction que la vôtre. Votre ★ reste plus fort que tout. */
-function noteSel(j){ const f=fraich(j); return j.note*facteurFraich(j) - (f<40?(40-f)*0.35:0); }
-const FRAICH_PALIERS=[[90,"Frais","vert"],[75,"En jambes","vert"],[55,"Émoussé","jaune"],[35,"Jambes lourdes","jaune"],[-1,"Sur les rotules","rouge"]];
+/* CE QUE LA FATIGUE COÛTE — quatre paliers, barème posé par l'auteur (v1.01) :
+     · au-dessus de 90  : RIEN. Un joueur qui a récupéré est à son plein régime, point.
+     · de 80 à 90       : la performance suit LITTÉRALEMENT le pourcentage de forme — à 82, on joue à 82 %.
+     · de 65 à 80       : le coefficient d'impact s'aggrave (pente 0,016/point au lieu de 0,010) → 0,56 à 65.
+     · sous 65          : impact massif (pente 0,020/point), plancher à 0,35 — et le moral se met à fuir
+                          (voir `majMoral`), parce qu'un homme cuit le sait et que ça se voit au vestiaire.
+   Les paliers d'affichage ci-dessous épousent EXACTEMENT ces bornes : le mot lu à l'écran et la sanction
+   encaissée sur le terrain désignent la même chose. Si l'on retouche un seuil ici, retoucher l'autre.
+   Table de référence : 100→1,00 · 90→1,00 · 89→0,89 · 85→0,85 · 80→0,80 · 75→0,72 · 70→0,64 · 65→0,56
+   · 60→0,46 · 55→0,36 · 54 et moins→0,35. */
+function facteurFraich(j){
+  const f=fraich(j);
+  if(f>=90) return 1;
+  if(f>=80) return f/100;
+  if(f>=65) return 0.80-0.016*(80-f);
+  return Math.max(0.35, 0.56-0.020*(65-f));
+}
+/* Risque de blessure : neutre tant qu'on est au-dessus de 80, il monte dans la zone aggravée (×2 à 65),
+   il explose en dessous (×4 au fond). Multiplie la proba du tirage de `appliqueResultat`. */
+function coefBlessureFraich(j){
+  const f=fraich(j);
+  if(f>=80) return 1;
+  if(f>=65) return 1+0.067*(80-f);
+  return Math.min(4, 2+0.031*(65-f));
+}
+/* Note de SÉLECTION = la note réelle corrigée du rendement du jour, rien de plus : si un cadre à 84 ne
+   rend que 80 % aujourd'hui, il vaut 67 et une doublure fraîche à 72 le devance pour de bon. C'est cette
+   seule ligne qui fait tourner les dix-neuf clubs de l'IA comme le vôtre. Votre ★ reste plus fort que tout. */
+function noteSel(j){ return j.note*facteurFraich(j); }
+const FRAICH_PALIERS=[[90,"Frais","vert"],[80,"Entamé","jaune"],[65,"Émoussé","jaune"],[50,"Jambes lourdes","rouge"],[-1,"Sur les rotules","rouge"]];
 function libFraich(j){ const f=fraich(j); return FRAICH_PALIERS.find(x=>f>=x[0]); }
 function jaugeFraich(j, w){ // la petite barre télétexte, même grammaire que la confiance du président
   const f=Math.round(fraich(j)), p=libFraich(j);
@@ -1659,7 +1682,7 @@ function forces(c){
   let coh=Math.max(0.85, 1-0.012*exces*(1-0.40*L)); // un fort capitaine tempère les divas
   coh*=1+(L-0.68)*0.05;                              // et soude (ou non) le vestiaire : ±~2 %
   coh=Math.max(0.84, Math.min(1.03, coh));
-  const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral))*facteurFraich(j); // le moral fait ±5 %, la fraîcheur jusqu'à −20 %
+  const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral))*facteurFraich(j); // le moral fait ±5 %, la fraîcheur jusqu'à −65 % (barème à quatre paliers)
   let att=xi.filter(j=>"MA".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/6*coh;
   if(xi.some(j=>j.tireurElite)) att*=1.03; // un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts
   const def=xi.filter(j=>"GD".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/5*coh;
@@ -2332,9 +2355,9 @@ function appliqueResultat(h,a,sh,sa,pre){
       const niv=(c.id===G.monClub)?G.centre:1;
       let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
       if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
-      // un homme qui n'a pas récupéré se claque : le risque grimpe jusqu'à ×2,5 sur les rotules.
+      // un homme qui n'a pas récupéré se claque : neutre au-dessus de 80, ×2 à 65, jusqu'à ×4 au fond.
       // Le tirage se fait sur la fraîcheur D'AVANT le coup d'envoi, avant d'en retirer le prix du match.
-      proba*=1+1.5*Math.max(0,(70-fraich(j))/70);
+      proba*=coefBlessureFraich(j);
       if(Math.random()<proba){
         let d=RNDI(1, 2+Math.round((j.fragile||5)*0.9));
         d=Math.max(1, Math.round(d*(1-0.10*(niv-1))));
@@ -3237,11 +3260,20 @@ function majMoral(res){
     // Un homme qu'on MÉNAGE n'est pas un homme qu'on écarte : il sait pourquoi il n'a pas joué, et le
     // compteur de banc ne tourne pas. Sans cela, mettre un cadre au repos le punissait deux fois — jambes
     // lourdes ET moral en berne — et la décision que la fraîcheur rend nécessaire devenait une faute.
-    else if(j.repos || fraich(j)<70){ /* au vert : ni gain, ni rancune */ }
+    else if(j.repos || fraich(j)<80){ /* au vert : ni gain, ni rancune */ }
     else { j.sansJouer=(j.sansJouer||0)+1;
       if(j.sansJouer===3) notif("😞 "+j.nom+" cire le banc depuis 3 matchs — son moral décroche.");
       if(j.sansJouer>=3) d-=((j.ego||5)>=7?5:3); }
     d += resultat>0?2:(resultat<0?-3:0.5);
+    /* QUATRIÈME PALIER (sous 65) : l'épuisement ne se contente plus de peser sur les jambes, il ronge la
+       tête. Le malus court qu'on joue ou non — c'est un état, pas une sanction de banc — et il ne s'arrête
+       que quand l'homme est remonté au-dessus de 65. Le seul remède est donc le repos, ce qui est le but. */
+    const fr=fraich(j);
+    if(fr<65){
+      d-=0.08*(65-fr);
+      if(!j._cuit){ j._cuit=true;
+        notif("🥵 "+j.nom+" est cuit ("+Math.round(fr)+"/100) — jambes ET moral. Il lui faut du repos, pas un match de plus."); }
+    } else if(j._cuit && fr>=75) j._cuit=false; // il est sorti de l'ornière : on pourra le crier à nouveau
     j.moral=Math.max(5,Math.min(100,(j.moral==null?65:j.moral)+d));
   }
 }
@@ -5123,10 +5155,10 @@ function apercuRotation(rot){
   const xi=onzeRotation(c, rot||"mixte");
   if(!xi.length) return "";
   const moy=Math.round(xi.reduce((s,j)=>s+fraich(j),0)/xi.length);
-  const cuits=xi.filter(j=>fraich(j)<55);
-  const cls=moy>=75?"dim":(moy>=55?"jaune":"rouge");
+  const cuits=xi.filter(j=>fraich(j)<80);                       // seuils calés sur les paliers du barème
+  const cls=moy>=90?"dim":(moy>=80?"jaune":"rouge");
   return `<p class="${cls}" style="font-size:12px;margin-top:8px">Fraîcheur du onze envisagé : <b>${moy}/100</b>`
-    + (cuits.length?` · ${cuits.length} homme${cuits.length>1?"s déjà émoussés":" déjà émoussé"} (${cuits.slice(0,3).map(j=>esc(j.nom)).join(", ")}${cuits.length>3?"…":""})`:"")
+    + (cuits.length?` · ${cuits.length} homme${cuits.length>1?"s déjà sous 80":" déjà sous 80"} (${cuits.slice(0,3).map(j=>esc(j.nom)).join(", ")}${cuits.length>3?"…":""})`:"")
     + ` · <span class="dim">chacun rentrera avec ${FRAICH_MATCH} points de moins.</span></p>`;
 }
 /* Votre gestion de l'effectif pour le tour de semaine — un vrai arbitrage, et depuis v1.00 un arbitrage
@@ -5145,7 +5177,7 @@ const ROTATION_COUPE={
 function fatigueSemaine(rot){
   const c=clubById(G.monClub); if(!c) return;
   onzeRotation(c, rot||"mixte").forEach(j=>useFraich(j, FRAICH_MATCH));
-  const cuits=c.joueurs.filter(j=>fraich(j)<35 && dispo(j)).length;
+  const cuits=c.joueurs.filter(j=>fraich(j)<65 && dispo(j)).length;
   if(cuits>=3) notif("😮‍💨 "+cuits+" joueurs rentrent sur les rotules du rendez-vous de semaine — le banc va devoir servir.");
 }
 const COUPE_TERRAIN=5;        // avantage du terrain (le petit reçoit, et il y croit)
@@ -6522,14 +6554,14 @@ function ecranCalendrier(){
          feuilleOk?(bancMoi<5?" — banc incomplet (blessés, suspendus), mais le match peut se jouer":""):" — LA LIGUE REFUSE LA FEUILLE DE MATCH"}
      </p>
      ${(()=>{ // l'état de forme du onze annoncé : on le dit AVANT le coup d'envoi, pas après la défaite
-       const cuits=xiMoi.filter(j=>fraich(j)<55);
+       const cuits=xiMoi.filter(j=>fraich(j)<90);   // sous 90, la performance commence à se payer
        if(!cuits.length) return "";
-       const rouges=cuits.filter(j=>fraich(j)<35);
+       const rouges=cuits.filter(j=>fraich(j)<65);  // sous 65, l'impact devient massif, moral compris
        const noms=cuits.slice(0,4).map(j=>esc(j.nom)).join(", ")+(cuits.length>4?"…":"");
        return `<p class="ctr ${rouges.length?"rouge":"jaune"}" style="margin-top:4px;font-size:12px">
-         ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s sont":" est")+" sur les rotules"
-                        :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s émoussés":" émoussé")} : ${noms}.
-         <span class="dim">Rendement en baisse et risque de blessure accru — l'écran Effectif permet de les mettre au repos.</span></p>`;
+         ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s sont CUITS":" est CUIT")+" (sous 65) — jambes, blessures ET moral"
+                        :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s entamés":" entamé")+" : sous 90, on ne joue plus à plein régime"} : ${noms}.
+         <span class="dim">L'écran Effectif permet de les mettre au repos.</span></p>`;
      })()}
      ${feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
@@ -7945,7 +7977,7 @@ function ecranEffectif(){
   // un départ est refusé par poste (ou par le total) : on grise le bouton plutôt que d'alerter après coup
   const blocVente={}; for(const p of ["G","D","M","A"]){ const ech=c.joueurs.find(j=>j.pos===p); blocVente[p]=ech?refusDepart(c,ech):null; }
   chrome("effectif",`<div class="panel"><h2>Effectif — ${esc(c.nom)}</h2>
-   <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Pèse jusqu'à −20 % sur la performance et double le risque de blessure.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th><th></th></tr>
+   <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th><th></th></tr>
    ${js.map((j,i)=>`<tr class="click" data-i="${c.joueurs.indexOf(j)}">
      <td>${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan">★</span>':""}${j.repos?'<span class="cyan" title="Mis au repos — il récupère">🛌</span>':""}</td>
      <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}${j.repos?' <span class="cyan">[au repos]</span>':""}</td>
@@ -7980,7 +8012,7 @@ function ecranEffectif(){
    })()}
    <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême. Survolez pour le détail, ouvrez la fiche pour tout savoir.</p>
    <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le 4-4-2 même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
-   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> — un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match, et il faut ménager le vétéran avant qu'il ne tombe dans le rouge. Sous 85, la performance baisse ; sous 70, le risque de blessure grimpe. <b>Le onze écarte de lui-même un homme sur les rotules</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
+   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> — un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match. <b>Au-dessus de 90, aucun effet.</b> De 80 à 90, on joue à son pourcentage de forme — à 82, on rend 82 %. De 65 à 80, la note ET le risque de blessure s'aggravent. <b>Sous 65, l'impact devient massif et le moral se met à fuir</b> : là, c'est le repos ou rien. <b>Le onze écarte de lui-même un homme émoussé</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
     <table>${G.prets.filter(p=>p.sens==="out").map(p=>{const j=byUid(p.uid);return j?`<tr class="click pret" data-u="${p.uid}">
       <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
