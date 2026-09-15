@@ -858,7 +858,8 @@ toujours « raconter quelque chose ».
    Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
-   index qui se répare, mémoire pleine).
+   index qui se répare, mémoire pleine), `harness-repetitions.cjs` (anti-répétition du téléscripteur :
+   lignes et motifs narratifs, en championnat, en coupe et après un changement de consigne).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →
@@ -900,6 +901,38 @@ toujours « raconter quelque chose ».
   passé le filtre `Math.random()<.7`) — la séquence restait illogique à l'écran. **La narration doit se caler
   sur ce qui est montré, pas sur ce que le moteur sait.** Vérification : zéro violation sur 600 matchs,
   ~0,70 contre/match. Aucun événement créé, aucun score modifié → calibrage intact (2,376).
+- **DEUX FOIS LE MÊME BUT DANS UN MATCH (v0.97)** — retour de playtest : « j'ai eu trois fois le même
+  but dans le match, mais écrit un peu différemment » (Bordeaux - Auxerre 4-0 : les lignes de la 34ᵉ et
+  de la 81ᵉ **mot pour mot identiques**, et celle de la 72ᵉ racontant le même fait de jeu). Deux causes,
+  toutes deux corrigées. **(a) L'anti-répétition existait (`pickNR`) mais ne couvrait pas les lignes les
+  plus lues** : le décor (ambiance, corner, hors-jeu, cartons, poteau, but refusé…) y passait, mais le
+  **BUT**, l'**occasion** et l'**arrêt** restaient sur un `PICK` avec remise. Sur 23 lignes de `COMM.but`,
+  un match à quatre buts avait ~24 % de chances de resservir le même commentaire — mesuré sur l'ancien
+  code : **206 matchs sur 1500 (13,7 %)** avec une ligne en double, et **377 tours de coupe sur 800 (47 %)**,
+  les pools étant plus sollicités sur un score fleuve. **(b) Plusieurs lignes racontent LE MÊME FAIT DE JEU
+  avec d'autres mots** : le but contre son camp en a quatre formulations dans `COMM.but`, et deux d'entre
+  elles dans la même rencontre suffisent à donner l'impression d'avoir revu le même but (**97 matchs sur
+  1500, 6,5 %**). D'où les **MOTIFS** (`MOTIFS_COMM`) : un motif = une expression qui reconnaît sa famille
+  (`csc` le contre son camp, `glisse` la glissade au moment de conclure, `crochet` le crochet de trop — ce
+  dernier à cheval sur `rate` ET `rateContre`), et un motif déjà raconté écarte ses autres formulations
+  pour le reste du match. **La détection est déclarative** : une formulation ajoutée à un pool est
+  rattachée toute seule — mais **vérifier au grep qu'une nouvelle expression n'attrape aucune ligne
+  étrangère**, un faux positif bloquerait silencieusement une ligne innocente. Trois détails qui comptent :
+  la fenêtre `garde` passe de 40 à **200** (la mémoire couvre maintenant ~17 lignes reconnues par match,
+  34 au pire, là où elle n'en voyait qu'une poignée) ; quand un pool étroit est vraiment épuisé (le
+  « second jaune » n'a que deux formulations), le repli ne tire plus au hasard mais **ressort la ligne la
+  plus ancienne** (LRU), pour que la répétition inévitable soit au moins lointaine ; et la mémoire
+  **voyage avec l'objet match** (`memoireDe`) pour survivre à un changement de consigne en direct
+  (`rejoueDepuis` → `simuleReste`), où l'ancienne ardoise vierge laissait revenir une ligne déjà lue
+  (237 reprises sur 600). **Elle est posée NON ÉNUMÉRABLE** : l'objet match dort dans `G._pend`, donc dans
+  la sauvegarde, et rien qui grossit n'entre dans `G` (cf. la leçon des 2,6 Mo) — `JSON.stringify`
+  l'ignore. **Limite assumée** : les lignes du cours de match annulé par un changement de consigne restent
+  brûlées (jamais affichées, mais comptées) ; ça ne coûte qu'un peu plus de variété, et le harnais en
+  tient compte pour ne pas crier au loup. Aucun effet moteur : **calibrage mesuré 2,385**.
+  Validation dédiée : **`harness-repetitions.cjs`** (il reconnaît le gabarit d'origine de chaque ligne
+  affichée en rebatissant une expression par ligne de pool — **piège à la relecture : un nom de joueur
+  contient un point (« L. Laslandes »), donc le joker doit accepter le point, sinon le harnais ne
+  reconnaît presque rien et dort les yeux ouverts**).
 - **UNE SEULE VOIX POUR LE TEMPS QU'IL FAIT (v0.86)** : depuis la météo (v0.84), `METEO_MATCH` est le
   **seul** propriétaire du ciel et de l'état du terrain. Les lignes génériques — `COMM.amb` et les groupes
   de `ETAT` — ne doivent **JAMAIS affirmer** qu'il pleut, qu'il gèle, que le terrain est gras ou sec, etc.

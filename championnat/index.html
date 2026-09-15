@@ -265,24 +265,65 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.96"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.97"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
 const RNDI=(a,b)=>Math.floor(RND(a,b+1));
 const PICK=a=>a[Math.floor(Math.random()*a.length)];
+// MOTIFS NARRATIFS (v0.97) : plusieurs lignes racontent LE MÊME FAIT DE JEU avec d'autres mots.
+// Le but contre son camp a quatre formulations, et deux d'entre elles dans la même rencontre
+// donnent au spectateur l'impression d'avoir revu le même but — retour de playtest (« j'ai eu
+// trois fois le même but dans le match, mais écrit un peu différemment »). On regroupe donc ces
+// lignes par MOTIF : un motif déjà raconté écarte toutes ses autres formulations pour le reste du
+// match. La détection est DÉCLARATIVE (un motif = une expression qui reconnaît sa famille), donc
+// une nouvelle formulation ajoutée à un pool est rattachée toute seule — et un motif peut couvrir
+// DEUX pools à la fois (le « crochet de trop » existe en jeu ouvert ET sur contre).
+// Pour étendre : ajouter une entrée ici, puis vérifier par un grep que l'expression n'attrape
+// aucune ligne étrangère — un faux positif bloquerait silencieusement une ligne innocente.
+const MOTIFS_COMM=[
+  {cle:"csc",     re:/contre son camp|propre lucarne|propre gardien|qui l'attribuer/},  // le ballon rentre par un défenseur
+  {cle:"glisse",  re:/(?:il|qui) glisse/},                                              // il glisse au moment de conclure
+  {cle:"crochet", re:/crochet de trop/},                                                // il garde le ballon pour lui
+];
+const _motifCache=new Map();
+const motifDe=l=>{ if(_motifCache.has(l)) return _motifCache.get(l);
+  let k=null; for(const m of MOTIFS_COMM) if(m.re.test(l)){ k=m.cle; break; }
+  _motifCache.set(l,k); return k; };
 // PICK avec anti-répétition : évite de retirer une ligne déjà servie récemment (fenêtre
 // `garde`), pour qu'une même vanne de commentaire (ex. le hors-jeu « chacun son métier »)
 // ne retombe pas deux fois dans le même match. `vus` = mémoire PAR MATCH (tableau muté en
-// place) ; si tout le pool a déjà été vu, on repart sur le pool complet. Purement cosmétique.
-// garde=40 : large exprès pour couvrir TOUT un match (un match compte ~10-25 lignes de décor,
-// bien moins que 40), donc aucune ligne ne se répète dans une même rencontre. Aucun risque
-// d'épuiser un pool : les familles rares (hors-jeu, soin…) ne sont tirées qu'~1 fois/match.
-const pickNR=(pool,vus,garde=40)=>{
-  const libres=pool.filter(x=>!vus.includes(x));
-  const src=libres.length?libres:pool;
-  const choix=src[Math.floor(Math.random()*src.length)];
-  vus.push(choix); if(vus.length>garde) vus.shift();
+// place, PARTAGÉ par toutes les familles) ; si tout le pool a déjà été vu, on repart sur le pool
+// complet. Purement cosmétique. `vus` reçoit aussi les clés de motif déjà servies — elles ne
+// ressemblent à aucune ligne, donc elles ne gênent pas le filtre par ligne.
+// Ordre de relâchement quand ça coince : d'abord la contrainte de motif, ensuite celle de ligne.
+// garde=200 : large exprès pour couvrir TOUT un match — depuis v0.97 la mémoire couvre AUSSI les
+// buts, les occasions et les arrêts (les lignes les plus visibles du téléscripteur), soit ~40-60
+// lignes sur une rencontre verbeuse, bien au-delà des 40 d'avant. Aucun risque d'épuiser un pool :
+// la source complète reprend la main dès qu'il n'y a plus de ligne libre.
+// La mémoire anti-répétition voyage avec l'objet match (rejoueDepuis en a besoin après un
+// changement de consigne), mais elle est posée NON ÉNUMÉRABLE : l'objet match dort dans `G._pend`,
+// donc dans la sauvegarde, et la règle d'or du projet est que rien qui grossit n'entre dans `G`
+// (cf. les 2,6 Mo de v0.94). JSON.stringify ignore une propriété non énumérable : la mémoire
+// vit le temps du match et ne coûte pas un octet de sauvegarde.
+const memoireDe=(o,init)=>{
+  if(!Object.prototype.hasOwnProperty.call(o,"vus"))
+    Object.defineProperty(o,"vus",{value:init||[],writable:true,configurable:true});
+  return o.vus;
+};
+const pickNR=(pool,vus,garde=200)=>{
+  let libres=pool.filter(x=>!vus.includes(x) && !vus.includes(motifDe(x)));
+  if(!libres.length) libres=pool.filter(x=>!vus.includes(x));
+  // Pool ENTIÈREMENT servi — inévitable quand une famille étroite (le carton du second jaune n'a
+  // que deux formulations) est tirée plus souvent qu'elle ne compte de lignes. Plutôt qu'un tirage
+  // au hasard qui pourrait resservir la ligne lue il y a deux minutes, on ressort la PLUS ANCIENNE :
+  // la répétition devient aussi lointaine que possible au lieu d'être voyante.
+  if(!libres.length){ let vieille=pool[0], rang=Infinity;
+    for(const x of pool){ const i=vus.lastIndexOf(x); if(i<rang){ rang=i; vieille=x; } }
+    libres=[vieille]; }
+  const choix=libres[Math.floor(Math.random()*libres.length)];
+  vus.push(choix); const mo=motifDe(choix); if(mo) vus.push(mo);
+  while(vus.length>garde) vus.shift();
   return choix;
 };
 // Anti-répétition des lignes de MONTÉE (téléscripteur en direct). La mémoire vit sur le
@@ -1861,7 +1902,7 @@ const ETAT=[
    "Long temps mort. Les entraîneurs font passer des consignes, les joueurs hochent la tête, et personne ne changera quoi que ce soit.",
  ]},
 ];
-function ligneEtat(m,sh,sa){ const e=ETAT.find(x=>x.cond(m,sh,sa)); return e?PICK(e.lignes):null; }
+function ligneEtat(m,sh,sa,vus){ const e=ETAT.find(x=>x.cond(m,sh,sa)); return e?(vus?pickNR(e.lignes,vus):PICK(e.lignes)):null; }
 /* Météo du match (v0.84, lot 2). Tirée au coup d'envoi, annoncée dans la ligne d'engagement,
    puis distillée en lignes d'ambiance pendant la rencontre. Elle TOURNE AVEC LE CALENDRIER.
    RÈGLE FONDAMENTALE : une saison de football va d'AOÛT à FIN MAI — les 38 journées couvrent
@@ -1965,12 +2006,16 @@ function estContre(c,m){
   if(!mien && dt<=2) return Math.random()<0.70;          // leur attaque vient d'échouer : le contre est logique
   return Math.random()<0.12;                             // ballon récupéré hors phase, plus rare
 }
-function marque(c, sh, sa, verbeux, ev, m, prefixe, contre){
+// `vus` = mémoire anti-répétition du match (cf. pickNR). LA LIGNE DE BUT Y PASSE DEPUIS v0.97 :
+// c'est la plus lue du téléscripteur, et c'est elle qu'on voyait revenir mot pour mot dans une
+// même rencontre. Sans mémoire, un match à quatre buts avait près d'une chance sur quatre de
+// servir deux fois le même commentaire (23 lignes au pool, tirage avec remise).
+function marque(c, sh, sa, verbeux, ev, m, prefixe, contre, vus){
   const j=tireur(c), p=passeur(c,j);
   j.buts++; if(p) p.passes++;
   // uid/pasUid : permettent d'annuler proprement un but pré-tiré si la tactique change en cours de match (cf. rejoueDepuis)
   if(verbeux) ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa,uid:j.uid,pasUid:p?p.uid:null,contre:!!contre},
-    x:fmtC(PICK(contre?COMM.butContre:COMM.but),j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe});
+    x:fmtC(pickNR(contre?COMM.butContre:COMM.but,vus||[]),j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe});
 }
 /* Commentaire lié au nombre de buts d'un joueur dans le match : doublé, triplé… et le COUP DU CHAPEAU
    (trois buts d'affilée, sans qu'un autre joueur — coéquipier ou adversaire — n'ait marqué entre-temps). */
@@ -2055,19 +2100,19 @@ function simuleMatch(home,away,verbeux){
     const r=Math.random();
     if(r < elh/90){ // évènement côté domicile
       const ct=estContre(home,m);
-      if(Math.random()<0.42){ sh++; marque(home,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); if(verbeux) DERN_ATT={cote:home.id,m,but:true}; }
+      if(Math.random()<0.42){ sh++; marque(home,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); if(verbeux) DERN_ATT={cote:home.id,m,but:true}; }
       else if(verbeux&&Math.random()<.7){
         const arr=Math.random()<.5, tir=tireur(home);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,away),
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,away),
           q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}}); // q = de quoi monter le suspense ; un contre joue toujours sa mise en place
         DERN_ATT={cote:home.id,m,but:false}; // la mémoire ne retient que ce qui est AFFICHÉ au téléscripteur
       }
     } else if(r < (elh+ela)/90){
       const ct=estContre(away,m);
-      if(Math.random()<0.42){ sa++; marque(away,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); if(verbeux) DERN_ATT={cote:away.id,m,but:true}; }
+      if(Math.random()<0.42){ sa++; marque(away,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); if(verbeux) DERN_ATT={cote:away.id,m,but:true}; }
       else if(verbeux&&Math.random()<.7){
         const arr=Math.random()<.5, tir=tireur(away);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,home),
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,home),
           q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
         DERN_ATT={cote:away.id,m,but:false};
       }
@@ -2104,13 +2149,13 @@ function simuleMatch(home,away,verbeux){
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.hj,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
       if(t) ev.push({m,t:"amb",x:fmtC(pickNR(COMM.soin,vusC),t,c===home?away:home)}); }
-    if(verbeux && Math.random()<0.014){ const el=ligneEtat(m,sh,sa); if(el) ev.push({m,t:"amb",x:el}); }
+    if(verbeux && Math.random()<0.014){ const el=ligneEtat(m,sh,sa,vusC); if(el) ev.push({m,t:"amb",x:el}); }
     // lot 2 : le bois, le but refusé, la météo. PUR DÉCOR, aucun effet sur le score.
     if(verbeux && Math.random()<0.004){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.poteau,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.003){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
-    if(verbeux && METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:PICK(METEO_MATCH.amb)}); }
+    if(verbeux && METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:pickNR(METEO_MATCH.amb,vusC)}); }
     if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
   }
   if(verbeux){
@@ -2118,13 +2163,17 @@ function simuleMatch(home,away,verbeux){
     ev.push({m:90,t:"sys",x:"L'arbitre annonce "+PICK([1,2,2,3,3,4,5])+" minutes de temps additionnel."});
     ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom});
     annoteButs(ev); }
-  return {sh,sa,ev,aff};
+  const R={sh,sa,ev,aff}; memoireDe(R,vusC); return R; // la mémoire anti-répétition voyage avec le match (cf. memoireDe)
 }
 /* Changement de tactique EN COURS de match : on re-simule uniquement les minutes restantes avec la nouvelle
    consigne (le harnais et le mode instantané n'y touchent pas — c'est purement le direct). lh/la sont recalculés
    à l'identique de simuleMatch mais avec la consigne du moment, et on repart du score et de l'infériorité numérique
    en cours. Les buts/cartons portent un uid → on annule proprement le tail pré-tiré avant de recoller (rejoueDepuis). */
-function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
+// `vus` : la mémoire anti-répétition du match EN COURS, passée par rejoueDepuis. Sans elle, un
+// changement de consigne à la mi-temps repartait d'une ardoise vierge et pouvait resservir une
+// ligne déjà lue en première période. (Les lignes du tail annulé, jamais affichées, y restent :
+// ça ne coûte qu'un peu plus de variété.)
+function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
   const fh=forces(home), fa=forces(away);
   const aff=affluence(home,away), fill=Math.min(1,aff/Math.max(1,home.cap)), ferveur=1+0.18*(fill-0.62);
   let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18*ferveur);
@@ -2138,20 +2187,20 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
   if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
   const derby=(RIVAL[home.id]===away.id);
-  const ev=[], vusC=[], booked=new Set(); // anti-répétition + joueurs avertis (uid), propres au reste de match re-simulé
+  const ev=[], vusC=vus||[], booked=new Set(); // anti-répétition (héritée du match en cours) + joueurs avertis (uid), propres au reste de match re-simulé
   for(let m=mStart+1;m<=90;m++){
     const elh=lh*mulH, ela=la*mulA, r=Math.random();
     if(r < elh/90){
       const ct=estContre(home,m);
-      if(Math.random()<0.42){ sh++; marque(home,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); DERN_ATT={cote:home.id,m,but:true}; }
+      if(Math.random()<0.42){ sh++; marque(home,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); DERN_ATT={cote:home.id,m,but:true}; }
       else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(home);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,away),q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,away),q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
         DERN_ATT={cote:home.id,m,but:false}; }
     } else if(r < (elh+ela)/90){
       const ct=estContre(away,m);
-      if(Math.random()<0.42){ sa++; marque(away,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct); DERN_ATT={cote:away.id,m,but:true}; }
+      if(Math.random()<0.42){ sa++; marque(away,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); DERN_ATT={cote:away.id,m,but:true}; }
       else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(away);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(PICK(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate)),tir,home),q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,home),q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
         DERN_ATT={cote:away.id,m,but:false}; }
     } else if(Math.random()<0.028){ ev.push({m,t:"amb",x:pickNR(COMM.amb,vusC)}); }
     if(Math.random()<(derby?0.055:0.030)){
@@ -2177,13 +2226,13 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA){
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.hj,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
       if(t) ev.push({m,t:"amb",x:fmtC(pickNR(COMM.soin,vusC),t,c===home?away:home)}); }
-    if(Math.random()<0.014){ const el=ligneEtat(m,sh,sa); if(el) ev.push({m,t:"amb",x:el}); }
+    if(Math.random()<0.014){ const el=ligneEtat(m,sh,sa,vusC); if(el) ev.push({m,t:"amb",x:el}); }
     // lot 2 : le bois, le but refusé, la météo. PUR DÉCOR, aucun effet sur le score.
     if(Math.random()<0.004){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.poteau,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.003){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
-    if(METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:PICK(METEO_MATCH.amb)}); }
+    if(METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:pickNR(METEO_MATCH.amb,vusC)}); }
   }
   return {ev, sh, sa};
 }
@@ -2196,7 +2245,7 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
     if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); }
   }
   let sh=0,sa=0; for(let k=0;k<fromIdx;k++){ const l=r.ev[k]; if(l.g){ if(l.g.cote===h.id) sh++; else sa++; } }
-  const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA);
+  const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r));
   r.ev.length=fromIdx;
   for(const e of out.ev) r.ev.push(e);
   r.ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom});
@@ -5173,7 +5222,7 @@ function gardienAff(aff, onzeFn){ if(aff.amateur) return "le gardien"; const g=(
 const COUPE_AMB=["Quelle ambiance sur ce terrain !","Le public pousse derrière son équipe.","On joue à fond, des deux côtés.",
   "Le rythme est haché mais l'engagement est total.","Beau mouvement collectif, mais ça butte sur la défense.","L'arbitre laisse jouer."];
 function genEvCoupe(H, A, r, onzeFn){ // r = {sh,sa,tab,win} déjà tiré ; renvoie {ev, aff} — pure mise en scène, aucune stat touchée
-  const ev=[], aff=H.cap?Math.round(H.cap*RND(0.55,0.95)):RNDI(1500,4000);
+  const ev=[], vus=[], aff=H.cap?Math.round(H.cap*RND(0.55,0.95)):RNDI(1500,4000); // vus = anti-répétition du tour (cf. pickNR)
   const nomsH=nomsAffiche(H,onzeFn), nomsA=nomsAffiche(A,onzeFn);
   const tirH=()=>PICK(nomsH), tirA=()=>PICK(nomsA);
   ev.push({m:0,t:"sys",x:"Coup d'envoi à "+H.stade+" devant "+FMT(aff)+" spectateurs. "+H.nom+" reçoit "+A.nom+"."});
@@ -5185,14 +5234,14 @@ function genEvCoupe(H, A, r, onzeFn){ // r = {sh,sa,tab,win} déjà tiré ; renv
   for(let k=0;k<buts.length;k++){ const dom=buts[k]==="H"; if(dom) sh++; else sa++;
     const cote=dom?H.id:A.id, but=dom?tirH():tirA(), pas=Math.random()<0.62?(dom?tirH():tirA()):null;
     butEvts.push({m:mins[k],t:"but",ic:"but",g:{cote,but,pas:pas&&pas!==but?pas:null,sh,sa},
-      x:fmtC(PICK(COMM.but),{nom:but},dom?A:H)+(pas&&pas!==but?" Passe décisive de "+pas+".":"")+"  ("+tagAff(H)+" "+sh+"-"+sa+")"}); }
+      x:fmtC(pickNR(COMM.but,vus),{nom:but},dom?A:H)+(pas&&pas!==but?" Passe décisive de "+pas+".":"")+"  ("+tagAff(H)+" "+sh+"-"+sa+")"}); }
   // quelques occasions manquées (avec flag de montée) et de l'ambiance, intercalées
   const occ=[]; const nOcc=RNDI(3,6);
   for(let k=0;k<nOcc;k++){ const m=RNDI(2,89), dom=Math.random()<0.5, tir=dom?tirH():tirA();
-    occ.push({m,t:"occ",ic:Math.random()<.5?"arret":"rate",x:fmtC(PICK(Math.random()<.5?COMM.arret:COMM.rate),{nom:tir},dom?A:H),
+    occ.push({m,t:"occ",ic:Math.random()<.5?"arret":"rate",x:fmtC(pickNR(Math.random()<.5?COMM.arret:COMM.rate,vus),{nom:tir},dom?A:H),
       q:{but:tir,cote:dom?H.id:A.id,bu:Math.random()<MONTEE_RATEE}}); }
   const amb=[]; const nAmb=RNDI(2,4);
-  for(let k=0;k<nAmb;k++) amb.push({m:RNDI(5,88),t:"amb",x:PICK(COUPE_AMB)});
+  for(let k=0;k<nAmb;k++) amb.push({m:RNDI(5,88),t:"amb",x:pickNR(COUPE_AMB,vus)});
   // assemblage trié + mi-temps (score réel à la 45e) + sifflet
   let hh=0, ha=0; for(const e of butEvts){ if(e.m<=45){ hh=e.g.sh; ha=e.g.sa; } }
   const corps=butEvts.concat(occ,amb);
