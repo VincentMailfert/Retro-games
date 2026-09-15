@@ -767,10 +767,34 @@ toujours « raconter quelque chose ».
   `nouvellePartie`, **vieilli à l'intersaison** comme les divisions françaises → dérive procédurale des noms en
   carrière longue, même compromis que D1/D2 ; per-country name pools = raffinement futur). **Élimination directe
   à 16, en ALLER-RETOUR** (`EURO_TOURS` : 8es/quarts/demies/finale, journées **8/16/27/33** distinctes de la coupe
-  nationale) : `resoudreEuroTie(a,b,neutre)` joue deux manches (aller chez a, retour chez b), **cumul des buts**,
+  nationale) : deux manches (aller chez a, retour chez b), **cumul des buts**,
   **but à l'extérieur double** (règle de l'époque), t.a.b. si tout est à égalité ; **sauf la finale** = match sec
-  sur terrain neutre (`neutre=true`, sans `EURO_TERRAIN`). L'aller-retour **resserre aussi la distribution** (deux
+  sur terrain neutre (`euroFinaleSeche`, sans `EURO_TERRAIN`). L'aller-retour **resserre aussi la distribution** (deux
   manches = moins d'upsets) : élite ~68 vs modestes ~6 sur 120 C1, réaliste.
+  **L'ALLER ET LE RETOUR SONT DEUX SOIRÉES SÉPARÉES (v0.99, retour de playtest « les matchs aller et retour se
+  sont suivis le même jour »)** : chaque tour occupe désormais **deux milieux de semaine espacés d'une semaine** —
+  `EURO_TOURS` porte `j` (l'aller) **et `jr` = j+1** (le retour), soit 8/9 · 16/17 · 27/28, la finale gardant son
+  unique J33. Les huit dates évitent toujours les tours de Coupe de France (10/15/20/26/31/36) : un seul
+  rendez-vous de semaine à la fois — **une section du harnais le vérifie**, à réexécuter si on déplace une date.
+  Le tie est donc coupé en deux : **`euroManche(a,b)`** joue l'aller, **`euroCloture(a,b,l1)`** joue le retour et
+  tranche (cumul + but à l'extérieur + t.a.b.). Entre les deux, **`G.euro.attente`** = `{tourIdx, paires, allers,
+  mien}` garde les huit scores de l'aller (sérialisé, donc il survit à une sauvegarde) ; `aJouer` porte un champ
+  **`manche`** (1 = aller, 2 = retour) et, au retour, les `allers` à reprendre. `euroTick` pose l'aller à `j`
+  puis, **une fois `attente` posée**, le retour à `jr` (`euroPoseRetour`) — et **ne tire jamais rien tant qu'une
+  manche attend d'être jouée** (`if(eu.aJouer) return`), sinon une manche restée en plan serait écrasée par un
+  nouveau tirage. `euroResoutTour` aiguille : manche 1 → **`euroResoutAller`**, qui joue, affiche et range dans
+  `attente` **sans éliminer personne ni incrémenter `tourIdx`** ; manche 2 (ou finale) → l'ancien corps, verdict
+  compris. **Conséquence de game design assumée** : la rotation (cadres/mixte/réserve) se choisit **deux fois**,
+  donc « les cadres » peuvent coûter **deux** matchs de championnat à −5 % — c'est le prix d'une double
+  confrontation. Côté écrans, une **quatrième fenêtre** `euroFenetreAller` (entre l'avant-match et les résultats)
+  annonce le score de l'aller et la date du retour, `euroFenetreResultats`/`ecranEurope` lisent `dt.manche===1`
+  pour afficher la colonne « Aller » **sans mettre de vainqueur en gras**, et le parcours montre le tie en cours
+  avec la mention `aller`. Le direct (`lanceEuroLeg`) ne joue **plus qu'une manche par écran** : le bouton
+  « Match retour → » a disparu, remplacé au sifflet de l'aller par la réinjection de VOTRE manche
+  (`euroResoutTour(true, {aid,bid,l1})`). **Piège de lecture des vieilles sauvegardes** : `migre()` donne
+  `manche:1` à un `aJouer` sans manche, `manche:2` à un `dernierTour` sans manche (sinon `f.agg[0]` lit
+  `undefined` et l'écran EUROPE casse), et **annule un `enDirect` de l'ancienne forme** (`{tie,leg}`) — le joueur
+  reprend depuis l'avant-match, comme pour tout direct abandonné.
   **Registre multi-compétitions (v0.75-0.76, lot 2 étapes 3-4) : LES TROIS COUPES C1 + C2 + C3.** `COMPETS={C1,C2,C3}`
   (nom, emoji ⭐/🏆/🌍, `pool` de clubs, `siege` français, dotations, recette) ; `competActif()` = la compétition en cours
   (`G.euro.compet`). Chacune ajoute **15 clubs étrangers curés** (`CLUBS_EUROPE_C2`/`_C3` + `STARS_EUROPE_C2`/`_C3`) :
@@ -825,7 +849,9 @@ toujours « raconter quelque chose ».
   plafond 90, tableau à 16, résolution complète, qualif du champion, réconciliation, zéro doublon **curé**
   Europe↔France — les homonymies de jeunes **procéduraux** sont tolérées comme entre deux clubs français, et le
   test les ignore ; F = distribution des vainqueurs ; G/H = C3/C2 : Bordeaux → Coupe UEFA, PSG → Coupe des Coupes, pools
-  et résolutions vérifiés). **Les trois compétitions sont livrées.** Reste (optionnel) : lot 4 = phase de poules de la C1.
+  et résolutions vérifiés ; I = **aller et retour espacés d'une semaine** — dates non collisionnées avec la Coupe de
+  France, aucun qualifié au soir de l'aller, cumul du retour qui reprend bien l'aller de la semaine d'avant, finale
+  restée un match sec). **Les trois compétitions sont livrées.** Reste (optionnel) : lot 4 = phase de poules de la C1.
   **Convention de désambiguïsation des noms (consigne auteur)** : deux joueurs RÉELS différents affichés pareil (frères,
   homonymes) → **préfixer l'initiale du prénom** au nom (ex. Benfica « J. Pinto » vs Porto « João Pinto »), plutôt que
   d'écarter un vrai joueur ou d'utiliser une initiale de 2ᵉ prénom. Si l'initiale du prénom collisionne aussi (deux « R.

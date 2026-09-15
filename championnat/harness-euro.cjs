@@ -24,7 +24,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,acheterJoker,retireDEurope,euroInit,CLUBS,CLUBS_D2,CLUBS_EUROPE,STARS_EUROPE,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,acheterJoker,retireDEurope,euroInit,CLUBS,CLUBS_D2,CLUBS_EUROPE,STARS_EUROPE,EURO_TOURS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -189,6 +189,58 @@ try {
   if (!G.euro.vainqueur) fail("pas de vainqueur de C2 après 38 journées");
   else ok("C2 résolue : vainqueur = " + G.euro.vainqueur);
 } catch (e) { fail("exception H : " + e.stack); }
+
+/* ===== I) L'aller et le retour ne se jouent PAS le même soir =====
+   Retour de playtest : « les matchs aller et retour se sont suivis le même jour ». Chaque tour
+   occupe désormais deux milieux de semaine espacés d'une semaine (EURO_TOURS.j puis .jr), et
+   la manche aller ne qualifie personne — seul le retour tranche. La finale reste un match sec. */
+console.log("I) Aller et retour espacés d'une semaine, en milieu de semaine");
+try {
+  api.nouvellePartie("NAN");
+  const G = api.getG(), T = api.EURO_TOURS;
+  const t0 = T[0];
+  if (t0.jr !== t0.j + 1) fail("l'aller (J" + t0.j + ") et le retour (J" + t0.jr + ") ne sont pas espacés d'une journée");
+  else ok("8es : aller après la J" + t0.j + ", retour après la J" + t0.jr + " (une semaine d'écart)");
+  const coupeJ = [10, 15, 20, 26, 31, 36]; // COUPE_TOURS : jamais deux rendez-vous de semaine le même soir
+  const collision = T.flatMap(t => [t.j, t.jr].filter(Boolean)).filter(j => coupeJ.includes(j));
+  if (collision.length) fail("un soir européen tombe sur un tour de Coupe de France (J" + collision.join(", J") + ")");
+  else ok("aucun soir européen ne tombe sur un tour de Coupe de France");
+
+  for (let d = 0; d < t0.j - 1; d++) api.jouerJournee();
+  if (G.euro.dernierTour) fail("un tour a été joué avant la J" + t0.j);
+  else ok("rien avant l'heure (J" + (t0.j - 1) + " : aucun tour joué)");
+
+  api.jouerJournee(); // J8 → match ALLER
+  const at = G.euro.attente;
+  if (!at) fail("pas de tie en attente après la J" + t0.j);
+  else if (at.allers.length !== 8) fail("aller : " + at.allers.length + " matchs joués (attendu 8)");
+  else ok("J" + t0.j + " : les 8 matchs aller sont joués et mis en attente");
+  if (G.euro.tourIdx !== 0) fail("le tour a avancé dès l'aller (tourIdx=" + G.euro.tourIdx + ")");
+  else if (G.euro.vivants.length !== 16) fail("des clubs ont été éliminés dès l'aller (" + G.euro.vivants.length + " vivants)");
+  else ok("l'aller ne qualifie personne : 16 clubs toujours en lice");
+  if (!G.euro.dernierTour || G.euro.dernierTour.manche !== 1) fail("la soirée n'est pas marquée comme une manche aller");
+  else if (G.euro.dernierTour.faits.some(f => f.agg || f.win)) fail("un verdict a été rendu au soir de l'aller");
+  else ok("les résultats du soir sont ceux de l'aller, sans vainqueur désigné");
+  const allersCopie = at.allers.map(l => l.slice()), pairesCopie = at.paires.map(p => p.slice());
+
+  api.jouerJournee(); // J9 → match RETOUR, une semaine plus tard
+  if (G.euro.attente) fail("le tie est resté en attente après le retour");
+  else if (G.euro.tourIdx !== 1) fail("le tour n'a pas avancé après le retour (tourIdx=" + G.euro.tourIdx + ")");
+  else if (G.euro.vivants.length !== 8) fail("après le retour : " + G.euro.vivants.length + " vivants (attendu 8)");
+  else ok("J" + t0.jr + " : le retour tranche, 8 clubs passent en quarts");
+  const dt = G.euro.dernierTour;
+  const memeAller = dt && dt.manche === 2 && dt.faits.every((f, i) =>
+    f.aid === pairesCopie[i][0] && f.bid === pairesCopie[i][1] &&
+    f.l1[0] === allersCopie[i][0] && f.l1[1] === allersCopie[i][1] &&
+    f.agg[0] === f.l1[0] + f.l2[1] && f.agg[1] === f.l1[1] + f.l2[0]);
+  if (!memeAller) fail("le cumul du retour ne reprend pas le score de l'aller joué une semaine plus tôt");
+  else ok("le cumul reprend bien l'aller de la semaine précédente (8 ties vérifiés)");
+
+  for (let d = 0; d < T[3].j - t0.jr; d++) api.jouerJournee(); // jusqu'au soir de la finale
+  if (!G.euro.vainqueur) fail("pas de vainqueur après la J" + T[3].j + " (la finale sèche n'a pas eu lieu)");
+  else if (G.euro.dernierTour.faits.length !== 1 || !G.euro.dernierTour.finale) fail("la finale n'est pas un match sec");
+  else ok("finale = match sec à la J" + T[3].j + ", vainqueur = " + G.euro.vainqueur);
+} catch (e) { fail("exception I : " + e.stack); }
 
 console.log(FAILS ? ("\n❌ HARNAIS EUROPE : " + FAILS + " ÉCHEC(S)") : "\n✅ HARNAIS EUROPE : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

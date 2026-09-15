@@ -265,7 +265,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.98"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.99"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -5340,27 +5340,33 @@ function ecranEurope(){
     statut=`<p class="vert">Toujours en lice — ${eu.vivants.length} clubs encore en course pour les grandes oreilles.</p>`;
   }
   if(eu.gains) statut+=`<p class="dim" style="font-size:12px">Billetterie + primes UEFA encaissées : <span class="jaune">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
-  const tourLabel = eu.vainqueur ? "Épreuve terminée" :
-     (eu.tourIdx<EURO_TOURS.length ? "Prochain tour : "+EURO_TOURS[eu.tourIdx].nom+" (en semaine, vers la J"+EURO_TOURS[eu.tourIdx].j+")" : "—");
-  const parc = (eu.enLice && eu.monParcours.length) ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Résultat</th><th></th></tr>
-     ${eu.monParcours.map(p=>`<tr><td>${esc(p.tour)}</td><td>${esc(nomEuro(p.advId))} ${dr(p.advId)}${p.finale?' <span class="dim">(finale)</span>':''}</td><td class="num">${esc(p.sc)}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`).join("")}
-     </table>` : (eu.enLice?`<p class="dim">Votre entrée en lice se fera en ${esc(EURO_TOURS[0].nom)}.</p>`:`<p class="dim">—</p>`);
+  const tc = eu.tourIdx<EURO_TOURS.length ? EURO_TOURS[eu.tourIdx] : null;
+  const tourLabel = eu.vainqueur ? "Épreuve terminée" : !tc ? "—" :
+     (eu.attente ? "Match RETOUR des "+tc.nom.toLowerCase()+" en milieu de semaine, après la J"+tc.jr
+                 : "Prochain tour : "+tc.nom+(tc.jr?" — aller en milieu de semaine après la J"+tc.j+", retour après la J"+tc.jr
+                                                     :" (match sec, en milieu de semaine après la J"+tc.j+")"));
+  const enCours = (eu.enLice && eu.attente && eu.attente.mien) ? (m=>`<tr><td>${esc(tc?tc.court:"—")}</td><td>${esc(nomEuro(m.advId))} ${dr(m.advId)}</td><td class="num">${esc(m.sc)}</td><td><span class="cyan">aller</span></td></tr>`)(eu.attente.mien) : "";
+  const parc = (eu.enLice && (eu.monParcours.length||enCours)) ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Résultat</th><th></th></tr>
+     ${eu.monParcours.map(p=>`<tr><td>${esc(p.tour)}</td><td>${esc(nomEuro(p.advId))} ${dr(p.advId)}${p.finale?' <span class="dim">(finale)</span>':''}</td><td class="num">${esc(p.sc)}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`).join("")}${enCours}
+     </table>${enCours?'<p class="dim" style="font-size:11px">Le match retour reste à jouer : rien n\'est décidé.</p>':""}` : (eu.enLice?`<p class="dim">Votre entrée en lice se fera en ${esc(EURO_TOURS[0].nom)}.</p>`:`<p class="dim">—</p>`);
   const dtF = eu.dernierTour && eu.dernierTour.finale;
-  const dt = eu.dernierTour ? `<div class="panel"><h2>${esc(eu.dernierTour.nom)} — résultats</h2>
-     <p class="dim" style="font-size:11px">${dtF?"Match sec sur terrain neutre.":"Aller-retour · cumul des buts (but à l'extérieur double)."}</p>
-     <table class="fit"><tr><th>Équipe</th><th class="num">${dtF?"Score":"Cumul"}</th><th>Équipe</th></tr>
+  const dtA = eu.dernierTour && eu.dernierTour.manche===1; // la dernière soirée était une manche aller
+  const dt = eu.dernierTour ? `<div class="panel"><h2>${esc(eu.dernierTour.nom)} — ${dtA?"matchs aller":"résultats"}</h2>
+     <p class="dim" style="font-size:11px">${dtF?"Match sec sur terrain neutre.":(dtA?"Manche aller · les retours se jouent une semaine plus tard.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
+     <table class="fit"><tr><th>Équipe</th><th class="num">${dtF?"Score":(dtA?"Aller":"Cumul")}</th><th>Équipe</th></tr>
      ${eu.dernierTour.faits.map(f=>{ const a=f.aid,b=f.bid,
-        sa=f.neutre?f.s[0]:f.agg[0], sb=f.neutre?f.s[1]:f.agg[1],
-        legs=f.neutre?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`;
+        sa=dtA?f.l1[0]:(f.neutre?f.s[0]:f.agg[0]), sb=dtA?f.l1[1]:(f.neutre?f.s[1]:f.agg[1]),
+        legs=(dtA||f.neutre)?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`,
+        gras=c=>(!dtA&&f.win===c);
        return `<tr class="${(a===G.monClub||b===G.monClub)?"me":""}">
-         <td>${f.win===a?"<b>":""}${esc(nomEuro(a))}${f.win===a?"</b>":""}</td>
+         <td>${gras(a)?"<b>":""}${esc(nomEuro(a))}${gras(a)?"</b>":""}</td>
          <td class="num">${sa}-${sb}${f.tab?" <span class=dim>tab</span>":""}</td>
-         <td>${f.win===b?"<b>":""}${esc(nomEuro(b))}${f.win===b?"</b>":""}${legs}</td></tr>`;}).join("")}
+         <td>${gras(b)?"<b>":""}${esc(nomEuro(b))}${gras(b)?"</b>":""}${legs}</td></tr>`;}).join("")}
      </table></div>` : "";
   chrome("europe",`
     <div class="panel"><h2 class="jaune">${competActif().emoji} ${esc(competActif().nom)} ${esc(eu.saison)}</h2>
       ${statut}
-      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Élimination directe à 16, aller-retour · champion → Ligue des Champions ⭐, vainqueur Coupe de France → Coupe des Coupes 🏆, 2ᵉ-4ᵉ → Coupe UEFA 🌍.</p>
+      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Élimination directe à 16, en aller-retour · champion → Ligue des Champions ⭐, vainqueur Coupe de France → Coupe des Coupes 🏆, 2ᵉ-4ᵉ → Coupe UEFA 🌍.</p>
     </div>
     <div class="panel"><h2>Votre parcours</h2>${parc}</div>
     ${dt}`);
@@ -5374,10 +5380,14 @@ function ecranEurope(){
    = Nantes) pour désigner un vainqueur — la scène européenne vit sa vie. Résolution
    ABSTRAITE en fin de journée (lot 1, pas d'écran direct). Court-circuité hors UI.
    Qualification : champion de D1 → C1 (siège français). Clubs dans G.europe. */
+/* Chaque tour se joue en DEUX SOIRS DE SEMAINE espacés d'une semaine : `j` = le milieu de semaine
+   qui suit cette journée de championnat (match ALLER), `jr` = celui d'après (match RETOUR).
+   La finale, elle, est un match sec : pas de `jr`. Les dates évitent les tours de Coupe de France
+   (COUPE_TOURS : 10/15/20/26/31/36) — un seul rendez-vous de semaine à la fois. */
 const EURO_TOURS=[
-  {nom:"Huitièmes de finale", court:"8es",    j:8},
-  {nom:"Quarts de finale",    court:"Quarts", j:16},
-  {nom:"Demi-finales",        court:"Demies", j:27},
+  {nom:"Huitièmes de finale", court:"8es",    j:8,  jr:9},
+  {nom:"Quarts de finale",    court:"Quarts", j:16, jr:17},
+  {nom:"Demi-finales",        court:"Demies", j:27, jr:28},
   {nom:"Finale",              court:"Finale", j:33},
 ];
 const EURO_TERRAIN=4;                     // avantage du terrain, un cran sous la coupe nationale
@@ -5419,23 +5429,22 @@ function forceEuro(id){
 function euroManche(hid,aid){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
   return scoreCoupe(forceEuro(hid)+EURO_TERRAIN, forceEuro(aid)); // [buts hôte, buts visiteur]
 }
-function resoudreEuroTie(a,b,neutre){ // double confrontation (aller chez a, retour chez b), sauf finale = match sec neutre
-  if(neutre){ // FINALE : terrain neutre, pas d'avantage du terrain
-    const fh=forceEuro(a), fa=forceEuro(b);
-    let [sa,sb]=scoreCoupe(fh,fa);
-    let tab=false, win;
-    if(sa>sb) win=a; else if(sb>sa) win=b; else { tab=true; win=(Math.random()<fh/(fh+fa))?a:b; }
-    return {aid:a, bid:b, neutre:true, s:[sa,sb], tab, win};
-  }
-  const [a1,b1]=euroManche(a,b);            // aller chez a → [buts a, buts b]
+function euroFinaleSeche(a,b){ // FINALE : match sec sur terrain neutre, pas d'avantage du terrain
+  const fh=forceEuro(a), fa=forceEuro(b);
+  let [sa,sb]=scoreCoupe(fh,fa);
+  let tab=false, win;
+  if(sa>sb) win=a; else if(sb>sa) win=b; else { tab=true; win=(Math.random()<fh/(fh+fa))?a:b; }
+  return {aid:a, bid:b, neutre:true, s:[sa,sb], tab, win};
+}
+function euroCloture(a,b,l1){ // manche RETOUR chez b, une semaine après l'aller `l1` → cumul et verdict
   const [b2,a2]=euroManche(b,a);            // retour chez b → [buts b, buts a]
-  const aggA=a1+a2, aggB=b1+b2;             // cumul
-  const awayA=a2, awayB=b1;                 // buts marqués à l'extérieur (a chez b ; b chez a)
+  const aggA=l1[0]+a2, aggB=l1[1]+b2;       // cumul sur les deux matchs
+  const awayA=a2, awayB=l1[1];              // buts marqués à l'extérieur (a chez b ; b chez a)
   let tab=false, win;
   if(aggA>aggB) win=a; else if(aggB>aggA) win=b;             // cumul
   else if(awayA>awayB) win=a; else if(awayB>awayA) win=b;    // but à l'extérieur double (règle de l'époque)
   else { tab=true; win=(Math.random()<forceEuro(a)/(forceEuro(a)+forceEuro(b)))?a:b; } // t.a.b.
-  return {aid:a, bid:b, neutre:false, l1:[a1,b1], l2:[b2,a2], agg:[aggA,aggB], tab, win};
+  return {aid:a, bid:b, neutre:false, l1:l1.slice(), l2:[b2,a2], agg:[aggA,aggB], tab, win};
 }
 function euroInit(){ // (re)tirage de la compétition européenne de la saison (C1 par défaut si non qualifié)
   if(!G||!G.europe) return;
@@ -5445,36 +5454,74 @@ function euroInit(){ // (re)tirage de la compétition européenne de la saison (
   const vivants=melange(CP.pool.concat([siege]));
   G.euro={ saison:G.saison, compet, enLice, tourIdx:0, vivants,
     monParcours:[], elimine:!enLice, tourSortie:null, vainqueur:null,
-    dernierTour:null, rotation:"mixte", gains:0, aJouer:null, enDirect:null };
+    dernierTour:null, rotation:"mixte", gains:0, aJouer:null, attente:null, enDirect:null };
 }
-function euroTick(){ // appelé en fin de journée (comme coupeTick) : TIRE le tour s'il est à l'heure, sans résoudre
+function euroTick(){ // appelé en fin de journée (comme coupeTick) : TIRE la manche du soir si elle est à l'heure, sans résoudre
   const eu=G.euro; if(!eu || eu.vainqueur || eu.tourIdx>=EURO_TOURS.length) return;
+  if(eu.aJouer) return; // une manche attend déjà d'être jouée (reprise d'une sauvegarde) : on n'en tire pas une seconde par-dessus
   const tour=EURO_TOURS[eu.tourIdx];
-  if(G.journee!==tour.j) return;
-  euroTireTour(); // pose eu.aJouer (les affiches) sans résoudre
+  // deux rendez-vous par tour, à une semaine d'écart : l'aller après la J`tour.j`, le retour après la J`tour.jr`
+  if(!eu.attente && G.journee>=tour.j) euroTireTour();                          // match ALLER (ou finale sèche)
+  else if(eu.attente && tour.jr && G.journee>=tour.jr) euroPoseRetour();        // match RETOUR, la semaine d'après
+  else return;
   const jeJoue = eu.enLice && !eu.elimine && eu.aJouer.paires.some(p=>p[0]===G.monClub||p[1]===G.monClub);
   // hors UI (harnais) ou pas votre tie (déjà éliminé) : résolution muette immédiate.
   // sinon eu.aJouer reste en attente : ecranCalendrier ouvrira le flux interactif (ouvreEuro → fenêtres).
   if(EN_TEST() || !jeJoue) euroResoutTour(false);
 }
-function euroTireTour(){ // tirage des affiches du tour (sans résoudre)
+function euroTireTour(){ // tirage des affiches du tour → on pose la manche ALLER (la finale, elle, est un match sec)
   const eu=G.euro, tour=EURO_TOURS[eu.tourIdx];
   const finale=(eu.vivants.length===2); // dernier tour = finale sèche sur terrain neutre
   const ids=melange(eu.vivants.slice());
   const paires=[];
   for(let i=0;i+1<ids.length;i+=2) paires.push([ids[i], ids[i+1]]);
-  eu.aJouer={tourIdx:eu.tourIdx, nom:tour.nom, court:tour.court, finale, paires};
+  eu.aJouer={tourIdx:eu.tourIdx, nom:tour.nom, court:tour.court, finale, manche:1, paires, allers:null};
 }
-function euroResoutTour(interactif, forced){ // résout eu.aJouer (aller-retour, sauf finale) ; interactif = fenêtre affiche déjà le verdict ; forced = VOTRE tie déjà joué au téléscripteur (réinjecté pour coller au direct)
+function euroPoseRetour(){ // une semaine plus tard, le MÊME tour revient pour sa manche retour (les rôles s'inversent)
+  const eu=G.euro, at=eu.attente, tour=EURO_TOURS[at.tourIdx];
+  eu.aJouer={tourIdx:at.tourIdx, nom:tour.nom, court:tour.court, finale:false, manche:2, paires:at.paires, allers:at.allers};
+}
+function euroMancheDe(aj){ return aj.finale ? 2 : (aj.manche||1); } // sauvegardes d'avant la coupure aller/retour : manche 1 par défaut
+function euroResoutAller(interactif, forced){ /* MANCHE ALLER : on joue les 8 premiers matchs, on les affiche,
+     mais RIEN ne se décide — les scores dorment dans eu.attente jusqu'au retour, une semaine plus tard. */
+  const eu=G.euro, aj=eu.aJouer, tour=EURO_TOURS[aj.tourIdx];
+  const CP=competDe(eu.compet), NOM=CP.nom.toUpperCase(), EMO=CP.emoji;
+  const allers=[], faits=[];
+  for(const p of aj.paires){
+    const l1=(forced && p[0]===forced.aid && p[1]===forced.bid) ? forced.l1.slice() : euroManche(p[0], p[1]);
+    allers.push(l1);
+    faits.push({aid:p[0], bid:p[1], neutre:false, manche:1, l1});
+  }
+  eu.attente={tourIdx:aj.tourIdx, paires:aj.paires.map(p=>p.slice()), allers, mien:null};
+  eu.dernierTour={nom:tour.nom, court:tour.court, finale:false, manche:1, faits};
+  // VOTRE aller : la fatigue et la dépêche tombent tout de suite, le verdict attend le retour
+  if(eu.enLice && !eu.elimine){
+    const i=aj.paires.findIndex(p=>p[0]===G.monClub||p[1]===G.monClub);
+    if(i>=0){
+      const p=aj.paires[i], moiA=(p[0]===G.monClub), advId=moiA?p[1]:p[0];
+      const me=moiA?allers[i][0]:allers[i][1], lui=moiA?allers[i][1]:allers[i][0];
+      eu.attente.mien={advId, dom:moiA, sc:me+"-"+lui};
+      if(eu.rotation==="cadres" && G.coupe) G.coupe.fatigue=1; // cadres épuisés → jambes lourdes au championnat suivant
+      if(!interactif) notif(EMO+" "+NOM+" — "+tour.court+", match ALLER "+(moiA?"à domicile":"à l'extérieur")+" : "+me+"-"+lui+" face à "+nomEuro(advId)+". Retour "+(moiA?"là-bas":"chez vous")+" dans une semaine.");
+      G.news.unshift(NOM+" — "+tour.court+", match aller : "+nomEuro(p[0])+" "+allers[i][0]+"-"+allers[i][1]+" "+nomEuro(p[1])+". Tout se jouera au retour, dans une semaine.");
+    }
+  }
+  eu.aJouer=null;
+}
+function euroResoutTour(interactif, forced){ // résout la manche posée dans eu.aJouer ; interactif = fenêtre affiche déjà le verdict ; forced = VOTRE manche déjà jouée au téléscripteur (réinjectée pour coller au direct)
   const eu=G.euro, aj=eu.aJouer; if(!aj) return;
+  if(euroMancheDe(aj)===1) return euroResoutAller(interactif, forced); // l'aller ne tranche rien
   const tour=EURO_TOURS[aj.tourIdx], finale=aj.finale;
   const CP=competDe(eu.compet), NOM=CP.nom.toUpperCase(), EMO=CP.emoji;
   const gagnants=[], faits=[];
-  for(const p of aj.paires){
-    const r=(forced && p[0]===forced.aid && p[1]===forced.bid) ? forced : resoudreEuroTie(p[0], p[1], finale);
+  aj.paires.forEach((p,i)=>{
+    const l1=(aj.allers && aj.allers[i]) || euroManche(p[0], p[1]); // filet : aller introuvable (vieille sauvegarde) → on le rejoue
+    const r=(forced && p[0]===forced.aid && p[1]===forced.bid) ? forced
+          : (finale ? euroFinaleSeche(p[0], p[1]) : euroCloture(p[0], p[1], l1));
     gagnants.push(r.win); faits.push(r);
-  }
-  eu.dernierTour={nom:tour.nom, court:tour.court, finale, faits};
+  });
+  eu.attente=null;
+  eu.dernierTour={nom:tour.nom, court:tour.court, finale, manche:2, faits};
   // VOTRE affiche
   if(eu.enLice && !eu.elimine){
     const f=faits.find(x=>x.aid===G.monClub||x.bid===G.monClub);
@@ -5864,7 +5911,14 @@ function migre(){
          if(!G.europe.some(c=>c.id==="PAR")) G.europe=G.europe.concat(construitDivision(CLUBS_EUROPE_C2, STARS_EUROPE_C2)); } // vivier C1+C3 (v0.75) → on ajoute la C2
   if(G.euroCompet===undefined) G.euroCompet=G._euroC1?"C1":null; // migration : booléen C1 → registre de compétitions
   if(!G.euro) euroInit(); // vieilles sauvegardes : on ouvre la compétition européenne
-  else { if(G.euro.aJouer===undefined) G.euro.aJouer=null; if(G.euro.enDirect===undefined) G.euro.enDirect=null; if(G.euro.compet===undefined) G.euro.compet="C1"; } // sauvegardes v0.72-0.74
+  else { if(G.euro.aJouer===undefined) G.euro.aJouer=null; if(G.euro.enDirect===undefined) G.euro.enDirect=null; if(G.euro.compet===undefined) G.euro.compet="C1"; // sauvegardes v0.72-0.74
+    // v0.99 : l'aller et le retour ne se jouent plus le même soir. Un tour resté en attente d'avant
+    // cette version devient un simple match ALLER, et son retour se jouera la semaine suivante.
+    if(G.euro.attente===undefined) G.euro.attente=null;
+    if(G.euro.aJouer && G.euro.aJouer.manche===undefined){ G.euro.aJouer.manche=1; G.euro.aJouer.allers=null; }
+    if(G.euro.dernierTour && G.euro.dernierTour.manche===undefined) G.euro.dernierTour.manche=2;
+    if(G.euro.enDirect && G.euro.enDirect.manche===undefined) G.euro.enDirect=null; // direct de l'ancienne forme : on reprend depuis l'avant-match
+  }
   assureCapitaine(); // vieilles sauvegardes : pas de capitaine désigné → on en nomme un
   G.clubs.forEach(c=>{ c._cedes=c._cedes||0; c._cedesG=c._cedesG||0; });
   G.montees=G.montees||0;
@@ -6609,23 +6663,43 @@ function ouvreCoupe(suite){
 /* Coupe d'Europe — le tour de C1 en milieu de semaine, événementialisé (aller-retour).
    Avant-match (affiche + choix de l'équipe, qui active la rotation/fatigue) → résolution → verdict → résultats.
    Miroir du flux Coupe de France ; le téléscripteur direct des nuits européennes viendra à l'étape suivante. */
-function euroFenetreResultats(suite){ // 3) tous les résultats du tour
+function euroFenetreResultats(suite){ // 3) tous les résultats de la soirée (manche aller, ou manche retour/finale)
   const eu=G.euro, dt=eu.dernierTour, fiche=document.getElementById("fiche");
   if(!dt){ if(suite) suite(); return; }
+  const aller=(dt.manche===1); // soir d'aller : on montre les scores de la manche, personne n'est encore qualifié
   const lignes=dt.faits.map(f=>{ const a=f.aid,b=f.bid,
-      sa=f.neutre?f.s[0]:f.agg[0], sb=f.neutre?f.s[1]:f.agg[1],
-      legs=f.neutre?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`;
+      sa=aller?f.l1[0]:(f.neutre?f.s[0]:f.agg[0]), sb=aller?f.l1[1]:(f.neutre?f.s[1]:f.agg[1]),
+      legs=(aller||f.neutre)?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`,
+      gras=c=>(!aller&&f.win===c);
     return `<tr class="${(a===G.monClub||b===G.monClub)?"me":""}">
-      <td style="text-align:right">${f.win===a?"<b>":""}${esc(nomEuro(a))}${f.win===a?"</b>":""}</td>
+      <td style="text-align:right">${gras(a)?"<b>":""}${esc(nomEuro(a))}${gras(a)?"</b>":""}</td>
       <td class="num" style="white-space:nowrap">${sa}-${sb}${f.tab?" <span class=dim>tab</span>":""}</td>
-      <td>${f.win===b?"<b>":""}${esc(nomEuro(b))}${f.win===b?"</b>":""}${legs}</td></tr>`;}).join("");
+      <td>${gras(b)?"<b>":""}${esc(nomEuro(b))}${gras(b)?"</b>":""}${legs}</td></tr>`;}).join("");
   fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
-    <h2 class="cyan">⭐ ${esc(dt.nom)} — tous les résultats</h2>
-    <p class="dim" style="font-size:11px">${dt.finale?"Finale sèche sur terrain neutre.":"Aller-retour · cumul des buts (but à l'extérieur double)."}</p>
-    <table class="fit" style="width:100%"><tr><th style="text-align:right">Équipe</th><th class="num">${dt.finale?"Score":"Cumul"}</th><th>Équipe</th></tr>${lignes}</table>
+    <h2 class="cyan">⭐ ${esc(dt.nom)} — ${aller?"les matchs aller":"tous les résultats"}</h2>
+    <p class="dim" style="font-size:11px">${dt.finale?"Finale sèche sur terrain neutre.":(aller?"Manche aller · les retours se jouent dans une semaine, en milieu de semaine.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
+    <table class="fit" style="width:100%"><tr><th style="text-align:right">Équipe</th><th class="num">${dt.finale?"Score":(aller?"Aller":"Cumul")}</th><th>Équipe</th></tr>${lignes}</table>
     <p style="margin-top:12px"><button class="big" id="bEFin">Continuer</button></p></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
   fiche.querySelector("#bEFin").onclick=()=>{ window._penEnCours=false; fermeFiche(); if(suite) suite(); };
+}
+function euroFenetreAller(advId, suite){ // 2 bis) fin de VOTRE match aller : rien n'est joué, rendez-vous au retour
+  const eu=G.euro, fiche=document.getElementById("fiche"), CP=competActif();
+  const m=eu.attente&&eu.attente.mien;
+  if(!m){ return euroFenetreResultats(suite); }
+  const tour=EURO_TOURS[eu.tourIdx], jr=tour?tour.jr:null;
+  const [me,lui]=m.sc.split("-").map(Number);
+  let humeur, coul;
+  if(me>lui){ coul="#62c462"; humeur=m.dom?"Vous prenez une avance à défendre là-bas.":"Une victoire à l'extérieur : l'affaire est bien engagée."; }
+  else if(me<lui){ coul="#ff6f61"; humeur=m.dom?"Battu à domicile : il faudra une soirée d'exception au retour.":"Il reste tout à faire, mais le retour est chez vous."; }
+  else { coul="#ffd24a"; humeur="Tout reste à faire : le tie se jouera sur la seconde manche."; }
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
+    <h2 style="color:${coul}">${CP.emoji} MATCH ALLER — ${esc(m.sc)}</h2>
+    <p style="margin:8px 0">${m.dom?"Vous receviez":"Vous vous déplaciez chez"} <b>${esc(nomEuro(advId))}</b> <span class="dim">(${esc(paysEuro(advId))})</span>. ${esc(humeur)}</p>
+    <p class="dim" style="font-size:12px">Match retour <b>${m.dom?"à l'extérieur":"à domicile"}</b> la semaine prochaine, en milieu de semaine${jr?` — après la J${jr}`:""}. Le cumul des buts décidera, le but marqué à l'extérieur comptant double.</p>
+    <p style="margin-top:10px"><button class="big" id="bERes">Voir les autres matchs aller →</button></p></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  fiche.querySelector("#bERes").onclick=()=>euroFenetreResultats(suite);
 }
 function euroFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de VOTRE tie (déjà résolu)
   const eu=G.euro, fiche=document.getElementById("fiche"), CP=competActif();
@@ -6656,35 +6730,51 @@ function euroFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de
 function ouvreEuro(suite){
   const eu=G.euro, aj=eu&&eu.aJouer;
   if(!aj){ return suite(); }
-  const pair=aj.paires.find(p=>p[0]===G.monClub||p[1]===G.monClub);
-  if(!pair){ euroResoutTour(false); return suite(); } // sécurité : pas votre tie → résolution muette
+  const idx=aj.paires.findIndex(p=>p[0]===G.monClub||p[1]===G.monClub);
+  if(idx<0){ euroResoutTour(false); return suite(); } // sécurité : pas votre tie → résolution muette
+  const pair=aj.paires[idx];
   const advId = pair[0]===G.monClub?pair[1]:pair[0];
+  const manche=euroMancheDe(aj), aller=(manche===1 && !aj.finale);
+  const chezMoi = aj.finale ? false : (aller ? pair[0]===G.monClub : pair[1]===G.monClub); // à l'aller on reçoit chez a, au retour chez b
+  const l1 = (!aller && !aj.finale && aj.allers) ? aj.allers[idx] : null; // le score de l'aller, une semaine plus tôt
   const fiche=document.getElementById("fiche");
   const jouerInstant=()=>{
     const tourIdx=aj.tourIdx, nom=aj.nom;
     euroResoutTour(true); // rotation déjà posée ; la fenêtre fait le rôle de la notif perso
-    euroFenetreVerdict(advId, tourIdx, nom, suite);
+    if(aller) euroFenetreAller(advId, suite);
+    else euroFenetreVerdict(advId, tourIdx, nom, suite);
   };
-  // direct au téléscripteur : on tire VOTRE tie maintenant, on le mémorise, et on bascule sur l'écran match
+  // direct au téléscripteur : on tire VOTRE manche du soir, on la mémorise, et on bascule sur l'écran match
   const jouerDirect=()=>{
-    const tie=resoudreEuroTie(pair[0], pair[1], aj.finale); // score du tie (modèle de force) ; le téléscripteur ne fait que le mettre en scène
-    eu.enDirect={aid:pair[0], bid:pair[1], advId, tourIdx:aj.tourIdx, nom:aj.nom, finale:aj.finale, tie, leg:1};
+    const socle={aid:pair[0], bid:pair[1], advId, tourIdx:aj.tourIdx, nom:aj.nom, finale:aj.finale, manche};
+    // le score est tiré ici (modèle de force) ; le téléscripteur ne fait que le mettre en scène
+    if(aller) eu.enDirect=Object.assign(socle, {l1:euroManche(pair[0], pair[1])});
+    else eu.enDirect=Object.assign(socle, {tie: aj.finale ? euroFinaleSeche(pair[0], pair[1]) : euroCloture(pair[0], pair[1], l1||euroManche(pair[0], pair[1]))});
     window._penEnCours=false; fermeFiche();
     montre("euromatch"); // la finalisation reprendra le fil par montre("calendrier")
   };
   const rendreAvant=()=>{
     const rotaBtns=Object.keys(ROTATION_COUPE).map(key=>{ const on=eu.rotation===key;
       return `<button class="act bERot" data-k="${key}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:9px 11px${on?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${on?"▸ ":""}${esc(ROTATION_COUPE[key].label)} <span style="font-weight:normal;font-size:12px;opacity:.85">— ${esc(ROTATION_COUPE[key].desc)}</span></button>`; }).join("");
+    const scAller = l1 ? (pair[0]===G.monClub?l1[0]:l1[1])+"-"+(pair[0]===G.monClub?l1[1]:l1[0]) : "?";
+    // la manche a sa propre ligne : accolée au titre, elle le faisait déborder sur deux lignes
+    const etiquette = aj.finale ? `<b class="cyan">FINALE</b> <span class="dim">· match sec sur terrain neutre</span>`
+      : (aller ? `<b class="cyan">MATCH ALLER</b> <span class="dim">· soir de milieu de semaine</span>`
+               : `<b class="cyan">MATCH RETOUR</b> <span class="dim">· une semaine après l'aller (<b>${esc(scAller)}</b> pour vous)</span>`);
+    const contexte = aj.finale ? "Tout se joue en quatre-vingt-dix minutes."
+      : (aller ? `Le retour se jouera ${chezMoi?"là-bas":"chez vous"} dans une semaine — rien n'est décidé ce soir.`
+               : `Cumul des buts sur les deux matchs, le but marqué à l'extérieur comptant double.`);
     fiche.innerHTML=`<div class="fbox" style="max-width:490px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
       <h2 class="jaune">${competActif().emoji} ${esc(competActif().nom.toUpperCase())} — ${esc(aj.nom)}</h2>
-      <p style="margin:6px 0">Grand rendez-vous européen ! Vous affrontez <b>${esc(nomEuro(advId))}</b> <span class="dim">(${esc(paysEuro(advId))})</span><br>
-        <span class="dim">${aj.finale?"Finale — match sec sur terrain neutre.":"Double confrontation : un match aller, un match retour, cumul des buts."}</span></p>
+      <p style="margin:6px 0">${etiquette}</p>
+      <p style="margin:6px 0">Grand rendez-vous européen ! Vous affrontez <b>${esc(nomEuro(advId))}</b> <span class="dim">(${esc(paysEuro(advId))})</span>${aj.finale?"":` <span class="dim">· ${chezMoi?"à domicile":"à l'extérieur"}</span>`}<br>
+        <span class="dim">${contexte}</span></p>
       <p class="dim" style="font-size:12px">Quelle équipe alignez-vous ?</p>
       <div>${rotaBtns}</div>
-      <p style="margin-top:10px"><button class="big" id="bEGo">▶ Jouer ${aj.finale?"la finale":"au direct"}</button>
+      <p style="margin-top:10px"><button class="big" id="bEGo">▶ Jouer ${aj.finale?"la finale":(aller?"l'aller au direct":"le retour au direct")}</button>
         <button class="act" id="bEVite" style="margin-left:8px">Résultat instantané</button></p></div>`;
     fiche.style.display="flex";
-    window._penEnCours=true; // pas de fermeture Échap tant qu'on n'a pas joué le tour
+    window._penEnCours=true; // pas de fermeture Échap tant qu'on n'a pas joué la manche
     fiche.querySelectorAll(".bERot").forEach(b=>b.onclick=()=>{ eu.rotation=b.dataset.k; rendreAvant(); });
     fiche.querySelector("#bEGo").onclick=jouerDirect;
     fiche.querySelector("#bEVite").onclick=jouerInstant;
@@ -6779,11 +6869,11 @@ function lanceCoupe(H, A, ed){
   };
   tickerDelai=1600; tic();
 }
-/* Coupe d'Europe — le tie de C1 au téléscripteur, EN DEUX MANCHES (aller puis retour).
+/* Coupe d'Europe — UNE manche au téléscripteur (l'aller un soir de semaine, le retour celui d'après).
    Jumeau autonome de lanceCoupe (pour ne rien risquer sur le direct de la Coupe de France) :
    réutilise genEvCoupe / celebreFlash / la montée de tension, sur un flux ISOLÉ (aucune stat de
-   championnat touchée). Le score du tie est déjà tiré (resoudreEuroTie) ; chaque manche atterrit
-   sur son score, puis on résout le tour (les autres affiches au modèle) et on montre le verdict.
+   championnat touchée). Le score de la manche est déjà tiré (euroManche / euroCloture) ; au sifflet
+   on résout la soirée (les autres affiches au modèle) puis on montre l'état du tie.
    Finale = manche unique sur terrain neutre (les t.a.b. y sont possibles). */
 function ecranEuroMatch(){
   const eu=G.euro, ed=eu&&eu.enDirect;
@@ -6791,9 +6881,9 @@ function ecranEuroMatch(){
   const t=ed.tie;
   let H, A, legScore, sousTitre;
   if(ed.finale){ H=clubAffiche(ed.aid); A=clubAffiche(ed.bid); legScore=[t.s[0], t.s[1]]; sousTitre="Finale · terrain neutre"; }
-  else if(ed.leg===1){ H=clubAffiche(ed.aid); A=clubAffiche(ed.bid); legScore=[t.l1[0], t.l1[1]]; sousTitre="Match ALLER"; }
+  else if(ed.manche===1){ H=clubAffiche(ed.aid); A=clubAffiche(ed.bid); legScore=ed.l1.slice(); sousTitre="Match ALLER · en milieu de semaine"; }
   else { H=clubAffiche(ed.bid); A=clubAffiche(ed.aid); legScore=[t.l2[0], t.l2[1]];
-    sousTitre="Match RETOUR · aller : "+clubAffiche(ed.aid).nom+" "+t.l1[0]+"-"+t.l1[1]+" "+clubAffiche(ed.bid).nom; }
+    sousTitre="Match RETOUR · une semaine après l'aller : "+clubAffiche(ed.aid).nom+" "+t.l1[0]+"-"+t.l1[1]+" "+clubAffiche(ed.bid).nom; }
   const chezMoi = H.id===G.monClub;
   chrome("europe",`
     <div class="panel"><h2 class="jaune">${competActif().emoji} ${esc(competActif().nom)} — ${esc(ed.nom)}</h2>
@@ -6812,7 +6902,7 @@ function ecranEuroMatch(){
 }
 function lanceEuroLeg(H, A, ed, legScore){
   if(document.body) document.body.classList.add("mode-direct"); // nuit européenne en plein écran
-  const derniere = ed.finale || ed.leg===2;                 // dernière manche → on finalise le tie
+  const aller = (ed.manche===1 && !ed.finale);              // soir d'aller → rien ne se décide encore
   const tab = ed.finale ? ed.tie.tab : false;               // seule la finale (match sec) porte les t.a.b. dans une manche
   const win = legScore[0]>legScore[1]?H.id:(legScore[1]>legScore[0]?A.id:(ed.finale?ed.tie.win:null));
   const r={hid:H.id, aid:A.id, sh:legScore[0], sa:legScore[1], tab, win};
@@ -6845,12 +6935,16 @@ function lanceEuroLeg(H, A, ed, legScore){
     </div>`);
     tk.scrollTop=tk.scrollHeight;
     const pa=document.getElementById("preMatchAct"); if(!pa) return;
-    if(!derniere){ // fin de l'aller → place au retour
-      const cumH=ed.tie.l1[0], cumA=ed.tie.l1[1];
-      tk.insertAdjacentHTML("beforeend",`<p class="sys" style="text-align:center;margin-top:4px">Fin de l'aller. Cumul provisoire : ${esc(clubAffiche(ed.aid).nom)} ${cumH} — ${cumA} ${esc(clubAffiche(ed.bid).nom)}.</p>`);
-      pa.innerHTML='<button class="big" id="bELeg2">Match retour →</button>';
-      document.getElementById("bELeg2").onclick=()=>{ ed.leg=2; montre("euromatch"); };
-    } else { // dernière manche : on résout le tour avec le tie déjà joué (les autres au modèle), sans notif perso (le verdict suit)
+    if(aller){ // fin de l'aller : on enregistre la manche, le retour est dans une semaine
+      const tour=EURO_TOURS[ed.tourIdx], jr=tour?tour.jr:null;
+      tk.insertAdjacentHTML("beforeend",`<p class="sys" style="text-align:center;margin-top:4px">Fin de l'aller. Rendez-vous au match retour dans une semaine${jr?`, en milieu de semaine après la J${jr}`:""}.</p>`);
+      tk.scrollTop=tk.scrollHeight;
+      const advId=ed.advId;
+      euroResoutTour(true, {aid:ed.aid, bid:ed.bid, l1:legScore}); // VOTRE aller réinjecté ; les 7 autres au modèle
+      G.euro.enDirect=null;
+      pa.innerHTML='<button class="big" id="bENext">Les autres résultats →</button>';
+      document.getElementById("bENext").onclick=()=>euroFenetreAller(advId, ()=>montre("calendrier"));
+    } else { // manche décisive : on résout le tour avec le tie déjà joué (les autres au modèle), sans notif perso (le verdict suit)
       if(!ed.finale && ed.tie.tab){ // cumul ET buts à l'extérieur à égalité → tirs au but sur l'ensemble des deux matchs
         tk.insertAdjacentHTML("beforeend",`<p class="sys" style="text-align:center;margin-top:4px">Tout est égal sur les deux matchs (cumul et but à l'extérieur) : TIRS AU BUT. ${esc(clubAffiche(ed.tie.win).nom)} se qualifie !</p>`);
         tk.scrollTop=tk.scrollHeight;
