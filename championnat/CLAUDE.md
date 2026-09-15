@@ -858,8 +858,9 @@ toujours « raconter quelque chose ».
    Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
-   index qui se répare, mémoire pleine), `harness-repetitions.cjs` (anti-répétition du téléscripteur :
-   lignes et motifs narratifs, en championnat, en coupe et après un changement de consigne).
+   index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
+   des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
+   **et cohérence de la mise en scène** — un contre s'annonce comme un contre).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →
@@ -901,6 +902,38 @@ toujours « raconter quelque chose ».
   passé le filtre `Math.random()<.7`) — la séquence restait illogique à l'écran. **La narration doit se caler
   sur ce qui est montré, pas sur ce que le moteur sait.** Vérification : zéro violation sur 600 matchs,
   ~0,70 contre/match. Aucun événement créé, aucun score modifié → calibrage intact (2,376).
+- **LE CONTRE ANNONCÉ COMME UNE ATTAQUE PLACÉE (v0.98)** — troisième épisode de la même famille
+  que la météo (v0.86) et que le contre (v0.87) : **une ligne ne doit jamais affirmer une phase de
+  jeu qu'elle ne connaît pas**. Retour de playtest : « l'enchaînement des commentaires n'a pas trop de
+  sens, « l'attaque prend feu » suivi par un contre ». Cause : la mise en scène du contre
+  (`MONTEE_CONTRE`, construite en v0.87) **n'avait été branchée que sur le direct de COUPE**. Le direct
+  du CHAMPIONNAT — celui que le joueur voit chaque semaine — et celui d'Europe tiraient toujours
+  `MONTEE_BUT`, donc annonçaient une attaque placée avant de conclure « Contre fulgurant ! ».
+  Mesuré sur l'ancien code : **14 % des montées concernaient un contre, et 43 % des matchs** en
+  contenaient au moins un, mal annoncé. `MONTEE_CONTRE` n'apparaissait que **deux fois** dans tout le
+  fichier (sa définition et la branche coupe) — un bon réflexe de relecture : compter les occurrences
+  d'un pool pour vérifier qu'il est bien câblé partout où il doit l'être.
+  **La duplication était la cause**, d'où le correctif : une seule fonction **`monteeUn(info, lignes,
+  campA, campD)`** décide du premier temps, et les **trois `tic()`** (championnat, coupe, Europe)
+  l'appellent. Elle lit le drapeau `contre` que le moteur pose déjà sur `g` (but) et sur `q`
+  (occasion) ; sans camps connus, elle retombe proprement sur la montée générique. **Règle à tenir :
+  tout nouveau direct passe par `monteeUn`, jamais par `pickM(MONTEE_BUT, …)` en direct.**
+  Le même lot nettoie **deux lignes de `MONTEE_BUT`** : « L'attaque prend feu, ça va très vite… »
+  (l'auteur a demandé ce que ça voulait dire — quand une ligne appelle cette question, elle a raté son
+  travail) devient « Ça circule à une touche de balle, la défense ne suit plus… », et « Le corner est
+  joué à deux… » **imposait un corner** alors que le pool se veut agnostique au type de finition
+  (règle écrite au-dessus de `MONTEE_BUT`, violée par cette seule ligne) → « Le ballon revient dans
+  la surface… ». Deux tests de garde dans le harnais balaient désormais `MONTEE_BUT` à la recherche
+  de vocabulaire de contre et de coup de pied arrêté.
+  **Résidu connu, non corrigé à ce stade** : l'inverse reste possible dans l'autre sens — une montée
+  de jeu ouvert (« Ouverture limpide dans le dos des défenseurs… ») peut précéder une **ligne de but
+  qui, elle, nomme un corner** (« Corner rentrant… BUT DIRECT ! », « Corner au second poteau… »,
+  et « …sur corner » dans `arret`), soit ~3 % des buts. Le fixer demanderait de faire remonter la
+  phase de jeu de la ligne de conclusion jusqu'à la montée (un drapeau de plus sur l'évènement, comme
+  `contre`) et un petit pool de montées « sur coup de pied arrêté ».
+  **Note d'implémentation** : `motifDe` (anti-répétition, v0.97) ignore désormais explicitement ce qui
+  n'est pas une chaîne — les pools de montée sont des **fonctions**, et tester une regex dessus
+  reviendrait à la passer sur leur code source.
 - **DEUX FOIS LE MÊME BUT DANS UN MATCH (v0.97)** — retour de playtest : « j'ai eu trois fois le même
   but dans le match, mais écrit un peu différemment » (Bordeaux - Auxerre 4-0 : les lignes de la 34ᵉ et
   de la 81ᵉ **mot pour mot identiques**, et celle de la 72ᵉ racontant le même fait de jeu). Deux causes,

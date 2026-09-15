@@ -38,7 +38,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,CLUBS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,monteeUn,MONTEE_BUT,MONTEE_CONTRE,onze,CLUBS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -183,6 +183,37 @@ if (Array.isArray(rr.vus) && rr.vus.length) ok("le match porte bien sa mémoire 
 else fail("le match ne porte pas de mémoire");
 if (JSON.parse(JSON.stringify(rr)).vus === undefined) ok("JSON.stringify l'ignore : zéro octet de sauvegarde");
 else fail("la mémoire part dans la sauvegarde — interdit (cf. la règle des 2,6 Mo)");
+
+/* ===== F) mise en scène : la montée colle à la phase de jeu ===== */
+console.log("F) Mise en scène du premier temps (monteeUn)");
+const h0 = G.clubs[0], a0 = G.clubs[1];
+// toutes les formulations de contre possibles pour ces deux effectifs
+const CONTRES = new Set();
+for (const f of api.MONTEE_CONTRE)
+  for (const r of api.onze(h0)) for (const v of api.onze(a0)) CONTRES.add(f(r.nom, v.nom));
+const BUTS = new Set(api.MONTEE_BUT);
+
+let horsContre = 0, horsGenerique = 0;
+for (let k = 0; k < 400; k++) {
+  const info = { contre: true, but: api.onze(h0)[0].nom, cote: h0.id };
+  if (!CONTRES.has(api.monteeUn(info, [], h0, a0))) horsContre++;
+  const info2 = { contre: false, but: api.onze(h0)[0].nom, cote: h0.id };
+  if (!BUTS.has(api.monteeUn(info2, [], h0, a0))) horsGenerique++;
+}
+if (horsContre === 0) ok("un évènement marqué « contre » est TOUJOURS annoncé comme un contre");
+else fail(horsContre + " contre(s) sur 400 annoncés par une montée générique");
+if (horsGenerique === 0) ok("une action de jeu ouvert n'emprunte jamais la montée de contre");
+else fail(horsGenerique + " action(s) de jeu ouvert annoncée(s) comme un contre");
+if (BUTS.has(api.monteeUn({ contre: true, but: "X" }, []))) ok("sans camps connus, repli propre sur la montée générique");
+else fail("le repli sans camps ne retombe pas sur MONTEE_BUT");
+
+// la montée générique ne doit imposer AUCUNE phase de jeu (règle écrite au-dessus du pool)
+const imposeContre = api.MONTEE_BUT.filter((l) => /contre|contre-attaque/i.test(l));
+const imposeArret = api.MONTEE_BUT.filter((l) => /corner|coup franc|penalty|touche de but/i.test(l));
+if (!imposeContre.length) ok("aucune ligne de MONTEE_BUT n'annonce un contre");
+else fail(imposeContre.length + " ligne(s) de MONTEE_BUT parlent de contre : « " + imposeContre[0].slice(0, 50) + "… »");
+if (!imposeArret.length) ok("aucune ligne de MONTEE_BUT n'impose un coup de pied arrêté");
+else fail(imposeArret.length + " ligne(s) de MONTEE_BUT imposent un coup de pied arrêté : « " + imposeArret[0].slice(0, 50) + "… »");
 
 /* ===== bilan ===== */
 console.log(FAILS ? "\n❌ HARNAIS RÉPÉTITIONS : " + FAILS + " PROBLÈME(S)" : "\n✅ HARNAIS RÉPÉTITIONS : TOUT EST VERT");

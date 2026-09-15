@@ -265,7 +265,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.97"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.98"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -287,7 +287,8 @@ const MOTIFS_COMM=[
   {cle:"crochet", re:/crochet de trop/},                                                // il garde le ballon pour lui
 ];
 const _motifCache=new Map();
-const motifDe=l=>{ if(_motifCache.has(l)) return _motifCache.get(l);
+const motifDe=l=>{ if(typeof l!=="string") return null; // les montées sont des FONCTIONS : pas de motif, et surtout pas de test de regex sur leur code source
+  if(_motifCache.has(l)) return _motifCache.get(l);
   let k=null; for(const m of MOTIFS_COMM) if(m.re.test(l)){ k=m.cle; break; }
   _motifCache.set(l,k); return k; };
 // PICK avec anti-répétition : évite de retirer une ligne déjà servie récemment (fenêtre
@@ -2384,7 +2385,7 @@ const MONTEE_RATEE=0.6; // proba qu'une occasion ratée hérite d'une montée de
 // « tête sur corner »). C'est la ligne de but (COMM.but) qui décrit le geste, pas la montée.
 const MONTEE_BUT=[
   "Ça s'emballe dans la surface, la défense recule…",
-  "L'attaque prend feu, ça va très vite…",
+  "Ça circule à une touche de balle, la défense ne suit plus…",
   "Récupération haute, l'attaque déboule…",
   "Coup de billard devant le but, ça chauffe…",
   "Une-deux dans l'axe, la dernière passe arrive…",
@@ -2392,7 +2393,7 @@ const MONTEE_BUT=[
   "Ouverture limpide dans le dos des défenseurs…",
   "Le ballon brûle dans la surface, plus personne ne respire dans le stade…",
   "Deux appels croisés dans la surface, ça sent la poudre…",
-  "Le corner est joué à deux, la défense flotte, ça se referme…",
+  "Le ballon revient dans la surface, la défense flotte, ça se referme mal…",
   "Oh là là, le ballon traîne aux dix-huit mètres, personne ne dégage…",
   "Le stade se lève d'un seul homme, l'action est chaude, très chaude…",
   "Une percée plein axe, la défense recule, recule… c'est le moment ou jamais…",
@@ -2420,6 +2421,22 @@ function gardienDe(club){ const g=club&&onze(club).find(j=>j.pos==="G"); return 
    le récupérateur (r) ET l'adversaire dépossédé (v) — impossible avec fmtC, qui ne connaît qu'un
    seul joueur. Trois origines, conformes à la consigne auteur : le ballon piqué au milieu,
    l'incompréhension adverse, et la passe hasardeuse dans leur propre défense. */
+/* PREMIER TEMPS DE LA MONTÉE — UNE SEULE IMPLÉMENTATION POUR LES TROIS DIRECTS (v0.98).
+   La mise en scène du contre (v0.87) n'existait que dans le direct de COUPE : le direct du
+   CHAMPIONNAT — celui que le joueur voit chaque semaine — tirait toujours `MONTEE_BUT`, et
+   annonçait donc « Ça circule à une touche de balle… » (ou pire, l'ancienne « l'attaque prend
+   feu… ») avant de conclure « Contre fulgurant ! ». Deux phases de jeu opposées dans la même
+   action : signalé en playtest. La duplication était la cause — d'où cette fonction commune,
+   appelée par les trois `tic()`. `info` = l'objet `g` (but) ou `q` (occasion) de l'évènement, qui
+   porte déjà le drapeau `contre` posé par le moteur ; `campA`/`campD` = le camp qui attaque et
+   celui qui subit. Sans camps (ou sans contre), on retombe sur la montée générique.            */
+function monteeUn(info, lignes, campA, campD){
+  if(info && info.contre && campA && campD){
+    let rec=quelconque(campA); if(rec.nom===info.but) rec=quelconque(campA); // éviter que le voleur soit le buteur
+    return pickM(MONTEE_CONTRE,lignes)(rec.nom, quelconque(campD).nom);
+  }
+  return pickM(MONTEE_BUT,lignes);
+}
 const MONTEE_CONTRE=[
   (r,v)=> r+" pique le ballon dans les pieds de "+v+" au milieu… ÇA PART EN CONTRE !",
   (r,v)=> "Incompréhension entre "+v+" et son partenaire, "+r+" s'en empare… le contre est lancé !",
@@ -6744,13 +6761,7 @@ function lanceCoupe(H, A, ed){
     if(monte && (lg._monte||0)<2){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
-      if(etape===1){
-        if(info.contre){ // le contre a sa propre mise en place : on nomme le voleur et sa victime
-          const camp=(info.cote===H.id?H:A), advC=(info.cote===H.id?A:H);
-          let rec=quelconque(camp); if(rec.nom===info.but){ rec=quelconque(camp); }
-          txt=pickM(MONTEE_CONTRE,lignes)(rec.nom, quelconque(advC).nom);
-        } else txt=pickM(MONTEE_BUT,lignes);
-      }
+      if(etape===1){ txt=monteeUn(info,lignes,(info.cote===H.id?H:A),(info.cote===H.id?A:H)); }
       else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
@@ -6859,7 +6870,7 @@ function lanceEuroLeg(H, A, ed, legScore){
     if(monte && (lg._monte||0)<2){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
-      if(etape===1){ txt=pickM(MONTEE_BUT,lignes); }
+      if(etape===1){ txt=monteeUn(info,lignes,(info.cote===H.id?H:A),(info.cote===H.id?A:H)); }
       else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff, onzeEuro)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
@@ -7335,8 +7346,9 @@ function lanceMatch(instant){
     if(monte && (lg._monte||0)<2){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
-      if(etape===1){ txt=pickM(MONTEE_BUT,lignes); }
-      else { const defClub=eM?(info.cote===eM.h.id?eM.a:eM.h):null; txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienDe(defClub)); }
+      const campA=eM?(info.cote===eM.h.id?eM.h:eM.a):null, campD=eM?(info.cote===eM.h.id?eM.a:eM.h):null;
+      if(etape===1){ txt=monteeUn(info,lignes,campA,campD); }
+      else { txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienDe(campD)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
