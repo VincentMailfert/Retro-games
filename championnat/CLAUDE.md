@@ -426,6 +426,46 @@ toujours « raconter quelque chose ».
   **Salaire/journée** `tier*130 000 FF` prélevé dans `finirJournee` (`staffCoutJournee()`, affiché à l'écran Finances) —
   l'argent reste une contrainte. Test dédié `test-staff.cjs` (embauche, salaire, effets attaque/CPA mesurés). À migrer
   (`if(!G.staff) G.staff={…null}`). Étendre = ajouter un poste à `STAFF_POSTES` + brancher son `coachTier`.
+- **FRAÎCHEUR — l'état de forme physique, joueur par joueur (v1.00)** : chaque joueur des **VINGT clubs de la
+  division jouée** porte `j.fraich` (0-100, défaut 100 via l'accesseur `fraich(j)` — un joueur sans jauge, vivier
+  ou autre division, est donc toujours traité comme frais, sans exception à écrire). **Barème** : `FRAICH_MATCH`=20
+  pour un match complet, `FRAICH_BANC`=8 pour une entrée en jeu, `FRAICH_SEM`=20 rendus par semaine. **L'horloge
+  du jeu est la journée = une semaine** : `reposHebdo(c)` crédite la semaine pour les 20 clubs dans `finirJournee`
+  (au même endroit que le décompte blessures/suspensions), et chaque match joué débite. Un match de semaine
+  (coupe/Europe) est donc un match de PLUS dans une semaine qui n'est créditée qu'une fois — c'est exactement
+  « jouer tous les trois jours ne laisse pas le temps de récupérer », sans aucune arithmétique de dates à tenir.
+  **LE VIEILLISSEMENT PORTE SUR LE TAUX DE RÉCUPÉRATION, jamais sur le coût du match** — c'est la clé du design :
+  `recupAge(age)` vaut 1 jusqu'à 29 ans puis −0,025/an (plancher 0,78), donc un joueur de 33 ans est à **98 %**
+  sept jours après un match (la valeur donnée par l'auteur), perd ~2 points par journée et doit être ménagé vers
+  la mi-saison. Le jeune, lui, repart toujours de 100 : le rythme d'une semaine est tenable, et il DOIT l'être.
+  `recupJoueur(j,c)` ajoute vos investissements (centre d'entraînement + préparateur physique, ≤ 0,70 de « soin »)
+  qui **comblent une partie du déficit de l'âge sans jamais le supprimer** (`k+(1-k)*soin+0,08*soin`).
+  **Trois effets, tous branchés sur `facteurFraich(j)`** (`1-0,20d²-0,06d`, `d=(85−f)/85`, plancher 0,80) :
+  (a) **rendement** — dans `eff()` de `forces()`, à côté du moral : nul au-dessus de 85, −3,5 % à 60, −10 % à 35,
+  −20 % au fond ; (b) **blessures** — la proba du tirage de `appliqueResultat` est multipliée par
+  `1+1,5*max(0,(70−f)/70)`, soit jusqu'à ×2,5 (mesuré ×1,9-2,1 sur une saison) ; (c) **sélection** — `noteSel(j)`
+  = note × facteur, **moins un malus de préservation sous 40** (`(40−f)*0,35`). C'est (c) qui fait que
+  **`onze()` fait tourner tout seul, pour VOUS COMME POUR L'IA, avec la même fonction et sans code dédié** :
+  un cadre à 84 sur les rotules passe derrière une doublure fraîche à 72. **Le ★ (`j.titu`) reste plus fort que
+  tout** — on peut toujours assumer un cadre cramé. **🛌 `j.repos`** (bouton de l'écran Effectif, `mettreAuRepos`)
+  l'écarte du onze ET du banc via `alignable(j)` = `dispo(j) && !j.repos` — mais **`dispo()` n'a PAS changé**, donc
+  la feuille de match réglementaire et le plancher d'effectif ne bougent pas, et `onze()` le rappelle si son poste
+  est trop dégarni (jamais de forfait). Le repos se lève tout seul à ≥ 90 avec une notification.
+  **PIÈGE ÉVITÉ, à ne pas réintroduire** : dans `majMoral`, un joueur `repos` ou sous 70 de fraîcheur **ne fait plus
+  tourner `sansJouer`** — sinon ménager un cadre le punissait DEUX fois (jambes lourdes + moral en berne) et la
+  décision que la fraîcheur rend nécessaire devenait une faute. Un homme qu'on ménage n'est pas un homme qu'on écarte.
+  **Affichage** (jauge + mot d'époque, choix auteur) : colonne « Forme » de l'écran Effectif (`jaugeFraich`/
+  `libFraich` → Frais / En jambes / Émoussé / Jambes lourdes / Sur les rotules, ⏳ sur les 30 ans et plus),
+  ligne détaillée dans la fiche joueur, `apercuRotation(rot)` sous les boutons de rotation des trois écrans de
+  rendez-vous de semaine, et un **avertissement d'avant-match** sous la feuille de match quand des titulaires sont
+  sous 55. **Remises à zéro** : `razStatsClub` (intersaison — deux mois sans match, tout le monde à 100, `repos`
+  levé) et `migre()` (`j.fraich=100`, `j.repos=false` → une carrière en cours reprend au frais).
+  **Calibrage intact** : l'effet est SYMÉTRIQUE (les 20 clubs le subissent, l'IA tourne comme vous), donc ce que
+  l'attaque perd, la défense adverse le perd aussi — mesuré 2,419 → 2,400 buts/match sur 15 120 matchs.
+  Une **trêve internationale** coûte 8 points aux sélectionnés (`selections`) : la trêve n'en est une que pour
+  ceux qui restent. Harnais dédié : **`harness-fraicheur.cjs`** (barème, saison du vétéran, rythme à trois jours,
+  sélection, effets mesurés, symétrie IA, intersaison/migration, et un **test de rendu** qui appelle réellement
+  les six surfaces d'affichage à toutes les valeurs de jauge).
 - **Vases communicants — pont budget ↔ trésorerie** (`transvaser(sens, montant)`, `FRAIS_VIRE`=0,10) : les
   deux poches restent **séparées** (le trésor de guerre mercato ne paie pas les salaires), mais on peut en
   **transvaser** de l'une à l'autre depuis l'écran Finances pour débloquer un projet (typiquement renflouer la
@@ -695,9 +735,13 @@ toujours « raconter quelque chose ».
   force autonome (`forceCoupe`/`scoreCoupe`, exposant ~2,6, Poisson `poissonC`, calibrage doux), jamais par
   `appliqueResultat`. **Dilemme du mercredi** : `G.coupe.rotation` (cadres/mixte/réserve, réglé soit sur
   l'écran COUPE, soit dans la **fenêtre d'avant-match** — voir flux événementiel plus bas) module votre force
-  en coupe ET, pour « les cadres », pose `G.coupe.fatigue=1` → **−5 % d'attaque à
-  VOTRE SEUL match de championnat suivant** (une ligne gardée dans `simuleMatch`, dissipée en tête de
-  `finirJournee` ; **neutre quand `fatigue=0`** → le harnais joue en mixte, calibrage intact). **La réserve fait jouer
+  en coupe ET appelle **`fatigueSemaine(rot)`** : les onze qui ont RÉELLEMENT disputé le tour (`onzeRotation`)
+  encaissent chacun `FRAICH_MATCH` points de fraîcheur — voir la section **FRAÎCHEUR** plus bas. *(Avant v1.00,
+  c'était un forfait d'équipe `G.coupe.fatigue=1` → −5 % d'attaque à votre seul match suivant ; ce drapeau et
+  les deux lignes qu'il pilotait dans `simuleMatch` ont été SUPPRIMÉS. Ne pas les réintroduire : la fatigue ne
+  vit plus que dans la jauge par joueur.)* Les trois écrans de rotation affichent `apercuRotation(rot)` — la
+  fraîcheur moyenne du onze envisagé et les hommes déjà émoussés, pour que l'arbitrage se fasse en connaissance
+  de cause. **La réserve fait jouer
   d'autres noms (v0.61)** : retour de playtest « on envoie la réserve mais ce sont les mêmes joueurs ». `onzeRotation(c,rot)`
   bâtit le onze réellement aligné (`reserve` = les moins bien notés à chaque poste, `mixte` = moitié-moitié, `cadres` = le
   meilleur onze) ; `onzeCoupe(c)` = ce onze pour VOTRE club. Branché sur l'**affichage** du tour (`nomsAffiche`/`gardienAff`
@@ -817,9 +861,10 @@ toujours « raconter quelque chose ».
   (`EN_TEST`) **ou** si ce n'est pas votre tie (déjà éliminé) → résolution muette immédiate ; sinon `ecranCalendrier`
   ouvre **`ouvreEuro(suite)`** — trois fenêtres `#fiche` calquées sur `ouvreCoupe` : avant-match (affiche + **choix de
   rotation** cadres/mixte/réserve) → `euroFenetreVerdict` → `euroFenetreResultats`, chaînées **avant** la Coupe de
-  France (`ouvreEuro(apresEuro)`, journées distinctes). **La rotation « cadres » active enfin la fatigue** (pose
-  `G.coupe.fatigue=1` → −5 % au match de championnat suivant, mécanisme partagé). Deux façons de jouer : **« ▶ Jouer au
-  direct »** ou **« Résultat instantané »**.
+  France (`ouvreEuro(apresEuro)`, journées distinctes). **Chaque manche se paie en fraîcheur** : `euroResoutAller` ET
+  `euroResoutTour` appellent `fatigueSemaine(eu.rotation)` — un aller-retour européen coûte donc DEUX matchs à ceux
+  qui les ont joués, pour une seule semaine de récupération chacun (v1.00 ; avant, un forfait `G.coupe.fatigue=1`
+  de −5 %, supprimé). Deux façons de jouer : **« ▶ Jouer au direct »** ou **« Résultat instantané »**.
   **Téléscripteur direct des nuits européennes (v0.74, lot 2 étape 2)** : `jouerDirect` tire le tie (`resoudreEuroTie`),
   le mémorise dans **`G.euro.enDirect`** (`{aid,bid,advId,tourIdx,nom,finale,tie,leg}`, sérialisé/migré) et bascule sur
   **`ecranEuroMatch`** → **`lanceEuroLeg`** (jumeau AUTONOME de `lanceCoupe` — dupliqué à dessein pour ne rien risquer sur
@@ -886,7 +931,10 @@ toujours « raconter quelque chose ».
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
-   **et cohérence de la mise en scène** — un contre s'annonce comme un contre).
+   **et cohérence de la mise en scène** — un contre s'annonce comme un contre),
+   `harness-fraicheur.cjs` (l'état de forme physique : barème, décrochage du vétéran sur une saison, rythme à
+   trois jours, rotation automatique pour vous ET pour l'IA, effets mesurés sur le rendement et les blessures,
+   intersaison et migration, rendu des six écrans à toutes les valeurs de jauge).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →

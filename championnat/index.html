@@ -265,7 +265,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.99"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.00"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1545,17 +1545,65 @@ const CONSIGNES={
   equilibre:{att:1.00, adv:1.00, label:"Équilibré", desc:"Bloc mesuré, ni trop haut ni trop bas — le réglage par défaut."},
   offensif: {att:1.15, adv:1.15, label:"Offensif",  desc:"On pousse l'attaque : plus d'occasions, mais on laisse des espaces derrière."}
 };
+/* ---------- FRAÎCHEUR : l'état de forme physique, joueur par joueur (v1.00) ----------
+   Chaque joueur des VINGT clubs de la division jouée porte une jauge 0-100. Un match complet coûte
+   FRAICH_MATCH, une entrée en jeu FRAICH_BANC, et l'on récupère FRAICH_SEM par semaine — une semaine
+   = une journée de championnat, l'horloge du jeu. Un joueur dans la force de l'âge repart donc
+   toujours de 100 le samedi suivant : le rythme d'une semaine est tenable, et c'est voulu.
+   LE VIEILLISSEMENT PORTE SUR LE TAUX DE RÉCUPÉRATION, pas sur le coût du match : passé 29 ans on ne
+   remonte plus tout à fait (33 ans → 98 % sept jours après un match), le déficit s'accumule de match
+   en match, et il faut ménager le vétéran avant qu'il ne tombe dans le rouge. Aucune règle ne le dit :
+   le joueur le DÉCOUVRE en regardant sa jauge descendre, semaine après semaine.
+   Un rendez-vous de semaine (Coupe de France, Europe) coûte un match de plus SANS semaine de repos en
+   face : jouer tous les trois jours creuse la jauge d'environ vingt points par tour. C'est là que la
+   réserve et la profondeur d'effectif cessent d'être décoratives.
+   Neutre sur le calibrage du championnat : l'effet est SYMÉTRIQUE (les vingt clubs le subissent, l'IA
+   fait tourner comme vous via noteSel), donc ce que l'attaque perd, la défense adverse le perd aussi. */
+const FRAICH_MATCH=20;   // un match complet : −20 points de fraîcheur
+const FRAICH_BANC=8;     // une entrée en jeu en cours de match coûte nettement moins cher
+const FRAICH_SEM=20;     // récupération d'une semaine pleine, à plein régime (≤ 29 ans)
+function fraich(j){ return j.fraich==null?100:j.fraich; }
+// taux de récupération selon l'âge : plein jusqu'à 29 ans, puis il s'érode d'un quarantième par an
+function recupAge(age){ return Math.max(0.78, Math.min(1, 1-0.025*((age||25)-29))); }
+/* Vos investissements de club comblent une PARTIE du déficit de l'âge — jamais la totalité : le centre
+   d'entraînement et le préparateur physique achètent une ou deux semaines de carrière à un vétéran,
+   ils ne le rajeunissent pas. Les autres clubs récupèrent au barème de l'âge, ni plus ni moins. */
+function recupJoueur(j, c){
+  const k=recupAge(j.age);
+  let soin=0;
+  if(c && c.id===G.monClub) soin=Math.min(0.70, 0.10*((G.centre||1)-1) + 0.10*coachTier("physique"));
+  return k + (1-k)*soin + 0.08*soin;
+}
+function reposHebdo(c){ for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)); }
+function useFraich(j, cout){ j.fraich=Math.max(0, fraich(j)-cout); }
+// rendement du jour : rien au-dessus de 85, puis une pente qui mord pour de bon dans le rouge (plancher −20 %)
+function facteurFraich(j){ const d=Math.max(0,(85-fraich(j))/85); return Math.max(0.80, 1-0.20*d*d-0.06*d); }
+/* Note de SÉLECTION : le rendement du jour, plus un malus de préservation sous 40 — le staff ménage un
+   homme sur les rotules même s'il reste le mieux noté du groupe. C'est ce malus qui fait tourner les
+   dix-neuf clubs de l'IA tout seuls, avec la même fonction que la vôtre. Votre ★ reste plus fort que tout. */
+function noteSel(j){ const f=fraich(j); return j.note*facteurFraich(j) - (f<40?(40-f)*0.35:0); }
+const FRAICH_PALIERS=[[90,"Frais","vert"],[75,"En jambes","vert"],[55,"Émoussé","jaune"],[35,"Jambes lourdes","jaune"],[-1,"Sur les rotules","rouge"]];
+function libFraich(j){ const f=fraich(j); return FRAICH_PALIERS.find(x=>f>=x[0]); }
+function jaugeFraich(j, w){ // la petite barre télétexte, même grammaire que la confiance du président
+  const f=Math.round(fraich(j)), p=libFraich(j);
+  return `<span style="display:inline-block;width:${w||46}px;height:8px;border:1px solid var(--line);vertical-align:middle"><span style="display:block;height:100%;width:${f}%;background:var(--${p[2]})"></span></span>`;
+}
 function dispo(j){ return !(j.bless>0) && !(j.susp>0) && !j._reposIncident; }
+function alignable(j){ return dispo(j) && !j.repos; } // « mis au repos » : la Ligue le compte sur la feuille, vous l'écartez
 function onze(c){
   const xi=[];
   for(const p of ["G","D","M","A"]){
-    const pool=c.joueurs.filter(j=>j.pos===p && dispo(j));
+    let pool=c.joueurs.filter(j=>j.pos===p && alignable(j));
+    if(pool.length<FORMATION[p]){ // trop de repos volontaire à ce poste : le match prime, on rappelle les plus frais
+      const rappel=c.joueurs.filter(j=>j.pos===p && dispo(j) && !pool.includes(j)).sort((a,b)=>fraich(b)-fraich(a));
+      pool=pool.concat(rappel.slice(0, FORMATION[p]-pool.length));
+    }
     const forces=pool.filter(j=>j.titu).sort((a,b)=>b.note-a.note).slice(0,FORMATION[p]);
-    const reste=pool.filter(j=>!forces.includes(j)).sort((a,b)=>b.note-a.note);
+    const reste=pool.filter(j=>!forces.includes(j)).sort((a,b)=>noteSel(b)-noteSel(a));
     xi.push(...forces, ...reste.slice(0, FORMATION[p]-forces.length));
   }
   if(xi.length<11){ // effectif décimé : on complète hors poste — un joueur de champ AVANT tout 2e gardien (un gardien ne dépanne qu'en tout dernier recours)
-    const restants=c.joueurs.filter(j=>dispo(j)&&!xi.includes(j)).sort((a,b)=>((a.pos==="G")-(b.pos==="G"))||(b.note-a.note));
+    const restants=c.joueurs.filter(j=>dispo(j)&&!xi.includes(j)).sort((a,b)=>((a.pos==="G")-(b.pos==="G"))||(noteSel(b)-noteSel(a)));
     xi.push(...restants.slice(0, 11-xi.length));
   }
   return xi;
@@ -1611,7 +1659,7 @@ function forces(c){
   let coh=Math.max(0.85, 1-0.012*exces*(1-0.40*L)); // un fort capitaine tempère les divas
   coh*=1+(L-0.68)*0.05;                              // et soude (ou non) le vestiaire : ±~2 %
   coh=Math.max(0.84, Math.min(1.03, coh));
-  const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral)); // le moral fait ±5 %
+  const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral))*facteurFraich(j); // le moral fait ±5 %, la fraîcheur jusqu'à −20 %
   let att=xi.filter(j=>"MA".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/6*coh;
   if(xi.some(j=>j.tireurElite)) att*=1.03; // un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts
   const def=xi.filter(j=>"GD".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/5*coh;
@@ -2083,9 +2131,8 @@ function simuleMatch(home,away,verbeux){
     const cAtt=1+0.02*coachTier("attaque"), cDef=1-0.02*coachTier("defense"), cGk=1-0.015*coachTier("gardien");
     if(home.id===G.monClub){ lh*=cAtt; la*=cDef*cGk; } else { la*=cAtt; lh*=cDef*cGk; }
   }
-  // fatigue de coupe : aligner ses cadres en semaine laisse des jambes lourdes au match suivant
-  // (VOTRE match uniquement, et seulement si fatigue>0 → le calibrage du championnat reste intact)
-  if(G.coupe && G.coupe.fatigue>0){ if(home.id===G.monClub) lh*=0.95; else if(away.id===G.monClub) la*=0.95; }
+  // (v1.00 : le forfait « −5 % après un tour de coupe » a disparu — la fatigue vit désormais dans la
+  //  jauge de fraîcheur de chaque joueur, donc dans forces(), et pour les vingt clubs, pas pour le seul vôtre)
   // bête noire : l'adversaire maudit joue toujours bien contre vous (jusqu'à ce que le sort soit brisé)
   if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
@@ -2184,7 +2231,6 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
     if(home.id===G.monClub){ lh*=Cc.att; la*=Cc.adv; } else { la*=Cc.att; lh*=Cc.adv; }
     const pm=+G.primeMatch||0; if(pm>0){ if(home.id===G.monClub) lh*=(1+pm); else la*=(1+pm); }
   }
-  if(G.coupe && G.coupe.fatigue>0){ if(home.id===G.monClub) lh*=0.95; else if(away.id===G.monClub) la*=0.95; }
   if(home.beteNoire===away.id && !home.bnBattue) la*=1.12;
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
   const derby=(RIVAL[home.id]===away.id);
@@ -2286,21 +2332,26 @@ function appliqueResultat(h,a,sh,sa,pre){
       const niv=(c.id===G.monClub)?G.centre:1;
       let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
       if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
+      // un homme qui n'a pas récupéré se claque : le risque grimpe jusqu'à ×2,5 sur les rotules.
+      // Le tirage se fait sur la fraîcheur D'AVANT le coup d'envoi, avant d'en retirer le prix du match.
+      proba*=1+1.5*Math.max(0,(70-fraich(j))/70);
       if(Math.random()<proba){
         let d=RNDI(1, 2+Math.round((j.fragile||5)*0.9));
         d=Math.max(1, Math.round(d*(1-0.10*(niv-1))));
         j.bless=d;
         if(c.id===G.monClub){ G.news.unshift("INFIRMERIE : "+j.nom+" touché — indisponible "+d+" journée"+(d>1?"s":"")+".");
           notif("🏥 "+j.nom+" blessé — indisponible "+d+" journée"+(d>1?"s":"")+"."); }
-      }});
-    sel.banc.forEach(j=>{j.matchs++; j._joue=0.6;});
+      }
+      useFraich(j, FRAICH_MATCH);});
+    sel.banc.forEach(j=>{j.matchs++; j._joue=0.6; useFraich(j, FRAICH_BANC);});
     return sel.banc;
   };
   return {subsH:entre(h,pre&&pre.h), subsA:entre(a,pre&&pre.a)};
 }
 function tireSubs(c){
   const xi=onze(c);
-  return {xi, banc:c.joueurs.filter(j=>!xi.includes(j)&&dispo(j)).sort(()=>Math.random()-.5).slice(0,3)};
+  // le banc écarte lui aussi les joueurs mis au repos : les envoyer en jeu viderait la décision de son sens
+  return {xi, banc:c.joueurs.filter(j=>!xi.includes(j)&&alignable(j)).sort(()=>Math.random()-.5).slice(0,3)};
 }
 
 function notif(t){ (G.notifs=G.notifs||[]).push(t); }
@@ -2570,7 +2621,6 @@ function autoMoment(mo){ // résolution sans intervention (tests, abandon de ban
 function finirJournee(delta){
   const P=G._pend; if(!P) return; G._pend=null;
   const {res,pend}=P;
-  if(G.coupe && G.coupe.fatigue>0) G.coupe.fatigue--; // la fatigue de coupe se dissipe après le match qu'elle a plombé
   if(pend){
     const {r,h,a,hid,aid,pre,e}=pend;
     if(r.moment && delta){
@@ -2656,9 +2706,18 @@ function finirJournee(delta){
   ventesEnCours();
   veilleEffectif(); // après les départs de la semaine : on repasse tous les effectifs au contrôle réglementaire
   avanceChantier();
-  // blessures et suspensions : une journée de purgée
-  for(const c of G.clubs) for(const j of c.joueurs){
-    if(j.bless>0) j.bless--; if(j.susp>0) j.susp--;
+  // blessures et suspensions : une journée de purgée — et la semaine de repos qui sépare deux journées,
+  // pour les VINGT clubs de la division (l'infirmerie récupère aussi : un blessé se repose, par définition)
+  for(const c of G.clubs){
+    reposHebdo(c);
+    for(const j of c.joueurs){
+      if(j.bless>0) j.bless--; if(j.susp>0) j.susp--;
+    }
+  }
+  // un joueur que vous aviez mis au repos et qui a refait le plein réintègre le groupe de lui-même :
+  // sinon on l'oublie sur la touche pour le reste de la saison, et la décision devient un piège
+  for(const j of clubById(G.monClub).joueurs){
+    if(j.repos && fraich(j)>=90 && dispo(j)){ j.repos=false; notif("💪 "+j.nom+" a refait le plein : il réintègre le groupe."); }
   }
   G.journee++;
   if(G.buzz>0) G.buzz--;
@@ -3175,6 +3234,10 @@ function majMoral(res){
   for(const j of moi.joueurs){
     let d=(65-(j.moral==null?65:j.moral))*0.10; // tout s'estompe, l'euphorie comme la déprime
     if(j._joue){ d+=1.5; j.sansJouer=0; }
+    // Un homme qu'on MÉNAGE n'est pas un homme qu'on écarte : il sait pourquoi il n'a pas joué, et le
+    // compteur de banc ne tourne pas. Sans cela, mettre un cadre au repos le punissait deux fois — jambes
+    // lourdes ET moral en berne — et la décision que la fraîcheur rend nécessaire devenait une faute.
+    else if(j.repos || fraich(j)<70){ /* au vert : ni gain, ni rancune */ }
     else { j.sansJouer=(j.sansJouer||0)+1;
       if(j.sansJouer===3) notif("😞 "+j.nom+" cire le banc depuis 3 matchs — son moral décroche.");
       if(j.sansJouer>=3) d-=((j.ego||5)>=7?5:3); }
@@ -3186,6 +3249,9 @@ function selections(){
   const moi=clubById(G.monClub);
   for(const j of moi.joueurs){
     if((j.nat||"FR")!=="FR") continue;
+    // la trêve n'est une trêve que pour ceux qui restent : un international rentre de Clairefontaine
+    // avec un match dans les jambes et une nuit de train. Le moral monte, la fraîcheur descend.
+    if(j.selA || j.selEsp) useFraich(j, 8);
     if(j.note>=84 && !j.selA){
       j.selA=true; j.moral=Math.min(100,(j.moral||65)+8);
       G.news.unshift("ÉQUIPE NATIONALE : "+j.nom+" honore sa première sélection nationale !");
@@ -5049,11 +5115,39 @@ const COUPE_TOURS=[ // tours intercalés en semaine ; j = valeur de G.journee à
   {nom:"Demi-finales",    court:"Demies", j:31},
   {nom:"Finale",          court:"Finale", j:36},
 ];
-const ROTATION_COUPE={ // votre gestion de l'effectif pour le tour de semaine — un vrai arbitrage
-  cadres: {mult:1.04, label:"Les cadres",   desc:"On joue le coup à fond — mais jambes lourdes au prochain match de championnat."},
-  mixte:  {mult:0.95, label:"Équipe mixte", desc:"Un mélange cadres / jeunes. Aucun contrecoup au championnat."},
-  reserve:{mult:0.82, label:"La réserve",   desc:"On préserve les titulaires pour le championnat — au risque du carton face aux amateurs."},
+/* L'état de forme du onze qu'on s'apprête à envoyer, affiché SOUS les trois boutons de rotation :
+   sans lui, le choix « cadres / mixte / réserve » se fait à l'aveugle et l'on ne découvre la note qu'au
+   match de championnat du samedi. Avec lui, l'arbitrage devient lisible d'un coup d'œil. */
+function apercuRotation(rot){
+  const c=clubById(G.monClub); if(!c) return "";
+  const xi=onzeRotation(c, rot||"mixte");
+  if(!xi.length) return "";
+  const moy=Math.round(xi.reduce((s,j)=>s+fraich(j),0)/xi.length);
+  const cuits=xi.filter(j=>fraich(j)<55);
+  const cls=moy>=75?"dim":(moy>=55?"jaune":"rouge");
+  return `<p class="${cls}" style="font-size:12px;margin-top:8px">Fraîcheur du onze envisagé : <b>${moy}/100</b>`
+    + (cuits.length?` · ${cuits.length} homme${cuits.length>1?"s déjà émoussés":" déjà émoussé"} (${cuits.slice(0,3).map(j=>esc(j.nom)).join(", ")}${cuits.length>3?"…":""})`:"")
+    + ` · <span class="dim">chacun rentrera avec ${FRAICH_MATCH} points de moins.</span></p>`;
+}
+/* Votre gestion de l'effectif pour le tour de semaine — un vrai arbitrage, et depuis v1.00 un arbitrage
+   qui se PAIE en vrai : ce ne sont plus trois adjectifs, ce sont onze hommes précis qui rentrent avec
+   vingt points de fraîcheur en moins. Envoyer les cadres, c'est les retrouver émoussés samedi ; envoyer
+   la réserve, c'est user des remplaçants dont on n'attend rien en championnat. */
+const ROTATION_COUPE={
+  cadres: {mult:1.04, label:"Les cadres",   desc:"On joue le coup à fond — et ce sont eux qui rentreront avec un match de plus dans les jambes."},
+  mixte:  {mult:0.95, label:"Équipe mixte", desc:"Un mélange cadres / jeunes : la fatigue se partage entre deux moitiés de l'effectif."},
+  reserve:{mult:0.82, label:"La réserve",   desc:"Les titulaires restent au chaud pour le championnat — au risque du carton face aux amateurs."},
 };
+/* Un rendez-vous de semaine (Coupe de France, Coupe d'Europe) : les onze qui l'ont disputé encaissent un
+   match complet, SANS semaine de repos en face — l'aller du mercredi et le championnat du samedi tombent
+   dans la même semaine, qui n'est créditée qu'une fois (finirJournee). C'est exactement le « il n'a pas
+   le temps de récupérer » : deux matchs pour une seule semaine de récupération. */
+function fatigueSemaine(rot){
+  const c=clubById(G.monClub); if(!c) return;
+  onzeRotation(c, rot||"mixte").forEach(j=>useFraich(j, FRAICH_MATCH));
+  const cuits=c.joueurs.filter(j=>fraich(j)<35 && dispo(j)).length;
+  if(cuits>=3) notif("😮‍💨 "+cuits+" joueurs rentrent sur les rotules du rendez-vous de semaine — le banc va devoir servir.");
+}
 const COUPE_TERRAIN=5;        // avantage du terrain (le petit reçoit, et il y croit)
 const COUPE_POUCET_BONUS=14;  // le Petit Poucet joue très au-dessus de son rang réel
 const COUPE_RECETTE=600000;   // recette de billetterie (votre club) à chaque tour franchi
@@ -5105,7 +5199,7 @@ function coupeInit(){ // (re)tirage du tableau pour la saison en cours
   G.coupe={ saison:G.saison, tourIdx:0, vivants,
     poucetId:poucet, poucetVivant:true, poucetParcours:[], poucetSortie:null,
     monParcours:[], elimine:false, tourSortie:null, vainqueur:null,
-    dernierTour:null, rotation:"mixte", fatigue:0, gains:0, aJouer:null, enDirect:null };
+    dernierTour:null, rotation:"mixte", gains:0, aJouer:null, enDirect:null };
 }
 function coupeTick(){ // appelé en fin de journée : déclenche le tour de semaine s'il est à l'heure
   if(!G.coupe || G.coupe.vainqueur || G.coupe.tourIdx>=COUPE_TOURS.length) return;
@@ -5148,7 +5242,7 @@ function coupeResoutTour(interactif, forced){ // résout les affiches de co.aJou
       const dom=f.hid===G.monClub, advId=dom?f.aid:f.hid, gagne=f.win===G.monClub, sc=scoreVu(f,G.monClub), tb=f.tab?" t.a.b.":"";
       const poucetTag=advId===co.poucetId?" — LE Petit Poucet en personne !":"";
       co.monParcours.push({tour:tour.court, hid:f.hid, aid:f.aid, sh:f.sh, sa:f.sa, tab:f.tab, gagne});
-      if(co.rotation==="cadres") co.fatigue=1;                       // les cadres ont donné : jambes lourdes au prochain match
+      fatigueSemaine(co.rotation);                                   // ceux qui ont joué le tour rentrent avec vingt points de fraîcheur en moins
       if(gagne){
         G.tresorerie+=COUPE_RECETTE; co.gains=(co.gains||0)+COUPE_RECETTE; // billetterie du tour
         if(!interactif) notif("🏆 COUPE — "+tour.court+" : QUALIFIÉ ! "+sc+tb+(dom?" à domicile":" à "+villeCoupe(advId))+" face à "+nomCoupe(advId)+poucetTag);
@@ -5294,7 +5388,7 @@ function ecranCoupe(){
      <div class="ctr" style="margin-top:6px">
        ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRot" data-k="${k}" style="margin:4px 3px 0${co.rotation===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
        <br><span class="dim" style="font-size:11px">${esc(ROTATION_COUPE[co.rotation].desc)}</span>
-     </div></div>` : "";
+     </div>${apercuRotation(co.rotation)}</div>` : "";
   const parc = co.monParcours.length ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Score</th><th></th></tr>
      ${co.monParcours.map(p=>{ const adv=p.hid===G.monClub?p.aid:p.hid, sc=scoreVu(p,G.monClub);
         return `<tr class="${adv===pId?'':''}"><td>${esc(p.tour)}</td><td>${esc(nomCoupe(adv))}${adv===pId?' <span class="cyan">🐭</span>':''}</td><td class="num">${sc}${p.tab?" <span class=dim>tab</span>":""}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`;}).join("")}
@@ -5501,7 +5595,7 @@ function euroResoutAller(interactif, forced){ /* MANCHE ALLER : on joue les 8 pr
       const p=aj.paires[i], moiA=(p[0]===G.monClub), advId=moiA?p[1]:p[0];
       const me=moiA?allers[i][0]:allers[i][1], lui=moiA?allers[i][1]:allers[i][0];
       eu.attente.mien={advId, dom:moiA, sc:me+"-"+lui};
-      if(eu.rotation==="cadres" && G.coupe) G.coupe.fatigue=1; // cadres épuisés → jambes lourdes au championnat suivant
+      fatigueSemaine(eu.rotation);                             // la manche européenne se paie comptant, en fraîcheur
       if(!interactif) notif(EMO+" "+NOM+" — "+tour.court+", match ALLER "+(moiA?"à domicile":"à l'extérieur")+" : "+me+"-"+lui+" face à "+nomEuro(advId)+". Retour "+(moiA?"là-bas":"chez vous")+" dans une semaine.");
       G.news.unshift(NOM+" — "+tour.court+", match aller : "+nomEuro(p[0])+" "+allers[i][0]+"-"+allers[i][1]+" "+nomEuro(p[1])+". Tout se jouera au retour, dans une semaine.");
     }
@@ -5531,7 +5625,7 @@ function euroResoutTour(interactif, forced){ // résout la manche posée dans eu
       const lui= f.neutre?(moiA?f.s[1]:f.s[0]):(moiA?f.agg[1]:f.agg[0]);
       const sc = me+"-"+lui + (f.neutre?"":" cumul") + (f.tab?" (t.a.b.)":"");
       eu.monParcours.push({tour:tour.court, advId, sc, gagne, finale:f.neutre});
-      if(eu.rotation==="cadres" && G.coupe) G.coupe.fatigue=1; // cadres épuisés → jambes lourdes au championnat suivant
+      fatigueSemaine(eu.rotation);                             // la manche européenne se paie comptant, en fraîcheur
       if(gagne){
         const prime=CP.prime[eu.tourIdx]||0; // prime UEFA du tour REMPORTÉ (croissante à l'approche de la finale)
         G.tresorerie+=CP.recette+prime; eu.gains+=CP.recette+prime;
@@ -5623,7 +5717,8 @@ function ajouteJeune(c,pos,rec,centre){
 function razStatsClub(c){
   c.pts=0;c.j=0;c.g=0;c.n=0;c.p=0;c.bp=0;c.bc=0;c.forme=[];
   c._cedes=0; c._cedesG=0; // le quota de joueurs qu'un club accepte de vous vendre se recharge chaque saison
-  for(const j of c.joueurs){ j.buts=0;j.passes=0;j.matchs=0;j.note0=j.note;j.avendre=false;j.bless=0;j.susp=0; }
+  // l'été remet tout le monde à neuf : deux mois sans match, personne ne démarre une saison entamé
+  for(const j of c.joueurs){ j.buts=0;j.passes=0;j.matchs=0;j.note0=j.note;j.avendre=false;j.bless=0;j.susp=0;j.fraich=100;j.repos=false; }
 }
 function construireEffectif(p){
   p.joueurs=[];p.pts=0;p.j=0;p.g=0;p.n=0;p.p=0;p.bp=0;p.bc=0;p.forme=[];
@@ -5899,6 +5994,7 @@ function migre(){
     for(const j of c.joueurs){
       j.passes=j.passes||0; j.fav=!!j.fav; j.titu=!!j.titu; j.note0=j.note0||j.note;
       j.uid=j.uid||uidGen(); j.bless=j.bless||0; j.susp=j.susp||0;
+      if(j.fraich==null) j.fraich=100; j.repos=!!j.repos; // v1.00 : les carrières en cours reprennent avec un effectif frais
       if(j.moral==null) j.moral=RNDI(58,75);
       j.sansJouer=j.sansJouer||0; j.nat=j.nat||"FR";
       if(j.reel==null) j.reel=true; // les anciens fichiers ne distinguaient pas : on les traite en vrais
@@ -6425,6 +6521,16 @@ function ecranCalendrier(){
        FEUILLE DE MATCH : <b>${Math.min(11,xiMoi.length)}/11</b> titulaires · <b>${Math.min(5,bancMoi)}/5</b> remplaçants${
          feuilleOk?(bancMoi<5?" — banc incomplet (blessés, suspendus), mais le match peut se jouer":""):" — LA LIGUE REFUSE LA FEUILLE DE MATCH"}
      </p>
+     ${(()=>{ // l'état de forme du onze annoncé : on le dit AVANT le coup d'envoi, pas après la défaite
+       const cuits=xiMoi.filter(j=>fraich(j)<55);
+       if(!cuits.length) return "";
+       const rouges=cuits.filter(j=>fraich(j)<35);
+       const noms=cuits.slice(0,4).map(j=>esc(j.nom)).join(", ")+(cuits.length>4?"…":"");
+       return `<p class="ctr ${rouges.length?"rouge":"jaune"}" style="margin-top:4px;font-size:12px">
+         ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s sont":" est")+" sur les rotules"
+                        :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s émoussés":" émoussé")} : ${noms}.
+         <span class="dim">Rendement en baisse et risque de blessure accru — l'écran Effectif permet de les mettre au repos.</span></p>`;
+     })()}
      ${feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
        <button class="act" id="bVite" style="margin-left:8px">Résultat instantané</button>
@@ -6650,6 +6756,7 @@ function ouvreCoupe(suite){
         <span class="dim">${esc(villeCoupe(advId))} · ${dom?'<span class="vert">vous recevez</span>':"vous vous déplacez — le petit reçoit"}</span></p>
       <p class="dim" style="font-size:12px">Quelle équipe alignez-vous pour ce tour ?</p>
       <div id="cRotChoix">${rotaBtns}</div>
+      ${apercuRotation(co.rotation)}
       <p style="margin-top:10px"><button class="big" id="bCGo">▶ Jouer le match</button>
         <button class="act" id="bCVite" style="margin-left:8px">Résultat instantané</button></p></div>`;
     fiche.style.display="flex";
@@ -6771,6 +6878,7 @@ function ouvreEuro(suite){
         <span class="dim">${contexte}</span></p>
       <p class="dim" style="font-size:12px">Quelle équipe alignez-vous ?</p>
       <div>${rotaBtns}</div>
+      ${apercuRotation(eu.rotation)}
       <p style="margin-top:10px"><button class="big" id="bEGo">▶ Jouer ${aj.finale?"la finale":(aller?"l'aller au direct":"le retour au direct")}</button>
         <button class="act" id="bEVite" style="margin-left:8px">Résultat instantané</button></p></div>`;
     fiche.style.display="flex";
@@ -7796,8 +7904,17 @@ function titulariser(j){
   if(!j.titu){
     const deja=c.joueurs.filter(x=>x.pos===j.pos&&x.titu).length;
     if(deja>=FORMATION[j.pos]) return alert("Le 4-4-2 n'aligne que "+FORMATION[j.pos]+" joueur(s) au poste "+j.pos+". Libérez d'abord une place.");
-    j.titu=true;
+    j.titu=true; j.repos=false; // on ne titularise pas de force un homme qu'on vient de mettre au vert
   } else j.titu=false;
+  montre("effectif");
+}
+/* Mettre au repos : le geste que la fraîcheur rend nécessaire. Le joueur reste sur la feuille de match
+   aux yeux de la Ligue (il compte dans l'effectif réglementaire), mais ni le onze ni le banc ne le
+   retiennent — il récupère, point. Le jeu le réintègre tout seul dès qu'il a refait le plein (≥ 90),
+   et le rappelle quand même si son poste est dégarni au point de ne plus pouvoir aligner l'équipe. */
+function mettreAuRepos(j){
+  if(!j.repos && j.titu) j.titu=false; // le ★ et le repos se contredisent : le repos l'emporte
+  j.repos=!j.repos;
   montre("effectif");
 }
 /* La soupape du plancher : un club au ras des 16 ne peut plus rien vendre. Plutôt que de bloquer sec
@@ -7828,18 +7945,20 @@ function ecranEffectif(){
   // un départ est refusé par poste (ou par le total) : on grise le bouton plutôt que d'alerter après coup
   const blocVente={}; for(const p of ["G","D","M","A"]){ const ech=c.joueurs.find(j=>j.pos===p); blocVente[p]=ech?refusDepart(c,ech):null; }
   chrome("effectif",`<div class="panel"><h2>Effectif — ${esc(c.nom)}</h2>
-   <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th><th></th></tr>
+   <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Pèse jusqu'à −20 % sur la performance et double le risque de blessure.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th><th></th></tr>
    ${js.map((j,i)=>`<tr class="click" data-i="${c.joueurs.indexOf(j)}">
-     <td>${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan">★</span>':""}</td>
-     <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}</td>
+     <td>${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan">★</span>':""}${j.repos?'<span class="cyan" title="Mis au repos — il récupère">🛌</span>':""}</td>
+     <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}${j.repos?' <span class="cyan">[au repos]</span>':""}</td>
      <td class="pos-${j.pos}">${j.pos}</td><td class="num">${j.age}</td>
      <td class="num"><b>${j.note}</b></td>
      <td>${pictos(j)}</td>
+     <td style="white-space:nowrap">${jaugeFraich(j)} <span class="${libFraich(j)[2]}" style="font-size:13px">${esc(libFraich(j)[1])}</span>${(j.age>=30&&recupAge(j.age)<1)?' <span class="dim" title="Passé 29 ans, sept jours ne suffisent plus à refaire le plein">⏳</span>':""}</td>
      <td class="num"><span class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"dim")}">${Math.round(j.moral||65)}</span></td>
      <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲ +'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
      <td class="num">${(valeur(j)/1e6).toFixed(1)} MF</td>
      <td class="num">${j.buts}</td><td class="num">${j.passes||0}</td>
      <td><button class="act bT" data-i="${c.joueurs.indexOf(j)}">${j.titu?"Libérer":"Titulariser"}</button>
+         <button class="act bR" data-i="${c.joueurs.indexOf(j)}" title="${j.repos?"Le remettre à disposition du onze":"L'écarter du onze et du banc pour qu'il récupère"}">${j.repos?"Réintégrer":"🛌 Repos"}</button>
          <button class="act bV" data-i="${c.joueurs.indexOf(j)}"${!j.avendre&&blocVente[j.pos]?` disabled title="${esc(blocVente[j.pos])}"`:""}>${j.avendre?"Retirer":"Vendre"}</button></td>
      <td>${j.pretIn?'<span class="dim">—</span>':`<button class="act bL" data-i="${c.joueurs.indexOf(j)}"${blocVente[j.pos]?` disabled title="${esc(blocVente[j.pos])}"`:' title="Prêter à un club où il jouera titulaire"'}>Prêter</button>`}</td></tr>`).join("")}
    </table>
@@ -7861,6 +7980,7 @@ function ecranEffectif(){
    })()}
    <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême. Survolez pour le détail, ouvrez la fiche pour tout savoir.</p>
    <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le 4-4-2 même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
+   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> — un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match, et il faut ménager le vétéran avant qu'il ne tombe dans le rouge. Sous 85, la performance baisse ; sous 70, le risque de blessure grimpe. <b>Le onze écarte de lui-même un homme sur les rotules</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
     <table>${G.prets.filter(p=>p.sens==="out").map(p=>{const j=byUid(p.uid);return j?`<tr class="click pret" data-u="${p.uid}">
       <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
@@ -7869,11 +7989,12 @@ function ecranEffectif(){
       <td class="num vert">+${FMT(p.tarif)} FF/j</td>
       <td class="dim">retour J${p.fin}</td></tr>`:"";}).join("")}</table>`:""}</div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=e=>{
-    if(e.target.classList.contains("bV")||e.target.classList.contains("bT")||e.target.classList.contains("bL"))return;
+    if(e.target.classList.contains("bV")||e.target.classList.contains("bT")||e.target.classList.contains("bL")||e.target.classList.contains("bR"))return;
     ouvreFiche(c.joueurs[+tr.dataset.i]);
   });
   app.querySelectorAll(".bV").forEach(b=>b.onclick=()=>listerVente(c.joueurs[+b.dataset.i]));
   app.querySelectorAll(".bT").forEach(b=>b.onclick=()=>titulariser(c.joueurs[+b.dataset.i]));
+  app.querySelectorAll(".bR").forEach(b=>b.onclick=()=>mettreAuRepos(c.joueurs[+b.dataset.i]));
   app.querySelectorAll(".bL").forEach(b=>b.onclick=()=>modalPret(c.joueurs[+b.dataset.i],"out"));
   app.querySelectorAll(".bCF").forEach(b=>b.onclick=()=>monteeCentre(b.dataset.p));
   app.querySelectorAll("tr.pret").forEach(tr=>tr.onclick=()=>{const j=byUid(tr.dataset.u); if(j) ouvreFiche(j);});
@@ -7931,6 +8052,10 @@ function ouvreFiche(j){
        Fragilité ${j.fragile||5}/10 — ${esc(fragLib(j.fragile||5))}<br>
        Vénalité ${j.venal||5}/10 — ${esc(venalLib(j.venal||5))}</p>
     <p>Moral : <b class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"jaune")}">${Math.round(j.moral||65)}/100</b>${(j.sansJouer||0)>=3?' <span class="rouge">— ronge son frein sur le banc</span>':""}</p>
+    <p>Forme : ${jaugeFraich(j,80)} <b class="${libFraich(j)[2]}">${esc(libFraich(j)[1])}</b> <span class="dim">(${Math.round(fraich(j))}/100)</span>${j.repos?' <span class="cyan">🛌 au repos</span>':""}</p>
+    <p class="dim" style="font-size:12px">${recupAge(j.age)>=1
+      ? "À "+j.age+" ans, une semaine de repos lui rend tout ce qu'un match lui prend."
+      : "À "+j.age+" ans, sept jours ne lui rendent plus que "+Math.round(FRAICH_SEM*recupJoueur(j,clubById(j.club)))+" points sur les 20 qu'un match coûte : le déficit s'accumule, il faudra le ménager."}</p>
     ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
       :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
     ${j.tireurElite?`<p class="cyan">🎯 Tireur d'élite — il tire les penaltys et les coups francs</p>`:""}
