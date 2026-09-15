@@ -4025,6 +4025,7 @@ function genRapport(){
       (G.vivier[nt]=G.vivier[nt]||[]).push(v.slice(0,6));
     }
     regarnitVivier(VIVIER_CIBLE); // et on complète aussitôt avec la réserve de l'époque
+    G._vivier95=true;             // estampille : ce vivier est déjà à la bonne année (voir migre)
   }
   const types=Object.keys(G.vivier).filter(t=>G.vivier[t].length>0).sort(()=>Math.random()-.5);
   const out=[], pris=new Set();
@@ -5806,6 +5807,19 @@ function migre(){
   G.histo=(G.histo||[]).map(j=>Array.isArray(j)?j.map(e=>(e&&e.h&&typeof e.h==="object")?{h:e.h.id,a:e.a.id,sh:e.sh,sa:e.sa,mien:!!e.mien}:e):j);
   if(G.news && G.news.length>60) G.news.length=60;
   if(G.presse && G.presse.length>40) G.presse.length=40;
+  // v0.95 : le vivier d'avant ne vieillissait pas — il restait aux âges de l'été 95, saison après saison.
+  // On le reprojette à l'année en cours SANS attendre l'intersaison, puis on profite de la réserve élargie.
+  if(G.vivier && !G._vivier95){
+    const an=anneeJeu(), neuf={};
+    for(const t in G.vivier) for(const e of G.vivier[t]){
+      const v=vieillitJoker(e, an); if(!v) continue;   // il a raccroché depuis le temps
+      const nt=profilJoker(t, v[2]);
+      (neuf[nt]=neuf[nt]||[]).push(v.slice(0,6));
+    }
+    G.vivier=neuf;
+    regarnitVivier(VIVIER_CIBLE);
+    G._vivier95=true;
+  }
   if(G._pend){ // un moment resté en suspens se résout tout seul
     const P=G._pend, r=P.pend&&P.pend.r;
     if(r && r.pen && !r.moment) r.moment={type:"pen_pour", uid:r.pen.uid};
