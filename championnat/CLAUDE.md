@@ -537,6 +537,13 @@ toujours « raconter quelque chose ».
     `accepterOffreExt`. Les boutons « Vendre »/« Prêter » de l'écran effectif sont **grisés avec le motif en
     infobulle** (calculé une fois par poste dans `blocVente`), et le bouton « Accepter » de l'offre étrangère
     aussi — on ne découvre pas le refus après coup.
+    **La FICHE du joueur porte le même bouton depuis v1.04** (demande de l'auteur : elle n'offrait que la vente
+    éclair, donc la seule sortie proposée sur cet écran était celle qui brade à −40 %). `#bListe` appelle
+    `listerVente(j)` — même garde, même motif en infobulle via `blocL` — puis **rejoue `ouvreFiche(j)`** pour
+    que le libellé bascule en « Retirer de la liste » : `listerVente` rafraîchit l'écran DERRIÈRE la modale
+    (`montre("effectif")`), pas la modale elle-même. La fiche affiche aussi désormais les deux **lignes de
+    situation** (📤 prêté à tel club, 🏷️ sur la liste des transferts avec ce que la fenêtre autorise),
+    rangées **après** le bloc identité/stats pour ne pas couper Poste → Note → Valeur.
   • **`veilleEffectif()`** = le filet de sécurité, passé **avant chaque journée** (tête de `jouerJournee`,
     après `ventesEnCours` dans `finirJournee`, tête de `ecranCalendrier`) et dans **`migre()`** (une
     sauvegarde déjà saccagée se remet en règle au chargement). Il balaie **les deux divisions** : tout club
@@ -1150,6 +1157,20 @@ toujours « raconter quelque chose ».
   les `table`. Les tableaux étroits libellé/valeur (Finances, Buteurs, Passeurs) doivent porter
   `class="fit"` (qui remet `min-width:0`), sinon leur colonne de droite — montants, compteurs de buts/passes —
   sort de l'écran et devient invisible.
+- **LE TÉLÉSCRIPTEUR ÉCRIT DU PLUS RÉCENT AU PLUS ANCIEN (v1.04, demande de l'auteur)** : la dernière action
+  se lit **tout en haut**, on ne suit plus le bas du cadre au fil du match. Deux règles à tenir dans les
+  **TROIS** directs (championnat, Coupe de France, Europe) : on insère en **`"afterbegin"`** (jamais
+  `"beforeend"`) et le retour en tête se fait avec **`scrollTop=0`** (jamais `scrollTop=scrollHeight`).
+  `ajouteLigne` porte la règle pour les lignes de jeu ; les blocs de fin de match l'appliquent à la main.
+  **Conséquence contre-intuitive, le vrai piège** : un bloc inséré APRÈS un autre ressort AU-DESSUS de lui.
+  Un panneau en plusieurs morceaux doit donc être posé dans l'ordre **INVERSE** de la lecture voulue — c'est
+  pourquoi `afficheFeuille` (championnat) pose d'abord « Les autres résultats » **puis** la feuille de match,
+  pour qu'on lise feuille → autres scores → bouton. En Europe l'ordre naturel joue à l'endroit : la ligne
+  « Fin de l'aller » / « TIRS AU BUT » est posée après la feuille, donc s'affiche au-dessus — le verdict
+  d'abord, le détail ensuite, ce qu'on veut. **Ne PAS toucher** aux trois `insertAdjacentHTML("beforeend")`
+  qui restent : ce sont les colonnes de buteurs du tableau d'affichage (`tBuH`/`tBuA`), qui doivent, elles,
+  rester chronologiques. Vérification en navigateur : les minutes lues de haut en bas doivent être
+  **décroissantes**, et `scrollTop` valoir 0 au coup de sifflet final.
 - Le téléscripteur (`#ticker`) a `overflow-y:auto`, donc c'est un bloc de formatage indépendant ; il cohabite
   avec les boutons de vitesse (`#ctlVitesse`) en `float:right`. Il doit garder `clear:both` (et les contrôles
   passent sur leur propre ligne en mobile), sinon il se rétrécit en une mince colonne à côté du flottant.

@@ -273,7 +273,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.03"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.04"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -7124,7 +7124,7 @@ function lanceCoupe(H, A, ed){
     // feuille de match
     const buts=lignes.filter(l=>l.g);
     const colBut=cote=>buts.filter(l=>l.g.cote===cote).map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}</p>`).join("")||'<p class="dim">—</p>';
-    tk.insertAdjacentHTML("beforeend",`<div class="fmatch">
+    tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
       <p class="sys" style="margin-bottom:4px">— FEUILLE DE MATCH —</p>
       <p style="text-align:center;font-size:16px"><b>${esc(H.nom)} <span class="jaune">${r.sh}</span> — <span class="jaune">${r.sa}</span> ${esc(A.nom)}</b>${r.tab?' <span class="dim">(t.a.b.)</span>':""}</p>
       <div style="display:flex;gap:18px;margin-top:4px">
@@ -7132,7 +7132,7 @@ function lanceCoupe(H, A, ed){
         <div style="flex:1">${colBut(A.id)}</div></div>
       <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(gen.aff||0)} spectateurs — ${esc(H.stade)}</p>
     </div>`);
-    tk.scrollTop=tk.scrollHeight;
+    tk.scrollTop=0;
     // on résout le tour avec le score déjà joué (les 31 autres affiches au modèle), sans notif perso (le verdict suit)
     coupeResoutTour(true, r);
     const pa=document.getElementById("preMatchAct");
@@ -7149,11 +7149,11 @@ function lanceCoupe(H, A, ed){
       let txt;
       if(etape===1){ txt=monteeUn(info,lignes,(info.cote===H.id?H:A),(info.cote===H.id?A:H)); }
       else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff)); }
-      ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
+      ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
     ajouteLigne(tk,lg); majTab(lg); i++;
-    tk.scrollTop=tk.scrollHeight;
+    tk.scrollTop=0;
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} — ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
@@ -7221,7 +7221,7 @@ function lanceEuroLeg(H, A, ed, legScore){
     if(ctl) ctl.style.display="none";
     const buts=lignes.filter(l=>l.g);
     const colBut=cote=>buts.filter(l=>l.g.cote===cote).map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}</p>`).join("")||'<p class="dim">—</p>';
-    tk.insertAdjacentHTML("beforeend",`<div class="fmatch">
+    tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
       <p class="sys" style="margin-bottom:4px">— FEUILLE DE MATCH —</p>
       <p style="text-align:center;font-size:16px"><b>${esc(H.nom)} <span class="jaune">${r.sh}</span> — <span class="jaune">${r.sa}</span> ${esc(A.nom)}</b>${r.tab?' <span class="dim">(t.a.b.)</span>':""}</p>
       <div style="display:flex;gap:18px;margin-top:4px">
@@ -7229,12 +7229,12 @@ function lanceEuroLeg(H, A, ed, legScore){
         <div style="flex:1">${colBut(A.id)}</div></div>
       <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(gen.aff||0)} spectateurs — ${esc(H.stade||"le stade")}</p>
     </div>`);
-    tk.scrollTop=tk.scrollHeight;
+    tk.scrollTop=0;
     const pa=document.getElementById("preMatchAct"); if(!pa) return;
     if(aller){ // fin de l'aller : on enregistre la manche, le retour est dans une semaine
       const tour=EURO_TOURS[ed.tourIdx], jr=tour?tour.jr:null;
-      tk.insertAdjacentHTML("beforeend",`<p class="sys" style="text-align:center;margin-top:4px">Fin de l'aller. Rendez-vous au match retour dans une semaine${jr?`, en milieu de semaine après la J${jr}`:""}.</p>`);
-      tk.scrollTop=tk.scrollHeight;
+      tk.insertAdjacentHTML("afterbegin",`<p class="sys" style="text-align:center;margin-top:4px">Fin de l'aller. Rendez-vous au match retour dans une semaine${jr?`, en milieu de semaine après la J${jr}`:""}.</p>`);
+      tk.scrollTop=0;
       const advId=ed.advId;
       euroResoutTour(true, {aid:ed.aid, bid:ed.bid, l1:legScore}); // VOTRE aller réinjecté ; les 7 autres au modèle
       G.euro.enDirect=null;
@@ -7242,8 +7242,8 @@ function lanceEuroLeg(H, A, ed, legScore){
       document.getElementById("bENext").onclick=()=>euroFenetreAller(advId, ()=>montre("calendrier"));
     } else { // manche décisive : on résout le tour avec le tie déjà joué (les autres au modèle), sans notif perso (le verdict suit)
       if(!ed.finale && ed.tie.tab){ // cumul ET buts à l'extérieur à égalité → tirs au but sur l'ensemble des deux matchs
-        tk.insertAdjacentHTML("beforeend",`<p class="sys" style="text-align:center;margin-top:4px">Tout est égal sur les deux matchs (cumul et but à l'extérieur) : TIRS AU BUT. ${esc(clubAffiche(ed.tie.win).nom)} se qualifie !</p>`);
-        tk.scrollTop=tk.scrollHeight;
+        tk.insertAdjacentHTML("afterbegin",`<p class="sys" style="text-align:center;margin-top:4px">Tout est égal sur les deux matchs (cumul et but à l'extérieur) : TIRS AU BUT. ${esc(clubAffiche(ed.tie.win).nom)} se qualifie !</p>`);
+        tk.scrollTop=0;
       }
       const forced=ed.tie, advId=ed.advId, tourIdx=ed.tourIdx, nom=ed.nom;
       euroResoutTour(true, forced);
@@ -7262,11 +7262,11 @@ function lanceEuroLeg(H, A, ed, legScore){
       let txt;
       if(etape===1){ txt=monteeUn(info,lignes,(info.cote===H.id?H:A),(info.cote===H.id?A:H)); }
       else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff, onzeEuro)); }
-      ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
+      ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
     ajouteLigne(tk,lg); majTab(lg); i++;
-    tk.scrollTop=tk.scrollHeight;
+    tk.scrollTop=0;
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} — ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
@@ -7655,7 +7655,13 @@ function lanceMatch(instant){
     const colBut=(cote,droite)=>buts.filter(l=>l.g.cote===cote)
       .map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}${l.g.cf?' <span class="dim">(cf)</span>':l.g.pen?' <span class="dim">(sp)</span>':""}</p>`).join("")||'<p class="dim">—</p>';
     const afficheFeuille=()=>{
-      tk.insertAdjacentHTML("beforeend",`<div class="fmatch">
+      // le téléscripteur insère en tête : on pose donc les autres résultats D'ABORD pour que la feuille
+      // de match, posée ensuite, ressorte AU-DESSUS d'eux — lecture : feuille, autres scores, bouton
+      const autres=res.filter(r=>r.h.id!==G.monClub&&r.a.id!==G.monClub)
+        .map(r=>`<p class="dim">${esc(r.h.nom)} ${r.sh} - ${r.sa} ${esc(r.a.nom)}</p>`).join("");
+      tk.insertAdjacentHTML("afterbegin",`<p class="sys">— Les autres résultats de la journée —</p>${autres}
+        <p style="margin-top:6px"><button class="big" id="bSuite">Prochaine journée 📆</button></p>`);
+      tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
         <p class="sys" style="margin-bottom:4px">— FEUILLE DE MATCH —</p>
         <p style="text-align:center;font-size:16px"><b>${esc(eM.h.nom)} <span class="jaune">${eM.sh}</span> — <span class="jaune">${eM.sa}</span> ${esc(eM.a.nom)}</b></p>
         <div style="display:flex;gap:18px;margin-top:4px">
@@ -7665,11 +7671,7 @@ function lanceMatch(instant){
         ${cartons.length?`<p style="margin-top:6px;text-align:center">${cartons.map(l=>`<span class="${l.c.rouge?"rouge":"jaune"}">▮</span> ${l.m}' ${esc(l.c.nom)} <span class="dim">(${l.c.cote})</span>`).join(" &nbsp;·&nbsp; ")}</p>`:""}
         <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(monMatch.aff||0)} spectateurs — ${esc(eM.h.stade)}</p>
       </div>`);
-      const autres=res.filter(r=>r.h.id!==G.monClub&&r.a.id!==G.monClub)
-        .map(r=>`<p class="dim">${esc(r.h.nom)} ${r.sh} - ${r.sa} ${esc(r.a.nom)}</p>`).join("");
-      tk.insertAdjacentHTML("beforeend",`<p class="sys">— Les autres résultats de la journée —</p>${autres}
-        <p style="margin-top:6px"><button class="big" id="bSuite">Prochaine journée 📆</button></p>`);
-      tk.scrollTop=tk.scrollHeight;
+      tk.scrollTop=0;
       document.getElementById("bSuite").onclick=()=>montre("calendrier");
     };
     // coup(s) du chapeau du match : une fenêtre dédiée avant la feuille, le héros repart avec le ballon
@@ -7698,7 +7700,7 @@ function lanceMatch(instant){
       g:delta?{cote:butCote,but:butNom,pas:null,sh:e.sh,sa:e.sa,pen:!cf,cf}:null};
     extra.push(penL); // la feuille de match le verra, sans doubler le téléscripteur
     ajouteLigne(tk,penL); majTableau(penL);
-    tk.scrollTop=tk.scrollHeight;
+    tk.scrollTop=0;
     suite();
   };
   if(instant){
@@ -7723,7 +7725,7 @@ function lanceMatch(instant){
     rejoueDepuis(monMatch, eM.h, eM.a, i, liveMin, liveMulH, liveMulA);
     eM.sh=monMatch.sh; eM.sa=monMatch.sa; // la feuille et le tableau suivront le nouveau cours
     ajouteLigne(tk,{m:liveMin,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
-    tk.scrollTop=tk.scrollHeight; majTacBtns();
+    tk.scrollTop=0; majTacBtns();
   };
   document.querySelectorAll(".bTacD").forEach(b=>b.onclick=()=>changeTactique(b.dataset.k));
   const tic=()=>{
@@ -7739,7 +7741,7 @@ function lanceMatch(instant){
       const campA=eM?(info.cote===eM.h.id?eM.h:eM.a):null, campD=eM?(info.cote===eM.h.id?eM.a:eM.h):null;
       if(etape===1){ txt=monteeUn(info,lignes,campA,campD); }
       else { txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienDe(campD)); }
-      ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=tk.scrollHeight;
+      ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
     const courante=i;
@@ -7749,7 +7751,7 @@ function lanceMatch(instant){
       const dDef=lg.c.gardien?1.34:1.18;
       if(lg.c.cote===eM.h.id){ liveMulH*=0.78; liveMulA*=dDef; } else { liveMulA*=0.78; liveMulH*=dDef; }
     }
-    tk.scrollTop=tk.scrollHeight;
+    tk.scrollTop=0;
     if(courante===penIdx){
       ouvreMoment(monMatch,res,resoudMoment,()=>{ tickerTimer=setTimeout(tic,tickerDelai); });
       return;
@@ -7802,8 +7804,14 @@ function lanceMatch(instant){
 }
 
 /* ---------- Les overlays des moments de match ---------- */
+/* LE TÉLÉSCRIPTEUR ÉCRIT DU PLUS RÉCENT AU PLUS ANCIEN (v1.04, demande de l'auteur) : la dernière
+   action se lit tout en haut, sans avoir à suivre le bas du cadre au fil du match. Deux corollaires
+   à tenir dans TOUS les directs (championnat, coupe, Europe) : on insère en **"afterbegin"**, et le
+   retour en tête se fait avec **scrollTop=0** (jamais scrollHeight). Un bloc posé APRÈS un autre
+   ressort donc AU-DESSUS de lui : pour un panneau en plusieurs morceaux (feuille de match + autres
+   résultats), insérer les morceaux dans l'ordre INVERSE de la lecture voulue. */
 function ajouteLigne(tk,l){
-  tk.insertAdjacentHTML("beforeend",
+  tk.insertAdjacentHTML("afterbegin",
    `<p class="evt"><span class="min">${String(l.m).padStart(2,"0")}'</span> <span class="tx ${l.t}">${esc(l.x)}</span><span class="ico">${l.ic?ICO[l.ic]:""}</span></p>`);
 }
 const ZONES_PEN=[["hg","Lucarne G"],["hc","Sous la barre"],["hd","Lucarne D"],["bg","Ras de terre G"],["bc","Plein centre"],["bd","Ras de terre D"]];
@@ -8235,19 +8243,23 @@ function ouvreFiche(j){
   const n0=j.note0||j.note;
   // prêté PAR VOUS et encore en cours : on peut le rappeler avant terme, contre indemnité
   const pOut=(G.prets||[]).find(p=>p.sens==="out" && p.uid===j.uid);
+  // mise sur la liste des transferts : refusée si le plancher réglementaire ne le permet pas
+  // (on grise avec le motif, comme les boutons de l'écran Effectif, plutôt que d'alerter après coup)
+  const blocL=(j.club===G.monClub && !j.pretIn && !j.avendre) ? refusDepart(clubById(G.monClub), j) : null;
   const v0=valeur({...j, note:n0}), v1=valeur(j);
   const prog=j.note-n0;
   fiche.style.display="flex";
   fiche.innerHTML=`<div class="card">
     <h2>${esc(j.nom)}</h2>
     <p>Poste : <span class="pos-${j.pos}">${j.pos}</span> · Âge : ${j.age} ans</p>
-    ${pOut?`<p class="cyan">📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin} — il y joue titulaire.</p>`:""}
     <p>Note : <b class="jaune">${j.note}</b>/100
        ${prog>0?`<span class="vert">▲ +${prog} depuis le début de saison (départ ${n0})</span>`:'<span class="dim">(stable depuis le début de saison)</span>'}</p>
     <p>Valeur : ${(v1/1e6).toFixed(1)} MF
        ${v1>v0?`<span class="vert">▲ +${((v1-v0)/1e6).toFixed(1)} MF</span>`:""}
        · Salaire : ${FMT(salaire(j))} FF/sem</p>
     <p>Saison : ${j.matchs||0} match${(j.matchs||0)>1?"s":""} · ${j.buts||0} but${(j.buts||0)>1?"s":""} · ${j.passes||0} passe${(j.passes||0)>1?"s":""} décisive${(j.passes||0)>1?"s":""}</p>
+    ${pOut?`<p class="cyan">📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin} — il y joue titulaire.</p>`:""}
+    ${j.avendre?`<p class="rouge">🏷️ Sur la liste des transferts — ${fenetreOuverte()?"la fenêtre est ouverte, un club français peut conclure dès cette journée":"mercato fermé : seul un club étranger peut encore le prendre"}. Il continue de jouer en attendant.</p>`:""}
     <p style="margin-top:8px" class="cyan">Caractère :</p>
     <p>Ego ${j.ego||5}/10 — ${esc(egoLib(j.ego||5))}${(j.ego||5)>=8?' <span class="rouge">(pèse sur la cohésion du XI)</span>':""}<br>
        Agressivité ${j.agress||5}/10 — ${esc(agressLib(j.agress||5))}<br>
@@ -8268,12 +8280,14 @@ function ouvreFiche(j){
     <p>« ${esc(avisRecruteur(j))} »</p>
     ${j.age<=23&&j.pot>j.note?`<p class="dim" style="margin-top:6px">Un jeune progresse nettement plus vite en jouant${j.age<=18?" ; avant 19 ans, le centre de formation assure aussi une bonne progression sans temps de jeu":""}. Un prêt à l'extérieur garantit du temps de jeu.</p>`:""}
     <p style="margin-top:12px">
-      ${j.club===G.monClub&&!j.pretIn?`<button class="act" id="bEclair">Vente éclair ${(valeur(j)*0.6/1e6).toFixed(1)} MF</button>
+      ${j.club===G.monClub&&!j.pretIn?`<button class="act" id="bListe"${blocL?` disabled title="${esc(blocL)}"`:` title="Il reste dans l'effectif et joue, en attendant qu'un club se manifeste"`}>${j.avendre?"Retirer de la liste":"Vendre — liste des transferts"}</button>
+        <button class="act" id="bEclair" title="Départ immédiat, 40 % de décote">Vente éclair ${(valeur(j)*0.6/1e6).toFixed(1)} MF</button>
         <button class="act" id="bPretOut">Prêter</button>`:""}
       ${j.club!==G.monClub&&j.club!=="EXT"&&!j.pretOut&&!j.pretIn?`<button class="act" id="bPretIn" ${fenetreOuverte()?"":"disabled"}>Emprunter (${FMT(tarifPret(j))} FF/j)</button>`:""}
       ${pOut&&pOut.fin-G.journee>1?`<button class="act" id="bRappel"${G.tresorerie<coutRappel(pOut,j)?` disabled title="Trésorerie insuffisante"`:""}>📞 Rappeler du prêt (${(coutRappel(pOut,j)/1e6).toFixed(2)} MF)</button>`:""}
       <button class="act" id="bF">Fermer</button></p>
   </div>`;
+  const bLi=document.getElementById("bListe"); if(bLi) bLi.onclick=()=>{ listerVente(j); ouvreFiche(j); }; // listerVente rafraîchit l'écran derrière : on rejoue la fiche pour que le libellé bascule
   const bE=document.getElementById("bEclair"); if(bE) bE.onclick=()=>venteEclair(j);
   const bO=document.getElementById("bPretOut"); if(bO) bO.onclick=()=>modalPret(j,"out");
   const bI=document.getElementById("bPretIn"); if(bI) bI.onclick=()=>modalPret(j,"in");
