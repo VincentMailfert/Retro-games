@@ -377,6 +377,24 @@ toujours « raconter quelque chose ».
   un prêté `sens:"out"` revient **aguerri** — `retourPret` lui rajoute de la note (jeune ≤21 : +3, ≤25 : +2, sinon +1,
   **jamais au-dessus du potentiel `j.pot`, jamais à la baisse**) et +12 de moral (en plus du +1,5/journée pendant le
   prêt). Tous ces coefficients sont **réglages** à durcir/adoucir après playtest. L'écran Finances détaille chaque poste.
+  **RAPPELER UN PRÊTÉ AVANT TERME (v1.03, demande de l'auteur)** : un prêt sortant peut être **rompu en cours de
+  route**, contre une **indemnité de rupture** versée au club hôte — `coutRappel(p,j)` = les journées restantes
+  **rendues au triple** (le dédit) + 1 % de la valeur du joueur, cette part s'éteignant à mesure qu'on approche du
+  terme (`min(1, reste/10)`), plancher 100 000 FF. Elle se paie sur la **TRÉSORERIE**, jamais sur le budget
+  transferts : c'est une dépense d'urgence (l'infirmerie qui se remplit en mars), et c'est la caisse qui doit faire
+  mal. Le rappel marche **hors fenêtre de mercato** — c'est tout l'intérêt — mais il est refusé à **une journée du
+  terme** (« il rentre de toute façon ») et si la caisse ne suit pas. **Le bénéfice du prêt est PRORATISÉ** : le
+  gain de note et le +12 de moral sont multipliés par la part de pige réellement faite, et le moral encaisse
+  **−10 de contrariété** (on arrache un homme à un club où il était titulaire) — rentrer un joueur à 20 % de sa
+  pige le laisse donc plus aigri qu'au départ. D'où le champ **`p.debut`** (journée de signature), désormais posé
+  sur TOUS les prêts et rétro-comblé par `migre()` à `fin−10` (durée médiane) pour les sauvegardes d'avant —
+  `debutPret(p)` centralise ce repli. `retourPret(p, rappel)` porte le second paramètre ; les deux appels normaux
+  (`traiterPrets`, intersaison) le laissent tomber et gardent le bénéfice plein. Le rappel **annule une offre
+  d'achat en cours** sur ce joueur (`G.offrePret`) et appelle **`veilleEffectif()`** : le club hôte qui rend son
+  prêté peut passer sous le plancher et doit se dépanner aussitôt. **Pas d'exploit possible** : rappeler coûte
+  toujours plus que ce que le prêt rapporte. UI : bouton « 📞 Rappeler — X MF » dans le tableau « En prêt à
+  l'extérieur » de l'écran Effectif (qui a gagné une ligne d'en-tête au passage) **et** sur la fiche du joueur,
+  qui affiche désormais où il est prêté. Validation : **section F de `harness-effectif.cjs`**.
 - **Affluence** (`affluence(home,away,sansPromo)`) : depuis v0.61, le **club hôte pèse plus que le visiteur** (`home.pres*0.022`
   + `away.pres*0.016`, base 0,46) et le **classement** compte fort (top 3 : +0,13 ; 4-6 : +0,06 ; ≥16 : −0,06) — retour de
   playtest « 2e avec le PSG et le stade pas plein, illogique ». Plus derby (+0,15), buzz/réputation/tarif (votre club). Le
@@ -945,7 +963,8 @@ toujours « raconter quelque chose ».
    `harness9697.cjs` (saison de départ 96/97), `harness9798.cjs` (saison de départ 97/98 : repêchés, Nice en C2,
    réconciliation France ↔ Europe), `harness9899.cjs` (saison de départ 98/99 : double repêchage, clubs neufs
    Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness-euro.cjs` (les trois coupes d'Europe),
-   `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation),
+   `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
+   rappel d'un prêt avant terme),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;

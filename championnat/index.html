@@ -273,7 +273,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.02"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.03"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3676,7 +3676,7 @@ function empruntJoueur(j,d,tarif){
   const proprio=clubById(j.club), moi=clubById(G.monClub);
   proprio.joueurs=proprio.joueurs.filter(x=>x!==j);
   j.pretIn=true; j.club=G.monClub; moi.joueurs.push(j);
-  G.prets.push({uid:j.uid, sens:"in", proprio:proprio.id, fin:G.journee+d, tarif});
+  G.prets.push({uid:j.uid, sens:"in", proprio:proprio.id, debut:G.journee, fin:G.journee+d, tarif});
   G.news.unshift("PRÊT : "+j.nom+" arrive de "+proprio.nom+" pour "+d+" journées ("+FMT(tarif)+" FF/j).");
   fermeFiche(); rafraichir();
 }
@@ -3687,11 +3687,12 @@ function preteJoueur(j,d,tarif,hote){
   hote=hote||PICK(G.clubs.filter(c=>c.id!==G.monClub && c.pres<=moi.pres))||PICK(G.clubs.filter(c=>c.id!==G.monClub));
   moi.joueurs=moi.joueurs.filter(x=>x!==j);
   j.pretOut=true; j.titu=false; j.club=hote.id; hote.joueurs.push(j);
-  G.prets.push({uid:j.uid, sens:"out", hote:hote.id, fin:G.journee+d, tarif});
+  G.prets.push({uid:j.uid, sens:"out", hote:hote.id, debut:G.journee, fin:G.journee+d, tarif});
   G.news.unshift("PRÊT : "+j.nom+" part s'aguerrir à "+hote.nom+" pour "+d+" journées (+"+FMT(tarif)+" FF/j).");
   fermeFiche(); rafraichir();
 }
-function retourPret(p){
+function debutPret(p){ return p.debut==null ? Math.max(0, p.fin-10) : p.debut; } // vieilles sauvegardes : durée médiane
+function retourPret(p, rappel){
   const j=byUid(p.uid); if(!j) return;
   const porteur=clubById(j.club);
   porteur.joueurs=porteur.joueurs.filter(x=>x!==j);
@@ -3701,12 +3702,64 @@ function retourPret(p){
   if(p.sens==="out"){
     // un prêt, c'est du temps de jeu garanti ailleurs : le joueur revient grandi (expérience en accéléré).
     // Les jeunes profitent le plus ; on ne dépasse jamais le potentiel, et la note ne peut que monter.
-    const av=j.note, gain=(j.age<=21?3:j.age<=25?2:1), plafond=Math.max(j.note,j.pot||j.note);
-    j.note=Math.min(plafond, j.note+gain);
-    j.moral=Math.min(100,(j.moral==null?65:j.moral)+12);
-    G.news.unshift("RETOUR DE PRÊT : "+j.nom+" revient au club, aguerri"+(j.note>av?" — la pige a payé : note "+av+" → "+j.note:"")+".");
+    // RAPPELÉ AVANT TERME (v1.03) : la pige n'a pas été au bout, le bénéfice est donc PRORATISÉ sur les
+    // journées réellement jouées — et l'homme qu'on arrache à un club où il était titulaire ne rentre
+    // pas ravi (le +12 de moral fond avec la part faite, moins 10 de contrariété).
+    const d0=debutPret(p);
+    const part=rappel ? Math.max(0, Math.min(1, (G.journee-d0)/Math.max(1, p.fin-d0))) : 1;
+    const av=j.note, plein=(j.age<=21?3:j.age<=25?2:1), plafond=Math.max(j.note,j.pot||j.note);
+    j.note=Math.min(plafond, j.note+Math.round(plein*part));
+    j.moral=Math.max(0, Math.min(100,(j.moral==null?65:j.moral)+(rappel?Math.round(12*part)-10:12)));
+    if(rappel) G.news.unshift("RAPPEL DE PRÊT : "+j.nom+" rentre avant terme"+(j.note>av
+      ? " — la pige aura quand même payé : note "+av+" → "+j.note
+      : ", sans avoir eu le temps d'en tirer grand-chose")+".");
+    else G.news.unshift("RETOUR DE PRÊT : "+j.nom+" revient au club, aguerri"+(j.note>av?" — la pige a payé : note "+av+" → "+j.note:"")+".");
   }
   else G.news.unshift("FIN DE PRÊT : "+j.nom+" retourne à "+dest.nom+".");
+}
+/* ---------- Rappeler un prêté avant terme (v1.03) ----------
+   Le club hôte avait bâti sa saison sur lui : il ne le rend pas par gentillesse. L'indemnité de
+   rupture = les journées de prêt qu'il n'encaissera pas, rendues au TRIPLE (c'est le dédit), plus un
+   manque à gagner sportif proportionnel à la valeur du joueur, qui s'éteint à mesure que le prêt
+   touche à sa fin. Elle se paie CASH (trésorerie, pas budget transferts) : c'est une dépense
+   d'urgence — l'infirmerie qui se remplit en mars, typiquement — et la caisse est ce qui doit faire mal. */
+function coutRappel(p, j){
+  const reste=Math.max(1, p.fin-G.journee);
+  const dedit=p.tarif*reste*3;
+  const manqueAGagner=valeur(j)*0.01*Math.min(1, reste/10);
+  return Math.max(100000, Math.round((dedit+manqueAGagner)/1e4)*1e4);
+}
+function rappelPret(uid){
+  const p=(G.prets||[]).find(x=>x.uid===uid && x.sens==="out");
+  if(!p) return;
+  const j=byUid(uid), hote=clubById(p.hote); if(!j||!hote) return;
+  const reste=p.fin-G.journee;
+  if(reste<=1) return alert(j.nom+" rentre de toute façon à la J"+p.fin+". Inutile de payer une indemnité pour une journée.");
+  const cout=coutRappel(p, j);
+  if(G.tresorerie<cout) return alert(hote.nom+" réclame "+(cout/1e6).toFixed(2)+" MF d'indemnité de rupture, et votre caisse n'en contient que "+(G.tresorerie/1e6).toFixed(1)+" MF.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.");
+  const d0=debutPret(p), part=Math.max(0, Math.min(1, (G.journee-d0)/Math.max(1, p.fin-d0)));
+  modalSignature({
+    titre:"📞 Rappeler "+j.nom+" ?",
+    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="jaune">${j.note}</b> · <span class="dim">prêté à ${esc(hote.nom)}</span></p>
+      <p style="margin-top:6px">Il devait y rester jusqu'à la <b>J${p.fin}</b> — encore <b>${reste} journées</b> de pige.</p>
+      <p style="margin-top:6px">${esc(hote.nom)} réclame <b class="jaune">${(cout/1e6).toFixed(2)} MF</b> d'indemnité de rupture, payable en liquide.</p>
+      <p class="dim">Trésorerie : ${(G.tresorerie/1e6).toFixed(1)} MF — il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse.</p>
+      <p class="rouge" style="margin-top:6px">Une pige écourtée ne vaut pas une pige menée à terme : il ne ramènera qu'environ ${Math.round(part*100)} % du bénéfice espéré${part<0.75?", et il vous en voudra d'avoir coupé court":""}.</p>`,
+    ok:"Le faire revenir — "+(cout/1e6).toFixed(2)+" MF",
+    annul:"Le laisser finir sa pige",
+    onOk:()=>{
+      const idx=G.prets.indexOf(p);
+      if(idx<0 || G.tresorerie<cout) return; // la situation a pu changer entre l'ouverture et le clic
+      G.tresorerie-=cout;
+      G.prets.splice(idx,1);
+      retourPret(p, true);
+      if(G.offrePret && G.offrePret.uid===uid) G.offrePret=null; // il n'est plus prêté : l'option d'achat tombe
+      G.news.unshift("INDEMNITÉ DE RUPTURE : "+(cout/1e6).toFixed(2)+" MF versés à "+hote.nom+" pour récupérer "+j.nom+" avant terme.");
+      notif("📞 "+j.nom+" est rappelé de "+hote.nom+" — "+(cout/1e6).toFixed(2)+" MF d'indemnité.");
+      veilleEffectif(); // l'hôte peut passer sous le plancher en le rendant : il se dépanne aussitôt
+      rafraichir();
+    }
+  });
 }
 function traiterPrets(){
   for(const p of G.prets.slice()){
@@ -6095,6 +6148,9 @@ function migre(){
   G.rapport=G.rapport||[]; G.sponsor=G.sponsor||null;
   G.offresSponsor=G.offresSponsor||null; G.sponsorSwitch=!!G.sponsorSwitch;
   G.prets=G.prets||[]; G.vivier=G.vivier||null;
+  // debut : journée de signature du prêt, posée depuis v1.03 pour proratiser un rappel avant terme.
+  // Les prêts d'avant sont datés à rebours sur la durée médiane (voir debutPret).
+  G.prets.forEach(p=>{ if(p.debut==null) p.debut=Math.max(0,(p.fin||0)-10); });
   G.saisonIdx=G.saisonIdx||1; G.anBase=G.anBase||1995; G.confiance=G.confiance==null?65:G.confiance; // anBase : année de la 1re saison de la carrière (anciennes sauvegardes = 1995)
   G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre"; G.prixBillet=(G.prixBillet==null?2:G.prixBillet);
   G.primeMatch=+G.primeMatch||0; G.promoBillets=!!G.promoBillets; // prime de victoire (opt-in par match) + promo billets scolaires
@@ -8110,12 +8166,24 @@ function ecranEffectif(){
    <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le 4-4-2 même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
    <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> — un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match. <b>Au-dessus de 90, aucun effet.</b> De 80 à 90, on joue à son pourcentage de forme — à 82, on rend 82 %. De 65 à 80, la note ET le risque de blessure s'aggravent. <b>Sous 65, l'impact devient massif et le moral se met à fuir</b> : là, c'est le repos ou rien. <b>Le onze écarte de lui-même un homme émoussé</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
-    <table>${G.prets.filter(p=>p.sens==="out").map(p=>{const j=byUid(p.uid);return j?`<tr class="click pret" data-u="${p.uid}">
+    <p class="dim" style="font-size:12px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b> — contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>
+    <table><tr><th>Joueur</th><th>P</th><th>Chez</th><th class="num">Note</th><th class="num" title="Ce que le club hôte vous verse par journée de prêt">Encaissé</th><th>Retour</th></tr>
+    ${G.prets.filter(p=>p.sens==="out").map(p=>{const j=byUid(p.uid); if(!j) return "";
+      return `<tr class="click pret" data-u="${p.uid}">
       <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
-      <td class="dim">à ${esc(clubById(j.club).nom)}</td>
+      <td class="dim">${esc(clubById(j.club).nom)}</td>
       <td class="num">note <b>${j.note}</b>${j.note>j.note0?' <span class="vert">▲+'+(j.note-j.note0)+'</span>':""}</td>
       <td class="num vert">+${FMT(p.tarif)} FF/j</td>
-      <td class="dim">retour J${p.fin}</td></tr>`:"";}).join("")}</table>`:""}</div>`);
+      <td class="dim">J${p.fin}</td></tr>`;}).join("")}</table>
+    ${/* les boutons de rappel vivent SOUS le tableau, pas dedans : une table large scrolle
+          horizontalement en mobile (min-width:540px) et une dernière colonne y serait hors de l'écran */""}
+    <p style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">${G.prets.filter(p=>p.sens==="out").map(p=>{
+      const j=byUid(p.uid); if(!j) return "";
+      const reste=p.fin-G.journee, cout=coutRappel(p,j), cher=G.tresorerie<cout;
+      if(reste<=1) return `<span class="dim" style="font-size:12px">${esc(j.nom)} rentre de toute façon à la J${p.fin}.</span>`;
+      return `<button class="act bRap" data-u="${p.uid}"${cher
+        ? ` disabled title="Trésorerie insuffisante : il faudrait ${(cout/1e6).toFixed(2)} MF en caisse"`
+        : ` title="Indemnité de rupture versée à ${esc(clubById(j.club).nom)}"`}>📞 Rappeler ${esc(j.nom)} — ${(cout/1e6).toFixed(2)} MF</button>`;}).join("")}</p>`:""}</div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=e=>{
     if(e.target.classList.contains("bV")||e.target.classList.contains("bT")||e.target.classList.contains("bL")||e.target.classList.contains("bR"))return;
     ouvreFiche(c.joueurs[+tr.dataset.i]);
@@ -8125,7 +8193,10 @@ function ecranEffectif(){
   app.querySelectorAll(".bR").forEach(b=>b.onclick=()=>mettreAuRepos(c.joueurs[+b.dataset.i]));
   app.querySelectorAll(".bL").forEach(b=>b.onclick=()=>modalPret(c.joueurs[+b.dataset.i],"out"));
   app.querySelectorAll(".bCF").forEach(b=>b.onclick=()=>monteeCentre(b.dataset.p));
-  app.querySelectorAll("tr.pret").forEach(tr=>tr.onclick=()=>{const j=byUid(tr.dataset.u); if(j) ouvreFiche(j);});
+  app.querySelectorAll("tr.pret").forEach(tr=>tr.onclick=e=>{
+    if(e.target.closest(".bRap")) return; // le bouton de rappel a sa propre action
+    const j=byUid(tr.dataset.u); if(j) ouvreFiche(j);});
+  app.querySelectorAll(".bRap").forEach(b=>b.onclick=()=>rappelPret(b.dataset.u));
 }
 
 function nommerCapitaine(j){
@@ -8162,12 +8233,15 @@ function nommerCapitaine(j){
 }
 function ouvreFiche(j){
   const n0=j.note0||j.note;
+  // prêté PAR VOUS et encore en cours : on peut le rappeler avant terme, contre indemnité
+  const pOut=(G.prets||[]).find(p=>p.sens==="out" && p.uid===j.uid);
   const v0=valeur({...j, note:n0}), v1=valeur(j);
   const prog=j.note-n0;
   fiche.style.display="flex";
   fiche.innerHTML=`<div class="card">
     <h2>${esc(j.nom)}</h2>
     <p>Poste : <span class="pos-${j.pos}">${j.pos}</span> · Âge : ${j.age} ans</p>
+    ${pOut?`<p class="cyan">📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin} — il y joue titulaire.</p>`:""}
     <p>Note : <b class="jaune">${j.note}</b>/100
        ${prog>0?`<span class="vert">▲ +${prog} depuis le début de saison (départ ${n0})</span>`:'<span class="dim">(stable depuis le début de saison)</span>'}</p>
     <p>Valeur : ${(v1/1e6).toFixed(1)} MF
@@ -8197,11 +8271,13 @@ function ouvreFiche(j){
       ${j.club===G.monClub&&!j.pretIn?`<button class="act" id="bEclair">Vente éclair ${(valeur(j)*0.6/1e6).toFixed(1)} MF</button>
         <button class="act" id="bPretOut">Prêter</button>`:""}
       ${j.club!==G.monClub&&j.club!=="EXT"&&!j.pretOut&&!j.pretIn?`<button class="act" id="bPretIn" ${fenetreOuverte()?"":"disabled"}>Emprunter (${FMT(tarifPret(j))} FF/j)</button>`:""}
+      ${pOut&&pOut.fin-G.journee>1?`<button class="act" id="bRappel"${G.tresorerie<coutRappel(pOut,j)?` disabled title="Trésorerie insuffisante"`:""}>📞 Rappeler du prêt (${(coutRappel(pOut,j)/1e6).toFixed(2)} MF)</button>`:""}
       <button class="act" id="bF">Fermer</button></p>
   </div>`;
   const bE=document.getElementById("bEclair"); if(bE) bE.onclick=()=>venteEclair(j);
   const bO=document.getElementById("bPretOut"); if(bO) bO.onclick=()=>modalPret(j,"out");
   const bI=document.getElementById("bPretIn"); if(bI) bI.onclick=()=>modalPret(j,"in");
+  const bRp=document.getElementById("bRappel"); if(bRp) bRp.onclick=()=>rappelPret(j.uid);
   const bC=document.getElementById("bCap"); if(bC) bC.onclick=()=>nommerCapitaine(j);
   document.getElementById("bF").onclick=()=>fiche.style.display="none";
   fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
