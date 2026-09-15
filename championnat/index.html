@@ -265,7 +265,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "0.95"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "0.96"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -7583,6 +7583,9 @@ function momentTacle(mo,moi,resoudre,suite){
 /* ---- Classement ---- */
 function ecranClassement(){
   const cl=classement();
+  // on ne classe que ceux qui ont réellement marqué/passé : sinon, en début de saison, on affichait 8 joueurs à 0 (trompeur)
+  const buteurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>j.buts>0).sort((a,b)=>b.buts-a.buts).slice(0,8);
+  const passeurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.passes||0)>0).sort((a,b)=>(b.passes||0)-(a.passes||0)).slice(0,8);
   chrome("classement",`<div class="panel"><h2>Classement — Division ${G.div}</h2>
    <table><tr><th>#</th><th>Club</th><th class="num">J</th><th class="num">G</th><th class="num">N</th><th class="num">P</th><th class="num">Bp</th><th class="num">Bc</th><th class="num">Diff</th><th class="num">Pts</th></tr>
    ${cl.map((c,i)=>{const mont=G.div===2&&i<3, desc=G.div===1&&i>=cl.length-3; return `<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
@@ -7590,7 +7593,14 @@ function ecranClassement(){
      <td class="num">${c.n}</td><td class="num">${c.p}</td><td class="num">${c.bp}</td><td class="num">${c.bc}</td>
      <td class="num">${c.bp-c.bc>0?"+":""}${c.bp-c.bc}</td><td class="num"><b>${c.pts}</b></td></tr>`;}).join("")}
    </table>
-   <p class="dim" style="margin-top:6px">Victoire 3 pts · ${G.div===1?"Les trois derniers (▼) descendent en Division 2":"Les trois premiers (▲) montent en Division 1 !"} · Cliquez sur un club pour consulter son effectif.</p></div>`);
+   <p class="dim" style="margin-top:6px">Victoire 3 pts · ${G.div===1?"Les trois derniers (▼) descendent en Division 2":"Les trois premiers (▲) montent en Division 1 !"} · Cliquez sur un club pour consulter son effectif.</p></div>
+   <div class="grid2">
+   <div class="panel"><h2>Buteurs</h2>
+     <table class="fit">${buteurs.length?buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucun but inscrit pour l'instant.</td></tr>`}</table>
+   </div>
+   <div class="panel"><h2>Passeurs décisifs</h2>
+     <table class="fit">${passeurs.length?passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucune passe décisive pour l'instant.</td></tr>`}</table>
+   </div></div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=()=>{
     if(tr.dataset.id===G.monClub) montre("effectif"); else ecranClubVue(tr.dataset.id);
   });
@@ -8092,9 +8102,6 @@ function svgStade(cap, chantier, stade, aff, chInfo, tribune){
 /* ---- Club ---- */
 function ecranClub(){
   const c=clubById(G.monClub);
-  // on ne classe que ceux qui ont réellement marqué/passé : sinon, en début de saison, on affichait 8 joueurs à 0 (trompeur)
-  const buteurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>j.buts>0).sort((a,b)=>b.buts-a.buts).slice(0,8);
-  const passeurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.passes||0)>0).sort((a,b)=>(b.passes||0)-(a.passes||0)).slice(0,8);
   const affR=affMoyenne(c), affPct=Math.round(affR*100), affEstim=!(G.affHist&&G.affHist.length);
   const affCol=affR>0.75?"var(--vert)":(affR>0.5?"var(--jaune)":"var(--rouge)");
   const projTrib=projetById("tribune"), tribClk=(projTrib && !G.chantier && projTrib.dispo(c))?{id:"tribune",label:projTrib.label(c)}:null;
@@ -8115,7 +8122,9 @@ function ecranClub(){
      <h3 style="margin-top:12px">Staff technique</h3>
      <p class="dim" style="font-size:11px">Six spécialistes à recruter — chacun donne un coup de pouce à son secteur (votre match) et coûte un salaire chaque journée. À chaque poste, un as / un confirmé / un espoir : l'as se paie cher.</p>
      <div>${staffHTML()}</div>
-     <h3 style="margin-top:12px">Le président</h3>
+   </div>
+   <div class="panel"><h2>Direction &amp; mémoire</h2>
+     <h3>Le président</h3>
      <p>Objectif ${esc(G.saison)} : <b class="jaune">${esc(G.objectif.label)}</b></p>
      <p>Confiance :
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
@@ -8133,12 +8142,6 @@ function ecranClub(){
      ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> — ${esc(nomRivalite(c.id,RIVAL[c.id]))}. La confiance se joue aussi là.</p>`:""}
      <p>Bête noire : <b class="jaune">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"—")}</b>${c.bnBattue?' <span class="vert">— signe indien brisé cette saison ✓</span>':' <span class="dim">— ils jouent toujours bien contre vous... jusqu'+"'"+'à la première victoire.</span>'}</p>
      ${MALEDICTIONS[c.id]?`<p class="dim" style="font-style:italic">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
-   </div>
-   <div class="panel"><h2>Buteurs &amp; passeurs</h2>
-     <h3>Buteurs</h3>
-     <table class="fit">${buteurs.length?buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucun but inscrit pour l'instant.</td></tr>`}</table>
-     <h3>Passeurs décisifs</h3>
-     <table class="fit">${passeurs.length?passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucune passe décisive pour l'instant.</td></tr>`}</table>
    </div></div>`);
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>lanceProjet(b.dataset.id));
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade

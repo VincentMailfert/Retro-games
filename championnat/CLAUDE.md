@@ -833,6 +833,16 @@ toujours « raconter quelque chose ».
   balayage anti-doublon interdit toute collision de nom **curé** entre clubs français (STARS/STARS_D2 base) et européens.
 - **Réputation du club** (0-100), **confiance du président**, **moral des joueurs**, **traits**
   (ego, agressivité, fragilité, vénalité), **centre de formation**, **mercato bidirectionnel**.
+- **Buteurs & passeurs vivent sur l'écran CLASSEMENT (v0.96, 100 % présentation)** : les deux tableaux
+  (top 8, calculés sur `G.clubs`, donc sur la **division jouée**) étaient dans la colonne de droite de
+  l'écran Club, alors qu'ils parlent du championnat et pas du club — ils sont passés sous le classement,
+  en deux panneaux `grid2` (`Buteurs` / `Passeurs décisifs`), là où ils sont cohérents avec le titre
+  « Division N » juste au-dessus. Les lignes n'ont **pas** la classe `click` : elles ne perturbent pas le
+  `app.querySelectorAll("tr.click")` de l'écran, qui n'adresse que les clubs du classement. Côté Club, la
+  colonne de droite ainsi libérée accueille un panneau **« Direction & mémoire »** (le président,
+  la confiance, le palmarès, la réputation, la mémoire du club) — sortir ces blocs du panneau de gauche
+  évite qu'il reste seul dans un `grid2` à deux colonnes, donc à moitié vide. Les deux tableaux gardent
+  `class="fit"` (voir le piège mobile plus bas). Aucun effet moteur.
 
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
