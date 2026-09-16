@@ -284,7 +284,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.06"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.07"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3553,6 +3553,7 @@ function selections(){
       j.moral=Math.min(100,(j.moral||65)+4); // revenir de Clairefontaine fait toujours du bien
       if(j.age<=24 && j.note<j.pot && Math.random()<0.18){
         j.note++; G.news.unshift(j.nom+" revient grandi de la sélection — un cap est franchi (note "+j.note+").");
+        notif("📈 "+j.nom+" revient grandi de la sélection : un cap est franchi, note "+j.note+"."); // un point gagné se dit au Debrief, comme dans progression()
       }
     } else if(j.age<=21 && j.note>=76 && !j.selEsp){
       j.selEsp=true; j.moral=Math.min(100,(j.moral||65)+5);
@@ -3736,6 +3737,16 @@ function refuserAffaire(){
   montre("calendrier");
 }
 
+/* À QUI APPARTIENT VRAIMENT CE JOUEUR ? Le vestiaire où il s'est changé cette semaine ne suffit pas à
+   répondre : preteJoueur sort le prêté de VOTRE effectif pour le pousser dans celui du club hôte, et
+   empruntJoueur fait dormir chez vous un homme qui ne vous appartient pas. On tranche donc sur le
+   contrat (G.prets), jamais sur j.club seul — sinon on prévient le manager pour l'emprunté, qui
+   repartira, et on lui cache la progression du sien, parti s'aguerrir ailleurs. */
+function aMoi(j){
+  if(j.pretOut) return (G.prets||[]).some(p=>p.sens==="out" && p.uid===j.uid);
+  return j.club===G.monClub && !j.pretIn;
+}
+
 /* ---------- Progression des jeunes / déclin ---------- */
 function progression(){
   for(const c of G.clubs) for(const j of c.joueurs){
@@ -3746,7 +3757,12 @@ function progression(){
       const gain = Math.max(0.11*part, banc*0.85) * (1+(j.pot-j.note)/40) * (1+0.10*(niv-1));
       j.prog=(j.prog||0)+gain;
       if(j.prog>=1){ j.note=Math.min(j.pot, j.note+Math.floor(j.prog)); j.prog%=1;
-        if(c.id===G.monClub) G.news.unshift(j.nom+" progresse ! Note : "+j.note+".");
+        // Un cap franchi, ça se dit au DEBRIEF et plus dans les dépêches : le panneau n'en affiche que
+        // six, et la nouvelle en sortait avant d'avoir été lue. Le prêté envoie sa carte postale —
+        // sans elle il progressait en silence, dans un vestiaire qui n'est pas le vôtre.
+        if(aMoi(j)) notif(j.pretOut
+          ? "📈 "+j.nom+" progresse à "+((clubById(j.club)||{}).nom||"son club hôte")+" : note "+j.note+". La pige paie."
+          : "📈 "+j.nom+" progresse ! Note : "+j.note+".");
       }
     } else if(j.age>=31 && Math.random()<0.05){ j.note=Math.max(50,j.note-1); }
   }

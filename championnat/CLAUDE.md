@@ -1117,6 +1117,9 @@ toujours « raconter quelque chose ».
    le barème — rouge disqualifiant, cage inviolée, 1-0 au buteur —, le moral et le mot de debrief, la remise à
    zéro à l'intersaison, le rendu du classement des hommes du match, la mémoire de l'almanach, et le bilan de
    saison qui se calcule ET se rend, y compris sur une saison à peine entamée).
+   `harness-progression.cjs` (le cap franchi : `aMoi()` qui tranche sur le contrat et non sur le vestiaire,
+   la notification qui part au Debrief et plus dans les dépêches, la carte postale du prêté, le silence sur
+   l'emprunté, un prêt de quinze journées joué pour de bon, et le +1 de la sélection nationale).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →
@@ -1125,6 +1128,23 @@ toujours « raconter quelque chose ».
 - Résumer les changements à l'auteur en français, style article de presse, à la fin.
 
 ## Pièges connus (déjà corrigés, ne pas réintroduire)
+- **UN PRÊTÉ N'EST PLUS DANS VOTRE EFFECTIF — NE TESTEZ JAMAIS L'APPARTENANCE SUR `j.club` (v1.07)** :
+  `preteJoueur` **déplace physiquement** le joueur dans `hote.joueurs`, et `empruntJoueur` fait l'inverse.
+  Tout code qui écrit `c.id===G.monClub` ou `j.club===G.monClub` pour décider « est-ce mon joueur ? » se
+  trompe donc deux fois : il **oublie le prêté** (qui reste à vous) et **adopte l'emprunté** (qui ne l'est
+  pas). C'est ce qui rendait la progression des jeunes muette pendant toute la durée d'un prêt — le joueur
+  gagnait ses points dans le silence complet, alors que c'est justement *l'intérêt* de la pige — pendant
+  qu'un emprunté déclenchait la nouvelle à sa place. Correctif : le helper **`aMoi(j)`** (juste au-dessus de
+  `progression`), qui tranche sur le **contrat** (`G.prets`) et pas sur le vestiaire. **À réutiliser** pour
+  toute question d'appartenance. Gardé par **`harness-progression.cjs`**.
+- **UN POINT GAGNÉ SE DIT AU DEBRIEF, PAS DANS LES DÉPÊCHES (v1.07)** : le jeu a deux canaux, et ils ne
+  pèsent pas pareil. **`notif()`** empile dans la modale « 📋 LE DEBRIEF », qu'on ne peut pas rater ;
+  **`G.news`** alimente le panneau « Dépêches », qui n'affiche que les **six dernières** ligne 7276. Une
+  semaine chargée (transfert + prime + incident + deux blessures) chassait donc « Untel progresse ! » de
+  l'écran avant qu'il soit lu. **Règle** : tout ce qui change durablement un joueur (note gagnée, cap
+  franchi) passe par `notif()` ; les dépêches restent la chronique de fond. Les deux `+1` du jeu —
+  `progression()` et le retour de sélection dans `selections()` — sont désormais préfixés **📈** (le harnais
+  s'appuie sur ce préfixe pour les compter).
 - **ÉCHAP NE DOIT JAMAIS PERCER UNE FENÊTRE VERROUILLÉE (v1.05)** : l'écouteur clavier du bas de fichier
   faisait `fiche.style.display="none"` **à la main**, sans regarder `window._penEnCours`. On évacuait donc
   d'un coup de touche un incident, une conférence de presse, un chapitre d'arc, l'avant-match d'un tour de
