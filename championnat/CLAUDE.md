@@ -229,7 +229,8 @@ toujours « raconter quelque chose ».
   `simuleMatch` (`att` = votre attaque, `adv` = l'attaque adverse contre vous) : offensif marque plus mais
   expose, prudent verrouille. Neutre (×1) pour tous les autres clubs et en `equilibre` → **le calibrage du
   championnat reste intact** (le harnais joue en `equilibre`). Multiplicateurs = réglages tunables. À migrer
-  (`G.consigne||"equilibre"`).
+  (`G.consigne||"equilibre"`). **Depuis v1.10, elle vaut aussi les soirs de coupe et d'Europe** (`multTactique`,
+  réglée sur le panneau du rendez-vous) — voir « LE RENDEZ-VOUS DE SEMAINE SE PRÉPARE ».
 - **Changement de tactique EN DIRECT** (v0.61, retour de playtest « si on perd, pouvoir passer offensif ») :
   le téléscripteur est pré-calculé au coup d'envoi (`jouerJournee`→`simuleMatch` verrouille score ET `j.buts`), donc
   pour qu'un changement de consigne en cours de match pèse **vraiment**, deux mécanismes. (1) **Finalisation différée** :
@@ -259,10 +260,18 @@ toujours « raconter quelque chose ».
   grisés**, avec le libellé `#libTacD` qui dit pourquoi (« sans objet ce soir, le résultat est déjà écrit… ») plutôt que
   de disparaître sans explication. Validation : **section B bis de `harness.cjs`** (moment présent une seule fois après
   300 recollages, sifflet toujours dernier, temps additionnel conservé, score == lignes-but).
+  **v1.10** : (a) le contrôle existe aussi les **soirs de coupe et d'Europe** (voir « LE RENDEZ-VOUS DE SEMAINE SE
+  PRÉPARE ») ; (b) **une action déjà annoncée par la montée de tension va à son terme** — si `lignes[i]._monte` est
+  posé, on recolle à partir de `i+1` (minute = celle de l'action), sinon « X se présente seul… » restait en l'air et
+  le fil repartait sur autre chose ; même règle dans les trois directs ; (c) une fois le résultat **acté** (moment de
+  la 90e tranché, `G._pend` vidé), `figeTac()` **éteint les boutons en le disant** au lieu de les laisser cliquables
+  et muets.
 - **Prime de match** (v0.61, `PRIMES_MATCH` 0/10/20/30 %, `G.primeMatch`, défaut 0) : un **coup de fouet à l'attaque**
   promis AVANT le match (sélecteur `.bPrime` sous la consigne, verrouillé au coup d'envoi). Booste votre lambda d'attaque
-  dans `simuleMatch` (`lh`/`la` ×(1+pm), **votre seul match**), **payé UNIQUEMENT en cas de victoire** (`finirJournee` :
-  `masse×pm×3` prélevé sur la trésorerie), puis **remis à 0** (opt-in à chaque match). Défaut 0 → neutre, le harnais n'y
+  dans `simuleMatch` (`lh`/`la` ×(1+pm), **votre seul match**), **payé UNIQUEMENT en cas de victoire** (`soldePrime`,
+  appelé par `finirJournee` : `masse×pm×3` prélevé sur la trésorerie), puis **remis à 0** (opt-in à chaque match).
+  Depuis v1.10 elle se promet aussi pour un soir de coupe ou d'Europe, et `soldePrime` la règle à la qualification
+  (ou à la victoire de la manche aller). Défaut 0 → neutre, le harnais n'y
   touche pas → **calibrage intact**. À migrer (`+G.primeMatch||0`).
 - **Promo billets « tribunes scolaires »** (v0.61, `G.promoBillets`, `PROMO_PRIX`=15 FF) : avant un match **à domicile**
   dont l'affluence prévue est **< 60 %** du stade, `ouvrePromo` (en fin de chaîne d'avant-match, après le debrief) propose
@@ -1043,6 +1052,44 @@ toujours « raconter quelque chose ».
     attente → on rejoue depuis l'avant-match (resume voulu) ; (b) `EN_TEST` → `montre` no-op, le harnais ne voit
     jamais le direct (et `coupeTick` résout en muet), calibrage intact ; (c) ne jamais router une coupe par
     `simuleMatch` (il fait `j.buts++` → pollue les buteurs, et écrase les amateurs 5-0 → tue le Poucet).
+  - **LE RENDEZ-VOUS DE SEMAINE SE PRÉPARE (v1.10, retour de playtest : « quand on a un match de coupe, on nous
+    demande l'équipe dès qu'on clique sur Prochaine journée, et le match commence juste après — on ne peut agir sur
+    rien : mercato, finances, onze type, tactique ; et certains matchs je ne peux pas changer la stratégie en cours de
+    match »)**. Les fenêtres verrouillées `ouvreCoupe`/`ouvreEuro` (posées d'office par `ecranCalendrier`, AVANT tout
+    le reste, `_penEnCours` levé) ont **disparu**. Trois changements. (1) **`rdvEnAttente()`** (Europe d'abord, puis
+    Coupe de France ; un tour qui n'est pas le vôtre se résout en muet) fait afficher **`panneauRdv(rdv,h,a)` À LA
+    PLACE du match du samedi** sur l'écran Calendrier : affiche + blasons (`clubAffiche`/`blasonAff`), lieu, contexte
+    (aller/retour avec le score de l'aller, finale neutre, Poucet — « le petit reçoit » seulement si l'hôte est
+    réellement d'un niveau inférieur), rotation `.bRdvRot` + `apercuRotation`, **consigne et prime** (bloc partagé
+    **`blocConsignePrime(quand)`**, le même que le samedi), et les deux coups d'envoi `#bRdvGo`/`#bRdvVite` qui
+    appellent **`coupeJoue(instant)`/`euroJoue(instant)`** (le corps des anciennes fenêtres ; `suite` =
+    `montre("calendrier")`, le samedi reprend sa place). **Rien n'est verrouillé** : les onglets restent ouverts, on
+    revient quand on veut. Les boutons s'éteignent au clic (un double appui sur « Résultat instantané » refermait le
+    verdict à peine ouvert). (2) **La semaine passe AVANT** : ère → incident → arc → conf → debrief s'enchaînent dès
+    l'arrivée (on compose son équipe de coupe en sachant qui est blessé) ; seule la **promo billets attend** que la
+    coupe soit jouée — elle concerne le samedi. Chaque étape se consume (`G.incident`, `G.confPresse`, `G.notifs`…),
+    donc revenir sur l'écran ne rejoue rien. (3) **La consigne et la prime valent aussi les soirs de coupe** :
+    **`multTactique(hid,aid)`** (consigne sur les deux attaques, prime sur la vôtre, **[1,1]** si ce n'est pas votre
+    match ou en « Équilibré » sans prime → tirages de coupe **rigoureusement inchangés** par défaut) passe dans
+    `scoreCoupe(fh,fa,mh,ma)` via `resoudreCoupe`, `euroManche`, `euroFinaleSeche` ; **`soldePrime(gagne, quoi)`** (qui
+    remplace aussi le bloc du samedi dans `finirJournee`) paie la prime à la **qualification** en Coupe de France et au
+    retour européen, à la **victoire de la manche** à l'aller, puis la remet à zéro. Et le contrôle **« Tactique en
+    direct » existe désormais dans les trois directs** (`htmlCtlTactique()` + **`cableTactiqueRdv(o)`**) : c'était ça,
+    les « certains matchs » — un stress de 152 matchs de championnat au navigateur avait montré 151 changements réussis
+    (le 152ᵉ tombait après le coup de sifflet), le trou était la semaine. Le score de coupe étant tiré d'un bloc,
+    **`rejoueRdv(gen, lignes, from, mNow, r, avant, apres)`** fait l'équivalent de `rejoueDepuis` : garde ce qui a été
+    montré, retire la fin pré-écrite, la réécrit via **`corpsCoupe`/`finCoupe`** (le corps de `genEvCoupe`, découpé ; le
+    décor et la mémoire anti-répétition voyagent dans `gen.ctx`, non énumérable), puis l'appelant recalcule le verdict
+    (**`issueCoupe`**, **`euroClotureAvec`**, **`euroFinaleAvec`** — `euroCloture`/`euroFinaleSeche` en sont devenus de
+    simples enveloppes) et met à jour en place ce que `fin()` relit (`r`, `legScore`, `ed.tie`).
+    **PIÈGE MESURÉ, à ne pas réintroduire** : re-TIRER la fin à neuf (λ × temps restant, comme `simuleReste`) ajoutait
+    **~3 % de buts même à consigne inchangée**. Le fil de coupe n'est pas un processus minute par minute : il compte un
+    nombre FIXE d'évènements, donc savoir où l'on en est dans le fil renseigne sur les buts à venir (une fin de match
+    sans évènement est une fin sans but). `rejoueRdv` **rééchelonne** donc les buts que le fil réservait encore, au
+    rapport des buts attendus après/avant (chacun gardé avec cette probabilité, ou des buts en plus au prorata du temps
+    restant) : à consigne égale, **pas un but ne bouge** ; offensif puis retour à Équilibré revient à la moyenne à 0,4 %.
+    Validation dédiée : **`harness-rdv.cjs`** (neutralité, effet des consignes et de la prime, règlement de la prime,
+    2 600 recollages sans anomalie ni ligne resservie, loi du score, verdicts européens, rendu du Calendrier).
 - **Coupe d'Europe — Ligue des Champions (v0.72, lot 1 d'une livraison progressive)** : 2ᵉ compétition
   parallèle, bâtie sur le **moule de la Coupe de France** — modèle de force **autonome** (`forceEuro`
   réutilise `forceClub` + `scoreCoupe`/`poissonC`, exposant 2,6), **jamais `simuleMatch`** → **calibrage
@@ -1210,6 +1257,10 @@ toujours « raconter quelque chose ».
    `harness-progression.cjs` (le cap franchi : `aMoi()` qui tranche sur le contrat et non sur le vestiaire,
    la notification qui part au Debrief et plus dans les dépêches, la carte postale du prêté, le silence sur
    l'emprunté, un prêt de quinze journées joué pour de bon, et le +1 de la sélection nationale),
+   `harness-rdv.cjs` (les rendez-vous de semaine : consigne et prime neutres par défaut puis efficaces en coupe et
+   en Europe, prime payée à la qualification et remise à zéro, consigne changée en direct qui rejoue la fin sans
+   toucher au montré ni fausser la loi du score, verdicts européens recalculés, et le Calendrier qui montre le
+   rendez-vous à préparer au lieu d'une fenêtre verrouillée),
    `harness-memoire.cjs` (la mémoire longue : les quatre actes et leurs bascules, l'enjeu calculé aussi bien
    sur une sauvegarde relue que sur la partie en cours, les six raisons de « ce match compte parce que… »,
    le premier record qui se tait et celui qui se crie, le palmarès élargi, le cumul d'une fiche de vie sur
@@ -1245,7 +1296,7 @@ toujours « raconter quelque chose ».
   d'un coup de touche un incident, une conférence de presse, un chapitre d'arc, l'avant-match d'un tour de
   Coupe de France ou d'Europe, un penalty à la 90ᵉ. Trois dégâts d'un coup : la chaîne de l'entre-match
   (`ouvreEuro` → `ouvreCoupe` → `ouvreEre` → `ouvreIncident` → `ouvreArc` → `ouvreConf` → `ouvreDebrief` →
-  `ouvrePromo`) s'arrêtait net puisque `suite()` n'était jamais appelée ; le **verrou restait LEVÉ**, donc
+  `ouvrePromo` — depuis v1.10 les deux premières ont disparu au profit du panneau `panneauRdv`) s'arrêtait net puisque `suite()` n'était jamais appelée ; le **verrou restait LEVÉ**, donc
   `fermeFiche()` ne fermait plus rien ensuite ; et un tour de coupe pouvait rester en attente. Correctif :
   la touche passe par **`fermeFiche()`**, seule porte qui respecte le verrou, après avoir laissé
   **`fermeMessage()`** dépiler un éventuel message maison (qui, lui, vit au-dessus).

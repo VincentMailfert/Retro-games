@@ -311,7 +311,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.09"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.10"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3063,14 +3063,7 @@ function finirJournee(delta){
     if(mtC) clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.min(100,(j.moral==null?65:j.moral)+0.4*mtC));
     // prime de match : promesse au vestiaire, honorée UNIQUEMENT en cas de victoire (proportionnelle à la masse
     // salariale et au niveau choisi). Puis remise à zéro : c'est un choix à reprendre à chaque match.
-    if(+G.primeMatch>0){
-      if(gagneJ){ const cout=Math.round(masse*G.primeMatch*3);
-        G.tresorerie-=cout;
-        G.news.unshift("PRIME DE MATCH honorée (victoire, "+Math.round(G.primeMatch*100)+" %) : "+(cout/1e6).toFixed(2)+" MF reversés aux joueurs.");
-        notif("💰 Prime de victoire versée : "+(cout/1e6).toFixed(2)+" MF.");
-      }
-      G.primeMatch=0;
-    }
+    soldePrime(gagneJ, "victoire");
     if(G.tresorerie<0){ // le découvert agace le président : l'argent redevient une contrainte
       G.confiance=Math.max(0,G.confiance-1);
       if(!G._deficit){ G._deficit=true; notif("🔴 Trésorerie dans le rouge. Le président veut un retour à l'équilibre — alléger la masse salariale, vendre, ou décrocher un meilleur sponsor."); }
@@ -6233,20 +6226,57 @@ function forceCoupe(id){
   return f;
 }
 function poissonC(l){ l=Math.max(0.05,l); const L=Math.exp(-l); let k=0,p=1; do{ k++; p*=Math.random(); }while(p>L && k<14); return k-1; }
-function scoreCoupe(fh,fa){ // buts plausibles selon le rapport de force (calibrage doux, hors championnat)
+// même tirage, SANS plancher : pour les dernières minutes d'un match re-simulé, où λ tend vers zéro (poissonC
+// garderait ses 5 % de but même à la 89e)
+function poissonR(l){ if(!(l>0)) return 0; const L=Math.exp(-l); let k=0,p=1; do{ k++; p*=Math.random(); }while(p>L && k<14); return k-1; }
+/* LA CONSIGNE ET LA PRIME VALENT AUSSI LES SOIRS DE COUPE (v1.10, retour de playtest : « on ne peut rien
+   régler avant un match de coupe, ni offensif, ni prime, ni changer en cours de match »). Jusque-là, les
+   deux leviers n'existaient qu'en championnat : la Coupe de France et l'Europe ne connaissaient que la
+   rotation. Ils agissent ici exactement comme dans `simuleMatch` — la consigne sur les deux attaques, la
+   prime sur la vôtre — et sur VOTRE match seul : [1,1] partout ailleurs, et à « Équilibré » sans prime
+   (le réglage par défaut, celui du harnais) → les tirages de coupe restent rigoureusement inchangés. */
+function multTactique(hid, aid){
+  if(hid!==G.monClub && aid!==G.monClub) return [1,1];
+  const C=CONSIGNES[G.consigne]||CONSIGNES.equilibre, pm=+G.primeMatch||0;
+  return hid===G.monClub ? [C.att*(1+pm), C.adv] : [C.adv, C.att*(1+pm)];
+}
+function lambdasCoupe(fh,fa){ // buts attendus selon le rapport de force (calibrage doux, hors championnat)
   // exposant élevé (~celui du moteur de championnat) : le niveau pèse vraiment, les upsets restent possibles
   // mais ne sont plus la norme. Le Petit Poucet, dopé à un niveau quasi-pro, garde sa capacité de nuisance.
-  const lh=Math.max(0.12, 1.15*Math.pow(fh/fa,2.6));
-  const la=Math.max(0.09, 1.15*Math.pow(fa/fh,2.6));
-  return [Math.min(8,poissonC(lh)), Math.min(8,poissonC(la))];
+  return [Math.max(0.12, 1.15*Math.pow(fh/fa,2.6)), Math.max(0.09, 1.15*Math.pow(fa/fh,2.6))];
 }
-function resoudreCoupe(hid,aid){
+function scoreCoupe(fh,fa,mh,ma){ // mh/ma = multiplicateurs tactiques (multTactique), 1 par défaut
+  const [lh,la]=lambdasCoupe(fh,fa);
+  return [Math.min(8,poissonC(lh*(mh||1))), Math.min(8,poissonC(la*(ma||1)))];
+}
+/* Les buts attendus d'un rendez-vous de semaine, consigne et prime comprises : c'est aussi ce que la re-simulation
+   en direct rejoue sur les minutes restantes (`rejoueRdv`). `terrain` = avantage de l'hôte, `forceFn` = forceCoupe
+   ou forceEuro. */
+function lambdasRdv(homeId, awayId, terrain, forceFn){
+  const [lh,la]=lambdasCoupe(forceFn(homeId)+terrain, forceFn(awayId)), [mh,ma]=multTactique(homeId, awayId);
+  return [lh*mh, la*ma];
+}
+function issueCoupe(hid,aid,sh,sa){ // le verdict d'un match de coupe dont on connaît le score
   const fh=forceCoupe(hid)+COUPE_TERRAIN, fa=forceCoupe(aid);
-  let [sh,sa]=scoreCoupe(fh,fa);
   let tab=false, win;
   if(sh>sa) win=hid; else if(sa>sh) win=aid;
   else { tab=true; win=(Math.random()<fh/(fh+fa))?hid:aid; } // pas de nul : tirs au but, le plus fort un peu favori
   return {hid,aid,sh,sa,tab,win};
+}
+function resoudreCoupe(hid,aid){
+  const [sh,sa]=scoreCoupe(forceCoupe(hid)+COUPE_TERRAIN, forceCoupe(aid), ...multTactique(hid,aid));
+  return issueCoupe(hid,aid,sh,sa);
+}
+/* La prime promise pour un match se règle toujours de la même façon : payée si l'on gagne, puis remise à zéro
+   — c'est un choix à reprendre à chaque match. Le samedi (finirJournee) comme les soirs de coupe. `quoi` dit
+   ce qu'on a gagné : une victoire, une qualification, une manche aller. */
+function soldePrime(gagne, quoi){
+  const pm=+G.primeMatch||0; if(pm<=0) return;
+  if(gagne){ const moi=clubById(G.monClub), masse=moi?moi.joueurs.reduce((s,j)=>s+salaire(j),0):0, cout=Math.round(masse*pm*3);
+    G.tresorerie-=cout;
+    G.news.unshift("PRIME DE MATCH honorée ("+quoi+", "+Math.round(pm*100)+" %) : "+(cout/1e6).toFixed(2)+" MF reversés aux joueurs.");
+    notif("💰 Prime de victoire versée : "+(cout/1e6).toFixed(2)+" MF."); }
+  G.primeMatch=0;
 }
 function coupeInit(){ // (re)tirage du tableau pour la saison en cours
   if(!G||!G.clubs) return;
@@ -6269,7 +6299,7 @@ function coupeTick(){ // appelé en fin de journée : déclenche le tour de sema
   const co=G.coupe;
   const jeJoue=co.aJouer.paires.some(p=>p.hid===G.monClub||p.aid===G.monClub);
   // hors UI (harnais) ou si vous n'avez pas de match (déjà éliminé) : résolution immédiate, sans fenêtre.
-  // sinon co.aJouer reste en attente : l'écran calendrier ouvrira le flux interactif (ouvreCoupe → fenêtres).
+  // sinon co.aJouer reste en attente : le Calendrier affiche le rendez-vous à préparer (panneauRdv → coupeJoue).
   if(EN_TEST() || !jeJoue) coupeResoutTour(false);
 }
 function scoreVu(f,id){ return id===f.hid ? f.sh+"-"+f.sa : f.sa+"-"+f.sh; }
@@ -6303,6 +6333,7 @@ function coupeResoutTour(interactif, forced){ // résout les affiches de co.aJou
       const poucetTag=advId===co.poucetId?" — LE Petit Poucet en personne !":"";
       co.monParcours.push({tour:tour.court, hid:f.hid, aid:f.aid, sh:f.sh, sa:f.sa, tab:f.tab, gagne});
       fatigueSemaine(co.rotation);                                   // ceux qui ont joué le tour rentrent avec vingt points de fraîcheur en moins
+      soldePrime(gagne, "qualification en Coupe de France");          // la prime du soir : payée si l'on passe, puis remise à zéro
       if(gagne){
         G.tresorerie+=COUPE_RECETTE; co.gains=(co.gains||0)+COUPE_RECETTE; // billetterie du tour
         if(!interactif) notif("🏆 COUPE — "+tour.court+" : QUALIFIÉ ! "+sc+tb+(dom?" à domicile":" à "+villeCoupe(advId))+" face à "+nomCoupe(advId)+poucetTag);
@@ -6393,43 +6424,89 @@ function gardienAff(aff, onzeFn){ if(aff.amateur) return "le gardien"; const g=(
 const COUPE_AMB=["Quelle ambiance sur ce terrain !","Le public pousse derrière son équipe.","On joue à fond, des deux côtés.",
   "Le rythme est haché mais l'engagement est total.","Beau mouvement collectif, mais ça butte sur la défense.","L'arbitre laisse jouer."];
 function genEvCoupe(H, A, r, onzeFn){ // r = {sh,sa,tab,win} déjà tiré ; renvoie {ev, aff} — pure mise en scène, aucune stat touchée
-  const ev=[], vus=[], aff=H.cap?Math.round(H.cap*RND(0.55,0.95)):RNDI(1500,4000); // vus = anti-répétition du tour (cf. pickNR)
-  const nomsH=nomsAffiche(H,onzeFn), nomsA=nomsAffiche(A,onzeFn);
-  const tirH=()=>PICK(nomsH), tirA=()=>PICK(nomsA);
-  ev.push({m:0,t:"sys",x:"Coup d'envoi à "+H.stade+" devant "+FMT(aff)+" spectateurs. "+H.nom+" reçoit "+A.nom+"."});
-  // minutes de but réparties sur 3..89, mêlées
-  const buts=[]; for(let k=0;k<r.sh;k++) buts.push("H"); for(let k=0;k<r.sa;k++) buts.push("A");
-  const mins=[]; while(mins.length<buts.length){ const m=RNDI(3,89); if(!mins.includes(m)) mins.push(m); }
+  const aff=H.cap?Math.round(H.cap*RND(0.55,0.95)):RNDI(1500,4000);
+  // le décor du match (noms, mémoire anti-répétition) vit dans `ctx` : la re-simulation en direct (rejoueRdv) le
+  // reprend tel quel, pour que la fin rejouée ne resserve pas une ligne déjà lue
+  const ctx={H, A, vus:[], nomsH:nomsAffiche(H,onzeFn), nomsA:nomsAffiche(A,onzeFn)};
+  const ev=[{m:0,t:"sys",x:"Coup d'envoi à "+H.stade+" devant "+FMT(aff)+" spectateurs. "+H.nom+" reçoit "+A.nom+"."}];
+  corpsCoupe(ctx, ev, 0, 0, 0, r.sh, r.sa, true);
+  finCoupe(ctx, ev, r);
+  annoteButs(ev); // doublé/triplé/coup du chapeau au téléscripteur de coupe aussi
+  const out={ev, aff, sh:r.sh, sa:r.sa};
+  Object.defineProperty(out, "ctx", {value:ctx}); // hors énumération : l'objet ne part jamais dans G, mais on reste prudent
+  return out;
+}
+/* Le cours d'un match de coupe APRÈS la minute m0 : les nh buts de l'hôte et les na du visiteur (le score part de
+   sh0-sa0), des occasions et de l'ambiance au prorata des minutes restantes, et la mi-temps si elle reste à jouer.
+   m0=0 : le match entier (genEvCoupe) ; m0>0 : la fin rejouée après un changement de consigne (rejoueRdv). */
+function corpsCoupe(ctx, ev, m0, sh0, sa0, nh, na, miTemps){
+  const {H, A, vus, nomsH, nomsA}=ctx, tirH=()=>PICK(nomsH), tirA=()=>PICK(nomsA);
+  const frac=(90-m0)/90, entre=(lo,hi)=>lo<=hi?RNDI(lo,hi):null;
+  // minutes de but réparties sur la fenêtre (3..89 pour un match entier), mêlées — distinctes tant que la place le permet
+  const buts=[]; for(let k=0;k<nh;k++) buts.push("H"); for(let k=0;k<na;k++) buts.push("A");
+  const bLo=Math.max(3,m0+1), place=89-bLo+1;
+  const mins=[]; while(mins.length<buts.length){ const m=entre(bLo,89); if(m===null){ mins.push(90); continue; } if(place<buts.length || !mins.includes(m)) mins.push(m); }
   mins.sort((a,b)=>a-b); melange(buts);
-  let sh=0, sa=0; const butEvts=[];
+  let sh=sh0, sa=sa0; const butEvts=[];
   for(let k=0;k<buts.length;k++){ const dom=buts[k]==="H"; if(dom) sh++; else sa++;
     const cote=dom?H.id:A.id, but=dom?tirH():tirA(), pas=Math.random()<0.62?(dom?tirH():tirA()):null, lgn=pickNR(COMM.but,vus);
     butEvts.push({m:mins[k],t:"but",ic:"but",g:{cote,but,pas:pas&&pas!==but?pas:null,sh,sa,ph:phaseTir(lgn)},
       x:fmtC(lgn,{nom:but},dom?A:H)+(pas&&pas!==but?" Passe décisive de "+pas+".":"")+"  ("+tagAff(H)+" "+sh+"-"+sa+")"}); }
   // quelques occasions manquées (avec flag de montée) et de l'ambiance, intercalées
-  const occ=[]; const nOcc=RNDI(3,6);
-  for(let k=0;k<nOcc;k++){ const m=RNDI(2,89), dom=Math.random()<0.5, tir=dom?tirH():tirA();
+  const occ=[]; const nOcc=m0?Math.round(RNDI(3,6)*frac):RNDI(3,6);
+  for(let k=0;k<nOcc;k++){ const m=entre(Math.max(2,m0+1),89); if(m===null) break; const dom=Math.random()<0.5, tir=dom?tirH():tirA();
     const lgn=pickNR(Math.random()<.5?COMM.arret:COMM.rate,vus);
     occ.push({m,t:"occ",ic:Math.random()<.5?"arret":"rate",x:fmtC(lgn,{nom:tir},dom?A:H),
       q:{but:tir,cote:dom?H.id:A.id,bu:Math.random()<MONTEE_RATEE,ph:phaseTir(lgn)}}); }
-  const amb=[]; const nAmb=RNDI(2,4);
-  for(let k=0;k<nAmb;k++) amb.push({m:RNDI(5,88),t:"amb",x:pickNR(COUPE_AMB,vus)});
-  // assemblage trié + mi-temps (score réel à la 45e) + sifflet
-  let hh=0, ha=0; for(const e of butEvts){ if(e.m<=45){ hh=e.g.sh; ha=e.g.sa; } }
+  const amb=[]; const nAmb=m0?Math.round(RNDI(2,4)*frac):RNDI(2,4);
+  for(let k=0;k<nAmb;k++){ const m=entre(Math.max(5,m0+1),88); if(m===null) break; amb.push({m,t:"amb",x:pickNR(COUPE_AMB,vus)}); }
+  // assemblage trié + mi-temps (score réel à la 45e)
+  let hh=sh0, ha=sa0; for(const e of butEvts){ if(e.m<=45){ hh=e.g.sh; ha=e.g.sa; } }
   const corps=butEvts.concat(occ,amb);
-  corps.push({m:45,t:"sys",x:"MI-TEMPS. "+tagAff(H)+" "+hh+" - "+ha+" "+tagAff(A)});
+  if(miTemps) corps.push({m:45,t:"sys",x:"MI-TEMPS. "+tagAff(H)+" "+hh+" - "+ha+" "+tagAff(A)});
   corps.sort((a,b)=>a.m-b.m);
   for(const e of corps) ev.push(e);
+}
+function finCoupe(ctx, ev, r){ // le coup de sifflet, puis les tirs au but si nul après 90'
+  const {H, A}=ctx;
   ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+H.nom+" "+r.sh+" - "+r.sa+" "+A.nom});
-  // tirs au but si nul après 90'
   if(r.tab){
     ev.push({m:90,t:"sys",x:"Score nul au terme du temps réglementaire : tout se jouera aux TIRS AU BUT."});
     ev.push({m:90,t:"amb",x:"La séance est interminable, chaque frappe fait monter la tension d'un cran…"});
     const qualifie=clubAffiche(r.win).nom;
     ev.push({m:90,t:"sys",x:"TIRS AU BUT : "+qualifie+" se qualifie !"});
   }
-  annoteButs(ev); // doublé/triplé/coup du chapeau au téléscripteur de coupe aussi
-  return {ev, aff, sh:r.sh, sa:r.sa};
+}
+/* CHANGER DE CONSIGNE EN DIRECT UN SOIR DE COUPE (v1.10) — le score d'un tour de coupe est tiré d'un bloc au coup
+   d'envoi (modèle de force), le téléscripteur ne fait que le mettre en scène. Pour qu'une consigne changée à la
+   60e pèse VRAIMENT, on fait comme `rejoueDepuis` en championnat : on garde ce qui a été montré, on retire la fin
+   pré-écrite, et l'on rejoue les minutes restantes.
+   PIÈGE, mesuré au harnais (section E) : RE-TIRER la fin à neuf (λ × part du match restant) ajoutait ~3 % de buts
+   même à consigne inchangée. Le fil de coupe n'est pas un processus minute par minute comme `simuleMatch` : il
+   compte un nombre FIXE d'évènements, donc savoir où l'on en est dans le fil dit déjà quelque chose des buts à venir
+   (une fin de match sans évènement est une fin sans but). On ne re-tire donc pas : on RÉÉCHELONNE les buts que le
+   fil réservait encore à chaque camp, selon le rapport des buts attendus après/avant — moins de buts (chacun gardé
+   avec la probabilité du rapport) ou davantage (ceux que la nouvelle consigne ajoute, au prorata du temps restant).
+   À consigne inchangée, le score ne bouge pas d'un but.
+   `from` = premier évènement non montré, `mNow` = la minute atteinte, `avant`/`apres` = [λ hôte, λ visiteur] sur 90
+   minutes (lambdasRdv) sous l'ancienne et la nouvelle consigne. Mute `lignes` et `r.sh`/`r.sa` en place ; le
+   verdict (t.a.b., vainqueur, cumul européen) et le sifflet sont l'affaire de l'appelant, qui connaît la compétition. */
+function rejoueRdv(gen, lignes, from, mNow, r, avant, apres){
+  const ctx=gen.ctx, H=ctx.H;
+  let sh0=0, sa0=0, rh=0, ra=0;
+  lignes.forEach((l,k)=>{ if(!l.g) return; const dom=l.g.cote===H.id; if(k<from){ if(dom) sh0++; else sa0++; } else { if(dom) rh++; else ra++; } });
+  const miTemps=lignes.slice(from).some(l=>l.t==="sys" && /^MI-TEMPS/.test(l.x||""));
+  const reste=Math.max(0,(90-mNow)/90);
+  const ajuste=(n, lAv, lAp)=>{
+    if(!(lAv>0)) return poissonR(lAp*reste);
+    if(lAp<=lAv){ let k=0; for(let x=0;x<n;x++) if(Math.random()<lAp/lAv) k++; return k; } // chaque but réservé survit au rapport
+    return n+poissonR((lAp-lAv)*reste);                                                  // les buts en plus de la nouvelle consigne
+  };
+  const nh=Math.min(Math.max(0,8-sh0), ajuste(rh, avant[0], apres[0])), na=Math.min(Math.max(0,8-sa0), ajuste(ra, avant[1], apres[1]));
+  lignes.length=from;
+  corpsCoupe(ctx, lignes, mNow, sh0, sa0, nh, na, miTemps);
+  r.sh=sh0+nh; r.sa=sa0+na;
+  return r;
 }
 function ecranCoupe(){
   const co=G.coupe;
@@ -6582,17 +6659,22 @@ function forceEuro(id){
   return f;
 }
 function euroManche(hid,aid){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
-  return scoreCoupe(forceEuro(hid)+EURO_TERRAIN, forceEuro(aid)); // [buts hôte, buts visiteur]
+  return scoreCoupe(forceEuro(hid)+EURO_TERRAIN, forceEuro(aid), ...multTactique(hid,aid)); // [buts hôte, buts visiteur]
 }
-function euroFinaleSeche(a,b){ // FINALE : match sec sur terrain neutre, pas d'avantage du terrain
-  const fh=forceEuro(a), fa=forceEuro(b);
-  let [sa,sb]=scoreCoupe(fh,fa);
+function euroFinaleAvec(a,b,s){ // le verdict d'une finale dont on connaît le score s=[buts a, buts b]
+  const fh=forceEuro(a), fa=forceEuro(b), [sa,sb]=s;
   let tab=false, win;
   if(sa>sb) win=a; else if(sb>sa) win=b; else { tab=true; win=(Math.random()<fh/(fh+fa))?a:b; }
   return {aid:a, bid:b, neutre:true, s:[sa,sb], tab, win};
 }
+function euroFinaleSeche(a,b){ // FINALE : match sec sur terrain neutre, pas d'avantage du terrain
+  return euroFinaleAvec(a, b, scoreCoupe(forceEuro(a), forceEuro(b), ...multTactique(a,b)));
+}
 function euroCloture(a,b,l1){ // manche RETOUR chez b, une semaine après l'aller `l1` → cumul et verdict
-  const [b2,a2]=euroManche(b,a);            // retour chez b → [buts b, buts a]
+  return euroClotureAvec(a, b, l1, euroManche(b,a));
+}
+function euroClotureAvec(a,b,l1,l2){ // même verdict, le score du retour l2=[buts b, buts a] étant connu (re-simulation en direct)
+  const [b2,a2]=l2;                         // retour chez b → [buts b, buts a]
   const aggA=l1[0]+a2, aggB=l1[1]+b2;       // cumul sur les deux matchs
   const awayA=a2, awayB=l1[1];              // buts marqués à l'extérieur (a chez b ; b chez a)
   let tab=false, win;
@@ -6621,7 +6703,7 @@ function euroTick(){ // appelé en fin de journée (comme coupeTick) : TIRE la m
   else return;
   const jeJoue = eu.enLice && !eu.elimine && eu.aJouer.paires.some(p=>p[0]===G.monClub||p[1]===G.monClub);
   // hors UI (harnais) ou pas votre tie (déjà éliminé) : résolution muette immédiate.
-  // sinon eu.aJouer reste en attente : ecranCalendrier ouvrira le flux interactif (ouvreEuro → fenêtres).
+  // sinon eu.aJouer reste en attente : le Calendrier affiche la manche à préparer (panneauRdv → euroJoue).
   if(EN_TEST() || !jeJoue) euroResoutTour(false);
 }
 function euroTireTour(){ // tirage des affiches du tour → on pose la manche ALLER (la finale, elle, est un match sec)
@@ -6657,6 +6739,7 @@ function euroResoutAller(interactif, forced){ /* MANCHE ALLER : on joue les 8 pr
       const me=moiA?allers[i][0]:allers[i][1], lui=moiA?allers[i][1]:allers[i][0];
       eu.attente.mien={advId, dom:moiA, sc:me+"-"+lui};
       fatigueSemaine(eu.rotation);                             // la manche européenne se paie comptant, en fraîcheur
+      soldePrime(me>lui, "victoire à l'aller");                // la prime promise vaut pour CE match : gagner la manche suffit
       if(!interactif) notif(EMO+" "+NOM+" — "+tour.court+", match ALLER "+(moiA?"à domicile":"à l'extérieur")+" : "+me+"-"+lui+" face à "+nomEuro(advId)+". Retour "+(moiA?"là-bas":"chez vous")+" dans une semaine.");
       G.news.unshift(NOM+" — "+tour.court+", match aller : "+nomEuro(p[0])+" "+allers[i][0]+"-"+allers[i][1]+" "+nomEuro(p[1])+". Tout se jouera au retour, dans une semaine.");
     }
@@ -6687,6 +6770,7 @@ function euroResoutTour(interactif, forced){ // résout la manche posée dans eu
       const sc = me+"-"+lui + (f.neutre?"":" cumul") + (f.tab?" (t.a.b.)":"");
       eu.monParcours.push({tour:tour.court, advId, sc, gagne, finale:f.neutre});
       fatigueSemaine(eu.rotation);                             // la manche européenne se paie comptant, en fraîcheur
+      soldePrime(gagne, f.neutre?"victoire en finale":"qualification européenne");
       if(gagne){
         const prime=CP.prime[eu.tourIdx]||0; // prime UEFA du tour REMPORTÉ (croissante à l'approche de la finale)
         G.tresorerie+=CP.recette+prime; eu.gains+=CP.recette+prime;
@@ -7837,6 +7921,7 @@ function ecranCalendrier(){
   if(G.intro) return ecranIntro(); // le mot d'ouverture : ce que raconte la saison où l'on entre
   if(G.finie) return ecranBilan(); // la page d'almanach : ce que la saison aura laissé, avant que l'intersaison ne remette les compteurs à zéro
   veilleEffectif(); // avant d'annoncer le match : tous les effectifs repassent au contrôle réglementaire
+  const rdv=rdvEnAttente(); // un soir de coupe ou d'Europe à jouer avant le samedi ? il prend la place du match de championnat
   const day=G.calendrier[G.journee];
   const [hid,aid]=day.find(([h,a])=>h===G.monClub||a===G.monClub);
   const h=clubById(hid), a=clubById(aid);
@@ -7875,7 +7960,7 @@ function ecranCalendrier(){
    ${offre}
    ${offrePret}
    ${affaire}
-   <div class="panel">
+   ${rdv?panneauRdv(rdv,h,a):`<div class="panel">
      <h2>Saison ${esc(G.saison)} · Journée ${G.journee+1} — votre match</h2>
      <p class="scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blason(h,30)}${esc(h.nom)} — ${esc(a.nom)}${blason(a,30)}</p>
      <p class="ctr dim">${esc(h.stade)} · ${dom?"À DOMICILE":"À L'EXTÉRIEUR"}</p>
@@ -7887,16 +7972,7 @@ function ecranCalendrier(){
      })()}
      <p class="ctr"><span class="${fenetreOuverte()?"vert":"dim"}">${esc(msgMercato())}</span></p>
      ${G.declar?`<p class="ctr" style="margin-top:6px;font-style:italic"><span class="rouge">«&nbsp;${esc(G.declar.txt)}&nbsp;»</span><br><span class="dim">— ${esc(G.declar.nom)} (${esc(G.declar.club)}), dans la presse du matin</span></p>`:""}
-     <div class="ctr" style="margin-top:12px">
-       <span class="dim" style="font-size:12px">Consigne d'avant-match :</span><br>
-       ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne" data-k="${k}" style="margin:4px 3px 0${G.consigne===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${CONSIGNES[k].label}</button>`).join("")}
-       <br><span class="dim" style="font-size:11px">${esc((CONSIGNES[G.consigne]||CONSIGNES.equilibre).desc)}</span>
-     </div>
-     <div class="ctr" style="margin-top:10px">
-       <span class="dim" style="font-size:12px">Prime de match (un coup de fouet à l'attaque — payée seulement en cas de victoire) :</span><br>
-       ${PRIMES_MATCH.map(p=>`<button class="act bPrime" data-v="${p.v}" style="margin:4px 3px 0${(+G.primeMatch||0)===p.v?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${p.label}</button>`).join("")}
-       <br><span class="dim" style="font-size:11px">${(+G.primeMatch||0)>0?"Vos joueurs se transcendent (+"+Math.round((+G.primeMatch)*100)+" % d'attaque). Facture honorée UNIQUEMENT si vous gagnez.":"Aucune prime promise : effectif au régime normal."}</span>
-     </div>
+     ${blocConsignePrime("en cas de victoire")}
      <p class="ctr ${feuilleOk?(bancMoi>=5?"dim":"jaune"):"rouge"}" style="margin-top:12px;font-size:12px">
        FEUILLE DE MATCH : <b>${Math.min(11,xiMoi.length)}/11</b> titulaires · <b>${Math.min(5,bancMoi)}/5</b> remplaçants${
          feuilleOk?(bancMoi<5?" — banc incomplet (blessés, suspendus), mais le match peut se jouer":""):" — LA LIGUE REFUSE LA FEUILLE DE MATCH"}
@@ -7918,7 +7994,7 @@ function ecranCalendrier(){
        <span class="rouge">Impossible d'aligner onze joueurs : le coup d'envoi ne peut pas être donné.</span><br>
        <button class="big" id="bRenfort" style="margin-top:6px">Piocher en urgence chez les joueurs libres</button>
      </p>`}
-   </div>
+   </div>`}
    <div class="panel" id="pTableau" style="display:none">
      <div id="tabScore"></div>
      <div id="tabButs"></div>
@@ -7927,10 +8003,7 @@ function ecranCalendrier(){
      <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
        Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
      </span></h2>
-     <div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:12px">
-       <span class="dim" id="libTacD">Tactique en direct :</span>
-       ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
-     </div>
+     ${htmlCtlTactique()}
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
    ${G.presse.length?`<div class="panel"><h2>Revue de presse</h2>
      ${G.presse.slice(0,4).map(p=>`<p class="dim" style="font-style:italic">${esc(p)}</p>`).join("")}</div>`:""}
@@ -7938,6 +8011,14 @@ function ecranCalendrier(){
   { const bJ=document.getElementById("bJouer"); if(bJ) bJ.onclick=()=>lanceMatch(false);
     const bV=document.getElementById("bVite");  if(bV) bV.onclick=()=>lanceMatch(true);
     const bR=document.getElementById("bRenfort"); if(bR) bR.onclick=()=>{ veilleEffectif(); montre("calendrier"); }; }
+  if(rdv){ // le rendez-vous de semaine : rotation, puis les deux coups d'envoi (les boutons s'éteignent au clic — un
+           // double appui sur « Résultat instantané » refermait sinon le verdict à peine ouvert)
+    const joue=instant=>{ ["bRdvGo","bRdvVite"].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=true; });
+      (rdv.type==="euro"?euroJoue:coupeJoue)(instant); };
+    const bG=document.getElementById("bRdvGo");   if(bG) bG.onclick=()=>joue(false);
+    const bI=document.getElementById("bRdvVite"); if(bI) bI.onclick=()=>joue(true);
+    document.querySelectorAll(".bRdvRot").forEach(b=>b.onclick=()=>{ (rdv.type==="euro"?G.euro:G.coupe).rotation=b.dataset.k; montre("calendrier"); });
+  }
   { const bOu=document.getElementById("bOuEn"); if(bOu) bOu.onclick=ecranReprise; } // le point de situation, à la demande
   document.querySelectorAll(".bConsigne").forEach(b=>b.onclick=()=>{ G.consigne=b.dataset.k; montre("calendrier"); });
   document.querySelectorAll(".bPrime").forEach(b=>b.onclick=()=>{ G.primeMatch=+b.dataset.v; montre("calendrier"); });
@@ -7990,16 +8071,14 @@ function ecranCalendrier(){
     fiche.style.display="flex";
     fiche.querySelector("#bEreOk").onclick=()=>{ fermeFiche(); suite(); };
   };
-  const suiteApresCoupe=()=>{
-    const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDebrief(ouvrePromo))); // chapitre d'arc (exclusif) → conf de presse → debrief → promo billets (avant-match)
-    if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
-    else { ouvreEre(finChaine); }
-  };
-  // un tour de coupe attend d'être joué en milieu de semaine ? on l'événementialise d'abord — Europe puis France
-  // (journées distinctes, donc un seul à la fois en pratique ; on chaîne par sécurité)
-  const apresEuro=()=>{ if(G.coupe && G.coupe.aJouer){ ouvreCoupe(suiteApresCoupe); } else { suiteApresCoupe(); } };
-  if(G.euro && G.euro.aJouer){ ouvreEuro(apresEuro); }
-  else { apresEuro(); }
+  // la semaine qui s'ouvre : nouvelle ère → incident → chapitre d'arc (exclusif) → conf de presse → debrief → promo billets.
+  // Depuis v1.10, un soir de coupe ou d'Europe ne s'impose plus en fenêtre verrouillée AVANT tout ça : il s'affiche
+  // à la place du match du samedi (panneauRdv), et la semaine passe d'abord — on compose son équipe de coupe en
+  // sachant qui est blessé. Seule la promo billets attend : elle concerne le samedi, pas le mercredi.
+  // Chaque étape se consume (G.incident, G.confPresse, G.notifs… remis à zéro) : revenir sur l'écran ne rejoue rien.
+  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDebrief(rdv?null:ouvrePromo)));
+  if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
+  else { ouvreEre(finChaine); }
   // toute l'échelle reculée d'un cran (le défilement par défaut respire davantage) ; « Très lente » est le nouveau plancher
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
   surligneVitesse(); // état initial : « Normale » mise en valeur
@@ -8010,6 +8089,43 @@ function ecranCalendrier(){
   const bPA=document.getElementById("bPretAcc"); if(bPA) bPA.onclick=accepterOffrePret;
   const bPR=document.getElementById("bPretRef"); if(bPR) bPR.onclick=refuserOffrePret;
   cableFlash(); // le coup à faire de la semaine
+}
+
+/* Le contrôle « Tactique en direct » : le même bloc pour les trois directs (championnat, Coupe de France, Europe).
+   Masqué jusqu'au coup d'envoi, c'est le lanceur du match qui l'allume et le câble. */
+function htmlCtlTactique(){
+  return `<div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:12px">
+       <span class="dim" id="libTacD">Tactique en direct :</span>
+       ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
+     </div>`;
+}
+/* Le même contrôle, branché sur un soir de coupe ou d'Europe (v1.10) : il n'existait qu'en championnat, d'où le
+   retour de playtest « certains matchs, je ne peux pas changer la stratégie en cours de match » — c'étaient les
+   matchs de semaine. `o` = {lignes, gen, r, tk, pos:()=>index du prochain évènement, lambdas:()=>[lh,la] du moment,
+   verdict:()=>recalcule t.a.b./vainqueur/cumul sur o.r}. */
+function cableTactiqueRdv(o){
+  const ctlT=document.getElementById("ctlTactique"); if(!ctlT) return;
+  const btns=[...document.querySelectorAll(".bTacD")];
+  const maj=()=>btns.forEach(b=>{ const on=b.dataset.k===G.consigne;
+    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; });
+  let enCours=o.lambdas(); // les buts attendus sous lesquels le fil actuel a été écrit (coup d'envoi, puis dernier changement)
+  ctlT.style.display="block"; maj();
+  btns.forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k, L=o.lignes, i=o.pos();
+    if(k===G.consigne || i>=L.length) return;
+    const from=(L[i] && L[i]._monte) ? i+1 : i;   // une action déjà annoncée par la montée va à son terme : on recolle APRÈS elle
+    const sif=L.findIndex(l=>l.t==="sys" && /^COUP DE SIFFLET FINAL/.test(l.x||""));
+    if(sif<0 || from>sif) return;                  // le sifflet est passé : il n'y a plus rien à rejouer
+    G.consigne=k;
+    const mNow=from>0 ? L[from-1].m : 0, apres=o.lambdas();
+    rejoueRdv(o.gen, L, from, mNow, o.r, enCours, apres);
+    enCours=apres;
+    o.verdict();
+    finCoupe(o.gen.ctx, L, o.r);
+    annoteButs(L);
+    ajouteLigne(o.tk,{m:mNow,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
+    o.tk.scrollTop=0; maj();
+  });
 }
 
 /* ---- pictogrammes télétexte ---- */
@@ -8106,47 +8222,119 @@ function coupeFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict d
   fiche.style.display="flex"; window._penEnCours=true;
   fiche.querySelector("#bCRes").onclick=()=>coupeFenetreResultats(suite);
 }
-function ouvreCoupe(suite){
-  const co=G.coupe, aj=co&&co.aJouer;
-  if(!aj){ return suite(); }
+/* LE RENDEZ-VOUS DE SEMAINE SE PRÉPARE (v1.10, retour de playtest : « dès qu'on clique sur Prochaine journée, on nous
+   demande si l'on met l'équipe type, mixte ou la réserve, et le match commence juste après — on ne peut rien faire
+   avant : mercato, finances, onze type, tactique »). Le tour de coupe s'ouvrait dans une fenêtre VERROUILLÉE
+   (window._penEnCours), posée d'office par ecranCalendrier avant tout le reste : impossible d'aller voir l'effectif
+   avant de choisir entre les cadres et la réserve, et la consigne comme la prime n'existaient pas ces soirs-là.
+   Le rendez-vous devient le PROCHAIN MATCH de l'écran Calendrier, à la place de celui du samedi (panneauRdv) :
+   l'affiche, l'équipe alignée et sa fraîcheur, la consigne et la prime, les deux coups d'envoi. Rien n'est verrouillé
+   — les onglets restent ouverts, on revient quand on veut ; le match du samedi reprend sa place une fois la coupe
+   jouée. Europe d'abord, puis Coupe de France (journées distinctes : un seul à la fois en pratique). */
+function rdvEnAttente(){
+  const eu=G.euro, ea=eu&&eu.aJouer;
+  if(ea){ const idx=ea.paires.findIndex(p=>p[0]===G.monClub||p[1]===G.monClub);
+    if(idx>=0) return {type:"euro", aj:ea, idx};
+    euroResoutTour(false); } // sécurité : pas votre tie → résolution muette, comme l'ancienne fenêtre
+  const co=G.coupe, ca=co&&co.aJouer;
+  if(ca){ const f=ca.paires.find(p=>p.hid===G.monClub||p.aid===G.monClub);
+    if(f) return {type:"coupe", aj:ca, f};
+    coupeResoutTour(false); }
+  return null;
+}
+/* Consigne d'avant-match + prime : le même bloc pour le samedi et les soirs de semaine. `quand` dit ce qui déclenche
+   le paiement de la prime (« en cas de victoire », « en cas de qualification »…). */
+function blocConsignePrime(quand){
+  const pm=+G.primeMatch||0;
+  return `<div class="ctr" style="margin-top:12px">
+       <span class="dim" style="font-size:12px">Consigne d'avant-match :</span><br>
+       ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne" data-k="${k}" style="margin:4px 3px 0${G.consigne===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${CONSIGNES[k].label}</button>`).join("")}
+       <br><span class="dim" style="font-size:11px">${esc((CONSIGNES[G.consigne]||CONSIGNES.equilibre).desc)}</span>
+     </div>
+     <div class="ctr" style="margin-top:10px">
+       <span class="dim" style="font-size:12px">Prime de match (un coup de fouet à l'attaque — payée seulement ${esc(quand)}) :</span><br>
+       ${PRIMES_MATCH.map(p=>`<button class="act bPrime" data-v="${p.v}" style="margin:4px 3px 0${pm===p.v?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${p.label}</button>`).join("")}
+       <br><span class="dim" style="font-size:11px">${pm>0?"Vos joueurs se transcendent (+"+Math.round(pm*100)+" % d'attaque). Facture honorée UNIQUEMENT "+esc(quand)+".":"Aucune prime promise : effectif au régime normal."}</span>
+     </div>`;
+}
+function panneauRdv(rdv, h, a){
+  let titre, H, A, lieu, contexte, rot, quand;
+  if(rdv.type==="coupe"){
+    const co=G.coupe, aj=rdv.aj, f=rdv.f, dom=f.hid===G.monClub, advId=dom?f.aid:f.hid;
+    H=clubAffiche(f.hid); A=clubAffiche(f.aid);
+    titre=`🏆 Coupe de France — ${esc(aj.nom)}`;
+    const petit=!dom && niveauCoupe(f.hid)<niveauCoupe(G.monClub); // à niveau égal, c'est le tirage qui a désigné l'hôte
+    lieu=`${H.stade?esc(H.stade)+" · ":""}${dom?"À DOMICILE":"À L'EXTÉRIEUR"+(petit?" — le petit reçoit":"")}${advId===co.poucetId?' · <span class="cyan">🐭 le Petit Poucet en personne !</span>':""}`;
+    contexte="Match sec : en cas d'égalité au coup de sifflet, tirs au but.";
+    rot=co.rotation; quand="en cas de qualification";
+  } else {
+    const aj=rdv.aj, pair=aj.paires[rdv.idx], CP=competActif();
+    const advId=pair[0]===G.monClub?pair[1]:pair[0], aller=(euroMancheDe(aj)===1 && !aj.finale);
+    const hote=(aj.finale||aller)?pair[0]:pair[1], chezMoi=!aj.finale && hote===G.monClub;
+    H=clubAffiche(hote); A=clubAffiche(hote===pair[0]?pair[1]:pair[0]);
+    const l1=(!aller && !aj.finale && aj.allers)?aj.allers[rdv.idx]:null;
+    const scAller=l1?(pair[0]===G.monClub?l1[0]+"-"+l1[1]:l1[1]+"-"+l1[0]):"?";
+    titre=`${CP.emoji} ${esc(CP.nom)} — ${esc(aj.nom)}`;
+    lieu=aj.finale?`FINALE · terrain neutre · face à ${esc(paysEuro(advId))}`
+      :`${aller?"MATCH ALLER":"MATCH RETOUR"} · ${chezMoi?"À DOMICILE":"À L'EXTÉRIEUR"} · ${esc(paysEuro(advId))}`;
+    contexte=aj.finale?"Tout se joue en quatre-vingt-dix minutes."
+      :(aller?`Le retour se jouera ${chezMoi?"là-bas":"chez vous"} dans une semaine : rien n'est décidé ce soir.`
+             :`Aller : <b>${esc(scAller)}</b> pour vous. Cumul des buts, le but marqué à l'extérieur compte double.`);
+    rot=G.euro.rotation; quand=aj.finale?"en cas de victoire":(aller?"si vous gagnez ce match aller":"en cas de qualification");
+  }
+  rot=ROTATION_COUPE[rot]?rot:"mixte";
+  return `<div class="panel rdvSemaine" style="border-color:var(--jaune)">
+     <h2>${titre}</h2>
+     <p class="ctr dim" style="font-size:12px">Rendez-vous de milieu de semaine, avant la J${G.journee+1} de championnat</p>
+     <p class="scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blasonAff(H,30)}${esc(H.nom)} — ${esc(A.nom)}${blasonAff(A,30)}</p>
+     <p class="ctr dim">${lieu}</p>
+     <p class="ctr" style="font-size:12px;margin-top:4px">${contexte}</p>
+     <p class="ctr vert" style="font-size:12px;margin-top:8px">Rien ne presse : Effectif, Mercato et Finances restent ouverts jusqu'au coup d'envoi.</p>
+     <div class="ctr" style="margin-top:12px">
+       <span class="dim" style="font-size:12px">Quelle équipe alignez-vous ?</span><br>
+       ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRdvRot" data-k="${k}" style="margin:4px 3px 0${rot===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
+       <br><span class="dim" style="font-size:11px">${esc(ROTATION_COUPE[rot].desc)}</span>
+       ${apercuRotation(rot)}
+     </div>
+     ${blocConsignePrime(quand)}
+     <p class="ctr" style="margin-top:12px">
+       <button class="big" id="bRdvGo">▶ JOUER LE MATCH</button>
+       <button class="act" id="bRdvVite" style="margin-left:8px">Résultat instantané</button>
+     </p>
+     <p class="ctr dim" style="font-size:12px;margin-top:8px">Ensuite, samedi : ${esc(h.nom)} — ${esc(a.nom)} (J${G.journee+1})</p>
+   </div>`;
+}
+/* Le coup d'envoi d'un tour de Coupe de France, depuis le panneau : résultat instantané (verdict + résultats du
+   tour) ou direct au téléscripteur (le score est tiré ici, consigne et prime comprises, puis mis en scène). Dans les
+   deux cas on revient au Calendrier, où le match du samedi a repris sa place. */
+function coupeJoue(instant){
+  const co=G.coupe, aj=co&&co.aJouer; if(!aj) return montre("calendrier");
   const f=aj.paires.find(p=>p.hid===G.monClub||p.aid===G.monClub);
-  if(!f){ coupeResoutTour(false); return suite(); } // sécurité : pas votre match → résolution muette
-  const dom=f.hid===G.monClub, advId=dom?f.aid:f.hid;
-  const fiche=document.getElementById("fiche");
-  const poucetTag=advId===co.poucetId?` <span class="cyan">— 🐭 le Petit Poucet en personne !</span>`:"";
-  // résultat instantané : on résout tout de suite (modèle de coupe), puis verdict + résultats
-  const jouerInstant=()=>{
-    const tourIdx=aj.tourIdx, nom=aj.nom;
-    coupeResoutTour(true); // rotation déjà posée ; la fenêtre fait le rôle de la notif perso
-    coupeFenetreVerdict(advId, tourIdx, nom, suite);
-  };
-  // direct au téléscripteur : on tire VOTRE résultat maintenant, on le mémorise, et on bascule sur l'écran match
-  const jouerDirect=()=>{
-    const r=resoudreCoupe(f.hid, f.aid); // le score (modèle de coupe) ; le téléscripteur ne fait que le mettre en scène
-    co.enDirect={hid:f.hid, aid:f.aid, advId, tourIdx:aj.tourIdx, nom:aj.nom, sh:r.sh, sa:r.sa, tab:r.tab, win:r.win};
-    window._penEnCours=false; fermeFiche();
-    montre("coupematch");
-  };
-  // l'avant-match : l'affiche + le choix de l'équipe + les deux façons de jouer
-  const rendreAvant=()=>{
-    const rotaBtns=Object.keys(ROTATION_COUPE).map(key=>{ const on=co.rotation===key;
-      return `<button class="act bCRot" data-k="${key}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:9px 11px${on?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${on?"▸ ":""}${esc(ROTATION_COUPE[key].label)} <span style="font-weight:normal;font-size:12px;opacity:.85">— ${esc(ROTATION_COUPE[key].desc)}</span></button>`; }).join("");
-    fiche.innerHTML=`<div class="fbox" style="max-width:490px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
-      <h2 class="jaune">🏆 COUPE DE FRANCE — ${esc(aj.nom)}</h2>
-      <p style="margin:6px 0">Match de coupe en milieu de semaine ! Vous affrontez <b>${esc(nomCoupe(advId))}</b>${poucetTag}<br>
-        <span class="dim">${esc(villeCoupe(advId))} · ${dom?'<span class="vert">vous recevez</span>':"vous vous déplacez — le petit reçoit"}</span></p>
-      <p class="dim" style="font-size:12px">Quelle équipe alignez-vous pour ce tour ?</p>
-      <div id="cRotChoix">${rotaBtns}</div>
-      ${apercuRotation(co.rotation)}
-      <p style="margin-top:10px"><button class="big" id="bCGo">▶ Jouer le match</button>
-        <button class="act" id="bCVite" style="margin-left:8px">Résultat instantané</button></p></div>`;
-    fiche.style.display="flex";
-    window._penEnCours=true; // on ne ferme pas par Échap tant qu'on n'a pas joué le tour
-    fiche.querySelectorAll(".bCRot").forEach(b=>b.onclick=()=>{ co.rotation=b.dataset.k; rendreAvant(); });
-    fiche.querySelector("#bCGo").onclick=jouerDirect;
-    fiche.querySelector("#bCVite").onclick=jouerInstant;
-  };
-  rendreAvant();
+  if(!f){ coupeResoutTour(false); return montre("calendrier"); }
+  const advId=f.hid===G.monClub?f.aid:f.hid, suite=()=>montre("calendrier");
+  if(instant){ const tourIdx=aj.tourIdx, nom=aj.nom;
+    coupeResoutTour(true); // la fenêtre fait le rôle de la notif perso
+    return coupeFenetreVerdict(advId, tourIdx, nom, suite); }
+  const r=resoudreCoupe(f.hid, f.aid);
+  co.enDirect={hid:f.hid, aid:f.aid, advId, tourIdx:aj.tourIdx, nom:aj.nom, sh:r.sh, sa:r.sa, tab:r.tab, win:r.win};
+  montre("coupematch");
+}
+/* Même chose pour la manche européenne du soir : aller, retour ou finale. */
+function euroJoue(instant){
+  const eu=G.euro, aj=eu&&eu.aJouer; if(!aj) return montre("calendrier");
+  const idx=aj.paires.findIndex(p=>p[0]===G.monClub||p[1]===G.monClub);
+  if(idx<0){ euroResoutTour(false); return montre("calendrier"); }
+  const pair=aj.paires[idx], advId=pair[0]===G.monClub?pair[1]:pair[0];
+  const manche=euroMancheDe(aj), aller=(manche===1 && !aj.finale), suite=()=>montre("calendrier");
+  if(instant){ const tourIdx=aj.tourIdx, nom=aj.nom;
+    euroResoutTour(true);
+    return aller ? euroFenetreAller(advId, suite) : euroFenetreVerdict(advId, tourIdx, nom, suite); }
+  const l1=(!aller && !aj.finale && aj.allers)?aj.allers[idx]:null; // le score de l'aller, une semaine plus tôt
+  const socle={aid:pair[0], bid:pair[1], advId, tourIdx:aj.tourIdx, nom:aj.nom, finale:aj.finale, manche};
+  // le score est tiré ici (modèle de force, consigne et prime comprises) ; le téléscripteur ne fait que le mettre en scène
+  if(aller) eu.enDirect=Object.assign(socle, {l1:euroManche(pair[0], pair[1])});
+  else eu.enDirect=Object.assign(socle, {tie: aj.finale ? euroFinaleSeche(pair[0], pair[1]) : euroCloture(pair[0], pair[1], l1||euroManche(pair[0], pair[1]))});
+  montre("euromatch"); // la finalisation reprendra le fil par montre("calendrier")
 }
 /* Coupe d'Europe — le tour de C1 en milieu de semaine, événementialisé (aller-retour).
    Avant-match (affiche + choix de l'équipe, qui active la rotation/fatigue) → résolution → verdict → résultats.
@@ -8215,61 +8403,6 @@ function euroFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de
   fiche.style.display="flex"; window._penEnCours=true;
   fiche.querySelector("#bERes").onclick=()=>euroFenetreResultats(suite);
 }
-function ouvreEuro(suite){
-  const eu=G.euro, aj=eu&&eu.aJouer;
-  if(!aj){ return suite(); }
-  const idx=aj.paires.findIndex(p=>p[0]===G.monClub||p[1]===G.monClub);
-  if(idx<0){ euroResoutTour(false); return suite(); } // sécurité : pas votre tie → résolution muette
-  const pair=aj.paires[idx];
-  const advId = pair[0]===G.monClub?pair[1]:pair[0];
-  const manche=euroMancheDe(aj), aller=(manche===1 && !aj.finale);
-  const chezMoi = aj.finale ? false : (aller ? pair[0]===G.monClub : pair[1]===G.monClub); // à l'aller on reçoit chez a, au retour chez b
-  const l1 = (!aller && !aj.finale && aj.allers) ? aj.allers[idx] : null; // le score de l'aller, une semaine plus tôt
-  const fiche=document.getElementById("fiche");
-  const jouerInstant=()=>{
-    const tourIdx=aj.tourIdx, nom=aj.nom;
-    euroResoutTour(true); // rotation déjà posée ; la fenêtre fait le rôle de la notif perso
-    if(aller) euroFenetreAller(advId, suite);
-    else euroFenetreVerdict(advId, tourIdx, nom, suite);
-  };
-  // direct au téléscripteur : on tire VOTRE manche du soir, on la mémorise, et on bascule sur l'écran match
-  const jouerDirect=()=>{
-    const socle={aid:pair[0], bid:pair[1], advId, tourIdx:aj.tourIdx, nom:aj.nom, finale:aj.finale, manche};
-    // le score est tiré ici (modèle de force) ; le téléscripteur ne fait que le mettre en scène
-    if(aller) eu.enDirect=Object.assign(socle, {l1:euroManche(pair[0], pair[1])});
-    else eu.enDirect=Object.assign(socle, {tie: aj.finale ? euroFinaleSeche(pair[0], pair[1]) : euroCloture(pair[0], pair[1], l1||euroManche(pair[0], pair[1]))});
-    window._penEnCours=false; fermeFiche();
-    montre("euromatch"); // la finalisation reprendra le fil par montre("calendrier")
-  };
-  const rendreAvant=()=>{
-    const rotaBtns=Object.keys(ROTATION_COUPE).map(key=>{ const on=eu.rotation===key;
-      return `<button class="act bERot" data-k="${key}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:9px 11px${on?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${on?"▸ ":""}${esc(ROTATION_COUPE[key].label)} <span style="font-weight:normal;font-size:12px;opacity:.85">— ${esc(ROTATION_COUPE[key].desc)}</span></button>`; }).join("");
-    const scAller = l1 ? (pair[0]===G.monClub?l1[0]:l1[1])+"-"+(pair[0]===G.monClub?l1[1]:l1[0]) : "?";
-    // la manche a sa propre ligne : accolée au titre, elle le faisait déborder sur deux lignes
-    const etiquette = aj.finale ? `<b class="cyan">FINALE</b> <span class="dim">· match sec sur terrain neutre</span>`
-      : (aller ? `<b class="cyan">MATCH ALLER</b> <span class="dim">· soir de milieu de semaine</span>`
-               : `<b class="cyan">MATCH RETOUR</b> <span class="dim">· une semaine après l'aller (<b>${esc(scAller)}</b> pour vous)</span>`);
-    const contexte = aj.finale ? "Tout se joue en quatre-vingt-dix minutes."
-      : (aller ? `Le retour se jouera ${chezMoi?"là-bas":"chez vous"} dans une semaine — rien n'est décidé ce soir.`
-               : `Cumul des buts sur les deux matchs, le but marqué à l'extérieur comptant double.`);
-    fiche.innerHTML=`<div class="fbox" style="max-width:490px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
-      <h2 class="jaune">${competActif().emoji} ${esc(competActif().nom.toUpperCase())} — ${esc(aj.nom)}</h2>
-      <p style="margin:6px 0">${etiquette}</p>
-      <p style="margin:6px 0">Grand rendez-vous européen ! Vous affrontez <b>${esc(nomEuro(advId))}</b> <span class="dim">(${esc(paysEuro(advId))})</span>${aj.finale?"":` <span class="dim">· ${chezMoi?"à domicile":"à l'extérieur"}</span>`}<br>
-        <span class="dim">${contexte}</span></p>
-      <p class="dim" style="font-size:12px">Quelle équipe alignez-vous ?</p>
-      <div>${rotaBtns}</div>
-      ${apercuRotation(eu.rotation)}
-      <p style="margin-top:10px"><button class="big" id="bEGo">▶ Jouer ${aj.finale?"la finale":(aller?"l'aller au direct":"le retour au direct")}</button>
-        <button class="act" id="bEVite" style="margin-left:8px">Résultat instantané</button></p></div>`;
-    fiche.style.display="flex";
-    window._penEnCours=true; // pas de fermeture Échap tant qu'on n'a pas joué la manche
-    fiche.querySelectorAll(".bERot").forEach(b=>b.onclick=()=>{ eu.rotation=b.dataset.k; rendreAvant(); });
-    fiche.querySelector("#bEGo").onclick=jouerDirect;
-    fiche.querySelector("#bEVite").onclick=jouerInstant;
-  };
-  rendreAvant();
-}
 /* Écran du match de coupe au téléscripteur — réutilise les primitives du direct (ajouteLigne, celebreFlash,
    montée de tension) mais sur un flux d'événements ISOLÉ (genEvCoupe), sans G._pend ni finirJournee : aucune
    stat de championnat n'est touchée. Au coup de sifflet, on résout le tour avec le score déjà joué (forced),
@@ -8288,6 +8421,7 @@ function ecranCoupeMatch(){
       <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
         Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
       </span></h2>
+      ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
     <p class="ctr" id="preMatchAct" style="margin-top:10px"></p>`);
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
@@ -8314,6 +8448,7 @@ function lanceCoupe(H, A, ed){
   };
   const fin=()=>{
     if(ctl) ctl.style.display="none";
+    { const ctlT=document.getElementById("ctlTactique"); if(ctlT) ctlT.style.display="none"; }
     // feuille de match
     const buts=lignes.filter(l=>l.g);
     const colBut=cote=>buts.filter(l=>l.g.cote===cote).map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}</p>`).join("")||'<p class="dim">—</p>';
@@ -8333,6 +8468,10 @@ function lanceCoupe(H, A, ed){
       document.getElementById("bCNext").onclick=()=>{ G.coupe.enDirect=null; coupeFenetreVerdict(ed.advId, ed.tourIdx, ed.nom, ()=>montre("calendrier")); }; }
   };
   let i=0;
+  // la consigne se change en direct, comme le samedi : on rejoue la fin du match (rejoueRdv), et le tie suit
+  cableTactiqueRdv({lignes, gen, r, tk, pos:()=>i,
+    lambdas:()=>lambdasRdv(r.hid, r.aid, COUPE_TERRAIN, forceCoupe),
+    verdict:()=>{ Object.assign(r, issueCoupe(r.hid, r.aid, r.sh, r.sa)); Object.assign(ed, {sh:r.sh, sa:r.sa, tab:r.tab, win:r.win}); }});
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
@@ -8384,6 +8523,7 @@ function ecranEuroMatch(){
       <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
         Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
       </span></h2>
+      ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
     <p class="ctr" id="preMatchAct" style="margin-top:10px"></p>`);
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
@@ -8412,6 +8552,7 @@ function lanceEuroLeg(H, A, ed, legScore){
   };
   const fin=()=>{
     if(ctl) ctl.style.display="none";
+    { const ctlT=document.getElementById("ctlTactique"); if(ctlT) ctlT.style.display="none"; }
     const buts=lignes.filter(l=>l.g);
     const colBut=cote=>buts.filter(l=>l.g.cote===cote).map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}</p>`).join("")||'<p class="dim">—</p>';
     tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
@@ -8446,6 +8587,19 @@ function lanceEuroLeg(H, A, ed, legScore){
     }
   };
   let i=0;
+  // consigne en direct : la manche se rejoue, puis le tie suit — score de l'aller, cumul et but à l'extérieur au
+  // retour, t.a.b. en finale. `legScore` et `ed.tie` sont relus au sifflet par fin() : on les met à jour en place.
+  cableTactiqueRdv({lignes, gen, r, tk, pos:()=>i,
+    lambdas:()=>lambdasRdv(H.id, A.id, ed.finale?0:EURO_TERRAIN, forceEuro),
+    verdict:()=>{
+      legScore[0]=r.sh; legScore[1]=r.sa;
+      if(ed.finale){ ed.tie=euroFinaleAvec(ed.aid, ed.bid, [r.sh, r.sa]); r.tab=ed.tie.tab; r.win=ed.tie.win; }
+      else {
+        r.win=r.sh>r.sa?H.id:(r.sa>r.sh?A.id:null);
+        if(aller) ed.l1=[r.sh, r.sa];
+        else ed.tie=euroClotureAvec(ed.aid, ed.bid, ed.tie.l1, [r.sh, r.sa]); // au retour, l'hôte est b : [buts b, buts a]
+      }
+    }});
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
@@ -8887,9 +9041,14 @@ function lanceMatch(instant){
       })(0);
     } else afficheFeuille();
   };
+  // une fois le résultat acté (moment de la 90e tranché), la consigne ne peut plus rien : on éteint les boutons en
+  // le disant, au lieu de les laisser cliquables et muets (v1.10 — le seul échec relevé sur 152 matchs de stress)
+  const figeTac=txt=>{ document.querySelectorAll(".bTacD").forEach(b=>{ b.disabled=true; b.style.opacity=".45"; });
+    const lib=document.getElementById("libTacD"); if(lib) lib.textContent=txt; };
   // résolution d'un moment : delta de score, ligne de résultat, sifflet réécrit, phase B
   const resoudMoment=(delta,lx,lic,butCote,butNom,suite)=>{
     finirJournee(delta); // met à jour scores, stats, finances, presse...
+    figeTac("Tactique en direct : le coup de sifflet approche, le résultat est acté.");
     const e=res.find(r=>r.mien);
     const sifflet=lignes[lignes.length-1];
     sifflet.x="COUP DE SIFFLET FINAL. "+e.h.nom+" "+e.sh+" - "+e.sa+" "+e.a.nom;
@@ -8931,7 +9090,10 @@ function lanceMatch(instant){
   const changeTactique=(k)=>{
     if(monMatch._truque || !G._pend || i>=lignes.length || k===G.consigne) return; // match arrangé / fini ou déjà finalisé / inchangé
     G.consigne=k;
-    rejoueDepuis(monMatch, eM.h, eM.a, i, liveMin, liveMulH, liveMulA);
+    // une action déjà annoncée par la montée de tension (« X se présente seul… ») va à son terme : on recolle APRÈS
+    // elle (v1.10). Avant, elle restait en l'air et le fil repartait sur tout autre chose.
+    const from=(lignes[i] && lignes[i]._monte) ? i+1 : i, mNow=from>i ? lignes[i].m : liveMin;
+    rejoueDepuis(monMatch, eM.h, eM.a, from, mNow, liveMulH, liveMulA);
     penIdx=idxMoment(); // le moment de la 90e a été recollé plus loin (ou plus près) dans le fil
     eM.sh=monMatch.sh; eM.sa=monMatch.sa; // la feuille et le tableau suivront le nouveau cours
     ajouteLigne(tk,{m:liveMin,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
@@ -8983,7 +9145,7 @@ function lanceMatch(instant){
     }
     if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : c'est ICI qu'il se résout en direct (v1.04),
       // juste avant le sifflet — le score, le tableau et la feuille suivent, et la re-sim tactique reste possible jusque-là
-      if(G._pend){ finirJournee(autoMoment(monMatch.moment)); majSifflet(); }
+      if(G._pend){ finirJournee(autoMoment(monMatch.moment)); majSifflet(); figeTac("Tactique en direct : le coup de sifflet approche, le résultat est acté."); }
       const gl=buteurMoment(); extra.push(gl); majTableau(gl);
       const cag=(lg.mo==="cagade"); // ...et tous méritent leur flash LED — un but d'anthologie autant qu'une cagade
       const titre=cag?"🧤 CAGADE !":lg.mo==="cadeau"?"🎁 CADEAU DU GARDIEN !":lg.mo==="gkbut"?"🧤⚽ LE GARDIEN MARQUE !":"🌟 BUT D'ANTHOLOGIE !";
