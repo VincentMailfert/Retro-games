@@ -575,6 +575,70 @@ toujours « raconter quelque chose ».
   **Un manager remercié garde sa page** : l'écran LIMOGÉ porte un bouton « 📖 Lire le bilan de la saison » quand
   `G.finie` est vrai (les stats sont intactes, `intersaison` n'a jamais tourné), et le bouton du bas du bilan
   devient « ← Revenir » au lieu de « PASSER À L'INTERSAISON ». Harnais : **`harness-hdm.cjs`** (sections F et G).
+- **LA MÉMOIRE LONGUE DU CLUB (v1.08)** — jusqu'ici la carrière était une ligne droite sans repères : on
+  reprenait une sauvegarde sans savoir pourquoi on jouait, aucune saison n'en avait vu une autre, et un joueur
+  n'était qu'une note. Cinq pièces, toutes en **LECTURE** de ce que le moteur produit déjà — **aucun effet
+  moteur, calibrage mesuré identique** (2,509 → 2,510 buts/match sur 2 280 matchs, six carrières complètes
+  avant/après). Le module vit d'un bloc juste après `retientAlmanach()`.
+  • **LES ACTES** (`ACTES`, `acteDe(j)`) — les quatre saisons du calendrier (règle fondamentale plus haut)
+    deviennent des **chapitres visibles** : un bandeau en tête de l'écran match (« ACTE III · L'HIVER —
+    journée 22 sur 38 »), et à chaque bascule (J8, J16, J27) un **mini-bilan** au debrief (`bilanActe`) qui
+    relit `moi.forme` sur la tranche — V/N/D, points pris, où l'on en est, ce qui s'ouvre.
+  • **L'ENJEU** (`enjeuDe(o)`, `PALIERS_D1`/`PALIERS_D2`) — le rang et l'écart en points avec le **palier le
+    plus proche** (titre, podium, Europe, montée, maintien), formulé selon qu'on le **chasse** ou qu'on le
+    **garde** : « 5ᵉ, à 2 points de l'Europe », « 17ᵉ, 3 points d'avance sur la zone rouge ». **PUR** : prend
+    un OBJET (G **ou une sauvegarde relue**) et n'appelle jamais `classement()`, qui lit G. C'est ce qui permet
+    d'écrire la ligne sur la carte d'accueil d'une carrière **sans rouvrir ses 500 Ko** (voir `ligneEnjeu`).
+    **Une barre qui bouge** : à la **J19 (trêve)** et à la **J29**, `motDuPresident()` reformule l'enjeu RÉEL au
+    debrief et dans la presse — l'écart, les matchs restants, et le nom des deux voisins de classement.
+  • **« CE MATCH COMPTE PARCE QUE… »** (`raisonsMatch(o)`, également pur) — six raisons, par ordre de priorité :
+    derby (`RIVAL`), bête noire non battue, adversaire direct (±3 places, à partir de J8), **ancien du club en
+    face** (`j.exMien`, posé par `quitteMaison`), série de 3+ victoires/défaites, record du club à portée.
+    Rendu sous l'affiche de l'écran match (3 lignes au plus) et sur l'écran de reprise ; le champ `court` de
+    chaque raison sert la carte d'accueil (« samedi, le derby »).
+  • **LES RECORDS DU CLUB** (`G.records`, `RECORDS`, `poseRecord`/`crieRecord`) — six lignes, `{v,t,s,j,anc}` :
+    meilleur classement, plus large victoire, plus longue série sans défaite (`G.serieInv`, compteur qui
+    traverse les saisons), record d'affluence, meilleur buteur sur une saison, plus jeune buteur (`v` comparé
+    **à l'envers**). **Le PREMIER record se pose EN SILENCE** — en saison 1 tout est un record, ça n'a aucune
+    valeur ; c'est celui qui en fait **tomber** un qui part au debrief et à la presse. Le **palmarès** retient
+    désormais aussi la **montée**, la **finale de Coupe** (`G.coupe.tourSortie==="Finale"`), le **maintien
+    arraché** (D1, entre n−5 et n−3) et le **jubilé** d'une légende — le mur du club que lit le mot d'ouverture
+    a enfin quelque chose à afficher. Affiché sur l'écran Club (panneau « Direction & mémoire »).
+  • **LA FICHE DE VIE** (`j.bio`, `ouvreBio`/`cumulBio`/`soldeBio`/`ajouteMoment`) — **pour VOTRE effectif
+    seulement** (un objet de plus sur 800 joueurs pèserait ; sur seize, non) : saison et **mode d'arrivée**
+    (`origine`/`forme`/`achat`/`libre`/`joker`, libellés dans `BIO_MODES`), matchs/buts/passes/distinctions
+    cumulés **sous nos couleurs**, et **trois moments au maximum** (premier but en pro, but dans le derby,
+    triplé, penalty ou coup franc décisif de la 90ᵉ, but d'anthologie) — au quatrième, c'est le moins marquant
+    (`w`) qui sort. **PIÈGE DU DÉCOMPTE** : `razStatsClub` remet buts/matchs à zéro chaque été, donc
+    `soldeBio()` **solde la saison dans la fiche au coup de sifflet final** (dans `finDeSaison`, avant
+    l'intersaison) et `b.dec` retient les compteurs **au moment de l'arrivée** pour ne pas s'attribuer ce
+    qu'un joueur a fait ailleurs avant janvier ; `intersaison` remet `b.dec` à `null` juste après les
+    `razStatsClub`. Ne jamais lire `b.m` seul : toujours `cumulBio(j)`. **Où ça ressort** : le bloc « Sous nos
+    couleurs » de la fiche joueur, le **jubilé** dans `vieillirClub` (≥ 80 matchs maison → récit d'adieux,
+    presse, palmarès, +3 de réputation), les **sifflets du virage** quand on vend un enfant du club
+    (`enfantDuClub` → `quitteMaison` : −5 de réputation, −4 de moral au vestiaire, −3 de confiance, une ligne
+    de presse), et le mot d'ouverture qui désigne **l'homme sur qui on compte** par son HISTOIRE et plus par sa
+    seule note. L'étoile **« Suivre »**, qui ne servait qu'à filtrer le mercato, remonte au debrief :
+    `noteSuivis()` relève les chouchous AVANT le coup d'envoi (dans `jouerJournee`), `debriefSuivis()` raconte
+    leur samedi — **trois lignes au plus par journée**.
+  • **LE BAROMÈTRE DES TRIBUNES** (`G.affJ` la saison en cours, `G.affS` les douze dernières, `baroTribunes`,
+    `veilleAffluence`) — l'affluence n'était qu'une jauge instantanée ; sans tendance on ne sait jamais s'il
+    faut agrandir le stade ou toucher au prix des places. La dépêche de billetterie dit maintenant le **sens**
+    (« ▲ +2 618 par rapport au dernier match à domicile »), l'écran Club porte un **histogramme** des matchs à
+    domicile + la moyenne + la comparaison à l'an dernier + le record + un conseil (`conseilTribunes`), et
+    `veilleAffluence` prévient au debrief quand trois matchs de suite frôlent le guichet fermé (« le stade est
+    devenu trop petit ») ou quand le remplissage décroche de 10 points sur un mois (« les gradins se vident » —
+    avec le palier tarifaire nommé). **Une alerte par tendance et par saison** (`G._affCri`, remis à zéro à
+    l'intersaison). `G.affHist` (la jauge existante) est conservé tel quel.
+  • **« OÙ EN ÉTIONS-NOUS ? »** (`pointDeSituation`/`ecranReprise`, `REPRISE_DELAI`=24 h) — `chargeLocale`
+    l'affiche quand la dernière sauvegarde date de **plus d'un jour** ET que la carrière est en cours (pas
+    `vire`/`finie`/`intro`/`recap`, journée < 38) ; sinon on va droit au terrain comme avant. **On n'archive
+    RIEN pour lui** : rang et écart, les cinq derniers scores relus dans `G.histo`, la phrase que l'almanach a
+    retenue, l'arc en cours, le prêté qui rentre, le chantier du stade, le coup de la semaine, les offres en
+    attente, et le prochain match avec ses raisons. Accessible à la demande par le bouton **📖 Où en étions-nous ?**
+    du bandeau d'acte. Le rendu passe par `chrome("calendrier", …)` : la nav reste là, on n'est jamais coincé.
+  **Poids mesuré** : records + baromètre ≈ 1,1 Ko, toutes les fiches de vie de l'effectif ≈ 2,8 Ko, soit
+  **0,6 % de la sauvegarde**. Harnais dédié : **`harness-memoire.cjs`** (sections A à I).
 - **Vases communicants — pont budget ↔ trésorerie** (`transvaser(sens, montant)`, `FRAIS_VIRE`=0,10) : les
   deux poches restent **séparées** (le trésor de guerre mercato ne paie pas les salaires), mais on peut en
   **transvaser** de l'une à l'autre depuis l'écran Finances pour débloquer un projet (typiquement renflouer la
@@ -1119,7 +1183,12 @@ toujours « raconter quelque chose ».
    saison qui se calcule ET se rend, y compris sur une saison à peine entamée).
    `harness-progression.cjs` (le cap franchi : `aMoi()` qui tranche sur le contrat et non sur le vestiaire,
    la notification qui part au Debrief et plus dans les dépêches, la carte postale du prêté, le silence sur
-   l'emprunté, un prêt de quinze journées joué pour de bon, et le +1 de la sélection nationale).
+   l'emprunté, un prêt de quinze journées joué pour de bon, et le +1 de la sélection nationale),
+   `harness-memoire.cjs` (la mémoire longue : les quatre actes et leurs bascules, l'enjeu calculé aussi bien
+   sur une sauvegarde relue que sur la partie en cours, les six raisons de « ce match compte parce que… »,
+   le premier record qui se tait et celui qui se crie, le palmarès élargi, le cumul d'une fiche de vie sur
+   deux saisons, le jubilé, les sifflets du virage, le baromètre des tribunes et ses alertes, l'étoile
+   « Suivre » au debrief, et l'écran de reprise qui se calcule ET se rend).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →

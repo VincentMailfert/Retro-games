@@ -284,7 +284,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.07"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.08"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1514,8 +1514,10 @@ function nouvellePartie(clubId, saisonKey){
     centre:1, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
     flash:null, intro:null,
     hdm:null, alm:{phrase:null,depeche:null}, // homme du match de la journée + almanach de la saison
+    records:{}, serieInv:0, affJ:[], affS:[], // le mur du club, la série en cours, le baromètre des tribunes
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
+  clubs.find(c=>c.id===clubId).joueurs.forEach(j=>ouvreBio(j,"origine")); // la fiche de vie s'ouvre pour tout l'effectif de départ
   G.intro=S.an; // mot d'ouverture de la toute première saison de la carrière
   G.stade=inferStade(clubs.find(c=>c.id===clubId)); G.chantier=null; // état du stade déduit de sa taille de départ
   G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique : postes vacants au départ
@@ -2563,6 +2565,7 @@ function posePend(v){
 function jouerJournee(evCb){
   veilleEffectif(); // aucun club ne prend le départ d'une journée avec un effectif hors des clous
   G.notifs=[];
+  noteSuivis(); // où en sont les joueurs suivis à l'étoile, AVANT le coup d'envoi : le debrief comparera
   G.offreExt=null; G.offrePret=null; // les offres de la semaine passée expirent
   const day=G.calendrier[G.journee];
   const res=[];
@@ -2901,6 +2904,17 @@ function finirJournee(delta){
     const faitsMoi=faitsDuFil(r.ev);
     if(r.moment && delta){ const t2=byUid(r.moment.uid); if(t2) faitsMoi.push({u:t2.uid,b:1}); }
     appliqueResultat(h,a,r.sh,r.sa,pre);
+    /* LE MUR DU CLUB (v1.08) : la série sans défaite en cours, la plus large victoire, et les moments
+       qui entrent dans la fiche de vie des hommes. Rien n'est simulé de plus : on relit la feuille. */
+    { const mesB=(hid===G.monClub)?r.sh:r.sa, ses=(hid===G.monClub)?r.sa:r.sh, advN=(hid===G.monClub)?a.nom:h.nom;
+      if(mesB>ses){ G.serieInv=(+G.serieInv||0)+1;
+        crieRecord("large", (mesB-ses)*100+mesB, mesB+"-"+ses+" contre "+advN); }
+      else if(mesB===ses){ G.serieInv=(+G.serieInv||0)+1; }
+      else G.serieInv=0;
+      if(G.serieInv>=3 && poseRecord("invaincu", G.serieInv, G.serieInv+" matchs sans défaite")==="battu")
+        notif("🛡️ RECORD DU CLUB : "+G.serieInv+" matchs sans défaite. On n'avait jamais fait mieux ici.");
+    }
+    momentsDuMatch(faitsMoi, r, h, a, hid, delta);
     G.hdm=designeHdm(h,a,r.sh,r.sa,faitsMoi,r.gk);
     if(G.hdm){
       const hj=byUid(G.hdm.uid);
@@ -2930,6 +2944,10 @@ function finirJournee(delta){
       }
       G.tresorerie += recette;
       if(G.stade && G.stade.loges){ G.tresorerie += 150000; libBill+=" + loges VIP 0,15 MF."; } // recette premium des loges, à domicile
+      // LE BAROMÈTRE DES TRIBUNES (v1.08) : la dépêche de billetterie dit désormais le SENS. On ne sait
+      // qu'il faut agrandir le stade ou toucher au tarif qu'en voyant l'affluence BOUGER.
+      { const prec=(G.affJ&&G.affJ.length)?G.affJ[G.affJ.length-1]:null;
+        if(prec){ const d=aff-prec.n; libBill+=" "+(d>=0?"▲ +":"▼ ")+FMT(Math.abs(d))+" par rapport au dernier match à domicile."; } }
       G.news.unshift("J"+(G.journee+1)+" — "+libBill);
       // l'image du club glisse selon le tarif (cher = râleries, bradé = ferveur) — discret, mais cumulatif sur la saison
       if(pb.rep) G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+pb.rep));
@@ -2937,6 +2955,9 @@ function finirJournee(delta){
       const fill=Math.min(1, aff/Math.max(1,h.cap)), nudge=pb.moral+(fill-0.70)*0.8;
       if(nudge) clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.max(0,Math.min(100,(j.moral==null?65:j.moral)+nudge)));
       G.affHist=(G.affHist||[]).concat(fill).slice(-8); // mémoire glissante du remplissage à domicile (jauge + gradins de l'écran Club)
+      G.affJ=(G.affJ||[]).concat({j:Math.min(G.journee+1,38), n:aff, f:fill}); // le détail du baromètre, match par match
+      crieRecord("aff", aff, FMT(aff)+" spectateurs contre "+a.nom);
+      veilleAffluence(h); // et on prévient quand la tendance dit quelque chose
     }
     G.tresorerie += (G.div===1?450000:200000); // droits TV par journée — bien moindres en D2 : remonter, c'est aussi décrocher le jackpot télé
     if(G.stade && G.stade.boutique) G.tresorerie += 80000; // boutique & musée : petite rentrée chaque journée
@@ -3098,6 +3119,12 @@ function finirJournee(delta){
   if(G.journee===19){ G.offresSponsor=genSponsors(1.35); G.sponsorSwitch=true;
     G.news.unshift("De nouveaux sponsors se manifestent — offres améliorées à étudier dans FINANCES.");
     notif("📜 Votre contrat sponsor arrive à mi-parcours — de meilleures offres vous attendent dans FINANCES."); }
+  /* UNE BARRE QUI BOUGE (v1.08) : l'objectif fixé en août ne dit plus rien en janvier. À la trêve puis
+     dans la dernière ligne droite, le président reformule l'enjeu RÉEL — l'écart en points, les matchs
+     qui restent, le nom de ceux qu'il faudra battre. Et chaque acte du calendrier se referme sur un
+     mini-bilan : la saison devient cinq chapitres au lieu d'une ligne droite. */
+  if(G.journee===19 || G.journee===29) motDuPresident();
+  if(G.journee>0 && G.journee<38 && acteDe(G.journee-1).n!==acteDe(G.journee).n) bilanActe(acteDe(G.journee-1));
   // une grande gueule adverse chambre avant le prochain match ?
   G.declar=null;
   if(G.journee<38 && Math.random()<0.20){
@@ -3124,6 +3151,7 @@ function finirJournee(delta){
   G.histo.push(res.map(e=>({h:e.h.id, a:e.a.id, sh:e.sh, sa:e.sa, mien:!!e.mien})));
   if(G.news.length>60) G.news.length=60; // on n'affiche que les 10 dernières dépêches : le reste est du poids mort
   genPresse(res);
+  debriefSuivis(); // l'étoile « Suivre » ne servait qu'au mercato : le debrief raconte le samedi de vos chouchous
   retientAlmanach(); // l'almanach de mai se remplit en septembre : on retient la phrase et la dépêche de la semaine
   // un arc narratif a-t-il un chapitre mûr pour la journée à venir ? si oui, il a l'EXCLUSIVITÉ (ni incident ni conf ce week-end)
   const arcDu = !!(G.arc && G.arc.beat && G.journee>=G.arc.prochaine);
@@ -3610,6 +3638,458 @@ function retientAlmanach(){
   garde("depeche",(G.news||[]).slice(0,10), MOTS_SOUFRE);   // …et les dépêches empilées en tête de pile
 }
 
+/* =====================================================================
+   LA MÉMOIRE LONGUE DU CLUB (v1.08)
+   =====================================================================
+   Jusqu'ici la carrière était une ligne droite sans repères : on reprenait une sauvegarde sans savoir
+   où l'on en était, aucune saison n'en avait vu une autre, et un joueur n'était qu'une note. Cinq pièces,
+   toutes en LECTURE de ce que le moteur produit déjà — aucune ne touche au calibrage :
+     • LES ACTES — les quatre saisons du calendrier (règle fondamentale du projet) deviennent des
+       chapitres visibles, avec un mini-bilan à chaque bascule.
+     • L'ENJEU — le rang et l'écart avec le palier le plus proche, reformulé par le président à la
+       trêve et dans la dernière ligne droite. Une barre qui bouge, pas un objectif figé en août.
+     • LES RECORDS — le mur du club, que le mot d'ouverture lisait sans avoir rien à y afficher.
+     • LA FICHE DE VIE — ce que chaque homme a fait SOUS VOS COULEURS, et les trois moments qu'on
+       se raconte à la buvette.
+     • LE BAROMÈTRE DES TRIBUNES — l'affluence vue dans le temps, pour que le stade et le prix des
+       places redeviennent des leviers qu'on actionne en connaissance de cause.
+   Tout est PUR là où c'est possible : `enjeuDe(o)`, `raisonsMatch(o)` et `ligneEnjeu(o)` prennent un
+   OBJET (G en jeu, ou une sauvegarde relue à l'accueil) et n'appellent jamais classement(), qui lit G.
+   C'est ce qui permet d'écrire la ligne d'enjeu sur la carte d'une carrière sans relire ses 500 Ko. */
+
+/* ---------- Les quatre actes de la saison (cf. CALENDRIER DE LA SAISON) ---------- */
+const ACTES=[
+  {n:1, nom:"L'ÉTÉ INDIEN", de:0,  a:6,  coul:"#ffd24a", sous:"Août-septembre. Soleil rasant, terrain sec — et tout le monde est encore invaincu dans sa tête."},
+  {n:2, nom:"L'AUTOMNE",    de:7,  a:14, coul:"#b86a2e", sous:"Octobre-novembre. La pluie s'installe, le terrain se gâte, les organismes aussi."},
+  {n:3, nom:"L'HIVER",      de:15, a:25, coul:"#6fd6e8", sous:"Décembre-février. Froid de canard, trêve, et un mercato qui rebat les cartes."},
+  {n:4, nom:"LE PRINTEMPS", de:26, a:37, coul:"#5fd98f", sous:"Mars-mai. Les meilleures conditions de l'année — et c'est là que le titre, l'Europe et le maintien se jouent."},
+];
+const ROMAIN=["","I","II","III","IV"];
+function acteDe(j){ const x=+j||0; return ACTES.find(a=>x>=a.de && x<=a.a) || ACTES[ACTES.length-1]; }
+function saisonSuivante(){ const a=anneeJeu()+1; return a+"-"+String((a+1)%100).padStart(2,"0"); }
+/* Le bandeau de chapitre, en tête de l'écran match : où l'on en est dans la saison, ce qui se joue
+   cette semaine, et la porte vers le point de situation complet. */
+function panneauActe(){
+  const a=acteDe(G.journee), e=enjeuDe(G);
+  return `<div class="panel" style="border-color:${a.coul};padding:8px 10px">
+    <p style="margin:0;display:flex;flex-wrap:wrap;gap:2px 14px;align-items:baseline">
+      <b style="color:${a.coul};letter-spacing:1px">ACTE ${ROMAIN[a.n]} · ${esc(a.nom)}</b>
+      <span class="dim" style="font-size:12px">journée ${Math.min(G.journee+1,38)} sur 38</span>
+      ${e?`<b class="jaune" style="font-size:15px">${esc(e.txt)}</b>`:""}
+      <button class="act" id="bOuEn" style="margin-left:auto">📖 Où en étions-nous ?</button>
+    </p>
+    <p class="dim" style="margin:4px 0 0;font-size:12px">${esc(a.sous)}</p>
+  </div>`;
+}
+
+/* ---------- L'ENJEU : ce qui se joue vraiment, cette semaine ----------
+   `r` négatif = compté depuis le bas (−3 = le dernier non relégable). `ch` = on court après, `ga` = on le tient. */
+const PALIERS_D1=[
+  {r:1,  court:"le titre",    ch:"du titre",    ga:"d'avance en tête du championnat"},
+  {r:3,  court:"le podium",   ch:"du podium",   ga:"d'avance sur le podium"},
+  {r:4,  court:"l'Europe",    ch:"de l'Europe", ga:"d'avance sur l'Europe"},
+  {r:-3, court:"le maintien", ch:"du maintien", ga:"d'avance sur la zone rouge"},
+];
+const PALIERS_D2=[
+  {r:1,  court:"le titre de Division 2", ch:"du titre de Division 2", ga:"d'avance en tête de la Division 2"},
+  {r:3,  court:"la montée",              ch:"de la montée",           ga:"d'avance sur la zone de montée"},
+  {r:-3, court:"le maintien",            ch:"du maintien",            ga:"d'avance sur la zone rouge"},
+];
+function ordinal(r){ return r+(r===1?"ᵉʳ":"ᵉ"); }
+function rangDe(o){ // le classement d'un objet de partie, sans passer par classement() qui lit G
+  const cl=(o.clubs||[]).slice().sort((a,b)=>b.pts-a.pts || (b.bp-b.bc)-(a.bp-a.bc) || b.bp-a.bp);
+  return {cl, rang:cl.findIndex(c=>c.id===o.monClub)+1};
+}
+function enjeuDe(o){
+  if(!o || !o.clubs || !o.clubs.length) return null;
+  const R=rangDe(o), cl=R.cl, rang=R.rang;
+  if(!rang) return null;
+  const n=cl.length, div=o.div||1, moi=cl[rang-1];
+  const paliers=(div===1?PALIERS_D1:PALIERS_D2).map(p=>({...p, rr:p.r<0?n+p.r:p.r})).filter(p=>p.rr>=1 && p.rr<n);
+  if(!paliers.length) return null;
+  let p=paliers[0];
+  for(const x of paliers) if(Math.abs(rang-x.rr)<Math.abs(rang-p.rr)) p=x;
+  const pts=c=>c?(c.pts||0):0;
+  if(rang>p.rr){ // on court après
+    const ec=Math.max(0, pts(cl[p.rr-1])-pts(moi));
+    return {cl, rang, n, div, palier:p, sens:"chasse", ecart:ec, cible:cl[p.rr-1],
+      txt: ordinal(rang)+", "+(ec===0 ? "à égalité de points pour "+p.court : "à "+ec+" point"+(ec>1?"s":"")+" "+p.ch)};
+  }
+  const suiv=cl[p.rr]||cl[n-1];              // le premier qui nous en délogerait
+  const ec=Math.max(0, pts(moi)-pts(suiv));
+  return {cl, rang, n, div, palier:p, sens:"garde", ecart:ec, cible:suiv,
+    txt: ordinal(rang)+", "+(ec===0 ? "au coude-à-coude pour "+p.court : ec+" point"+(ec>1?"s":"")+" "+p.ga)};
+}
+function prochainMatchDe(o){ // l'affiche du week-end, lue dans le calendrier (pur : marche sur une sauvegarde)
+  const day=(o.calendrier||[])[o.journee||0];
+  if(!day || !day.find) return null;
+  const paire=day.find(x=>x[0]===o.monClub || x[1]===o.monClub);
+  if(!paire) return null;
+  const dom=paire[0]===o.monClub, advId=dom?paire[1]:paire[0];
+  const adv=(o.clubs||[]).find(c=>c.id===advId) || ((o.autre||[]).find(c=>c.id===advId)) || metaClub(advId);
+  return {advId, dom, adv, nom:adv?adv.nom:String(advId)};
+}
+/* « Ce match compte parce que… » — la ligne qui manquait à l'avant-match. Tout est déjà en mémoire :
+   la rivalité, la bête noire, la table, les anciens du club en face, la série, et le record à portée. */
+function raisonsMatch(o){
+  const out=[]; if(!o) return out;
+  const pm=prochainMatchDe(o); if(!pm) return out;
+  const R=rangDe(o), cl=R.cl, rang=R.rang, moi=cl[rang-1];
+  if(RIVAL[o.monClub]===pm.advId)
+    out.push({ico:"🔥", court:"le derby", txt:nomRivalite(o.monClub,pm.advId)+" contre "+pm.nom+" — la seule date que la ville entoure sur son calendrier."});
+  if(moi && moi.beteNoire===pm.advId && !moi.bnBattue)
+    out.push({ico:"🐈", court:"la bête noire", txt:pm.nom+" est votre bête noire : ils jouent toujours bien contre vous, et le signe indien tient encore."});
+  const ra=cl.findIndex(c=>c.id===pm.advId)+1;
+  if(ra && rang && Math.abs(ra-rang)<=3 && (o.journee||0)>=8){
+    const ec=Math.abs((moi?moi.pts:0)-(cl[ra-1].pts||0));
+    out.push({ico:"⚔️", court:"un adversaire direct", txt:"Adversaire direct : ils sont "+ordinal(ra)+", "+(ec===0?"à égalité de points":"à "+ec+" point"+(ec>1?"s":""))+". Ces trois points-là valent double."});
+  }
+  const ex=((pm.adv&&pm.adv.joueurs)||[]).filter(j=>j.exMien).sort((a,b)=>(b.note||0)-(a.note||0));
+  if(ex.length)
+    out.push({ico:"👤", court:"un ancien en face", txt:(ex.length>1?ex.length+" anciens à vous sont en face, à commencer par ":"Un ancien à vous est en face : ")+ex[0].nom+" — il a quelque chose à prouver, et vous le savez."});
+  const f=(moi&&moi.forme)||[];
+  if(f.length>=3){
+    const der=f[f.length-1]; let k=0;
+    while(k<f.length && f[f.length-1-k]===der) k++;
+    if(k>=3 && der===1)  out.push({ico:"📈", court:"une série à prolonger", txt:k+" victoires d'affilée. On ne coupe pas une série pareille un samedi soir."});
+    if(k>=3 && der===-1) out.push({ico:"📉", court:"une série à stopper", txt:k+" défaites d'affilée. Le vestiaire regarde ailleurs quand on parle du classement."});
+  }
+  const Rc=o.records||{}, si=+o.serieInv||0;
+  if(Rc.invaincu && si>0 && si+1>=(Rc.invaincu.v||0))
+    out.push({ico:"🏛️", court:"un record à portée", txt:"Un match sans défaite de plus et le record du club tombe ("+Rc.invaincu.v+" matchs, "+(Rc.invaincu.s||"?")+")."});
+  return out;
+}
+/* La ligne d'enjeu de la carte d'accueil : « 5ᵉ, à 2 points de l'Europe · samedi, le derby ».
+   Écrite dans l'INDEX au moment de la sauvegarde, pour que l'accueil la lise sans rouvrir 500 Ko. */
+function ligneEnjeu(o){
+  try{
+    const e=enjeuDe(o); if(!e) return "";
+    const pm=prochainMatchDe(o);
+    if(!pm) return e.txt;
+    const rs=raisonsMatch(o);
+    return e.txt+" · samedi, "+(rs.length ? rs[0].court : (pm.dom?"réception de ":"déplacement à ")+pm.nom);
+  }catch(err){ return ""; }
+}
+
+/* ---------- LES RECORDS DU CLUB ----------
+   Six lignes dans G.records, pas une de plus : {v (valeur comparable), t (texte), s (saison), j (journée)}.
+   Le PREMIER record se pose EN SILENCE — en saison 1, tout est un record, ça n'a aucune valeur ; c'est
+   celui qui en fait TOMBER un qui devient un moment dont on parle. */
+const RECORDS=[
+  {id:"rang",     ico:"🥇", nom:"Meilleur classement"},
+  {id:"large",    ico:"💥", nom:"Plus large victoire"},
+  {id:"invaincu", ico:"🛡️", nom:"Plus longue série sans défaite"},
+  {id:"aff",      ico:"🎟️", nom:"Record d'affluence"},
+  {id:"buteur",   ico:"⚽", nom:"Meilleur buteur sur une saison"},
+  {id:"jeune",    ico:"👶", nom:"Plus jeune buteur"},
+];
+function poseRecord(id, v, txt, plusPetit){
+  if(!G || !Number.isFinite(v)) return null;
+  const R=G.records=G.records||{};
+  const anc=R[id];
+  if(anc && !(plusPetit ? v<anc.v : v>anc.v)) return null;
+  R[id]={v, t:String(txt), s:G.saison, j:Math.min((G.journee||0)+1,38), anc:anc?anc.v:null};
+  return anc?"battu":"neuf";
+}
+function crieRecord(id, v, txt, plusPetit){
+  const r=poseRecord(id, v, txt, plusPetit); if(r!=="battu") return false;
+  const d=RECORDS.find(x=>x.id===id)||{ico:"🏛️", nom:"Record du club"};
+  notif(d.ico+" RECORD DU CLUB — "+d.nom.toLowerCase()+" : "+txt+". Les archives viennent de perdre une page.");
+  G.presse.unshift("« RECORD DU CLUB : "+txt+". On a ressorti les vieux registres, et ils ont rendu les armes. »");
+  return true;
+}
+function recordsTenus(){ return RECORDS.filter(d=>G.records && G.records[d.id]).map(d=>Object.assign({}, d, {r:G.records[d.id]})); }
+function libRecord(d){ return d.nom+" — "+d.r.t+" ("+d.r.s+(d.r.j?", J"+d.r.j:"")+")"; }
+function resumeRecords(){
+  const l=recordsTenus().filter(d=>d.id==="rang"||d.id==="invaincu"||d.id==="aff").map(d=>d.r.t);
+  return l.length ? l.join(" · ") : "";
+}
+
+/* ---------- LA FICHE DE VIE : ce qu'un homme a fait SOUS VOS COULEURS ----------
+   Uniquement pour VOTRE effectif — un objet de plus sur huit cents joueurs pèserait dans la sauvegarde,
+   sur seize il ne pèse rien. Les compteurs de saison (j.matchs/buts/passes/hdm) sont remis à zéro chaque
+   été par razStatsClub : on SOLDE donc la saison dans la fiche au coup de sifflet final, et `dec` retient
+   les compteurs au moment de l'arrivée pour ne pas s'attribuer ce qu'il a fait ailleurs avant janvier. */
+const BIO_MODES={
+  origine:"il était déjà là quand vous avez pris les rênes",
+  forme:"formé au club",
+  achat:"acheté sur le marché",
+  libre:"arrivé libre, sans indemnité de transfert",
+  joker:"signé sur le rapport du recruteur",
+};
+function ouvreBio(j, mode, saison){
+  if(!j || !G) return null;
+  if(!j.bio) j.bio={s:saison||G.saison, mode:(mode&&BIO_MODES[mode])?mode:"origine", m:0, b:0, p:0, h:0, mom:[],
+                    dec:{m:j.matchs||0, b:j.buts||0, p:j.passes||0, h:j.hdm||0}};
+  return j.bio;
+}
+function cumulBio(j){
+  const b=j&&j.bio; if(!b) return {m:0,b:0,p:0,h:0};
+  const d=b.dec||{m:0,b:0,p:0,h:0};
+  return {m:(b.m||0)+Math.max(0,(j.matchs ||0)-(d.m||0)),
+          b:(b.b||0)+Math.max(0,(j.buts   ||0)-(d.b||0)),
+          p:(b.p||0)+Math.max(0,(j.passes ||0)-(d.p||0)),
+          h:(b.h||0)+Math.max(0,(j.hdm    ||0)-(d.h||0))};
+}
+function soldeBio(){ // au coup de sifflet final : la saison entre dans la fiche, et le compteur se gèle
+  const mc=G&&clubById(G.monClub); if(!mc) return;
+  for(const j of mc.joueurs){
+    const b=j.bio; if(!b) continue;
+    const c=cumulBio(j);
+    b.m=c.m; b.b=c.b; b.p=c.p; b.h=c.h;
+    b.dec={m:j.matchs||0, b:j.buts||0, p:j.passes||0, h:j.hdm||0};
+    b.sais=(b.sais||0)+1;
+  }
+}
+/* Trois moments au maximum : quand un quatrième se présente, c'est le moins marquant qui sort. */
+function ajouteMoment(j, txt, poids){
+  const b=j&&j.bio; if(!b) return;
+  b.mom=b.mom||[];
+  if(b.mom.some(m=>m.t===txt)) return;
+  b.mom.push({t:String(txt), s:G.saison, j:Math.min((G.journee||0)+1,38), w:+poids||5});
+  while(b.mom.length>3){
+    let k=0; for(let i=1;i<b.mom.length;i++) if(b.mom[i].w<b.mom[k].w) k=i;
+    b.mom.splice(k,1);
+  }
+}
+/* Le bloc « Sous nos couleurs » de la fiche joueur : d'où il vient, ce qu'il a fait ici, et les trois
+   moments qu'on raconte encore à la buvette. Rendu pour VOTRE effectif seulement (prêtés compris). */
+function blocBio(j){
+  const b=j&&j.bio; if(!b || !aMoi(j)) return "";
+  const c=cumulBio(j);
+  return `<p style="margin-top:8px" class="cyan">Sous nos couleurs :</p>
+    <p>Arrivé en <b>${esc(b.s)}</b> — ${esc(BIO_MODES[b.mode]||BIO_MODES.origine)}.<br>
+      <b class="jaune">${c.m}</b> match${c.m>1?"s":""} · <b>${c.b}</b> but${c.b>1?"s":""} · <b>${c.p}</b> passe${c.p>1?"s":""} décisive${c.p>1?"s":""}${c.h?` · <b>${c.h}</b> fois homme du match 🏅`:""}</p>
+    ${(b.mom&&b.mom.length)?b.mom.map(m=>`<p class="dim" style="font-style:italic">› ${esc(m.t)} <span style="font-size:11px">(${esc(m.s)}, J${m.j})</span></p>`).join("")
+      :`<p class="dim" style="font-size:11px">Pas encore de moment qu'on se raconte. Ça se gagne un samedi.</p>`}`;
+}
+function enfantDuClub(j){ // celui qu'on ne vend pas sans entendre le virage
+  const b=j&&j.bio; if(!b) return false;
+  const c=cumulBio(j);
+  return b.mode==="forme" || c.m>=60 || (b.mode==="origine" && c.m>=45);
+}
+function quitteMaison(j, ou){ // il s'en va : le stade s'en souvient, et lui aussi (il reviendra en face)
+  if(!j || !G) return;
+  j.exMien=G.saison;
+  if(!enfantDuClub(j)) return;
+  const c=cumulBio(j), moi=clubById(G.monClub);
+  majReput(-5, "un enfant du club vendu");
+  if(moi) moi.joueurs.forEach(x=>x.moral=Math.max(5,(x.moral==null?65:x.moral)-4));
+  G.confiance=Math.max(0,G.confiance-3);
+  notif("🗣️ LES SIFFLETS : "+j.nom+" part après "+c.m+" match"+(c.m>1?"s":"")+" sous ce maillot"+(ou?" ("+ou+")":"")+". Le virage a sifflé le nom du président avant même le coup d'envoi.");
+  G.presse.unshift("« On ne vend pas "+j.nom+" comme on vend un meuble. "+(moi?"À "+moi.nom+", le":"Le")+" virage a compris, et il l'a fait savoir. »");
+}
+/* Les moments de la semaine : on relit la feuille de match, on n'invente rien. */
+function momentsDuMatch(faits, r, h, a, hid, delta){
+  const moi=G&&clubById(G.monClub); if(!moi) return;
+  const dom=(hid===G.monClub), advC=dom?a:h;
+  const mesB=dom?r.sh:r.sa, ses=dom?r.sa:r.sh;
+  const derby=RIVAL[G.monClub]===advC.id;
+  const buts={};
+  for(const f of faits||[]) if(f.b) buts[f.u]=(buts[f.u]||0)+f.b;
+  for(const u in buts){
+    const j=byUid(u); if(!j || j.club!==G.monClub || j.pretIn) continue;
+    ouvreBio(j);
+    const c=cumulBio(j), nb=buts[u];
+    crieRecord("jeune", j.age, j.nom+", "+j.age+" ans, contre "+advC.nom, true);
+    if(c.b<=nb && j.age<=21) ajouteMoment(j, "Son premier but en professionnel, contre "+advC.nom, 10);
+    if(derby)  ajouteMoment(j, "Un but dans le derby contre "+advC.nom, 8);
+    if(nb>=3)  ajouteMoment(j, "Un triplé contre "+advC.nom, 7);
+  }
+  if(r.moment && delta>0){
+    const t=byUid(r.moment.uid);
+    if(t && t.club===G.monClub && !t.pretIn){
+      ouvreBio(t);
+      const serre=(mesB-ses)<=1;
+      if(r.moment.type==="pen_pour" && serre)
+        ajouteMoment(t, (mesB>ses?"Le penalty de la 90ᵉ qui fait tomber "+advC.nom:"Le penalty de la 90ᵉ qui arrache un point à "+advC.nom), 9);
+      else if(r.moment.type==="coupfranc" && serre)
+        ajouteMoment(t, (mesB>ses?"Le coup franc de la 90ᵉ qui fait tomber "+advC.nom:"Le coup franc de la 90ᵉ qui arrache un point à "+advC.nom), 9);
+      else if(r.moment.type==="but50" || r.moment.type==="geste" || r.moment.type==="gkbut")
+        ajouteMoment(t, "Un but d'anthologie contre "+advC.nom, 8);
+    }
+  }
+}
+
+/* ---------- L'ÉTOILE « SUIVRE » REMONTE AU DEBRIEF ----------
+   Elle ne servait qu'à filtrer le mercato. On note où en sont les chouchous AVANT le coup d'envoi
+   (quelques joueurs, jamais toute la division), et le debrief raconte leur samedi. */
+let SUIVIS_AV={};
+function noteSuivis(){
+  SUIVIS_AV={};
+  if(!G || !G.clubs) return;
+  for(const c of G.clubs) for(const j of c.joueurs)
+    if(j.fav) SUIVIS_AV[j.uid]={b:j.buts||0, p:j.passes||0, bl:j.bless||0};
+}
+function debriefSuivis(){
+  const av=SUIVIS_AV||{}; SUIVIS_AV={};
+  let dits=0;
+  for(const c of G.clubs) for(const j of c.joueurs){
+    if(dits>=3) return;
+    if(!j.fav) continue;
+    const a=av[j.uid]; if(!a) continue;
+    const db=(j.buts||0)-a.b, dp=(j.passes||0)-a.p;
+    const ou=(j.club===G.monClub && !j.pretIn) ? "" : " ("+c.nom+")";
+    if(db>0){ notif("⭐ Vous le suivez : "+j.nom+ou+" a marqué"+(db>1?" "+db+" fois":"")+
+        (dp>0?" et donné "+dp+" passe"+(dp>1?"s":"")+" décisive"+(dp>1?"s":""):"")+" — "+(j.buts||0)+" but"+((j.buts||0)>1?"s":"")+" cette saison."); dits++; }
+    else if(dp>0){ notif("⭐ Vous le suivez : "+j.nom+ou+" a délivré "+dp+" passe"+(dp>1?"s":"")+" décisive"+(dp>1?"s":"")+"."); dits++; }
+    else if(G.hdm && G.hdm.uid===j.uid){ notif("⭐ Vous le suivez : "+j.nom+ou+" est l'homme du match — "+G.hdm.motif+"."); dits++; }
+    else if(!a.bl && (j.bless||0)>0){ notif("⭐ Vous le suivez : "+j.nom+ou+" est sorti blessé — "+j.bless+" journée"+(j.bless>1?"s":"")+" d'absence."); dits++; }
+  }
+}
+
+/* ---------- UNE BARRE QUI BOUGE : le président reformule l'enjeu RÉEL ----------
+   À la trêve, puis dans la dernière ligne droite. Pas l'objectif d'août : la table du moment, l'écart
+   en points, le nombre de matchs restants, et le nom de ceux qu'il faudra battre. */
+function motDuPresident(){
+  const e=enjeuDe(G); if(!e) return;
+  const reste=Math.max(0, 38-G.journee);
+  const voisins=e.cl.filter((c,i)=>c.id!==G.monClub && Math.abs(i+1-e.rang)<=2).slice(0,2).map(c=>c.nom);
+  const etat = e.sens==="chasse"
+    ? e.palier.court+" est à "+(e.ecart===0?"portée de main":e.ecart+" point"+(e.ecart>1?"s":""))
+    : "vous tenez "+e.palier.court+" à "+(e.ecart===0?"rien du tout":e.ecart+" point"+(e.ecart>1?"s":""));
+  notif("🎙️ "+(G.journee<=19?"À la trêve, le président fait les comptes devant la presse : « ":"Dernière ligne droite. Le président reprend le micro : « ")
+    +etat.charAt(0).toUpperCase()+etat.slice(1)+". Il reste "+reste+" match"+(reste>1?"s":"")
+    +(voisins.length?", et ça se jouera contre "+voisins.join(" et ")+".":".")+" »");
+  G.presse.unshift("« "+e.palier.court.charAt(0).toUpperCase()+e.palier.court.slice(1)+" se jouera en "+reste+" match"+(reste>1?"s":"")
+    +(voisins.length?", contre "+voisins.join(" et ")+".":".")+" »");
+}
+function bilanActe(a){ // le chapitre se referme : ce qu'il a rapporté, et ce qui s'ouvre
+  const moi=G&&clubById(G.monClub); if(!moi || !a) return;
+  const f=(moi.forme||[]).slice(a.de, a.a+1);
+  if(!f.length) return;
+  const v=f.filter(x=>x===1).length, n=f.filter(x=>x===0).length, p=f.filter(x=>x===-1).length;
+  const pts=v*3+n;
+  const e=enjeuDe(G), suite=acteDe(G.journee);
+  notif("📖 ACTE "+ROMAIN[a.n]+" — "+a.nom+" se referme : "+f.length+" match"+(f.length>1?"s":"")+", "
+    +v+"V "+n+"N "+p+"D, "+pts+" point"+(pts>1?"s":"")+" pris."+(e?" Vous êtes "+e.txt+".":"")
+    +" Place à l'acte "+ROMAIN[suite.n]+" — "+suite.sous);
+}
+
+/* ---------- LE BAROMÈTRE DES TRIBUNES ----------
+   L'affluence existait comme une jauge instantanée. Ce qui manquait, c'est de la voir BOUGER : sans
+   tendance, on ne sait jamais s'il faut agrandir le stade ou toucher au prix des places. G.affJ garde
+   le détail de la saison (un objet par match à domicile, dix-neuf au plus), G.affS la moyenne des
+   saisons passées — douze au plus, trois valeurs chacune. */
+function veilleAffluence(c){
+  const L=G.affJ||[]; if(L.length<3) return;
+  const m3=L.slice(-3).reduce((s,x)=>s+x.f,0)/3;
+  if(m3>=0.93 && G._affCri!=="plein"){
+    G._affCri="plein";
+    notif("🎟️ Trois matchs de suite à guichets quasi fermés ("+Math.round(m3*100)+" % de remplissage). "+(c?c.stade:"Le stade")+" est devenu trop petit : une tribune de plus, et ce sont des recettes en plus tous les quinze jours.");
+    return;
+  }
+  if(L.length<6) return;
+  const av=L.slice(-6,-3).reduce((s,x)=>s+x.f,0)/3;
+  if(m3<av-0.10 && G._affCri!=="baisse"){
+    G._affCri="baisse";
+    notif("📉 Les gradins se vident : "+Math.round(av*100)+" % de remplissage il y a un mois, "+Math.round(m3*100)+" % aujourd'hui. Le tarif ("+palierBillet().nom.toLowerCase()+"), les résultats, ou les deux — le public, lui, a déjà tranché.");
+  } else if(m3>av+0.10 && G._affCri!=="hausse"){
+    G._affCri="hausse";
+    notif("📈 Le public revient : "+Math.round(av*100)+" % de remplissage il y a un mois, "+Math.round(m3*100)+" % aujourd'hui. Ce n'est pas le moment de faire une bêtise sur le prix des places.");
+  }
+}
+function moyAffSaison(l){ return (l&&l.length) ? l.reduce((s,x)=>s+x.n,0)/l.length : 0; }
+function conseilTribunes(L){
+  if(!L || L.length<2) return "Le prix des places (écran Finances) et la taille du stade décident de ce que vous lirez ici.";
+  const m=L.slice(-3).reduce((s,x)=>s+x.f,0)/Math.min(3,L.length);
+  if(m>=0.93) return "Guichets fermés : c'est le stade qui est le plafond, pas le public. Une tribune de plus se rentabilise vite — et le tarif peut monter sans vider les gradins.";
+  if(m>=0.75) return "Belle affluence. Le tarif tient, les gradins suivent : ne cassez rien.";
+  if(m>=0.55) return "Remplissage moyen. Brader les places (écran Finances) remplirait le stade, monterait la réputation et le moral — au prix de la recette à l'unité.";
+  return "Gradins clairsemés : chaque place vide est une recette perdue ET de la ferveur en moins le samedi. Le tarif est le levier le plus rapide, les résultats le plus sûr.";
+}
+function baroTribunes(){
+  const L=G.affJ||[], S=G.affS||[];
+  const rec=G.records&&G.records.aff;
+  if(!L.length && !S.length) return `<h3 style="margin-top:12px">Le baromètre des tribunes</h3>
+    <p class="dim" style="font-size:11px">Il se remplira dès votre premier match à domicile.</p>`;
+  const moy=moyAffSaison(L), der=S.length?S[S.length-1]:null, H=34, W=Math.max(1,L.length);
+  const barres=L.map((x,i)=>{
+    const ht=Math.max(2, Math.round(x.f*H));
+    const col=x.f>=0.9?"#5fd98f":(x.f>=0.65?"#ffd24a":"#ff6f61");
+    return `<rect x="${(i*(100/W)+0.6).toFixed(2)}" y="${H-ht}" width="${Math.max(1,100/W-1.2).toFixed(2)}" height="${ht}" fill="${col}"><title>J${x.j} · ${FMT(x.n)} spectateurs (${Math.round(x.f*100)} %)</title></rect>`;
+  }).join("");
+  const delta=(der&&moy) ? moy-der.moy : 0;
+  return `<h3 style="margin-top:12px">Le baromètre des tribunes</h3>
+    ${L.length?`<svg viewBox="0 0 100 ${H}" width="100%" height="46" preserveAspectRatio="none" style="display:block;border-bottom:1px solid var(--line)">${barres}</svg>
+      <p class="dim" style="font-size:11px;margin-top:2px">${L.length} match${L.length>1?"s":""} à domicile cette saison — moyenne <b class="jaune">${FMT(Math.round(moy))}</b> spectateurs.</p>`
+     :`<p class="dim" style="font-size:11px">Aucun match à domicile joué cette saison.</p>`}
+    ${der?`<p class="dim" style="font-size:11px">Saison ${esc(der.s)} : ${FMT(der.moy)} de moyenne — <span class="${delta>=0?"vert":"rouge"}">${delta>=0?"▲ +":"▼ "}${FMT(Math.abs(Math.round(delta)))}</span> cette année.</p>`:""}
+    ${rec?`<p class="dim" style="font-size:11px">🎟️ Record du club : ${esc(rec.t)} <span style="font-size:10px">(${esc(rec.s)})</span>.</p>`:""}
+    <p class="dim" style="font-size:11px">${esc(conseilTribunes(L))}</p>`;
+}
+
+/* ---------- « OÙ EN ÉTIONS-NOUS ? » ----------
+   On revient sur une carrière trois semaines plus tard, et il faut cinq minutes pour se rappeler
+   pourquoi on jouait. Tout est pourtant déjà en mémoire : le rang, l'écart, la forme, la phrase que
+   l'almanach a retenue, l'arc en cours, le prêté qui rentre, la grue qui tourne, et le match de samedi.
+   On relit, on ne calcule rien de neuf, et on ne stocke pas un octet de plus. */
+const REPRISE_DELAI=24*36e5; // « plus d'un jour »
+function pointDeSituation(){
+  const moi=clubById(G.monClub);
+  const e=enjeuDe(G), pm=prochainMatchDe(G), a=acteDe(G.journee);
+  const der=[]; // les cinq derniers résultats, relus dans l'historique (scores compris)
+  for(let i=(G.histo||[]).length-1; i>=0 && der.length<5; i--){
+    const jour=G.histo[i]||[];
+    const m=jour.find && jour.find(x=>x && (x.h===G.monClub||x.a===G.monClub));
+    if(!m) continue;
+    const dom=m.h===G.monClub, mes=dom?m.sh:m.sa, ses=dom?m.sa:m.sh;
+    const adv=clubById(dom?m.a:m.h);
+    der.push({j:i+1, dom, mes, ses, adv:adv?adv.nom:"?", iss:mes>ses?1:(mes===ses?0:-1)});
+  }
+  der.reverse();
+  const pret=(G.prets||[]).filter(p=>p.sens==="out").map(p=>({p, j:byUid(p.uid)}))
+              .filter(x=>x.j).sort((x,y)=>x.p.fin-y.p.fin)[0]||null;
+  const arc=(G.arc && G.arc.beat && ARCS[G.arc.id]) ? ARCS[G.arc.id] : null;
+  return {moi, e, pm, acte:a, der, pret, arc,
+          phrase:(G.alm&&G.alm.phrase)||null,
+          chantier:G.chantier?{nom:nomChantier(), reste:G.chantier.reste}:null,
+          raisons:raisonsMatch(G)};
+}
+function ecranReprise(){
+  const S=pointDeSituation(), moi=S.moi;
+  const pastille=x=>`<b class="${x.iss>0?"vert":(x.iss<0?"rouge":"jaune")}" title="J${x.j}">${x.iss>0?"V":(x.iss<0?"D":"N")}</b>`;
+  chrome("calendrier",`
+   <div class="panel" style="border-color:#b388e8">
+     <p class="dim" style="letter-spacing:2px;margin:0">${esc(moi?moi.nom.toUpperCase():"")} · SAISON ${esc(G.saison)} · JOURNÉE ${Math.min(G.journee+1,38)}/38</p>
+     <h2 style="color:#b388e8;font-size:26px;line-height:1.1;margin:6px 0 4px">OÙ EN ÉTIONS-NOUS&nbsp;?</h2>
+     <p class="dim">Dernière partie ${esc(ilYA(G._maj))}. Reprenons le fil.</p>
+   </div>
+   <div class="grid2">
+     <div class="panel"><h2>📊 LA SITUATION</h2>
+       ${S.e?`<p style="font-size:18px"><b class="jaune">${esc(S.e.txt)}</b></p>
+         <p class="dim">${esc(S.e.sens==="chasse"?"Il y a quelque chose à aller chercher.":"Il y a quelque chose à défendre.")} Division ${G.div} · acte ${ROMAIN[S.acte.n]}, ${esc(S.acte.nom.toLowerCase())}.</p>`
+        :`<p class="dim">Le classement n'a pas encore de sens : la saison vient de commencer.</p>`}
+       ${S.der.length?`<p style="margin-top:8px"><span class="dim">Vos ${S.der.length} derniers matchs :</span> ${S.der.map(pastille).join(" ")}</p>
+         ${S.der.slice(-3).reverse().map(x=>`<p class="dim" style="font-size:12px">J${x.j} — ${x.dom?"":"à "}${esc(x.adv)} ${x.mes}-${x.ses}</p>`).join("")}`
+        :`<p class="dim" style="margin-top:8px">Pas encore un match joué cette saison.</p>`}
+     </div>
+     <div class="panel"><h2>🗞️ CE QU'ON DISAIT DE VOUS</h2>
+       ${S.phrase?`<p style="font-size:16px;font-style:italic;color:#6fd6e8">${esc(S.phrase.t)}</p>
+         <p class="dim" style="margin-top:4px">— la presse, journée ${S.phrase.j}. C'est la phrase que l'almanach a retenue de votre saison.</p>`
+        :`<p class="dim">La presse n'a encore rien écrit qu'on garderait.</p>`}
+     </div>
+   </div>
+   <div class="panel"><h2>📌 CE QUI ATTEND VOTRE RÉPONSE</h2>
+     ${S.arc?`<p>📖 <b style="color:${esc(S.arc.couleur||"#b388e8")}">${esc(S.arc.titre)}</b> — le feuilleton est en cours : un chapitre vous attend${G.arc.prochaine>G.journee?" à la J"+(G.arc.prochaine+1):" dès cette journée"}.</p>`:""}
+     ${S.pret?`<p>📤 <b>${esc(S.pret.j.nom)}</b> est en prêt à ${esc((clubById(S.pret.j.club)||{}).nom||"l'extérieur")} — il rentre à la J${S.pret.p.fin}${S.pret.p.fin>G.journee?" (dans "+(S.pret.p.fin-G.journee)+" journée"+((S.pret.p.fin-G.journee)>1?"s":"")+")":""}.</p>`:""}
+     ${S.chantier?`<p>🏗 Le chantier « ${esc(S.chantier.nom)} » tourne encore — livraison dans ${S.chantier.reste} journée${S.chantier.reste>1?"s":""}.</p>`:""}
+     ${G.flash?`<p>⚡ Le coup de la semaine est encore sur la table, et il ne vaut que cette journée.</p>`:""}
+     ${(G.offreExt||G.offrePret||G.affaire)?`<p>📩 Une offre attend votre réponse sur l'écran du match.</p>`:""}
+     ${(!S.arc&&!S.pret&&!S.chantier&&!G.flash&&!G.offreExt&&!G.offrePret&&!G.affaire)?`<p class="dim">Rien en suspens : le terrain, et rien d'autre.</p>`:""}
+   </div>
+   <div class="panel" style="border-color:#ffd24a"><h2 class="jaune">⚽ LE PROCHAIN MATCH</h2>
+     ${S.pm?`<p class="scoreline ctr" style="font-size:18px">${esc(S.pm.dom?(moi?moi.nom:""):S.pm.nom)} — ${esc(S.pm.dom?S.pm.nom:(moi?moi.nom:""))}</p>
+       <p class="ctr dim">Journée ${Math.min(G.journee+1,38)} · ${S.pm.dom?"à domicile":"à l'extérieur"}</p>
+       ${S.raisons.length?`<p style="margin-top:8px"><span class="dim">Ce match compte parce que…</span></p>
+         ${S.raisons.slice(0,3).map(x=>`<p style="margin:3px 0">${x.ico} ${esc(x.txt)}</p>`).join("")}`
+        :`<p class="ctr dim" style="margin-top:8px">Un match de championnat comme un autre — ils comptent tous pareil au classement.</p>`}`
+      :`<p class="dim">La saison est terminée : il reste l'intersaison à dérouler.</p>`}
+     <p class="ctr" style="margin-top:14px"><button class="big" id="bReprise">REPRENDRE LA SAISON</button></p>
+   </div>`);
+  document.getElementById("bReprise").onclick=()=>montre("calendrier");
+}
+
 /* ---------- Conférence de presse interactive ----------
    On vous tend le micro autour d'un fait saillant (un adversaire qui vous a chambré, un derby qui vient,
    une série, la course au titre ou au maintien, un scandale, un président qui doute). Vous choisissez le
@@ -3878,6 +4358,7 @@ function finaliseAchat(j, prix, prime){
   if(j.pos==="G") vendeur._cedesG=(vendeur._cedesG||0)+1;
   vendeur.budget=(vendeur.budget||0)+Math.round(prix*0.9); // l'argent du transfert lui sert à se refaire
   j.club=G.monClub; j.titu=false; acheteur.joueurs.push(j);
+  ouvreBio(j,"achat"); // la fiche de vie s'ouvre : à partir d'aujourd'hui, tout compte sous nos couleurs
   G.budget-=prix; if(prime) G.tresorerie-=prime;
   G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle de la recrue
   // une star mercenaire (gros ego + vénalité) heurte les puristes ; un joueur de devoir séduit
@@ -3917,6 +4398,7 @@ function venteEclair(j){
       notif("💰 VENDU : "+j.nom+" bradé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF (vente éclair).");
       // brader un cadre fidèle (ancien, capitaine, ou international maison) abîme l'image
       if(j.capitaine || j.selA || (j.matchs||0)>=38) majReput(-6, "départ forcé d'un cadre");
+      quitteMaison(j, "vente éclair"); // un enfant du club ? le virage le fera savoir — et il reviendra en face
       fermeFiche();
       rafraichir();
     }
@@ -4084,6 +4566,7 @@ function ventesEnCours(){
       G.budget+=prix;
       G.news.unshift("VENTE : "+j.nom+" cédé à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
       notif("💰 VENDU : "+j.nom+" part à "+dest.nom+" pour "+(prix/1e6).toFixed(1)+" MF — l'affaire est conclue.");
+      quitteMaison(j, "vendu à "+dest.nom);
     } else if(!ouverte && Math.random()<0.20){ // l'étranger, lui, achète toute l'année
       const prix=Math.round(valeur(j)*RND(0.9,1.15));
       const dest=PICK(ETR_ACHETEURS);
@@ -4091,6 +4574,7 @@ function ventesEnCours(){
       G.budget+=prix;
       G.news.unshift("VENTE À L'ÉTRANGER : "+dest+" recrute "+j.nom+" pour "+(prix/1e6).toFixed(1)+" MF — leur mercato est encore ouvert.");
       notif("💰 VENDU À L'ÉTRANGER : "+dest+" s'offre "+j.nom+" pour "+(prix/1e6).toFixed(1)+" MF.");
+      quitteMaison(j, "vendu à l'étranger");
     }
   }
   if(geles) G.news.unshift("MERCATO : "+geles+" départ"+(geles>1?"s":"")+" gelé"+(geles>1?"s":"")+" — l'effectif est au plancher réglementaire ("+PLANCHER_TOTAL+" joueurs). Recrutez avant de vendre.");
@@ -4125,6 +4609,7 @@ function accepterOffreExt(){
   G.news.unshift("TRANSFERT RECORD : "+j.nom+" rejoint "+o.club+" pour "+(o.prix/1e6).toFixed(1)+" MF !");
   G.presse.unshift("« "+o.club+" rafle "+j.nom+" à prix d'or — le mercato français en ébullition. »");
   notif("💸 DÉPART : "+j.nom+" est transféré à "+o.club+" pour "+(o.prix/1e6).toFixed(1)+" MF. Les caisses se remplissent.");
+  quitteMaison(j, "transféré à "+o.club);
   montre("calendrier");
 }
 function refuserOffreExt(){
@@ -4654,6 +5139,7 @@ function signeJoker(k){
   if(o.prix>G.budget) return message("Le budget transferts ne couvre pas cette recrue joker.", {titre:"💰 BUDGET TRANSFERTS"});
   const moi=clubById(G.monClub);
   o.j.club=G.monClub; moi.joueurs.push(o.j);
+  ouvreBio(o.j,"joker");
   G.budget-=o.prix;
   G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle de la recrue
   G.vivier[o.type]=G.vivier[o.type].filter(e=>e[0]!==o.j.nom); // signé : ne reviendra plus
@@ -4790,11 +5276,13 @@ function saisirFlash(){
     vend.budget=(vend.budget||0)+f.prix;
     vend._cedes=(vend._cedes||0)+1; if(j.pos==="G") vend._cedesG=(vend._cedesG||0)+1;
     j.club=G.monClub; j.titu=false; j.avendre=false; j.fav=false; moi.joueurs.push(j);
+    ouvreBio(j,"achat");
     G.budget-=f.prix;
     G.news.unshift("LE COUP DE LA SEMAINE : "+j.nom+" arrive de "+vend.nom+" pour "+(f.prix/1e6).toFixed(1)+" MF — la moitié de sa valeur.");
     G.presse.unshift("« Personne ne comprend comment "+moi.nom+" a fait signer "+j.nom+" à ce prix-là. »");
   } else {
     j.club=G.monClub; moi.joueurs.push(j);
+    ouvreBio(j,"libre");
     if(G.vivier && G.vivier[f.type]) G.vivier[f.type]=G.vivier[f.type].filter(e=>e[0]!==j.nom);
     const exEuro=retireDEurope(j.nom);
     G.news.unshift("JOUEUR LIBRE : "+j.nom+" signe sans la moindre indemnité de transfert — mais à "+FMT(salaire(j))+" FF par semaine."+(exEuro?" Il quitte "+exEuro.nom+".":""));
@@ -6166,6 +6654,17 @@ function finDeSaison(){
       if(premier) G.presse.unshift("« LA MALÉDICTION EST MORTE : "+clubById(G.monClub).nom+" champion pour la première fois de son histoire ! »");
     } else G.palmares.push("Champion de Division 2 "+G.saison);
   }
+  /* LE MUR DU CLUB (v1.08) : ce que la saison laisse dans les archives. Le palmarès ne retenait que les
+     titres ; il retient désormais la montée, la finale de Coupe et le maintien arraché — un club de
+     milieu de tableau a lui aussi des saisons dont on reparle vingt ans après. */
+  { const n=G.clubs.length, moi=clubById(G.monClub);
+    crieRecord("rang", (G.div===1?100:50)-rang, rang+"ᵉ de Division "+G.div);
+    const meil=moi?moi.joueurs.filter(j=>(j.buts||0)>0).sort((x,y)=>(y.buts||0)-(x.buts||0))[0]:null;
+    if(meil) crieRecord("buteur", meil.buts, meil.nom+", "+meil.buts+" buts en une saison");
+    if(G.div===1 && rang>=n-5 && rang<=n-3) G.palmares.push("Maintien arraché en D1 "+G.saison+" ("+rang+"ᵉ)");
+    if(G.coupe && G.coupe.elimine && G.coupe.tourSortie==="Finale") G.palmares.push("Finaliste de la Coupe de France "+G.saison);
+  }
+  soldeBio(); // la saison entre dans la fiche de vie de chacun AVANT que razStatsClub ne remette tout à zéro
   // verdict du président : être relégué ne licencie plus (on continue en D2) ; seul un objectif manqué de loin coûte la place
   if(rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
   else if(rang<=G.objectif.place){
@@ -6188,6 +6687,17 @@ function vieillirClub(c, rec){
   for(const j of partants){
     c.joueurs=c.joueurs.filter(x=>x!==j);
     if(c.id===G.monClub || j.note>=84) rec.push("Retraite : "+j.nom+" ("+clubByIdNom(c)+", "+j.age+" ans) raccroche les crampons.");
+    /* LE JUBILÉ (v1.08) : une légende maison ne s'en va pas dans la même phrase qu'un remplaçant.
+       C'est la fiche de vie qui tranche — le nombre de matchs sous NOS couleurs, pas la note. */
+    if(c.id===G.monClub && j.bio && cumulBio(j).m>=80){
+      const cb=cumulBio(j);
+      rec.push("JUBILÉ — "+j.nom+" fait ses adieux devant un stade plein : "+cb.m+" matchs, "+cb.b+" but"+(cb.b>1?"s":"")+
+        " et "+cb.p+" passe"+(cb.p>1?"s":"")+" décisive"+(cb.p>1?"s":"")+" sous ce maillot depuis "+j.bio.s+"."+
+        ((j.bio.mom&&j.bio.mom.length)?" On se souvient encore de ça : « "+j.bio.mom[0].t+" ».":""));
+      G.presse.unshift("« Le stade s'est levé d'un bloc pour "+j.nom+". Il y a des hommes dont on retire le numéro. »");
+      G.palmares.push("Jubilé de "+j.nom+" ("+cb.m+" matchs)");
+      G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+3)); // honorer les siens, ça se voit de l'extérieur
+    }
   }
   // nouvelle génération : compléter l'effectif + un jeune du centre
   for(const pos of ["G","D","M","A"]){
@@ -6206,6 +6716,7 @@ function ajouteJeune(c,pos,rec,centre){
   }
   Object.assign(j,{club:c.id,avendre:false,buts:0,passes:0,matchs:0,note0:j.note,fav:false,titu:false,uid:uidGen(),bless:0,susp:0});
   c.joueurs.push(j);
+  if(c.id===G.monClub) ouvreBio(j,"forme", saisonSuivante()); // formé au club : sa fiche s'ouvre à la saison qui vient
   if(centre&&c.id===G.monClub&&j.pot-j.note<18) rec.push("Le centre de formation intègre "+j.nom+" ("+j.age+" ans) à l'effectif pro.");
 }
 function razStatsClub(c){
@@ -6288,12 +6799,23 @@ function introSaison(){
   if(G.nouvelleEre) puces.push("💸 Nouveauté de la saison : "+esc(G.nouvelleEre.ere)+" De nouvelles offres de sponsoring vont frapper à votre porte.");
   if(moi){
     const cracks=moi.joueurs.slice().sort((a,b)=>b.note-a.note);
-    if(cracks[0]) puces.push("⭐ L'homme sur qui on compte : <b>"+esc(cracks[0].nom)+"</b> ("+cracks[0].pos+", "+cracks[0].age+" ans, note "+cracks[0].note+").");
+    /* L'HOMME SUR QUI ON COMPTE (v1.08) : on ne le désigne plus par sa seule note. Parmi les cinq
+       meilleurs, celui qui a une HISTOIRE ici l'emporte — et on la raconte. */
+    if(cracks[0]){
+      const socle=cracks.slice(0,5).map(x=>({j:x, c:cumulBio(x)})).sort((x,y)=>y.c.m-x.c.m)[0];
+      const vedette=(socle && socle.c.m>=25) ? socle.j : cracks[0];
+      const cb=cumulBio(vedette), bi=vedette.bio;
+      puces.push("⭐ L'homme sur qui on compte : <b>"+esc(vedette.nom)+"</b> ("+vedette.pos+", "+vedette.age+" ans, note "+vedette.note+")"
+        +((cb.m>=25&&bi) ? " — "+cb.m+" matchs et "+cb.b+" but"+(cb.b>1?"s":"")+" sous ce maillot depuis "+esc(bi.s)+"."
+             +((bi.mom&&bi.mom.length)?" On n'a pas oublié : « "+esc(bi.mom[0].t)+" ».":"")
+           : "."));
+    }
     const riv=RIVAL[G.monClub], rc=riv?clubById(riv):null;
     if(rc && G.clubs.some(c=>c.id===riv)) puces.push("🔥 Le derby contre <b>"+esc(rc.nom)+"</b> est la date que tout le monde entoure sur le calendrier.");
   }
   if(G.tresorerie<0) puces.push("🔴 Les caisses sont dans le rouge : avant les rêves de grandeur, le président veut un budget à l'équilibre.");
   if(G.palmares && G.palmares.length) puces.push("🏆 Au mur du club : "+esc(G.palmares.join(", "))+".");
+  { const rr=resumeRecords(); if(rr) puces.push("🏛️ Dans les archives : "+esc(rr)+". Des records faits pour tomber."); }
   return {an, titre:e.titre, txt:e.txt, puces};
 }
 function ecranIntro(){
@@ -6399,6 +6921,14 @@ function ecranBilan(){
         :`<p class="dim">Aucun de vos joueurs n'a été désigné homme du match cette saison. Ça viendra.</p>`}
      </div>
    </div>
+   ${(()=>{ // LES RECORDS TOMBÉS (v1.08) : ceux qui en ont fait tomber un AUTRE (anc non nul) — en
+      // saison 1 tout est un record, et un record sans prédécesseur ne raconte rien.
+      const l=recordsTenus().filter(d=>d.r.s===B.saison && d.r.anc!=null);
+      if(!l.length) return "";
+      return `<div class="panel" style="border-color:#5fd98f"><h2 style="color:#5fd98f">🏛️ LES RECORDS TOMBÉS CETTE SAISON</h2>`
+        +l.map(d=>`<p style="margin:4px 0">${d.ico} <b>${esc(d.nom)}</b> — ${esc(d.r.t)} <span class="dim">(journée ${d.r.j})</span></p>`).join("")
+        +`<p class="dim" style="font-size:12px;margin-top:6px">Les archives du club ont perdu ${l.length>1?"plusieurs pages":"une page"} cette saison.</p></div>`;
+    })()}
    <div class="panel"><h2>🔥 LE MATCH DE L'ANNÉE</h2>
      ${M?`<p class="scoreline" style="text-align:center;font-size:18px">${esc(nomC(M.h))} <span class="jaune">${M.sh}</span> — <span class="jaune">${M.sa}</span> ${esc(nomC(M.a))}</p>
        <p class="ctr dim">Journée ${M.j}${M.mien?" — et vous y étiez.":""}</p>`
@@ -6428,6 +6958,12 @@ function ecranBilan(){
 function intersaison(){
   const rec=[];
   G.arc=null; G._arcFait=false; // un arc ne straddle pas deux saisons ; on rouvre la porte pour la suivante
+  /* LE BAROMÈTRE DES TRIBUNES (v1.08) : la saison qui s'achève entre dans l'historique — trois valeurs,
+     douze saisons au plus. C'est ce qui permet de dire « +1 800 spectateurs par rapport à l'an dernier ». */
+  { const l=G.affJ||[];
+    if(l.length) G.affS=(G.affS||[]).concat({s:G.saison, moy:Math.round(moyAffSaison(l)),
+      f:+(l.reduce((s,x)=>s+x.f,0)/l.length).toFixed(3)}).slice(-12);
+    G.affJ=[]; G._affCri=null; }
   G.montees=0;                  // le centre de formation refait le plein de promotions
   // classements : MA division (réel) + l'autre (abstrait, selon la force des effectifs)
   const maDiv=classement();
@@ -6449,7 +6985,8 @@ function intersaison(){
   const nd2=d2.filter(c=>!montent.includes(c)).concat(descendent);
   if(nd1.includes(monC)){ G.div=1; G.clubs=nd1; G.autre=nd2; }
   else { G.div=2; G.clubs=nd2; G.autre=nd1; }
-  if(montent.includes(monC)) rec.push("★ VOTRE CLUB MONTE EN DIVISION 1 ! L'élite vous attend.");
+  if(montent.includes(monC)){ rec.push("★ VOTRE CLUB MONTE EN DIVISION 1 ! L'élite vous attend.");
+    G.palmares.push("Montée en Division 1 "+G.saison); } // le mur du club retient aussi les promotions
   if(descendent.includes(monC)) rec.push("▼ VOTRE CLUB EST RELÉGUÉ EN DIVISION 2. La reconquête commence.");
   // pépites vendues « avec prêt d'un an » (arc Le Diamant brut) : elles rejoignent leur acheteur cet été
   { const mc=clubById(G.monClub); if(mc){ const partis=mc.joueurs.filter(j=>j._departMome);
@@ -6458,6 +6995,8 @@ function intersaison(){
   // vieillissement, retraites, nouvelles générations + remise à zéro — sur LES DEUX divisions (l'autre évolue aussi)
   for(const c of G.clubs.concat(G.autre)) vieillirClub(c, rec);
   for(const c of G.clubs.concat(G.autre)) razStatsClub(c);
+  // les compteurs de saison repartent de zéro : la fiche de vie doit repartir du même point (cf. cumulBio)
+  { const mc=clubById(G.monClub); if(mc) for(const j of mc.joueurs) if(j.bio) j.bio.dec=null; }
   // le vivier européen vieillit lui aussi (mêmes règles que les divisions françaises)
   for(const c of (G.europe||[])){ vieillirClub(c, rec); razStatsClub(c); }
   // l'été international : ce que dit l'histoire
@@ -6586,6 +7125,8 @@ function migre(){
   G.arc=G.arc||null; G._arcFait=!!G._arcFait; // arc narratif de saison
   G.affHist=G.affHist||[]; // mémoire glissante du remplissage à domicile (jauge écran Club)
   G.hdm=G.hdm||null; G.alm=G.alm||{phrase:null,depeche:null}; // homme du match de la journée + almanach de la saison
+  G.records=G.records||{}; G.serieInv=+G.serieInv||0;          // le mur du club + la série sans défaite en cours
+  G.affJ=G.affJ||[]; G.affS=G.affS||[];                        // le baromètre des tribunes (saison en cours + saisons passées)
   if(!G.stade) G.stade=inferStade(clubById(G.monClub)); // stade brique par brique : déduit de la taille actuelle pour les vieilles sauvegardes
   if(!G.staff) G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique
   G.reput=G.reput==null?75:G.reput;
@@ -6613,6 +7154,12 @@ function migre(){
       initTraits(j);
     }
   }
+  /* LA FICHE DE VIE (v1.08) : une carrière en cours l'ouvre avec l'effectif du jour — on ne réécrit pas
+     le passé, mais tout ce qui suit sera compté. Un prêté reste à vous : on le rattrape par G.prets,
+     jamais par j.club (cf. le piège d'appartenance de v1.07). */
+  { const mc=clubById(G.monClub);
+    if(mc) for(const j of mc.joueurs) if(!j.pretIn) ouvreBio(j,"origine");
+    for(const p of (G.prets||[])) if(p.sens==="out"){ const jp=byUid(p.uid); if(jp) ouvreBio(jp,"origine"); } }
   if(!G.coupe) coupeInit(); // vieilles sauvegardes : on ouvre la Coupe de France en cours de route
   if(!G.europe) G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3), Object.assign({}, STARS_EUROPE, STARS_EUROPE_C2, STARS_EUROPE_C3)); // Coupe d'Europe : vivier C1 + C2 + C3
   else { if(!G.europe.some(c=>c.id==="MIL")) G.europe=G.europe.concat(construitDivision(CLUBS_EUROPE_C3, STARS_EUROPE_C3)); // vieux vivier C1-seul (v0.72-0.74) → C3
@@ -6709,8 +7256,11 @@ function idxEcrit(l){ try{ localStorage.setItem(IDXKEY, JSON.stringify(l)); }cat
 function partieNeuve(){ const id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); return {id, k:PARTPFX+id}; }
 function ficheDe(o){ // carte d'identité d'une carrière, lue dans la sauvegarde
   const c=metaClub(o.monClub);
+  // `enjeu` (v1.08) : la ligne « 5ᵉ, à 2 points de l'Europe · samedi, le derby », calculée ICI et rangée
+  // dans l'index — l'accueil la lit sans rouvrir les 500 Ko de la sauvegarde.
   return {clubId:o.monClub, club:c?c.nom:"Club inconnu", saison:o.saison||"?",
-          journee:Math.min((o.journee||0)+1,38), div:o.div||1, titres:(o.palmares||[]).length};
+          journee:Math.min((o.journee||0)+1,38), div:o.div||1, titres:(o.palmares||[]).length,
+          enjeu:ligneEnjeu(o)};
 }
 function clesParties(){ // balayage des clés du navigateur (pour récupérer une carrière absente de l'index)
   const out=[];
@@ -6776,7 +7326,15 @@ function chargeLocale(id){ // reprendre une carrière (sans argument : la plus r
   if(!p) return false;
   try{ const s=lsLit(p.k); if(s==null) return false;
     G=JSON.parse(s); PARTIE={id:p.id, k:p.k}; G.pid=p.id;
-    migre(); majTitre(); montre("calendrier"); return true;
+    migre(); majTitre();
+    /* « OÙ EN ÉTIONS-NOUS ? » (v1.08) : une carrière laissée de côté plus d'un jour ne se reprend pas
+       froidement. On repose le décor — rang, écart au palier le plus proche, forme, phrase de l'almanach,
+       arc en cours, prêté qui rentre, chantier, et le match de samedi avec la raison pour laquelle il
+       compte — avant de rendre la main. Une reprise du jour même va droit au terrain, comme avant. */
+    { const vieux=(Date.now()-(+G._maj||0))>REPRISE_DELAI;
+      const enCours=!G.vire && !G.finie && !G.intro && !G.recap && (G.journee||0)<38;
+      if(!EN_TEST() && vieux && enCours) ecranReprise(); else montre("calendrier"); }
+    return true;
   }catch(e){ message("Impossible de relire cette carrière : les données sont corrompues.", {titre:"💾 CARRIÈRE ILLISIBLE", coul:"#ff6f61"}); return false; }
 }
 function supprimePartie(id){
@@ -7007,13 +7565,14 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
   return `<div class="panel" style="border-color:var(--vert)">
      <h2 style="color:var(--vert)">Vos carrières (${parties.length})</h2>
      <button class="big" id="bReprendre" data-id="${esc(p0.id)}" style="display:block;width:100%;background:var(--vert);color:#06210f">▶ REPRENDRE — ${esc((p0.nom||p0.club).toUpperCase())} · ${sous(p0)}</button>
+     ${p0.enjeu?`<p class="jaune" style="margin:6px 0 0;font-size:13px;text-align:center">${esc(p0.enjeu)}</p>`:""}
      <p class="carSous"><span class="dim" style="flex:1">${esc(ilYA(p0.maj))}</span>
        <button class="act carRen" data-id="${esc(p0.id)}">✏️ Renommer</button>
        <button class="act carDel" data-id="${esc(p0.id)}">🗑️ Supprimer</button></p>
      ${reste.length?`<p class="dim" style="font-size:12px;margin:12px 0 4px">Vos autres carrières :</p>`:""}
      ${reste.map(p=>`<div class="carLigne">
        <button class="startclub carGo" data-id="${esc(p.id)}" style="display:flex;align-items:center;gap:9px">
-         ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span></span><span class="dim">▶</span>
+         ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span>${p.enjeu?`<br><span class="sous jaune">${esc(p.enjeu)}</span>`:""}</span><span class="dim">▶</span>
        </button>
        <button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>
        <button class="act carDel" data-id="${esc(p.id)}" title="Supprimer">🗑️</button>
@@ -7232,6 +7791,7 @@ function ecranCalendrier(){
      <p style="margin-top:8px"><button class="act" id="bMalAcc">Accepter la mallette (${(G.affaire.prix/1e6).toFixed(0)} MF)</button>
      <button class="act" id="bMalRef">Éconduire l'intermédiaire</button></p></div>`:"";
   chrome("calendrier",`
+   ${panneauActe()}
    ${panneauFlash()}
    ${offre}
    ${offrePret}
@@ -7240,6 +7800,12 @@ function ecranCalendrier(){
      <h2>Saison ${esc(G.saison)} · Journée ${G.journee+1} — votre match</h2>
      <p class="scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blason(h,30)}${esc(h.nom)} — ${esc(a.nom)}${blason(a,30)}</p>
      <p class="ctr dim">${esc(h.stade)} · ${dom?"À DOMICILE":"À L'EXTÉRIEUR"}</p>
+     ${(()=>{ /* « CE MATCH COMPTE PARCE QUE… » (v1.08) : le derby, la bête noire, l'adversaire direct,
+                 l'ancien du club en face, la série en cours, le record à portée. Tout était en mémoire. */
+       const rs=raisonsMatch(G); if(!rs.length) return "";
+       return `<div class="ctr" style="margin-top:8px;font-size:13px"><span class="dim">Ce match compte parce que…</span>`
+         +rs.slice(0,3).map(x=>`<br>${x.ico} ${esc(x.txt)}`).join("")+`</div>`;
+     })()}
      <p class="ctr"><span class="${fenetreOuverte()?"vert":"dim"}">${esc(msgMercato())}</span></p>
      ${G.declar?`<p class="ctr" style="margin-top:6px;font-style:italic"><span class="rouge">«&nbsp;${esc(G.declar.txt)}&nbsp;»</span><br><span class="dim">— ${esc(G.declar.nom)} (${esc(G.declar.club)}), dans la presse du matin</span></p>`:""}
      <div class="ctr" style="margin-top:12px">
@@ -7293,6 +7859,7 @@ function ecranCalendrier(){
   { const bJ=document.getElementById("bJouer"); if(bJ) bJ.onclick=()=>lanceMatch(false);
     const bV=document.getElementById("bVite");  if(bV) bV.onclick=()=>lanceMatch(true);
     const bR=document.getElementById("bRenfort"); if(bR) bR.onclick=()=>{ veilleEffectif(); montre("calendrier"); }; }
+  { const bOu=document.getElementById("bOuEn"); if(bOu) bOu.onclick=ecranReprise; } // le point de situation, à la demande
   document.querySelectorAll(".bConsigne").forEach(b=>b.onclick=()=>{ G.consigne=b.dataset.k; montre("calendrier"); });
   document.querySelectorAll(".bPrime").forEach(b=>b.onclick=()=>{ G.primeMatch=+b.dataset.v; montre("calendrier"); });
   const ouvreDebrief=(suite)=>{
@@ -8697,6 +9264,7 @@ function monteeCentre(pos){
   Object.assign(j,{club:c.id,avendre:false,buts:0,passes:0,matchs:0,note0:j.note,
                    fav:false,titu:false,uid:uidGen(),bless:0,susp:0,moral:RNDI(65,80),sansJouer:0});
   c.joueurs.push(j);
+  ouvreBio(j,"forme"); // un gamin du centre : c'est le début de son histoire ici
   G.montees=(G.montees||0)+1;
   G.news.unshift("CENTRE DE FORMATION : "+j.nom+" ("+j.age+" ans, "+LIB_POSTE[pos]+", note "+j.note+", potentiel "+j.pot+") signe son premier contrat professionnel.");
   notif("🎓 "+j.nom+" monte du centre de formation : l'effectif respire.");
@@ -8830,6 +9398,7 @@ function ouvreFiche(j){
        ${v1>v0?`<span class="vert">▲ +${((v1-v0)/1e6).toFixed(1)} MF</span>`:""}
        · Salaire : ${FMT(salaire(j))} FF/sem</p>
     <p>Saison : ${j.matchs||0} match${(j.matchs||0)>1?"s":""} · ${j.buts||0} but${(j.buts||0)>1?"s":""} · ${j.passes||0} passe${(j.passes||0)>1?"s":""} décisive${(j.passes||0)>1?"s":""}</p>
+    ${blocBio(j)}
     ${pOut?`<p class="cyan">📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin} — il y joue titulaire.</p>`:""}
     ${j.avendre?`<p class="rouge">🏷️ Sur la liste des transferts — ${fenetreOuverte()?"la fenêtre est ouverte, un club français peut conclure dès cette journée":"mercato fermé : seul un club étranger peut encore le prendre"}. Il continue de jouer en attendant.</p>`:""}
     <p style="margin-top:8px" class="cyan">Caractère :</p>
@@ -9184,6 +9753,7 @@ function ecranClub(){
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
          <span style="display:block;height:100%;width:${affPct}%;background:${affCol}"></span>
        </span> ${affPct}%${affEstim?' <span class="dim" style="font-size:10px">(estim.)</span>':''}</p>
+     ${baroTribunes()}
      ${G.chantier?"":`<p class="ctr dim" style="font-size:11px;margin-top:6px">Un projet à la fois — chaque livraison apparaît sur le stade et renforce le club. Cliquez une tribune pour l'agrandir.</p>`}
      <div class="ctr" style="margin-top:8px">${projetsHTML()}</div>
      <h3 style="margin-top:12px">Centre d'entraînement — niveau ${G.centre}/5</h3>
@@ -9212,6 +9782,11 @@ function ecranClub(){
      ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> — ${esc(nomRivalite(c.id,RIVAL[c.id]))}. La confiance se joue aussi là.</p>`:""}
      <p>Bête noire : <b class="jaune">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"—")}</b>${c.bnBattue?' <span class="vert">— signe indien brisé cette saison ✓</span>':' <span class="dim">— ils jouent toujours bien contre vous... jusqu'+"'"+'à la première victoire.</span>'}</p>
      ${MALEDICTIONS[c.id]?`<p class="dim" style="font-style:italic">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
+     <h3 style="margin-top:12px">Les records du club</h3>
+     ${(()=>{ const l=recordsTenus();
+        if(!l.length) return `<p class="dim" style="font-size:11px">Rien dans les archives pour l'instant. La première victoire large, la première série, le premier stade plein : tout commence cette saison.</p>`;
+        return l.map(d=>`<p class="dim" style="font-size:12px">${d.ico} <b>${esc(d.nom)}</b> — ${esc(d.r.t)} <span style="font-size:11px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join("")
+          +`<p class="dim" style="font-size:11px;margin-top:4px">Six lignes, six chasses. Un record qui tombe, c'est une soirée dont on reparle.</p>`; })()}
    </div></div>`);
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>lanceProjet(b.dataset.id));
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade
