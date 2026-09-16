@@ -193,6 +193,24 @@
     .mercPag button{min-height:44px;}
   }
   .badge{display:inline-block; border:1px solid var(--line); padding:0 6px; color:var(--dim); font-size:14px;}
+  /* ---------- écran Effectif : une ligne par joueur (v1.09) ----------
+     Rien ne passe à la ligne sauf l'état exceptionnel (blessé, suspendu, prêt), rangé SOUS le nom en
+     petit. Les quatre décisions forment une seule barre de boutons collés : ils partagent leurs
+     bordures (marge −1 px), l'état « en cours » s'allume en cyan — la couleur de ★ et 🛌 dans la
+     colonne d'état — et jamais en jaune plein, réservé à l'action offerte (cf. v1.02). */
+  .effTab td{vertical-align:middle;}
+  .effTab .effNom, .effTab .effEtat, .effTab .effCar, .effTab td.num, .effTab th{white-space:nowrap;}
+  .effTab .effSt{display:block; font-size:.8em; line-height:1.15;}
+  .effTab .effVieux{margin-right:3px; font-size:.8em;}
+  .effBtns{display:inline-flex; white-space:nowrap; vertical-align:middle;}
+  .effBtns button.ico{position:relative; display:inline-flex; align-items:center; justify-content:center; margin:0;
+    width:36px; height:30px; padding:0; font-size:15px; line-height:1;}
+  .effBtns button.ico + button.ico{margin-left:-1px;}
+  .effBtns button.ico.on{background:rgba(111,214,232,.14); border-color:var(--cyan); color:var(--cyan); z-index:1;}
+  .effBtns button.ico:hover:not(:disabled){z-index:2;}
+  .effBtns button.ico:active:not(:disabled){background:#081221;}
+  .effBtns button.ico:focus-visible{outline:2px solid var(--cyan); outline-offset:-3px; z-index:3;}
+  .effBtns button.ico:disabled{opacity:.35;}
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:10;}
   #fiche .card{background:var(--panel); border:2px solid var(--jaune); max-width:460px; width:100%; padding:14px 16px;}
   /* Le calque des MESSAGES (message/confirme/saisie) : il vit AU-DESSUS de #fiche pour qu'un refus
@@ -265,6 +283,15 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .accCols[data-div="1"] .colD2{display:none;}
   .accCols[data-div="2"] .colD1{display:none;}
   .pips{font-size:12px;letter-spacing:.5px;}
+  /* Effectif : cibles de 40 px au doigt, et le nom qui reste collé au bord gauche quand on fait défiler
+     le tableau jusqu'aux boutons */
+  .effBtns button.ico{width:40px; height:38px; padding:0; font-size:17px;}
+  /* left:-8px = la marge intérieure du panneau : collée à 0, la cellule laissait une bande de 8 px où les
+     chiffres défilaient encore. Le filet est un pseudo-élément, pas une bordure ni une ombre : en tableau
+     à bordures fusionnées, ni l'une ni l'autre ne suit une cellule collante. */
+  .effTab th.effNom, .effTab td.effNom{position:sticky; left:-8px; z-index:4; background:var(--panel);}
+  .effTab th.effNom::after, .effTab td.effNom::after{content:""; position:absolute; top:0; bottom:0; right:0;
+    width:1px; background:var(--line);}
 }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -284,7 +311,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.08"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.09"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1627,7 +1654,9 @@ function coefBlessureFraich(j){
    rend que 80 % aujourd'hui, il vaut 67 et une doublure fraîche à 72 le devance pour de bon. C'est cette
    seule ligne qui fait tourner les dix-neuf clubs de l'IA comme le vôtre. Votre ★ reste plus fort que tout. */
 function noteSel(j){ return j.note*facteurFraich(j); }
-const FRAICH_PALIERS=[[90,"Frais","vert"],[80,"Entamé","jaune"],[65,"Émoussé","jaune"],[50,"Jambes lourdes","rouge"],[-1,"Sur les rotules","rouge"]];
+// [seuil, mot d'époque, couleur, émoji] — l'émoji remplace la jauge dans le tableau de l'Effectif (v1.09,
+// retour de playtest « la barre prend trop de place ») : un chiffre et une tête, lisibles d'un coup d'œil.
+const FRAICH_PALIERS=[[90,"Frais","vert","💪"],[80,"Entamé","jaune","😐"],[65,"Émoussé","jaune","😓"],[50,"Jambes lourdes","rouge","🥵"],[-1,"Sur les rotules","rouge","🥴"]];
 function libFraich(j){ const f=fraich(j); return FRAICH_PALIERS.find(x=>f>=x[0]); }
 function jaugeFraich(j, w){ // la petite barre télétexte, même grammaire que la confiance du président
   const f=Math.round(fraich(j)), p=libFraich(j);
@@ -1751,12 +1780,31 @@ const RATE_LOIN=[
 ];
 const ARRET_LOIN=[
   "{A} décoche une praline des vingt mètres... et le gardien s'envole pour la détourner ! Quel réflexe, mes amis !",
-  "{A} tente le lob des quarante mètres, culotté... le gardien recule, recule... et cueille le ballon sous sa barre !",
 ];
 const RATE_CONTRE_LOIN=[
   "Le contre file droit au but, {A} arme des vingt mètres... au-dessus ! Il y avait mieux à faire.",
 ];
 const TIRS_LOIN=new Set([...BUT_LOIN,...RATE_LOIN,...ARRET_LOIN,...RATE_CONTRE_LOIN]);
+/* LE LOB (v1.09) — retour de playtest : « X se présente seul devant Y, tout le stade debout… », puis
+   « X tente le lob sur le gardien monté trop haut ». On ne lobe pas un gardien resté sur sa ligne :
+   un lob se tente parce que le portier est SORTI, loin de ses bois. Ce n'est donc ni une finition
+   proche (le face-à-face) ni une simple frappe de loin (le bloc qui tient, le gardien sur sa ligne) :
+   c'est une troisième géométrie, avec sa propre mise en scène (`MONTEE_LOB` / `MONTEE_LOB_FRAPPE`,
+   où le gardien quitte sa surface). Le lob des quarante mètres, jusque-là rangé dans ARRET_LOIN, a
+   rejoint la famille. Un but et un raté s'y ajoutent pour que la montée ne trahisse pas l'issue :
+   une mise en scène qui ne précéderait que des arrêts annoncerait l'arrêt. Même règle qu'au-dessus —
+   un nouveau lob s'écrit ICI (le harnais répétitions le rattrape au mot « lob »). */
+const BUT_LOB=[
+  "{A} aperçoit le gardien avancé et tente le lob de très loin... le ballon monte, monte, et redescend dans le but vide ! BUUUT ! Quel toupet, et quelle réussite !",
+];
+const RATE_LOB=[
+  "{A} voit le portier hors de sa surface et tente le lob... par-dessus le gardien, oui, mais par-dessus la barre aussi ! L'idée était bonne.",
+];
+const ARRET_LOB=[
+  "{A} tente le lob sur {G} monté trop haut. Le portier recule en marche arrière comme une Safrane dans un parking, et boxe au-dessus de sa barre !",
+  "{A} tente le lob des quarante mètres, culotté... le gardien recule, recule... et cueille le ballon sous sa barre !",
+];
+const TIRS_LOB=new Set([...BUT_LOB,...RATE_LOB,...ARRET_LOB]);
 /* CONCLUSIONS SUR CORNER (v1.04) — même mécanique, pour le résidu laissé ouvert en v0.98 : trois
    lignes de résolution naissent d'un coup de pied de coin, et une montée de jeu ouvert (« Ouverture
    limpide dans le dos des défenseurs… ») ne peut pas déboucher dessus. On ne les sort PAS des pools
@@ -1779,9 +1827,9 @@ const ARRET_ARRET=[
 const TIRS_ARRET=new Set([...BUT_ARRET,...ARRET_ARRET]);
 /* La phase de tir telle que le moteur la pose sur l'évènement (`g` ou `q`), lue par `monteeUn` et
    `monteeDeux` : "" = jeu ouvert et finition proche, "loin" = frappe de vingt mètres et plus,
-   "bal" = la conclusion vient d'un corner. Un seul champ, court : les évènements du direct sont
-   nombreux et ce drapeau les suit tous. */
-function phaseTir(l){ return TIRS_LOIN.has(l)?"loin":(TIRS_ARRET.has(l)?"bal":""); }
+   "lob" = le gardien est sorti et on tente de le lober, "bal" = la conclusion vient d'un corner.
+   Un seul champ, court : les évènements du direct sont nombreux et ce drapeau les suit tous. */
+function phaseTir(l){ return TIRS_LOIN.has(l)?"loin":(TIRS_LOB.has(l)?"lob":(TIRS_ARRET.has(l)?"bal":"")); }
 const COMM={
  amb:[
   "Le public donne de la voix dans les tribunes.",
@@ -1824,8 +1872,8 @@ const COMM={
   "{A} enroule à l'entrée de la surface, ça part sous la barre... {G} sort une horizontale du gant gauche ! On applaudit debout !",
   "Frappe vicieuse de {A} qui rebondit devant {G}... détournée du bout des doigts en corner ! Le rebond était traître.",
   "{A} se retourne dans un mouchoir et frappe des deux côtés coup sur coup — {G} dit non, et redit non !",
-  "{A} tente le lob sur {G} monté trop haut. Le portier recule en marche arrière comme une Safrane dans un parking, et boxe au-dessus de sa barre !",
   ...ARRET_LOIN,
+  ...ARRET_LOB,
   ...ARRET_ARRET,
  ],
  rate:[ // tir manqué — JEU OUVERT uniquement (le coup franc a sa propre phase, cf. COMM.cf)
@@ -1846,6 +1894,7 @@ const COMM={
   "{A} est trouvé au second poteau, tout seul, but ouvert, gardien à terre... et il glisse. La pelouse a encore frappé.",
   "Deux appels au point de penalty, et {A} garde le ballon pour lui, tente le crochet de trop, se fait reprendre. Ses coéquipiers lèvent les bras au ciel et l'y laisseront un moment.",
   ...RATE_LOIN,
+  ...RATE_LOB,
  ],
  cj:[
   "Carton jaune pour {A} après un tacle appuyé.",
@@ -1935,6 +1984,7 @@ const COMM={
   "Frappe de {A} contrée par un défenseur, le ballon prend une trajectoire impossible et lobe son propre gardien... BUUUT ! Il y a des soirs comme ça.",
   "{A} centre au petit bonheur, ça heurte un tibia, un genou, puis le poteau... et ça rentre ! BUT ! Personne ne saura jamais vraiment à qui l'attribuer.",
   ...BUT_LOIN,
+  ...BUT_LOB,
   ...BUT_ARRET,
  ],
  sauve:[ // le sauvetage défensif — premier poste d'un vrai live, {A} = l'attaquant qui a tenté
@@ -2655,7 +2705,7 @@ const MONTEE_BUT=[
   "Le ballon brûle dans la surface, plus personne ne respire dans le stade…",
   "Deux appels croisés dans la surface, ça sent la poudre…",
   "Le ballon revient dans la surface, la défense flotte, ça se referme mal…",
-  "Oh là là, le ballon traîne aux dix-huit mètres, personne ne dégage…",
+  "Oh là là, le ballon traîne à l'entrée de la surface, personne ne dégage…",
   "Le stade se lève d'un seul homme, l'action est chaude, très chaude…",
   "Une percée plein axe, la défense recule, recule… c'est le moment ou jamais…",
 ];
@@ -2703,9 +2753,17 @@ const MONTEE_ARRET_FRAPPE=[
   (p,gk)=>"Le ballon va arriver, "+p+" a pris deux mètres sur son garde du corps, "+gk+" reste sur sa ligne…",
   (p,gk)=>p+" s'est glissé entre deux défenseurs pendant que ça s'installait, "+gk+" ne l'a pas vu…",
 ];
+/* LA MONTÉE NE CHIFFRE JAMAIS LA DISTANCE (v1.09) — retour de playtest : « X prend sa chance des vingt
+   mètres… », puis « PRALINE DE TRENTE MÈTRES ! ». Deux tirages indépendants, deux chiffres : le direct
+   se contredisait d'une ligne à l'autre. Seule la RÉSOLUTION donne la distance ; la montée dit « loin »,
+   « bien avant la surface », jamais un nombre. Et le second temps ne décrit pas non plus le geste
+   (« arme », « prend sa chance ») ni la prise de balle : la résolution les raconte elle-même (« arme des
+   vingt mètres », « récupère un ballon mal dégagé ») et les aurait dits deux fois — ou dans le désordre.
+   Il installe un homme seul, loin, et un gardien qui s'inquiète. Gardé par la section G du harnais
+   répétitions (aucun chiffre de dix mètres et plus dans une montée). */
 const MONTEE_LOIN=[
   "Le bloc adverse est bien en place, le ballon tourne devant la surface sans trouver la faille…",
-  "Rien ne passe dans l'axe, le ballon ressort aux vingt-cinq mètres…",
+  "Rien ne passe dans l'axe, le ballon ressort loin de la surface…",
   "Mur de maillots devant la surface : il va falloir trouver autre chose…",
   "Quinze passes sans la moindre ouverture, le stade commence à s'impatienter…",
   "Le ballon est repoussé loin du but… et il revient aussitôt !",
@@ -2714,14 +2772,33 @@ const MONTEE_LOIN=[
   "Ça piétine aux abords de la surface, personne ne trouve l'intervalle…",
 ];
 const MONTEE_LOIN_FRAPPE=[
-  (p,gk)=>p+" ramasse le ballon loin du but, et personne ne sort le chercher…",
-  (p,gk)=>"Le ballon tombe pour "+p+" à vingt-cinq mètres, il ne se pose aucune question…",
-  (p,gk)=>p+" prend sa chance des vingt mètres, "+gk+" tutoie déjà sa lucarne du regard…",
-  (p,gk)=>p+" avance, avance, personne ne vient le gêner, et "+gk+" recule d'un pas…",
-  (p,gk)=>p+" se met en position bien avant la surface, "+gk+" plisse les yeux…",
-  (p,gk)=>"Ballon repoussé dans les pieds de "+p+" à vingt-deux mètres, il arme sans contrôler…",
-  (p,gk)=>p+" arme de très loin, le genre de geste qu'on ne tente pas deux fois dans une saison…",
-  (p,gk)=>"On laisse "+p+" frapper de loin, "+gk+" ne voit pas grand-chose derrière la forêt de jambes…",
+  (p,gk)=>p+" traîne loin du but, et personne ne s'occupe de lui…",
+  (p,gk)=>p+" rôde bien avant la surface, "+gk+" jette déjà un œil inquiet à sa lucarne…",
+  (p,gk)=>"Personne ne surveille "+p+", resté en retrait de l'action…",
+  (p,gk)=>p+" attend son heure loin de la mêlée, "+gk+" plisse les yeux…",
+  (p,gk)=>"Le ballon ressort vers "+p+", seul, loin, très loin du but…",
+  (p,gk)=>p+" a de l'espace, beaucoup d'espace, et "+gk+" le sait…",
+  (p,gk)=>"On a oublié "+p+" en retrait, "+gk+" hurle à sa défense de sortir…",
+  (p,gk)=>p+" s'est replacé à bonne distance, "+gk+" ne voit pas grand-chose derrière la forêt de jambes…",
+];
+/* MONTÉE DE TENSION AVANT UN LOB (v1.09) — les deux temps qui précèdent une résolution de TIRS_LOB.
+   Premier temps : le gardien QUITTE sa surface (une sortie, une relance, un ballon en profondeur).
+   Second temps : le porteur voit le portier loin de sa ligne. Ni l'un ni l'autre ne dit « recule » —
+   deux lignes de résolution le racontent — ni « lob » : la résolution l'annonce. Aucune balle
+   arrêtée, aucun contre (un lob n'est jamais tiré dans les pools de contre). */
+const MONTEE_LOB=[
+  "Long ballon dans la profondeur, le gardien sort très loin de sa surface pour dégager…",
+  "Le gardien joue les libéros hors de sa surface, son dégagement ne va pas bien loin…",
+  "Relance manquée : le gardien était sorti la chercher loin de ses buts…",
+  "Le gardien s'avance hors de sa surface pour anticiper une ouverture qui ne vient pas…",
+  "Le gardien a suivi l'action jusqu'au bord de sa surface, et sa défense rend le ballon…",
+];
+const MONTEE_LOB_FRAPPE=[
+  (p,gk)=>p+" récupère le ballon et lève la tête : "+gk+" est loin, très loin de sa ligne…",
+  (p,gk)=>gk+" n'a pas eu le temps de regagner sa cage, et "+p+" l'a bien vu…",
+  (p,gk)=>"Derrière "+gk+", le but paraît immense, et "+p+" a le ballon dans les pieds…",
+  (p,gk)=>p+" contrôle, "+gk+" est pris à mi-chemin, ni dans sa cage ni sur le ballon…",
+  (p,gk)=>"Tout le stade a vu "+gk+" hors de ses bois, "+p+" aussi…",
 ];
 function gardienDe(club){ const g=club&&onze(club).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
 /* Premier temps d'un CONTRE (v0.87). Comme MONTEE_FRAPPE, ce sont des fonctions : elles nomment
@@ -2744,6 +2821,7 @@ function monteeUn(info, lignes, campA, campD){
   }
   if(info && info.ph==="bal") return pickM(MONTEE_ARRET,lignes);  // la conclusion vient d'un corner (cf. TIRS_ARRET)
   if(info && info.ph==="loin") return pickM(MONTEE_LOIN,lignes);  // frappe de loin : le bloc tient, l'action ressort (cf. TIRS_LOIN)
+  if(info && info.ph==="lob") return pickM(MONTEE_LOB,lignes);    // lob : le gardien a quitté sa surface (cf. TIRS_LOB)
   return pickM(MONTEE_BUT,lignes);
 }
 /* SECOND TEMPS DE LA MONTÉE (v1.04) — le porteur arme son geste ; restait à savoir D'OÙ. Le drapeau
@@ -2752,14 +2830,15 @@ function monteeUn(info, lignes, campA, campD){
    l'occasion est immense… » avant de conclure « PRALINE DE TRENTE MÈTRES ! » — signalé en playtest. */
 function monteeDeux(info, lignes, gk){
   const ph=info&&info.ph;
-  return pickM(ph==="bal"?MONTEE_ARRET_FRAPPE:(ph==="loin"?MONTEE_LOIN_FRAPPE:MONTEE_FRAPPE),lignes)(info.but, gk);
+  const pool=ph==="bal"?MONTEE_ARRET_FRAPPE:(ph==="loin"?MONTEE_LOIN_FRAPPE:(ph==="lob"?MONTEE_LOB_FRAPPE:MONTEE_FRAPPE));
+  return pickM(pool,lignes)(info.but, gk);
 }
 const MONTEE_CONTRE=[
   (r,v)=> r+" pique le ballon dans les pieds de "+v+" au milieu… ÇA PART EN CONTRE !",
   (r,v)=> "Incompréhension entre "+v+" et son partenaire, "+r+" s'en empare… le contre est lancé !",
   (r,v)=> "Passe hasardeuse de "+v+" dans sa propre défense, "+r+" surgit… ça sent le roussi !",
   (r,v)=> r+" intercepte la passe de "+v+" alors que tout le monde était monté… CONTRE ÉCLAIR !",
-  (r,v)=> "Le ballon fuit "+v+" à vingt mètres de sa cage, "+r+" ne se pose aucune question…",
+  (r,v)=> "Le ballon fuit "+v+" au milieu de terrain, "+r+" ne se pose aucune question…",
   (r,v)=> r+" anticipe et coupe la ligne de passe de "+v+"… trois joueurs partent devant !",
   (r,v)=> "Tacle propre de "+r+" devant "+v+", le ballon file vers l'avant… la défense est à découvert !",
   (r,v)=> v+" temporise une seconde de trop, "+r+" lui saute dessus… et le terrain s'ouvre en grand !",
@@ -9276,23 +9355,47 @@ function ecranEffectif(){
   const xi=onze(c);
   // un départ est refusé par poste (ou par le total) : on grise le bouton plutôt que d'alerter après coup
   const blocVente={}; for(const p of ["G","D","M","A"]){ const ech=c.joueurs.find(j=>j.pos===p); blocVente[p]=ech?refusDepart(c,ech):null; }
+  /* LE TABLEAU TIENT SUR UNE LIGNE PAR JOUEUR (v1.09, retour de playtest « les lignes sont trop larges »,
+     capture iPhone à l'appui : 225 px par joueur). Trois causes, trois remèdes. (1) La jauge de forme et
+     son mot d'époque → un chiffre coloré et un émoji (`FRAICH_PALIERS`), le mot passe en infobulle et
+     dans la fiche. (2) « 50.6 MF » se coupait en deux lignes → l'unité monte dans l'en-tête. (3) Quatre
+     boutons sur deux cellules s'empilaient en trois étages → une seule barre de quatre boutons collés
+     (★ 🛌 🏷️ 📤), pictos seuls — nommés par l'infobulle et par la légende sous le tableau : avec leurs
+     libellés, le tableau débordait de 130 px même sur ordinateur —, l'état « en cours » allumé en
+     cyan (jamais en jaune plein : le jaune plein est réservé à l'action offerte). Ce qui se lisait en
+     double disparaît du nom : « [au repos] » et « [à vendre] » sont dits par la colonne d'état ET par le
+     bouton allumé. En mobile, le nom reste collé à gauche quand on fait défiler vers les boutons : on
+     sait toujours sur qui on clique. */
+  const barre=(j,i)=>{
+    const b=(cls,on,ico,lib,titre,off)=>`<button class="act ico ${cls}${on?" on":""}" data-i="${i}" aria-pressed="${!!on}" aria-label="${lib}"${off?` disabled`:""} title="${esc(lib+" — "+titre)}"><span aria-hidden="true">${ico}</span></button>`;
+    const refusV=!j.avendre&&blocVente[j.pos], refusP=j.pretIn?"Prêté par un autre club : il ne vous appartient pas":blocVente[j.pos];
+    return `<span class="effBtns">`
+      +b("bT",j.titu,"★",j.titu?"Libérer":"Titulariser",j.titu?"Le libérer : le onze se choisit de nouveau à la note et à la forme":"Titulariser de force : prioritaire dans le 4-4-2, même moins bien noté")
+      +b("bR",j.repos,"🛌",j.repos?"Réintégrer":"Repos",j.repos?"Le remettre à disposition du onze":"L'écarter du onze et du banc pour qu'il récupère")
+      +b("bV",j.avendre,"🏷️",j.avendre?"Retirer":"Vendre",refusV||(j.avendre?"Le retirer de la liste des transferts":"Le mettre sur la liste des transferts"),refusV)
+      +b("bL",false,"📤","Prêter",refusP||"Prêter à un club où il jouera titulaire",refusP)
+      +`</span>`;
+  };
   chrome("effectif",`<div class="panel"><h2>Effectif — ${esc(c.nom)}</h2>
-   <table><tr><th></th><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num">Valeur</th><th class="num">Buts</th><th class="num">P.déc.</th><th></th><th></th></tr>
-   ${js.map((j,i)=>`<tr class="click" data-i="${c.joueurs.indexOf(j)}">
-     <td>${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan">★</span>':""}${j.repos?'<span class="cyan" title="Mis au repos — il récupère">🛌</span>':""}</td>
-     <td>${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${j.avendre?' <span class="rouge">[à vendre]</span>':""}${j.pretIn?' <span class="cyan">[prêt — retour J'+(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin+']</span>':""}${j.bless>0?' <span class="rouge">[blessé — '+j.bless+' j.]</span>':""}${j.susp>0?' <span class="jaune">[suspendu '+j.susp+' j.]</span>':""}${j.repos?' <span class="cyan">[au repos]</span>':""}</td>
-     <td class="pos-${j.pos}">${j.pos}</td><td class="num">${j.age}</td>
+   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num" title="Valeur marchande, en millions de francs">Valeur MF</th><th class="num">Buts</th><th class="num" title="Passes décisives">P.déc.</th><th></th></tr>
+   ${js.map(j=>{ const i=c.joueurs.indexOf(j), lf=libFraich(j), f=Math.round(fraich(j));
+     const etats=[
+       j.bless>0?`<span class="rouge">blessé ${j.bless} j.</span>`:"",
+       j.susp>0?`<span class="jaune">suspendu ${j.susp} j.</span>`:"",
+       j.pretIn?`<span class="cyan">prêt, retour J${(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin}</span>`:""].filter(Boolean);
+     return `<tr class="click" data-i="${i}">
+     <td class="effEtat">${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan" title="Titularisé de force">★</span>':""}${j.repos?'<span title="Mis au repos — il récupère">🛌</span>':""}${j.avendre?'<span title="Sur la liste des transferts">🏷️</span>':""}</td>
+     <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
+     <td class="pos-${j.pos}">${j.pos}</td>
+     <td class="num">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux" title="Passé 29 ans, sept jours ne suffisent plus à refaire le plein">⏳</span>':""}${j.age}</td>
      <td class="num"><b>${j.note}</b></td>
-     <td>${pictos(j)}</td>
-     <td style="white-space:nowrap">${jaugeFraich(j)} <span class="${libFraich(j)[2]}" style="font-size:13px">${esc(libFraich(j)[1])}</span>${(j.age>=30&&recupAge(j.age)<1)?' <span class="dim" title="Passé 29 ans, sept jours ne suffisent plus à refaire le plein">⏳</span>':""}</td>
+     <td class="effCar">${pictos(j)}</td>
+     <td class="num effForme" title="${esc(lf[1])} — ${f}/100"><b class="${lf[2]}">${f}</b> <span aria-label="${esc(lf[1])}">${lf[3]}</span></td>
      <td class="num"><span class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"dim")}">${Math.round(j.moral||65)}</span></td>
      <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲ +'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
-     <td class="num">${(valeur(j)/1e6).toFixed(1)} MF</td>
+     <td class="num">${(valeur(j)/1e6).toFixed(1)}</td>
      <td class="num">${j.buts}</td><td class="num">${j.passes||0}</td>
-     <td><button class="act bT" data-i="${c.joueurs.indexOf(j)}">${j.titu?"Libérer":"Titulariser"}</button>
-         <button class="act bR" data-i="${c.joueurs.indexOf(j)}" title="${j.repos?"Le remettre à disposition du onze":"L'écarter du onze et du banc pour qu'il récupère"}">${j.repos?"Réintégrer":"🛌 Repos"}</button>
-         <button class="act bV" data-i="${c.joueurs.indexOf(j)}"${!j.avendre&&blocVente[j.pos]?` disabled title="${esc(blocVente[j.pos])}"`:""}>${j.avendre?"Retirer":"Vendre"}</button></td>
-     <td>${j.pretIn?'<span class="dim">—</span>':`<button class="act bL" data-i="${c.joueurs.indexOf(j)}"${blocVente[j.pos]?` disabled title="${esc(blocVente[j.pos])}"`:' title="Prêter à un club où il jouera titulaire"'}>Prêter</button>`}</td></tr>`).join("")}
+     <td class="effAct">${barre(j,i)}</td></tr>`;}).join("")}
    </table>
    ${(()=>{ // le plancher réglementaire, expliqué là où l'on vend
      const n=c.joueurs.length, marge=n-PLANCHER_TOTAL, mq=manqueEffectif(c);
@@ -9311,8 +9414,9 @@ function ecranEffectif(){
      return `<p class="${cls}" style="margin-top:8px;font-size:12px">⚖️ Plancher réglementaire : <b>${PLANCHER_TOTAL} joueurs</b> sous contrat (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — 11 titulaires et 5 remplaçants sur la feuille de match. Effectif actuel : <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
    })()}
    <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême. Survolez pour le détail, ouvrez la fiche pour tout savoir.</p>
+   <p class="dim" style="margin-top:6px">Les quatre boutons de chaque ligne : <b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> mettre en vente · <b>📤</b> prêter — allumés en cyan quand la décision est en cours, un second appui l'annule. Touchez le nom pour ouvrir la fiche.</p>
    <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le 4-4-2 même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
-   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> — un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match. <b>Au-dessus de 90, aucun effet.</b> De 80 à 90, on joue à son pourcentage de forme — à 82, on rend 82 %. De 65 à 80, la note ET le risque de blessure s'aggravent. <b>Sous 65, l'impact devient massif et le moral se met à fuir</b> : là, c'est le repos ou rien. <b>Le onze écarte de lui-même un homme émoussé</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
+   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> sur 100 — 💪 frais (90 et plus) · 😐 entamé (80) · 😓 émoussé (65) · 🥵 jambes lourdes (50) · 🥴 sur les rotules. Un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match. <b>Au-dessus de 90, aucun effet.</b> De 80 à 90, on joue à son pourcentage de forme — à 82, on rend 82 %. De 65 à 80, la note ET le risque de blessure s'aggravent. <b>Sous 65, l'impact devient massif et le moral se met à fuir</b> : là, c'est le repos ou rien. <b>Le onze écarte de lui-même un homme émoussé</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
     <p class="dim" style="font-size:12px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b> — contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>
     <table><tr><th>Joueur</th><th>P</th><th>Chez</th><th class="num">Note</th><th class="num" title="Ce que le club hôte vous verse par journée de prêt">Encaissé</th><th>Retour</th></tr>
@@ -9333,7 +9437,9 @@ function ecranEffectif(){
         ? ` disabled title="Trésorerie insuffisante : il faudrait ${(cout/1e6).toFixed(2)} MF en caisse"`
         : ` title="Indemnité de rupture versée à ${esc(clubById(j.club).nom)}"`}>📞 Rappeler ${esc(j.nom)} — ${(cout/1e6).toFixed(2)} MF</button>`;}).join("")}</p>`:""}</div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=e=>{
-    if(e.target.classList.contains("bV")||e.target.classList.contains("bT")||e.target.classList.contains("bL")||e.target.classList.contains("bR"))return;
+    // closest et non classList : le clic tombe souvent sur le picto ou le libellé DANS le bouton — et un
+    // bouton grisé ne doit pas non plus ouvrir la fiche par ricochet
+    if(e.target.closest(".effBtns"))return;
     ouvreFiche(c.joueurs[+tr.dataset.i]);
   });
   app.querySelectorAll(".bV").forEach(b=>b.onclick=()=>listerVente(c.joueurs[+b.dataset.i]));
@@ -9407,7 +9513,7 @@ function ouvreFiche(j){
        Fragilité ${j.fragile||5}/10 — ${esc(fragLib(j.fragile||5))}<br>
        Vénalité ${j.venal||5}/10 — ${esc(venalLib(j.venal||5))}</p>
     <p>Moral : <b class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"jaune")}">${Math.round(j.moral||65)}/100</b>${(j.sansJouer||0)>=3?' <span class="rouge">— ronge son frein sur le banc</span>':""}</p>
-    <p>Forme : ${jaugeFraich(j,80)} <b class="${libFraich(j)[2]}">${esc(libFraich(j)[1])}</b> <span class="dim">(${Math.round(fraich(j))}/100)</span>${j.repos?' <span class="cyan">🛌 au repos</span>':""}</p>
+    <p>Forme : ${jaugeFraich(j,80)} ${libFraich(j)[3]} <b class="${libFraich(j)[2]}">${esc(libFraich(j)[1])}</b> <span class="dim">(${Math.round(fraich(j))}/100)</span>${j.repos?' <span class="cyan">🛌 au repos</span>':""}</p>
     <p class="dim" style="font-size:12px">${recupAge(j.age)>=1
       ? "À "+j.age+" ans, une semaine de repos lui rend tout ce qu'un match lui prend."
       : "À "+j.age+" ans, sept jours ne lui rendent plus que "+Math.round(FRAICH_SEM*recupJoueur(j,clubById(j.club)))+" points sur les 20 qu'un match coûte : le déficit s'accumule, il faudra le ménager."}</p>

@@ -509,10 +509,13 @@ toujours « raconter quelque chose ».
   **PIÈGE ÉVITÉ, à ne pas réintroduire** : dans `majMoral`, un joueur `repos` ou sous 70 de fraîcheur **ne fait plus
   tourner `sansJouer`** — sinon ménager un cadre le punissait DEUX fois (jambes lourdes + moral en berne) et la
   décision que la fraîcheur rend nécessaire devenait une faute. Un homme qu'on ménage n'est pas un homme qu'on écarte.
-  **Affichage** (jauge + mot d'époque, choix auteur) : colonne « Forme » de l'écran Effectif (`jaugeFraich`/
-  `libFraich` → Frais ≥ 90 / Entamé ≥ 80 / Émoussé ≥ 65 / Jambes lourdes ≥ 50 / Sur les rotules — **les paliers
-  d'affichage épousent EXACTEMENT les bornes du barème**, le mot lu et la sanction encaissée désignent la même
-  chose ; toucher à l'un impose de toucher à l'autre. ⏳ sur les 30 ans et plus),
+  **Affichage** (mot d'époque, choix auteur) : `libFraich` → Frais ≥ 90 / Entamé ≥ 80 / Émoussé ≥ 65 / Jambes
+  lourdes ≥ 50 / Sur les rotules — **les paliers d'affichage épousent EXACTEMENT les bornes du barème**, le mot lu
+  et la sanction encaissée désignent la même chose ; toucher à l'un impose de toucher à l'autre. **Depuis v1.09**
+  (retour de playtest « la barre de forme prend trop de place »), chaque palier de `FRAICH_PALIERS` porte aussi un
+  **émoji** (4ᵉ case : 💪 😐 😓 🥵 🥴) : la colonne « Forme » de l'écran Effectif affiche **le chiffre coloré + l'émoji**
+  (le mot passe en infobulle), et le ⏳ des 30 ans et plus a glissé devant l'**âge**, dont il parle. La jauge
+  `jaugeFraich` reste dans la fiche joueur, qui a la place (jauge + émoji + mot + x/100),
   ligne détaillée dans la fiche joueur, `apercuRotation(rot)` sous les boutons de rotation des trois écrans de
   rendez-vous de semaine, et un **avertissement d'avant-match** sous la feuille de match quand des titulaires sont
   sous 90 (rouge sous 65). **ÉQUILIBRE À CONNAÎTRE** : `FRAICH_MATCH` = `FRAICH_SEM` = 20, et `finirJournee`
@@ -851,6 +854,28 @@ toujours « raconter quelque chose ».
   passes en moins** au tableau des passeurs. Aucun effet sur le score ni sur le calibrage (2,443 buts/match).
   Gardé par la **section H de `harness-repetitions.cjs`** : zéro corner direct avec passeur sur ~9 400 buts,
   ni dans le texte ni dans les données de l'évènement.
+  **Deux derniers trous refermés en v1.09 (captures de playtest)**. (1) **LE LOB** : « Chevtchenko se présente
+  seul devant Szeiler, tout le stade debout… », puis « tente le lob sur le gardien monté trop haut ». On ne lobe
+  pas un gardien resté sur sa ligne : la ligne dormait dans `COMM.arret` **sans drapeau** (elle ne contenait
+  aucun chiffre, donc le filet « vingt mètres et plus » ne la voyait pas). Le lob devient une **quatrième
+  géométrie** : `ph:"lob"`, jeu **`TIRS_LOB`** (`BUT_LOB`/`RATE_LOB`/`ARRET_LOB`, le lob des quarante mètres y a
+  rejoint son cousin), et sa mise en scène **`MONTEE_LOB`** (le gardien QUITTE sa surface : long ballon, relance
+  manquée, libéro) / **`MONTEE_LOB_FRAPPE`** (le porteur voit le portier loin de sa ligne). Un but et un raté ont
+  été écrits exprès : une montée qui ne précéderait que des arrêts **annoncerait l'issue**. La montée ne dit ni
+  « lob » ni « recule » — deux résolutions le racontent. (2) **LA MONTÉE NE CHIFFRE JAMAIS LA DISTANCE** :
+  « prend sa chance des vingt mètres », puis « PRALINE DE TRENTE MÈTRES ». Toutes les montées ont perdu leurs
+  chiffres (« aux vingt-cinq mètres », « à vingt-deux mètres », « aux dix-huit mètres », et « à vingt mètres de
+  sa cage » dans `MONTEE_CONTRE`, qui contredisait « avale quarante mètres balle au pied ») : **seule la
+  résolution donne la distance**. Et `MONTEE_LOIN_FRAPPE` a été réécrite : elle **installe un homme seul, loin,
+  sans raconter ni le geste (« arme », « prend sa chance ») ni la prise de balle** — la résolution les raconte
+  déjà (« arme des vingt mètres », « récupère un ballon mal dégagé ») et les aurait dits deux fois, ou dans le
+  désordre. **Règle générale, à appliquer à toute nouvelle montée** : le second temps pose un décor (où est
+  l'homme, où est le gardien), jamais une mesure ni un geste. Gardé par la **section G de
+  `harness-repetitions.cjs`** : lob sans drapeau (au mot « lob » — « lobe son propre gardien », la déviation,
+  n'en est pas un), lob présent en but/raté/arrêt, aucun chiffre de dix mètres et plus dans les **neuf** pools de
+  montée (fonctions évaluées avec des noms factices ; « six mètres » la zone et « deux mètres » d'avance restent
+  permis), aucun geste dans `MONTEE_LOIN_FRAPPE`, et les **quatre** décors qui ne se mélangent jamais. Purement
+  narratif : aucun évènement créé, aucun score touché.
 - **Météo de match (v0.84, affinée v0.85)** : le même corpus signalait un événement `pluie` qu'on n'avait pas.
   **`METEO`** = 8 temps (`clair`, `eteIndien`, `pluie`, `vent`, `froid`, `brouillard`, `boue`, `neige`), chacun
   avec un `ouv` (fragment ajouté à la ligne de coup d'envoi) et un jeu de lignes `amb` distillées pendant la
@@ -1170,7 +1195,8 @@ toujours « raconter quelque chose ».
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
    **et cohérence de la mise en scène** — un contre s'annonce comme un contre, une frappe de trente mètres
-   ne s'annonce pas comme une dernière passe, un but sur corner s'annonce comme un corner),
+   ne s'annonce pas comme une dernière passe, un but sur corner s'annonce comme un corner, un lob suit un
+   gardien sorti de sa surface, et aucune montée ne chiffre une distance que la résolution contredirait),
    `harness-fraicheur.cjs` (l'état de forme physique : barème, décrochage du vétéran sur une saison, rythme à
    trois jours, rotation automatique pour vous ET pour l'IA, effets mesurés sur le rendement et les blessures,
    intersaison et migration, rendu des six écrans à toutes les valeurs de jauge),
@@ -1415,6 +1441,22 @@ toujours « raconter quelque chose ».
   les `table`. Les tableaux étroits libellé/valeur (Finances, Buteurs, Passeurs) doivent porter
   `class="fit"` (qui remet `min-width:0`), sinon leur colonne de droite — montants, compteurs de buts/passes —
   sort de l'écran et devient invisible.
+- **L'ÉCRAN EFFECTIF TIENT SUR UNE LIGNE PAR JOUEUR (v1.09, retour de playtest capture iPhone : 225 px par
+  joueur)**. Mesuré en Playwright à 390 px : **88 → 43 px** par ligne en mobile, **62 → 35 px** sur ordinateur.
+  Trois causes : la jauge + le mot de forme (→ chiffre + émoji, cf. FRAÎCHEUR), « 50.6 MF » coupé en deux (→ l'unité
+  monte dans l'en-tête « Valeur MF »), et quatre boutons sur deux cellules empilés en trois étages (→ **une barre
+  de quatre pictos collés** `.effBtns` : ★ titulariser · 🛌 repos · 🏷️ vendre · 📤 prêter). Règles à tenir :
+  (a) **pictos seuls, partout** — avec leurs libellés, le tableau débordait de 130 px **même sur ordinateur**
+  (le panneau n'y scrolle pas) ; ils sont nommés par `aria-label`, l'infobulle et la légende sous le tableau.
+  (b) L'état en cours s'**allume en cyan** (`.on` + `aria-pressed`), jamais en jaune plein (règle v1.02).
+  (c) « [au repos] » et « [à vendre] » ont quitté le nom (dits par la colonne d'état ET par le bouton allumé) ;
+  seuls blessé/suspendu/prêt restent, en petit **sous** le nom. (d) Le clic de ligne teste
+  **`e.target.closest(".effBtns")`**, jamais `classList.contains` : le doigt tombe sur le `<span>` du picto,
+  et la fiche s'ouvrait par ricochet. (e) En mobile, le **nom reste collé à gauche** quand on défile vers les
+  boutons : `position:sticky; left:-8px` (−8 = la marge intérieure du `.panel`, sinon les chiffres défilent dans
+  une bande visible) et le filet est un **`::after`** — en tableau à bordures fusionnées, ni `border` ni
+  `box-shadow` ne suivent une cellule collante. Vérifié au navigateur (script de clics : picto qui agit sans
+  ouvrir la fiche, grisé inerte, nom qui ouvre la fiche, zéro bouton jaune plein, nom au bord après défilement).
 - **LE TÉLÉSCRIPTEUR ÉCRIT DU PLUS RÉCENT AU PLUS ANCIEN (v1.04, demande de l'auteur)** : la dernière action
   se lit **tout en haut**, on ne suit plus le bas du cadre au fil du match. Deux règles à tenir dans les
   **TROIS** directs (championnat, Coupe de France, Europe) : on insère en **`"afterbegin"`** (jamais

@@ -38,7 +38,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,monteeUn,monteeDeux,phaseTir,MONTEE_BUT,MONTEE_CONTRE,MONTEE_FRAPPE,MONTEE_LOIN,MONTEE_LOIN_FRAPPE,MONTEE_ARRET,MONTEE_ARRET_FRAPPE,TIRS_LOIN,TIRS_ARRET,BUT_SANS_PASSE,BUT_CORNER_DIRECT,onze,CLUBS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,monteeUn,monteeDeux,phaseTir,MONTEE_BUT,MONTEE_CONTRE,MONTEE_FRAPPE,MONTEE_LOIN,MONTEE_LOIN_FRAPPE,MONTEE_LOB,MONTEE_LOB_FRAPPE,MONTEE_ARRET,MONTEE_ARRET_FRAPPE,TIRS_LOIN,TIRS_LOB,TIRS_ARRET,BUT_SANS_PASSE,BUT_CORNER_DIRECT,onze,CLUBS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -208,7 +208,7 @@ if (BUTS.has(api.monteeUn({ contre: true, but: "X" }, []))) ok("sans camps connu
 else fail("le repli sans camps ne retombe pas sur MONTEE_BUT");
 
 // la montée générique ne doit imposer AUCUNE phase de jeu (règle écrite au-dessus du pool)
-const imposeContre = api.MONTEE_BUT.filter((l) => /contre|contre-attaque/i.test(l));
+const imposeContre = api.MONTEE_BUT.filter((l) => /bcontreb|contre-attaque/i.test(l));
 const imposeArret = api.MONTEE_BUT.filter((l) => /corner|coup franc|penalty|touche de but/i.test(l));
 if (!imposeContre.length) ok("aucune ligne de MONTEE_BUT n'annonce un contre");
 else fail(imposeContre.length + " ligne(s) de MONTEE_BUT parlent de contre : « " + imposeContre[0].slice(0, 50) + "… »");
@@ -221,18 +221,28 @@ else fail(imposeArret.length + " ligne(s) de MONTEE_BUT imposent un coup de pied
    étiquette désormais chaque résolution (`ph` : "" jeu ouvert proche, "loin", "bal" = sur corner)
    et les deux temps de la montée piochent dans le décor correspondant. On vérifie les trois
    maillons : les listes collent aux pools, le drapeau est posé partout, le décor suit.        */
-console.log("G) Phase de la conclusion (TIRS_LOIN / TIRS_ARRET, monteeUn / monteeDeux)");
+console.log("G) Phase de la conclusion (TIRS_LOIN / TIRS_LOB / TIRS_ARRET, monteeUn / monteeDeux)");
 const POOLS_TIR = [].concat(api.COMM.but, api.COMM.rate, api.COMM.arret, api.COMM.rateContre);
-const ETIQUETEES = [...api.TIRS_LOIN, ...api.TIRS_ARRET];
+const ETIQUETEES = [...api.TIRS_LOIN, ...api.TIRS_LOB, ...api.TIRS_ARRET];
 const orphelines = ETIQUETEES.filter((l) => !POOLS_TIR.includes(l));
 if (!orphelines.length) ok("les " + ETIQUETEES.length + " conclusions étiquetées sont bien recollées dans leur pool");
 else fail(orphelines.length + " ligne(s) étiquetée(s) ne sont dans aucun pool : « " + orphelines[0].slice(0, 45) + "… »");
 
 // filets de rattrapage : une conclusion écrite directement dans le pool serait muette
 const RX_LOIN = /(vingt|vingt-cinq|trente|quarante) m[èe]tres/i;
-const oubliees = POOLS_TIR.filter((l) => RX_LOIN.test(l) && !api.TIRS_LOIN.has(l));
+// (un lob part de loin lui aussi, mais il a sa propre famille : il y est compté)
+const oubliees = POOLS_TIR.filter((l) => RX_LOIN.test(l) && !api.TIRS_LOIN.has(l) && !api.TIRS_LOB.has(l));
 if (!oubliees.length) ok("aucune frappe de loin restée dans un pool sans son drapeau");
 else fail(oubliees.length + " ligne(s) parlent de vingt mètres et plus hors de TIRS_LOIN : « " + oubliees[0].slice(0, 45) + "… »");
+// v1.09 — « se présente seul devant Y » puis « tente le lob sur le gardien monté trop haut » : le lob
+// était resté dans le pool sans drapeau. « lobe son propre gardien » (la déviation) n'est pas un lob tenté.
+const RX_LOB = /\blob\b/i;
+const oubliLob = POOLS_TIR.filter((l) => RX_LOB.test(l) && !api.TIRS_LOB.has(l));
+if (!oubliLob.length) ok("aucun lob resté dans un pool sans son drapeau");
+else fail(oubliLob.length + " lob(s) hors de TIRS_LOB : « " + oubliLob[0].slice(0, 45) + "… »");
+const lobIssues = ["but", "rate", "arret"].filter((k) => api.COMM[k].some((l) => api.TIRS_LOB.has(l)));
+if (lobIssues.length === 3) ok("le lob existe en but, en raté ET en arrêt : sa mise en scène ne trahit pas l'issue");
+else fail("le lob n'a d'issue qu'en " + lobIssues.join("/") + " : sa montée annonce le dénouement");
 // « détournée EN corner » est un aboutissement, « sur corner » une origine : seule l'origine compte
 const RX_ARRET = /(sur|de|du) corner|corner (rentrant|au second|direct)/i;
 const oubliArret = POOLS_TIR.filter((l) => RX_ARRET.test(l) && !api.TIRS_ARRET.has(l));
@@ -243,6 +253,25 @@ else fail(oubliArret.length + " ligne(s) naissent d'un corner hors de TIRS_ARRET
 const horsRegle = api.MONTEE_LOIN.filter((l) => /corner|coup franc|penalty|contre-attaque|en contre/i.test(l));
 if (!horsRegle.length) ok("MONTEE_LOIN n'impose aucune phase de jeu qu'elle ne connaît pas");
 else fail(horsRegle.length + " ligne(s) de MONTEE_LOIN imposent une phase : « " + horsRegle[0].slice(0, 45) + "… »");
+const horsRegle3 = api.MONTEE_LOB.filter((l) => /corner|coup franc|penalty|contre-attaque|en contre|recule|\blob\b/i.test(l));
+if (!horsRegle3.length) ok("MONTEE_LOB ne dit ni balle arrêtée, ni contre, ni « recule », ni « lob » (la résolution s'en charge)");
+else fail(horsRegle3.length + " ligne(s) de MONTEE_LOB en disent trop : « " + horsRegle3[0].slice(0, 45) + "… »");
+
+// v1.09 — « prend sa chance des VINGT mètres », puis « PRALINE DE TRENTE MÈTRES ». La montée ne chiffre
+// jamais la distance : seule la résolution le fait. On balaie les SEPT pools de montée, fonctions
+// comprises (évaluées avec des noms factices) — « six mètres » (la zone) et « deux mètres » (d'avance)
+// ne sont pas des distances au but et restent permis.
+const RX_CHIFFRE = /(dix|onze|douze|quinze|seize|dix-huit|vingt|trente|quarante|cinquante|\d{2,})[- ]?\S* m[èe]tres/i;
+const texteMontee = (x) => (typeof x === "function" ? x("Joueur", "Gardien") : x);
+const chiffrees = [].concat(api.MONTEE_BUT, api.MONTEE_FRAPPE, api.MONTEE_LOIN, api.MONTEE_LOIN_FRAPPE,
+  api.MONTEE_LOB, api.MONTEE_LOB_FRAPPE, api.MONTEE_ARRET, api.MONTEE_ARRET_FRAPPE, api.MONTEE_CONTRE.map((f) => f("Joueur", "Rival")))
+  .map(texteMontee).filter((t) => RX_CHIFFRE.test(t));
+if (!chiffrees.length) ok("aucune montée ne chiffre la distance : la résolution est seule à le faire");
+else fail(chiffrees.length + " montée(s) chiffrent une distance : « " + chiffrees[0].slice(0, 50) + "… »");
+// et le second temps d'une frappe de loin ne décrit pas le geste que la résolution racontera
+const gestesLoin = api.MONTEE_LOIN_FRAPPE.map(texteMontee).filter((t) => /\barme|prend sa chance|frapp|\btire\b|décoche|ramasse|récup/i.test(t));
+if (!gestesLoin.length) ok("MONTEE_LOIN_FRAPPE installe l'homme sans raconter le geste ni la prise de balle");
+else fail(gestesLoin.length + " ligne(s) de MONTEE_LOIN_FRAPPE racontent déjà le geste : « " + gestesLoin[0].slice(0, 45) + "… »");
 const horsRegle2 = api.MONTEE_ARRET.filter((l) => /coup franc|penalty|contre-attaque|en contre/i.test(l));
 if (!horsRegle2.length) ok("MONTEE_ARRET ne parle que du corner qu'elle connaît");
 else fail(horsRegle2.length + " ligne(s) de MONTEE_ARRET imposent une autre phase");
@@ -272,26 +301,27 @@ for (let k = 0; k < 600; k++) {
   verifieDrapeau(api.simuleReste(h, v, 45, sh, sa, 1, 1, r.vus).ev, cpt);
   verifieDrapeau(api.genEvCoupe(h, v, { sh: 1 + (k % 4), sa: k % 3, tab: null, win: h }).ev, cpt);
 }
-if (cpt.ko === 0) ok("drapeau exact sur " + (cpt.ouvert + cpt.loin + cpt.bal) + " conclusions (" + cpt.loin + " de loin, " + cpt.bal + " sur corner) — championnat, re-sim et coupe");
-else fail(cpt.ko + " conclusion(s) mal étiquetées");
+if (cpt.ko === 0 && cpt.lob > 0) ok("drapeau exact sur " + (cpt.ouvert + cpt.loin + cpt.lob + cpt.bal) + " conclusions (" + cpt.loin + " de loin, " + cpt.lob + " lobs, " + cpt.bal + " sur corner) — championnat, re-sim et coupe");
+else fail(cpt.ko ? cpt.ko + " conclusion(s) mal étiquetées" : "aucun lob tiré sur l'échantillon : le drapeau « lob » n'est pas prouvé");
 
 // et la mise en scène pioche dans le bon décor, aux DEUX temps
 const nomT = api.onze(h0)[0].nom, gkT = "Barthez";
-const DECORS = { "": new Set(api.MONTEE_BUT), loin: new Set(api.MONTEE_LOIN), bal: new Set(api.MONTEE_ARRET) };
+const DECORS = { "": new Set(api.MONTEE_BUT), loin: new Set(api.MONTEE_LOIN), lob: new Set(api.MONTEE_LOB), bal: new Set(api.MONTEE_ARRET) };
 const GESTES = {
   "": new Set(api.MONTEE_FRAPPE.map((f) => f(nomT, gkT))),
   loin: new Set(api.MONTEE_LOIN_FRAPPE.map((f) => f(nomT, gkT))),
+  lob: new Set(api.MONTEE_LOB_FRAPPE.map((f) => f(nomT, gkT))),
   bal: new Set(api.MONTEE_ARRET_FRAPPE.map((f) => f(nomT, gkT))),
 };
 let decorKo = 0, gesteKo = 0;
-for (const ph of ["", "loin", "bal"]) {
+for (const ph of ["", "loin", "lob", "bal"]) {
   for (let k = 0; k < 400; k++) {
     const info = { ph, but: nomT, cote: h0.id };
     if (!DECORS[ph].has(api.monteeUn(info, [], h0, a0))) decorKo++;
     if (!GESTES[ph].has(api.monteeDeux(info, [], gkT))) gesteKo++;
   }
 }
-if (decorKo === 0 && gesteKo === 0) ok("les trois phases (proche, de loin, sur corner) ne se mélangent jamais, ni au premier ni au second temps");
+if (decorKo === 0 && gesteKo === 0) ok("les quatre phases (proche, de loin, lob, sur corner) ne se mélangent jamais, ni au premier ni au second temps");
 else fail(decorKo + " décor(s) et " + gesteKo + " geste(s) pris dans la mauvaise phase");
 if (CONTRES.has(api.monteeUn({ ph: "loin", contre: true, but: nomT, cote: h0.id }, [], h0, a0)))
   ok("un contre conclu de loin garde sa mise en scène de contre (la distance ne joue qu'au second temps)");
