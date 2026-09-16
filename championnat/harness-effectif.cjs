@@ -31,9 +31,10 @@ global.document = makeStub();
 global.window = { __TEST__: true, addEventListener() {}, removeEventListener() {}, localStorage: ls, location: { href: "" }, matchMedia: () => ({ matches: false, addEventListener() {} }) };
 global.localStorage = ls;
 global.navigator = { userAgent: "harness" };
-let ALERTES = [];
-global.alert = (t) => { ALERTES.push(String(t)); };
-global.confirm = () => true; global.prompt = () => null;
+// Les boîtes du navigateur ont disparu du jeu (v1.05) : les refus passent par les fenêtres maison,
+// qui tiennent un journal des vingt derniers messages. C'est lui que ce harnais relit (ALERTES,
+// branché plus bas sur api.MSG_JOURNAL) — d'où les « ALERTES.length = 0 » au lieu de « = [] ».
+global.alert = () => {}; global.confirm = () => true; global.prompt = () => null;
 global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
@@ -41,8 +42,9 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,simuleMatch,clubById,onze,byUid," +
   "manqueEffectif,refusDepart,veilleEffectif,listerVente,venteEclair,ventesEnCours,preteJoueur," +
   "acheter,finaliseAchat,accepterOffreExt,migre,monteeCentre,intersaison,rappelPret,coutRappel,retourPret,traiterPrets," +
-  "PLANCHER,PLANCHER_TOTAL,QUOTA_CESSIONS,MONTEES_MAX,getG:function(){return G;},setG:function(x){G=x;}};";
+  "PLANCHER,PLANCHER_TOTAL,QUOTA_CESSIONS,MONTEES_MAX,MSG_JOURNAL,getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
+const ALERTES = api.MSG_JOURNAL; // le journal des messages poussés au joueur (fenêtres maison)
 
 let FAILS = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) FAILS++; };
@@ -59,7 +61,7 @@ const n0 = moi.joueurs.length;
 // on brade tout ce que le règlement autorise : mise en vente + vente éclair jusqu'au refus
 let vendus = 0;
 for (const j of moi.joueurs.slice()) {
-  ALERTES = [];
+  ALERTES.length = 0;
   api.venteEclair(j);
   if (!moi.joueurs.includes(j)) vendus++;
 }
@@ -69,16 +71,16 @@ ok(compte(moi, "G") >= api.PLANCHER.G, `les deux gardiens sont restés (${compte
 ok(!horsClous(moi), "effectif en règle après la razzia");
 
 // le refus est motivé
-ALERTES = [];
+ALERTES.length = 0;
 api.venteEclair(moi.joueurs.find(j => j.pos === "G"));
 ok(ALERTES.length === 1 && /gardiens sous contrat/.test(ALERTES[0]),
   "vendre un gardien est refusé, motif à l'appui : « " + (ALERTES[0] || "").split("\n").pop() + " »");
 
 // mise sur la liste des transferts, prêt sortant : mêmes barrières
-ALERTES = [];
+ALERTES.length = 0;
 api.listerVente(moi.joueurs[0]);
 ok(moi.joueurs[0].avendre !== true && ALERTES.length === 1, "mise sur la liste des transferts refusée au plancher");
-ALERTES = [];
+ALERTES.length = 0;
 api.preteJoueur(moi.joueurs[0], 5, 20000, api.clubById(G.clubs.find(c => c.id !== G.monClub).id));
 ok(moi.joueurs.length >= api.PLANCHER_TOTAL && ALERTES.length === 1, "prêt sortant refusé au plancher");
 
@@ -117,12 +119,12 @@ const cible = G.clubs.find(c => c.id !== G.monClub);
 const nCible = cible.joueurs.length;
 let achats = 0;
 for (const j of cible.joueurs.slice().filter(x => x.pos !== "G")) {
-  ALERTES = [];
+  ALERTES.length = 0;
   api.finaliseAchat(j, 1, 0);          // achat direct : on teste le quota via acheter() juste après
   if (j.club === G.monClub) achats++;
   if (achats >= api.QUOTA_CESSIONS) break;
 }
-ALERTES = [];
+ALERTES.length = 0;
 api.acheter(cible.joueurs.find(j => j.pos !== "G"));
 ok(ALERTES.length === 1 && /supermarché/.test(ALERTES[0]), "un 3ᵉ achat au même club est refusé : « " + (ALERTES[0] || "") + " »");
 ok(cible.joueurs.length >= api.PLANCHER_TOTAL, `le club dévalisé reste en règle (${cible.joueurs.length} joueurs, départ de ${nCible})`);
@@ -132,7 +134,7 @@ G = api.getG();
 G.budget = 900e6; G.tresorerie = 900e6; G.journee = 0;
 const cible2 = G.clubs.find(c => c.id !== G.monClub);
 api.finaliseAchat(cible2.joueurs.find(j => j.pos === "G"), 1, 0);
-ALERTES = [];
+ALERTES.length = 0;
 api.acheter(cible2.joueurs.find(j => j.pos === "G"));
 ok(ALERTES.length === 1 && /portier/.test(ALERTES[0]), "le second gardien du même club est intransférable : « " + (ALERTES[0] || "") + " »");
 ok(compte(cible2, "G") >= api.PLANCHER.G, `l'adversaire a racheté un gardien (${compte(cible2, "G")} en poste)`);
@@ -170,7 +172,7 @@ api.monteeCentre("M");
 ok(moi.joueurs.length === api.PLANCHER_TOTAL + 1 && !api.refusDepart(moi, moi.joueurs.find(j => j.pos === "M")),
   `un jeune monte du centre → ${moi.joueurs.length} joueurs, un départ redevient possible`);
 api.monteeCentre("A");
-ALERTES = [];
+ALERTES.length = 0;
 api.monteeCentre("D");
 ok(ALERTES.length === 1 && moi.joueurs.length === api.PLANCHER_TOTAL + 2,
   `le centre s'arrête à ${api.MONTEES_MAX} promotions par saison (la 3ᵉ est refusée)`);
@@ -201,7 +203,7 @@ ok(pret.debut === 3, `la journée de signature est mémorisée (debut = J${pret.
 const cout = api.coutRappel(pret, jeune);
 ok(cout > 0, `indemnité de rupture chiffrée : ${(cout / 1e6).toFixed(2)} MF pour ${pret.fin - G.journee} journées restantes`);
 G.tresorerie = cout - 1e5;
-ALERTES = [];
+ALERTES.length = 0;
 api.rappelPret(uid);
 ok(ALERTES.length === 1 && /rupture/.test(ALERTES[0]) && !!G.prets.find(p => p.uid === uid),
   "caisse trop maigre : le rappel est refusé et le prêt court toujours");
@@ -232,7 +234,7 @@ const autre = moi.joueurs.slice().sort((a, b) => a.age - b.age).find(j => j.pos 
 api.preteJoueur(autre, 5, 50000, null);
 const p2 = G.prets.find(p => p.uid === autre.uid);
 G.journee = p2.fin - 1;
-ALERTES = [];
+ALERTES.length = 0;
 api.rappelPret(autre.uid);
 ok(ALERTES.length === 1 && /de toute façon/.test(ALERTES[0]) && !!G.prets.find(p => p.uid === autre.uid),
   "à une journée du terme, le rappel est refusé : « " + (ALERTES[0] || "").split(String.fromCharCode(10))[0] + " »");

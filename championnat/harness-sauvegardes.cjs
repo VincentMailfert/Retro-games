@@ -48,11 +48,10 @@ global.document = makeStub();
 global.window = { __TEST__: true, addEventListener() {}, removeEventListener() {}, localStorage: ls, location: { href: "" }, matchMedia: () => ({ matches: false, addEventListener() {} }) };
 global.localStorage = ls;
 global.navigator = { userAgent: "harness" };
-let ALERTES = [];
-global.alert = (t) => { ALERTES.push(String(t)); };
-global.confirm = () => true;
-let REPONSE_PROMPT = null;
-global.prompt = () => REPONSE_PROMPT;
+// Les boîtes du navigateur ont disparu du jeu (v1.05). Les refus passent par les fenêtres maison,
+// qui tiennent un journal des vingt derniers messages (ALERTES, branché plus bas sur api.MSG_JOURNAL),
+// et la saisie d'un nom de carrière lit window._saisie quand il n'y a pas de DOM à remplir.
+global.alert = () => {}; global.confirm = () => true; global.prompt = () => null;
 global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
@@ -60,10 +59,11 @@ global.Blob = function () {}; global.URL = { createObjectURL: () => "blob:" };
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,migre,clubById,metaClub,CLUBS,CLUBS_D2," +
   "sauvegardeLocale,chargeLocale,partiesListe,supprimePartie,renommePartie,placeDispo,idxLit,ficheDe," +
-  "SAVEKEY,IDXKEY,PARTPFX,MAX_PARTIES," +
+  "SAVEKEY,IDXKEY,PARTPFX,MAX_PARTIES,MSG_JOURNAL,posePend," +
   "getG:function(){return G;},setG:function(x){G=x;},getPARTIE:function(){return PARTIE;}," +
   "getSaveKO:function(){return SAVE_KO;},setSaveCrie:function(v){SAVE_CRIE=v;}};";
 const api = new Function(script + epilogue)();
+const ALERTES = api.MSG_JOURNAL; // le journal des messages poussés au joueur (fenêtres maison)
 
 let FAILS = 0;
 const fail = (m) => { console.error("  ✗ " + m); FAILS++; };
@@ -168,12 +168,14 @@ console.log("\nE) Renommer et supprimer");
 ls.clear();
 api.nouvellePartie(idA); reel(() => api.sauvegardeLocale(true));
 const pid = api.getPARTIE().id, pk = api.getPARTIE().k;
-REPONSE_PROMPT = "La remontada messine";
-reel(() => api.renommePartie(pid));
+// pas de reel() ici : sans DOM, la fenêtre de saisie valide la réponse préparée par le test
+global.window._saisie = "La remontada messine";
+api.renommePartie(pid);
+global.window._saisie = null;
 ok(api.partiesListe()[0].nom === "La remontada messine", "une carrière peut porter un nom choisi");
 reel(() => api.sauvegardeLocale(true));
 ok(api.partiesListe()[0].nom === "La remontada messine", "le nom survit aux sauvegardes suivantes");
-reel(() => api.supprimePartie(pid));
+api.supprimePartie(pid); // sans DOM, la fenêtre de confirmation prend le chemin du « oui »
 ok(api.partiesListe().length === 0 && ls.getItem(pk) === null, "la supprimer efface la sauvegarde ET son entrée d'index");
 
 /* ===== F) mémoire pleine ===== */
@@ -182,11 +184,11 @@ ls.clear();
 api.nouvellePartie(idA);
 for (let i = 0; i < 6; i++) api.jouerJournee();
 ls.quota = 100; // plus rien ne rentre
-ALERTES = []; api.setSaveCrie(false);
+ALERTES.length = 0; api.setSaveCrie(false);
 const r1 = reel(() => api.sauvegardeLocale(true));
 ok(r1 === false && api.getSaveKO() === true, "la sauvegarde échoue proprement, sans exception");
 ok(ALERTES.length === 1 && /pleine/.test(ALERTES[0]), "le joueur est prévenu une fois, et on lui dit quoi faire");
-ALERTES = [];
+ALERTES.length = 0;
 reel(() => api.sauvegardeLocale(true));
 ok(ALERTES.length === 0, "la sauvegarde auto ne harcèle pas le joueur à chaque écran");
 let boum = null;
@@ -200,12 +202,32 @@ ok(reel(() => api.sauvegardeLocale(true)) === true && api.getSaveKO() === false,
 console.log("\nG) Le nombre de carrières est borné");
 ls.clear();
 for (let i = 0; i < api.MAX_PARTIES; i++) { api.nouvellePartie(api.CLUBS[i].id); reel(() => api.sauvegardeLocale(true)); }
-ALERTES = [];
+ALERTES.length = 0;
 ok(api.partiesListe().length === api.MAX_PARTIES, `${api.MAX_PARTIES} carrières tiennent dans le navigateur`);
 ok(reel(() => api.placeDispo()) === false && ALERTES.length === 1,
   "la suivante est refusée, avec l'explication (supprimer une carrière)");
 ok(ls.poids() * 2 < 5 * 1024 * 1024,
   `${api.MAX_PARTIES} carrières pèsent ${Ko(ls.poids())} de texte, soit ${(ls.poids() * 2 / 1048576).toFixed(1)} Mo en UTF-16 — sous les ~5 Mo du navigateur`);
+
+/* ===== H) un match en cours ne part jamais dans la sauvegarde =====
+   G._pend porte des RÉFÉRENCES aux vrais clubs et aux vrais joueurs. Sérialisé, il les duplique — et
+   au rechargement la fin de journée s'appliquerait à des clones détachés : une journée comptée dans le
+   vide, un match perdu pour le classement. Deux verrous depuis v1.05 : la propriété est non énumérable
+   (JSON.stringify l'ignore) ET sauvegardeLocale refuse d'écrire tant qu'elle est levée, pour que la
+   dernière sauvegarde reste celle d'AVANT le coup d'envoi — la seule cohérente. */
+console.log("\nH) Un match en cours ne part jamais dans la sauvegarde");
+ls.clear();
+api.nouvellePartie(idA);
+const Gp = api.getG();
+const poidsAvant = JSON.stringify(Gp).length;
+api.posePend({ res: Gp.clubs.map(c => ({ h: c, a: c, sh: 0, sa: 0 })), pend: null, monMatch: { ev: [] } });
+ok(!!Gp._pend, "le match en cours est bien posé sur G");
+ok(JSON.parse(JSON.stringify(Gp))._pend === undefined, "JSON.stringify l'ignore : aucun clone de club dans le fichier");
+ok(JSON.stringify(Gp).length === poidsAvant, "et la sauvegarde ne grossit pas d'un octet");
+ok(reel(() => api.sauvegardeLocale(true)) === false && ls.getItem(api.getPARTIE().k) === null,
+  "tant qu'il est levé, rien n'est écrit : on ne fige pas une journée à moitié jouée");
+Gp._pend = null;
+ok(reel(() => api.sauvegardeLocale(true)) === true, "le coup de sifflet passé, la sauvegarde repart normalement");
 
 console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS SAUVEGARDES : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

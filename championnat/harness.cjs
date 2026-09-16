@@ -34,7 +34,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 /* ---- évaluation du script + épilogue qui expose l'API ---- */
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,tireMoment,autoMoment,simuleMatch,byUid,onze,clubById,leadership,capitaineDuXI,assureCapitaine,CLUBS,CLUBS_D2,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,tireMoment,autoMoment,simuleMatch,rejoueDepuis,byUid,onze,clubById,leadership,capitaineDuXI,assureCapitaine,CLUBS,CLUBS_D2,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -107,6 +107,55 @@ try {
   if (cagOK && cadOK) ok("cagade (" + cagOK + ") et cadeau (" + cadOK + ") résolus correctement");
   ok("types vus : " + Object.keys(types).sort().join(", "));
 } catch (e) { fail("exception moments : " + e.stack); }
+
+/* ===== B bis) tactique en direct SUR UN MATCH À MOMENT (v1.04) =====
+   Depuis v1.04 on peut changer de consigne même quand un moment attend à la 90e : le recollage doit donc
+   rendre un fil qui tient encore debout — moment présent une seule fois, sifflet en dernier, score = lignes-but. */
+console.log("B bis) Tactique en direct sur un match à moment (le recollage préserve la 90e)");
+try {
+  api.nouvellePartie(api.CLUBS[3].id);
+  const G = api.getG();
+  const moi = G.clubs.find(c => c.id === G.monClub);
+  let essais = 0, perdus = 0, doubles = 0, scoreKO = 0, sifKO = 0, addKO = 0;
+  for (let i = 0; i < 2000 && essais < 300; i++) {
+    const adv = PICK(G.clubs.filter(c => c.id !== G.monClub));
+    for (const c of [moi, adv]) for (const j of c.joueurs) { j.susp = 0; j.bless = 0; }
+    const r = api.simuleMatch(moi, adv, true);
+    const mo = api.tireMoment(moi, adv);
+    if (!mo) continue;
+    // on greffe la ligne du moment juste avant le sifflet, exactement comme le fait jouerJournee
+    const sifflet = r.ev.pop();
+    r.ev.push({ m: 90, t: "crd", x: mo.annonce, mo: mo.type });
+    r.ev.push(sifflet);
+    const coupe = r.ev.findIndex(e => e.m > 45);
+    if (coupe < 0) continue;
+    G.consigne = "offensif";                                   // le banc passe offensif à la pause
+    api.rejoueDepuis(r, moi, adv, coupe, 45, 1, 1);
+    G.consigne = "equilibre";
+    essais++;
+    const lignesMo = r.ev.filter(e => e.mo === mo.type);
+    if (lignesMo.length === 0) perdus++;
+    else if (lignesMo.length > 1) doubles++;
+    const der = r.ev[r.ev.length - 1];
+    if (!der || der.t !== "sys" || !/COUP DE SIFFLET FINAL/.test(der.x)) sifKO++;
+    if (!r.ev.some(e => e.t === "sys" && /temps additionnel/.test(e.x || ""))) addKO++;
+    let sh = 0, sa = 0;
+    for (const e of r.ev) if (e.g) { if (e.g.cote === moi.id) sh++; else sa++; }
+    if (sh !== r.sh || sa !== r.sa) scoreKO++;
+  }
+  if (essais < 100) fail("trop peu de matchs à moment re-simulés (" + essais + ")");
+  else {
+    if (perdus) fail(perdus + " re-sim(s) sur " + essais + " ont effacé le moment de la 90e");
+    else if (doubles) fail(doubles + " re-sim(s) ont dupliqué la ligne du moment");
+    else ok("le moment de la 90e survit intact à " + essais + " changements de consigne");
+    if (sifKO) fail(sifKO + " fil(s) ne se terminent pas par le coup de sifflet");
+    else ok("le coup de sifflet reste la dernière ligne du fil");
+    if (addKO) fail(addKO + " fil(s) ont perdu l'annonce du temps additionnel");
+    else ok("l'annonce du temps additionnel survit au recollage");
+    if (scoreKO) fail(scoreKO + " fil(s) où le score ne correspond plus aux lignes-but");
+    else ok("score et lignes-but restent d'accord après recollage");
+  }
+} catch (e) { fail("exception tactique en direct : " + e.stack); }
 
 /* ===== C) fautes de gardien + carton rouge (verbeux) ===== */
 console.log("C) Verbeux : fautes de gardien + rouge (jouer à 10)");

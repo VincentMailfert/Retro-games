@@ -133,6 +133,9 @@
   .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
   @media(max-width:700px){.grid2{grid-template-columns:1fr;}}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+  @media(max-width:1000px){.grid3{grid-template-columns:1fr 1fr;}}
+  @media(max-width:700px){.grid3{grid-template-columns:1fr;}}
   select,input[type=text]{
     background:var(--panel2); border:1px solid var(--line); color:var(--txt);
     font-family:inherit; font-size:16px; padding:4px 6px;
@@ -190,8 +193,14 @@
     .mercPag button{min-height:44px;}
   }
   .badge{display:inline-block; border:1px solid var(--line); padding:0 6px; color:var(--dim); font-size:14px;}
-  #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px;}
+  #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:10;}
   #fiche .card{background:var(--panel); border:2px solid var(--jaune); max-width:460px; width:100%; padding:14px 16px;}
+  /* Le calque des MESSAGES (message/confirme/saisie) : il vit AU-DESSUS de #fiche pour qu'un refus
+     ("trésorerie insuffisante") puisse s'afficher par-dessus la fenêtre d'où part le clic — l'embauche
+     d'un coach, typiquement — sans l'effacer ni toucher au verrou _penEnCours, qui appartient à #fiche. */
+  #msgbox{position:fixed; inset:0; background:rgba(4,9,18,.72); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
+  #msgbox input[type=text]{display:block; width:100%; margin-top:8px; background:#0b1626; color:#dfe9ff;
+     border:1px solid #38507a; border-radius:4px; font-family:inherit; font-size:16px; padding:9px;}
   .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px;}
 
 /* tableau d'affichage */
@@ -204,6 +213,7 @@
 #tabButs .tCol{flex:1;font-size:14px;color:var(--dim)}
 #tabButs .tCol.d{text-align:right}
 .fmatch{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:10px;margin-top:10px}
+.fmatch .hdm{border-top:1px solid var(--line);padding-top:6px} /* l'homme du match, détaché du reste de la feuille */
 
 /* ---------- mode direct : le match occupe tout l'écran (immersion, surtout sur mobile) ----------
    Posé sur <body> par lanceMatch/lanceCoupe/lanceEuroLeg au coup d'envoi, retiré par abandonneDirect
@@ -264,6 +274,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
 <body>
 <div id="app"></div>
 <div id="fiche" role="dialog" aria-modal="true"></div>
+<div id="msgbox" role="dialog" aria-modal="true"></div>
 
 <script>
 "use strict";
@@ -273,9 +284,9 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.04"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.06"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
-const MF  = n => FMT(n/1e6*10)/10 !== undefined ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "";
+const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
 const RNDI=(a,b)=>Math.floor(RND(a,b+1));
 const PICK=a=>a[Math.floor(Math.random()*a.length)];
@@ -1502,6 +1513,7 @@ function nouvellePartie(clubId, saisonKey){
     d2:[], palmares:[], recap:null, vire:null,
     centre:1, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
     flash:null, intro:null,
+    hdm:null, alm:{phrase:null,depeche:null}, // homme du match de la journée + almanach de la saison
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
   G.intro=S.an; // mot d'ouverture de la toute première saison de la carrière
@@ -1715,6 +1727,59 @@ function libLeadership(j){
 }
 
 /* ---------- Moteur de match + commentaires ---------- */
+/* FINITIONS LOINTAINES (v1.04) — LES LIGNES DE RÉSOLUTION OÙ LE TIR PART DE VINGT MÈTRES ET PLUS.
+   Retour de playtest : le direct enchaînait « Coup de billard devant le but, ça chauffe… », puis
+   « Dernière passe pour X, l'occasion est immense… » — donc un ballon à trois mètres de la ligne —
+   avant de conclure « PRALINE DE TRENTE MÈTRES ! ». Une mine de trente mètres ne naît pas d'une
+   dernière passe : elle arrive SOUDAINEMENT, sur une action qui butait jusque-là sur le bloc adverse.
+   Même famille d'erreur que la météo (v0.86), le contre (v0.87) et le coup franc (v0.89) : UNE LIGNE
+   NE DOIT JAMAIS AFFIRMER UNE PHASE DE JEU QUE LA SUIVANTE CONTREDIT.
+   Ces lignes sont donc déclarées À PART, recollées dans leur pool par `...` (le tirage est
+   rigoureusement inchangé) et rassemblées dans `TIRS_LOIN`. Le moteur consulte ce jeu au moment de
+   composer la ligne et pose un drapeau `loin` sur l'évènement (`g` ou `q`) ; la mise en scène le
+   relit pour choisir son décor (`MONTEE_LOIN` / `MONTEE_LOIN_FRAPPE`, cf. `monteeUn`/`monteeDeux`).
+   RÈGLE : une nouvelle frappe de loin s'écrit ICI, jamais directement dans le pool — sinon la montée
+   de tension redevient incohérente sans que rien ne le signale (harnais répétitions, section G). */
+const BUT_LOIN=[
+  "PRALINE DE TRENTE MÈTRES ! {A} a armé une mine, le gardien n'a vu que du feu ! Mais quel obus, mes amis !",
+  "{A} récupère un ballon mal dégagé aux vingt mètres et le remet dedans du premier coup... BUUUT ! Punition immédiate !",
+];
+const RATE_LOIN=[
+  "{A} arme des vingt mètres... et ça frôle la lucarne ! Le gardien n'a pas bougé, il n'aurait rien pu faire.",
+];
+const ARRET_LOIN=[
+  "{A} décoche une praline des vingt mètres... et le gardien s'envole pour la détourner ! Quel réflexe, mes amis !",
+  "{A} tente le lob des quarante mètres, culotté... le gardien recule, recule... et cueille le ballon sous sa barre !",
+];
+const RATE_CONTRE_LOIN=[
+  "Le contre file droit au but, {A} arme des vingt mètres... au-dessus ! Il y avait mieux à faire.",
+];
+const TIRS_LOIN=new Set([...BUT_LOIN,...RATE_LOIN,...ARRET_LOIN,...RATE_CONTRE_LOIN]);
+/* CONCLUSIONS SUR CORNER (v1.04) — même mécanique, pour le résidu laissé ouvert en v0.98 : trois
+   lignes de résolution naissent d'un coup de pied de coin, et une montée de jeu ouvert (« Ouverture
+   limpide dans le dos des défenseurs… ») ne peut pas déboucher dessus. On ne les sort PAS des pools
+   (un but sur corner est du vrai football, et `COMM.corner` ne raconte que les corners qui ne donnent
+   rien) : on les étiquette, et la montée s'adapte. Le contre, lui, ne peut pas les croiser — il tire
+   dans `butContre`/`arretContre`, qui n'ont aucune balle arrêtée. */
+/* LE CORNER DIRECT — le ballon rentre SANS QUE PERSONNE NE LE TOUCHE. C'est la seule conclusion du
+   jeu où une « Passe décisive de X » est un contresens : on la nomme donc à part, et `marque` force
+   l'absence de passeur quand elle sort. Une autre ligne du même genre s'ajoute ICI et dans le Set —
+   c'est le seul endroit à tenir à jour. */
+const BUT_CORNER_DIRECT="Corner rentrant... et personne ne touche le ballon ! BUT DIRECT ! {A} jure qu'il l'a fait exprès, on veut bien le croire !";
+const BUT_SANS_PASSE=new Set([BUT_CORNER_DIRECT]);
+const BUT_ARRET=[
+  BUT_CORNER_DIRECT,
+  "Corner au second poteau, {A} monte au-dessus de la mêlée et pique sa tête dans le petit filet... BUUUT !",
+];
+const ARRET_ARRET=[
+  "Coup de casque de {A} sur corner... arrêt sur la ligne ! Ah, il y avait but, j'en mettrais ma main au feu !",
+];
+const TIRS_ARRET=new Set([...BUT_ARRET,...ARRET_ARRET]);
+/* La phase de tir telle que le moteur la pose sur l'évènement (`g` ou `q`), lue par `monteeUn` et
+   `monteeDeux` : "" = jeu ouvert et finition proche, "loin" = frappe de vingt mètres et plus,
+   "bal" = la conclusion vient d'un corner. Un seul champ, court : les évènements du direct sont
+   nombreux et ce drapeau les suit tous. */
+function phaseTir(l){ return TIRS_LOIN.has(l)?"loin":(TIRS_ARRET.has(l)?"bal":""); }
 const COMM={
  amb:[
   "Le public donne de la voix dans les tribunes.",
@@ -1748,11 +1813,8 @@ const COMM={
   "Frappe puissante de {A}... détournée en corner !",
   "Tête piquée de {A}... le portier claque le ballon au-dessus !",
   "{A} se présente seul... mais bute sur le gardien sorti à merveille !",
-  "{A} décoche une praline des vingt mètres... et le gardien s'envole pour la détourner ! Quel réflexe, mes amis !",
   "Talonnade de {A} dans la surface... le portier gagne son face-à-face d'un pied ferme !",
   "{A} croise sa frappe au ras du poteau... claquette du gardien ! Il était battu, il ne l'est plus !",
-  "Coup de casque de {A} sur corner... arrêt sur la ligne ! Ah, il y avait but, j'en mettrais ma main au feu !",
-  "{A} tente le lob des quarante mètres, culotté... le gardien recule, recule... et cueille le ballon sous sa barre !",
   "Reprise de volée de {A}... en pleine poitrine du portier, qui ne veut rien savoir ce soir !",
   "{A} slalome entre trois défenseurs, ouvre son pied... et le gardien sort le grand jeu du bout du gant !",
   "Frappe à bout portant de {A}... le portier fait le mur à lui tout seul ! C'est un miracle, ni plus ni moins !",
@@ -1761,12 +1823,13 @@ const COMM={
   "Frappe vicieuse de {A} qui rebondit devant {G}... détournée du bout des doigts en corner ! Le rebond était traître.",
   "{A} se retourne dans un mouchoir et frappe des deux côtés coup sur coup — {G} dit non, et redit non !",
   "{A} tente le lob sur {G} monté trop haut. Le portier recule en marche arrière comme une Safrane dans un parking, et boxe au-dessus de sa barre !",
+  ...ARRET_LOIN,
+  ...ARRET_ARRET,
  ],
  rate:[ // tir manqué — JEU OUVERT uniquement (le coup franc a sa propre phase, cf. COMM.cf)
   "{A} en pivot, reprise instantanée... à côté de peu !",
   "Une-deux dans l'axe, {A} à la conclusion... au-dessus !",
   "{A} élimine son vis-à-vis et frappe... sur le poteau !!",
-  "{A} arme des vingt mètres... et ça frôle la lucarne ! Le gardien n'a pas bougé, il n'aurait rien pu faire.",
   "{A} déborde et centre fort... personne à la réception !",
   "{A} seul face au but... et il dévisse complètement ! Le ballon finit chez les photographes !",
   "Retourné acrobatique de {A}... au-dessus ! C'était pour la beauté du geste, et le geste était beau.",
@@ -1780,6 +1843,7 @@ const COMM={
   "{A} croit avoir le temps, contrôle, réajuste... et le retour du défenseur contre sa frappe. Il fallait la mettre du premier coup.",
   "{A} est trouvé au second poteau, tout seul, but ouvert, gardien à terre... et il glisse. La pelouse a encore frappé.",
   "Deux appels au point de penalty, et {A} garde le ballon pour lui, tente le crochet de trop, se fait reprendre. Ses coéquipiers lèvent les bras au ciel et l'y laisseront un moment.",
+  ...RATE_LOIN,
  ],
  cj:[
   "Carton jaune pour {A} après un tacle appuyé.",
@@ -1860,18 +1924,16 @@ const COMM={
   "Le ballon voyage d'un bout à l'autre du terrain et revient sur {A}, servi sur un plateau... BUUUT ! Ça, c'est du billard !",
   "Oh le malheureux ! Le centre est dévié par un défenseur... et ça finit au fond ! But contre son camp, {A} en profite pour l'inscrire au tableau !",
   "Roulette de {A} dans la surface — la Marseillaise, mesdames et messieurs ! — et du gauche... BUUUT ! Le grand frisson !",
-  "PRALINE DE TRENTE MÈTRES ! {A} a armé une mine, le gardien n'a vu que du feu ! Mais quel obus, mes amis !",
   "Une-deux dans l'axe, talonnade, et {A} qui pousse le ballon dans le but vide... BUUUT ! C'est du jeu à la nantaise, ça !",
-  "Corner rentrant... et personne ne touche le ballon ! BUT DIRECT ! {A} jure qu'il l'a fait exprès, on veut bien le croire !",
   "{A} au duel avec le gardien... petit piqué tout en douceur... BUUUT ! Quel sang-froid, on dirait qu'il joue en pantoufles !",
   "La reprise de {A} est contrée, revient, il insiste, pousse... BUUUT ! Pas le plus beau de sa carrière, mais ils comptent tous double dans un soir pareil !",
-  "Corner au second poteau, {A} monte au-dessus de la mêlée et pique sa tête dans le petit filet... BUUUT !",
-  "{A} récupère un ballon mal dégagé aux vingt mètres et le remet dedans du premier coup... BUUUT ! Punition immédiate !",
   "Action patiemment construite, {A} au bout de la chaîne... il croise du plat du pied... BUUUT ! Le gardien n'a pas bougé !",
   "{A} arrive lancé sur le centre à ras de terre et pousse le ballon au fond ! BUT ! Le plus simple du monde, encore fallait-il être là !",
   "Le centre de {A} traverse toute la surface, un défenseur tend la jambe pour dégager... et catapulte le ballon dans sa propre lucarne ! BUUUT ! On le mettra au crédit du centreur, soyons généreux.",
   "Frappe de {A} contrée par un défenseur, le ballon prend une trajectoire impossible et lobe son propre gardien... BUUUT ! Il y a des soirs comme ça.",
   "{A} centre au petit bonheur, ça heurte un tibia, un genou, puis le poteau... et ça rentre ! BUT ! Personne ne saura jamais vraiment à qui l'attribuer.",
+  ...BUT_LOIN,
+  ...BUT_ARRET,
  ],
  sauve:[ // le sauvetage défensif — premier poste d'un vrai live, {A} = l'attaquant qui a tenté
   "Le centre traverse toute la surface, {A} n'a plus qu'à pousser... SAUVÉ SUR LA LIGNE ! Un défenseur sorti de nulle part !",
@@ -1925,9 +1987,9 @@ const COMM={
   "Le contre est idéal, {A} arrive lancé... et il écrase complètement sa frappe ! L'occasion était énorme.",
   "Trois contre deux, {A} garde le ballon pour lui, tente le crochet de trop... et se fait reprendre ! Le banc lève les bras au ciel.",
   "{A} avale le terrain sur le contre, lève la tête, choisit mal... et sa dernière passe se perd. Dommage.",
-  "Le contre file droit au but, {A} arme des vingt mètres... au-dessus ! Il y avait mieux à faire.",
   "{A} est lancé seul sur le contre... mais il traîne, temporise, et le retour du défenseur le prive de tout.",
   "Contre parfaitement mené, {A} à la conclusion... et il glisse au moment de frapper ! {D} l'a échappé belle.",
+  ...RATE_CONTRE_LOIN,
  ],
  arretContre:[ // contre STOPPÉ par le gardien
   "Le contre est tranchant, {A} se présente face à {G}... et le portier ferme l'angle ! Quelle sortie !",
@@ -2078,6 +2140,12 @@ function passeur(c, buteur){
    vocabulaire de contre. RÈGLE : on ne contre que si le ballon était à l'adversaire.
    Remise à zéro à chaque coup d'envoi. Purement narratif, aucun effet sur le score. */
 let DERN_ATT={cote:null,m:-99,but:false};
+/* FEUILLE DE MATCH DES RENCONTRES MUETTES (v1.06) : votre match écrit tout au téléscripteur (`ev`
+   porte uid et pasUid), mais les dix-neuf autres ne produisent AUCUNE ligne — on savait que Lens avait
+   gagné 2-1, jamais par qui. C'est ce qui manquait pour nommer un homme du match dans TOUTE la division.
+   `marque` y dépose donc deux entiers par but, quoi qu'il arrive ; `simuleMatch` repart d'un tableau NEUF
+   à chaque coup d'envoi (réaffectation, jamais .length=0 : le match précédent garde le sien intact). */
+let FAITS=[];
 function estContre(c,m){
   if(!DERN_ATT.cote) return Math.random()<0.10;          // début de match : récupération spontanée, rare
   const dt=m-DERN_ATT.m, mien=(DERN_ATT.cote===c.id);
@@ -2091,11 +2159,22 @@ function estContre(c,m){
 // même rencontre. Sans mémoire, un match à quatre buts avait près d'une chance sur quatre de
 // servir deux fois le même commentaire (23 lignes au pool, tirage avec remise).
 function marque(c, sh, sa, verbeux, ev, m, prefixe, contre, vus){
-  const j=tireur(c), p=passeur(c,j);
+  const j=tireur(c);
+  // LA LIGNE EST TIRÉE AVANT LE PASSEUR (v1.05) : le corner direct est le seul but où personne ne
+  // touche le ballon, et le téléscripteur le faisait quand même suivre d'une « Passe décisive de X ».
+  // On ne peut le savoir qu'une fois la ligne connue — d'où ce tirage remonté d'un cran. Le prix est
+  // mesuré et assumé : ~1 % des passes décisives disparaissent du tableau des passeurs.
+  // Elle sert aussi, comme avant, au drapeau `ph` : il se lit sur le GABARIT, jamais sur le texte
+  // affiché (noms déjà substitués). En match muet (autres rencontres), aucune ligne n'est tirée et
+  // le passeur est désigné comme avant : le calibrage des passes hors de votre match ne bouge pas.
+  const lgn=verbeux?pickNR(contre?COMM.butContre:COMM.but,vus||[]):null;
+  const p=(lgn && BUT_SANS_PASSE.has(lgn)) ? null : passeur(c,j);
   j.buts++; if(p) p.passes++;
+  FAITS.push({u:j.uid,b:1}); if(p) FAITS.push({u:p.uid,p:1}); // de quoi nommer l'homme du match, même sans téléscripteur
   // uid/pasUid : permettent d'annuler proprement un but pré-tiré si la tactique change en cours de match (cf. rejoueDepuis)
-  if(verbeux) ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa,uid:j.uid,pasUid:p?p.uid:null,contre:!!contre},
-    x:fmtC(pickNR(contre?COMM.butContre:COMM.but,vus||[]),j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe});
+  if(verbeux){
+    ev.push({m,t:"but",ic:"but",g:{cote:c.id,but:j.nom,pas:p?p.nom:null,sh,sa,uid:j.uid,pasUid:p?p.uid:null,contre:!!contre,ph:phaseTir(lgn)},
+      x:fmtC(lgn,j,c)+(p?" Passe décisive de "+p.nom+".":"")+"  "+prefixe}); }
 }
 /* Commentaire lié au nombre de buts d'un joueur dans le match : doublé, triplé… et le COUP DU CHAPEAU
    (trois buts d'affilée, sans qu'un autre joueur — coéquipier ou adversaire — n'ait marqué entre-temps). */
@@ -2131,6 +2210,66 @@ function titreBut(g, contre){
   if(g.nb===4) return "QUADRUPLÉ !!!";
   if(g.nb>=5) return "⚽×"+g.nb+" — DÉCHAÎNÉ !";
   return contre?"BUT…":"⚽ BUT !";
+}
+/* ---------- L'HOMME DU MATCH (v1.06) ----------
+   Rien de neuf n'est simulé : on relit ce que la rencontre a déjà produit — buts, passes décisives,
+   cage inviolée, carton rouge — et on nomme celui qui a fait la différence. Un moment de plus par
+   journée pour presque rien : une ligne sous la feuille de match, un mot dans le debrief, un peu de
+   moral pour l'intéressé, et au printemps un classement de plus (`j.hdm`, remis à zéro par razStatsClub).
+   DEUX SOURCES, UN SEUL BARÈME : votre match se relit sur le téléscripteur (`faitsDuFil`), les dix-neuf
+   autres sur le tableau brut que `marque` a rempli (`r.faits`). Le rouge DISQUALIFIE — on ne décore pas
+   l'homme qui a laissé les siens à dix. Championnat seulement : la coupe a ses propres soirées. */
+const HDM_BUT=3.0, HDM_PASSE=1.7, HDM_CLEAN=2.4, HDM_VICTOIRE=0.8;
+function faitsDuFil(ev){ // la feuille de match de VOTRE rencontre : buteurs, passeurs, expulsés
+  const f=[];
+  for(const l of ev||[]){
+    if(l.g){ if(l.g.uid!=null) f.push({u:l.g.uid,b:1}); if(l.g.pasUid!=null) f.push({u:l.g.pasUid,p:1}); }
+    if(l.c && l.c.rouge && l.c.uid!=null) f.push({u:l.c.uid,r:1});
+  }
+  return f;
+}
+function hommeDuMatch(h,a,sh,sa,faits,gkH,gkA){
+  const par={};
+  const entree=j=>{ if(!j) return null; return par[j.uid]=par[j.uid]||{j,b:0,p:0,r:0,blanc:false}; };
+  for(const f of faits||[]){
+    const e=entree(f.u==null?null:byUid(f.u));
+    if(e){ e.b+=f.b||0; e.p+=f.p||0; e.r+=f.r||0; }
+  }
+  if(sa===0){ const e=entree(gkH); if(e) e.blanc=true; } // le portier de l'équipe qui n'a rien encaissé
+  if(sh===0){ const e=entree(gkA); if(e) e.blanc=true; }
+  let best=null;
+  for(const k in par){
+    const e=par[k];
+    if(e.r) continue; // expulsé : pas d'honneur pour celui qui a fini au vestiaire
+    const gagne=(e.j.club===h.id&&sh>sa)||(e.j.club===a.id&&sa>sh);
+    // Le barème est calé pour que le 1-0 reste le match de SON BUTEUR (3,8 contre 3,5) : c'est lui qui
+    // a tranché. Le gardien l'emporte quand il n'y a rien d'autre à raconter — le 0-0, où il est seul en lice.
+    e.pts=HDM_BUT*e.b + HDM_PASSE*e.p + (e.blanc?HDM_CLEAN+(gagne?0.3:0):0) + (gagne?HDM_VICTOIRE:0)
+        + (e.j.note||60)/400; // départage discret : à égalité de feuille, le meilleur joueur l'emporte
+    if(e.pts<=0) continue;
+    if(!best || e.pts>best.pts) best=e;
+  }
+  return best;
+}
+function motifHdm(e){ // ce qu'on met sous son nom, en français de journal
+  const t=[];
+  if(e.b===1) t.push("un but");
+  else if(e.b===2) t.push("un doublé");
+  else if(e.b===3) t.push("un triplé");
+  else if(e.b>3) t.push(e.b+" buts");
+  if(e.p===1) t.push("une passe décisive");
+  else if(e.p>1) t.push(e.p+" passes décisives");
+  if(e.blanc) t.push("la cage inviolée");
+  if(!t.length) return "un match plein";
+  return t.length<2?t[0]:t.slice(0,-1).join(", ")+" et "+t[t.length-1];
+}
+/* Nomme l'homme du match d'une rencontre et incrémente son compteur de saison.
+   Renvoie une fiche légère (pas de référence au joueur : elle passe dans G et donc dans la sauvegarde). */
+function designeHdm(h,a,sh,sa,faits,gk){
+  const e=hommeDuMatch(h,a,sh,sa,faits, gk&&gk.h!=null?byUid(gk.h):null, gk&&gk.a!=null?byUid(gk.a):null);
+  if(!e) return null;
+  e.j.hdm=(e.j.hdm||0)+1;
+  return {uid:e.j.uid, nom:e.j.nom, club:e.j.club, motif:motifHdm(e)};
 }
 function agressif(c){
   const xi=onze(c);
@@ -2172,6 +2311,10 @@ function simuleMatch(home,away,verbeux){
   let mulH=1, mulA=1; // infériorité numérique : un rouge plombe l'équipe réduite pour les minutes restantes
   let sh=0, sa=0; const ev=[], vusC=[], booked=new Set(); // vusC = anti-répétition des commentaires ; booked = joueurs déjà avertis (uid), pour un vrai « 2e jaune »
   DERN_ATT={cote:null,m:-99,but:false}; // nouvelle rencontre : personne n'a encore attaqué
+  FAITS=[]; // feuille de match brute (buts, passes) — lue par l'homme du match, y compris dans les rencontres muettes
+  // les deux portiers du coup d'envoi, retenus par uid : c'est eux qu'on décorera d'une cage inviolée,
+  // et l'effectif aura déjà bougé (fatigue, blessures) quand on relira la feuille après le coup de sifflet
+  const gkH=onze(home).find(j=>j.pos==="G"), gkA=onze(away).find(j=>j.pos==="G");
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
     ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv}); }
   for(let m=1;m<=90;m++){
@@ -2181,18 +2324,18 @@ function simuleMatch(home,away,verbeux){
       const ct=estContre(home,m);
       if(Math.random()<0.42){ sh++; marque(home,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); if(verbeux) DERN_ATT={cote:home.id,m,but:true}; }
       else if(verbeux&&Math.random()<.7){
-        const arr=Math.random()<.5, tir=tireur(home);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,away),
-          q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}}); // q = de quoi monter le suspense ; un contre joue toujours sa mise en place
+        const arr=Math.random()<.5, tir=tireur(home), lgn=pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(lgn,tir,away),
+          q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct,ph:phaseTir(lgn)}}); // q = de quoi monter le suspense ; un contre joue toujours sa mise en place
         DERN_ATT={cote:home.id,m,but:false}; // la mémoire ne retient que ce qui est AFFICHÉ au téléscripteur
       }
     } else if(r < (elh+ela)/90){
       const ct=estContre(away,m);
       if(Math.random()<0.42){ sa++; marque(away,sh,sa,verbeux,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); if(verbeux) DERN_ATT={cote:away.id,m,but:true}; }
       else if(verbeux&&Math.random()<.7){
-        const arr=Math.random()<.5, tir=tireur(away);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,home),
-          q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+        const arr=Math.random()<.5, tir=tireur(away), lgn=pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(lgn,tir,home),
+          q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct,ph:phaseTir(lgn)}});
         DERN_ATT={cote:away.id,m,but:false};
       }
     } else if(verbeux && Math.random()<0.028){
@@ -2242,7 +2385,7 @@ function simuleMatch(home,away,verbeux){
     ev.push({m:90,t:"sys",x:"L'arbitre annonce "+PICK([1,2,2,3,3,4,5])+" minutes de temps additionnel."});
     ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom});
     annoteButs(ev); }
-  const R={sh,sa,ev,aff}; memoireDe(R,vusC); return R; // la mémoire anti-répétition voyage avec le match (cf. memoireDe)
+  const R={sh,sa,ev,aff,faits:FAITS,gk:{h:gkH?gkH.uid:null,a:gkA?gkA.uid:null}}; memoireDe(R,vusC); return R; // la mémoire anti-répétition voyage avec le match (cf. memoireDe)
 }
 /* Changement de tactique EN COURS de match : on re-simule uniquement les minutes restantes avec la nouvelle
    consigne (le harnais et le mode instantané n'y touchent pas — c'est purement le direct). lh/la sont recalculés
@@ -2271,14 +2414,14 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
     if(r < elh/90){
       const ct=estContre(home,m);
       if(Math.random()<0.42){ sh++; marque(home,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); DERN_ATT={cote:home.id,m,but:true}; }
-      else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(home);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,away),q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+      else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(home), lgn=pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(lgn,tir,away),q:{but:tir.nom,cote:home.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct,ph:phaseTir(lgn)}});
         DERN_ATT={cote:home.id,m,but:false}; }
     } else if(r < (elh+ela)/90){
       const ct=estContre(away,m);
       if(Math.random()<0.42){ sa++; marque(away,sh,sa,true,ev,m,"("+home.id+" "+sh+"-"+sa+")",ct,vusC); DERN_ATT={cote:away.id,m,but:true}; }
-      else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(away);
-        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC),tir,home),q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct}});
+      else if(Math.random()<.7){ const arr=Math.random()<.5, tir=tireur(away), lgn=pickNR(arr?(ct?COMM.arretContre:COMM.arret):(ct?COMM.rateContre:COMM.rate),vusC);
+        ev.push({m,t:"occ",ic:arr?"arret":"rate",x:fmtC(lgn,tir,home),q:{but:tir.nom,cote:away.id,bu:ct||Math.random()<MONTEE_RATEE,contre:ct,ph:phaseTir(lgn)}});
         DERN_ATT={cote:away.id,m,but:false}; }
     } else if(Math.random()<0.028){ ev.push({m,t:"amb",x:pickNR(COMM.amb,vusC)}); }
     if(Math.random()<(derby?0.055:0.030)){
@@ -2323,9 +2466,13 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
     if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); }
   }
   let sh=0,sa=0; for(let k=0;k<fromIdx;k++){ const l=r.ev[k]; if(l.g){ if(l.g.cote===h.id) sh++; else sa++; } }
+  // ce qui doit SURVIVRE au recollage (v1.04) : l'annonce du temps additionnel et surtout la ligne du MOMENT de la
+  // 90e, qui n'est résolue qu'au coup de sifflet. Sans ça, changer de consigne effaçait le penalty/la cagade à venir.
+  const queue=r.ev.slice(fromIdx).filter(l=>l.mo || (l.t==="sys" && /temps additionnel/.test(l.x||"")));
   const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r));
   r.ev.length=fromIdx;
   for(const e of out.ev) r.ev.push(e);
+  for(const l of queue) r.ev.push(l);
   r.ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom});
   r.sh=out.sh; r.sa=out.sa;
   annoteButs(r.ev); // re-décompte des buts/coups du chapeau sur tout le fil recollé
@@ -2390,6 +2537,29 @@ function majReput(delta, raison){
   G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+delta));
   if(delta) notif((delta>0?"🕊️ Réputation +":"⚠️ Réputation ")+delta+(raison?" ("+raison+")":"")+" → "+Math.round(G.reput)+"/100");
 }
+/* G._pend PORTE DES RÉFÉRENCES AUX VRAIS OBJETS DE LA PARTIE (clubs, joueurs, feuille de match).
+   Sérialisé, il les DUPLIQUE — la sauvegarde double de taille — et, pire, au rechargement finirJournee
+   appliquerait le résultat à des CLONES détachés : la journée serait comptée dans le vide, et le
+   classement perdrait un match. On le pose donc NON ÉNUMÉRABLE, exactement comme la mémoire `vus` du
+   téléscripteur : JSON.stringify l'ignore, il vit le temps du match et ne coûte pas un octet.
+   Le filet est double : sauvegardeLocale REFUSE d'écrire tant qu'il est levé (cf. plus bas), pour que
+   la dernière sauvegarde reste celle d'AVANT le coup d'envoi — la seule qui soit cohérente, puisque
+   les autres matchs de la journée sont déjà appliqués dès que le nôtre commence. */
+/* Rebranche un _pend relu d'une sauvegarde sur les vrais objets de la partie (cf. migre). */
+function relieClones(P){
+  if(!P) return;
+  const vraiC=c=>(c&&clubById(c.id))||c;
+  const vraiJ=j=>(j&&j.uid!=null&&byUid(j.uid))||j;
+  const sel=s=>{ if(!s) return; if(Array.isArray(s.xi)) s.xi=s.xi.map(vraiJ); if(Array.isArray(s.banc)) s.banc=s.banc.map(vraiJ); };
+  (P.res||[]).forEach(e=>{ if(e){ e.h=vraiC(e.h); e.a=vraiC(e.a); } });
+  const q=P.pend;
+  if(q){ q.h=vraiC(q.h); q.a=vraiC(q.a); if(q.pre){ sel(q.pre.h); sel(q.pre.a); } }
+}
+function posePend(v){
+  if(!G) return;
+  delete G._pend; // une vieille sauvegarde a pu en porter un, énumérable : on le remplace proprement
+  Object.defineProperty(G, "_pend", {value:v, writable:true, configurable:true}); // enumerable:false par défaut
+}
 function jouerJournee(evCb){
   veilleEffectif(); // aucun club ne prend le départ d'une journée avec un effectif hors des clous
   G.notifs=[];
@@ -2417,6 +2587,7 @@ function jouerJournee(evCb){
     }
     if(!mien){
       appliqueResultat(h,a,r.sh,r.sa);
+      designeHdm(h,a,r.sh,r.sa,r.faits,r.gk); // l'homme du match existe aussi dans les rencontres qu'on ne voit pas
       res.push({h,a,sh:r.sh,sa:r.sa});
       continue;
     }
@@ -2442,14 +2613,19 @@ function jouerJournee(evCb){
     res.push(e);
     pend={r,h,a,hid,aid,pre,e};
   }
-  G._pend={res,pend,monMatch};
+  posePend({res,pend,monMatch});
   if(!pend){ finirJournee(null); return {res,monMatch}; }
-  // Match joué AU TÉLÉSCRIPTEUR (window._diffEnDirect) et sans moment : on DIFFÈRE la finalisation jusqu'au coup
-  // de sifflet, pour que le changement de tactique en direct puisse re-simuler la fin avant que rien ne soit acté.
+  // Match joué AU TÉLÉSCRIPTEUR (window._diffEnDirect) : on DIFFÈRE TOUTE la finalisation jusqu'au coup de sifflet,
+  // moment ou pas, pour que le changement de tactique en direct puisse re-simuler la fin avant que rien ne soit acté.
+  // (v1.04 : avant, un moment non interactif — cagade, but d'anthologie… — était résolu dès le coup d'envoi, ce qui
+  //  gelait le score et interdisait la re-sim ; le direct ferme désormais la porte au seul match truqué.)
   // Le harnais (EN_TEST) et le résultat instantané finalisent ici, comme avant → calibrage et tests intacts.
-  if(!pend.r.moment){ if(EN_TEST() || !(typeof window!=="undefined"&&window._diffEnDirect)) finirJournee(null); }
-  else if(EN_TEST() || !MOMENTS_INTERACTIFS[pend.r.moment.type]){
-    finirJournee(autoMoment(pend.r.moment)); // tests et moments non interactifs : résolution immédiate
+  const direct = !EN_TEST() && typeof window!=="undefined" && window._diffEnDirect;
+  if(!direct){
+    if(!pend.r.moment) finirJournee(null);
+    else if(EN_TEST() || !MOMENTS_INTERACTIFS[pend.r.moment.type]){
+      finirJournee(autoMoment(pend.r.moment)); // tests et moments non interactifs : résolution immédiate
+    }
   }
   return {res,monMatch};
 }
@@ -2483,6 +2659,9 @@ const MONTEE_BUT=[
 // étape 2 — le porteur (le futur buteur) se présente, le gardien adverse est nommé (p = joueur, gk = gardien).
 // AGNOSTIQUE au geste : on installe le danger sans dire « frappe » ni « tête » (sinon contradiction avec la
 // ligne de but qui, elle, peut être une tête, une volée, un piqué…). La conclusion est décrite par COMM.but.
+// DEPUIS v1.04, ce pool est celui du JEU OUVERT, FINITION PROCHE : la résolution décide du décor via son
+// drapeau `ph` — TIRS_LOIN passe par MONTEE_LOIN_FRAPPE, TIRS_ARRET par MONTEE_ARRET_FRAPPE (« dernière
+// passe pour X » ne va ni avec « praline de trente mètres », ni avec « corner au second poteau »).
 const MONTEE_FRAPPE=[
   (p,gk)=>p+" est à la conclusion, "+gk+" retient son souffle…",
   (p,gk)=>"Le ballon arrive sur "+p+", la défense est à la rue…",
@@ -2494,9 +2673,52 @@ const MONTEE_FRAPPE=[
   (p,gk)=>p+" arme son geste, "+gk+" écarte les bras et se fait tout grand…",
   (p,gk)=>p+" se présente seul devant "+gk+", tout le stade debout…",
   (p,gk)=>"Le ballon revient sur "+p+", "+gk+" est à contre-pied, mes amis…",
-  (p,gk)=>p+" prend sa chance des vingt mètres, "+gk+" tutoie déjà sa lucarne du regard…",
   (p,gk)=>p+" fixe "+gk+" droit dans les yeux, le duel du soir, c'est maintenant…",
-  (p,gk)=>"Centre au cordeau pour "+p+" au point de penalty, "+gk+" hurle mais personne n'écoute…",
+  (p,gk)=>p+" est trouvé dans la surface, "+gk+" hurle sur sa défense mais personne ne l'écoute…",
+];
+/* MONTÉE DE TENSION, VERSION FRAPPE LOINTAINE (v1.04) — les deux temps qui précèdent une résolution
+   de `TIRS_LOIN`. Premier temps : l'action NE passe pas, le bloc tient, le ballon ressort. Second
+   temps : le porteur se met en position LOIN du but. Mêmes contraintes que les autres pools de
+   montée — aucun coup de pied arrêté (le coup franc et le corner sont des phases à part), aucun
+   vocabulaire de contre (MONTEE_CONTRE s'en charge), et rien qui promette le but : une montée sur
+   trois fait long feu (MONTEE_RATEE), le suspense en dépend. */
+/* MONTÉE DE TENSION SUR CORNER (v1.04) — les deux temps qui précèdent une résolution de TIRS_ARRET.
+   Premier temps : le corner s'installe, la surface se remplit. Second temps : le porteur est dans la
+   bousculade, SANS dire s'il tire ou s'il conclut (une des lignes de but le nomme comme tireur, l'autre
+   comme buteur de la tête — le second temps doit convenir aux deux). */
+const MONTEE_ARRET=[
+  "Corner à jouer : les grands remontent, le gardien organise son monde à la voix…",
+  "Le ballon est posé au coin du terrain, et la surface se remplit…",
+  "Corner. Onze joueurs dans la surface, pas un centimètre de libre…",
+  "Le tireur prend son temps au drapeau, ça se marque à la culotte dans les six mètres…",
+  "Arrêt de jeu, tout le monde monte : ce corner sent le danger…",
+];
+const MONTEE_ARRET_FRAPPE=[
+  (p,gk)=>"Tout le monde est monté dans la surface, "+p+" aussi, et "+gk+" hurle sur son monde…",
+  (p,gk)=>p+" est au cœur de la mêlée, "+gk+" ne voit plus rien du tout…",
+  (p,gk)=>"Ça se bouscule dans les six mètres, "+p+" joue des coudes, "+gk+" sort les poings…",
+  (p,gk)=>"Le ballon va arriver, "+p+" a pris deux mètres sur son garde du corps, "+gk+" reste sur sa ligne…",
+  (p,gk)=>p+" s'est glissé entre deux défenseurs pendant que ça s'installait, "+gk+" ne l'a pas vu…",
+];
+const MONTEE_LOIN=[
+  "Le bloc adverse est bien en place, le ballon tourne devant la surface sans trouver la faille…",
+  "Rien ne passe dans l'axe, le ballon ressort aux vingt-cinq mètres…",
+  "Mur de maillots devant la surface : il va falloir trouver autre chose…",
+  "Quinze passes sans la moindre ouverture, le stade commence à s'impatienter…",
+  "Le ballon est repoussé loin du but… et il revient aussitôt !",
+  "La défense refuse le duel et reste massée, alors on prend du champ…",
+  "Tout le monde attend le centre, et le ballon ressort de la surface…",
+  "Ça piétine aux abords de la surface, personne ne trouve l'intervalle…",
+];
+const MONTEE_LOIN_FRAPPE=[
+  (p,gk)=>p+" ramasse le ballon loin du but, et personne ne sort le chercher…",
+  (p,gk)=>"Le ballon tombe pour "+p+" à vingt-cinq mètres, il ne se pose aucune question…",
+  (p,gk)=>p+" prend sa chance des vingt mètres, "+gk+" tutoie déjà sa lucarne du regard…",
+  (p,gk)=>p+" avance, avance, personne ne vient le gêner, et "+gk+" recule d'un pas…",
+  (p,gk)=>p+" se met en position bien avant la surface, "+gk+" plisse les yeux…",
+  (p,gk)=>"Ballon repoussé dans les pieds de "+p+" à vingt-deux mètres, il arme sans contrôler…",
+  (p,gk)=>p+" arme de très loin, le genre de geste qu'on ne tente pas deux fois dans une saison…",
+  (p,gk)=>"On laisse "+p+" frapper de loin, "+gk+" ne voit pas grand-chose derrière la forêt de jambes…",
 ];
 function gardienDe(club){ const g=club&&onze(club).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
 /* Premier temps d'un CONTRE (v0.87). Comme MONTEE_FRAPPE, ce sont des fonctions : elles nomment
@@ -2517,7 +2739,17 @@ function monteeUn(info, lignes, campA, campD){
     let rec=quelconque(campA); if(rec.nom===info.but) rec=quelconque(campA); // éviter que le voleur soit le buteur
     return pickM(MONTEE_CONTRE,lignes)(rec.nom, quelconque(campD).nom);
   }
+  if(info && info.ph==="bal") return pickM(MONTEE_ARRET,lignes);  // la conclusion vient d'un corner (cf. TIRS_ARRET)
+  if(info && info.ph==="loin") return pickM(MONTEE_LOIN,lignes);  // frappe de loin : le bloc tient, l'action ressort (cf. TIRS_LOIN)
   return pickM(MONTEE_BUT,lignes);
+}
+/* SECOND TEMPS DE LA MONTÉE (v1.04) — le porteur arme son geste ; restait à savoir D'OÙ. Le drapeau
+   `loin` est posé à la composition de la ligne de résolution (TIRS_LOIN) et voyage sur `g`/`q`, donc
+   les trois `tic()` n'ont rien à décider. Sans lui, le direct annonçait « Dernière passe pour X,
+   l'occasion est immense… » avant de conclure « PRALINE DE TRENTE MÈTRES ! » — signalé en playtest. */
+function monteeDeux(info, lignes, gk){
+  const ph=info&&info.ph;
+  return pickM(ph==="bal"?MONTEE_ARRET_FRAPPE:(ph==="loin"?MONTEE_LOIN_FRAPPE:MONTEE_FRAPPE),lignes)(info.but, gk);
 }
 const MONTEE_CONTRE=[
   (r,v)=> r+" pique le ballon dans les pieds de "+v+" au milieu… ÇA PART EN CONTRE !",
@@ -2663,7 +2895,22 @@ function finirJournee(delta){
     }
     if(r.moment && r.moment.type==="gants"){ const g=byUid(r.moment.gk||r.moment.uid); if(g) g.bless=RNDI(2,4); }
     if(r.moment && r.moment.type==="chien"){ clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.min(100,(j.moral||65)+1)); }
+    // L'HOMME DU MATCH de VOTRE rencontre se lit sur le téléscripteur, pas sur le tableau brut : une
+    // re-simulation tactique (rejoueDepuis) a pu effacer des buts pré-tirés, et seul `ev` est à jour.
+    // On y ajoute à la main le but du moment de la 90e, qui n'y figure qu'après coup (cf. resoudMoment).
+    const faitsMoi=faitsDuFil(r.ev);
+    if(r.moment && delta){ const t2=byUid(r.moment.uid); if(t2) faitsMoi.push({u:t2.uid,b:1}); }
     appliqueResultat(h,a,r.sh,r.sa,pre);
+    G.hdm=designeHdm(h,a,r.sh,r.sa,faitsMoi,r.gk);
+    if(G.hdm){
+      const hj=byUid(G.hdm.uid);
+      if(hj && hj.club===G.monClub){
+        hj.moral=Math.min(100,(hj.moral==null?65:hj.moral)+4); // la distinction se sent jusque dans le vestiaire
+        notif("🏅 Homme du match : "+hj.nom+" — "+G.hdm.motif+".");
+      } else if(hj){
+        notif("🏅 Homme du match : "+hj.nom+" ("+(clubById(hj.club)?clubById(hj.club).nom:"l'adversaire")+") — "+G.hdm.motif+". En face, on s'en souviendra.");
+      }
+    }
     // finances : billetterie à domicile + droits TV + sponsor
     if(hid===G.monClub){
       const aff=affluence(h,a), pb=palierBillet();
@@ -2877,6 +3124,7 @@ function finirJournee(delta){
   G.histo.push(res.map(e=>({h:e.h.id, a:e.a.id, sh:e.sh, sa:e.sa, mien:!!e.mien})));
   if(G.news.length>60) G.news.length=60; // on n'affiche que les 10 dernières dépêches : le reste est du poids mort
   genPresse(res);
+  retientAlmanach(); // l'almanach de mai se remplit en septembre : on retient la phrase et la dépêche de la semaine
   // un arc narratif a-t-il un chapitre mûr pour la journée à venir ? si oui, il a l'EXCLUSIVITÉ (ni incident ni conf ce week-end)
   const arcDu = !!(G.arc && G.arc.beat && G.journee>=G.arc.prochaine);
   // un incident de la vie du club ?
@@ -3333,6 +3581,34 @@ function genPresse(res){
   G.presse=t.slice(0,3).map(x=>"« "+x+" »").concat(G.presse).filter((x,i,a)=>a.indexOf(x)===i).slice(0,6);
 }
 
+/* ---------- L'ALMANACH DE LA SAISON (v1.06) ----------
+   La revue de presse ne garde que six lignes et les dépêches soixante : au mois de mai, tout ce que la
+   saison a produit de mémorable a depuis longtemps défilé. On retient donc AU FIL DE L'EAU, une fois par
+   journée et en DEUX CHAÎNES pas une de plus (le poids de la sauvegarde est un sujet, cf. G.histo), la
+   phrase qui a le plus claqué et la dépêche qui sentait le plus le soufre. Le reste du bilan de fin de
+   saison se relit dans les données déjà en mémoire — on n'archive rien pour lui. */
+const MOTS_ECLAT=/champion|titre|sacré|exploit|sensation|miracle|épopée|signe indien|malédiction|historique|invaincu|humiliation|renversant|anthologie|jamais/i;
+const MOTS_SOUFRE=/scandale|mallette|valise|juge|perquisition|justice|amende|pénalité|dopage|caisse noire|enquête|soupçon|limogeage|démission|tabloïd|boîte de nuit|bagarre|esclandre|trahi|arrangé|truqué|coulisses|lunettes fumées|sulfureu|liquide|sac shopi|sous votre nez/i;
+/* Ce qui fait qu'une ligne « claque » à l'œil : le registre (un mot du lexique), les capitales du titreur,
+   les points d'exclamation. Trois ingrédients, plafonnés, pour qu'aucun ne rafle la mise à lui seul. */
+function eclatLigne(t, lexique){
+  if(!t) return 0;
+  const caps=(String(t).match(/[A-ZÉÈÀÊÂÎÔÛÇ]{3,}/g)||[]).length;
+  const bang=(String(t).match(/!/g)||[]).length;
+  return (lexique.test(t)?3:0) + Math.min(4,caps) + Math.min(2,bang);
+}
+function retientAlmanach(){
+  const A=G.alm=G.alm||{phrase:null,depeche:null};
+  const garde=(cle,liste,lexique)=>{
+    for(const t of liste||[]){
+      const s=eclatLigne(t,lexique);
+      if(s>0 && (!A[cle] || s>A[cle].s)) A[cle]={t:String(t), j:Math.min(G.journee,38), s};
+    }
+  };
+  garde("phrase", (G.presse||[]).slice(0,6), MOTS_ECLAT);   // la revue de presse est rebattue chaque semaine…
+  garde("depeche",(G.news||[]).slice(0,10), MOTS_SOUFRE);   // …et les dépêches empilées en tête de pile
+}
+
 /* ---------- Conférence de presse interactive ----------
    On vous tend le micro autour d'un fait saillant (un adversaire qui vous a chambré, un derby qui vient,
    une série, la course au titre ou au maintien, un scandale, un président qui doute). Vous choisissez le
@@ -3449,7 +3725,7 @@ function tireConfPresse(){
 /* ---------- La mallette ---------- */
 function accepterAffaire(){
   if(!G.affaire) return;
-  if(G.tresorerie<G.affaire.prix) return alert("Trésorerie insuffisante. L'intermédiaire ne fait pas crédit.");
+  if(G.tresorerie<G.affaire.prix) return message("L'intermédiaire ne fait pas crédit : il veut ses billets tout de suite, et la caisse est vide.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   G.tresorerie-=G.affaire.prix; G.truque=true; G.affaire=null;
   G.news.unshift("Une mallette a changé de main dans un parking. Le prochain match vous sourira.");
   montre("calendrier");
@@ -3487,16 +3763,16 @@ function msgMercato(){
 function prixAchat(j){ const v=valeur(j); return Math.round(v*(j.note>=85?1.6:1.3)); }
 function acheter(j){
   const prix=prixAchat(j), vendeur=clubById(j.club);
-  if(j.pretIn||j.pretOut) return alert("Ce joueur est en cours de prêt : intransférable.");
-  if(!fenetreOuverte()) return alert("Le mercato est fermé. Prochaine fenêtre : janvier (J20-J24).");
+  if(j.pretIn||j.pretOut) return message("Ce joueur est en cours de prêt : intransférable tant que la pige n'est pas finie.", {titre:"🔒 JOUEUR INDISPONIBLE"});
+  if(!fenetreOuverte()) return message("Le mercato est fermé. Prochaine fenêtre : janvier (J20 à J24).", {titre:"🔒 MERCATO FERMÉ"});
   // on ne dévalise pas un adversaire : deux joueurs par saison et par club, et jamais ses deux gardiens
   if(vendeur){
     if(j.pos==="G" && (vendeur._cedesG||0)>=QUOTA_CESSIONS_G)
-      return alert(vendeur.nom+" a déjà cédé un gardien cette saison et refuse net : « On ne va pas jouer sans portier. »");
+      return message(vendeur.nom+" a déjà cédé un gardien cette saison et refuse net : « On ne va pas jouer sans portier. »", {titre:"🚫 LE VENDEUR REFUSE"});
     if((vendeur._cedes||0)>=QUOTA_CESSIONS)
-      return alert(vendeur.nom+" a déjà lâché "+QUOTA_CESSIONS+" joueurs cette saison et ferme la porte : « On n'est pas un supermarché. » Revenez la saison prochaine.");
+      return message(vendeur.nom+" a déjà lâché "+QUOTA_CESSIONS+" joueurs cette saison et ferme la porte : « On n'est pas un supermarché. »\n\nRevenez la saison prochaine.", {titre:"🚫 LE VENDEUR REFUSE"});
   }
-  if(prix>G.budget) return alert("Budget transferts insuffisant ("+(G.budget/1e6).toFixed(1)+" MF disponibles).");
+  if(prix>G.budget) return message("Il vous reste "+(G.budget/1e6).toFixed(1)+" MF au budget transferts — pas de quoi conclure.", {titre:"💰 BUDGET TRANSFERTS"});
   // le joueur (surtout s'il est vénal ou vedette) réclame une prime à la signature, payée cash
   const venal=(j.venal||5);
   const suite=()=>{
@@ -3597,12 +3873,12 @@ function finaliseAchat(j, prix, prime){
 }
 function listerVente(j){
   if(!j.avendre){ const r=refusDepart(clubById(G.monClub), j);
-    if(r) return alert("Impossible de mettre "+j.nom+" sur la liste des transferts.\n\n"+r); }
+    if(r) return message("Impossible de mettre "+j.nom+" sur la liste des transferts.\n\n"+r, {titre:"📋 RÈGLEMENT DE LA LIGUE"}); }
   j.avendre=!j.avendre; montre("effectif");
 }
 function venteEclair(j){
-  if(j.pretIn) return alert("Ce joueur est prêté par un autre club : impossible de le vendre.");
-  { const r=refusDepart(clubById(G.monClub), j); if(r) return alert("Vente éclair impossible.\n\n"+r); }
+  if(j.pretIn) return message("Ce joueur est prêté par un autre club : il ne vous appartient pas, vous ne pouvez pas le vendre.", {titre:"🔒 JOUEUR INDISPONIBLE"});
+  { const r=refusDepart(clubById(G.monClub), j); if(r) return message(r, {titre:"📋 VENTE ÉCLAIR IMPOSSIBLE"}); }
   const prix=Math.round(valeur(j)*0.6/1e5)*1e5;
   // le confirm() du navigateur cassait le décor 1995 et ne disait rien de ce qu'on perd : même écran
   // de confirmation que les signatures, avec la décote et le cadre bradé écrits en rouge
@@ -3639,7 +3915,7 @@ function byUid(uid){
 function tarifPret(j){ return Math.max(20000, Math.round(valeur(j)*0.0020/1e4)*1e4); } // appoint, pas une rente : prêter libère surtout le salaire et du temps de jeu
 function modalPret(j, sens){ // sens: "in" = emprunter, "out" = prêter
   const maxD=Math.min(15, 37-G.journee);
-  if(maxD<3) return alert("Trop tard dans la saison pour un prêt.");
+  if(maxD<3) return message("Il reste trop peu de journées : une pige de moins de trois matchs n'intéresse personne.", {titre:"⏳ TROP TARD DANS LA SAISON"});
   const tarif=tarifPret(j);
   const durees=[5,10,15].filter(d=>d<=maxD);
   // destination crédible : un club où il jouera vraiment (prestige inférieur au vôtre)
@@ -3664,15 +3940,15 @@ function modalPret(j, sens){ // sens: "in" = emprunter, "out" = prêter
       <button class="act" id="bOkP">Confirmer le prêt</button>
       <button class="act" id="bF">Annuler</button></p>
   </div>`;
-  document.getElementById("bF").onclick=()=>fiche.style.display="none";
+  document.getElementById("bF").onclick=fermeFiche;
   document.getElementById("bOkP").onclick=()=>{
     const d=+document.getElementById("selD").value;
     if(sens==="in") empruntJoueur(j,d,tarif); else preteJoueur(j,d,tarif,hote);
   };
-  fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
+  fiche.onclick=e=>{ if(e.target===fiche) fermeFiche(); }; // posé sur l'élément : il survit à cette fenêtre, donc il doit respecter le verrou
 }
 function empruntJoueur(j,d,tarif){
-  if(!fenetreOuverte()){ alert("Les prêts entrants se négocient pendant les fenêtres de mercato."); return; }
+  if(!fenetreOuverte()){ message("Les prêts entrants se négocient pendant les fenêtres de mercato. Prochaine fenêtre : janvier (J20 à J24).", {titre:"🔒 MERCATO FERMÉ"}); return; }
   const proprio=clubById(j.club), moi=clubById(G.monClub);
   proprio.joueurs=proprio.joueurs.filter(x=>x!==j);
   j.pretIn=true; j.club=G.monClub; moi.joueurs.push(j);
@@ -3681,24 +3957,28 @@ function empruntJoueur(j,d,tarif){
   fermeFiche(); rafraichir();
 }
 function preteJoueur(j,d,tarif,hote){
-  if(j.pretIn) return alert("Ce joueur est déjà en prêt chez vous.");
+  if(j.pretIn) return message("Ce joueur est déjà en prêt chez vous.", {titre:"🔒 DÉJÀ DANS L'EFFECTIF"});
   const moi=clubById(G.monClub);
-  { const r=refusDepart(moi, j); if(r) return alert("Prêt impossible : un joueur prêté ne compte plus sur votre feuille de match.\n\n"+r); }
+  { const r=refusDepart(moi, j); if(r) return message("Un joueur prêté ne compte plus sur votre feuille de match.\n\n"+r, {titre:"📋 PRÊT IMPOSSIBLE"}); }
   hote=hote||PICK(G.clubs.filter(c=>c.id!==G.monClub && c.pres<=moi.pres))||PICK(G.clubs.filter(c=>c.id!==G.monClub));
   moi.joueurs=moi.joueurs.filter(x=>x!==j);
   j.pretOut=true; j.titu=false; j.club=hote.id; hote.joueurs.push(j);
   G.prets.push({uid:j.uid, sens:"out", hote:hote.id, debut:G.journee, fin:G.journee+d, tarif});
+  // il n'est plus dans nos rangs : une offre étrangère ouverte sur lui ce week-end n'a plus d'objet
+  // (l'accepter l'aurait vendu SANS le retirer de nulle part, et le prêt l'aurait ramené à l'échéance)
+  if(G.offreExt && G.offreExt.uid===j.uid) G.offreExt=null;
   G.news.unshift("PRÊT : "+j.nom+" part s'aguerrir à "+hote.nom+" pour "+d+" journées (+"+FMT(tarif)+" FF/j).");
   fermeFiche(); rafraichir();
 }
 function debutPret(p){ return p.debut==null ? Math.max(0, p.fin-10) : p.debut; } // vieilles sauvegardes : durée médiane
 function retourPret(p, rappel){
-  const j=byUid(p.uid); if(!j) return;
+  const j=byUid(p.uid); if(!j) return;                             // plus dans la partie : rien à rendre
   const porteur=clubById(j.club);
-  porteur.joueurs=porteur.joueurs.filter(x=>x!==j);
   const dest=clubById(p.sens==="in"?p.proprio:G.monClub);
+  if(!dest){ delete j.pretIn; delete j.pretOut; return; }          // le club d'origine n'existe plus : on lève le prêt, sans le déplacer
+  if(porteur) porteur.joueurs=porteur.joueurs.filter(x=>x!==j);    // il a pu changer de mains entre-temps
   delete j.pretIn; delete j.pretOut; j.titu=false; j.club=dest.id;
-  dest.joueurs.push(j);
+  if(!dest.joueurs.includes(j)) dest.joueurs.push(j);              // jamais deux fois dans le même effectif
   if(p.sens==="out"){
     // un prêt, c'est du temps de jeu garanti ailleurs : le joueur revient grandi (expérience en accéléré).
     // Les jeunes profitent le plus ; on ne dépasse jamais le potentiel, et la note ne peut que monter.
@@ -3734,9 +4014,9 @@ function rappelPret(uid){
   if(!p) return;
   const j=byUid(uid), hote=clubById(p.hote); if(!j||!hote) return;
   const reste=p.fin-G.journee;
-  if(reste<=1) return alert(j.nom+" rentre de toute façon à la J"+p.fin+". Inutile de payer une indemnité pour une journée.");
+  if(reste<=1) return message(j.nom+" rentre de toute façon à la J"+p.fin+". Inutile de payer une indemnité pour une seule journée.", {titre:"📞 RAPPEL INUTILE"});
   const cout=coutRappel(p, j);
-  if(G.tresorerie<cout) return alert(hote.nom+" réclame "+(cout/1e6).toFixed(2)+" MF d'indemnité de rupture, et votre caisse n'en contient que "+(G.tresorerie/1e6).toFixed(1)+" MF.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.");
+  if(G.tresorerie<cout) return message(hote.nom+" réclame "+(cout/1e6).toFixed(2)+" MF d'indemnité de rupture, et votre caisse n'en contient que "+(G.tresorerie/1e6).toFixed(1)+" MF.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   const d0=debutPret(p), part=Math.max(0, Math.min(1, (G.journee-d0)/Math.max(1, p.fin-d0)));
   modalSignature({
     titre:"📞 Rappeler "+j.nom+" ?",
@@ -3763,6 +4043,9 @@ function rappelPret(uid){
 }
 function traiterPrets(){
   for(const p of G.prets.slice()){
+    // le joueur a pu disparaître entre-temps (option d'achat levée, effectif remanié…) : on solde le
+    // prêt au lieu de verser une indemnité de pige à un fantôme jusqu'à l'échéance
+    if(!byUid(p.uid)){ G.prets.splice(G.prets.indexOf(p),1); continue; }
     if(p.sens==="in") G.tresorerie-=p.tarif; else G.tresorerie+=p.tarif;
     if(G.journee>=p.fin){ retourPret(p); G.prets.splice(G.prets.indexOf(p),1); }
   }
@@ -3811,7 +4094,16 @@ function accepterOffreExt(){
   const o=G.offreExt; if(!o) return;
   const j=byUid(o.uid); if(!j){G.offreExt=null;return;}
   const moi=clubById(G.monClub);
-  { const r=refusDepart(moi, j); if(r) return alert("Vous ne pouvez pas accepter cette offre.\n\n"+r); }
+  // L'OFFRE PEUT AVOIR SURVÉCU À SON OBJET : elle est tirée en début de semaine et reste affichée
+  // jusqu'au coup d'envoi ; rien n'empêchait de prêter le joueur entre-temps. Le filtre plus bas ne
+  // retirait alors personne (il vit chez le club hôte), on encaissait le transfert, et le prêt le
+  // ramenait quand même à l'échéance : vendu ET rendu.
+  if(j.pretOut || j.club!==G.monClub || !moi.joueurs.includes(j)){
+    G.offreExt=null;
+    message(j.nom+" ne fait plus partie de votre effectif : l'offre est caduque.", {titre:"🚫 OFFRE CADUQUE"});
+    return montre("calendrier");
+  }
+  { const r=refusDepart(moi, j); if(r) return message("Vous ne pouvez pas accepter cette offre.\n\n"+r, {titre:"📋 RÈGLEMENT DE LA LIGUE"}); }
   moi.joueurs=moi.joueurs.filter(x=>x!==j);
   G.budget+=o.prix; G.offreExt=null;
   G.news.unshift("TRANSFERT RECORD : "+j.nom+" rejoint "+o.club+" pour "+(o.prix/1e6).toFixed(1)+" MF !");
@@ -3909,9 +4201,9 @@ function transfertIA(){
 
 /* ---------- Centre d'entraînement ---------- */
 function ameliorerCentre(){
-  if(G.centre>=5) return alert("Le centre d'entraînement est déjà au niveau maximal.");
+  if(G.centre>=5) return message("Le centre d'entraînement est déjà au niveau maximal. On ne fait pas mieux en 1995.", {titre:"🏟️ DÉJÀ AU SOMMET"});
   const cout=8e6*G.centre;
-  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : "+(cout/1e6)+" MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
+  if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6)+" MF, la caisse ne suit pas.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   const niv=G.centre+1;
   modalSignature({
     titre:"🌱 Passer le centre au niveau "+niv+" ?",
@@ -3937,7 +4229,7 @@ function transvaser(sens, montant){
   // sens "caisse" : budget transferts → trésorerie ; sens "mercato" : trésorerie → budget transferts
   if(!(montant>0)) return;
   const source = sens==="caisse" ? G.budget : G.tresorerie;
-  if(montant>source) return alert("Montant supérieur à la poche de départ ("+(source/1e6).toFixed(1)+" MF disponibles).");
+  if(montant>source) return message("Il n'y a que "+(source/1e6).toFixed(1)+" MF dans la poche de départ.", {titre:"💰 MONTANT TROP ÉLEVÉ"});
   const recu=Math.round(montant*(1-FRAIS_VIRE)), perte=montant-recu;
   if(sens==="caisse"){ G.budget-=montant; G.tresorerie+=recu; }
   else               { G.tresorerie-=montant; G.budget+=recu; }
@@ -4329,7 +4621,7 @@ function genRapport(){
 }
 function acheterJoker(k){
   const o=G.rapport[k]; if(!o) return;
-  if(o.prix>G.budget) return alert("Budget transferts insuffisant pour cette recrue joker.");
+  if(o.prix>G.budget) return message("Le budget transferts ne couvre pas cette recrue joker.", {titre:"💰 BUDGET TRANSFERTS"});
   // même règle que le mercato : un joker se signe en deux temps, pas d'un clic sur une carte
   modalSignature({
     titre:"✍️ Signer "+o.j.nom+" ?",
@@ -4343,7 +4635,7 @@ function acheterJoker(k){
 }
 function signeJoker(k){
   const o=G.rapport[k]; if(!o) return;
-  if(o.prix>G.budget) return alert("Budget transferts insuffisant pour cette recrue joker.");
+  if(o.prix>G.budget) return message("Le budget transferts ne couvre pas cette recrue joker.", {titre:"💰 BUDGET TRANSFERTS"});
   const moi=clubById(G.monClub);
   o.j.club=G.monClub; moi.joueurs.push(o.j);
   G.budget-=o.prix;
@@ -4471,11 +4763,11 @@ function saisirFlash(){
   if(!j){ G.flash=null; return rafraichir(); } // le joueur s'est volatilisé entre-temps
   const moi=clubById(G.monClub);
   if(f.kind==="solde"){
-    if(f.prix>G.budget) return alert("Budget transferts insuffisant : "+(f.prix/1e6).toFixed(1)+" MF demandés, "+(G.budget/1e6).toFixed(1)+" MF disponibles.");
+    if(f.prix>G.budget) return message((f.prix/1e6).toFixed(1)+" MF demandés, "+(G.budget/1e6).toFixed(1)+" MF disponibles au budget transferts.", {titre:"💰 BUDGET TRANSFERTS"});
     const vend=clubById(f.club);
     if(!cessionFlashOK(vend, j)){
       G.flash=null;
-      alert((vend?vend.nom:"Le club")+" a perdu trop de monde cette semaine : céder "+j.nom+" le ferait passer sous le plancher réglementaire. L'affaire est annulée.");
+      message((vend?vend.nom:"Le club")+" a perdu trop de monde cette semaine : céder "+j.nom+" le ferait passer sous le plancher réglementaire.", {titre:"🚫 L'AFFAIRE TOMBE À L'EAU"});
       return rafraichir();
     }
     vend.joueurs=vend.joueurs.filter(x=>x!==j);
@@ -4671,10 +4963,10 @@ function nomChantier(){ const p=G.chantier&&projetById(G.chantier.id); return p?
 function lanceProjet(id){
   const c=clubById(G.monClub), p=projetById(id);
   if(!p) return;
-  if(G.chantier) return alert("Un chantier est déjà en cours (livraison dans "+G.chantier.reste+" journée(s)).");
+  if(G.chantier) return message("Un chantier est déjà en cours — livraison dans "+G.chantier.reste+" journée(s). Les grues ne se dédoublent pas.", {titre:"🏗️ CHANTIER EN COURS"});
   if(!p.dispo(c)) return;
   const cout=p.cout(c);
-  if(G.tresorerie<cout) return alert("Trésorerie insuffisante (coût : "+(cout/1e6).toFixed(1)+" MF). Astuce : transvasez du budget transferts vers la caisse depuis l'écran Finances.");
+  if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6).toFixed(1)+" MF, la caisse ne suit pas.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   // un chantier immobilise la caisse ET le seul créneau de travaux disponible : on confirme avant
   modalSignature({
     titre:"🏗️ Lancer les travaux ?",
@@ -4755,7 +5047,7 @@ let _COACHCANDS=null, _COACHPOSTE=null;
 function embaucherCoach(idx){
   const c=_COACHCANDS&&_COACHCANDS[idx], id=_COACHPOSTE, poste=STAFF_POSTES.find(p=>p.id===id);
   if(!c||!poste) return;
-  if(G.tresorerie<c.prime){ alert("Trésorerie insuffisante pour l'indemnité de recrutement ("+(c.prime/1e6).toFixed(1)+" MF). Astuce : transvasez depuis le budget transferts (écran Finances)."); return; }
+  if(G.tresorerie<c.prime){ message("Son indemnité d'embauche est de "+(c.prime/1e6).toFixed(1)+" MF, et la caisse ne suit pas.\n\nAstuce : transvasez depuis le budget transferts, à l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"}); return; }
   G.tresorerie-=c.prime;
   G.staff[id]={nom:c.nom, tier:c.tier, phrase:c.phrase, salaire:c.salaire};
   G.news.unshift("STAFF : "+c.nom+" ("+TIER_NOM[c.tier]+") prend en main "+poste.nom.toLowerCase()+".");
@@ -5528,14 +5820,15 @@ function genEvCoupe(H, A, r, onzeFn){ // r = {sh,sa,tab,win} déjà tiré ; renv
   mins.sort((a,b)=>a-b); melange(buts);
   let sh=0, sa=0; const butEvts=[];
   for(let k=0;k<buts.length;k++){ const dom=buts[k]==="H"; if(dom) sh++; else sa++;
-    const cote=dom?H.id:A.id, but=dom?tirH():tirA(), pas=Math.random()<0.62?(dom?tirH():tirA()):null;
-    butEvts.push({m:mins[k],t:"but",ic:"but",g:{cote,but,pas:pas&&pas!==but?pas:null,sh,sa},
-      x:fmtC(pickNR(COMM.but,vus),{nom:but},dom?A:H)+(pas&&pas!==but?" Passe décisive de "+pas+".":"")+"  ("+tagAff(H)+" "+sh+"-"+sa+")"}); }
+    const cote=dom?H.id:A.id, but=dom?tirH():tirA(), pas=Math.random()<0.62?(dom?tirH():tirA()):null, lgn=pickNR(COMM.but,vus);
+    butEvts.push({m:mins[k],t:"but",ic:"but",g:{cote,but,pas:pas&&pas!==but?pas:null,sh,sa,ph:phaseTir(lgn)},
+      x:fmtC(lgn,{nom:but},dom?A:H)+(pas&&pas!==but?" Passe décisive de "+pas+".":"")+"  ("+tagAff(H)+" "+sh+"-"+sa+")"}); }
   // quelques occasions manquées (avec flag de montée) et de l'ambiance, intercalées
   const occ=[]; const nOcc=RNDI(3,6);
   for(let k=0;k<nOcc;k++){ const m=RNDI(2,89), dom=Math.random()<0.5, tir=dom?tirH():tirA();
-    occ.push({m,t:"occ",ic:Math.random()<.5?"arret":"rate",x:fmtC(pickNR(Math.random()<.5?COMM.arret:COMM.rate,vus),{nom:tir},dom?A:H),
-      q:{but:tir,cote:dom?H.id:A.id,bu:Math.random()<MONTEE_RATEE}}); }
+    const lgn=pickNR(Math.random()<.5?COMM.arret:COMM.rate,vus);
+    occ.push({m,t:"occ",ic:Math.random()<.5?"arret":"rate",x:fmtC(lgn,{nom:tir},dom?A:H),
+      q:{but:tir,cote:dom?H.id:A.id,bu:Math.random()<MONTEE_RATEE,ph:phaseTir(lgn)}}); }
   const amb=[]; const nAmb=RNDI(2,4);
   for(let k=0;k<nAmb;k++) amb.push({m:RNDI(5,88),t:"amb",x:pickNR(COUPE_AMB,vus)});
   // assemblage trié + mi-temps (score réel à la 45e) + sifflet
@@ -5903,7 +6196,7 @@ function razStatsClub(c){
   c.pts=0;c.j=0;c.g=0;c.n=0;c.p=0;c.bp=0;c.bc=0;c.forme=[];
   c._cedes=0; c._cedesG=0; // le quota de joueurs qu'un club accepte de vous vendre se recharge chaque saison
   // l'été remet tout le monde à neuf : deux mois sans match, personne ne démarre une saison entamé
-  for(const j of c.joueurs){ j.buts=0;j.passes=0;j.matchs=0;j.note0=j.note;j.avendre=false;j.bless=0;j.susp=0;j.fraich=100;j.repos=false; }
+  for(const j of c.joueurs){ j.buts=0;j.passes=0;j.matchs=0;j.hdm=0;j.note0=j.note;j.avendre=false;j.bless=0;j.susp=0;j.fraich=100;j.repos=false; }
 }
 function construireEffectif(p){
   p.joueurs=[];p.pts=0;p.j=0;p.g=0;p.n=0;p.p=0;p.bp=0;p.bc=0;p.forme=[];
@@ -6003,6 +6296,119 @@ function ecranIntro(){
    </div>`);
   document.getElementById("bIntro").onclick=()=>{ G.intro=null; montre("calendrier"); };
 }
+
+/* ---------- LE BILAN DE LA SAISON : la page d'almanach (v1.06) ----------
+   L'intersaison enchaînait les opérations — vieillissement, retraites, montées, descentes — sans qu'on
+   ait jamais relu la saison qu'on venait de vivre. Or AU COUP DE SIFFLET FINAL tout est encore en
+   mémoire : les statistiques ne sont remises à zéro qu'à l'intersaison (razStatsClub), G.histo garde les
+   380 scores de l'exercice, et l'almanach (G.alm) a retenu au fil des semaines la phrase et la dépêche.
+   On n'archive donc RIEN de plus pour cet écran : on relit, et on raconte. C'est la page qu'on montre à
+   quelqu'un — le pendant de fin de saison du mot d'ouverture (ecranIntro).
+   PIÈGE À NE PAS ROUVRIR : il se rend ENTRE `G.finie` et `intersaison()`. Rendu après, il ne trouverait
+   plus que des compteurs à zéro. */
+function coteSaison(j){ // ce que vaut une saison d'homme : sa note, ses distinctions, ses buts, ses passes
+  return (j.note||60) + 3*(j.hdm||0) + 1.5*(j.buts||0) + (j.passes||0);
+}
+function equipeType(){ // le meilleur onze de la division, poste par poste — le 4-4-2 du jeu, pas un autre
+  const tous=G.clubs.flatMap(c=>c.joueurs);
+  const assez=tous.filter(j=>(j.matchs||0)>=12);
+  const src=assez.length>=11?assez:tous; // saison tronquée (carrière reprise en route) : on prend plus large
+  const xi=[];
+  for(const p of ["G","D","M","A"])
+    xi.push(...src.filter(j=>j.pos===p).sort((a,b)=>coteSaison(b)-coteSaison(a)).slice(0,FORMATION[p]));
+  return xi;
+}
+function matchDeLannee(){ // la rencontre dont on reparlera : des buts, et les DEUX équipes dedans
+  let best=null;
+  (G.histo||[]).forEach((jour,i)=>{
+    for(const e of jour||[]){
+      if(!e || e.sh==null) continue;
+      const s=(e.sh+e.sa) + 1.2*Math.min(e.sh,e.sa) + (e.mien?1.5:0); // un 4-3 vaut mieux qu'un 7-0
+      if(!best || s>best.s) best={s, j:i+1, h:e.h, a:e.a, sh:e.sh, sa:e.sa, mien:!!e.mien};
+    }
+  });
+  return best;
+}
+function bilanSaison(){
+  const cl=classement(), rang=cl.findIndex(c=>c.id===G.monClub)+1, moi=clubById(G.monClub);
+  const tous=G.clubs.flatMap(c=>c.joueurs);
+  const buteur=tous.filter(j=>(j.buts||0)>0).sort((a,b)=>(b.buts||0)-(a.buts||0))[0]||null;
+  const passeur=tous.filter(j=>(j.passes||0)>0).sort((a,b)=>(b.passes||0)-(a.passes||0))[0]||null;
+  const hommeSaison=(moi?moi.joueurs:[]).filter(j=>(j.hdm||0)>0)
+    .sort((a,b)=>(b.hdm||0)-(a.hdm||0)||coteSaison(b)-coteSaison(a))[0]||null;
+  const A=G.alm||{};
+  return {saison:G.saison, div:G.div, rang, champion:cl[0], moi,
+          xi:equipeType(), buteur, passeur, hommeSaison,
+          match:matchDeLannee(), phrase:A.phrase||null, depeche:A.depeche||null};
+}
+function ecranBilan(){
+  const B=bilanSaison(), moi=B.moi;
+  const relegue=B.div===1 && B.rang>=G.clubs.length-2, promu=B.div===2 && B.rang<=3;
+  const verdict = B.div===1
+    ? (B.rang===1?"CHAMPION DE FRANCE ! Le titre revient au club !":relegue?"RELÉGUÉ EN DIVISION 2. La reconquête commence dès l'an prochain.":B.rang<=G.objectif.place?"Objectif rempli, le président est satisfait.":"Une saison en demi-teinte.")
+    : (B.rang===1?"CHAMPION DE DIVISION 2 — RETOUR DANS L'ÉLITE !":promu?"PROMU EN DIVISION 1 ! L'élite vous attend.":B.rang<=G.objectif.place?"Objectif rempli, le président est satisfait.":"La remontée attendra encore un an.");
+  const nomC=id=>{ const c=clubById(id); return c?c.nom:String(id||""); };
+  const fiche=j=>`<b>${esc(j.nom)}</b> <span class="dim">(${esc(nomC(j.club))}${j.buts?", "+j.buts+" but"+(j.buts>1?"s":""):""}${j.hdm?" · "+j.hdm+"🏅":""})</span>`;
+  const lignesXI=["G","D","M","A"].map(p=>{
+    const l=B.xi.filter(j=>j.pos===p);
+    if(!l.length) return "";
+    return `<p style="margin:6px 0"><span class="pos-${p}" style="display:inline-block;min-width:104px">${esc(LIB_POSTES[p].toUpperCase())}</span>`+
+      l.map(fiche).join(' <span class="dim">·</span> ')+`</p>`;
+  }).join("");
+  const M=B.match;
+  chrome("calendrier",`
+   <div class="panel" style="border-color:#ffd24a;text-align:center">
+     <p class="dim" style="letter-spacing:2px;margin:0">${esc(moi?moi.nom.toUpperCase():"")} · DIVISION ${B.div}</p>
+     <h2 class="jaune" style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
+     <p style="font-size:17px">Vous terminez à la <b class="jaune">${B.rang}ᵉ place</b>. ${esc(verdict)}</p>
+     ${moi?`<p class="dim" style="margin-top:4px">${moi.g} victoires · ${moi.n} nuls · ${moi.p} défaites — ${moi.bp} buts marqués, ${moi.bc} encaissés (${moi.bp-moi.bc>0?"+":""}${moi.bp-moi.bc}).</p>`:""}
+     <p class="dim" style="margin-top:2px">Champion de Division ${B.div} : <b>${esc(B.champion?B.champion.nom:"")}</b> avec ${B.champion?B.champion.pts:0} points.</p>
+   </div>
+   <div class="panel">
+     <h2>⚽ L'ÉQUIPE TYPE DE LA SAISON</h2>
+     <p class="dim" style="font-size:12px;margin-bottom:2px">Le onze de la division, poste par poste — note, distinctions, buts et passes décisives confondus.</p>
+     ${lignesXI||`<p class="dim">Saison trop courte pour désigner un onze.</p>`}
+   </div>
+   <div class="grid2">
+     <div class="panel"><h2>🥇 LE BUTEUR</h2>
+       ${B.buteur?`<p style="font-size:18px"><b class="jaune">${esc(B.buteur.nom)}</b></p>
+         <p class="dim">${esc(nomC(B.buteur.club))} — <b>${B.buteur.buts}</b> but${B.buteur.buts>1?"s":""} dans la saison.</p>`
+        :`<p class="dim">Personne n'a marqué cette saison. Du jamais vu.</p>`}
+       ${B.passeur?`<p style="margin-top:8px" class="dim">Meilleur passeur : <b>${esc(B.passeur.nom)}</b> (${esc(nomC(B.passeur.club))}), ${B.passeur.passes} passe${B.passeur.passes>1?"s":""} décisive${B.passeur.passes>1?"s":""}.</p>`:""}
+     </div>
+     <div class="panel"><h2>🏅 L'HOMME DE LA SAISON</h2>
+       ${B.hommeSaison?`<p style="font-size:18px"><b class="jaune">${esc(B.hommeSaison.nom)}</b></p>
+         <p class="dim">${B.hommeSaison.hdm} fois homme du match — ${B.hommeSaison.buts||0} but${(B.hommeSaison.buts||0)>1?"s":""}, ${B.hommeSaison.passes||0} passe${(B.hommeSaison.passes||0)>1?"s":""} décisive${(B.hommeSaison.passes||0)>1?"s":""}, note ${B.hommeSaison.note}.</p>
+         <p class="dim" style="margin-top:6px;font-style:italic">Celui que les tribunes ont fini par appeler par son prénom.</p>`
+        :`<p class="dim">Aucun de vos joueurs n'a été désigné homme du match cette saison. Ça viendra.</p>`}
+     </div>
+   </div>
+   <div class="panel"><h2>🔥 LE MATCH DE L'ANNÉE</h2>
+     ${M?`<p class="scoreline" style="text-align:center;font-size:18px">${esc(nomC(M.h))} <span class="jaune">${M.sh}</span> — <span class="jaune">${M.sa}</span> ${esc(nomC(M.a))}</p>
+       <p class="ctr dim">Journée ${M.j}${M.mien?" — et vous y étiez.":""}</p>`
+      :`<p class="dim">Pas un match ne s'est détaché du lot.</p>`}
+   </div>
+   <div class="grid2">
+     <div class="panel"><h2>🗞️ LA PHRASE DE LA SAISON</h2>
+       ${B.phrase?`<p style="font-size:17px;font-style:italic;color:#6fd6e8">${esc(B.phrase.t)}</p>
+         <p class="dim" style="margin-top:4px">— la presse, journée ${B.phrase.j}.</p>`
+        :`<p class="dim">La presse n'a rien écrit qu'on garderait.</p>`}
+     </div>
+     <div class="panel" style="border-color:#b86a2e"><h2 style="color:#ffd24a">🕶️ LA DÉPÊCHE</h2>
+       ${B.depeche?`<p style="font-size:15px">${esc(B.depeche.t)}</p>
+         <p class="dim" style="margin-top:4px">— journée ${B.depeche.j}. Celle dont on parle encore à la buvette.</p>`
+        :`<p class="dim">Une saison sans une once de soufre. Étonnant.</p>`}
+     </div>
+   </div>
+   <div class="panel ctr">
+     ${G.vire
+       ? `<p><button class="big" id="bInter">← Revenir</button></p>
+          <p class="dim" style="margin-top:6px">Le président a tranché : il n'y aura pas d'intersaison pour vous. Il reste la page.</p>`
+       : `<p><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>
+          <p class="dim" style="margin-top:6px">Vieillissement, retraites, nouvelle génération, promus et relégués... puis la saison suivante commence.</p>`}
+   </div>`);
+  document.getElementById("bInter").onclick=()=>{ if(!G.vire) intersaison(); montre("calendrier"); };
+}
 function intersaison(){
   const rec=[];
   G.arc=null; G._arcFait=false; // un arc ne straddle pas deux saisons ; on rouvre la porte pour la suivante
@@ -6083,6 +6489,7 @@ function intersaison(){
   G.saisonIdx++;
   { const a=anneeJeu(); G.saison=a+"-"+String((a+1)%100).padStart(2,"0"); } // dérivé de l'année de base (départ 95/96 OU 96/97…)
   G.journee=0; G.histo=[]; G.finie=false; G.presse=[]; G.affaire=null; G.truque=false; G.risque=0;
+  G.hdm=null; G.alm={phrase:null,depeche:null}; // l'almanach se referme : la saison suivante a le sien
   G.calendrier=berger(G.clubs.map(c=>c.id));
   coupeInit(); // nouveau tableau de Coupe de France et nouveau Petit Poucet
   euroInit();  // nouveau tirage de la Ligue des Champions (qualification selon le champion de D1)
@@ -6162,6 +6569,7 @@ function migre(){
   G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
   G.arc=G.arc||null; G._arcFait=!!G._arcFait; // arc narratif de saison
   G.affHist=G.affHist||[]; // mémoire glissante du remplissage à domicile (jauge écran Club)
+  G.hdm=G.hdm||null; G.alm=G.alm||{phrase:null,depeche:null}; // homme du match de la journée + almanach de la saison
   if(!G.stade) G.stade=inferStade(clubById(G.monClub)); // stade brique par brique : déduit de la taille actuelle pour les vieilles sauvegardes
   if(!G.staff) G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique
   G.reput=G.reput==null?75:G.reput;
@@ -6180,7 +6588,7 @@ function migre(){
   for(const c of G.clubs){
     if(!c.beteNoire){ const autres=G.clubs.filter(x=>x.id!==c.id); c.beteNoire=PICK(autres).id; c.bnBattue=false; }
     for(const j of c.joueurs){
-      j.passes=j.passes||0; j.fav=!!j.fav; j.titu=!!j.titu; j.note0=j.note0||j.note;
+      j.passes=j.passes||0; j.hdm=j.hdm||0; j.fav=!!j.fav; j.titu=!!j.titu; j.note0=j.note0||j.note;
       j.uid=j.uid||uidGen(); j.bless=j.bless||0; j.susp=j.susp||0;
       if(j.fraich==null) j.fraich=100; j.repos=!!j.repos; // v1.00 : les carrières en cours reprennent avec un effectif frais
       if(j.moral==null) j.moral=RNDI(58,75);
@@ -6224,11 +6632,31 @@ function migre(){
     regarnitVivier(VIVIER_CIBLE);
     G._vivier95=true;
   }
-  if(G._pend){ // un moment resté en suspens se résout tout seul
+  if(G._pend){ // vieille sauvegarde prise en plein match : le moment en suspens se résout tout seul
+    // Relu d'un fichier, _pend porte des CLONES des clubs et des joueurs (posePend empêche désormais
+    // ce cas de se reproduire, mais les sauvegardes d'avant existent). On les rebranche sur les objets
+    // vivants de la partie : sinon points, buts et blessures partiraient dans le vide.
+    relieClones(G._pend);
     const P=G._pend, r=P.pend&&P.pend.r;
     if(r && r.pen && !r.moment) r.moment={type:"pen_pour", uid:r.pen.uid};
     finirJournee(r&&r.moment?autoMoment(r.moment):null);
   }
+}
+/* UN FICHIER DE SAUVEGARDE VIENT DE L'EXTÉRIEUR : rien n'empêche d'y avoir bricolé un nom de club ou
+   de joueur. Ces noms ressortent ensuite dans du HTML — téléscripteur, dépêches, incidents, fiches —
+   par une bonne centaine de points d'écriture, et tous ne passent pas par esc(). Plutôt que de parier
+   sur l'exhaustivité d'un audit, on coupe à la RACINE, à l'entrée : les chevrons sont retirés de toutes
+   les chaînes du fichier. Aucun nom de club n'en a jamais contenu, et sans eux il ne reste plus de
+   balise à ouvrir. (Le nom de carrière, lui, est saisi dans le jeu et passe par esc() à l'affichage.) */
+function assainit(o, prof){
+  prof=prof||0;
+  if(prof>24 || o==null || typeof o!=="object") return o;
+  for(const k in o){
+    const v=o[k];
+    if(typeof v==="string"){ if(v.indexOf("<")>=0 || v.indexOf(">")>=0) o[k]=v.replace(/[<>]/g,""); }
+    else if(v && typeof v==="object") assainit(v, prof+1);
+  }
+  return o;
 }
 function importer(ev){
   const f=ev.target.files[0]; if(!f)return;
@@ -6237,8 +6665,8 @@ function importer(ev){
   r.onload=()=>{
     let o=null;
     try{ o=JSON.parse(r.result); }catch(e){ o=null; }
-    if(!o || !o.monClub || !o.clubs) return alert("Ce fichier n'est pas une sauvegarde MULTIPLEX 95.");
-    G=o;
+    if(!o || !o.monClub || !o.clubs) return message("Ce fichier n'est pas une sauvegarde MULTIPLEX 95.", {titre:"📂 FICHIER ILLISIBLE", coul:"#ff6f61"});
+    G=assainit(o);
     PARTIE=partieNeuve(); G.pid=PARTIE.id; // un fichier importé ouvre une carrière DE PLUS : il n'écrase jamais celles du navigateur
     migre(); sauvegardeLocale(true); majTitre(); montre("calendrier");
   };
@@ -6295,11 +6723,18 @@ function partiesListe(){ // la liste de l'accueil, la plus récente d'abord — 
 }
 function placeDispo(){ // reste-t-il de la place pour une carrière de plus ?
   if(partiesListe().length<MAX_PARTIES) return true;
-  alert("Vous avez déjà "+MAX_PARTIES+" carrières en cours, c'est le maximum que le navigateur peut retenir.\n\nSupprimez-en une sur l'accueil pour en commencer une nouvelle.");
+  message("Vous avez déjà "+MAX_PARTIES+" carrières en cours : c'est tout ce que le navigateur peut retenir.\n\nSupprimez-en une sur l'accueil pour en commencer une nouvelle.", {titre:"💾 L'ÉTAGÈRE EST PLEINE"});
   return false;
 }
 function sauvegardeLocale(silencieux){
   if(EN_TEST()||!G) return false;
+  // MATCH EN COURS : on n'écrit rien. À cet instant les autres rencontres de la journée sont déjà
+  // appliquées au classement mais la nôtre ne l'est pas — un état intermédiaire qu'on ne saurait pas
+  // reprendre proprement. La sauvegarde d'avant le coup d'envoi reste donc la bonne : au rechargement,
+  // la journée est simplement à rejouer. En pratique aucun chemin n'aboutit ici pendant un match
+  // (montre() passe par abandonneDirect(), et le bouton 💾 vit dans un pied de page masqué en direct) —
+  // c'est une ceinture, pas une bretelle.
+  if(G._pend) return false;
   if(!PARTIE){ PARTIE=partieNeuve(); G.pid=PARTIE.id; } // filet : une partie arrivée là sans carrière attitrée
   try{
     G._maj=Date.now(); // la sauvegarde porte sa propre date : l'index se reconstruit même s'il est perdu
@@ -6313,8 +6748,9 @@ function sauvegardeLocale(silencieux){
     SAVE_KO=true;
     const plein=e&&(e.name==="QuotaExceededError"||e.name==="NS_ERROR_DOM_QUOTA_REACHED"||e.code===22||e.code===1014);
     if(!silencieux || !SAVE_CRIE){ SAVE_CRIE=true; // en sauvegarde auto, on ne crie qu'une fois par session
-      alert(plein?"Sauvegarde impossible : la mémoire du navigateur est pleine.\n\nExportez cette carrière en fichier, puis supprimez-en une ancienne depuis l'accueil."
-                 :"Sauvegarde impossible : le stockage du navigateur est indisponible (navigation privée ?). Utilisez l'export en fichier.");
+      message(plein?"La mémoire du navigateur est pleine.\n\nExportez cette carrière en fichier, puis supprimez-en une ancienne depuis l'accueil."
+                   :"Le stockage du navigateur est indisponible (navigation privée ?). Passez par l'export en fichier.",
+              {titre:"💾 SAUVEGARDE IMPOSSIBLE", coul:"#ff6f61"});
     }
     return false;
   }
@@ -6325,24 +6761,37 @@ function chargeLocale(id){ // reprendre une carrière (sans argument : la plus r
   try{ const s=lsLit(p.k); if(s==null) return false;
     G=JSON.parse(s); PARTIE={id:p.id, k:p.k}; G.pid=p.id;
     migre(); majTitre(); montre("calendrier"); return true;
-  }catch(e){ alert("Impossible de charger cette carrière (données corrompues)."); return false; }
+  }catch(e){ message("Impossible de relire cette carrière : les données sont corrompues.", {titre:"💾 CARRIÈRE ILLISIBLE", coul:"#ff6f61"}); return false; }
 }
 function supprimePartie(id){
   const p=partiesListe().find(e=>e.id===id); if(!p) return;
-  if(!confirm("Supprimer définitivement la carrière \u00ab "+(p.nom||p.club)+" \u00bb ("+p.saison+", J"+p.journee+"/38) ?\n\nElle sera perdue, sauf si vous l'avez exportée en fichier.")) return;
-  lsEfface(p.k);
-  idxEcrit(idxLit().filter(e=>e&&e.id!==id));
-  if(PARTIE && PARTIE.id===id){ PARTIE=null; G=null; }
-  ecranAccueil();
+  // le nom de carrière vient du joueur (saisie libre) : corpsMessage l'échappe avant de l'écrire
+  confirme({
+    titre:"🗑️ SUPPRIMER CETTE CARRIÈRE ?",
+    texte:"\u00ab "+(p.nom||p.club)+" \u00bb \u2014 "+p.saison+", J"+p.journee+"/38.\nElle sera perdue pour de bon, sauf si vous l'avez exportée en fichier.",
+    oui:"Supprimer définitivement", non:"La garder",
+    onOui:()=>{
+      lsEfface(p.k);
+      idxEcrit(idxLit().filter(e=>e&&e.id!==id));
+      if(PARTIE && PARTIE.id===id){ PARTIE=null; G=null; }
+      ecranAccueil();
+    }
+  });
 }
 function renommePartie(id){
   const l=idxLit(), i=l.findIndex(e=>e&&e.id===id); if(i<0) return;
-  const n=prompt("Nom de cette carrière (pour la reconnaître d'un coup d'œil) :", l[i].nom||l[i].club);
-  if(n===null) return;
-  l[i].nom=n.trim().slice(0,40)||null; idxEcrit(l); ecranAccueil();
+  // le nom saisi est rangé tel quel dans l'index, mais il n'est JAMAIS écrit en HTML sans passer par
+  // esc() : ni dans le champ ci-dessous (attribut value), ni dans la liste de l'accueil.
+  saisie({
+    titre:"✏️ NOMMER CETTE CARRIÈRE",
+    sous:"Pour la reconnaître d'un coup d'œil dans la liste de l'accueil.",
+    valeur:l[i].nom||l[i].club, max:40, ok:"Renommer",
+    onOk:n=>{ l[i].nom=String(n).trim().slice(0,40)||null; idxEcrit(l); ecranAccueil(); }
+  });
 }
 function retourAccueil(){ // quitter la carrière en cours pour la liste — en la sauvegardant au passage
-  if(G){ abandonneDirect(); sauvegardeLocale(true); }
+  if(G){ abandonneDirect(); sauvegardeLocale(true); } // abandonneDirect() lève le verrou : la fermeture ci-dessous est franche
+  videMessage(); // et aucun message ne reste posé au-dessus de l'accueil
   if(fiche && fiche.style) fiche.style.display="none";
   G=null; VUECLUB=null; ECRAN="calendrier"; majTitre(); ecranAccueil();
 }
@@ -6366,6 +6815,97 @@ function ilYA(ts){ // « il y a trois jours » : le repère le plus parlant pour
 const app=document.getElementById("app");
 const fiche=document.getElementById("fiche");
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+/* =====================================================================
+   FENÊTRES MAISON — plus une seule boîte du navigateur (v1.05)
+   =====================================================================
+   alert(), confirm() et prompt() crevaient le décor télétexte : police du système, bouton « OK » en
+   anglais sur certaines machines, et sur mobile un cadre que le navigateur dessine à sa façon — quand
+   il ne le bloque pas purement et simplement. Trois remplaçantes, toutes dans le calque #msgbox :
+     message(txt, o)  → un message, un bouton            (remplace alert)
+     confirme(o)      → une question, deux boutons       (remplace confirm)
+     saisie(o)        → une ligne à taper, deux boutons  (remplace prompt)
+   Elles sont ASYNCHRONES là où les boîtes du navigateur bloquaient : la suite passe donc par o.onOk /
+   o.onOui, jamais par la ligne d'après. Tous les appels du jeu étaient des gardes en « return alert(…) »,
+   donc rien ne suivait — sauf deux, retouchés sur place.
+   #msgbox est un calque À PART (cf. le <style>) : il se pose PAR-DESSUS #fiche sans l'effacer — un refus
+   « trésorerie insuffisante » peut donc répondre à un clic fait DANS une fenêtre (l'embauche d'un coach,
+   typiquement) sans la détruire — et il ne touche jamais à window._penEnCours, verrou propre à #fiche.
+   Au harnais (EN_TEST), pas de DOM pour cliquer : chemin direct, comme modalSignature — un message se
+   tait, une confirmation est acquise, une saisie est abandonnée. */
+const msgbox=document.getElementById("msgbox");
+let MSG_ANNUL=null; // quoi faire si la fenêtre se ferme sans valider (null = aucune fenêtre ouverte)
+/* Journal des vingt derniers messages poussés au joueur. Il existe pour les harnais : sans DOM à
+   cliquer, c'est leur seul moyen de vérifier qu'un refus a bien été EXPLIQUÉ — et une seule fois.
+   Vingt chaînes en mémoire, jamais sauvegardées, jamais relues par le jeu lui-même. */
+const MSG_JOURNAL=[];
+function journalMsg(t){ MSG_JOURNAL.push(String(t==null?"":t)); if(MSG_JOURNAL.length>20) MSG_JOURNAL.shift(); }
+function videMessage(){ MSG_ANNUL=null; if(msgbox&&msgbox.style){ msgbox.style.display="none"; msgbox.innerHTML=""; } }
+/* Fermeture « douce » (Échap, clic sur le fond, bouton Annuler) : renvoie true si une fenêtre était
+   ouverte — ce qui permet à Échap de dépiler le message AVANT de s'occuper de #fiche. */
+function fermeMessage(){ if(!MSG_ANNUL) return false; const f=MSG_ANNUL; videMessage(); f(); return true; }
+function corpsMessage(txt){ // les « \n\n » des anciens alert deviennent des paragraphes
+  return String(txt).split("\n").filter(l=>l.trim()!=="").map(l=>`<p style="margin-top:7px">${esc(l)}</p>`).join("");
+}
+function ouvreMsg(html, annul){
+  videMessage();
+  msgbox.innerHTML=html;
+  msgbox.style.display="flex";
+  MSG_ANNUL=annul||(()=>{});
+  msgbox.onclick=e=>{ if(e.target===msgbox) fermeMessage(); }; // clic à côté = renoncer
+}
+function message(txt, o){ // remplace alert()
+  o=o||{};
+  journalMsg(txt);
+  if(EN_TEST()||!msgbox||!msgbox.style){ if(o.onOk) o.onOk(); return; }
+  const coul=o.coul||"#ffd24a";
+  ouvreMsg(`<div class="fbox" style="max-width:440px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2 style="color:${coul}">${esc(o.titre||"⚠️ UN INSTANT")}</h2>
+    ${corpsMessage(txt)}
+    <p style="margin-top:12px"><button class="big" id="bMsgOk" style="display:block;width:100%">${esc(o.ok||"Compris")}</button></p></div>`, o.onOk);
+  const b=msgbox.querySelector("#bMsgOk");
+  b.onclick=fermeMessage; if(b.focus) b.focus();
+}
+function confirme(o){ // remplace confirm()
+  journalMsg(o.texte||o.titre);
+  // au harnais, comme pour modalSignature : pas de bouton à cliquer, on prend le chemin du « oui »
+  if(EN_TEST()||!msgbox||!msgbox.style){ if(o.onOui) o.onOui(); return; }
+  const coul=o.coul||"#ff6f61";
+  ouvreMsg(`<div class="fbox" style="max-width:450px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2 style="color:${coul}">${esc(o.titre)}</h2>
+    ${corpsMessage(o.texte||"")}
+    <div style="margin-top:12px">
+      <button class="big" id="bMsgOui" style="display:block;width:100%;margin:6px 0">${esc(o.oui||"Confirmer")}</button>
+      <button class="big" id="bMsgNon" style="display:block;width:100%;margin:6px 0">${esc(o.non||"Annuler")}</button>
+    </div></div>`, o.onNon);
+  msgbox.querySelector("#bMsgOui").onclick=()=>{ videMessage(); o.onOui(); };
+  const b=msgbox.querySelector("#bMsgNon"); b.onclick=fermeMessage; if(b.focus) b.focus();
+}
+function saisie(o){ // remplace prompt()
+  journalMsg(o.titre);
+  // Au harnais, pas de champ à remplir : on valide la réponse préparée par le test (window._saisie),
+  // et à défaut la valeur proposée par défaut — soit un joueur qui valide sans rien changer.
+  if(EN_TEST()||!msgbox||!msgbox.style){
+    const r=(typeof window!=="undefined" && window._saisie!=null) ? window._saisie : o.valeur;
+    if(r!=null && o.onOk) o.onOk(r);
+    return;
+  }
+  const sous=o.sous?`<p class="dim" style="font-size:12px;margin-top:6px">${esc(o.sous)}</p>`:"";
+  ouvreMsg(`<div class="fbox" style="max-width:450px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2 class="jaune">${esc(o.titre)}</h2>
+    ${sous}
+    <input type="text" id="bMsgIn" maxlength="${o.max||40}" value="${esc(o.valeur==null?"":o.valeur)}">
+    <div style="margin-top:12px">
+      <button class="big" id="bMsgOk" style="display:block;width:100%;margin:6px 0">${esc(o.ok||"Valider")}</button>
+      <button class="big" id="bMsgNon" style="display:block;width:100%;margin:6px 0">Annuler</button>
+    </div></div>`, o.onAnnul);
+  const inp=msgbox.querySelector("#bMsgIn");
+  const valide=()=>{ const v=inp.value; videMessage(); o.onOk(v); };
+  msgbox.querySelector("#bMsgOk").onclick=valide;
+  msgbox.querySelector("#bMsgNon").onclick=fermeMessage;
+  inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); valide(); } };
+  if(inp.focus){ inp.focus(); if(inp.select) inp.select(); }
+}
+
 
 function majTitre(){
   document.title="MULTIPLEX 95 — "+(G?clubById(G.monClub).nom:"Saison 1995-96");
@@ -6417,15 +6957,15 @@ function ficheClubAccueil(id){
         <table class="fit" style="font-size:12px;margin-top:4px">${stars.map(s=>`<tr><td class="pos-${s[1]}">${s[1]}</td><td>${esc(s[0])}</td><td class="num dim">${s[2]} ans</td><td class="num"><b>${s[3]}</b></td></tr>`).join("")}</table>`;
     })()}
     <p style="margin-top:12px">
-      <button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${("DE "+c.nom).toUpperCase()}</button>
+      <button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${esc(("DE "+c.nom).toUpperCase())}</button>
       <button class="act" id="bRetour" style="display:block;width:100%">← Choisir un autre club</button>
     </p></div>`;
   fiche.style.display="flex";
   document.getElementById("bLance").onclick=()=>{
     if(!placeDispo()) return; // le navigateur ne peut pas retenir une carrière de plus
-    fiche.style.display="none"; nouvellePartie(id, SAISON_ACCUEIL);
+    fermeFiche(); nouvellePartie(id, SAISON_ACCUEIL);
   };
-  document.getElementById("bRetour").onclick=()=>{ fiche.style.display="none"; };
+  document.getElementById("bRetour").onclick=fermeFiche;
 }
 let ACCUEIL_DIV = 1; // onglet de division affiché sur mobile (persiste tant qu'on reste sur l'accueil)
 function pipsHTML(pres){
@@ -6626,8 +7166,11 @@ function ecranCalendrier(){
     chrome("calendrier",`<div class="panel"><h2 class="rouge">LIMOGÉ</h2>
       <p>${esc(motifs[G.vire]||"Le président a tranché.")}</p>
       <p style="margin-top:6px">Votre aventure s'arrête ici${G.palmares.length?" — mais le palmarès reste : "+esc(G.palmares.join(", "))+".":"."}</p>
-      <p style="margin-top:10px"><button class="act" id="bRe">Recommencer une carrière</button></p></div>`);
+      <p style="margin-top:10px"><button class="act" id="bRe">Recommencer une carrière</button>
+      ${G.finie?`<button class="act" id="bBil" style="margin-left:8px">📖 Lire le bilan de la saison</button>`:""}</p></div>`);
     document.getElementById("bRe").onclick=()=>{G=null;ecranAccueil();};
+    // remercié au coup de sifflet final : l'almanach reste lisible, c'est même la saison qu'on relit le plus
+    { const bB=document.getElementById("bBil"); if(bB) bB.onclick=ecranBilan; }
     return;
   }
   if(G.recap){
@@ -6638,19 +7181,7 @@ function ecranCalendrier(){
     return;
   }
   if(G.intro) return ecranIntro(); // le mot d'ouverture : ce que raconte la saison où l'on entre
-  if(G.finie){
-    const cl=classement(); const rang=cl.findIndex(c=>c.id===G.monClub)+1;
-    const relegue=G.div===1 && rang>=cl.length-2, promu=G.div===2 && rang<=3;
-    const verdict = G.div===1
-      ? (rang===1?"CHAMPION DE FRANCE ! Le titre revient au club !":relegue?"RELÉGUÉ EN DIVISION 2. La reconquête commence dès l'an prochain.":rang<=G.objectif.place?"Objectif rempli, le président est satisfait.":"Une saison en demi-teinte.")
-      : (rang===1?"CHAMPION DE DIVISION 2 — RETOUR DANS L'ÉLITE !":promu?"PROMU EN DIVISION 1 ! L'élite vous attend.":rang<=G.objectif.place?"Objectif rempli, le président est satisfait.":"La remontée attendra encore un an.");
-    chrome("calendrier",`<div class="panel"><h2>Saison ${esc(G.saison)} terminée (Division ${G.div})</h2>
-      <p>Vous terminez à la <b class="jaune">${rang}ᵉ place</b>. ${verdict}</p>
-      <p style="margin-top:8px"><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>
-      <p class="dim" style="margin-top:6px">Vieillissement, retraites, nouvelle génération, promus et relégués... puis la saison suivante commence.</p></div>`);
-    document.getElementById("bInter").onclick=()=>{intersaison();montre("calendrier");};
-    return;
-  }
+  if(G.finie) return ecranBilan(); // la page d'almanach : ce que la saison aura laissé, avant que l'intersaison ne remette les compteurs à zéro
   veilleEffectif(); // avant d'annoncer le match : tous les effectifs repassent au contrôle réglementaire
   const day=G.calendrier[G.journee];
   const [hid,aid]=day.find(([h,a])=>h===G.monClub||a===G.monClub);
@@ -6736,7 +7267,7 @@ function ecranCalendrier(){
        Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
      </span></h2>
      <div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:12px">
-       <span class="dim">Tactique en direct :</span>
+       <span class="dim" id="libTacD">Tactique en direct :</span>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
      </div>
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
@@ -7148,7 +7679,7 @@ function lanceCoupe(H, A, ed){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
       if(etape===1){ txt=monteeUn(info,lignes,(info.cote===H.id?H:A),(info.cote===H.id?A:H)); }
-      else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff)); }
+      else { const defAff=(info.cote===H.id?A:H); txt=monteeDeux(info,lignes,gardienAff(defAff)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
@@ -7261,7 +7792,7 @@ function lanceEuroLeg(H, A, ed, legScore){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
       if(etape===1){ txt=monteeUn(info,lignes,(info.cote===H.id?H:A),(info.cote===H.id?A:H)); }
-      else { const defAff=(info.cote===H.id?A:H); txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienAff(defAff, onzeEuro)); }
+      else { const defAff=(info.cote===H.id?A:H); txt=monteeDeux(info,lignes,gardienAff(defAff, onzeEuro)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
@@ -7611,7 +8142,9 @@ function lanceMatch(instant){
   if(ctl&&!instant){ ctl.style.display=""; tickerDelai=1600; surligneVitesse(); } // vitesse par défaut + surlignage à jour au coup d'envoi
   const lignes=monMatch.ev;
   const interactif=monMatch.moment && MOMENTS_INTERACTIFS[monMatch.moment.type];
-  const penIdx=interactif?lignes.findIndex(l=>l.x===monMatch.moment.annonce):-1;
+  // l'index de l'annonce se RECALCULE (v1.04) : une re-sim tactique rallonge ou raccourcit le fil devant elle
+  const idxMoment=()=>interactif?lignes.findIndex(l=>l.x===monMatch.moment.annonce):-1;
+  let penIdx=idxMoment();
   // tableau d'affichage façon panneau de stade
   const eM=res.find(r=>r.mien);
   const pT=document.getElementById("pTableau");
@@ -7636,13 +8169,15 @@ function lanceMatch(instant){
   // Le sifflet et la feuille de match doivent donc afficher le score final, comme pour un penalty.
   const buteurMoment=()=>{ const mo=monMatch.moment, ben=mo&&byUid(mo.uid);
     return {m:90,t:"but",ic:"but",g:{cote:ben?ben.club:eM.h.id,but:ben?ben.nom:"?",pas:null,sh:eM.sh,sa:eM.sa}}; };
-  if(monMatch.moment && MOMENTS_BUT[monMatch.moment.type]){
-    const sif=lignes[lignes.length-1];
-    if(sif&&sif.t==="sys") sif.x="COUP DE SIFFLET FINAL. "+eM.h.nom+" "+eM.sh+" - "+eM.sa+" "+eM.a.nom;
-  }
+  const majSifflet=()=>{ const sif=lignes[lignes.length-1];
+    if(sif&&sif.t==="sys") sif.x="COUP DE SIFFLET FINAL. "+eM.h.nom+" "+eM.sh+" - "+eM.sa+" "+eM.a.nom; };
+  // en instantané le moment est déjà tranché (G._pend vidé) → on peut réécrire le sifflet tout de suite ; en direct
+  // la résolution est différée au fil du téléscripteur, et c'est là qu'on réécrira la ligne (cf. tic()).
+  if(monMatch.moment && MOMENTS_BUT[monMatch.moment.type] && !G._pend) majSifflet();
   const fin=()=>{
-    // direct sans moment : la finalisation a été différée → on l'acte ici, au coup de sifflet (score éventuellement re-simulé)
-    if(G._pend) finirJournee(null);
+    // direct : la finalisation a été différée → on l'acte ici, au coup de sifflet (score éventuellement re-simulé).
+    // Un moment encore en suspens (décor, ou résolution manquée) est tranché par le banc, comme à l'abandon.
+    if(G._pend) finirJournee(monMatch.moment?autoMoment(monMatch.moment):null);
     if(ctl) ctl.style.display="none";
     const ctlT=document.getElementById("ctlTactique"); if(ctlT) ctlT.style.display="none";
     // au coup de sifflet, le bouton d'avant-match laisse place au passage à la journée suivante
@@ -7669,6 +8204,8 @@ function lanceMatch(instant){
           <div style="flex:1">${colBut(eM.a.id)}</div>
         </div>
         ${cartons.length?`<p style="margin-top:6px;text-align:center">${cartons.map(l=>`<span class="${l.c.rouge?"rouge":"jaune"}">▮</span> ${l.m}' ${esc(l.c.nom)} <span class="dim">(${l.c.cote})</span>`).join(" &nbsp;·&nbsp; ")}</p>`:""}
+        ${G.hdm?`<p class="hdm" style="margin-top:8px;text-align:center">🏅 <b class="jaune">HOMME DU MATCH</b> — <b>${esc(G.hdm.nom)}</b>
+          <span class="dim">(${esc(clubById(G.hdm.club)?clubById(G.hdm.club).nom:"")}) : ${esc(G.hdm.motif)}.</span></p>`:""}
         <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(monMatch.aff||0)} spectateurs — ${esc(eM.h.stade)}</p>
       </div>`);
       tk.scrollTop=0;
@@ -7713,16 +8250,27 @@ function lanceMatch(instant){
   }
   tickerDelai=1600;
   let i=0, liveMin=0, liveMulH=1, liveMulA=1; // suivi du direct (minute jouée, infériorité numérique en cours) pour la re-sim tactique
-  // contrôle de tactique EN DIRECT : on re-simule les minutes restantes avec la nouvelle consigne. Indisponible sur un
-  // match à moment (résolution spéciale à la 90e) — rare. Le bouton actif reflète G.consigne.
+  // contrôle de tactique EN DIRECT : on re-simule les minutes restantes avec la nouvelle consigne. Depuis v1.04 il
+  // est là à CHAQUE match joué au téléscripteur, moment de la 90e compris (la ligne du moment survit à la re-sim) :
+  // seul le match truqué garde les boutons grisés — le résultat est acheté, la consigne n'y peut plus rien.
+  // Le bouton actif reflète G.consigne.
   const ctlT=document.getElementById("ctlTactique");
   const majTacBtns=()=>document.querySelectorAll(".bTacD").forEach(b=>{ const on=b.dataset.k===G.consigne;
     b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; });
-  if(ctlT && !instant && !monMatch.moment && !monMatch._truque){ ctlT.style.display="block"; majTacBtns(); }
+  if(ctlT && !instant){
+    ctlT.style.display="block";
+    if(monMatch._truque){ // on montre le contrôle et on dit pourquoi il ne sert à rien, plutôt que de le faire disparaître
+      document.querySelectorAll(".bTacD").forEach(b=>{ b.disabled=true; b.style.opacity=".45"; });
+      const lib=document.getElementById("libTacD");
+      if(lib) lib.textContent="Tactique en direct : sans objet ce soir, le résultat est déjà écrit…";
+    }
+    majTacBtns();
+  }
   const changeTactique=(k)=>{
-    if(monMatch.moment || monMatch._truque || !G._pend || i>=lignes.length || k===G.consigne) return; // match fini / arrangé / déjà finalisé / inchangé
+    if(monMatch._truque || !G._pend || i>=lignes.length || k===G.consigne) return; // match arrangé / fini ou déjà finalisé / inchangé
     G.consigne=k;
     rejoueDepuis(monMatch, eM.h, eM.a, i, liveMin, liveMulH, liveMulA);
+    penIdx=idxMoment(); // le moment de la 90e a été recollé plus loin (ou plus près) dans le fil
     eM.sh=monMatch.sh; eM.sa=monMatch.sa; // la feuille et le tableau suivront le nouveau cours
     ajouteLigne(tk,{m:liveMin,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
     tk.scrollTop=0; majTacBtns();
@@ -7740,7 +8288,7 @@ function lanceMatch(instant){
       let txt;
       const campA=eM?(info.cote===eM.h.id?eM.h:eM.a):null, campD=eM?(info.cote===eM.h.id?eM.a:eM.h):null;
       if(etape===1){ txt=monteeUn(info,lignes,campA,campD); }
-      else { txt=pickM(MONTEE_FRAPPE,lignes)(info.but, gardienDe(campD)); }
+      else { txt=monteeDeux(info,lignes,gardienDe(campD)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
@@ -7771,7 +8319,9 @@ function lanceMatch(instant){
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
-    if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : on met le score à jour (tableau + feuille)...
+    if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : c'est ICI qu'il se résout en direct (v1.04),
+      // juste avant le sifflet — le score, le tableau et la feuille suivent, et la re-sim tactique reste possible jusque-là
+      if(G._pend){ finirJournee(autoMoment(monMatch.moment)); majSifflet(); }
       const gl=buteurMoment(); extra.push(gl); majTableau(gl);
       const cag=(lg.mo==="cagade"); // ...et tous méritent leur flash LED — un but d'anthologie autant qu'une cagade
       const titre=cag?"🧤 CAGADE !":lg.mo==="cadeau"?"🎁 CADEAU DU GARDIEN !":lg.mo==="gkbut"?"🧤⚽ LE GARDIEN MARQUE !":"🌟 BUT D'ANTHOLOGIE !";
@@ -8041,6 +8591,8 @@ function ecranClassement(){
   // on ne classe que ceux qui ont réellement marqué/passé : sinon, en début de saison, on affichait 8 joueurs à 0 (trompeur)
   const buteurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>j.buts>0).sort((a,b)=>b.buts-a.buts).slice(0,8);
   const passeurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.passes||0)>0).sort((a,b)=>(b.passes||0)-(a.passes||0)).slice(0,8);
+  // les hommes du match : une distinction par rencontre, division entière, depuis la 1re journée (cf. designeHdm)
+  const decores=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.hdm||0)>0).sort((a,b)=>(b.hdm||0)-(a.hdm||0)||b.note-a.note).slice(0,8);
   chrome("classement",`<div class="panel"><h2>Classement — Division ${G.div}</h2>
    <table><tr><th>#</th><th>Club</th><th class="num">J</th><th class="num">G</th><th class="num">N</th><th class="num">P</th><th class="num">Bp</th><th class="num">Bc</th><th class="num">Diff</th><th class="num">Pts</th></tr>
    ${cl.map((c,i)=>{const mont=G.div===2&&i<3, desc=G.div===1&&i>=cl.length-3; return `<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
@@ -8049,12 +8601,16 @@ function ecranClassement(){
      <td class="num">${c.bp-c.bc>0?"+":""}${c.bp-c.bc}</td><td class="num"><b>${c.pts}</b></td></tr>`;}).join("")}
    </table>
    <p class="dim" style="margin-top:6px">Victoire 3 pts · ${G.div===1?"Les trois derniers (▼) descendent en Division 2":"Les trois premiers (▲) montent en Division 1 !"} · Cliquez sur un club pour consulter son effectif.</p></div>
-   <div class="grid2">
+   <div class="grid3">
    <div class="panel"><h2>Buteurs</h2>
      <table class="fit">${buteurs.length?buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucun but inscrit pour l'instant.</td></tr>`}</table>
    </div>
    <div class="panel"><h2>Passeurs décisifs</h2>
      <table class="fit">${passeurs.length?passeurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.passes}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucune passe décisive pour l'instant.</td></tr>`}</table>
+   </div>
+   <div class="panel"><h2>🏅 Hommes du match</h2>
+     <table class="fit">${decores.length?decores.map((j,i)=>`<tr class="${j.club===G.monClub?"me":""}"><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.hdm||0}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Personne n'a encore été désigné.</td></tr>`}</table>
+     <p class="dim" style="margin-top:4px;font-size:11px">Une distinction par rencontre : buts, passes décisives et cage inviolée comptent, un carton rouge disqualifie.</p>
    </div></div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=()=>{
     if(tr.dataset.id===G.monClub) montre("effectif"); else ecranClubVue(tr.dataset.id);
@@ -8095,7 +8651,7 @@ function titulariser(j){
   const c=clubById(G.monClub);
   if(!j.titu){
     const deja=c.joueurs.filter(x=>x.pos===j.pos&&x.titu).length;
-    if(deja>=FORMATION[j.pos]) return alert("Le 4-4-2 n'aligne que "+FORMATION[j.pos]+" joueur(s) au poste "+j.pos+". Libérez d'abord une place.");
+    if(deja>=FORMATION[j.pos]) return message("Le 4-4-2 n'aligne que "+FORMATION[j.pos]+" joueur(s) au poste "+j.pos+". Libérez d'abord une place.", {titre:"📋 LA LIGNE EST COMPLÈTE"});
     j.titu=true; j.repos=false; // on ne titularise pas de force un homme qu'on vient de mettre au vert
   } else j.titu=false;
   montre("effectif");
@@ -8116,7 +8672,7 @@ function mettreAuRepos(j){
 const MONTEES_MAX=2;
 function monteeCentre(pos){
   const c=clubById(G.monClub);
-  if((G.montees||0)>=MONTEES_MAX) return alert("Le centre de formation a déjà fait monter "+MONTEES_MAX+" joueurs cette saison. La promotion suivante attendra l'intersaison.");
+  if((G.montees||0)>=MONTEES_MAX) return message("Le centre a déjà fait monter "+MONTEES_MAX+" joueurs cette saison. La promotion suivante attendra l'intersaison.", {titre:"🎓 CENTRE DE FORMATION"});
   const niv=G.centre||1;
   const j=genJoueur(pos, c.pres);
   j.age=RNDI(17,20);
@@ -8220,7 +8776,7 @@ function nommerCapitaine(j){
     else { j.moral=Math.min(100,(j.moral||65)+6); } // honneur sincère
     G.news.unshift("BRASSARD : "+j.nom+" prend le capitanat"+(prime>0?", récompensé d'une prime de "+(prime/1e6).toFixed(1)+" MF.":"."));
     notif("©️ "+j.nom+" est votre nouveau capitaine.");
-    fiche.style.display="none"; rafraichir();
+    fermeFiche(); rafraichir();
   };
   fiche.style.display="flex";
   fiche.innerHTML=`<div class="card">
@@ -8236,8 +8792,8 @@ function nommerCapitaine(j){
     </p></div>`;
   const bp=document.getElementById("cPay"); if(bp) bp.onclick=()=>poser(demande);
   document.getElementById("cFree").onclick=()=>poser(0);
-  document.getElementById("cNo").onclick=()=>{ fiche.style.display="none"; };
-  fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
+  document.getElementById("cNo").onclick=fermeFiche;
+  fiche.onclick=e=>{ if(e.target===fiche) fermeFiche(); }; // idem : ce gestionnaire survit à la fenêtre
 }
 function ouvreFiche(j){
   const n0=j.note0||j.note;
@@ -8293,8 +8849,8 @@ function ouvreFiche(j){
   const bI=document.getElementById("bPretIn"); if(bI) bI.onclick=()=>modalPret(j,"in");
   const bRp=document.getElementById("bRappel"); if(bRp) bRp.onclick=()=>rappelPret(j.uid);
   const bC=document.getElementById("bCap"); if(bC) bC.onclick=()=>nommerCapitaine(j);
-  document.getElementById("bF").onclick=()=>fiche.style.display="none";
-  fiche.onclick=e=>{ if(e.target===fiche) fiche.style.display="none"; };
+  document.getElementById("bF").onclick=fermeFiche;
+  fiche.onclick=e=>{ if(e.target===fiche) fermeFiche(); }; // idem : ce gestionnaire survit à la fenêtre
 }
 
 /* ---- Mercato ---- */
@@ -8650,7 +9206,14 @@ function ecranClub(){
 
 /* ---------- Démarrage ---------- */
 if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TEST__){
-  document.addEventListener("keydown",e=>{ if(e.key==="Escape") fiche.style.display="none"; });
+  // ÉCHAP NE PERCE PLUS LES FENÊTRES VERROUILLÉES (v1.05). La touche fermait la modale à la main, sans
+  // regarder window._penEnCours : on évacuait d'un coup de touche un incident, une conférence de presse,
+  // un chapitre d'arc, l'avant-match d'un tour de coupe ou d'Europe, un penalty à la 90e. La chaîne de
+  // l'entre-match était rompue, le verrou restait LEVÉ (fermeFiche ne rouvrait plus rien ensuite) et,
+  // selon la fenêtre, un tour de coupe restait en attente ou un moment n'était jamais tranché.
+  // On passe donc par fermeFiche(), seule porte qui respecte le verrou — et un message maison (#msgbox),
+  // qui vit au-dessus de #fiche, se dépile d'abord.
+  document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(fermeMessage()) return; fermeFiche(); });
   ecranAccueil();
 }
 </script>

@@ -42,9 +42,9 @@ toujours « raconter quelque chose ».
   qui pèsent ~500 Ko pièce. `PARTIE` = {id, clé} de la carrière dans laquelle on écrit ; la sauvegarde est
   auto à chaque fin de journée et à chaque transition d'écran (`montre`), plus le bouton « 💾 Sauvegarder »
   en pied de page. L'accueil liste les carrières (`panneauCarrieres`) : la dernière jouée en gros bouton
-  vert « ▶ REPRENDRE », les autres en lignes avec blason, et sur chacune ✏️ (`renommePartie`, via `prompt`)
-  et 🗑️ (`supprimePartie`). En jeu, « 📁 Mes carrières » (`retourAccueil`) sauvegarde et rend la main à la
-  liste. API : `partiesListe`/`sauvegardeLocale`/`chargeLocale(id)`/`supprimePartie`/`renommePartie`/
+  vert « ▶ REPRENDRE », les autres en lignes avec blason, et sur chacune ✏️ (`renommePartie`, via `saisie`)
+  et 🗑️ (`supprimePartie`, via `confirme`). En jeu, « 📁 Mes carrières » (`retourAccueil`) sauvegarde et rend
+  la main à la liste. API : `partiesListe`/`sauvegardeLocale`/`chargeLocale(id)`/`supprimePartie`/`renommePartie`/
   `placeDispo`/`ficheDe`/`ilYA`, toutes au-dessus de `migre()`.
   **La clé historique `SAVEKEY` n'est pas migrée mais ADOPTÉE** : la carrière d'un testeur d'avant v0.94
   entre dans l'index en gardant SA clé (l'index porte un champ `k` par entrée), donc elle continue de
@@ -55,9 +55,24 @@ toujours « raconter quelque chose ».
   **Mémoire pleine** : `setItem` qui déborde ne casse plus rien — `SAVE_KO` passe à vrai, le joueur est
   prévenu **une seule fois par session** (`SAVE_CRIE`) avec la marche à suivre, un bandeau rouge s'affiche
   en pied de page, et la partie continue de se jouer.
+  **UN MATCH EN COURS NE PART JAMAIS DANS LA SAUVEGARDE (v1.05)** : `G._pend` porte des **références** aux
+  vrais clubs et aux vrais joueurs (cf. `jouerJournee`). Sérialisé, il les **duplique** — la sauvegarde
+  doublerait de taille — et au rechargement `finirJournee` appliquerait le résultat à des **clones détachés** :
+  la journée serait comptée dans le vide et le classement perdrait un match. Deux verrous : la propriété est
+  posée **non énumérable** par **`posePend()`** (JSON.stringify l'ignore, comme la mémoire `vus` du
+  téléscripteur), et **`sauvegardeLocale` refuse d'écrire tant qu'elle est levée** — la dernière sauvegarde
+  reste donc celle d'AVANT le coup d'envoi, la seule cohérente (les autres matchs de la journée sont déjà
+  appliqués dès que le vôtre commence, donc un état intermédiaire ne se reprend pas). En pratique aucun
+  chemin n'y menait déjà (`montre()` passe par `abandonneDirect()`, et le bouton 💾 vit dans un pied de page
+  masqué en `mode-direct`) : c'est une ceinture. Pour les sauvegardes d'AVANT qui en porteraient un,
+  `migre()` appelle **`relieClones()`**, qui rebranche clubs et joueurs par `id`/`uid` avant de finir la
+  journée. Gardé par la **section H de `harness-sauvegardes.cjs`**.
   L'export/import d'un fichier JSON reste pour la sauvegarde de secours et le transfert entre appareils
   (nom de fichier parlant : `multiplex95-rc-lens-1995-96-J12.json`) ; **un import ouvre toujours une
-  carrière DE PLUS**, il n'écrase jamais celles du navigateur. Le `localStorage` ne porte PAS de logique de
+  carrière DE PLUS**, il n'écrase jamais celles du navigateur. **Un fichier importé passe par `assainit()`**
+  (v1.05), qui retire les chevrons de **toutes** ses chaînes en profondeur : un nom de club bricolé à la main
+  ressortirait sinon dans du HTML par l'un des ~115 points d'écriture qui ne passent pas par `esc()`. On coupe
+  à la racine, à l'entrée, plutôt que de parier sur l'exhaustivité d'un audit. Le `localStorage` ne porte PAS de logique de
   jeu — juste la sérialisation de `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne
   pas peser sur le harnais (`harness-sauvegardes.cjs` lève le drapeau le temps de l'appel pour les tester).
 - Numéro de version centralisé dans la constante `const VERSION` (en tête de script) et recopié aux **deux**
@@ -218,8 +233,8 @@ toujours « raconter quelque chose ».
 - **Changement de tactique EN DIRECT** (v0.61, retour de playtest « si on perd, pouvoir passer offensif ») :
   le téléscripteur est pré-calculé au coup d'envoi (`jouerJournee`→`simuleMatch` verrouille score ET `j.buts`), donc
   pour qu'un changement de consigne en cours de match pèse **vraiment**, deux mécanismes. (1) **Finalisation différée** :
-  pour un match joué au direct (`window._diffEnDirect`, posé par `lanceMatch` autour du seul appel `jouerJournee`) et
-  **sans moment**, `finirJournee(null)` n'est PAS appelé au coup d'envoi mais **au coup de sifflet** (dans `fin()`, gardé
+  pour un match joué au direct (`window._diffEnDirect`, posé par `lanceMatch` autour du seul appel `jouerJournee`),
+  `finirJournee(null)` n'est PAS appelé au coup d'envoi mais **au coup de sifflet** (dans `fin()`, gardé
   par `if(G._pend)`). **EN_TEST et le résultat instantané finalisent au coup d'envoi comme avant** → harnais et calibrage
   intacts. `abandonneDirect` et le chemin de reprise d'un `G._pend` restauré finalisent aussi (filets de sécurité). (2)
   **Re-simulation du reste** : `simuleReste(home,away,mStart,sh,sa,mulH,mulA)` rejoue uniquement les minutes restantes
@@ -227,9 +242,23 @@ toujours « raconter quelque chose ».
   mNow,mulH,mulA)` **annule les stats du tail pré-tiré** (buts/passes/suspensions, via les **`uid`** désormais portés par
   `g`/`c`), repart du score affiché et recolle le nouveau cours + sifflet, en mutant `r.ev`/`r.sh`/`r.sa` en place. Le
   contrôle `#ctlTactique` (boutons `.bTacD`) n'apparaît qu'en direct ; le ticker suit `liveMin`/`liveMulH`/`liveMulA`
-  (l'infériorité numérique en cours) pour passer le bon état à la re-sim. **Interdit** sur un match à **moment** (`monMatch.moment`)
-  ou **truqué** (`monMatch._truque`, sinon le re-roll effacerait la victoire achetée). Invariant vérifié au harnais
+  (l'infériorité numérique en cours) pour passer le bon état à la re-sim. Invariant vérifié au harnais
   (somme `j.buts` == lignes-but, score == comptage par côté, 0 incohérence sur 400 re-sims).
+  **DISPONIBLE À CHAQUE MATCH DU DIRECT (v1.05, retour de playtest « je ne peux pas changer la stratégie en cours de
+  match »)** : le contrôle était masqué dès qu'un **moment** attendait à la 90e — soit près d'un match sur cinq, ce qui
+  se vit comme une panne, pas comme une règle. Trois verrous levés. (a) `jouerJournee` **diffère TOUS les matchs joués
+  au téléscripteur**, moment compris : un moment **non interactif** (cagade, but d'anthologie, gkbut…) n'est donc plus
+  résolu au coup d'envoi mais **dans `tic()`, à l'affichage de sa ligne de 90e** (`if(G._pend){ finirJournee(autoMoment(
+  monMatch.moment)); majSifflet(); }`), juste avant le sifflet ; le décor (chien/pigeon/streaker) et tout moment resté
+  en suspens sont tranchés dans `fin()` par `finirJournee(monMatch.moment?autoMoment(...):null)`, comme le fait déjà
+  `abandonneDirect`. (b) `rejoueDepuis` **fait survivre au recollage** l'annonce du temps additionnel ET la ligne du
+  moment (`queue` = les lignes du tail portant `l.mo` ou « temps additionnel », ré-empilées avant le sifflet) — sans ça,
+  changer de consigne effaçait le penalty à venir. (c) `penIdx` devient un `let` recalculé par `idxMoment()` après
+  chaque re-sim (le fil devant l'annonce s'allonge ou se raccourcit). **Seul le match truqué reste verrouillé**
+  (`monMatch._truque`, sinon le re-roll effacerait la victoire achetée) — mais les boutons sont désormais **affichés et
+  grisés**, avec le libellé `#libTacD` qui dit pourquoi (« sans objet ce soir, le résultat est déjà écrit… ») plutôt que
+  de disparaître sans explication. Validation : **section B bis de `harness.cjs`** (moment présent une seule fois après
+  300 recollages, sifflet toujours dernier, temps additionnel conservé, score == lignes-but).
 - **Prime de match** (v0.61, `PRIMES_MATCH` 0/10/20/30 %, `G.primeMatch`, défaut 0) : un **coup de fouet à l'attaque**
   promis AVANT le match (sélecteur `.bPrime` sous la consigne, verrouillé au coup d'envoi). Booste votre lambda d'attaque
   dans `simuleMatch` (`lh`/`la` ×(1+pm), **votre seul match**), **payé UNIQUEMENT en cas de victoire** (`finirJournee` :
@@ -502,6 +531,50 @@ toujours « raconter quelque chose ».
   ceux qui restent. Harnais dédié : **`harness-fraicheur.cjs`** (barème, saison du vétéran, rythme à trois jours,
   sélection, effets mesurés, symétrie IA, intersaison/migration, et un **test de rendu** qui appelle réellement
   les six surfaces d'affichage à toutes les valeurs de jauge).
+- **L'HOMME DU MATCH (v1.06)** — le moment de plus par journée, pour presque rien : la feuille de match
+  portait déjà tout (buteurs, passeurs, gardiens, rouges), il ne restait qu'à **nommer** celui qui a fait la
+  différence. **Rien de neuf n'est simulé** : on relit. Trois pièces :
+  • **La matière**. Votre rencontre s'écrit au téléscripteur (`ev` porte `uid`/`pasUid`/`c.uid`) et se relit par
+    **`faitsDuFil(ev)`** ; les dix-neuf autres sont **muettes** (aucune ligne n'est tirée quand `verbeux` est faux)
+    et alimentent désormais **`FAITS`**, un tableau module où `marque()` dépose deux entiers par but, quoi qu'il
+    arrive. `simuleMatch` **le réaffecte** (`FAITS=[]`, jamais `.length=0` — le match précédent garde le sien) et
+    le rend sur `R.faits`, avec `R.gk` = les **uid des deux portiers du coup d'envoi** (l'effectif aura bougé
+    quand on relira la feuille : fatigue, blessures).
+  • **Le barème** (`hommeDuMatch`) : but 3,0 · passe décisive 1,7 · cage inviolée 2,4 (+0,3 si l'équipe gagne) ·
+    victoire 0,8 · départage discret par `note/400`. **Un carton rouge DISQUALIFIE** — on ne décore pas l'homme
+    qui a laissé les siens à dix. Les chiffres sont calés pour que **le 1-0 reste le match de SON buteur**
+    (3,8 contre 3,5) et que le gardien l'emporte quand il n'y a rien d'autre à raconter (le 0-0). Mesuré sur
+    trois saisons : 75 % d'attaquants/milieux buteurs, ~5 % de gardiens, 1 % de défenseurs — et des motifs variés
+    (`motifHdm` : « un doublé et une passe décisive », « la cage inviolée »…).
+  • **Le branchement**. `designeHdm` incrémente **`j.hdm`** (compteur de saison, remis à zéro par `razStatsClub`,
+    migré par `migre`) et renvoie une fiche LÉGÈRE (uid/nom/club/motif, pas de référence au joueur : elle part
+    dans `G.hdm` donc dans la sauvegarde). Les matchs IA sont nommés dans `jouerJournee` (après
+    `appliqueResultat`) ; **le vôtre l'est dans `finirJournee`**, et pas ailleurs — c'est le seul endroit où
+    `r.ev` est définitif (une re-sim tactique a pu effacer des buts pré-tirés) et où le but du **moment de la 90ᵉ**
+    est connu, qu'on ajoute à la main aux faits. Rendu : une ligne sous la feuille de match (`.fmatch .hdm`),
+    une ligne de debrief (`notif`, différente selon qu'il est à vous ou en face) et **+4 de moral** s'il est à vous.
+  **Championnat seulement** : la coupe et l'Europe ont leurs propres soirées, et le classement des hommes du
+  match (3ᵉ table de l'écran Classement, `grid3`) n'aurait plus de sens s'il mélangeait les compétitions.
+  Harnais dédié : **`harness-hdm.cjs`** (sections A à E).
+- **LE BILAN DE SAISON — LA PAGE D'ALMANACH (v1.06)** : l'intersaison enchaînait les opérations sans qu'on ait
+  jamais relu la saison vécue. `ecranBilan()` remplace le maigre panneau « Saison terminée » et raconte
+  **l'équipe type** (le 4-4-2 de la division, `coteSaison` = note + 3×hdm + 1,5×buts + passes, ≥ 12 matchs joués),
+  **le buteur**, **le match de l'année** (`matchDeLannee` relit `G.histo` : total de buts + 1,2× le score du perdant,
+  bonus si vous y étiez), **la phrase de la saison**, **la dépêche la plus sulfureuse** et **l'homme de la saison**
+  (le plus décoré de VOTRE effectif). C'est le pendant de fin de saison du mot d'ouverture (`ecranIntro`).
+  **PIÈGE STRUCTURANT** : il se rend **ENTRE `G.finie` et `intersaison()`**, parce que `razStatsClub` remet buts,
+  passes et `hdm` à zéro et que `intersaison` vide `G.histo`. Rendu après, il ne trouverait que des compteurs à
+  zéro — ne jamais le déplacer dans la chaîne. **On n'archive rien pour lui** : tout est déjà en mémoire au coup
+  de sifflet final… **sauf deux chaînes**. La revue de presse ne garde que 6 lignes et les dépêches 60 : en mai,
+  tout ce que la saison a produit de mémorable a depuis longtemps défilé. D'où **`G.alm`** = `{phrase, depeche}`,
+  deux `{t, j, s}` et pas un octet de plus, alimentés **une fois par journée** par `retientAlmanach()` (appelé dans
+  `finirJournee` juste après `genPresse`), qui garde le **maximum courant** d'un score d'éclat (`eclatLigne` :
+  lexique `MOTS_ECLAT`/`MOTS_SOUFRE` + capitales du titreur + points d'exclamation, chaque ingrédient plafonné).
+  Réinitialisé à `nouvellePartie` et à `intersaison`, migré par `migre`. Coût mesuré : **~300 octets** pour
+  l'almanach, **~1 % de la sauvegarde** compteurs `j.hdm` compris.
+  **Un manager remercié garde sa page** : l'écran LIMOGÉ porte un bouton « 📖 Lire le bilan de la saison » quand
+  `G.finie` est vrai (les stats sont intactes, `intersaison` n'a jamais tourné), et le bouton du bas du bilan
+  devient « ← Revenir » au lieu de « PASSER À L'INTERSAISON ». Harnais : **`harness-hdm.cjs`** (sections F et G).
 - **Vases communicants — pont budget ↔ trésorerie** (`transvaser(sens, montant)`, `FRAIS_VIRE`=0,10) : les
   deux poches restent **séparées** (le trésor de guerre mercato ne paie pas les salaires), mais on peut en
   **transvaser** de l'une à l'autre depuis l'écran Finances pour débloquer un projet (typiquement renflouer la
@@ -676,6 +749,44 @@ toujours « raconter quelque chose ».
   distincte** (sans `q`, donc jamais précédé d'une montée). Règle générale : **aucune ligne de balle arrêtée dans les
   pools d'occasion de jeu ouvert** (`rate`/`arret`/`rateContre`/`arretContre`). Vérifié : 8 000 matchs, 11 815
   occasions montées, **0 coup franc en résolution de montée**.
+  **LA MONTÉE DOIT CONNAÎTRE LA CONCLUSION — DISTANCE ET BALLE ARRÊTÉE (v1.04, retour de playtest « une
+  dernière passe arrive en général devant le but, un but de trente mètres arrive de manière soudaine »)** :
+  quatrième épisode de la famille météo/contre/coup franc, et dernier point ouvert de la mise en scène. Le
+  direct enchaînait « Coup de billard devant le but, ça chauffe… », « Dernière passe pour X, l'occasion est
+  immense… », puis « PRALINE DE TRENTE MÈTRES ! » — trois mètres du but, puis trente. Cause : les deux temps
+  de la montée sont tirés **sans rien savoir de la ligne de résolution**, pourtant déjà composée (elle vit
+  dans `lg.x` depuis `simuleMatch`). Correctif : les conclusions qui **imposent une géométrie** sont déclarées
+  à part, recollées dans leur pool par `...` (tirage rigoureusement inchangé) et rassemblées en deux jeux —
+  **`TIRS_LOIN`** (6 lignes : la praline de trente mètres, la récupération aux vingt mètres, le lob des
+  quarante…) et **`TIRS_ARRET`** (3 lignes nées d'un **corner**). Le helper **`phaseTir(ligne)`** en tire un
+  drapeau court **`ph`** (`""` jeu ouvert et finition proche · `"loin"` · `"bal"`) que les **sept** points de
+  génération (`marque`, les 4 occasions de `simuleMatch`/`simuleReste`, les 2 de `genEvCoupe`) posent sur
+  `g`/`q` — d'où la règle d'écriture : **tirer la ligne dans une variable AVANT de la formater**, le drapeau
+  se lit sur le gabarit, jamais sur le texte affiché (noms déjà substitués). `monteeUn` et le nouveau
+  **`monteeDeux`** lisent `ph` : le contre garde la priorité au premier temps (il ne croise jamais une balle
+  arrêtée — `butContre`/`arretContre` n'en contiennent pas), la distance ne joue qu'au second. Deux paires de
+  pools s'ajoutent : **`MONTEE_LOIN`/`MONTEE_LOIN_FRAPPE`** (le bloc tient, rien ne passe, le ballon ressort
+  aux vingt-cinq mètres → le porteur arme de loin) et **`MONTEE_ARRET`/`MONTEE_ARRET_FRAPPE`** (le corner
+  s'installe, la surface se remplit → le porteur est dans la bousculade, **sans dire s'il tire ou s'il
+  conclut**, puisque l'une des deux lignes de but le nomme tireur et l'autre buteur de la tête). Deux lignes
+  de `MONTEE_FRAPPE` violaient au passage la règle « agnostique au geste » écrite au-dessus du pool :
+  « prend sa chance des vingt mètres » (partie dans le pool lointain) et « Centre au cordeau… au point de
+  penalty » (neutralisée). **Purement narratif** : aucun évènement créé, aucun score touché → calibrage
+  mesuré 2,410. Vérifié par la **section G de `harness-repetitions.cjs`** : les listes collent aux pools,
+  aucune conclusion étiquetable n'est oubliée (filet par le vocabulaire de distance, et par « sur corner »
+  — l'origine — contre « en corner » — l'aboutissement), drapeau exact sur 8 909 conclusions en
+  championnat/re-sim/coupe, et les trois décors ne se mélangent jamais, ni au premier ni au second temps.
+  **Refermé en v1.05** : « Corner rentrant… BUT DIRECT ! » s'affichait suivie d'une « Passe décisive de X »
+  alors que la ligne dit justement que PERSONNE n'a touché le ballon. `marque` **tire désormais la ligne
+  AVANT de désigner le passeur** (elle servait déjà au drapeau `ph`, elle sert maintenant aussi à cela) et
+  coupe le passeur sur les lignes de **`BUT_SANS_PASSE`** — un Set qui ne contient pour l'instant que
+  **`BUT_CORNER_DIRECT`**, la ligne extraite de `BUT_ARRET` pour être nommable. **Pour étendre** : écrire la
+  nouvelle ligne dans `BUT_CORNER_DIRECT`-bis et l'ajouter au Set, jamais directement dans le pool.
+  **Prix mesuré, et plus élevé que l'estimation d'origine** (qui annonçait ~1 %) : le corner direct sort sur
+  **3,6 % des buts racontés**, et les passes décisives passent de **~72 % à 68,8 %** des buts, soit **~4,5 % de
+  passes en moins** au tableau des passeurs. Aucun effet sur le score ni sur le calibrage (2,443 buts/match).
+  Gardé par la **section H de `harness-repetitions.cjs`** : zéro corner direct avec passeur sur ~9 400 buts,
+  ni dans le texte ni dans les données de l'évènement.
 - **Météo de match (v0.84, affinée v0.85)** : le même corpus signalait un événement `pluie` qu'on n'avait pas.
   **`METEO`** = 8 temps (`clair`, `eteIndien`, `pluie`, `vent`, `froid`, `brouillard`, `boue`, `neige`), chacun
   avec un `ouv` (fragment ajouté à la ligne de coup d'envoi) et un jeu de lignes `amb` distillées pendant la
@@ -958,6 +1069,25 @@ toujours « raconter quelque chose ».
   évite qu'il reste seul dans un `grid2` à deux colonnes, donc à moitié vide. Les deux tableaux gardent
   `class="fit"` (voir le piège mobile plus bas). Aucun effet moteur.
 
+- **PLUS UNE SEULE BOÎTE DU NAVIGATEUR (v1.05)** : le jeu appelait encore `alert` **32 fois**, `confirm` une
+  fois (supprimer une carrière) et `prompt` une fois (renommer une carrière). Chaque apparition crevait le
+  décor télétexte — police du système, bouton « OK » en anglais selon la machine — et sur mobile le navigateur
+  les dessine à sa façon quand il ne les bloque pas. Trois remplaçantes, toutes au-dessus de `esc()` dans la
+  section INTERFACE : **`message(txt, o)`** (un message, un bouton — remplace `alert`), **`confirme(o)`**
+  (deux boutons, `onOui`/`onNon` — remplace `confirm`), **`saisie(o)`** (un champ, `onOk(valeur)` — remplace
+  `prompt`). **Elles sont ASYNCHRONES là où les boîtes bloquaient** : la suite passe par les callbacks, jamais
+  par la ligne d'après — c'était sans conséquence ici, les 32 appels étaient des gardes en `return alert(…)`.
+  **Elles vivent dans leur PROPRE calque `#msgbox`** (nouveau `<div>` après `#fiche`, `z-index` 20 contre 10) :
+  un refus peut donc répondre à un clic fait DANS une fenêtre — « trésorerie insuffisante » par-dessus
+  l'embauche d'un coach — **sans effacer la fenêtre du dessous**, et sans jamais toucher à `window._penEnCours`,
+  qui reste le verrou de `#fiche`. Tout ce qui s'y écrit passe par `esc()` (titre, corps, libellés de boutons,
+  et l'attribut `value` du champ de saisie). Au harnais (`EN_TEST`), chemin direct comme `modalSignature` :
+  un message se tait, une confirmation est acquise, une saisie valide `window._saisie` (ou la valeur par
+  défaut). Un **`MSG_JOURNAL`** de 20 entrées retient les derniers messages poussés au joueur — c'est par lui
+  que `harness-effectif.cjs` et `harness-sauvegardes.cjs` vérifient qu'un refus a bien été expliqué, et une
+  seule fois. **Pour étendre** : ne jamais réintroduire `alert`/`confirm`/`prompt` ; un `grep` sur ces trois
+  noms doit ne rendre que les commentaires qui racontent leur disparition.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
@@ -975,10 +1105,18 @@ toujours « raconter quelque chose ».
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
-   **et cohérence de la mise en scène** — un contre s'annonce comme un contre),
+   **et cohérence de la mise en scène** — un contre s'annonce comme un contre, une frappe de trente mètres
+   ne s'annonce pas comme une dernière passe, un but sur corner s'annonce comme un corner),
    `harness-fraicheur.cjs` (l'état de forme physique : barème, décrochage du vétéran sur une saison, rythme à
    trois jours, rotation automatique pour vous ET pour l'IA, effets mesurés sur le rendement et les blessures,
-   intersaison et migration, rendu des six écrans à toutes les valeurs de jauge).
+   intersaison et migration, rendu des six écrans à toutes les valeurs de jauge),
+   `harness-modales.cjs` (les fenêtres maison qui ont remplacé alert/confirm/prompt : rendu réel dans un vrai
+   nœud `#msgbox`, échappement de tout ce qui vient du joueur ou d'un fichier, la confirmation qui ne dit
+   « oui » que si on clique « oui », et **Échap qui dépile le message sans percer une fenêtre verrouillée**),
+   `harness-hdm.cjs` (l'homme du match et l'almanach : une distinction par rencontre dans TOUTE la division,
+   le barème — rouge disqualifiant, cage inviolée, 1-0 au buteur —, le moral et le mot de debrief, la remise à
+   zéro à l'intersaison, le rendu du classement des hommes du match, la mémoire de l'almanach, et le bilan de
+   saison qui se calcule ET se rend, y compris sur une saison à peine entamée).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →
@@ -987,6 +1125,38 @@ toujours « raconter quelque chose ».
 - Résumer les changements à l'auteur en français, style article de presse, à la fin.
 
 ## Pièges connus (déjà corrigés, ne pas réintroduire)
+- **ÉCHAP NE DOIT JAMAIS PERCER UNE FENÊTRE VERROUILLÉE (v1.05)** : l'écouteur clavier du bas de fichier
+  faisait `fiche.style.display="none"` **à la main**, sans regarder `window._penEnCours`. On évacuait donc
+  d'un coup de touche un incident, une conférence de presse, un chapitre d'arc, l'avant-match d'un tour de
+  Coupe de France ou d'Europe, un penalty à la 90ᵉ. Trois dégâts d'un coup : la chaîne de l'entre-match
+  (`ouvreEuro` → `ouvreCoupe` → `ouvreEre` → `ouvreIncident` → `ouvreArc` → `ouvreConf` → `ouvreDebrief` →
+  `ouvrePromo`) s'arrêtait net puisque `suite()` n'était jamais appelée ; le **verrou restait LEVÉ**, donc
+  `fermeFiche()` ne fermait plus rien ensuite ; et un tour de coupe pouvait rester en attente. Correctif :
+  la touche passe par **`fermeFiche()`**, seule porte qui respecte le verrou, après avoir laissé
+  **`fermeMessage()`** dépiler un éventuel message maison (qui, lui, vit au-dessus).
+  **LA MÊME FAILLE AVAIT UNE SECONDE PORTE** : le clic sur le FOND de la fenêtre. Les gestionnaires
+  `fiche.onclick=e=>{ if(e.target===fiche) … }` sont posés **sur l'élément**, donc ils **survivent à la
+  fenêtre qui les a posés** — une fenêtre verrouillée qui suit ne fait que réécrire `innerHTML`. Un clic à
+  côté d'un incident refermait donc tout, exactement comme Échap. Les trois gestionnaires de fond (prêt,
+  fiche joueur, nomination du capitaine) et leurs boutons « Fermer » passent désormais par `fermeFiche()`.
+  **Règle** : aucune fermeture de `#fiche` ne doit s'écrire en touchant `display` directement — toujours
+  `fermeFiche()`. Les trois seules exceptions assumées sont `fermeFiche()` elle-même, `abandonneDirect()`
+  et `retourAccueil()`, qui **lèvent le verrou d'abord** parce qu'elles mettent fin à la séquence.
+  Gardé par la **section G de `harness-modales.cjs`**.
+- **UNE OFFRE PEUT SURVIVRE À SON OBJET (v1.05)** : `G.offreExt` (l'offre étrangère de la semaine) est tirée
+  en début de journée et reste affichée jusqu'au coup d'envoi — rien n'empêchait de **prêter** le joueur
+  entre-temps. `accepterOffreExt` filtrait alors `moi.joueurs` **sans rien y trouver** (il vit chez le club
+  hôte), on encaissait le transfert, et le prêt le **ramenait quand même** à l'échéance : vendu ET rendu.
+  Deux verrous : `preteJoueur` **périme l'offre** sur le joueur qu'il fait partir (comme `rappelPret` le
+  faisait déjà pour `G.offrePret`), et `accepterOffreExt` refuse une offre dont le joueur n'est plus dans
+  l'effectif. Même famille : `traiterPrets` **solde** un prêt dont le joueur a disparu au lieu d'en facturer
+  la pige jusqu'au bout, et `retourPret` ne suppose plus que le porteur et le club de destination existent
+  encore. **Règle** : toute offre mémorisée dans `G` doit revérifier son objet AU MOMENT DU CLIC, pas
+  seulement à la génération.
+- **`MF` comparait une chaîne à `undefined` (v1.05)** : `FMT(n/1e6*10)/10 !== undefined` est **toujours vrai**
+  (`NaN !== undefined`), donc le repli était du code mort et un montant absent se serait affiché « NaN MF ».
+  Remplacé par `Number.isFinite(n)`, repli « — ». Sans effet en jeu, mais la branche morte aurait fini par
+  se voir à l'écran Finances.
 - Les lignes de commentaire du direct (`COMM.amb`/`arret`/`rate`/`but`/`cj`/`cr`/`cf`…) sont rendues
   par `fmtC`, qui ne remplace QUE trois jetons : `{A}` (le joueur concerné), `{G}` (« le gardien »)
   et `{D}` (l'adversaire). **Pas de `{B}`** : une ligne qui nomme un second joueur (passeur, etc.)
@@ -1043,12 +1213,11 @@ toujours « raconter quelque chose ».
   (règle écrite au-dessus de `MONTEE_BUT`, violée par cette seule ligne) → « Le ballon revient dans
   la surface… ». Deux tests de garde dans le harnais balaient désormais `MONTEE_BUT` à la recherche
   de vocabulaire de contre et de coup de pied arrêté.
-  **Résidu connu, non corrigé à ce stade** : l'inverse reste possible dans l'autre sens — une montée
-  de jeu ouvert (« Ouverture limpide dans le dos des défenseurs… ») peut précéder une **ligne de but
-  qui, elle, nomme un corner** (« Corner rentrant… BUT DIRECT ! », « Corner au second poteau… »,
-  et « …sur corner » dans `arret`), soit ~3 % des buts. Le fixer demanderait de faire remonter la
-  phase de jeu de la ligne de conclusion jusqu'à la montée (un drapeau de plus sur l'évènement, comme
-  `contre`) et un petit pool de montées « sur coup de pied arrêté ».
+  **Résidu refermé en v1.04** : l'inverse restait possible dans l'autre sens — une montée de jeu ouvert
+  (« Ouverture limpide dans le dos des défenseurs… ») pouvait précéder une **ligne de but qui, elle, nomme
+  un corner**. `TIRS_ARRET` + le drapeau `ph` + `MONTEE_ARRET` sont exactement le « drapeau de plus sur
+  l'évènement » et le « petit pool de montées sur coup de pied arrêté » esquissés ici. Voir **LA MONTÉE DOIT
+  CONNAÎTRE LA CONCLUSION** dans la section des commentaires du direct.
   **Note d'implémentation** : `motifDe` (anti-répétition, v0.97) ignore désormais explicitement ce qui
   n'est pas une chaîne — les pools de montée sont des **fonctions**, et tester une regex dessus
   reviendrait à la passer sur leur code source.

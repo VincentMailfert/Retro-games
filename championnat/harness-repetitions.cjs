@@ -38,7 +38,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,monteeUn,MONTEE_BUT,MONTEE_CONTRE,onze,CLUBS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,monteeUn,monteeDeux,phaseTir,MONTEE_BUT,MONTEE_CONTRE,MONTEE_FRAPPE,MONTEE_LOIN,MONTEE_LOIN_FRAPPE,MONTEE_ARRET,MONTEE_ARRET_FRAPPE,TIRS_LOIN,TIRS_ARRET,BUT_SANS_PASSE,BUT_CORNER_DIRECT,onze,CLUBS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -214,6 +214,120 @@ if (!imposeContre.length) ok("aucune ligne de MONTEE_BUT n'annonce un contre");
 else fail(imposeContre.length + " ligne(s) de MONTEE_BUT parlent de contre : « " + imposeContre[0].slice(0, 50) + "… »");
 if (!imposeArret.length) ok("aucune ligne de MONTEE_BUT n'impose un coup de pied arrêté");
 else fail(imposeArret.length + " ligne(s) de MONTEE_BUT imposent un coup de pied arrêté : « " + imposeArret[0].slice(0, 50) + "… »");
+
+/* ===== G) mise en scène : le décor doit coller à la CONCLUSION (v1.04) =====
+   Retour de playtest : « Coup de billard devant le but… », « Dernière passe pour X… », puis
+   « PRALINE DE TRENTE MÈTRES ! ». Même famille que la météo, le contre et le coup franc. Le moteur
+   étiquette désormais chaque résolution (`ph` : "" jeu ouvert proche, "loin", "bal" = sur corner)
+   et les deux temps de la montée piochent dans le décor correspondant. On vérifie les trois
+   maillons : les listes collent aux pools, le drapeau est posé partout, le décor suit.        */
+console.log("G) Phase de la conclusion (TIRS_LOIN / TIRS_ARRET, monteeUn / monteeDeux)");
+const POOLS_TIR = [].concat(api.COMM.but, api.COMM.rate, api.COMM.arret, api.COMM.rateContre);
+const ETIQUETEES = [...api.TIRS_LOIN, ...api.TIRS_ARRET];
+const orphelines = ETIQUETEES.filter((l) => !POOLS_TIR.includes(l));
+if (!orphelines.length) ok("les " + ETIQUETEES.length + " conclusions étiquetées sont bien recollées dans leur pool");
+else fail(orphelines.length + " ligne(s) étiquetée(s) ne sont dans aucun pool : « " + orphelines[0].slice(0, 45) + "… »");
+
+// filets de rattrapage : une conclusion écrite directement dans le pool serait muette
+const RX_LOIN = /(vingt|vingt-cinq|trente|quarante) m[èe]tres/i;
+const oubliees = POOLS_TIR.filter((l) => RX_LOIN.test(l) && !api.TIRS_LOIN.has(l));
+if (!oubliees.length) ok("aucune frappe de loin restée dans un pool sans son drapeau");
+else fail(oubliees.length + " ligne(s) parlent de vingt mètres et plus hors de TIRS_LOIN : « " + oubliees[0].slice(0, 45) + "… »");
+// « détournée EN corner » est un aboutissement, « sur corner » une origine : seule l'origine compte
+const RX_ARRET = /(sur|de|du) corner|corner (rentrant|au second|direct)/i;
+const oubliArret = POOLS_TIR.filter((l) => RX_ARRET.test(l) && !api.TIRS_ARRET.has(l));
+if (!oubliArret.length) ok("aucune conclusion sur corner restée dans un pool sans son drapeau");
+else fail(oubliArret.length + " ligne(s) naissent d'un corner hors de TIRS_ARRET : « " + oubliArret[0].slice(0, 45) + "… »");
+
+// le décor lointain n'impose ni balle arrêtée ni contre ; le décor de corner ne parle jamais de contre
+const horsRegle = api.MONTEE_LOIN.filter((l) => /corner|coup franc|penalty|contre-attaque|en contre/i.test(l));
+if (!horsRegle.length) ok("MONTEE_LOIN n'impose aucune phase de jeu qu'elle ne connaît pas");
+else fail(horsRegle.length + " ligne(s) de MONTEE_LOIN imposent une phase : « " + horsRegle[0].slice(0, 45) + "… »");
+const horsRegle2 = api.MONTEE_ARRET.filter((l) => /coup franc|penalty|contre-attaque|en contre/i.test(l));
+if (!horsRegle2.length) ok("MONTEE_ARRET ne parle que du corner qu'elle connaît");
+else fail(horsRegle2.length + " ligne(s) de MONTEE_ARRET imposent une autre phase");
+
+// le drapeau suit la ligne tirée, sur les sept points de génération
+function verifieDrapeau(ev, cpt) {
+  for (const e of ev) {
+    const info = e.g || e.q;
+    if (!info || !e.x) continue;
+    const g = gabaritDe(e.x);
+    if (!g) continue;
+    const attendu = api.phaseTir(g.ligne);
+    if ((info.ph || "") !== attendu) cpt.ko++;
+    cpt[attendu || "ouvert"] = (cpt[attendu || "ouvert"] || 0) + 1;
+  }
+}
+const cpt = { ko: 0 };
+for (let k = 0; k < 600; k++) {
+  const h = G.clubs[k % G.clubs.length], v = G.clubs[(k * 7 + 3) % G.clubs.length];
+  if (h === v) continue;
+  frais(h, v);
+  const r = api.simuleMatch(h, v, true);
+  verifieDrapeau(r.ev, cpt);
+  const garde = r.ev.filter((e) => e.m <= 45);
+  let sh = 0, sa = 0;
+  for (const e of garde) if (e.g) { if (e.g.cote === h.id) sh++; else sa++; }
+  verifieDrapeau(api.simuleReste(h, v, 45, sh, sa, 1, 1, r.vus).ev, cpt);
+  verifieDrapeau(api.genEvCoupe(h, v, { sh: 1 + (k % 4), sa: k % 3, tab: null, win: h }).ev, cpt);
+}
+if (cpt.ko === 0) ok("drapeau exact sur " + (cpt.ouvert + cpt.loin + cpt.bal) + " conclusions (" + cpt.loin + " de loin, " + cpt.bal + " sur corner) — championnat, re-sim et coupe");
+else fail(cpt.ko + " conclusion(s) mal étiquetées");
+
+// et la mise en scène pioche dans le bon décor, aux DEUX temps
+const nomT = api.onze(h0)[0].nom, gkT = "Barthez";
+const DECORS = { "": new Set(api.MONTEE_BUT), loin: new Set(api.MONTEE_LOIN), bal: new Set(api.MONTEE_ARRET) };
+const GESTES = {
+  "": new Set(api.MONTEE_FRAPPE.map((f) => f(nomT, gkT))),
+  loin: new Set(api.MONTEE_LOIN_FRAPPE.map((f) => f(nomT, gkT))),
+  bal: new Set(api.MONTEE_ARRET_FRAPPE.map((f) => f(nomT, gkT))),
+};
+let decorKo = 0, gesteKo = 0;
+for (const ph of ["", "loin", "bal"]) {
+  for (let k = 0; k < 400; k++) {
+    const info = { ph, but: nomT, cote: h0.id };
+    if (!DECORS[ph].has(api.monteeUn(info, [], h0, a0))) decorKo++;
+    if (!GESTES[ph].has(api.monteeDeux(info, [], gkT))) gesteKo++;
+  }
+}
+if (decorKo === 0 && gesteKo === 0) ok("les trois phases (proche, de loin, sur corner) ne se mélangent jamais, ni au premier ni au second temps");
+else fail(decorKo + " décor(s) et " + gesteKo + " geste(s) pris dans la mauvaise phase");
+if (CONTRES.has(api.monteeUn({ ph: "loin", contre: true, but: nomT, cote: h0.id }, [], h0, a0)))
+  ok("un contre conclu de loin garde sa mise en scène de contre (la distance ne joue qu'au second temps)");
+else fail("un contre conclu de loin perd sa mise en scène de contre");
+
+/* ===== H) le corner direct n'a jamais de passe décisive =====
+   « Corner rentrant… et personne ne touche le ballon ! BUT DIRECT ! » était suivi, deux fois sur trois,
+   d'une « Passe décisive de X » — alors que la ligne dit justement que PERSONNE n'a touché le ballon.
+   Depuis v1.05, marque() tire la ligne AVANT de désigner le passeur et coupe celui-ci sur les lignes
+   de BUT_SANS_PASSE. Ce test veille sur les deux bouts : la ligne est bien dans le Set, et aucun but
+   raconté ainsi ne repart avec un passeur — ni dans le texte, ni dans les données de l'évènement. */
+console.log("\nH) Le corner direct ne s'invente pas de passeur");
+if (api.BUT_SANS_PASSE.has(api.BUT_CORNER_DIRECT))
+  ok("la ligne du corner direct est bien déclarée sans passeur");
+else fail("BUT_CORNER_DIRECT n'est plus dans BUT_SANS_PASSE : la coupure ne s'applique plus");
+
+{
+  let butsH = 0, avecPasse = 0, directs = 0, fautifs = 0;
+  for (let k = 0; k < 4000; k++) {
+    const h = G.clubs[k % G.clubs.length], a = G.clubs[(k * 7 + 3) % G.clubs.length];
+    if (h === a) continue;
+    frais(h, a);
+    for (const e of api.simuleMatch(h, a, true).ev) {
+      if (!e.g) continue;
+      butsH++;
+      if (e.g.pas) avecPasse++;
+      if (e.x.indexOf("BUT DIRECT") >= 0) { directs++; if (e.g.pas || e.x.indexOf("Passe décisive") >= 0) fautifs++; }
+    }
+  }
+  console.log("   — " + butsH + " buts racontés, dont " + directs + " corners directs (" +
+    (directs / butsH * 100).toFixed(1) + " %) ; passes décisives : " + (avecPasse / butsH * 100).toFixed(1) + " % des buts —");
+  if (directs > 50) ok("l'échantillon contient assez de corners directs pour conclure (" + directs + ")");
+  else fail("trop peu de corners directs tirés (" + directs + ") : le test ne prouve rien");
+  if (fautifs === 0) ok("aucun corner direct n'est suivi d'une passe décisive, ni au texte ni aux données");
+  else fail(fautifs + " corner(s) direct(s) repartent avec un passeur");
+}
 
 /* ===== bilan ===== */
 console.log(FAILS ? "\n❌ HARNAIS RÉPÉTITIONS : " + FAILS + " PROBLÈME(S)" : "\n✅ HARNAIS RÉPÉTITIONS : TOUT EST VERT");
