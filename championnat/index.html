@@ -319,7 +319,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.12"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.13"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2286,16 +2286,84 @@ function enJeu(c, m){
   if(!p) return onze(c);
   const t=m==null?MIN_JEU:m, rouge=p.rouge||{};
   const xi=p.xi.map(j=>{ const k=p.sort.indexOf(j); return (k>=0 && t>=p.min[k]) ? p.banc[k] : j; })
-               .filter(j=>!(rouge[j.uid]<=t)); // l'expulsé a quitté la pelouse, et personne ne le remplace
+               .filter(j=>!(rouge[j.uid]<=t)); // l'expulsé a quitté la pelouse, et personne ne reprend sa place (le gardien remplaçant prend celle d'un joueur de champ)
   return xi.length ? xi : onze(c);
 }
 /* Un carton rouge sort l'homme du jeu à la minute m. S'il devait être remplacé PLUS TARD, ce changement
-   n'aura pas lieu : on ne remplace pas un expulsé, l'équipe finit à dix. */
+   n'aura pas lieu : on ne remplace pas un expulsé, l'équipe finit à dix. Le changement annulé est gardé de côté
+   (`annules`, avec l'uid de l'expulsé) : si une consigne changée en direct efface ce rouge, il revient (rejoueDepuis).
+   Si c'est le GARDIEN qui sort (v1.13), releveGardien dit qui garde les buts — c'est ce que rend expulse. */
 function expulse(c, j, m){
-  const p=CHANGEMENTS[c.id]; if(!p) return;
+  const p=CHANGEMENTS[c.id]; if(!p) return null;
   (p.rouge||(p.rouge={}))[j.uid]=m;
   const k=p.sort.indexOf(j);
-  if(k>=0 && p.min[k]>m){ p.banc.splice(k,1); p.sort.splice(k,1); p.min.splice(k,1); }
+  if(k>=0 && p.min[k]>m) annuleChangement(p, k, j.uid);
+  return j.pos==="G" ? releveGardien(c, m, j, "rouge") : null;
+}
+function annuleChangement(p, k, par){
+  (p.annules||(p.annules=[])).push({par, banc:p.banc[k], sort:p.sort[k], min:p.min[k]});
+  p.banc.splice(k,1); p.sort.splice(k,1); p.min.splice(k,1);
+}
+/* UN GARDIEN NE SE REMPLACE PAS EN COURS DE MATCH, SAUF BLESSURE OU CARTON ROUGE (v1.13, consigne de l'auteur).
+   tireSubs ne fait donc plus jamais entrer le gardien remplaçant pour la tactique : il reste assis, et n'en bouge
+   que lorsque les buts se vident. SUR UN ROUGE, un JOUEUR DE CHAMP lui cède sa place — un attaquant d'abord (à dix,
+   on protège la maison), de préférence celui qu'on comptait déjà sortir, sinon celui qui rend le moins — et le
+   gardien remplaçant prend les gants, pas le poste de l'homme sacrifié. SUR UNE BLESSURE (le moment « gants » de
+   la 90e), il relève son gardien poste pour poste. C'est un des trois changements : s'il en reste un de prévu plus
+   tard, il saute (celui du sacrifié, sinon le dernier) ; s'ils sont déjà faits, ou s'il n'y a pas de gardien sur
+   le banc (un seul par feuille de match), un joueur de champ — un défenseur si possible — enfile les gants.
+   Rend {entre, sort, cause} quand le gardien remplaçant entre, {gants, raison} sinon ; null quand il reste un
+   gardien sur la pelouse, ou hors d'une journée de championnat (pas de CHANGEMENTS). Le changement vaut dès la
+   minute m : l'homme sacrifié ne touche plus un ballon après la ligne du rouge. */
+function releveGardien(c, m, gk, cause){
+  const p=CHANGEMENTS[c.id]; if(!p) return null;
+  const blessure=(cause==="blessure"), pelouse=enJeu(c, m);
+  if(!blessure && pelouse.some(j=>j.pos==="G")) return null; // l'expulsé n'était pas le dernier gardien debout
+  const champ=pelouse.filter(j=>j.pos!=="G");
+  const gants=()=>PICK(champ.filter(j=>j.pos==="D"))||PICK(champ)||null;
+  const doublure=p.banc.some(j=>j.pos==="G") ? null // le gardien du banc est déjà entré
+    : c.joueurs.filter(j=>j.pos==="G" && alignable(j) && !p.xi.includes(j)).sort((x,y)=>noteSel(y)-noteSel(x))[0];
+  if(!doublure) return {gants:gants(), raison:"banc"};
+  if(p.min.filter(x=>x<=m).length>=3) return {gants:gants(), raison:"trois"};
+  const prevu=j=>{ const k=p.sort.indexOf(j); return k>=0 && p.min[k]>m; };
+  const sort=blessure ? gk : champ.filter(j=>p.xi.includes(j)) // un entrant ne ressort pas
+    .sort((x,y)=>("AMD".indexOf(x.pos)-"AMD".indexOf(y.pos)) || (prevu(y)-prevu(x)) || (noteSel(x)-noteSel(y)))[0];
+  if(!sort) return {gants:gants(), raison:"trois"};
+  const par=blessure?null:gk.uid; // un rouge effacé par le direct rendra ce qu'il a pris ; une blessure, non
+  if(prevu(sort)) annuleChangement(p, p.sort.indexOf(sort), par);
+  else if(p.min.length>=3){ const aVenir=p.min.filter(x=>x>m); // plus de place pour lui : le dernier changement prévu saute
+    if(aVenir.length) annuleChangement(p, p.min.lastIndexOf(Math.max(...aVenir)), par); }
+  p.banc.push(doublure); p.sort.push(sort); p.min.push(m);
+  (p.urgence||(p.urgence={}))[doublure.uid]={cause, par};
+  return {entre:doublure, sort, cause};
+}
+// L'infériorité numérique encaissée : 1,18 pour un homme de moins, 1,34 quand plus personne de métier ne garde les
+// buts. Depuis v1.13, un gardien expulsé que son remplaçant relève ne laisse « que » dix hommes et un vrai portier.
+function malusRouge(gardien, rel){ return (gardien && !(rel&&rel.entre)) ? 1.34 : 1.18; }
+// les lignes du rouge d'un gardien : « son remplaçant enfile les gants » n'est vraie que s'il entre pour de bon
+function poolRougeGK(rel){ return (rel&&rel.entre) ? COMM.crGK : COMM.crGK.filter(l=>!/remplaçant/.test(l)); }
+const SUBS_URGENCE=[ // {C} le club, {S} le joueur de champ sacrifié, {E} le gardien remplaçant
+  "Changement forcé pour {C} : {S} est sacrifié, et {E}, le gardien remplaçant, file dans les buts sans s'être échauffé.",
+  "{C} n'a plus de gardien : {S} sort, sacrifié sur l'autel du règlement, et {E} enfile les gants à froid.",
+  "Il faut quelqu'un dans les buts de {C} : {S} rejoint le banc en maugréant, {E} prend place entre les poteaux.",
+];
+/* Une ligne de changement du direct : poste pour poste « X entre à la place de Y » (v1.11), ou le gardien
+   remplaçant appelé par un rouge (v1.13, `urg`). Porte `cote` et `uid` de l'entrant (cf. rejoueDepuis), `out` du sortant. */
+function ligneChangement(c, s, k){
+  const ent=s.banc[k], sor=s.sort[k], u=s.urgence&&s.urgence[ent.uid];
+  const l={m:s.min[k], t:"occ", ic:"sub", cote:c.id, uid:ent.uid, out:sor.uid};
+  if(u){ l.urg=u.cause; l.x=PICK(SUBS_URGENCE).replace("{C}",c.nom).replace("{S}",sor.nom).replace("{E}",ent.nom); }
+  else l.x="Changement pour "+c.nom+" : "+ent.nom+" entre à la place de "+sor.nom+".";
+  return l;
+}
+// les changements prévus au coup d'envoi ; ceux d'urgence s'écrivent au fil du match, juste après leur rouge
+function lignesChangements(c, s){ return s.banc.map((j,k)=>k).filter(k=>!(s.urgence&&s.urgence[s.banc[k].uid])).map(k=>ligneChangement(c, s, k)); }
+function ligneApresRouge(c, rel, m){
+  if(!rel) return null;
+  if(rel.entre){ const p=CHANGEMENTS[c.id]; return ligneChangement(c, p, p.banc.indexOf(rel.entre)); }
+  if(rel.gants) return {m, t:"amb", x:(rel.raison==="banc" ? "Pas de gardien sur le banc de "+c.nom+" : " : c.nom+" a déjà fait ses trois changements : ")
+    +rel.gants.nom+" enfile le maillot du gardien et file dans les buts !"};
+  return null;
 }
 function estContre(c,m){
   if(!DERN_ATT.cote) return Math.random()<0.10;          // début de match : récupération spontanée, rare
@@ -2498,18 +2566,20 @@ function simuleMatch(home,away,verbeux){
     if(verbeux && Math.random()<(derby?0.055:0.030)){ // discipline (le derby chauffe les esprits)
       const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
       const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
+      let rel=null; // le rouge d'un gardien : qui garde les buts après lui (v1.13)
       if(rouge){
         j.susp=(j.susp||0)+3; // expulsion : 2 journées de suspension après celle-ci
-        expulse(cote, j, m);   // ...et il quitte la pelouse : plus personne ne le nommera, ni ne le remplacera
-        const dDef=gardien?1.34:1.18; // un de moins : on attaque moins, on encaisse plus — sans gardien, la cage est une passoire
+        rel=expulse(cote, j, m); // ...et il quitte la pelouse : plus personne ne le nommera — si c'est le gardien, son remplaçant entre à la place d'un joueur de champ
+        const dDef=malusRouge(gardien, rel); // un de moins : on attaque moins, on encaisse plus
         if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; }
       }
       // « Deuxième jaune » UNIQUEMENT si le joueur avait déjà un jaune ce match ; sinon rouge direct.
       const secondJaune=rouge&&booked.has(j.uid);
-      const pool=rouge?(secondJaune?COMM.cr2j:(gardien?COMM.crGK:COMM.cr)):(gardien?COMM.cjGK:COMM.cj);
+      const pool=rouge?(secondJaune?COMM.cr2j:(gardien?poolRougeGK(rel):COMM.cr)):(gardien?COMM.cjGK:COMM.cj);
       if(!rouge) booked.add(j.uid); // le joueur est désormais averti pour la suite du match
-      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},
+      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid,releve:!!(rel&&rel.entre)},
         x:fmtC(pickNR(pool,vusC),j,cote)+" ("+cote.id+")"});
+      const suite=ligneApresRouge(cote, rel, m); if(suite) ev.push(suite);
     }
     // coups francs aux abords de la surface (~0,7 par match) : du décor qui rythme la rencontre, sans toucher au score
     if(verbeux && Math.random()<0.014){
@@ -2583,13 +2653,15 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
     if(Math.random()<(derby?0.055:0.030)){
       const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
       const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
-      if(rouge){ j.susp=(j.susp||0)+3; expulse(cote, j, m); const dDef=gardien?1.34:1.18;
+      let rel=null;
+      if(rouge){ j.susp=(j.susp||0)+3; rel=expulse(cote, j, m); const dDef=malusRouge(gardien, rel);
         if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; } }
       // « Deuxième jaune » UNIQUEMENT si le joueur avait déjà un jaune ce match ; sinon rouge direct.
       const secondJaune=rouge&&booked.has(j.uid);
-      const pool=rouge?(secondJaune?COMM.cr2j:(gardien?COMM.crGK:COMM.cr)):(gardien?COMM.cjGK:COMM.cj);
+      const pool=rouge?(secondJaune?COMM.cr2j:(gardien?poolRougeGK(rel):COMM.cr)):(gardien?COMM.cjGK:COMM.cj);
       if(!rouge) booked.add(j.uid); // le joueur est désormais averti pour la suite du match
-      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},x:fmtC(pickNR(pool,vusC),j,cote)+" ("+cote.id+")"});
+      ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid,releve:!!(rel&&rel.entre)},x:fmtC(pickNR(pool,vusC),j,cote)+" ("+cote.id+")"});
+      const suite=ligneApresRouge(cote, rel, m); if(suite) ev.push(suite); // le gardien remplaçant entre, ou un joueur de champ prend les gants (v1.13)
     }
     if(Math.random()<0.014){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(enJeu(cf));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.cf,vusC),t,cf===home?away:home)+" ("+cf.id+")"}); }
@@ -2616,24 +2688,40 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
 /* Recolle un nouveau cours de match à partir de l'index non encore joué (fromIdx) : annule les stats du tail
    pré-tiré, repart du score affiché et re-simule. Mute monMatch (r.ev, r.sh, r.sa) en place. */
 function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
+  const effaces=[];
   for(let k=fromIdx;k<r.ev.length;k++){ const l=r.ev[k];
     if(l.g){ const b=l.g.uid&&byUid(l.g.uid); if(b) b.buts=Math.max(0,(b.buts||0)-1);
       const p=l.g.pasUid&&byUid(l.g.pasUid); if(p) p.passes=Math.max(0,(p.passes||0)-1); }
-    if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3);
-      const p=CHANGEMENTS[l.c.cote]; if(p&&p.rouge) delete p.rouge[l.c.uid]; } // il revient sur la pelouse du fil recollé
+    if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); effaces.push(l.c); }
+  }
+  // l'expulsé revient sur la pelouse du fil recollé — et ce que son rouge avait déclenché se défait (v1.13) : le gardien
+  // remplaçant appelé en urgence retourne sur le banc, les changements que le rouge avait fait sauter reviennent.
+  // À rebours, du dernier rouge au premier, pour que chacun retrouve la feuille de match qu'il avait trouvée.
+  const rendus=[];
+  for(const c of effaces.reverse()){ const p=CHANGEMENTS[c.cote]; if(!p) continue;
+    if(p.rouge) delete p.rouge[c.uid];
+    for(let k=p.banc.length-1;k>=0;k--){ const u=p.urgence&&p.urgence[p.banc[k].uid];
+      if(u && u.par===c.uid){ delete p.urgence[p.banc[k].uid]; p.banc.splice(k,1); p.sort.splice(k,1); p.min.splice(k,1); } }
+    p.annules=(p.annules||[]).filter(x=>{ if(x.par!==c.uid) return true;
+      p.banc.push(x.banc); p.sort.push(x.sort); p.min.push(x.min);
+      if(!(p.urgence&&p.urgence[x.banc.uid])) rendus.push(ligneChangement(c.cote===h.id?h:a, p, p.banc.length-1)); // le relais du gardien blessé à la 90e n'a pas de ligne : le moment le raconte
+      return false; });
   }
   let sh=0,sa=0; for(let k=0;k<fromIdx;k++){ const l=r.ev[k]; if(l.g){ if(l.g.cote===h.id) sh++; else sa++; } }
   // ce qui doit SURVIVRE au recollage (v1.04) : l'annonce du temps additionnel et surtout la ligne du MOMENT de la
   // 90e, qui n'est résolue qu'au coup de sifflet. Sans ça, changer de consigne effaçait le penalty/la cagade à venir.
   const queue=r.ev.slice(fromIdx).filter(l=>l.mo || (l.t==="sys" && /temps additionnel/.test(l.x||"")));
   // les CHANGEMENTS pas encore montrés survivent aussi (v1.11) : ils sont décidés au coup d'envoi, pas par la consigne —
-  // sauf celui qu'un rouge du fil recollé vient d'annuler (expulse), puisqu'on ne remplace pas un expulsé
-  const changes=r.ev.slice(fromIdx).filter(l=>l.ic==="sub");
+  // sauf celui qu'un rouge du fil recollé vient d'annuler (expulse), puisqu'on ne remplace pas un expulsé. Le tri se fait
+  // deux fois : ICI, contre la feuille que l'effacement des rouges vient de rendre (le gardien d'urgence d'un rouge effacé
+  // n'a plus de ligne — si le nouveau fil le rappelle, simuleReste l'écrit à neuf), et après la re-simulation
+  const enFeuille=l=>{ const p=CHANGEMENTS[l.cote]; return !p || p.banc.some(j=>j.uid===l.uid); };
+  const changes=r.ev.slice(fromIdx).filter(l=>l.ic==="sub" && enFeuille(l)).concat(rendus).sort((x,y)=>x.m-y.m);
   const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r));
   r.ev.length=fromIdx;
   const fil=out.ev.slice();
   for(const s of changes){
-    const p=CHANGEMENTS[s.cote]; if(p && !p.banc.some(j=>j.uid===s.uid)) continue;
+    if(!enFeuille(s)) continue; // un rouge du nouveau fil l'a fait sauter
     const k=fil.findIndex(l=>l.m>s.m); fil.splice(k<0?fil.length:k, 0, s); // à sa minute, sans réordonner le reste du fil
   }
   for(const e of fil) r.ev.push(e);
@@ -2695,17 +2783,20 @@ function appliqueResultat(h,a,sh,sa,pre){
 }
 /* LES TROIS CHANGEMENTS D'UNE ÉQUIPE (v1.11) — tirés pour les vingt clubs, et plus seulement le temps d'écrire le
    direct : qui entre, À QUELLE MINUTE, et À LA PLACE DE QUI. Chaque entrant relève un titulaire de son poste,
-   celui qui rend le moins aujourd'hui (noteSel : le plus entamé, ou à défaut le plus faible) — un gardien ne
-   relève donc jamais un avant-centre, et un remplaçant sans titulaire de son poste à relever (deux gardiens
-   tirés au banc) reste assis. Minutes : vers la 57e, la 65e et la 73e (+3 pour le visiteur, `decal`), les
-   repères du téléscripteur d'avant v1.11. `min[k]` est la minute où `banc[k]` remplace `sort[k]` ; c'est elle
-   qui fait le prix du match des deux hommes (coutMinutes), et le direct l'écrit telle quelle. */
+   celui qui rend le moins aujourd'hui (noteSel : le plus entamé, ou à défaut le plus faible), et un remplaçant
+   sans titulaire de son poste à relever (trois avants pour deux places) reste assis. LE GARDIEN REMPLAÇANT N'EN
+   FAIT JAMAIS PARTIE (v1.13) : un gardien ne se remplace pas pour la tactique — seuls un rouge ou une blessure
+   l'appellent, et c'est releveGardien qui s'en charge, sur l'une des trois places. Minutes : vers la 57e, la 65e
+   et la 73e (+3 pour le visiteur, `decal`), les repères du téléscripteur d'avant v1.11. `min[k]` est la minute où
+   `banc[k]` remplace `sort[k]` ; c'est elle qui fait le prix du match des deux hommes (coutMinutes), et le direct
+   l'écrit telle quelle. Rouges et urgences ajoutent en cours de match `rouge`, `annules` et `urgence` (cf. expulse). */
 function tireSubs(c, decal){
   const xi=onze(c), banc=[], sort=[], min=[];
   // le banc écarte lui aussi les joueurs mis au repos : les envoyer en jeu viderait la décision de son sens
   const vivier=c.joueurs.filter(j=>!xi.includes(j)&&alignable(j)).sort(()=>Math.random()-.5);
   for(const j of vivier){
     if(banc.length===3) break;
+    if(j.pos==="G") continue; // un gardien ne sort pas pour la tactique, donc le sien n'entre pas pour elle
     const releve=xi.filter(t=>t.pos===j.pos && !sort.includes(t)).sort((x,y)=>noteSel(x)-noteSel(y))[0];
     if(!releve) continue;
     min.push(57+banc.length*8+RNDI(0,3)+(decal||0));
@@ -2732,7 +2823,8 @@ function relieClones(P){
   if(!P) return;
   const vraiC=c=>(c&&clubById(c.id))||c;
   const vraiJ=j=>(j&&j.uid!=null&&byUid(j.uid))||j;
-  const sel=s=>{ if(!s) return; for(const k of ["xi","banc","sort"]) if(Array.isArray(s[k])) s[k]=s[k].map(vraiJ); };
+  const sel=s=>{ if(!s) return; for(const k of ["xi","banc","sort"]) if(Array.isArray(s[k])) s[k]=s[k].map(vraiJ);
+    (s.annules||[]).forEach(x=>{ x.banc=vraiJ(x.banc); x.sort=vraiJ(x.sort); }); }; // les changements qu'un rouge a fait sauter (v1.13)
   (P.res||[]).forEach(e=>{ if(e){ e.h=vraiC(e.h); e.a=vraiC(e.a); } });
   const q=P.pend;
   if(q){ q.h=vraiC(q.h); q.a=vraiC(q.a); if(q.pre){ sel(q.pre.h); sel(q.pre.a);
@@ -2787,8 +2879,8 @@ function jouerJournee(evCb){
     monMatch=r;
     const lignes=[];
     // le direct écrit les changements que la fraîcheur fera payer : même minute, même homme qui sort
-    for(const [c,s] of [[h,pre.h],[a,pre.a]]) s.banc.forEach((j,k)=>lignes.push({m:s.min[k],t:"occ",ic:"sub",cote:c.id,uid:j.uid,
-      x:"Changement pour "+c.nom+" : "+j.nom+" entre à la place de "+s.sort[k].nom+"."}));
+    // (le gardien appelé par un rouge est déjà écrit, juste sous son rouge : lignesChangements ne rend que les prévus)
+    for(const [c,s] of [[h,pre.h],[a,pre.a]]) lignes.push(...lignesChangements(c, s));
     const fin=r.ev.pop();
     r.ev=r.ev.concat(lignes).sort((x,y)=>x.m-y.m); r.ev.push(fin);
     // un moment de match à l'ultime seconde ?
@@ -3071,8 +3163,13 @@ function tireMoment(moi,adv){
   if(t<0.97){
     const gk=xiM.find(j=>j.pos==="G");
     if(!gk) return null;
-    return {type:"gants", uid:gk.uid,
-      annonce:"Votre gardien "+gk.nom+" reste au sol après un choc... Un défenseur enfile les gants pour les arrêts de jeu."};
+    // la blessure, seule autre porte de sortie d'un gardien (v1.13) : son remplaçant entre s'il reste un changement
+    const rel=releveGardien(moi, 90, gk, "blessure");
+    return {type:"gants", uid:gk.uid, gk2:rel&&rel.entre?rel.entre.uid:null,
+      annonce:"Votre gardien "+gk.nom+" reste au sol après un choc... "+(
+        rel&&rel.entre ? "Il vous restait un changement : "+rel.entre.nom+", le gardien remplaçant, entre pour les arrêts de jeu."
+        : rel&&rel.gants ? (rel.raison==="banc"?"Pas de gardien sur le banc : ":"Les trois changements sont faits : ")+rel.gants.nom+" enfile les gants pour les arrêts de jeu."
+        : "Un défenseur enfile les gants pour les arrêts de jeu.")};
   }
   // pur décor (aucun effet sur le score) : l'envahisseur à quatre pattes, le pigeon assommé, ou l'intrus en bottes
   const decor=PICK(["chien","pigeon","streaker"]);
@@ -9296,7 +9393,7 @@ function lanceMatch(instant){
     ajouteLigne(tk,lignes[i]); majTableau(lignes[i]); i++;
     if(lg && lg.m) liveMin=lg.m; // minute jouée (pour une éventuelle re-sim tactique)
     if(lg && lg.c && lg.c.rouge){ // infériorité numérique en cours : on reflète l'effet du moteur sur les attaques
-      const dDef=lg.c.gardien?1.34:1.18;
+      const dDef=lg.c.gardien&&!lg.c.releve?1.34:1.18; // même barème que le moteur (malusRouge) : un gardien relevé ne laisse que dix hommes
       if(lg.c.cote===eM.h.id){ liveMulH*=0.78; liveMulA*=dDef; } else { liveMulA*=0.78; liveMulH*=dDef; }
     }
     tk.scrollTop=0;

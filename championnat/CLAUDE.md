@@ -213,8 +213,8 @@ toujours « raconter quelque chose ».
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
-  attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé =
-  cage encore plus fragile). Les **gardiens fautent autrement** qu'un joueur de champ (`COMM.crGK`/`COMM.cjGK` :
+  attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le
+  banc ne peut pas relever = cage encore plus fragile — voir « LES GARDIENS », v1.13). Les **gardiens fautent autrement** qu'un joueur de champ (`COMM.crGK`/`COMM.cjGK` :
   sortie kamikaze à la Schumacher, poings en avant, main hors surface) — branché sur `j.pos==="G"`.
   **Ferveur du public (v0.61)** : l'avantage du terrain est **modulé par l'affluence** — `simuleMatch` calcule `aff`
   d'abord, en tire `fill=aff/cap` et `ferveur=1+0.18*(fill−0.62)` (centré sur ~62 % = la moyenne), applique `lh*=…*ferveur`
@@ -603,6 +603,33 @@ toujours « raconter quelque chose ».
   **Mesuré** : 2,4073 → 2,4079 buts/match (20 passes de `harness.cjs` par version, 15 120 matchs chacune) ; les
   entrants marquent ~9 % des buts. **PIÈGE, à ne pas réintroduire** : un nouveau tirage de joueur « en jeu » dans le
   moteur ou dans un direct de championnat doit passer par `enJeu`, jamais par `onze()` — sinon un sortant revient.
+  **LES GARDIENS (v1.13, consigne de l'auteur : « un gardien ne peut pas être remplacé en cours de match, sauf blessure
+  ou carton rouge ; si le titulaire prend un rouge, on remplace un joueur de champ par le gardien remplaçant, qui prend
+  son poste de gardien »)** — avant, `tireSubs` relevait poste pour poste, donc le gardien du banc entrait souvent à
+  la place du titulaire pour la tactique, et un gardien expulsé laissait toujours la cage vide (×1,34). Désormais :
+  (a) **`tireSubs` saute les gardiens** : les trois entrants prévus sont des joueurs de champ. (b) **`expulse` rend
+  `releveGardien(c, m, gk, "rouge")`** quand l'expulsé est un gardien et qu'il n'en reste plus sur la pelouse : un
+  **joueur de champ du onze de départ** sort — un attaquant d'abord, de préférence celui qu'on comptait déjà sortir,
+  sinon celui qui rend le moins — et le **meilleur gardien `alignable` hors du onze** entre **à la minute même**,
+  sur l'une des **trois places** : s'il reste un changement prévu plus tard, il saute (celui du sacrifié, sinon le
+  dernier). **Un seul gardien par feuille** : si un gardien est déjà dans `banc`, pas de second relais. Sans
+  gardien sur le banc (`raison:"banc"`) ou changements épuisés (`raison:"trois"`), un joueur de champ — un défenseur
+  si possible — **enfile les gants** et la cage reste une passoire. (c) **`malusRouge(gardien, rel)`** : ×1,34 seulement
+  quand plus personne de métier ne garde les buts, ×1,18 sinon — le direct relit le même barème grâce au drapeau
+  `c.releve` de la ligne du rouge. (d) **La ligne suit le rouge** : `ligneApresRouge` écrit le relais (`SUBS_URGENCE`,
+  ligne `ic:"sub"` avec `urg:"rouge"`) ou le joueur de champ dans les buts, **juste sous le rouge, par le moteur
+  lui-même** (simuleMatch ET simuleReste) ; `jouerJournee` n'écrit plus que les changements prévus
+  (`lignesChangements`). `poolRougeGK` retire « son remplaçant enfile les gants » quand personne n'entre. Toute ligne de
+  changement porte aussi `out` (uid du sortant). (e) **La blessure** : le moment `gants` de la 90e appelle
+  `releveGardien(moi, 90, gk, "blessure")` — le gardien du banc relève le blessé poste pour poste s'il reste un
+  changement (rare : il faut qu'un rouge en ait fait sauter un), sinon un joueur de champ nommé enfile les gants.
+  C'est la SEULE blessure en plein match du moteur (les autres se tirent après le coup de sifflet). (f) **Défaire un
+  rouge** : la feuille garde `annules` (changements sautés, avec `par` = l'uid de l'expulsé) et `urgence` (uid de
+  l'entrant → `{cause, par}`) ; `rejoueDepuis` efface les rouges du fil **à rebours**, renvoie le gardien d'urgence sur
+  le banc, rend les changements sautés **avec leur ligne**, et trie les lignes de changement contre la feuille AVANT et
+  APRÈS la re-simulation (sinon la ligne d'un relais effacé puis refait par le nouveau fil sortirait en double).
+  **PIÈGE** : `enJeu` ne fait qu'un saut (onze de départ → entrant) — c'est pourquoi on ne sacrifie jamais un entrant.
+  Gardé par la **section J de `harness-fraicheur.cjs`**.
   **Calibrage intact** : l'effet est SYMÉTRIQUE (les 20 clubs le subissent, l'IA tourne comme vous), donc ce que
   l'attaque perd, la défense adverse le perd aussi — mesuré 2,419 (sans fatigue) → 2,432 buts/match sur 15 120
   matchs. **Contre-intuitif mais vérifié** : un barème PLUS dur laisse les effectifs PLUS frais en fin de saison
@@ -1318,7 +1345,11 @@ toujours « raconter quelque chose ».
    intersaison et migration, rendu des six écrans à toutes les valeurs de jauge, et **depuis v1.11 les
    changements** : poste pour poste, 220 points par équipe, prorata de l'entrant/du sortant/de l'expulsé, rouge qui
    annule un changement, 400 matchs sans sortant nommé après sa sortie ni entrant avant son entrée, entrants qui
-   marquent, consigne changée en direct qui garde ses changements, et « X entre à la place de Y » au direct),
+   marquent, consigne changée en direct qui garde ses changements, et « X entre à la place de Y » au direct ;
+   **section J depuis v1.13, les gardiens** : jamais entrés pour la tactique, rouge du titulaire relevé par le gardien
+   du banc à la place d'un attaquant sur l'une des trois places, cage vide quand les changements sont faits ou le banc
+   sans gardien, pas de troisième gardien, relais sur la blessure de la 90e, rouge effacé par le direct qui rend le
+   changement sauté, et 600 matchs à gardiens nerveux, dont 300 recollés, sans ligne orpheline ni changement en double),
    `harness-modales.cjs` (les fenêtres maison qui ont remplacé alert/confirm/prompt : rendu réel dans un vrai
    nœud `#msgbox`, échappement de tout ce qui vient du joueur ou d'un fichier, la confirmation qui ne dit
    « oui » que si on clique « oui », et **Échap qui dépile le message sans percer une fenêtre verrouillée**),
