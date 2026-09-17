@@ -311,7 +311,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.10"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.11"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1596,7 +1596,8 @@ const CONSIGNES={
 };
 /* ---------- FRAÎCHEUR : l'état de forme physique, joueur par joueur (v1.00) ----------
    Chaque joueur des VINGT clubs de la division jouée porte une jauge 0-100. Un match complet coûte
-   FRAICH_MATCH, une entrée en jeu FRAICH_BANC, et l'on récupère FRAICH_SEM par semaine — une semaine
+   FRAICH_MATCH, un bout de match le même prix AU PRORATA DES MINUTES (coutMinutes, v1.11), et l'on
+   récupère FRAICH_SEM par semaine — une semaine
    = une journée de championnat, l'horloge du jeu. Un joueur dans la force de l'âge repart donc
    toujours de 100 le samedi suivant : le rythme d'une semaine est tenable, et c'est voulu.
    LE VIEILLISSEMENT PORTE SUR LE TAUX DE RÉCUPÉRATION, pas sur le coût du match : passé 29 ans on ne
@@ -1609,8 +1610,13 @@ const CONSIGNES={
    Neutre sur le calibrage du championnat : l'effet est SYMÉTRIQUE (les vingt clubs le subissent, l'IA
    fait tourner comme vous via noteSel), donc ce que l'attaque perd, la défense adverse le perd aussi. */
 const FRAICH_MATCH=20;   // un match complet : −20 points de fraîcheur
-const FRAICH_BANC=8;     // une entrée en jeu en cours de match coûte nettement moins cher
 const FRAICH_SEM=20;     // récupération d'une semaine pleine, à plein régime (≤ 29 ans)
+/* LE PRIX D'UN BOUT DE MATCH (v1.11, question de l'auteur : « un joueur qui rentre perd-il autant que les
+   titulaires ? ») : au prorata des minutes, pour l'entrant COMME pour l'homme qu'il remplace. L'entrant de
+   la 70e paie 20 × 20/90 ≈ 4,4, le sortant 20 × 70/90 ≈ 15,6 — et leur poste a coûté 20, ni plus ni moins.
+   (Avant : un forfait de 8 pour l'entrant quelle que soit la minute, et 20 pour chacun des onze, puisque
+   personne ne sortait — une équipe payait 244 points pour un match qui en vaut 220.) */
+function coutMinutes(min){ return FRAICH_MATCH*Math.max(0, Math.min(90, min))/90; }
 function fraich(j){ return j.fraich==null?100:j.fraich; }
 // taux de récupération selon l'âge : plein jusqu'à 29 ans, puis il s'érode d'un quarantième par an
 function recupAge(age){ return Math.max(0.78, Math.min(1, 1-0.025*((age||25)-29))); }
@@ -2065,7 +2071,7 @@ const COMM={
   "{A} pousse le ballon dans le but vide, se retourne... et voit l'arbitre au milieu du terrain qui refuse tout. Le stade gronde.",
  ],
 };
-function quelconque(c){ return PICK(onze(c)); }
+function quelconque(c, m){ return PICK(enJeu(c, m)); } // m : la minute racontée (défaut : l'horloge du match simulé)
 /* État du match : lignes d'ambiance CONDITIONNÉES par le score et la minute, au lieu d'être
    tirées au hasard. Calqué sur ce que fait un vrai live (~7 % de ses entrées). Ordre = priorité.
    Aucun effet moteur : c'est du décor, le calibrage n'y touche pas. */
@@ -2174,7 +2180,8 @@ let METEO_MATCH=null; // météo du match en cours (relue par simuleReste après
 
 
 function tireur(c){
-  const xi=onze(c), att=xi.filter(j=>"MA".includes(j.pos));
+  const xi=enJeu(c), att=xi.filter(j=>"MA".includes(j.pos));
+  if(!att.length) return xi[xi.length-1]; // plus un seul milieu ni attaquant debout : quelqu'un d'autre s'y colle
   const pond=att.map(j=>j.pos==="A"?j.note*2:j.note);
   let t=Math.random()*pond.reduce((a,b)=>a+b,0);
   for(let i=0;i<att.length;i++){ t-=pond[i]; if(t<=0) return att[i]; }
@@ -2182,7 +2189,7 @@ function tireur(c){
 }
 function passeur(c, buteur){
   if(Math.random()<0.28) return null; // but sans passe décisive
-  const xi=onze(c).filter(j=>j!==buteur && j.pos!=="G");
+  const xi=enJeu(c).filter(j=>j!==buteur && j.pos!=="G");
   const pond=xi.map(j=>j.pos==="M"?j.note*2:(j.pos==="A"?j.note*1.4:j.note*0.5));
   let t=Math.random()*pond.reduce((a,b)=>a+b,0);
   for(let i=0;i<xi.length;i++){ t-=pond[i]; if(t<=0) return xi[i]; }
@@ -2198,6 +2205,32 @@ let DERN_ATT={cote:null,m:-99,but:false};
    `marque` y dépose donc deux entiers par but, quoi qu'il arrive ; `simuleMatch` repart d'un tableau NEUF
    à chaque coup d'envoi (réaffectation, jamais .length=0 : le match précédent garde le sien intact). */
 let FAITS=[];
+/* QUI EST SUR LA PELOUSE, À QUELLE MINUTE (v1.11). Avant, le moteur tirait buteurs, passeurs, cartons et
+   figurants parmi les onze du coup d'envoi pendant quatre-vingt-dix minutes : l'entrant ne touchait jamais
+   un ballon, et l'homme qu'il relevait pouvait marquer dix minutes après être rentré au vestiaire. Dès que
+   le direct écrit « X entre à la place de Y », il fallait que le jeu le sache. `CHANGEMENTS` porte les
+   changements du jour de chaque club (tireSubs), posés AVANT le coup d'envoi par jouerJournee et levés par
+   finirJournee — la coupe et l'Europe, qui se jouent ensuite, retombent donc sur `onze()` comme avant.
+   `MIN_JEU` est l'horloge du match qu'on simule ; qui raconte après coup (la montée de tension du direct,
+   le moment de la 90e) passe sa minute explicitement. `forces()` reste sur le onze du coup d'envoi : la
+   force d'une équipe ne bouge pas avec ses changements, le calibrage non plus. */
+let CHANGEMENTS={}, MIN_JEU=0;
+function enJeu(c, m){
+  const p=c&&CHANGEMENTS[c.id];
+  if(!p) return onze(c);
+  const t=m==null?MIN_JEU:m, rouge=p.rouge||{};
+  const xi=p.xi.map(j=>{ const k=p.sort.indexOf(j); return (k>=0 && t>=p.min[k]) ? p.banc[k] : j; })
+               .filter(j=>!(rouge[j.uid]<=t)); // l'expulsé a quitté la pelouse, et personne ne le remplace
+  return xi.length ? xi : onze(c);
+}
+/* Un carton rouge sort l'homme du jeu à la minute m. S'il devait être remplacé PLUS TARD, ce changement
+   n'aura pas lieu : on ne remplace pas un expulsé, l'équipe finit à dix. */
+function expulse(c, j, m){
+  const p=CHANGEMENTS[c.id]; if(!p) return;
+  (p.rouge||(p.rouge={}))[j.uid]=m;
+  const k=p.sort.indexOf(j);
+  if(k>=0 && p.min[k]>m){ p.banc.splice(k,1); p.sort.splice(k,1); p.min.splice(k,1); }
+}
 function estContre(c,m){
   if(!DERN_ATT.cote) return Math.random()<0.10;          // début de match : récupération spontanée, rare
   const dt=m-DERN_ATT.m, mien=(DERN_ATT.cote===c.id);
@@ -2324,7 +2357,7 @@ function designeHdm(h,a,sh,sa,faits,gk){
   return {uid:e.j.uid, nom:e.j.nom, club:e.j.club, motif:motifHdm(e)};
 }
 function agressif(c){
-  const xi=onze(c);
+  const xi=enJeu(c);
   const pond=xi.map(j=>1+((j.agress||5)-1)*0.55);
   let t=Math.random()*pond.reduce((a,b)=>a+b,0);
   for(let i=0;i<xi.length;i++){ t-=pond[i]; if(t<=0) return xi[i]; }
@@ -2369,7 +2402,7 @@ function simuleMatch(home,away,verbeux){
   const gkH=onze(home).find(j=>j.pos==="G"), gkA=onze(away).find(j=>j.pos==="G");
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
     ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv}); }
-  for(let m=1;m<=90;m++){
+  for(let m=1;m<=90;m++){ MIN_JEU=m; // l'horloge : qui est sur la pelouse à cette minute (enJeu)
     const elh=lh*mulH, ela=la*mulA; // attaques effectives, révisées à la baisse pour l'équipe à dix
     const r=Math.random();
     if(r < elh/90){ // évènement côté domicile
@@ -2398,6 +2431,7 @@ function simuleMatch(home,away,verbeux){
       const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
       if(rouge){
         j.susp=(j.susp||0)+3; // expulsion : 2 journées de suspension après celle-ci
+        expulse(cote, j, m);   // ...et il quitte la pelouse : plus personne ne le nommera, ni ne le remplacera
         const dDef=gardien?1.34:1.18; // un de moins : on attaque moins, on encaisse plus — sans gardien, la cage est une passoire
         if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; }
       }
@@ -2410,12 +2444,12 @@ function simuleMatch(home,away,verbeux){
     }
     // coups francs aux abords de la surface (~0,7 par match) : du décor qui rythme la rencontre, sans toucher au score
     if(verbeux && Math.random()<0.014){
-      const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
+      const cf=Math.random()<0.5?home:away, t=tireurDuXI(enJeu(cf));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.cf,vusC),t,cf===home?away:home)+" ("+cf.id+")"});
     }
     // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
     // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
-    if(verbeux && Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(onze(c));
+    if(verbeux && Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(enJeu(c));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
@@ -2461,7 +2495,7 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
   const derby=(RIVAL[home.id]===away.id);
   const ev=[], vusC=vus||[], booked=new Set(); // anti-répétition (héritée du match en cours) + joueurs avertis (uid), propres au reste de match re-simulé
-  for(let m=mStart+1;m<=90;m++){
+  for(let m=mStart+1;m<=90;m++){ MIN_JEU=m;
     const elh=lh*mulH, ela=la*mulA, r=Math.random();
     if(r < elh/90){
       const ct=estContre(home,m);
@@ -2479,7 +2513,7 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
     if(Math.random()<(derby?0.055:0.030)){
       const cote=Math.random()<.5?home:away, j=agressif(cote), gardien=(j.pos==="G");
       const rouge=Math.random()<Math.min(0.25, 0.025+0.014*((j.agress||5)-3));
-      if(rouge){ j.susp=(j.susp||0)+3; const dDef=gardien?1.34:1.18;
+      if(rouge){ j.susp=(j.susp||0)+3; expulse(cote, j, m); const dDef=gardien?1.34:1.18;
         if(cote===home){ mulH*=0.78; mulA*=dDef; } else { mulA*=0.78; mulH*=dDef; } }
       // « Deuxième jaune » UNIQUEMENT si le joueur avait déjà un jaune ce match ; sinon rouge direct.
       const secondJaune=rouge&&booked.has(j.uid);
@@ -2487,11 +2521,11 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
       if(!rouge) booked.add(j.uid); // le joueur est désormais averti pour la suite du match
       ev.push({m,t:rouge?"crd":"occ",ic:rouge?"cr":"cj",c:{cote:cote.id,nom:j.nom,rouge,gardien,uid:j.uid},x:fmtC(pickNR(pool,vusC),j,cote)+" ("+cote.id+")"});
     }
-    if(Math.random()<0.014){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(onze(cf));
+    if(Math.random()<0.014){ const cf=Math.random()<0.5?home:away, t=tireurDuXI(enJeu(cf));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.cf,vusC),t,cf===home?away:home)+" ("+cf.id+")"}); }
     // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
     // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
-    if(Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(onze(c));
+    if(Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(enJeu(c));
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
@@ -2515,15 +2549,24 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
   for(let k=fromIdx;k<r.ev.length;k++){ const l=r.ev[k];
     if(l.g){ const b=l.g.uid&&byUid(l.g.uid); if(b) b.buts=Math.max(0,(b.buts||0)-1);
       const p=l.g.pasUid&&byUid(l.g.pasUid); if(p) p.passes=Math.max(0,(p.passes||0)-1); }
-    if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); }
+    if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3);
+      const p=CHANGEMENTS[l.c.cote]; if(p&&p.rouge) delete p.rouge[l.c.uid]; } // il revient sur la pelouse du fil recollé
   }
   let sh=0,sa=0; for(let k=0;k<fromIdx;k++){ const l=r.ev[k]; if(l.g){ if(l.g.cote===h.id) sh++; else sa++; } }
   // ce qui doit SURVIVRE au recollage (v1.04) : l'annonce du temps additionnel et surtout la ligne du MOMENT de la
   // 90e, qui n'est résolue qu'au coup de sifflet. Sans ça, changer de consigne effaçait le penalty/la cagade à venir.
   const queue=r.ev.slice(fromIdx).filter(l=>l.mo || (l.t==="sys" && /temps additionnel/.test(l.x||"")));
+  // les CHANGEMENTS pas encore montrés survivent aussi (v1.11) : ils sont décidés au coup d'envoi, pas par la consigne —
+  // sauf celui qu'un rouge du fil recollé vient d'annuler (expulse), puisqu'on ne remplace pas un expulsé
+  const changes=r.ev.slice(fromIdx).filter(l=>l.ic==="sub");
   const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r));
   r.ev.length=fromIdx;
-  for(const e of out.ev) r.ev.push(e);
+  const fil=out.ev.slice();
+  for(const s of changes){
+    const p=CHANGEMENTS[s.cote]; if(p && !p.banc.some(j=>j.uid===s.uid)) continue;
+    const k=fil.findIndex(l=>l.m>s.m); fil.splice(k<0?fil.length:k, 0, s); // à sa minute, sans réordonner le reste du fil
+  }
+  for(const e of fil) r.ev.push(e);
   for(const l of queue) r.ev.push(l);
   r.ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom});
   r.sh=out.sh; r.sa=out.sa;
@@ -2556,8 +2599,9 @@ function appliqueResultat(h,a,sh,sa,pre){
   if(sh>sa){h.pts+=3;h.g++;a.p++;h.forme.push(1);a.forme.push(-1);}
   else if(sh<sa){a.pts+=3;a.g++;h.p++;a.forme.push(1);h.forme.push(-1);}
   else {h.pts++;a.pts++;h.n++;a.n++;h.forme.push(0);a.forme.push(0);}
-  const entre=(c,pick)=>{
-    const sel=pick||tireSubs(c);
+  const entre=(c,pick,decal)=>{
+    const sel=pick||tireSubs(c,decal);
+    const sortie=(j,k)=>{ const r=sel.rouge&&sel.rouge[j.uid]; return Math.min(k<0?90:sel.min[k], r==null?90:r); }; // minute où il quitte la pelouse
     sel.xi.forEach(j=>{j.matchs++; j._joue=1;
       const niv=(c.id===G.monClub)?G.centre:1;
       let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
@@ -2572,16 +2616,32 @@ function appliqueResultat(h,a,sh,sa,pre){
         if(c.id===G.monClub){ G.news.unshift("INFIRMERIE : "+j.nom+" touché — indisponible "+d+" journée"+(d>1?"s":"")+".");
           notif("🏥 "+j.nom+" blessé — indisponible "+d+" journée"+(d>1?"s":"")+"."); }
       }
-      useFraich(j, FRAICH_MATCH);});
-    sel.banc.forEach(j=>{j.matchs++; j._joue=0.6; useFraich(j, FRAICH_BANC);});
+      // au prorata du temps passé sur le terrain : jusqu'au coup de sifflet, à son remplacement, ou à son expulsion
+      useFraich(j, coutMinutes(sortie(j, sel.sort?sel.sort.indexOf(j):-1)));});
+    sel.banc.forEach((j,k)=>{j.matchs++; j._joue=0.6; useFraich(j, coutMinutes(sortie(j,-1)-(sel.min?sel.min[k]:60)));});
     return sel.banc;
   };
-  return {subsH:entre(h,pre&&pre.h), subsA:entre(a,pre&&pre.a)};
+  return {subsH:entre(h,pre&&pre.h,0), subsA:entre(a,pre&&pre.a,3)};
 }
-function tireSubs(c){
-  const xi=onze(c);
+/* LES TROIS CHANGEMENTS D'UNE ÉQUIPE (v1.11) — tirés pour les vingt clubs, et plus seulement le temps d'écrire le
+   direct : qui entre, À QUELLE MINUTE, et À LA PLACE DE QUI. Chaque entrant relève un titulaire de son poste,
+   celui qui rend le moins aujourd'hui (noteSel : le plus entamé, ou à défaut le plus faible) — un gardien ne
+   relève donc jamais un avant-centre, et un remplaçant sans titulaire de son poste à relever (deux gardiens
+   tirés au banc) reste assis. Minutes : vers la 57e, la 65e et la 73e (+3 pour le visiteur, `decal`), les
+   repères du téléscripteur d'avant v1.11. `min[k]` est la minute où `banc[k]` remplace `sort[k]` ; c'est elle
+   qui fait le prix du match des deux hommes (coutMinutes), et le direct l'écrit telle quelle. */
+function tireSubs(c, decal){
+  const xi=onze(c), banc=[], sort=[], min=[];
   // le banc écarte lui aussi les joueurs mis au repos : les envoyer en jeu viderait la décision de son sens
-  return {xi, banc:c.joueurs.filter(j=>!xi.includes(j)&&alignable(j)).sort(()=>Math.random()-.5).slice(0,3)};
+  const vivier=c.joueurs.filter(j=>!xi.includes(j)&&alignable(j)).sort(()=>Math.random()-.5);
+  for(const j of vivier){
+    if(banc.length===3) break;
+    const releve=xi.filter(t=>t.pos===j.pos && !sort.includes(t)).sort((x,y)=>noteSel(x)-noteSel(y))[0];
+    if(!releve) continue;
+    min.push(57+banc.length*8+RNDI(0,3)+(decal||0));
+    banc.push(j); sort.push(releve);
+  }
+  return {xi, banc, sort, min};
 }
 
 function notif(t){ (G.notifs=G.notifs||[]).push(t); }
@@ -2602,10 +2662,13 @@ function relieClones(P){
   if(!P) return;
   const vraiC=c=>(c&&clubById(c.id))||c;
   const vraiJ=j=>(j&&j.uid!=null&&byUid(j.uid))||j;
-  const sel=s=>{ if(!s) return; if(Array.isArray(s.xi)) s.xi=s.xi.map(vraiJ); if(Array.isArray(s.banc)) s.banc=s.banc.map(vraiJ); };
+  const sel=s=>{ if(!s) return; for(const k of ["xi","banc","sort"]) if(Array.isArray(s[k])) s[k]=s[k].map(vraiJ); };
   (P.res||[]).forEach(e=>{ if(e){ e.h=vraiC(e.h); e.a=vraiC(e.a); } });
   const q=P.pend;
-  if(q){ q.h=vraiC(q.h); q.a=vraiC(q.a); if(q.pre){ sel(q.pre.h); sel(q.pre.a); } }
+  if(q){ q.h=vraiC(q.h); q.a=vraiC(q.a); if(q.pre){ sel(q.pre.h); sel(q.pre.a);
+    // la pelouse de ce match suspendu (v1.11) — une feuille d'avant v1.11 n'a ni sortants ni minutes : onze() fera foi
+    if(q.h&&q.pre.h&&q.pre.h.sort) CHANGEMENTS[q.h.id]=q.pre.h;
+    if(q.a&&q.pre.a&&q.pre.a.sort) CHANGEMENTS[q.a.id]=q.pre.a; } }
 }
 function posePend(v){
   if(!G) return;
@@ -2620,9 +2683,15 @@ function jouerJournee(evCb){
   const day=G.calendrier[G.journee];
   const res=[];
   let monMatch=null, pend=null;
+  CHANGEMENTS={}; // rien ne traîne d'une autre soirée
   for(const [hid,aid] of day){
     const h=clubById(hid), a=clubById(aid);
     const mien=(hid===G.monClub||aid===G.monClub);
+    // les changements se décident AVANT le coup d'envoi (v1.11) : le moteur doit savoir qui entre et qui sort pour
+    // faire jouer l'un et taire l'autre, et c'est encore le onze du coup d'envoi — un rouge ou une blessure du
+    // match ne le réécrit plus après coup
+    const pre={h:tireSubs(h,0), a:tireSubs(a,3)};
+    CHANGEMENTS[h.id]=pre.h; CHANGEMENTS[a.id]=pre.a;
     const r=simuleMatch(h,a,mien);
     if(mien && G.truque){ // la mallette a parlé : victoire garantie
       const dom=hid===G.monClub;
@@ -2639,17 +2708,17 @@ function jouerJournee(evCb){
       G.news.unshift("L'intermédiaire a disparu dans la nuit. La victoire est là. Dormez bien... si vous le pouvez.");
     }
     if(!mien){
-      appliqueResultat(h,a,r.sh,r.sa);
+      appliqueResultat(h,a,r.sh,r.sa,pre);
       designeHdm(h,a,r.sh,r.sa,r.faits,r.gk); // l'homme du match existe aussi dans les rencontres qu'on ne voit pas
       res.push({h,a,sh:r.sh,sa:r.sa});
       continue;
     }
     // ----- mon match : tout est différé jusqu'au coup de sifflet (penalty possible à la 90e) -----
     monMatch=r;
-    const pre={h:tireSubs(h), a:tireSubs(a)};
     const lignes=[];
-    pre.h.banc.forEach((j,k)=>lignes.push({m:57+k*8+RNDI(0,3),t:"occ",ic:"sub",x:"Changement pour "+h.nom+" : "+j.nom+" entre en jeu."}));
-    pre.a.banc.forEach((j,k)=>lignes.push({m:60+k*8+RNDI(0,3),t:"occ",ic:"sub",x:"Changement pour "+a.nom+" : "+j.nom+" entre en jeu."}));
+    // le direct écrit les changements que la fraîcheur fera payer : même minute, même homme qui sort
+    for(const [c,s] of [[h,pre.h],[a,pre.a]]) s.banc.forEach((j,k)=>lignes.push({m:s.min[k],t:"occ",ic:"sub",cote:c.id,uid:j.uid,
+      x:"Changement pour "+c.nom+" : "+j.nom+" entre à la place de "+s.sort[k].nom+"."}));
     const fin=r.ev.pop();
     r.ev=r.ev.concat(lignes).sort((x,y)=>x.m-y.m); r.ev.push(fin);
     // un moment de match à l'ultime seconde ?
@@ -2800,7 +2869,7 @@ const MONTEE_LOB_FRAPPE=[
   (p,gk)=>p+" contrôle, "+gk+" est pris à mi-chemin, ni dans sa cage ni sur le ballon…",
   (p,gk)=>"Tout le stade a vu "+gk+" hors de ses bois, "+p+" aussi…",
 ];
-function gardienDe(club){ const g=club&&onze(club).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
+function gardienDe(club, m){ const g=club&&enJeu(club, m).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
 /* Premier temps d'un CONTRE (v0.87). Comme MONTEE_FRAPPE, ce sont des fonctions : elles nomment
    le récupérateur (r) ET l'adversaire dépossédé (v) — impossible avec fmtC, qui ne connaît qu'un
    seul joueur. Trois origines, conformes à la consigne auteur : le ballon piqué au milieu,
@@ -2814,10 +2883,10 @@ function gardienDe(club){ const g=club&&onze(club).find(j=>j.pos==="G"); return 
    appelée par les trois `tic()`. `info` = l'objet `g` (but) ou `q` (occasion) de l'évènement, qui
    porte déjà le drapeau `contre` posé par le moteur ; `campA`/`campD` = le camp qui attaque et
    celui qui subit. Sans camps (ou sans contre), on retombe sur la montée générique.            */
-function monteeUn(info, lignes, campA, campD){
+function monteeUn(info, lignes, campA, campD, m){ // m : la minute de l'action (qui est sur la pelouse à ce moment)
   if(info && info.contre && campA && campD){
-    let rec=quelconque(campA); if(rec.nom===info.but) rec=quelconque(campA); // éviter que le voleur soit le buteur
-    return pickM(MONTEE_CONTRE,lignes)(rec.nom, quelconque(campD).nom);
+    let rec=quelconque(campA, m); if(rec.nom===info.but) rec=quelconque(campA, m); // éviter que le voleur soit le buteur
+    return pickM(MONTEE_CONTRE,lignes)(rec.nom, quelconque(campD, m).nom);
   }
   if(info && info.ph==="bal") return pickM(MONTEE_ARRET,lignes);  // la conclusion vient d'un corner (cf. TIRS_ARRET)
   if(info && info.ph==="loin") return pickM(MONTEE_LOIN,lignes);  // frappe de loin : le bloc tient, l'action ressort (cf. TIRS_LOIN)
@@ -2857,7 +2926,7 @@ const CAGADES=[ // les bourdes de gardien, racontées côté fautif (le nom du p
 ];
 function tireMoment(moi,adv){
   const t=Math.random();
-  const xiM=onze(moi), xiA=onze(adv);
+  const xiM=enJeu(moi,90), xiA=enJeu(adv,90); // à l'ultime seconde : ceux qui sont encore sur la pelouse
   const derby=(RIVAL[moi.id]===adv.id);
   // en derby, forte chance d'un geste de provocation au public
   if(derby && Math.random()<0.5){
@@ -2965,6 +3034,7 @@ function autoMoment(mo){ // résolution sans intervention (tests, abandon de ban
 /* phase B : application du résultat de mon match et toute la vie du championnat */
 function finirJournee(delta){
   const P=G._pend; if(!P) return; G._pend=null;
+  CHANGEMENTS={}; // le coup de sifflet est acté : la coupe et l'Europe qui suivent composent avec onze(), comme avant
   const {res,pend}=P;
   if(pend){
     const {r,h,a,hid,aid,pre,e}=pend;
@@ -9111,8 +9181,8 @@ function lanceMatch(instant){
       const etape=(lg._monte=(lg._monte||0)+1), info=lg.g||lg.q;
       let txt;
       const campA=eM?(info.cote===eM.h.id?eM.h:eM.a):null, campD=eM?(info.cote===eM.h.id?eM.a:eM.h):null;
-      if(etape===1){ txt=monteeUn(info,lignes,campA,campD); }
-      else { txt=monteeDeux(info,lignes,gardienDe(campD)); }
+      if(etape===1){ txt=monteeUn(info,lignes,campA,campD,lg.m); }
+      else { txt=monteeDeux(info,lignes,gardienDe(campD,lg.m)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
@@ -9272,7 +9342,7 @@ function momentProvoc(mo,moi,adv,resoudre,suite){
 /* Penalty POUR : vous tirez */
 function momentPenPour(mo,moi,adv,resoudre,suite){
   const t=byUid(mo.uid);
-  const gk=onze(adv).find(j=>j.pos==="G")||{note:70,nom:"le gardien"};
+  const gk=enJeu(adv,90).find(j=>j.pos==="G")||{note:70,nom:"le gardien"}; // celui qui garde les buts à la 90e (changement, expulsion)
   const fiche=cadreMoment("PENALTY — 90ᵉ MINUTE",
     `<p><b>${esc(t.nom)}</b> (note ${t.note}) face à <b>${esc(gk.nom)}</b> (${gk.note}).</p>
      ${t.tireurElite?`<p class="cyan">🎯 Votre tireur d'élite s'avance — le sang-froid en plus.</p>`:""}
@@ -9306,7 +9376,7 @@ function momentPenPour(mo,moi,adv,resoudre,suite){
 /* Coup franc dangereux (16-25 m) : vous choisissez la frappe. Un tireur d'élite la met où il veut. */
 function momentCoupFranc(mo,moi,adv,resoudre,suite){
   const t=byUid(mo.uid)||{nom:"le tireur",note:75};
-  const gk=onze(adv).find(j=>j.pos==="G")||{note:72,nom:"le gardien"};
+  const gk=enJeu(adv,90).find(j=>j.pos==="G")||{note:72,nom:"le gardien"}; // celui qui garde les buts à la 90e (changement, expulsion)
   const el=!!t.tireurElite, s=t.note, g=gk.note, dist=mo.dist||20;
   const fiche=cadreMoment("COUP FRANC — "+dist+" MÈTRES",
     `<img class="momImg" src="${PICK(IMG_MOMENT.coupfranc)}" alt="">

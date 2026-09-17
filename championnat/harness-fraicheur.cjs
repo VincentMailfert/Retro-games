@@ -10,6 +10,8 @@
       aggravé de 65 à 80, massif en dessous — sur la performance, sur les blessures ET sur le moral
    F) les VINGT clubs de la division sont concernés, pas seulement le vôtre — et l'IA fait tourner
    G) l'intersaison remet tout le monde à neuf, et une vieille sauvegarde reprend avec un effectif frais
+   I) les changements (v1.11) : un bout de match se paie au prorata des minutes, pour l'entrant comme
+      pour l'homme qu'il relève — et le moteur le sait : l'entrant peut marquer, le sortant se tait
    Usage : node harness-fraicheur.cjs                                                        */
 const fs = require("fs");
 const path = require("path");
@@ -42,7 +44,9 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,onze,onzeRotation,forces,byUid,migre," +
   "fraich,useFraich,reposHebdo,recupAge,recupJoueur,facteurFraich,coefBlessureFraich,noteSel,libFraich,jaugeFraich,fatigueSemaine," +
   "apercuRotation,ecranEffectif,ouvreFiche,ecranCoupe,ecranEurope,mettreAuRepos," +
-  "dispo,alignable,tireSubs,FRAICH_MATCH,FRAICH_BANC,FRAICH_SEM,getG:function(){return G;},setG:function(x){G=x;}};";
+  "dispo,alignable,tireSubs,FRAICH_MATCH,FRAICH_SEM,coutMinutes,appliqueResultat,simuleMatch,rejoueDepuis,enJeu,expulse," +
+  "getChg:function(){return CHANGEMENTS;},setChg:function(x){CHANGEMENTS=x;}," +
+  "getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -51,8 +55,10 @@ const r2 = (x) => Math.round(x * 100) / 100;
 
 /* ============ A) le barème de base ============ */
 console.log("A) Le barème : −20 par match, +20 par semaine, moins après 29 ans");
-ok(api.FRAICH_MATCH === 20 && api.FRAICH_BANC === 8 && api.FRAICH_SEM === 20,
-  `constantes conformes à la consigne : match ${api.FRAICH_MATCH}, banc ${api.FRAICH_BANC}, semaine ${api.FRAICH_SEM}`);
+ok(api.FRAICH_MATCH === 20 && api.FRAICH_SEM === 20,
+  `constantes conformes à la consigne : match ${api.FRAICH_MATCH}, semaine ${api.FRAICH_SEM}`);
+ok(api.coutMinutes(90) === 20 && api.coutMinutes(0) === 0 && api.coutMinutes(45) === 10 && api.coutMinutes(120) === 20,
+  `un bout de match au prorata : 90 min → ${api.coutMinutes(90)}, 45 min → ${api.coutMinutes(45)}, 0 → ${api.coutMinutes(0)} (jamais plus qu'un match)`);
 ok(api.recupAge(22) === 1 && api.recupAge(29) === 1,
   "jusqu'à 29 ans, la récupération est pleine (taux 1,00)");
 const t33 = api.recupAge(33);
@@ -315,6 +321,133 @@ console.log("H) Les écrans se rendent, de 0 à 100 et pour les cas limites");
   ok(v.repos && !v.titu, "🛌 Repos annule le ★ : on ne titularise pas de force un homme qu'on met au vert");
   api.mettreAuRepos(v);
   ok(!v.repos, "et le bouton le réintègre d'un second clic");
+}
+
+/* ============ I) les changements : au prorata, et le moteur le sait (v1.11) ============ */
+console.log("I) Un bout de match se paie au prorata — et l'homme qui sort ne marque plus");
+{
+  api.nouvellePartie("LIL");
+  G = api.getG();
+  const somme = (c) => c.joueurs.reduce((s, j) => s + (100 - api.fraich(j)), 0);
+  const frais = (c) => c.joueurs.forEach(j => { j.fraich = 100; j.bless = 0; j.susp = 0; j.repos = false; });
+  // 1) la structure du tirage, sur les vingt clubs et plusieurs soirées
+  let pepin = null;
+  for (let n = 0; n < 10; n++) for (const c of G.clubs) {
+    const s = api.tireSubs(c, n % 2 ? 3 : 0);
+    if (s.banc.length !== s.sort.length || s.banc.length !== s.min.length || s.banc.length > 3) pepin = `${c.nom} : tableaux de tailles différentes`;
+    s.banc.forEach((j, k) => {
+      if (s.xi.includes(j)) pepin = `${c.nom} : ${j.nom} entre alors qu'il est déjà titulaire`;
+      if (!s.xi.includes(s.sort[k])) pepin = `${c.nom} : ${s.sort[k].nom} sort sans avoir commencé le match`;
+      if (s.sort[k].pos !== j.pos) pepin = `${c.nom} : ${j.nom} (${j.pos}) relève ${s.sort[k].nom} (${s.sort[k].pos})`;
+      if (s.min[k] < 57 || s.min[k] > 82) pepin = `${c.nom} : changement à la ${s.min[k]}e`;
+    });
+    if (new Set(s.sort).size !== s.sort.length) pepin = `${c.nom} : le même homme sort deux fois`;
+  }
+  ok(!pepin, pepin || "trois changements au plus, chacun poste pour poste, entre la 57e et la 82e, jamais deux fois le même sortant");
+
+  // 2) le barème : l'entrant et le sortant se partagent les vingt points du poste
+  const [h, a] = [G.clubs[0], G.clubs[1]];
+  frais(h); frais(a);
+  const pre = { h: api.tireSubs(h, 0), a: api.tireSubs(a, 3) };
+  api.appliqueResultat(h, a, 1, 0, pre);
+  ok(Math.abs(somme(h) - 11 * 20) < 1e-9 && Math.abs(somme(a) - 11 * 20) < 1e-9,
+    `une équipe paie ${r2(somme(h))} et l'autre ${r2(somme(a))} points pour un match : onze postes × 20, quelle que soit la rotation (avant v1.11 : 244)`);
+  const k0 = pre.h.banc.length - 1, ent = pre.h.banc[k0], sor = pre.h.sort[k0], mn = pre.h.min[k0];
+  ok(r2(100 - api.fraich(ent)) === r2(20 * (90 - mn) / 90) && r2(100 - api.fraich(sor)) === r2(20 * mn / 90),
+    `${ent.nom}, entré à la ${mn}e, paie ${r2(100 - api.fraich(ent))} ; ${sor.nom}, sorti à la ${mn}e, paie ${r2(100 - api.fraich(sor))}`);
+  const tenant = pre.h.xi.find(j => !pre.h.sort.includes(j));
+  ok(api.fraich(tenant) === 80, `${tenant.nom}, qui a joué les quatre-vingt-dix minutes, paie le match plein : 20`);
+  // un expulsé ne paie que ses minutes
+  frais(h); frais(a);
+  const pre2 = { h: api.tireSubs(h, 0), a: api.tireSubs(a, 3) };
+  const rouge = pre2.h.xi.find(j => !pre2.h.sort.includes(j) && j.pos !== "G");
+  pre2.h.rouge = { [rouge.uid]: 27 };
+  api.appliqueResultat(h, a, 0, 1, pre2);
+  ok(r2(100 - api.fraich(rouge)) === r2(20 * 27 / 90), `expulsé à la 27e, ${rouge.nom} ne paie que ses minutes : ${r2(100 - api.fraich(rouge))}`);
+
+  // 3) le carton rouge annule un changement prévu plus tard, et vide la place
+  frais(h); frais(a);
+  const pre3 = { h: api.tireSubs(h, 0), a: api.tireSubs(a, 3) };
+  api.setChg({ [h.id]: pre3.h, [a.id]: pre3.a });
+  const vise = pre3.h.sort[0], remplacant = pre3.h.banc[0], avant = pre3.h.banc.length;
+  api.expulse(h, vise, 40);
+  const pelouse = api.enJeu(h, 89);
+  ok(pre3.h.banc.length === avant - 1 && !pelouse.includes(vise) && !pelouse.includes(remplacant) && pelouse.length === 10,
+    `${vise.nom}, expulsé à la 40e alors qu'il devait sortir plus tard : pas de changement, ${h.nom} finit à dix`);
+  api.setChg({});
+
+  // 4) LE MOTEUR : sur des centaines de matchs racontés, personne n'agit hors de la pelouse
+  const nomme = (l, j) => (l.g && (l.g.uid === j.uid || l.g.pasUid === j.uid)) || (l.c && l.c.uid === j.uid)
+    || (l.q && l.q.but === j.nom) || (l.ic !== "sub" && typeof l.x === "string" && l.x.includes(j.nom));
+  let faux = null, butsEntrants = 0, butsTotal = 0, rougesVus = 0;
+  const verifie = (r, chg) => {
+    for (const s of Object.values(chg)) {
+      s.banc.forEach((ent, k) => { const mnk = s.min[k], sk = s.sort[k];
+        for (const l of r.ev) {
+          if (l.m >= mnk && l.t !== "sys" && nomme(l, sk)) faux = `${sk.nom} nommé à la ${l.m}e alors qu'il est sorti à la ${mnk}e : « ${l.x} »`;
+          if (l.m < mnk && nomme(l, ent)) faux = `${ent.nom} nommé à la ${l.m}e alors qu'il n'entre qu'à la ${mnk}e : « ${l.x} »`;
+          if (l.g && l.g.uid === ent.uid) butsEntrants++;
+        } });
+      for (const uid in (s.rouge || {})) { rougesVus++;
+        const j = api.byUid(+uid) || api.byUid(uid);
+        for (const l of r.ev) if (j && l.m > s.rouge[uid] && nomme(l, j)) faux = `${j.nom} expulsé à la ${s.rouge[uid]}e, nommé à la ${l.m}e : « ${l.x} »`; }
+    }
+    butsTotal += r.ev.filter(l => l.g).length;
+  };
+  for (let n = 0; n < 400 && !faux; n++) {
+    const c1 = G.clubs[n % 20], c2 = G.clubs[(n + 7) % 20];
+    frais(c1); frais(c2);
+    const chg = { [c1.id]: api.tireSubs(c1, 0), [c2.id]: api.tireSubs(c2, 3) };
+    api.setChg(chg);
+    verifie(api.simuleMatch(c1, c2, true), chg);
+    api.setChg({});
+  }
+  ok(!faux, faux || `400 matchs racontés : aucun sortant nommé après sa sortie, aucun entrant avant son entrée, aucun expulsé après son rouge (${rougesVus} rouges vus)`);
+  ok(butsEntrants > 0, `les entrants jouent pour de bon : ${butsEntrants} de leurs buts sur ${butsTotal} (avant v1.11 : jamais un seul)`);
+
+  // 5) la consigne changée en direct : le fil recollé garde ses changements, et reste cohérent
+  faux = null; let gardes = 0;
+  for (let n = 0; n < 150 && !faux; n++) {
+    const c1 = G.clubs[(n * 3) % 20], c2 = G.clubs[(n * 3 + 5) % 20];
+    frais(c1); frais(c2);
+    const chg = { [c1.id]: api.tireSubs(c1, 0), [c2.id]: api.tireSubs(c2, 3) };
+    api.setChg(chg);
+    const r = api.simuleMatch(c1, c2, true);
+    const lignes = [];
+    for (const [c, s] of [[c1, chg[c1.id]], [c2, chg[c2.id]]]) s.banc.forEach((j, k) => lignes.push({ m: s.min[k], t: "occ", ic: "sub", cote: c.id, uid: j.uid, x: "Changement" }));
+    const fin = r.ev.pop(); r.ev = r.ev.concat(lignes).sort((x, y) => x.m - y.m); r.ev.push(fin);
+    const from = r.ev.findIndex(l => l.m > 50);
+    api.rejoueDepuis(r, c1, c2, from, 50, 1, 1);
+    const subs = r.ev.filter(l => l.ic === "sub");
+    const attendus = Object.values(chg).reduce((s, x) => s + x.banc.length, 0);
+    if (subs.length !== attendus) faux = `${subs.length} lignes de changement dans le fil recollé pour ${attendus} changements prévus`;
+    if (subs.some(s => { const i = r.ev.indexOf(s); return (i > 0 && r.ev[i - 1].m > s.m) || (r.ev[i + 1] && r.ev[i + 1].m < s.m && r.ev[i + 1].t !== "sys"); }))
+      faux = "une ligne de changement recollée hors de sa minute : " + r.ev.map(l => l.m).join(",");
+    gardes += subs.filter(s => s.m > 50).length;
+    verifie(r, chg);
+    api.setChg({});
+  }
+  ok(!faux, faux || `150 consignes changées à la 50e : les ${gardes} changements à venir restent à leur minute, et le fil recollé respecte la pelouse`);
+
+  // 6) une vraie journée : le direct écrit les changements que la fraîcheur fait payer, et le moment de la 90e est sur la pelouse
+  faux = null; let vus = 0, moments = 0;
+  api.nouvellePartie("REN");
+  G = api.getG();
+  for (let d = 0; d < 20 && !faux; d++) {
+    const sortie = api.jouerJournee(), monMatch = sortie && sortie.monMatch;
+    if (!monMatch) continue;
+    for (const l of monMatch.ev.filter(l => l.ic === "sub")) { vus++;
+      const m = /Changement pour (.+) : (.+) entre à la place de (.+)\.$/.exec(l.x);
+      if (!m) { faux = "ligne de changement illisible : " + l.x; break; }
+      if (m[2] === m[3]) faux = "un joueur se remplace lui-même : " + l.x;
+    }
+    if (monMatch.moment && monMatch.moment.uid != null) { moments++;
+      const sortis = monMatch.ev.filter(l => l.ic === "sub").map(l => /à la place de (.+)\.$/.exec(l.x)[1]);
+      const j = api.byUid(monMatch.moment.uid);
+      if (j && sortis.includes(j.nom)) faux = `le moment de la 90e revient à ${j.nom}, déjà sorti`; }
+  }
+  ok(!faux && vus > 0, faux || `${vus} changements écrits au direct sur 20 journées, tous « X entre à la place de Y » ; ${moments} moments de la 90e, jamais pour un homme sorti`);
+  ok(Object.keys(api.getChg()).length === 0, "le coup de sifflet lève les changements : la coupe et l'Europe composent avec onze(), comme avant");
 }
 
 console.log("");

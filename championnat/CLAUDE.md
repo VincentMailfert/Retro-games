@@ -485,7 +485,8 @@ toujours « raconter quelque chose ».
 - **FRAÎCHEUR — l'état de forme physique, joueur par joueur (v1.00)** : chaque joueur des **VINGT clubs de la
   division jouée** porte `j.fraich` (0-100, défaut 100 via l'accesseur `fraich(j)` — un joueur sans jauge, vivier
   ou autre division, est donc toujours traité comme frais, sans exception à écrire). **Barème** : `FRAICH_MATCH`=20
-  pour un match complet, `FRAICH_BANC`=8 pour une entrée en jeu, `FRAICH_SEM`=20 rendus par semaine. **L'horloge
+  pour un match complet, **au prorata des minutes pour un bout de match** (`coutMinutes(min)` = 20×min/90, v1.11 —
+  voir « LES CHANGEMENTS » ci-dessous ; l'ancien forfait `FRAICH_BANC`=8 a disparu), `FRAICH_SEM`=20 rendus par semaine. **L'horloge
   du jeu est la journée = une semaine** : `reposHebdo(c)` crédite la semaine pour les 20 clubs dans `finirJournee`
   (au même endroit que le décompte blessures/suspensions), et chaque match joué débite. Un match de semaine
   (coupe/Europe) est donc un match de PLUS dans une semaine qui n'est créditée qu'une fois — c'est exactement
@@ -534,6 +535,29 @@ toujours « raconter quelque chose ».
   sa doublure est trop faible pour le dépasser même à 80 %, c'est au manager de trancher avec 🛌 Repos.
   **Remises à zéro** : `razStatsClub` (intersaison — deux mois sans match, tout le monde à 100, `repos`
   levé) et `migre()` (`j.fraich=100`, `j.repos=false` → une carrière en cours reprend au frais).
+  **LES CHANGEMENTS (v1.11, question de l'auteur : « un joueur qui rentre perd-il autant que les titulaires ? »)** —
+  avant, l'entrant payait un forfait de 8 quelle que soit sa minute d'entrée, **personne ne sortait** (les onze
+  payaient 20, soit 244 points par équipe au lieu de 220), les minutes n'existaient que dans le texte du direct,
+  et le moteur tirait buteurs, passeurs, cartons et figurants parmi les onze du coup d'envoi pendant 90 minutes :
+  l'entrant ne marquait jamais, et l'homme qu'il relevait pouvait marquer après être sorti. Désormais :
+  (a) **`tireSubs(c, decal)`** rend `{xi, banc, sort, min}` pour les **vingt clubs**, tiré **AVANT le coup d'envoi**
+  par `jouerJournee` : chaque entrant relève le titulaire **de son poste** qui rend le moins (`noteSel`), vers la
+  57e/65e/73e (+3 pour le visiteur) ; un remplaçant sans titulaire de son poste à relever (deux gardiens tirés au
+  banc, trois avants pour deux places) reste assis. (b) **`appliqueResultat`** fait payer à chacun ses minutes :
+  `coutMinutes(sortie)` au titulaire (90, sa minute de remplacement, ou celle de son **rouge**), `coutMinutes(sortie−entrée)`
+  à l'entrant — **un poste coûte toujours 20**. (c) **`CHANGEMENTS`** (id du club → sa feuille) et l'horloge
+  **`MIN_JEU`** (posée à chaque minute par `simuleMatch` et `simuleReste`) font de **`enJeu(c, m)`** « qui est sur la
+  pelouse à la minute m » : `tireur`, `passeur`, `agressif`, `quelconque`, les tireurs de coups francs, `tireMoment`
+  (à la 90e), `gardienDe` et les deux fenêtres de moment qui cherchent le gardien adverse passent par lui. **`expulse(c, j, m)`**
+  sort l'expulsé de la pelouse et **annule le changement prévu plus tard pour lui** (on ne remplace pas un
+  expulsé). `rejoueDepuis` garde les lignes de changement pas encore montrées (sauf celle qu'un rouge du fil recollé
+  annule) et rend sa place à l'homme dont il efface le rouge. **`forces()` reste sur `onze()`** : la force d'une
+  équipe ne bouge pas avec ses changements. `CHANGEMENTS` est **vidé par `jouerJournee` et par `finirJournee`** : la
+  coupe et l'Europe, jouées ensuite, retombent sur `onze()` comme avant (elles n'ont toujours pas de remplaçants).
+  Le direct écrit « **X entre à la place de Y** » (lignes `ic:"sub"` portant `cote` et `uid` de l'entrant).
+  **Mesuré** : 2,4073 → 2,4079 buts/match (20 passes de `harness.cjs` par version, 15 120 matchs chacune) ; les
+  entrants marquent ~9 % des buts. **PIÈGE, à ne pas réintroduire** : un nouveau tirage de joueur « en jeu » dans le
+  moteur ou dans un direct de championnat doit passer par `enJeu`, jamais par `onze()` — sinon un sortant revient.
   **Calibrage intact** : l'effet est SYMÉTRIQUE (les 20 clubs le subissent, l'IA tourne comme vous), donc ce que
   l'attaque perd, la défense adverse le perd aussi — mesuré 2,419 (sans fatigue) → 2,432 buts/match sur 15 120
   matchs. **Contre-intuitif mais vérifié** : un barème PLUS dur laisse les effectifs PLUS frais en fin de saison
@@ -1246,7 +1270,10 @@ toujours « raconter quelque chose ».
    gardien sorti de sa surface, et aucune montée ne chiffre une distance que la résolution contredirait),
    `harness-fraicheur.cjs` (l'état de forme physique : barème, décrochage du vétéran sur une saison, rythme à
    trois jours, rotation automatique pour vous ET pour l'IA, effets mesurés sur le rendement et les blessures,
-   intersaison et migration, rendu des six écrans à toutes les valeurs de jauge),
+   intersaison et migration, rendu des six écrans à toutes les valeurs de jauge, et **depuis v1.11 les
+   changements** : poste pour poste, 220 points par équipe, prorata de l'entrant/du sortant/de l'expulsé, rouge qui
+   annule un changement, 400 matchs sans sortant nommé après sa sortie ni entrant avant son entrée, entrants qui
+   marquent, consigne changée en direct qui garde ses changements, et « X entre à la place de Y » au direct),
    `harness-modales.cjs` (les fenêtres maison qui ont remplacé alert/confirm/prompt : rendu réel dans un vrai
    nœud `#msgbox`, échappement de tout ce qui vient du joueur ou d'un fichier, la confirmation qui ne dit
    « oui » que si on clique « oui », et **Échap qui dépile le message sans percer une fenêtre verrouillée**),
