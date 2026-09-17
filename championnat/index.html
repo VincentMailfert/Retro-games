@@ -211,6 +211,14 @@
   .effBtns button.ico:active:not(:disabled){background:#081221;}
   .effBtns button.ico:focus-visible{outline:2px solid var(--cyan); outline-offset:-3px; z-index:3;}
   .effBtns button.ico:disabled{opacity:.35;}
+  /* LA FORMATION D'AVANT-MATCH (v1.12) : le onze ligne par ligne, attaque en haut comme sur un tableau noir,
+     puis les trois duels face à l'adversaire. Les noms passent à la ligne d'eux-mêmes à 390 px. */
+  .terrainXI{margin:8px auto 0; max-width:520px; border:1px solid var(--line); padding:6px 8px; font-size:13px; line-height:1.3;}
+  .terrainXI .fLigne{display:flex; flex-wrap:wrap; justify-content:center; gap:0 10px; padding:2px 0;}
+  .terrainXI .fLigne + .fLigne{border-top:1px dashed var(--line);}
+  .terrainXI .fLib{flex-basis:100%; font-size:11px;}
+  .duelsXI{margin:8px auto 0; max-width:520px; font-size:13px; text-align:left;}
+  .duelsXI p{margin:2px 0;}
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:10;}
   #fiche .card{background:var(--panel); border:2px solid var(--jaune); max-width:460px; width:100%; padding:14px 16px;}
   /* Le calque des MESSAGES (message/confirme/saisie) : il vit AU-DESSUS de #fiche pour qu'un refus
@@ -311,7 +319,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.11"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.12"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1538,7 +1546,7 @@ function nouvellePartie(clubId, saisonKey){
     mercatoFerme:false, rapport:[], sponsor:null, offresSponsor:null, sponsorSwitch:false, prets:[],
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
-    centre:1, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", prixBillet:2, primeMatch:0, promoBillets:false,
+    centre:1, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", formation:"4-4-2", prixBillet:2, primeMatch:0, promoBillets:false,
     flash:null, intro:null,
     hdm:null, alm:{phrase:null,depeche:null}, // homme du match de la journée + almanach de la saison
     records:{}, serieInv:0, affJ:[], affS:[], // le mur du club, la série en cours, le baromètre des tribunes
@@ -1582,8 +1590,22 @@ function berger(ids){
 }
 
 /* ---------- Sélection du XI et forces ---------- */
-/* ---------- Sélection du XI (4-4-2, titulaires forcés prioritaires) ---------- */
+/* ---------- Sélection du XI (selon la formation, titulaires forcés prioritaires) ---------- */
+// le 4-4-2 de référence : celui de l'IA, de l'équipe type de la saison et du plancher réglementaire
 const FORMATION={G:1,D:4,M:4,A:2};
+/* LES FORMATIONS (v1.12, demande de l'auteur : « changer de formation pour augmenter l'aspect tactique, un peu
+   pauvre avec le 4-4-2 forcé »). Sa règle, telle quelle : « avoir plus de joueurs dans une zone augmente mon
+   contrôle dans celle-ci — 5-3-2 plus solide en défense mais pauvre en attaque, 4-4-2 plus solide au milieu,
+   4-3-3 plus agressif en attaque — bien sûr conditionné par la qualité des joueurs : un 4-3-3 peut être meilleur
+   au milieu avec trois bons joueurs qu'un 4-4-2 avec des milieux moyens ». Voir `forces()` et `lambdasZones()`.
+   La formation ne vaut que pour VOTRE club (G.formation) : les dix-neuf autres restent en 4-4-2. */
+const FORMATIONS={
+  "4-4-2":{G:1,D:4,M:4,A:2, desc:"Le milieu à quatre tient le ballon : c'est lui qui se crée le plus d'occasions."},
+  "4-3-3":{G:1,D:4,M:3,A:3, desc:"Trois hommes devant : on marque davantage, mais le milieu cède du terrain et l'on encaisse plus."},
+  "5-3-2":{G:1,D:5,M:3,A:2, desc:"Cinq défenseurs : on ferme la maison et l'on encaisse peu, mais il faut se contenter de peu devant."},
+};
+function cleFormation(c){ return (c && G && c.id===G.monClub && FORMATIONS[G.formation]) ? G.formation : "4-4-2"; }
+function formationDe(c){ return FORMATIONS[cleFormation(c)]; }
 /* Consigne d'avant-match : modulateur d'agressivité appliqué au SEUL match du joueur.
    att = votre attaque, adv = l'attaque adverse contre vous. Offensif marque plus mais expose ; prudent verrouille. */
 // prime de match : niveaux activables AVANT le match, payés seulement en cas de victoire (cf. finirJournee)
@@ -1671,16 +1693,16 @@ function jaugeFraich(j, w){ // la petite barre télétexte, même grammaire que 
 function dispo(j){ return !(j.bless>0) && !(j.susp>0) && !j._reposIncident; }
 function alignable(j){ return dispo(j) && !j.repos; } // « mis au repos » : la Ligue le compte sur la feuille, vous l'écartez
 function onze(c){
-  const xi=[];
+  const xi=[], F=formationDe(c);
   for(const p of ["G","D","M","A"]){
     let pool=c.joueurs.filter(j=>j.pos===p && alignable(j));
-    if(pool.length<FORMATION[p]){ // trop de repos volontaire à ce poste : le match prime, on rappelle les plus frais
+    if(pool.length<F[p]){ // trop de repos volontaire à ce poste : le match prime, on rappelle les plus frais
       const rappel=c.joueurs.filter(j=>j.pos===p && dispo(j) && !pool.includes(j)).sort((a,b)=>fraich(b)-fraich(a));
-      pool=pool.concat(rappel.slice(0, FORMATION[p]-pool.length));
+      pool=pool.concat(rappel.slice(0, F[p]-pool.length));
     }
-    const forces=pool.filter(j=>j.titu).sort((a,b)=>b.note-a.note).slice(0,FORMATION[p]);
+    const forces=pool.filter(j=>j.titu).sort((a,b)=>b.note-a.note).slice(0,F[p]);
     const reste=pool.filter(j=>!forces.includes(j)).sort((a,b)=>noteSel(b)-noteSel(a));
-    xi.push(...forces, ...reste.slice(0, FORMATION[p]-forces.length));
+    xi.push(...forces, ...reste.slice(0, F[p]-forces.length));
   }
   if(xi.length<11){ // effectif décimé : on complète hors poste — un joueur de champ AVANT tout 2e gardien (un gardien ne dépanne qu'en tout dernier recours)
     const restants=c.joueurs.filter(j=>dispo(j)&&!xi.includes(j)).sort((a,b)=>((a.pos==="G")-(b.pos==="G"))||(noteSel(b)-noteSel(a)));
@@ -1694,10 +1716,10 @@ function onze(c){
    noms — retour de playtest : « on envoie la réserve mais ce sont les mêmes joueurs qui jouent ». */
 function onzeRotation(c, rot){
   if(rot!=="reserve" && rot!=="mixte") return onze(c); // cadres (ou défaut) : le meilleur onze
-  const xi=[];
+  const xi=[], F=formationDe(c);
   for(const p of ["G","D","M","A"]){
     const pool=c.joueurs.filter(j=>j.pos===p && dispo(j)).sort((a,b)=>b.note-a.note);
-    const n=FORMATION[p];
+    const n=F[p];
     let sel;
     if(rot==="reserve"){ sel=pool.slice(-n); }                    // les moins bien notés disponibles : les remplaçants jouent
     else { const haut=Math.ceil(n/2);                             // mixte : moitié cadres, moitié réserve
@@ -1732,18 +1754,62 @@ function tireurDuXI(xi){ // le tireur d'élite (coups francs/penaltys) s'il est 
   if(!xi||!xi.length) return null;
   return xi.find(j=>j.tireurElite) || xi.filter(j=>"MA".includes(j.pos)).sort((a,b)=>b.note-a.note)[0] || xi[0] || null;
 }
+/* LES TROIS ZONES (v1.12). Jusque-là le moteur ne voyait que deux blocs : l'attaque (milieux + attaquants, divisés
+   par six) et la défense (gardien + défenseurs, divisés par cinq). Un 4-3-3 n'y aurait RIEN changé — le troisième
+   attaquant d'un club de D1 vaut en moyenne 72,7, exactement le quatrième milieu qu'il remplace — et un 3-5-2 aurait
+   gonflé l'attaque de moitié par simple arithmétique. Chaque ligne est désormais une zone : la note moyenne de ses
+   joueurs (somme divisée par le nombre de places que la formation lui donne — un trou compte zéro, un dépanneur
+   joue dans la ligne qu'il bouche, cf. `placeXI`), puis l'EFFET DU NOMBRE, (n / n du 4-4-2)^α.
+   Au milieu, α=0,5 : trois milieux à 80 valent quatre milieux à 69 — la phrase de l'auteur, chiffrée.
+   Réglages cherchés sur les vrais effectifs (80 clubs de D1 et D2, deux départs de carrière) : à joueurs égaux,
+   aucune formation ne rapporte de points gratuits ; sur effectifs réels, 37 clubs ont intérêt au 4-4-2, 23 au
+   4-3-3, 20 au 5-3-2, et le gain du 4-3-3 suit la valeur du troisième attaquant face au quatrième milieu. */
+const ZONES={p:2, wa:0.5, c:0.9, aa:0.9, am:0.5, ad:1.1};
+// K_ZONES : 2,45 comme l'ancien moteur, remonté de 1,1 % après mesure — à 2,45, trente passes de harness.cjs donnaient
+// 2,3833 buts/match contre 2,4097 en v1.11 (erreur-type 0,0035) : la formule à trois zones ne coïncide pas au chiffre près
+const K_ZONES=2.477, TIR_ELITE=Math.pow(1.03,2.5); // le tireur d'élite pèse exactement ce qu'il pesait avant (+3 % d'attaque à la puissance 2,5)
+/* QUI JOUE OÙ. Chaque ligne reçoit d'abord ses hommes de métier ; un dépanneur (effectif décimé, que `onze` complète
+   hors poste) joue dans la ligne qui manque d'hommes — défense d'abord, puis milieu, attaque, et le but en tout
+   dernier — à HORS_POSTE de sa valeur (la moitié s'il enfile les gants, ou s'il est gardien et joue dans le champ).
+   PIÈGE trouvé au harnais (section J) : compté dans la zone de son VRAI poste, un milieu qui bouche le trou d'un
+   5-3-2 sans cinquième défenseur gonflait le milieu à quatre hommes pour trois places — le 5-3-2 « décimé »
+   battait alors le 4-4-2 dans les trois zones à la fois. */
+const HORS_POSTE=0.85;
+function placeXI(xi, F){
+  const n={G:0,D:0,M:0,A:0}, place=[], reste=[];
+  for(const j of xi){ if(n[j.pos]<F[j.pos]){ n[j.pos]++; place.push({j, z:j.pos, hors:false}); } else reste.push(j); }
+  for(const j of reste){ const z=["D","M","A","G"].find(p=>n[p]<F[p]) || j.pos; n[z]++; place.push({j, z, hors:z!==j.pos}); }
+  return place;
+}
 function forces(c){
-  const xi=onze(c);
+  const xi=onze(c), F=formationDe(c), place=placeXI(xi, F);
   let exces=0; xi.forEach(j=>{ if((j.ego||5)>=8) exces+=(j.ego-7); });
   const L=leadership(capitaineDuXI(xi)); // qualité du capitaine effectif (0..~1,15)
   let coh=Math.max(0.85, 1-0.012*exces*(1-0.40*L)); // un fort capitaine tempère les divas
   coh*=1+(L-0.68)*0.05;                              // et soude (ou non) le vestiaire : ±~2 %
   coh=Math.max(0.84, Math.min(1.03, coh));
   const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral))*facteurFraich(j); // le moral fait ±5 %, la fraîcheur jusqu'à −65 % (barème à quatre paliers)
-  let att=xi.filter(j=>"MA".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/6*coh;
-  if(xi.some(j=>j.tireurElite)) att*=1.03; // un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts
-  const def=xi.filter(j=>"GD".includes(j.pos)).reduce((s,j)=>s+eff(j),0)/5*coh;
-  return {att,def,xi,coh};
+  const coef=p=>p.hors?((p.z==="G"||p.j.pos==="G")?0.5:HORS_POSTE):1;
+  const zone=(postes, n, nRef, alpha)=>place.filter(p=>postes.includes(p.z)).reduce((s,p)=>s+eff(p.j)*coef(p),0)/n*Math.pow(n/nRef,alpha)*coh;
+  const def=zone("GD", F.G+F.D, 5, ZONES.ad);
+  const mil=zone("M", F.M, 4, ZONES.am);
+  const att=zone("A", F.A, 2, ZONES.aa);
+  return {att,mil,def,xi,coh,tir:xi.some(j=>j.tireurElite)}; // tir : un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts
+}
+/* LES TROIS DUELS : le milieu contre le milieu décide qui se crée le plus d'occasions ; l'attaque (épaulée par son
+   milieu, moitié-moitié) contre la défense d'en face décide si elles finissent au fond. Rend les buts attendus de
+   base [hôte, visiteur], avant terrain, ferveur et consignes. `f.tir` absent → neutre (cf. styleFormation). */
+function lambdasZones(fh, fa){
+  const off=f=>Math.pow(f.att,ZONES.wa)*Math.pow(f.mil,1-ZONES.wa), tir=f=>f.tir?TIR_ELITE:1;
+  return [K_ZONES*Math.pow(off(fh)/fa.def,ZONES.p)*Math.pow(fh.mil/fa.mil,ZONES.c)*tir(fh),
+          K_ZONES*Math.pow(off(fa)/fh.def,ZONES.p)*Math.pow(fa.mil/fh.mil,ZONES.c)*tir(fa)];
+}
+/* Le CARACTÈRE d'une formation, à joueurs de même valeur face à un 4-4-2 : [vos buts, les leurs], en multiplicateurs.
+   4-4-2 → [1, 1] ; 4-3-3 → ~[1,10, 1,14] ; 5-3-2 → ~[0,76, 0,76]. Sert aux soirs de coupe et d'Europe, dont le
+   modèle de force ne connaît pas les lignes (la qualité, elle, y passe déjà : le onze aligné change). */
+function styleFormation(k){
+  const z=f=>({att:Math.pow(f.A/2,ZONES.aa), mil:Math.pow(f.M/4,ZONES.am), def:Math.pow((f.G+f.D)/5,ZONES.ad)});
+  return lambdasZones(z(FORMATIONS[k]||FORMATIONS["4-4-2"]), z(FORMATIONS["4-4-2"])).map(x=>x/K_ZONES);
 }
 /* garantit que MON club a toujours un capitaine valide (départ, retraite, vieille sauvegarde) */
 function assureCapitaine(){
@@ -2372,8 +2438,9 @@ function simuleMatch(home,away,verbeux){
   const fill=Math.min(1, aff/Math.max(1,home.cap));
   let ferveur=1+0.18*(fill-0.62);
   if(home.id===G.monClub && G.stade && G.stade.toit) ferveur+=0.025; // un stade couvert rugit : léger bonus d'ambiance à domicile (votre match seul → calibrage préservé)
-  let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18*ferveur);
-  let la=Math.max(.20, 2.45*Math.pow(fa.att/fh.def,2.5)*0.92*(2-ferveur));
+  const [zh,za]=lambdasZones(fh,fa); // les trois duels (v1.12) : milieu contre milieu, attaque contre défense
+  let lh=Math.max(.25, zh*1.18*ferveur);
+  let la=Math.max(.20, za*0.92*(2-ferveur));
   // consigne d'avant-match : n'affecte QUE votre match (neutre partout ailleurs → calibrage intact)
   if(home.id===G.monClub||away.id===G.monClub){
     const C=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
@@ -2401,7 +2468,9 @@ function simuleMatch(home,away,verbeux){
   // et l'effectif aura déjà bougé (fatigue, blessures) quand on relira la feuille après le coup de sifflet
   const gkH=onze(home).find(j=>j.pos==="G"), gkA=onze(away).find(j=>j.pos==="G");
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
-    ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv}); }
+    ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv});
+    const fH=cleFormation(home), fA=cleFormation(away); // les deux dispositifs, annoncés au coup d'envoi (v1.12)
+    ev.push({m:0,t:"sys",x:fH===fA?"Les deux équipes se présentent en "+fH+".":home.nom+" se présente en "+fH+", "+away.nom+" en "+fA+"."}); }
   for(let m=1;m<=90;m++){ MIN_JEU=m; // l'horloge : qui est sur la pelouse à cette minute (enJeu)
     const elh=lh*mulH, ela=la*mulA; // attaques effectives, révisées à la baisse pour l'équipe à dix
     const r=Math.random();
@@ -2484,8 +2553,9 @@ function simuleMatch(home,away,verbeux){
 function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
   const fh=forces(home), fa=forces(away);
   const aff=affluence(home,away), fill=Math.min(1,aff/Math.max(1,home.cap)), ferveur=1+0.18*(fill-0.62);
-  let lh=Math.max(.25, 2.45*Math.pow(fh.att/fa.def,2.5)*1.18*ferveur);
-  let la=Math.max(.20, 2.45*Math.pow(fa.att/fh.def,2.5)*0.92*(2-ferveur));
+  const [zh,za]=lambdasZones(fh,fa);
+  let lh=Math.max(.25, zh*1.18*ferveur);
+  let la=Math.max(.20, za*0.92*(2-ferveur));
   if(home.id===G.monClub||away.id===G.monClub){
     const Cc=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
     if(home.id===G.monClub){ lh*=Cc.att; la*=Cc.adv; } else { la*=Cc.att; lh*=Cc.adv; }
@@ -6308,7 +6378,9 @@ function poissonR(l){ if(!(l>0)) return 0; const L=Math.exp(-l); let k=0,p=1; do
 function multTactique(hid, aid){
   if(hid!==G.monClub && aid!==G.monClub) return [1,1];
   const C=CONSIGNES[G.consigne]||CONSIGNES.equilibre, pm=+G.primeMatch||0;
-  return hid===G.monClub ? [C.att*(1+pm), C.adv] : [C.adv, C.att*(1+pm)];
+  // la formation aussi (v1.12) : son caractère à joueurs égaux — 4-4-2, le réglage par défaut, reste neutre
+  const [fAtt, fAdv]=styleFormation(G.formation);
+  return hid===G.monClub ? [C.att*(1+pm)*fAtt, C.adv*fAdv] : [C.adv*fAdv, C.att*(1+pm)*fAtt];
 }
 function lambdasCoupe(fh,fa){ // buts attendus selon le rapport de force (calibrage doux, hors championnat)
   // exposant élevé (~celui du moteur de championnat) : le niveau pèse vraiment, les upsets restent possibles
@@ -7347,7 +7419,7 @@ function migre(){
   // Les prêts d'avant sont datés à rebours sur la durée médiane (voir debutPret).
   G.prets.forEach(p=>{ if(p.debut==null) p.debut=Math.max(0,(p.fin||0)-10); });
   G.saisonIdx=G.saisonIdx||1; G.anBase=G.anBase||1995; G.confiance=G.confiance==null?65:G.confiance; // anBase : année de la 1re saison de la carrière (anciennes sauvegardes = 1995)
-  G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre"; G.prixBillet=(G.prixBillet==null?2:G.prixBillet);
+  G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre"; G.formation=FORMATIONS[G.formation]?G.formation:"4-4-2"; G.prixBillet=(G.prixBillet==null?2:G.prixBillet);
   G.primeMatch=+G.primeMatch||0; G.promoBillets=!!G.promoBillets; // prime de victoire (opt-in par match) + promo billets scolaires
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
@@ -8042,7 +8114,7 @@ function ecranCalendrier(){
      })()}
      <p class="ctr"><span class="${fenetreOuverte()?"vert":"dim"}">${esc(msgMercato())}</span></p>
      ${G.declar?`<p class="ctr" style="margin-top:6px;font-style:italic"><span class="rouge">«&nbsp;${esc(G.declar.txt)}&nbsp;»</span><br><span class="dim">— ${esc(G.declar.nom)} (${esc(G.declar.club)}), dans la presse du matin</span></p>`:""}
-     ${blocConsignePrime("en cas de victoire")}
+     ${blocConsignePrime("en cas de victoire", xiMoi, dom?a:h)}
      <p class="ctr ${feuilleOk?(bancMoi>=5?"dim":"jaune"):"rouge"}" style="margin-top:12px;font-size:12px">
        FEUILLE DE MATCH : <b>${Math.min(11,xiMoi.length)}/11</b> titulaires · <b>${Math.min(5,bancMoi)}/5</b> remplaçants${
          feuilleOk?(bancMoi<5?" — banc incomplet (blessés, suspendus), mais le match peut se jouer":""):" — LA LIGUE REFUSE LA FEUILLE DE MATCH"}
@@ -8090,6 +8162,7 @@ function ecranCalendrier(){
     document.querySelectorAll(".bRdvRot").forEach(b=>b.onclick=()=>{ (rdv.type==="euro"?G.euro:G.coupe).rotation=b.dataset.k; montre("calendrier"); });
   }
   { const bOu=document.getElementById("bOuEn"); if(bOu) bOu.onclick=ecranReprise; } // le point de situation, à la demande
+  document.querySelectorAll(".bFormation").forEach(b=>b.onclick=()=>{ G.formation=b.dataset.k; montre("calendrier"); });
   document.querySelectorAll(".bConsigne").forEach(b=>b.onclick=()=>{ G.consigne=b.dataset.k; montre("calendrier"); });
   document.querySelectorAll(".bPrime").forEach(b=>b.onclick=()=>{ G.primeMatch=+b.dataset.v; montre("calendrier"); });
   const ouvreDebrief=(suite)=>{
@@ -8312,11 +8385,43 @@ function rdvEnAttente(){
     coupeResoutTour(false); }
   return null;
 }
-/* Consigne d'avant-match + prime : le même bloc pour le samedi et les soirs de semaine. `quand` dit ce qui déclenche
-   le paiement de la prime (« en cas de victoire », « en cas de qualification »…). */
-function blocConsignePrime(quand){
-  const pm=+G.primeMatch||0;
+/* LA FORMATION D'AVANT-MATCH (v1.12) : les trois boutons, le onze qu'elle aligne ligne par ligne, et — quand on connaît
+   l'effectif d'en face (le samedi) — les trois duels lus comme un adjoint les lirait. Les seuils sont les quartiles
+   mesurés sur toutes les affiches de D1 et de D2, dans les trois formations : chaque verdict sort régulièrement. */
+const DUEL_MIL=[0.94,1.06], DUEL_BUT=[0.87,1.15];
+function lectureDuels(adv){
+  const moi=clubById(G.monClub); if(!moi || !adv || !adv.joueurs || !adv.joueurs.length) return "";
+  const fm=forces(moi), fa=forces(adv), F=formationDe(moi), Fa=formationDe(adv), Z=ZONES;
+  const off=f=>Math.pow(f.att,Z.wa)*Math.pow(f.mil,1-Z.wa);
+  const rM=Math.pow(fm.mil/fa.mil,Z.c), rA=Math.pow(off(fm)/fa.def,Z.p), rD=Math.pow(off(fa)/fm.def,Z.p);
+  const v=(r,[bas,haut],bon,mauvais,neutre,inverse)=>{ const cls=r>=haut?(inverse?"rouge":"vert"):(r<=bas?(inverse?"vert":"rouge"):"jaune");
+    return `<b class="${cls}">${esc(r>=haut?(inverse?mauvais:bon):(r<=bas?(inverse?bon:mauvais):neutre))}</b>`; };
+  const pl=(n,mot)=>n+" "+mot+(n>1?"s":"");
+  return `<div class="duelsXI"><p class="dim ctr" style="font-size:12px">Le rapport de forces face à ${esc(adv.nom)} (${cleFormation(adv)})&nbsp;:</p>
+    <p>⚙️ Au milieu, vos ${F.M} contre leurs ${Fa.M}&nbsp;: ${v(rM,DUEL_MIL,"vous aurez le ballon","ils auront le ballon","le ballon se partagera")}</p>
+    <p>⚽ Devant, ${pl(F.A,"attaquant")} contre ${pl(Fa.D,"défenseur")}&nbsp;: ${v(rA,DUEL_BUT,"vous devriez faire mal","ça risque de buter","à armes égales")}</p>
+    <p>🧱 Derrière, ${pl(F.D,"défenseur")} contre ${pl(Fa.A,"attaquant")}&nbsp;: ${v(rD,DUEL_BUT,"ça devrait tenir","vous allez souffrir","à armes égales",true)}</p></div>`;
+}
+function blocFormation(xi, adv){
+  const k=FORMATIONS[G.formation]?G.formation:"4-4-2";
+  const place=placeXI(xi||[], FORMATIONS[k]); // chacun dans la ligne où il joue — un dépanneur le dit
+  const ligne=(p,lib)=>{ const js=place.filter(x=>x.z===p);
+    return js.length?`<div class="fLigne"><span class="fLib dim">${lib}</span>${js.map(x=>`<span>${esc(x.j.nom)}${x.hors?' <i class="rouge">(dépanne)</i>':""}</span>`).join("")}</div>`:""; };
   return `<div class="ctr" style="margin-top:12px">
+       <span class="dim" style="font-size:12px">Formation :</span><br>
+       ${Object.keys(FORMATIONS).map(f=>`<button class="act bFormation" data-k="${f}" style="margin:4px 3px 0${k===f?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${f}</button>`).join("")}
+       <br><span class="dim" style="font-size:11px">${esc(FORMATIONS[k].desc)}</span>
+       ${xi&&xi.length?`<div class="terrainXI">${ligne("A","Attaque")}${ligne("M","Milieu")}${ligne("D","Défense")}${ligne("G","But")}</div>`:""}
+       ${lectureDuels(adv)}
+     </div>`;
+}
+/* Formation + consigne d'avant-match + prime : le même bloc pour le samedi et les soirs de semaine. `quand` dit ce qui
+   déclenche le paiement de la prime (« en cas de victoire », « en cas de qualification »…) ; `xi` le onze montré,
+   `adv` l'adversaire dont on lit les lignes (absent les soirs de coupe, dont le modèle de force ne connaît pas les zones). */
+function blocConsignePrime(quand, xi, adv){
+  const pm=+G.primeMatch||0;
+  return `${blocFormation(xi, adv)}
+     <div class="ctr" style="margin-top:12px">
        <span class="dim" style="font-size:12px">Consigne d'avant-match :</span><br>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne" data-k="${k}" style="margin:4px 3px 0${G.consigne===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${CONSIGNES[k].label}</button>`).join("")}
        <br><span class="dim" style="font-size:11px">${esc((CONSIGNES[G.consigne]||CONSIGNES.equilibre).desc)}</span>
@@ -8366,7 +8471,7 @@ function panneauRdv(rdv, h, a){
        <br><span class="dim" style="font-size:11px">${esc(ROTATION_COUPE[rot].desc)}</span>
        ${apercuRotation(rot)}
      </div>
-     ${blocConsignePrime(quand)}
+     ${blocConsignePrime(quand, onzeRotation(clubById(G.monClub), rot))}
      <p class="ctr" style="margin-top:12px">
        <button class="big" id="bRdvGo">▶ JOUER LE MATCH</button>
        <button class="act" id="bRdvVite" style="margin-left:8px">Résultat instantané</button>
@@ -9018,6 +9123,7 @@ function lanceMatch(instant){
   // (le match est déjà simulé par jouerJournee ; surtout, cliquer une consigne relançait montre("calendrier")
   //  → abandonneDirect() voyait G._pend et terminait le match « sans vous ». On bloque ça à la source.)
   document.querySelectorAll(".bConsigne").forEach(b=>b.disabled=true);
+  document.querySelectorAll(".bFormation").forEach(b=>b.disabled=true); // la formation aussi (v1.12) : le onze est déjà sur la pelouse
   document.querySelectorAll(".bPrime").forEach(b=>b.disabled=true); // la prime est promise AVANT le coup d'envoi
   // direct : on diffère la finalisation jusqu'au sifflet (cf. jouerJournee) → la tactique peut re-simuler la fin
   window._diffEnDirect = !instant;
@@ -9544,8 +9650,8 @@ function ecranClubVue(id){
 function titulariser(j){
   const c=clubById(G.monClub);
   if(!j.titu){
-    const deja=c.joueurs.filter(x=>x.pos===j.pos&&x.titu).length;
-    if(deja>=FORMATION[j.pos]) return message("Le 4-4-2 n'aligne que "+FORMATION[j.pos]+" joueur(s) au poste "+j.pos+". Libérez d'abord une place.", {titre:"📋 LA LIGNE EST COMPLÈTE"});
+    const deja=c.joueurs.filter(x=>x.pos===j.pos&&x.titu).length, F=formationDe(c); // la ligne que VOTRE formation aligne
+    if(deja>=F[j.pos]) return message("Le "+G.formation+" n'aligne que "+F[j.pos]+" joueur(s) au poste "+j.pos+". Libérez d'abord une place.", {titre:"📋 LA LIGNE EST COMPLÈTE"});
     j.titu=true; j.repos=false; // on ne titularise pas de force un homme qu'on vient de mettre au vert
   } else j.titu=false;
   montre("effectif");
@@ -9602,7 +9708,7 @@ function ecranEffectif(){
     const b=(cls,on,ico,lib,titre,off)=>`<button class="act ico ${cls}${on?" on":""}" data-i="${i}" aria-pressed="${!!on}" aria-label="${lib}"${off?` disabled`:""} title="${esc(lib+" — "+titre)}"><span aria-hidden="true">${ico}</span></button>`;
     const refusV=!j.avendre&&blocVente[j.pos], refusP=j.pretIn?"Prêté par un autre club : il ne vous appartient pas":blocVente[j.pos];
     return `<span class="effBtns">`
-      +b("bT",j.titu,"★",j.titu?"Libérer":"Titulariser",j.titu?"Le libérer : le onze se choisit de nouveau à la note et à la forme":"Titulariser de force : prioritaire dans le 4-4-2, même moins bien noté")
+      +b("bT",j.titu,"★",j.titu?"Libérer":"Titulariser",j.titu?"Le libérer : le onze se choisit de nouveau à la note et à la forme":"Titulariser de force : prioritaire dans le onze, même moins bien noté")
       +b("bR",j.repos,"🛌",j.repos?"Réintégrer":"Repos",j.repos?"Le remettre à disposition du onze":"L'écarter du onze et du banc pour qu'il récupère")
       +b("bV",j.avendre,"🏷️",j.avendre?"Retirer":"Vendre",refusV||(j.avendre?"Le retirer de la liste des transferts":"Le mettre sur la liste des transferts"),refusV)
       +b("bL",false,"📤","Prêter",refusP||"Prêter à un club où il jouera titulaire",refusP)
@@ -9647,7 +9753,7 @@ function ecranEffectif(){
    })()}
    <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême. Survolez pour le détail, ouvrez la fiche pour tout savoir.</p>
    <p class="dim" style="margin-top:6px">Les quatre boutons de chaque ligne : <b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> mettre en vente · <b>📤</b> prêter — allumés en cyan quand la décision est en cours, un second appui l'annule. Touchez le nom pour ouvrir la fiche.</p>
-   <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le 4-4-2 même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
+   <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le ${G.formation} même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
    <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> sur 100 — 💪 frais (90 et plus) · 😐 entamé (80) · 😓 émoussé (65) · 🥵 jambes lourdes (50) · 🥴 sur les rotules. Un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match. <b>Au-dessus de 90, aucun effet.</b> De 80 à 90, on joue à son pourcentage de forme — à 82, on rend 82 %. De 65 à 80, la note ET le risque de blessure s'aggravent. <b>Sous 65, l'impact devient massif et le moral se met à fuir</b> : là, c'est le repos ou rien. <b>Le onze écarte de lui-même un homme émoussé</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
     <p class="dim" style="font-size:12px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b> — contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>

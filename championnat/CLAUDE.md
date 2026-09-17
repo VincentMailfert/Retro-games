@@ -231,6 +231,51 @@ toujours « raconter quelque chose ».
   championnat reste intact** (le harnais joue en `equilibre`). Multiplicateurs = réglages tunables. À migrer
   (`G.consigne||"equilibre"`). **Depuis v1.10, elle vaut aussi les soirs de coupe et d'Europe** (`multTactique`,
   réglée sur le panneau du rendez-vous) — voir « LE RENDEZ-VOUS DE SEMAINE SE PRÉPARE ».
+- **LES FORMATIONS (v1.12, demande de l'auteur : « changer de formation pour augmenter l'aspect tactique, un peu pauvre
+  avec le 4-4-2 forcé »)**. La règle est la sienne, mot pour mot : « plus de joueurs dans une zone, plus de contrôle dans
+  celle-ci — 5-3-2 plus solide en défense mais pauvre en attaque, 4-4-2 plus solide au milieu, 4-3-3 plus agressif en
+  attaque — conditionné par la qualité des joueurs : un 4-3-3 peut être meilleur au milieu avec trois bons joueurs qu'un
+  4-4-2 avec des milieux moyens ». **Pourquoi le moteur a dû changer** : `forces()` ne voyait que deux blocs (milieux +
+  attaquants ÷ 6, gardien + défenseurs ÷ 5). Un 4-3-3 n'y changeait RIEN (mesuré : le 3e attaquant d'un club de D1 vaut
+  72,7 en moyenne, exactement le 4e milieu), et un 3-5-2 aurait gonflé l'attaque de ~50 % par simple arithmétique.
+  **Données** : `FORMATIONS` (`4-4-2`/`4-3-3`/`5-3-2`, lignes G/D/M/A + `desc`), `G.formation` (défaut `"4-4-2"`, migré :
+  toute valeur inconnue repasse en 4-4-2), `cleFormation(c)`/`formationDe(c)` — **votre club seul** : les dix-neuf
+  autres restent en 4-4-2 (lot suivant possible : l'IA choisit la sienne). `FORMATION` (le 4-4-2 de référence) reste
+  celui de l'équipe type de la saison et du plancher réglementaire. `onze`, `onzeRotation` et la limite des ★
+  (`titulariser`) suivent la formation.
+  **Moteur — trois zones, trois duels** : `forces()` rend `att`/`mil`/`def` = somme des `eff()` de la zone ÷ nombre de
+  places que la formation lui donne × **effet du nombre** `(n/n du 4-4-2)^α` (`ZONES` : `aa`=0,9 attaque, `am`=0,5
+  milieu, `ad`=1,1 défense gardien compris) × cohésion. `lambdasZones(fh,fa)` : `K_ZONES`(2,45) ×
+  `(OFF/DEF adverse)^p` × `(MIL/MIL adverse)^c`, avec `OFF = att^wa · mil^(1−wa)` (`p`=2, `c`=0,9, `wa`=0,5) — le
+  milieu décide qui se crée les occasions, l'attaque épaulée par son milieu contre la défense d'en face décide si elles
+  finissent au fond. `simuleMatch` ET `simuleReste` l'appellent (puis terrain ×1,18/×0,92, ferveur, consignes comme
+  avant). Le tireur d'élite garde exactement son poids d'avant (`TIR_ELITE` = 1,03^2,5 sur la lambda). **Au milieu,
+  α=0,5 : trois milieux à 80 valent quatre milieux à 69** — la phrase de l'auteur, chiffrée.
+  **Réglages trouvés par recherche sur les vrais effectifs** (80 clubs de D1 et D2, deux départs de carrière) : à
+  joueurs de même valeur, 4-3-3 = buts marqués +10 %, encaissés +14 % ; 5-3-2 = −24 % des deux côtés ; le 4-4-2 face
+  au 4-3-3 se crée +14 % d'occasions au duel du milieu ; **aucune formation ne rapporte de points gratuits** (±0,03
+  point par match). Sur effectifs réels : 37 clubs ont intérêt au 4-4-2, 21 au 4-3-3, 22 au 5-3-2, et le gain du 4-3-3
+  suit la valeur du 3e attaquant face au 4e milieu (corrélation 0,43) — c'est l'effectif qui décide. **Limite à
+  connaître** (dite à l'auteur) : sur vingt minutes de fin de match, l'effet d'une formation se compte en quelques
+  points de pourcentage ; ça se voit surtout au téléscripteur et sur la saison. **Calibrage** : tous les clubs en
+  4-4-2, la formule à trois zones ne coïncide pas au chiffre près avec l'ancienne (le milieu joue désormais dans les
+  deux sens) : à `K_ZONES`=2,45, trente passes de `harness.cjs` donnaient **2,3833** contre **2,4097** en v1.11
+  (erreur-type ~0,0035, écart réel de −1,1 %) ; `K_ZONES` remonté à **2,477** → **2,4119** (trente passes,
+  erreur-type 0,0031), dans le bruit. Une passe seule ne suffit pas à trancher (écart-type 0,02). Écart de points
+  attendus par club sur une saison ≤ 3,2 (moyenne 1,2).
+  **Coupe et Europe** : leur modèle de force ne connaît pas les lignes ; la qualité y passe déjà (le onze aligné
+  change), et `multTactique` y ajoute le **caractère** de la formation à joueurs égaux (`styleFormation(k)`,
+  [1,1] en 4-4-2 → tirages de coupe inchangés par défaut). Se combine à la consigne.
+  **Écran** : `blocFormation(xi, adv)` en tête de `blocConsignePrime(quand, xi, adv)` — trois boutons `.bFormation`
+  (câblés dans `ecranCalendrier`, **verrouillés par `lanceMatch`** comme la consigne), la `desc`, le **petit terrain**
+  `.terrainXI` (attaque en haut, chacun dans la ligne où il joue, « (dépanne) » en rouge pour un hors-poste) et, le
+  samedi seulement, **`lectureDuels(adv)`** : les trois duels en mots (« Au milieu, vos 3 contre leurs 4 : le ballon
+  se partagera »…), seuils `DUEL_MIL`/`DUEL_BUT` = quartiles mesurés sur toutes les affiches dans les trois formations.
+  Les soirs de coupe, pas de lecture (le modèle de coupe ne joue pas zone contre zone) mais la formation et le onze de
+  la rotation. Le direct annonce les deux dispositifs au coup d'envoi (`sys`, m:0 : « Les deux équipes se présentent
+  en 4-4-2. » ou « X se présente en 5-3-2, Y en 4-4-2. »). **Pas encore de changement de formation en cours de match**
+  (lot 2 envisagé : un changement de système = un remplacement réel, à brancher sur les changements v1.11).
+  Validation : **`harness-formations.cjs`**.
 - **Changement de tactique EN DIRECT** (v0.61, retour de playtest « si on perd, pouvoir passer offensif ») :
   le téléscripteur est pré-calculé au coup d'envoi (`jouerJournee`→`simuleMatch` verrouille score ET `j.buts`), donc
   pour qu'un changement de consigne en cours de match pèse **vraiment**, deux mécanismes. (1) **Finalisation différée** :
@@ -1293,6 +1338,12 @@ toujours « raconter quelque chose ».
    le premier record qui se tait et celui qui se crie, le palmarès élargi, le cumul d'une fiche de vie sur
    deux saisons, le jubilé, les sifflets du virage, le baromètre des tribunes et ses alertes, l'étoile
    « Suivre » au debrief, et l'écran de reprise qui se calcule ET se rend).
+   `harness-formations.cjs` (les formations, v1.12 : le 4-4-2 neutre par défaut et pour l'IA, le onze / la rotation de
+   coupe / les ★ qui suivent la formation, le dépanneur d'un effectif décimé qui joue dans la ligne qu'il bouche, les
+   trois caractères à joueurs égaux sans points gratuits, « trois bons milieux valent mieux que quatre moyens », le
+   bon choix qui dépend de l'effectif sur 80 vrais clubs, 5 000 matchs du vrai moteur par formation, le caractère
+   porté les soirs de coupe, la sauvegarde, l'avant-match rendu — boutons, petit terrain, rapport de forces, nom
+   échappé, annonce au coup d'envoi — et deux saisons en changeant de formation chaque semaine).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →
@@ -1301,6 +1352,16 @@ toujours « raconter quelque chose ».
 - Résumer les changements à l'auteur en français, style article de presse, à la fin.
 
 ## Pièges connus (déjà corrigés, ne pas réintroduire)
+- **UN DÉPANNEUR JOUE DANS LA LIGNE QU'IL BOUCHE (v1.12)** — trouvé par `harness-formations.cjs` avant livraison.
+  Quand un effectif décimé ne peut pas remplir une ligne, `onze()` complète avec le meilleur joueur de champ restant.
+  Compté dans la zone de son **vrai** poste (comme l'ancien moteur le faisait sans dommage, ses deux blocs ne
+  dépendant pas de la formation), un milieu qui bouche le trou d'un 5-3-2 sans cinquième défenseur mettait **quatre
+  milieux pour trois places** : le 5-3-2 « décimé » battait alors le 4-4-2 dans les **trois** zones à la fois —
+  une formation à choisir justement quand on manque de défenseurs. Correctif : **`placeXI(xi, F)`** répartit le
+  onze par ligne (hommes de métier d'abord, puis chaque dépanneur dans la ligne qui manque d'hommes : défense, milieu,
+  attaque, but), et le dépanneur y vaut **`HORS_POSTE`=0,85** (0,5 s'il enfile les gants ou si un gardien joue dans
+  le champ). Le petit terrain d'avant-match lit la même répartition et marque « (dépanne) ». **Règle** : tout calcul
+  par zone passe par `placeXI`, jamais par `j.pos` directement. Gardé par la **section B bis** du harnais.
 - **UN PRÊTÉ N'EST PLUS DANS VOTRE EFFECTIF — NE TESTEZ JAMAIS L'APPARTENANCE SUR `j.club` (v1.07)** :
   `preteJoueur` **déplace physiquement** le joueur dans `hote.joueurs`, et `empruntJoueur` fait l'inverse.
   Tout code qui écrit `c.id===G.monClub` ou `j.club===G.monClub` pour décider « est-ce mon joueur ? » se
