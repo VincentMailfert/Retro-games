@@ -319,7 +319,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.13"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.14"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4295,7 +4295,8 @@ function veilleAffluence(c){
     notif("📉 Les gradins se vident : "+Math.round(av*100)+" % de remplissage il y a un mois, "+Math.round(m3*100)+" % aujourd'hui. Le tarif ("+palierBillet().nom.toLowerCase()+"), les résultats, ou les deux — le public, lui, a déjà tranché.");
   } else if(m3>av+0.10 && G._affCri!=="hausse"){
     G._affCri="hausse";
-    notif("📈 Le public revient : "+Math.round(av*100)+" % de remplissage il y a un mois, "+Math.round(m3*100)+" % aujourd'hui. Ce n'est pas le moment de faire une bêtise sur le prix des places.");
+    // 🏟️ et pas 📈 (v1.14) : 📈 est réservé aux notes gagnées, que harness-progression.cjs compte à ce préfixe
+    notif("🏟️ Le public revient : "+Math.round(av*100)+" % de remplissage il y a un mois, "+Math.round(m3*100)+" % aujourd'hui. Ce n'est pas le moment de faire une bêtise sur le prix des places.");
   }
 }
 function moyAffSaison(l){ return (l&&l.length) ? l.reduce((s,x)=>s+x.n,0)/l.length : 0; }

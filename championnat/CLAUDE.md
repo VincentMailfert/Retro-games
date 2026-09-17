@@ -1409,7 +1409,10 @@ toujours « raconter quelque chose ».
   l'écran avant qu'il soit lu. **Règle** : tout ce qui change durablement un joueur (note gagnée, cap
   franchi) passe par `notif()` ; les dépêches restent la chronique de fond. Les deux `+1` du jeu —
   `progression()` et le retour de sélection dans `selections()` — sont désormais préfixés **📈** (le harnais
-  s'appuie sur ce préfixe pour les compter).
+  s'appuie sur ce préfixe pour les compter). **📈 leur est RÉSERVÉ** (v1.14) : l'alerte d'affluence « Le public
+  revient » l'empruntait, et `harness-progression.cjs` la prenait de temps en temps pour la progression d'un joueur
+  qui n'est pas à vous (faux échec aléatoire, ~1 passe sur 7) — elle porte désormais **🏟️**. Aucune autre notif ne
+  doit commencer par 📈.
 - **ÉCHAP NE DOIT JAMAIS PERCER UNE FENÊTRE VERROUILLÉE (v1.05)** : l'écouteur clavier du bas de fichier
   faisait `fiche.style.display="none"` **à la main**, sans regarder `window._penEnCours`. On évacuait donc
   d'un coup de touche un incident, une conférence de presse, un chapitre d'arc, l'avant-match d'un tour de
