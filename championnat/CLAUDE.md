@@ -108,6 +108,36 @@ toujours « raconter quelque chose ».
   `0 0 9px`.
 
 ## Systèmes de jeu en place (ne pas casser)
+- **CHANTIER « UN SEUL MOTEUR » — les fondations (22/09/2026, ouvert après la v1.16)**. Objectif : router la
+  Coupe de France et la Coupe d'Europe par **`simuleMatch`**, le moteur du championnat, au lieu du modèle de
+  force autonome — « je ne veux pas d'un moteur au rabais pour les coupes » (l'auteur). La fatigue, le moral,
+  la cohésion, les cartons et les blessures doivent y peser comme le samedi ; **les buteurs, eux, ne doivent
+  jamais se mélanger**. Deux pièces sont déjà posées, toutes deux NEUTRES tant que les coupes n'y sont pas
+  routées (le jeu se comporte exactement comme avant, les dix-huit harnais le prouvent) :
+  1. **`appliqueResultat` est coupé en deux.** `majTableau(h,a,sh,sa)` remplit le classement (points, buts
+     pour et contre, série de `forme`) ; `registreDesHommes(h,a,pre)` tient le registre des joueurs (un match
+     de plus, les blessures, le prix payé en fraîcheur, et le `_joue` qui nourrit `progression`).
+     `appliqueResultat` reste leur somme et c'est toujours elle que la journée appelle. Un soir de coupe
+     n'appellera QUE le second : un tour de coupe ne doit déposer ni point ni but au classement — et surtout
+     pas toucher à `forme`, que relit `affluence`.
+  2. **Le contexte de compétition `COMPET`** (`"L"` championnat · `"CF"` Coupe de France · `"EU"` Europe), posé
+     près de `CHANGEMENTS`/`MIN_JEU`. Il dit au moteur dans quel carnet écrire : `j.buts`/`j.passes`/`j.matchs`
+     en championnat, `j.butsC`/`j.passesC`/`j.matchsC` en coupe. `marque()` et l'annulation de but de
+     `rejoueDepuis` passent par `cleButs()`/`clePasses()`, `registreDesHommes` par `cleMatchs()`. **Toujours
+     entrer par `enCompet(quoi, fn)`**, qui rend le maillot dans un `finally` : une variable laissée sur `"CF"`
+     ferait disparaître la journée de championnat suivante de tous les classements. Les totaux toutes
+     compétitions (`butsTous`, `passesTous`, `matchsTous`) servent à ce qui juge un joueur sur ce qu'il vaut —
+     l'intérêt des autres clubs (`_momeStat`/`statMark`) — jamais aux classements officiels. **Arbitrages de
+     l'auteur** : les buts de coupe comptent pour la progression et la cote, mais ne s'affichent QUE sur la
+     fiche du joueur (ligne « En coupe : … », masquée tant qu'elle est vide) ; les suspensions restent
+     communes aux trois compétitions (un rouge en coupe coûtera donc un match de championnat) ; les
+     prolongations se joueront pour de vrai, deux fois quinze minutes puis tirs au but ; les clubs amateurs
+     recevront un effectif de seize joueurs généré au tirage du tableau et gardé jusqu'à l'intersaison ; et le
+     nouveau moteur doit ADOUCIR le parcours en coupe (viser 15-20 % de sortie aux 32es contre 35 % au modèle
+     actuel), parce que la profondeur d'effectif doit enfin peser. Reste à faire : les effectifs amateurs, le
+     terrain neutre, l'affluence de coupe, les prolongations, la récupération hebdomadaire de `G.autre` et
+     `G.europe` (aujourd'hui personne ne soigne leurs blessés — sans conséquence tant que les coupes ne
+     blessent pas, mortel dès qu'elles le feront), puis la bascule elle-même, l'Europe d'abord.
 - **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
   `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** (référence de curation :
   **Transfermarkt**, page effectif par club et saison — `…/kader/verein/<id>/saison_id/1995`) — viser ~97% de vrais
@@ -1485,7 +1515,20 @@ toujours « raconter quelque chose ».
    trois caractères à joueurs égaux sans points gratuits, « trois bons milieux valent mieux que quatre moyens », le
    bon choix qui dépend de l'effectif sur 80 vrais clubs, 5 000 matchs du vrai moteur par formation, le caractère
    porté les soirs de coupe, la sauvegarde, l'avant-match rendu — boutons, petit terrain, rapport de forces, nom
-   échappé, annonce au coup d'envoi — et deux saisons en changeant de formation chaque semaine).
+   échappé, annonce au coup d'envoi — et deux saisons en changeant de formation chaque semaine),
+   `harness-coupes.cjs` (**l'ÉTALON des coupes**, posé le 22/09/2026 en ouverture du chantier « un seul moteur » :
+   sur un hasard à graine fixe — deux lancers rendent les mêmes chiffres, `GRAINE=…` pour un autre tirage — il
+   joue 60 saisons × 3 clubs et mesure ce que le modèle de force autonome produit, puis le compare à des valeurs
+   gravées dans le fichier : buts par match en Coupe de France (2,63), pro contre pro (2,37) et pro contre amateur
+   (3,06), part des tirs au but (21,5 %), **taux d'exploit d'un amateur sur un pro (16,1 %)**, parcours du Petit
+   Poucet (12,2 % de quarts ou mieux), tour de sortie de votre club (35 % dès les 32es), Europe (2,37 buts par
+   manche, 8,3 % de t.a.b., 65,2 % de qualifications du favori), et **l'invariant des buteurs** — résoudre des
+   milliers d'affiches ne doit toucher aucun compteur de joueur, dans aucun vivier. Quand la bascule vers
+   `simuleMatch` sera faite ces chiffres bougeront : c'est attendu, et l'étalon devra être réécrit SCIEMMENT,
+   valeur par valeur. Ce qu'on refuse, c'est qu'ils bougent sans que personne le voie. **Sa section G** garde le
+   contexte de compétition : 400 matchs du vrai moteur joués sous le maillot « CF » ne déposent pas un but au
+   classement des buteurs du championnat et les déposent tous dans le compteur de coupe, le championnat écrit
+   toujours dans le sien, et le maillot est rendu même quand le match lève une exception).
 
 ## Workflow de livraison
 - Itérer dans le fichier → valider (ci-dessus) → **incrémenter la version** en pied de page →

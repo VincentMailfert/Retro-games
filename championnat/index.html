@@ -1903,7 +1903,7 @@ function construitDivision(listeClubs, starsMap){
     for(const pos of ["G","D","M","A"]){
       while(c.joueurs.filter(j=>j.pos===pos).length < CIBLE[pos]) c.joueurs.push(genJoueur(pos,c.pres));
     }
-    c.joueurs.forEach(j=>{ j.club=c.id; j.avendre=false; j.buts=0; j.passes=0; j.matchs=0; j.note0=j.note; j.fav=false; j.titu=false; j.uid=uidGen(); j.bless=0; j.susp=0; j.reel=!j.histoire; j.nat=j.nat||"FR"; j.moral=j.moral==null?RNDI(58,75):j.moral; j.sansJouer=0; initTraits(j); });
+    c.joueurs.forEach(j=>{ j.club=c.id; j.avendre=false; j.buts=0; j.passes=0; j.matchs=0; j.butsC=0; j.passesC=0; j.matchsC=0; j.note0=j.note; j.fav=false; j.titu=false; j.uid=uidGen(); j.bless=0; j.susp=0; j.reel=!j.histoire; j.nat=j.nat||"FR"; j.moral=j.moral==null?RNDI(58,75):j.moral; j.sansJouer=0; initTraits(j); });
   }
   for(const c of clubs){ // bête noire (jamais le rival, autre registre)
     const autres=clubs.filter(x=>x.id!==c.id && x.id!==(RIVAL[c.id]||""));
@@ -2662,6 +2662,30 @@ let FAITS=[];
    le moment de la 90e) passe sa minute explicitement. `forces()` reste sur le onze du coup d'envoi : la
    force d'une équipe ne bouge pas avec ses changements, le calibrage non plus. */
 let CHANGEMENTS={}, MIN_JEU=0;
+/* SOUS QUEL MAILLOT ON JOUE (chantier « un seul moteur ») — le moteur est le même pour les trois
+   compétitions, mais les compteurs ne le sont pas. `COMPET` dit au moteur où déposer ce qu'il produit :
+     "L"  championnat → j.buts, j.passes, j.matchs (le classement des buteurs, celui qu'on affiche)
+     "CF" Coupe de France · "EU" Coupe d'Europe → j.butsC, j.passesC, j.matchsC
+   Un but de coupe ne doit JAMAIS entrer dans le classement des buteurs du championnat (consigne de
+   l'auteur : « pas mélanger les buteurs »), mais il existe, il se lit sur la fiche du joueur, et le
+   temps de jeu qu'il représente compte pour la progression comme n'importe quel autre.
+   Valeur par défaut "L" : tant que les coupes n'y sont pas routées, rien ne change nulle part.
+   TOUJOURS la reposer à "L" en sortant (enCompet s'en charge) : une variable laissée sur "CF" ferait
+   disparaître la journée de championnat suivante des classements. */
+let COMPET="L";
+const enChampionnat=()=>COMPET==="L";
+function enCompet(quoi, fn){ // joue `fn` sous le maillot `quoi`, et rend toujours la main à "L"
+  const avant=COMPET; COMPET=quoi;
+  try { return fn(); } finally { COMPET=avant; }
+}
+const cleButs   =()=>enChampionnat()?"buts":"butsC";
+const clePasses =()=>enChampionnat()?"passes":"passesC";
+const cleMatchs =()=>enChampionnat()?"matchs":"matchsC";
+/* Le total toutes compétitions confondues — ce que regardent ceux qui jugent un joueur sur ce qu'il vaut
+   (l'intérêt des autres clubs, sa fiche), par opposition aux classements officiels du championnat. */
+const butsTous  =j=>(j.buts||0)+(j.butsC||0);
+const passesTous=j=>(j.passes||0)+(j.passesC||0);
+const matchsTous=j=>(j.matchs||0)+(j.matchsC||0);
 function enJeu(c, m){
   const p=c&&CHANGEMENTS[c.id];
   if(!p) return onze(c);
@@ -2769,7 +2793,10 @@ function marque(c, sh, sa, verbeux, ev, m, prefixe, contre, vus){
   // le passeur est désigné comme avant : le calibrage des passes hors de votre match ne bouge pas.
   const lgn=verbeux?pickNR(contre?COMM.butContre:COMM.but,vus||[]):null;
   const p=(lgn && BUT_SANS_PASSE.has(lgn)) ? null : passeur(c,j);
-  j.buts++; if(p) p.passes++;
+  // le but va dans le compteur de la compétition en cours (cf. COMPET) : en championnat le classement
+  // des buteurs, en coupe un compteur à part qui ne s'y mêle jamais
+  const kB=cleButs(), kP=clePasses();
+  j[kB]=(j[kB]||0)+1; if(p) p[kP]=(p[kP]||0)+1;
   FAITS.push({u:j.uid,b:1}); if(p) FAITS.push({u:p.uid,p:1}); // de quoi nommer l'homme du match, même sans téléscripteur
   // uid/pasUid : permettent d'annuler proprement un but pré-tiré si la tactique change en cours de match (cf. rejoueDepuis)
   if(verbeux){
@@ -3071,8 +3098,10 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
 function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
   const effaces=[];
   for(let k=fromIdx;k<r.ev.length;k++){ const l=r.ev[k];
-    if(l.g){ const b=l.g.uid&&byUid(l.g.uid); if(b) b.buts=Math.max(0,(b.buts||0)-1);
-      const p=l.g.pasUid&&byUid(l.g.pasUid); if(p) p.passes=Math.max(0,(p.passes||0)-1); }
+    // on défait le but dans le compteur où `marque` l'avait déposé : même compétition, même clé
+    if(l.g){ const kB=cleButs(), kP=clePasses();
+      const b=l.g.uid&&byUid(l.g.uid); if(b) b[kB]=Math.max(0,(b[kB]||0)-1);
+      const p=l.g.pasUid&&byUid(l.g.pasUid); if(p) p[kP]=Math.max(0,(p[kP]||0)-1); }
     if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); effaces.push(l.c); }
   }
   // l'expulsé revient sur la pelouse du fil recollé — et ce que son rouge avait déclenché se défait (v1.13) : le gardien
@@ -3133,15 +3162,25 @@ function affluence(home,away,sansPromo){
 
 /* ---------- Journée de championnat ---------- */
 function clubById(id){ return G.clubs.find(c=>c.id===id) || (G.autre&&G.autre.find(c=>c.id===id)); }
-function appliqueResultat(h,a,sh,sa,pre){
+/* UN RÉSULTAT DE MATCH FAIT DEUX CHOSES, ET ELLES NE VONT PAS ENSEMBLE PARTOUT (chantier « un seul
+   moteur ») : il remplit le CLASSEMENT (points, buts pour et contre, série de forme) et il tient le
+   REGISTRE DES HOMMES (un match de plus au compteur, les pépins, le prix payé en fraîcheur).
+   Le samedi, les deux. Un soir de coupe, le second SEUL : un tour de Coupe de France ne doit jamais
+   déposer un point ni un but au classement du championnat — et `forme`, que lit `affluence`, encore
+   moins. D'où la coupure en deux fonctions ; `appliqueResultat` reste leur somme, inchangée pour le
+   championnat, et c'est elle que la journée continue d'appeler. */
+function majTableau(h,a,sh,sa){
   h.j++; a.j++; h.bp+=sh; h.bc+=sa; a.bp+=sa; a.bc+=sh;
   if(sh>sa){h.pts+=3;h.g++;a.p++;h.forme.push(1);a.forme.push(-1);}
   else if(sh<sa){a.pts+=3;a.g++;h.p++;a.forme.push(1);h.forme.push(-1);}
   else {h.pts++;a.pts++;h.n++;a.n++;h.forme.push(0);a.forme.push(0);}
+}
+function registreDesHommes(h,a,pre){
   const entre=(c,pick,decal)=>{
     const sel=pick||tireSubs(c,decal);
     const sortie=(j,k)=>{ const r=sel.rouge&&sel.rouge[j.uid]; return Math.min(k<0?90:sel.min[k], r==null?90:r); }; // minute où il quitte la pelouse
-    sel.xi.forEach(j=>{j.matchs++; j._joue=1;
+    const kM=cleMatchs(); // championnat ou coupe : le match se compte dans son propre carnet
+    sel.xi.forEach(j=>{j[kM]=(j[kM]||0)+1; j._joue=1;
       const niv=(c.id===G.monClub)?G.centre:1;
       let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
       if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
@@ -3157,10 +3196,14 @@ function appliqueResultat(h,a,sh,sa,pre){
       }
       // au prorata du temps passé sur le terrain : jusqu'au coup de sifflet, à son remplacement, ou à son expulsion
       useFraich(j, coutMinutes(sortie(j, sel.sort?sel.sort.indexOf(j):-1)));});
-    sel.banc.forEach((j,k)=>{j.matchs++; j._joue=0.6; useFraich(j, coutMinutes(sortie(j,-1)-(sel.min?sel.min[k]:60)));});
+    sel.banc.forEach((j,k)=>{j[kM]=(j[kM]||0)+1; j._joue=0.6; useFraich(j, coutMinutes(sortie(j,-1)-(sel.min?sel.min[k]:60)));});
     return sel.banc;
   };
   return {subsH:entre(h,pre&&pre.h,0), subsA:entre(a,pre&&pre.a,3)};
+}
+function appliqueResultat(h,a,sh,sa,pre){ // le samedi : le classement ET le registre, dans cet ordre, comme toujours
+  majTableau(h,a,sh,sa);
+  return registreDesHommes(h,a,pre);
 }
 /* LES TROIS CHANGEMENTS D'UNE ÉQUIPE (v1.11) — tirés pour les vingt clubs, et plus seulement le temps d'écrire le
    direct : qui entre, À QUELLE MINUTE, et À LA PLACE DE QUI. Chaque entrant relève un titulaire de son poste,
@@ -7516,7 +7559,7 @@ function razStatsClub(c){
   c.pts=0;c.j=0;c.g=0;c.n=0;c.p=0;c.bp=0;c.bc=0;c.forme=[];
   c._cedes=0; c._cedesG=0; // le quota de joueurs qu'un club accepte de vous vendre se recharge chaque saison
   // l'été remet tout le monde à neuf : deux mois sans match, personne ne démarre une saison entamé
-  for(const j of c.joueurs){ j.buts=0;j.passes=0;j.matchs=0;j.hdm=0;j.note0=j.note;j.avendre=false;j.bless=0;j.susp=0;j.fraich=100;j.repos=false; }
+  for(const j of c.joueurs){ j.buts=0;j.passes=0;j.matchs=0;j.butsC=0;j.passesC=0;j.matchsC=0;j.hdm=0;j.note0=j.note;j.avendre=false;j.bless=0;j.susp=0;j.fraich=100;j.repos=false; }
 }
 function construireEffectif(p){
   p.joueurs=[];p.pts=0;p.j=0;p.g=0;p.n=0;p.p=0;p.bp=0;p.bc=0;p.forme=[];
@@ -7945,6 +7988,7 @@ function migre(){
       if(j.fraich==null) j.fraich=100; j.repos=!!j.repos; // v1.00 : les carrières en cours reprennent avec un effectif frais
       if(j.moral==null) j.moral=RNDI(58,75);
       j.sansJouer=j.sansJouer||0; j.nat=j.nat||"FR";
+      j.butsC=j.butsC||0; j.passesC=j.passesC||0; j.matchsC=j.matchsC||0; // compteurs de coupe : absents d'avant le chantier « un seul moteur »
       if(j.reel==null) j.reel=true; // les anciens fichiers ne distinguaient pas : on les traite en vrais
       initTraits(j);
     }
@@ -9401,7 +9445,10 @@ function vendMome(a, sell){
 // a-t-on gagné au moins un match depuis le repère posé au dernier chapitre ?
 function _arcGagneDepuis(a){ return clubById(G.monClub).forme.slice(a.mark||0).includes(1); }
 // buts+passes du joueur de l'arc, et l'offre ferme du cador (majorée si la pépite brille sous les projecteurs)
-function _momeStat(a){ const j=byUid(a.uid); return j?((j.buts||0)+(j.passes||0)):0; }
+/* Ce que les recruteurs regardent : buts et passes TOUTES COMPÉTITIONS. Un homme qui porte son club
+   les soirs de coupe se remarque autant qu'un buteur du samedi — c'est la consigne de l'auteur, les buts
+   de coupe comptent pour la cote même s'ils n'entrent jamais au classement des buteurs. */
+function _momeStat(a){ const j=byUid(a.uid); return j?(butsTous(j)+passesTous(j)):0; }
 function _momeOffre(a){ const brille=a.vitrine && _momeStat(a)>(a.statMark||0); return a.offre*(brille?1.5:1)*(a.offreBonus||1); }
 // tente d'armer un arc en fin de journée (appelé par finirJournee, jamais si un incident/conf occupe déjà le week-end)
 function armeArc(){
@@ -9504,7 +9551,7 @@ const ARCS={
     if(!cands.length) return null;
     const j=cands[0];
     return {uid:j.uid, nom:j.nom, cador:PICK(["le Milan AC","l'Ajax Amsterdam","le FC Barcelone","le Bayern Munich","la Juventus"]),
-      offre:RNDI(8,14), statMark:(j.buts||0)+(j.passes||0), vitrine:false};
+      offre:RNDI(8,14), statMark:butsTous(j)+passesTous(j), vitrine:false};
   },
   beats:{
    b1:(a)=>({
@@ -10332,6 +10379,7 @@ function ouvreFiche(j){
        ${v1>v0?`<span class="vert">▲ +${((v1-v0)/1e6).toFixed(1)} MF</span>`:""}
        · Salaire : ${FMT(salaire(j))} FF/sem</p>
     <p>Saison : ${j.matchs||0} match${(j.matchs||0)>1?"s":""} · ${j.buts||0} but${(j.buts||0)>1?"s":""} · ${j.passes||0} passe${(j.passes||0)>1?"s":""} décisive${(j.passes||0)>1?"s":""}</p>
+    ${(j.matchsC||0)||(j.butsC||0)||(j.passesC||0)?`<p class="dim">En coupe : ${j.matchsC||0} match${(j.matchsC||0)>1?"s":""} · ${j.butsC||0} but${(j.butsC||0)>1?"s":""} · ${j.passesC||0} passe${(j.passesC||0)>1?"s":""} décisive${(j.passesC||0)>1?"s":""}</p>`:""}
     ${blocBio(j)}
     ${pOut?`<p class="cyan">📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin} — il y joue titulaire.</p>`:""}
     ${j.avendre?`<p class="rouge">🏷️ Sur la liste des transferts — ${fenetreOuverte()?"la fenêtre est ouverte, un club français peut conclure dès cette journée":"mercato fermé : seul un club étranger peut encore le prendre"}. Il continue de jouer en attendant.</p>`:""}
