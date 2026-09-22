@@ -255,6 +255,67 @@ toujours « raconter quelque chose ».
   présence des quatre vétérans. À reconduire pour 00/01.
   Deux effectifs sont incomplets à la source et `genJoueur` complète : Lorient n'a que 4 défenseurs répertoriés chez
   TM, Caen qu'un seul gardien. Validation dédiée : **`harness9900.cjs`**.
+  **1990-91 (v1.16)** : `STARS_9091`/`STARS_D2_9091`, `D1_9091`/`D2_9091`, `an:1990`, `saison_id/1990` — **la plus
+  ANCIENNE saison du jeu**, et la première qu'on ajoute en remontant le temps au lieu de le descendre. La D1 réelle
+  avait déjà ses **vingt clubs** : aucun repêchage, pour une fois. C'est la D2 qui posait la question, puisqu'elle se
+  jouait alors en **DEUX GROUPES DE DIX-HUIT** : la règle retenue est la plus simple et la plus fidèle, **les dix
+  premiers de chaque groupe** (groupe A : Nîmes, Strasbourg, Valenciennes, Alès, Istres, Bastia, Avignon, Rodez,
+  Annecy, Mulhouse ; groupe B : Le Havre, Lens, Laval, Angers, Rouen, Reims, Guingamp, Beauvais, Tours, Red Star).
+  Une seule exception, et c'est la jurisprudence Toulon 98/99 qui la commande : **l'AS Saint-Seurin, 8e du groupe B,
+  a été écartée** parce que Transfermarkt ne lui connaît que **17 joueurs pour 18 places** — compléter aurait voulu
+  dire inventer un homme, ce qu'on ne fait pas sur une saison réelle ; **Beauvais, 11e**, entre à sa place. Onze
+  clubs neufs dans `CLUBS_EXTRA`, un record : **Brest** (`BRE`, Francis-Le Blé, rouge et blanc) en D1, et en D2
+  **Valenciennes** (`VAN`, Nungesser — *attention, à ne pas confondre avec `VAL`, qui est Valence*), **Alès**
+  (`ALE`, Pierre-Pibarot, bleu et blanc), **Istres** (`IST`, Bernard-Bardin — Parsemain n'ouvre qu'en 1997 —,
+  violet et noir), **Avignon** (`AVI`), **Rodez** (`ROD`, rouge et jaune), **Annecy** (`ANN`), **Angers** (`ANG`,
+  noir et blanc), **Rouen** (`ROU`), **Reims** (`REI`, Auguste-Delaune) et **Tours** (`TRS`, bleu ciel et noir),
+  tous avec blason, malédiction et **couleurs vérifiées une à une sur leur fiche Wikipédia** (jurisprudence Créteil).
+  Sièges européens réels : **l'OM en C1** (champion 89-90, il ira jusqu'à la finale de Bari), **Montpellier en C2**
+  (vainqueur de la Coupe de France 1990), **Bordeaux et Monaco en C3** — la France n'avait que deux places UEFA
+  cette année-là, vérifié sur le tableau de la Coupe UEFA 1990-91.
+  **`HONNEURS` complété** : **1992** (Euro en Suède, le Danemark repêché et sacré) et **1994** (Mondial aux
+  États-Unis, le Brésil aux tirs au but). Partir de 90/91 est **le seul cas du jeu où la PREMIÈRE intersaison ne
+  porte aucun tournoi** : l'été 91 est muet, l'Euro 92 tombe à la deuxième, le Mondial 94 à la quatrième. Ni l'une
+  ni l'autre de ces deux dépêches ne doit contenir la chaîne « LA FRANCE » en capitales, que `finDeSaison` lit comme
+  un triomphe français.
+  **LE SENS DU TEMPS EST INVERSÉ, et c'est le piège neuf de cette saison.** Les cinq saisons précédentes héritaient
+  d'une note curée et la **vieillissaient** ; ici il faut la **rajeunir**, et l'inversion pure de la règle d'âge
+  (+2/+1/0/−1/−2) **ment dans les deux sens** : elle rend +5 à un trentenaire (Amoros montait à 88, au-dessus de
+  Papin) et retire huit points à un espoir sans jamais descendre assez bas (Zidane à 18 ans ressortait à 80).
+  D'où la méthode retenue : **moyenne à parts égales entre la note rajeunie et une note calculée sur la saison
+  elle-même** (médiane D1 70 / D2 67, modulée par le rang réel du club, par le rang de temps de jeu dans l'effectif
+  et par une **courbe d'âge** — le pic à 26-29 ans, −8 à dix-sept ans, −7 à trente-sept). 288 des 760 noms étaient
+  déjà curés ailleurs dans le jeu et repartent ainsi ; les autres sont entièrement calculés. **Et surtout, une table
+  d'ajustements à la main de 64 entrées** (`AJUST`), sans laquelle rien ne tient debout : le calcul plafonne vers 79
+  et ne sait pas qu'un homme a gagné le Ballon d'or. Papin 88, Waddle 86, Abedi Pelé 84, Valderrama, Blanc, Scifo,
+  Amoros, Mozer et Sauzée 83, Sušić et Fernandez 82, puis Weah et Cantona 80 — **la note d'un joueur est sa valeur,
+  pas son temps de jeu** (Stojković n'a joué que 1084 minutes, blessé toute l'année, et reste à 79).
+  **Le tri par minutes écarte toujours les pépites** : forçage de **Thuram** (18 ans, **quinze minutes dans toute la
+  saison**), Mboma, Déhu, Pedros, Ouédec et Grimandi. Attention, un forcé ne doit pas pouvoir être éjecté par le
+  forçage suivant — c'est arrivé, Thuram sortait pour faire place à Grimandi.
+  **Relevé — ce que Transfermarkt sert en 1990 et qu'il ne servait pas en 1999** : (1) un **anti-robot AWS WAF**
+  répond HTTP 405 avec une page « Human Verification » sur une requête sur quatre ; **réessayer sur
+  `transfermarkt.com`, `.de` ou `.co.uk` suffit** (27 pages sur 112 ont dû l'être, zéro échec au bout du compte).
+  (2) Les pages sont servies **en trois langues au hasard** : les postes arrivent en français, en anglais
+  (« Sweeper ») *et en allemand* (« Innenverteidiger », « Mittelstürmer ») — il faut les trois tables sous peine de
+  perdre 72 joueurs sans poste. (3) La date de naissance s'écrit tantôt « 12 janv. 1962 (29) », tantôt
+  « 08/02/1960 (31) ». (4) **Sur la page effectif, le nom du joueur est le `hauptlink` de la table imbriquée** : les
+  `title="…"` de la ligne sont ceux des infobulles de transfert, et les lire donne des joueurs qui s'appellent
+  « USL Dunkerque: Ablöse ? ». (5) Un joueur que la source **ne sait pas dater** est écarté plutôt que deviné — TM
+  donne à Sébastien Gautier (Laval) une naissance en 1985, soit cinq ans au coup d'envoi.
+  **Dédoublonnage par identifiant TM, toujours**, y compris pour les remplaçants jamais utilisés qu'on ajoute en
+  comblement : Reuzeau et Simba réapparaissaient dans un second club par cette porte-là. L'arbitrage « là où il a le
+  plus joué » a été vérifié sur le cas le plus surprenant : **Amara Simba, listé au PSG ET à Cannes, était bien
+  prêté à Cannes cette saison-là** (32 matchs, 13 buts).
+  **Deux patronymes en deux mots sont authentiques** et doivent être blanchis dans le contrôle « prénom composé
+  avalé » du harnais : **Michael Mio Nielsen** (Lille) et **Mass Sarr Jr** (Monaco).
+  **Un correctif de moteur, exigé par cette saison** : `regarnitVivier` tire un nom procédural
+  `PICK(PRENOMS)+" "+PICK(NOMS)` **sans vérifier qu'il n'est pas déjà employé**. Le défaut ne se voyait pas avant,
+  parce que la réserve de jokers (ancrée sur 1995, `vieillitJoker` refusant de remonter le temps) suffisait ; en
+  partant de 1990 elle ne rend plus rien, cette branche garnit tout le vivier, et le même homme se retrouvait dans
+  un effectif ET chez les recrues possibles. Le nom est désormais retiré au sort jusqu'à en trouver un inconnu.
+  Neuf effectifs que la source laisse incomplets et que `genJoueur` complète à la marge (Lyon et le PSG n'ont qu'un
+  gardien répertorié, Laval que quatre milieux). Validation dédiée : **`harness9091.cjs`**.
   Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
   `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
   ajoute une par une — sont dans `chantier-saisons.md`.**

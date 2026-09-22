@@ -62,10 +62,11 @@ concorde pas, et une table d'ajustements à la main pour tout ce qui se reconna�
 gabarit du harnais à recopier. Relire la section avant chaque saison : elle contient les pièges qui ont
 déjà coûté une livraison.
 
-**L'été international.** `HONNEURS` (dans `finDeSaison`) ne connaît que 1996 → 2006. Les saisons de cette
-file en réclament d'autres, à écrire le jour où la première saison concernée arrive : **1992** (Euro en
-Suède, le Danemark repêché et sacré), **1994** (Mondial aux États-Unis, le Brésil aux tirs au but),
-**2008** (Euro, l'Espagne commence son règne), **2010** (Mondial en Afrique du Sud, l'Espagne — et pour la
+**L'été international.** `HONNEURS` (dans `finDeSaison`) connaît 1992 → 2006 depuis l'ajout de 1990-91,
+qui a écrit **1992** (Euro en Suède, le Danemark repêché et sacré) et **1994** (Mondial aux États-Unis, le
+Brésil aux tirs au but). Attention : le texte d'un été ne doit contenir « LA FRANCE » en capitales que si
+la France a gagné — `finDeSaison` lit cette chaîne comme un triomphe. Restent à écrire, le jour où la
+première saison concernée arrive : **2008** (Euro, l'Espagne commence son règne), **2010** (Mondial en Afrique du Sud, l'Espagne — et pour la
 France, Knysna), puis **2012**, **2014**, **2016**, **2018** tant qu'on y est, puisque les carrières durent.
 
 ---
@@ -80,7 +81,7 @@ Transfermarkt documente moins bien le début des années 90 que la fin : c'est l
 trois clubs muets, on bloque » servira. Belle matière narrative, au passage : le doublé de l'OM, la
 Coupe d'Europe 93, puis VA-OM.
 
-- [ ] **1990-91** — `STARS_9091`/`STARS_D2_9091`, `D1_9091`/`D2_9091`, `an:1990`, `saison_id/1990`
+- [x] **1990-91** — `STARS_9091`/`STARS_D2_9091`, `D1_9091`/`D2_9091`, `an:1990`, `saison_id/1990`
 - [ ] **1991-92** — `STARS_9192`/`STARS_D2_9192`, `D1_9192`/`D2_9192`, `an:1991`, `saison_id/1991`
 - [ ] **1992-93** — `STARS_9293`/`STARS_D2_9293`, `D1_9293`/`D2_9293`, `an:1992`, `saison_id/1992`
 - [ ] **1993-94** — `STARS_9394`/`STARS_D2_9394`, `D1_9394`/`D2_9394`, `an:1993`, `saison_id/1993`
@@ -188,12 +189,19 @@ La Primera passe à **22 clubs** de 1995 à 1997 avant de revenir à 20 : deux �
 
 ## Où on en est
 
-75 saisons en file, plus onze étapes de structure. À une par jour et si les PR sont relues au fil de l'eau,
-le chantier court sur environ trois mois. Les quinze saisons françaises sont du terrain connu ; tout ce qui
-suit ouvre le jeu à un deuxième pays, ce qui est un autre métier.
+74 saisons en file, plus onze étapes de structure. À une par jour et si les PR sont relues au fil de l'eau,
+le chantier court sur environ trois mois. Les quatorze saisons françaises restantes sont du terrain connu ;
+tout ce qui suit ouvre le jeu à un deuxième pays, ce qui est un autre métier.
+
+Une leçon de la première journée, à garder pour les quatre saisons du début des années 90 : **en remontant le
+temps, les notes se rajeunissent, et l'inversion de la règle d'âge ment dans les deux sens** (elle gonfle les
+trentenaires et écrase les espoirs). La parade — moyenne avec une note calculée sur la saison elle-même, plus
+une vraie table d'ajustements à la main — est décrite dans `CLAUDE.md`. Et Transfermarkt sert le début des
+années 90 **en trois langues au hasard**, avec un anti-robot qu'un autre domaine (`.com`, `.de`) contourne.
 
 ## Journal
 
 | Date | Saison | Ce qui s'est passé |
 |---|---|---|
 | 2026-09-22 | — | Chantier ouvert. Base du jeu : 1995-96 → 1999-00 (v1.15). |
+| 2026-09-22 | 1990-91 | Livrée (v1.16). 760 vrais joueurs, 40 clubs, dont **onze clubs neufs** (Brest, Valenciennes, Alès, Istres, Avignon, Rodez, Annecy, Angers, Rouen, Reims, Tours). La D2 réelle étant en deux groupes de dix-huit, le jeu retient **les dix premiers de chaque groupe** ; **Saint-Seurin écarté** (17 joueurs documentés pour 18 places, jurisprudence Toulon). Étés **1992** et **1994** écrits dans `HONNEURS`. Deux pièges neufs : le **sens du temps inversé** pour les notes, et l'**anti-robot** de Transfermarkt. Un correctif de moteur au passage : `regarnitVivier` pouvait inventer le nom d'un joueur déjà employé. `harness9091.cjs` vert, plus les seize autres harnais en non-régression. |
