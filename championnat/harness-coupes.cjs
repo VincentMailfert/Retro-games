@@ -59,7 +59,7 @@ const GRAINE = Number(process.env.GRAINE || 20250922);
   };
 })(GRAINE);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,estAmateur,niveauCoupe,forceCoupe,forceEuro,nomCoupe,resoudreCoupe,euroManche,simuleMatch,enCompet,clubById,clubAmateur,amaById,forceClub,COUPE_POUCET_BONUS,CLUBS,CLUBS_D2,CLUBS_AMATEURS,COUPE_TOURS,EURO_TOURS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,estAmateur,niveauCoupe,forceCoupe,forceEuro,nomCoupe,resoudreCoupe,euroManche,simuleMatch,enCompet,clubById,clubAmateur,amaById,forceClub,COUPE_POUCET_BONUS,tirsAuBut,affluenceCoupe,usureProlong,onze,CLUBS,CLUBS_D2,CLUBS_AMATEURS,COUPE_TOURS,EURO_TOURS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -490,6 +490,109 @@ try {
     fail("une sauvegarde sans effectifs ne se rattrape pas : clubAmateur devrait en rebâtir un");
   else ok("une sauvegarde d'avant le chantier se rattrape toute seule (effectif rebâti à la volée)");
 } catch (e) { fail("exception dans les effectifs de village : " + e.stack); }
+
+/* ============================================================================
+   J) CE QUE LE MOTEUR A APPRIS POUR LES SOIRS DE SEMAINE
+   Terrain neutre, affluence de coupe, prolongations, tirs au but. Tout cela doit rester INERTE en
+   championnat : le samedi, `simuleMatch` appelé sans options se comporte exactement comme avant.
+   ============================================================================ */
+console.log("\nJ) Terrain neutre, prolongations, tirs au but");
+try {
+  api.nouvellePartie(api.CLUBS[2].id);
+  const G = api.getG();
+  const A = G.clubs[3], B = G.clubs[4];
+  const village = api.clubAmateur(G.coupe.vivants.filter(api.estAmateur)[0]); // sert aux t.a.b. ET à l'affluence
+  const lot = (h, v, opts, n) => {
+    let buts = 0, butsH = 0, prolongs = 0, tabs = 0, nuls = 0;
+    for (let i = 0; i < n; i++) {
+      const r = api.simuleMatch(h, v, false, opts);
+      buts += r.sh + r.sa; butsH += r.sh;
+      if (r.prolong) prolongs++;
+      if (r.tab) tabs++;
+      if (r.sh === r.sa && !r.tab) nuls++;
+    }
+    return { buts: buts / n, partH: butsH / buts, prolongs, tabs, nuls };
+  };
+
+  /* 1) le samedi, rien n'a changé : pas de prolongation, pas de séance, et l'avantage du terrain est là */
+  const samedi = lot(A, B, undefined, 3000);
+  if (samedi.prolongs || samedi.tabs) fail("un match de championnat est parti en prolongation ou aux tirs au but");
+  else ok("le championnat ignore tout des prolongations (" + samedi.nuls + " nuls sur 3000, laissés nuls)");
+
+  /* 2) TERRAIN NEUTRE : jouer A chez lui ou chez B ne doit plus rien changer pour A.
+        Test sans hypothèse : on compare A recevant et A se déplaçant, sur terrain neutre. */
+  const neutreChezA = lot(A, B, { neutre: true }, 4000);
+  const neutreChezB = lot(B, A, { neutre: true }, 4000);
+  const partAChezLui = neutreChezA.partH, partAEnDepl = 1 - neutreChezB.partH;
+  const dissym = Math.abs(partAChezLui - partAEnDepl);
+  if (dissym > 0.035) fail("terrain neutre : A prend " + pct(partAChezLui) + " des buts chez lui contre " + pct(partAEnDepl) + " chez B — le terrain compte encore");
+  else ok("terrain neutre : A pèse pareil des deux côtés (" + pct(partAChezLui) + " contre " + pct(partAEnDepl) + ")");
+
+  const domChezA = lot(A, B, undefined, 4000).partH;
+  if (domChezA - partAChezLui < 0.02) fail("le terrain neutre ne se distingue pas d'un match à domicile (" + pct(domChezA) + " vs " + pct(partAChezLui) + ")");
+  else ok("l'avantage du terrain existe bien et disparaît en neutre (" + pct(domChezA) + " à domicile, " + pct(partAChezLui) + " en neutre)");
+
+  if (Math.abs(neutreChezA.buts - samedi.buts) > 0.10) fail("terrain neutre : " + neutreChezA.buts.toFixed(3) + " buts contre " + samedi.buts.toFixed(3) + " — le total a bougé, seule la répartition devait changer");
+  else ok("le total de buts ne bouge pas en neutre (" + neutreChezA.buts.toFixed(3) + " contre " + samedi.buts.toFixed(3) + ")");
+
+  /* 3) PROLONGATIONS : une affiche de coupe ne peut pas finir à égalité */
+  const coupe = lot(A, B, { prolong: true }, 3000);
+  if (coupe.nuls) fail(coupe.nuls + " affiche(s) de coupe se sont terminées sur un nul sans séance de tirs au but");
+  else ok("aucune affiche de coupe ne reste indécise (" + coupe.prolongs + " prolongations, " + coupe.tabs + " séances de tirs au but sur 3000)");
+  if (!coupe.prolongs) fail("aucune prolongation en 3000 affiches : la rallonge ne se déclenche jamais");
+  else if (!coupe.tabs) fail("aucune séance de tirs au but en 3000 affiches");
+  else ok(Math.round(100 * coupe.tabs / coupe.prolongs) + " % des prolongations vont jusqu'aux tirs au but, le reste se décide sur le terrain");
+  if (coupe.buts <= samedi.buts) fail("les prolongations n'ajoutent aucun but (" + coupe.buts.toFixed(3) + " contre " + samedi.buts.toFixed(3) + ")");
+  else ok("les prolongations ajoutent " + (coupe.buts - samedi.buts).toFixed(3) + " but par affiche, en moyenne");
+
+  /* 4) L'USURE : trente minutes de plus coûtent d'autant plus qu'on y arrive entamé */
+  const frais = api.onze(A).map(j => j.fraich);
+  api.onze(A).forEach(j => { j.fraich = 100; });
+  const plein = api.usureProlong(A);
+  api.onze(A).forEach(j => { j.fraich = 65; });
+  const cuit = api.usureProlong(A);
+  api.onze(A).forEach((j, k) => { j.fraich = frais[k]; });
+  if (Math.abs(plein - 1) > 0.001) fail("une équipe au plein régime devrait garder son rendement en prolongation (" + plein.toFixed(3) + ")");
+  else if (!(cuit < plein - 0.10)) fail("une équipe entamée ne paie pas la prolongation (" + cuit.toFixed(3) + " contre " + plein.toFixed(3) + ")");
+  else ok("l'usure de la prolongation mord : 1,000 au plein régime, " + cuit.toFixed(3) + " à 65 de fraîcheur");
+
+  /* 5) LA SÉANCE : elle désigne toujours un qualifié, et jamais sur un score nul */
+  let nulTab = 0, courtes = 0, victoiresA = 0;
+  for (let i = 0; i < 3000; i++) {
+    const t = api.tirsAuBut(A, B, false, null);
+    if (t.h === t.a) nulTab++;
+    if (t.h + t.a < 2) courtes++;
+    if (t.win === A.id) victoiresA++;
+  }
+  if (nulTab) fail(nulTab + " séance(s) de tirs au but se sont terminées à égalité");
+  else if (courtes > 30) fail(courtes + " séances bouclées en moins de deux frappes : la mécanique s'arrête trop tôt");
+  else ok("3000 séances, toujours un qualifié (" + pct(victoiresA / 3000) + " pour " + A.nom + ")");
+
+  /* LA SÉANCE DOIT RESTER UNE LOTERIE. C'est tout le sel de la coupe : si le niveau y pesait comme
+     dans le jeu, un village n'éliminerait jamais un cador et le Petit Poucet n'existerait plus. Un
+     premier réglage donnait 5 % au village contre le PSG — beaucoup trop sévère. Bornes larges à
+     dessein : on garde le grand favori, jamais assuré. */
+  if (village) {
+    const gros = G.clubs.slice().sort((x, y) => (api.forceClub(y) - api.forceClub(x)))[0];
+    let vil = 0;
+    for (let i = 0; i < 6000; i++) if (api.tirsAuBut(village, gros, false, null).win === village.id) vil++;
+    const part = vil / 6000;
+    if (part < 0.12) fail("aux tirs au but, " + village.nom + " ne sort " + gros.nom + " que " + pct(part) + " du temps : la séance n'est plus une loterie, la légende de la coupe meurt");
+    else if (part > 0.45) fail("aux tirs au but, " + village.nom + " sort " + gros.nom + " " + pct(part) + " du temps : le niveau ne pèse plus rien du tout");
+    else ok("la séance reste une loterie : " + village.nom + " sort " + gros.nom + " " + pct(part) + " du temps");
+  }
+
+  /* 6) L'AFFLUENCE D'UN SOIR DE COUPE : ce qui remplit, c'est qui descend */
+  if (!village) fail("pas de village sous la main pour mesurer l'affluence");
+  else {
+    const gros = G.clubs.slice().sort((x, y) => (y.pres || 0) - (x.pres || 0))[0];
+    const remplissageVillage = api.affluenceCoupe(village, gros) / village.cap;
+    const remplissageGros = api.affluenceCoupe(gros, village) / gros.cap;
+    if (remplissageVillage < 0.85) fail("le village n'affiche pas complet quand " + gros.nom + " descend (" + pct(remplissageVillage) + ")");
+    else if (remplissageGros > 0.65) fail("le grand stade se remplit trop pour recevoir des amateurs (" + pct(remplissageGros) + ")");
+    else ok("le village est plein pour recevoir " + gros.nom + " (" + pct(remplissageVillage) + "), le grand stade sonne creux pour l'inverse (" + pct(remplissageGros) + ")");
+  }
+} catch (e) { fail("exception dans les soirs de semaine : " + e.stack); }
 
 console.log("\n" + (FAILS ? "✗ " + FAILS + " ÉCHEC(S)" : "TOUT EST VERT"));
 process.exit(FAILS ? 1 : 0);

@@ -2928,18 +2928,97 @@ function agressif(c){
   for(let i=0;i<xi.length;i++){ t-=pond[i]; if(t<=0) return xi[i]; }
   return xi[xi.length-1];
 }
-function simuleMatch(home,away,verbeux){
+/* ============================================================================
+   CE QU'IL FAUT AU MOTEUR POUR TENIR UN SOIR DE SEMAINE (chantier « un seul moteur »)
+   `simuleMatch` ne connaissait que le samedi : un terrain qui a toujours un maître, un public que
+   l'on compte sur le classement du championnat, et quatre-vingt-dix minutes qui peuvent finir à
+   égalité. Une coupe demande les trois autres cas. Tout ce qui suit est INERTE en championnat.
+   ============================================================================ */
+/* L'AFFLUENCE D'UN SOIR DE COUPE. `affluence` lit la série de forme et le classement : deux choses
+   qu'un club de village ou la Juventus n'ont pas. Et le ressort est de toute façon différent — ce qui
+   remplit un stade un soir de coupe, c'est QUI DESCEND. Le village affiche complet quand un club de
+   l'élite vient jouer chez lui ; un grand stade reste aux trois quarts vide pour un tour contre des
+   amateurs. On retrouve la moyenne de l'ancien modèle (~75 % de remplissage), mais elle raconte
+   quelque chose au lieu d'être un tirage au sort. */
+function affluenceCoupe(home, away){
+  const chezSoi=home.pres||3, visiteur=away.pres||3;
+  const taux=0.70 + 0.05*(visiteur-chezSoi) + RND(-0.06,0.06); // l'écart de standing fait la soirée
+  return Math.round(home.cap*Math.max(0.45, Math.min(1, taux)));
+}
+/* CE QUE TRENTE MINUTES DE PLUS COÛTENT. La prolongation n'est pas un match au ralenti : c'est le
+   moment où un banc court se paie. `forces()` tient déjà compte de la fraîcheur d'avant le coup
+   d'envoi ; ceci ajoute l'usure PROPRE aux trente minutes supplémentaires, et elle frappe d'autant
+   plus fort que l'équipe arrivait déjà entamée. Une équipe au plein régime garde son rendement,
+   une équipe à 70 de fraîcheur perd près d'un cinquième de son attaque. C'est ce qui fait qu'un
+   effectif profond gagne les guerres de cent vingt minutes. */
+const PROLONG_EXP=0.6;
+function usureProlong(c){
+  const xi=enJeu(c,90); if(!xi.length) return 1;
+  const fr=xi.reduce((s,j)=>s+fraich(j),0)/xi.length;
+  return Math.pow(Math.max(0.30, fr/100), PROLONG_EXP);
+}
+/* LA SÉANCE DE TIRS AU BUT. L'ancien modèle tranchait d'un tirage au sort pondéré par le rapport de
+   force : personne ne tirait, personne ne manquait, et on ne savait jamais qui avait craqué. On tire
+   désormais pour de vrai — cinq chacun, puis la mort subite — et chaque frappe met aux prises un
+   tireur et un gardien. Le barème part des ~75 % de réussite d'une panenka d'époque, et s'écarte
+   selon la qualité des deux hommes : un attaquant de D1 face à un portier de village convertit
+   presque à coup sûr, l'inverse beaucoup moins. */
+/* LA QUALITÉ COMPTE PEU, ET C'EST VOULU. Un premier réglage faisait payer cher l'écart de niveau
+   (un centième de point de réussite par point de note) : un village n'éliminait le PSG aux tirs au but
+   que cinq fois sur cent, et deux clubs de D1 séparés de dix points s'écartaient déjà à 70-30. C'est
+   faux, et surtout c'est contraire à ce que la coupe raconte : une séance de tirs au but est une
+   loterie, et c'est EXACTEMENT pour ça que les petits y battent les grands. Le coefficient est donc
+   volontairement faible, et la fourchette resserrée : le meilleur reste favori, jamais assuré. */
+function probaPenalty(tir, gk){
+  const nt=(tir&&tir.note)||60, ng=(gk&&gk.note)||60;
+  return Math.max(0.60, Math.min(0.88, 0.75 + 0.002*(nt-70) - 0.002*(ng-70)));
+}
+function tirsAuBut(home, away, verbeux, ev){
+  const xi=c=>{ const l=enJeu(c,90); return l.length?l:onze(c); };
+  const ordre=c=>{ const l=xi(c).slice().sort((a,b)=>(b.note+("A".includes(b.pos)?6:"M".includes(b.pos)?3:0))-(a.note+("A".includes(a.pos)?6:"M".includes(a.pos)?3:0))); return l.length?l:[{nom:"un joueur",note:55}]; };
+  const tirH=ordre(home), tirA=ordre(away);
+  const gkH=xi(home).find(j=>j.pos==="G"), gkA=xi(away).find(j=>j.pos==="G");
+  let h=0, a=0, k=0;
+  const frappe=(cote)=>{ // rend true si c'est au fond
+    const dom=cote===home, liste=dom?tirH:tirA, gk=dom?gkA:gkH, t=liste[k%liste.length];
+    const dedans=Math.random()<probaPenalty(t,gk);
+    if(dedans){ if(dom) h++; else a++; }
+    if(verbeux&&ev) ev.push({m:120,t:dedans?"but":"occ",ic:dedans?"but":"arret",
+      x:(t.nom||"le tireur")+(dedans?" prend le gardien à contre-pied. AU FOND. ":" se fait repousser sa frappe ! ")+"("+tagAff(home)+" "+h+"-"+a+" t.a.b.)"});
+    return dedans;
+  };
+  for(k=0;k<5;k++){ frappe(home); frappe(away);
+    const resteH=4-k, resteA=4-k;                 // frappes qu'il reste à chacun après ce tour
+    if(h>a+resteA || a>h+resteH) break;           // la séance s'arrête dès qu'elle est pliée
+  }
+  /* MORT SUBITE — et il lui faut de la place. Une première version la bornait à la vingtième frappe,
+     ce qui ne laissait que quinze séries : avec des probabilités aussi resserrées, deux séances sur
+     trois mille en sortaient encore à égalité et le téléscripteur annonçait un qualifié sur un 5-5.
+     Cinquante séries de plus rendent le cas impossible en pratique (une chance sur mille milliards). */
+  for(let mort=0; h===a && mort<50; mort++){ k++; const ph=frappe(home), pa=frappe(away); if(ph!==pa) break; }
+  // et si l'impossible arrivait quand même, on ne laisse pas le hasard d'un `>` trancher en silence
+  const win = h>a ? home.id : (a>h ? away.id : (Math.random()<0.5 ? home.id : away.id));
+  return {h, a, win};
+}
+function simuleMatch(home,away,verbeux,opts){
+  const O=opts||{};                                  // {neutre, prolong} — absent = le samedi, tout est comme avant
   const fh=forces(home), fa=forces(away);
   // ferveur du public : un stade plein pousse l'équipe à domicile et gêne le visiteur ; un stade clairsemé pèse.
   // Centrée sur ~62 % de remplissage (la moyenne) → l'avantage du terrain moyen reste celui d'avant : calibrage préservé,
   // car ce que le domicile gagne en attaque, le visiteur le perd à peu près à l'identique (somme des buts ≈ constante).
-  const aff=affluence(home,away);
+  // le public : au championnat le classement et la forme, un soir de coupe le standing du visiteur,
+  // et sur terrain neutre une finale qui se joue à guichets fermés sans appartenir à personne
+  const aff=O.neutre ? Math.round(home.cap*RND(0.85,1)) : (enChampionnat()?affluence(home,away):affluenceCoupe(home,away));
   const fill=Math.min(1, aff/Math.max(1,home.cap));
-  let ferveur=1+0.18*(fill-0.62);
-  if(home.id===G.monClub && G.stade && G.stade.toit) ferveur+=0.025; // un stade couvert rugit : léger bonus d'ambiance à domicile (votre match seul → calibrage préservé)
+  let ferveur=O.neutre ? 1 : 1+0.18*(fill-0.62); // terrain neutre : deux camps dans les tribunes, personne n'est poussé
+  if(!O.neutre && home.id===G.monClub && G.stade && G.stade.toit) ferveur+=0.025; // un stade couvert rugit : léger bonus d'ambiance à domicile (votre match seul → calibrage préservé)
   const [zh,za]=lambdasZones(fh,fa); // les trois duels (v1.12) : milieu contre milieu, attaque contre défense
-  let lh=Math.max(.25, zh*1.18*ferveur);
-  let la=Math.max(.20, za*0.92*(2-ferveur));
+  // TERRAIN NEUTRE : l'avantage du terrain disparaît, mais pas les buts. On donne aux deux camps la
+  // moyenne géométrique de 1,18 et 0,92 (≈ 1,042) — le total attendu d'une rencontre ne bouge donc pas,
+  // seule sa répartition change. Une finale sur terrain neutre est un match sans maître, pas un match fermé.
+  const TN=Math.sqrt(1.18*0.92);
+  let lh=Math.max(.25, zh*(O.neutre?TN:1.18*ferveur));
+  let la=Math.max(.20, za*(O.neutre?TN:0.92*(2-ferveur)));
   // consigne d'avant-match : n'affecte QUE votre match (neutre partout ailleurs → calibrage intact)
   if(home.id===G.monClub||away.id===G.monClub){
     const C=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
@@ -2970,7 +3049,12 @@ function simuleMatch(home,away,verbeux){
     ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv});
     const fH=cleFormation(home), fA=cleFormation(away); // les deux dispositifs, annoncés au coup d'envoi (v1.12)
     ev.push({m:0,t:"sys",x:fH===fA?"Les deux équipes se présentent en "+fH+".":home.nom+" se présente en "+fH+", "+away.nom+" en "+fA+"."}); }
-  for(let m=1;m<=90;m++){ MIN_JEU=m; // l'horloge : qui est sur la pelouse à cette minute (enJeu)
+  /* L'HORLOGE VA DÉSORMAIS PLUS LOIN QUE 90 (chantier « un seul moteur »). `fin` est mobile : elle
+     vaut 90 le samedi et tant qu'un match de coupe est départagé, et passe à 120 quand la prolongation
+     s'impose. Tout le reste de la boucle est inchange — les cadences sont exprimées en /90, donc chaque
+     minute supplémentaire ajoute exactement ce qu'elle doit. */
+  let fin=90, prolong=false;
+  for(let m=1;m<=fin;m++){ MIN_JEU=m; // l'horloge : qui est sur la pelouse à cette minute (enJeu)
     const elh=lh*mulH, ela=la*mulA; // attaques effectives, révisées à la baisse pour l'équipe à dix
     const r=Math.random();
     if(r < elh/90){ // évènement côté domicile
@@ -3035,13 +3119,31 @@ function simuleMatch(home,away,verbeux){
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:pickNR(METEO_MATCH.amb,vusC)}); }
     if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
+    /* FIN DU TEMPS RÈGLEMENTAIRE : si la compétition exige un vainqueur et que rien ne les sépare,
+       on rallonge de deux fois quinze minutes. L'usure des trente minutes frappe alors chaque camp
+       selon l'état dans lequel il y arrive — c'est là que le banc se paie. */
+    if(m===90 && O.prolong && sh===sa && !prolong){
+      prolong=true; fin=120;
+      mulH*=usureProlong(home); mulA*=usureProlong(away);
+      if(verbeux){
+        ev.push({m:90,t:"sys",x:"Rien n'a pu les départager. PROLONGATIONS : deux fois quinze minutes."});
+        ev.push({m:90,t:"amb",x:pickNR(COMM.amb,vusC)});
+      }
+    }
+    if(verbeux&&prolong&&m===105) ev.push({m,t:"sys",x:"Fin de la première prolongation. "+home.id+" "+sh+" - "+sa+" "+away.id});
   }
   if(verbeux){
     // l'arbitre garde encore le temps pour lui en 1995 : pas de panneau lumineux, un geste et c'est tout
-    ev.push({m:90,t:"sys",x:"L'arbitre annonce "+PICK([1,2,2,3,3,4,5])+" minutes de temps additionnel."});
-    ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom});
+    ev.push({m:fin,t:"sys",x:"L'arbitre annonce "+PICK([1,2,2,3,3,4,5])+" minutes de temps additionnel."});
+    ev.push({m:fin,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom+(prolong?" après prolongations.":"")});
     annoteButs(ev); }
-  const R={sh,sa,ev,aff,faits:FAITS,gk:{h:gkH?gkH.uid:null,a:gkA?gkA.uid:null}}; memoireDe(R,vusC); return R; // la mémoire anti-répétition voyage avec le match (cf. memoireDe)
+  /* TOUJOURS ÉGAUX APRÈS CENT VINGT MINUTES : la séance de tirs au but. Elle ne touche pas au score du
+     match (un 1-1 reste un 1-1 dans les livres) ; elle désigne un qualifié, et rend le détail des
+     frappes a qui veut le raconter. */
+  let tab=null;
+  if(O.prolong && sh===sa) tab=tirsAuBut(home, away, verbeux, verbeux?ev:null);
+  if(verbeux && tab) ev.push({m:fin,t:"sys",x:"TIRS AU BUT : "+(tab.win===home.id?home.nom:away.nom)+" se qualifie ("+tab.h+"-"+tab.a+")."});
+  const R={sh,sa,ev,aff,prolong,tab,faits:FAITS,gk:{h:gkH?gkH.uid:null,a:gkA?gkA.uid:null}}; memoireDe(R,vusC); return R; // la mémoire anti-répétition voyage avec le match (cf. memoireDe)
 }
 /* Changement de tactique EN COURS de match : on re-simule uniquement les minutes restantes avec la nouvelle
    consigne (le harnais et le mode instantané n'y touchent pas — c'est purement le direct). lh/la sont recalculés

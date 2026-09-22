@@ -181,6 +181,27 @@ toujours « raconter quelque chose ».
      pesaient lourd) ; `reel:false` est posé en dur, sans passer par `j.reel=!j.histoire`. L'affichage
      (`clubAffiche`, `nomsAffiche`, `gardienAff`) est branché sur ces effectifs et garde un filet de noms de
      circonstance pour un club sans vestiaire. **Gardé par la section I de `harness-coupes.cjs`.**
+  5. **CE QUE LE MOTEUR A APPRIS POUR LES SOIRS DE SEMAINE.** `simuleMatch` prend un 4ᵉ argument `opts`
+     — `{neutre, prolong}` — **inerte quand il est absent** : le samedi, tout se comporte exactement comme
+     avant (vérifié, le calibrage du championnat ne bouge pas). Trois ajouts. **(a) Terrain neutre** pour
+     la finale européenne : `ferveur` figée à 1 et l'avantage du terrain remplacé, des deux côtés, par la
+     moyenne géométrique de 1,18 et 0,92 (≈ 1,042) — le total de buts attendu ne bouge donc pas, seule la
+     répartition change. Une finale est un match sans maître, pas un match fermé. **(b) `affluenceCoupe`**,
+     parce que `affluence` lit la série de forme et le classement, que n'ont ni un village ni la Juventus :
+     ce qui remplit un stade un soir de coupe, c'est QUI DESCEND (le village affiche complet quand l'élite
+     vient chez lui, un grand stade sonne creux pour recevoir des amateurs), et l'on retrouve la moyenne de
+     ~75 % de remplissage de l'ancien modèle. **(c) Les prolongations** : l'horloge de `simuleMatch` a une
+     borne MOBILE (`fin`, 90 → 120) — les cadences étant exprimées en /90, chaque minute ajoutée compte
+     juste. `usureProlong` applique alors l'usure propre aux trente minutes, d'autant plus forte qu'on y
+     arrive entamé (1,00 au plein régime, 0,88 à 65 de fraîcheur) : **c'est là qu'un banc court se paie**.
+     Puis `tirsAuBut` tire la séance pour de vrai, cinq frappes chacun et mort subite, chaque tir opposant
+     un tireur à un gardien. **PIÈGE DE CALIBRAGE, corrigé** : un premier barème faisait peser la qualité
+     à un centième de point de réussite par point de note — un village n'éliminait le PSG aux tirs au but
+     que 5 % du temps, deux clubs de D1 séparés de dix points s'écartaient déjà à 70-30. C'est faux, et
+     surtout contraire à ce que la coupe raconte : **une séance est une loterie, et c'est exactement pour
+     ça que les petits y battent les grands**. Coefficient ramené à 0,002 et fourchette resserrée à
+     [0,60 ; 0,88] → le village sort le PSG 22 % du temps, Rennes 39 %. Second piège : la mort subite
+     bornée trop court laissait deux séances sur trois mille finir à égalité. **Gardé par la section J.**
 - **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
   `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** (référence de curation :
   **Transfermarkt**, page effectif par club et saison — `…/kader/verein/<id>/saison_id/1995`) — viser ~97% de vrais
