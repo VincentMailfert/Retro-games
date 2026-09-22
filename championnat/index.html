@@ -2051,7 +2051,7 @@ function recupJoueur(j, c){
   if(c && c.id===G.monClub) soin=Math.min(0.70, 0.10*((G.centre||1)-1) + 0.10*coachTier("physique"));
   return k + (1-k)*soin + 0.08*soin;
 }
-function reposHebdo(c){ for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)); }
+function reposHebdo(c){ if(!c||!c.joueurs) return; for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)); } // ceinture : on balaie aussi la D2 et l'Europe, et une vieille sauvegarde peut y porter un club sans effectif
 function useFraich(j, cout){ j.fraich=Math.max(0, fraich(j)-cout); }
 /* CE QUE LA FATIGUE COÛTE — quatre paliers, barème posé par l'auteur (v1.01) :
      · au-dessus de 90  : RIEN. Un joueur qui a récupéré est à son plein régime, point.
@@ -3761,11 +3761,19 @@ function finirJournee(delta){
   ventesEnCours();
   veilleEffectif(); // après les départs de la semaine : on repasse tous les effectifs au contrôle réglementaire
   avanceChantier();
-  // blessures et suspensions : une journée de purgée — et la semaine de repos qui sépare deux journées,
-  // pour les VINGT clubs de la division (l'infirmerie récupère aussi : un blessé se repose, par définition)
-  for(const c of G.clubs){
+  // blessures et suspensions : une journée de purgée — et la semaine de repos qui sépare deux journées
+  // (l'infirmerie récupère aussi : un blessé se repose, par définition).
+  /* POUR TOUT LE MONDE, ET PLUS SEULEMENT VOTRE DIVISION (chantier « un seul moteur »). La boucle ne
+     passait que sur `G.clubs` : les clubs de D2 (`G.autre`) et les clubs européens (`G.europe`) ne
+     guérissaient JAMAIS. Sans conséquence tant que rien ne les blessait — ils ne jouent pas le
+     championnat, et l'ancien modèle de coupe ne distribuait ni carton ni pépin — sauf pour le joueur
+     blessé qu'on vendait en D2 et qui y restait éclopé jusqu'à la fin des temps. Mais le jour où les
+     coupes passeront par `simuleMatch`, la Juventus et les clubs de D2 accumuleront blessés et
+     suspendus à vie : `onze()` finirait par aligner des dépanneurs hors poste et leur force
+     s'effondrerait toute seule au fil de la saison. On soigne donc les trois viviers. */
+  for(const c of G.clubs.concat(G.autre||[], G.europe||[])){
     reposHebdo(c);
-    for(const j of c.joueurs){
+    for(const j of (c.joueurs||[])){
       if(j.bless>0) j.bless--; if(j.susp>0) j.susp--;
     }
   }

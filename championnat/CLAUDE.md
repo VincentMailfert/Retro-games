@@ -148,9 +148,16 @@ toujours « raconter quelque chose ».
      recevront un effectif de seize joueurs généré au tirage du tableau et gardé jusqu'à l'intersaison ; et le
      nouveau moteur doit ADOUCIR le parcours en coupe (viser 15-20 % de sortie aux 32es contre 35 % au modèle
      actuel), parce que la profondeur d'effectif doit enfin peser. Reste à faire : les effectifs amateurs, le
-     terrain neutre, l'affluence de coupe, les prolongations, la récupération hebdomadaire de `G.autre` et
-     `G.europe` (aujourd'hui personne ne soigne leurs blessés — sans conséquence tant que les coupes ne
-     blessent pas, mortel dès qu'elles le feront), puis la bascule elle-même, l'Europe d'abord.
+     terrain neutre, l'affluence de coupe, les prolongations, puis la bascule elle-même, l'Europe d'abord.
+  3. **La récupération hebdomadaire soigne les TROIS viviers.** La boucle de fin de journée ne passait que
+     sur `G.clubs` : un joueur de D2 (`G.autre`) ou d'un club européen (`G.europe`) blessé ne guérissait
+     jamais, et sa fraîcheur ne remontait jamais. C'était sans conséquence visible — ils ne jouent pas le
+     championnat, et l'ancien modèle de coupe ne distribuait ni carton ni pépin — à une exception près, le
+     joueur blessé vendu en D2 qui y restait éclopé pour toujours. Mais dès que les coupes passeront par
+     `simuleMatch`, ces effectifs accumuleraient blessés et suspendus à vie, `onze()` finirait par aligner
+     des dépanneurs hors poste et leur force s'effondrerait toute seule au fil de la saison. `reposHebdo`
+     porte en plus une ceinture (club sans effectif dans une vieille sauvegarde). **Gardé par la section H
+     de `harness-coupes.cjs`**, vérifiée rouge sur le code d'avant le correctif.
 - **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
   `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** (référence de curation :
   **Transfermarkt**, page effectif par club et saison — `…/kader/verein/<id>/saison_id/1995`) — viser ~97% de vrais

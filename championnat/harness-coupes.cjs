@@ -348,5 +348,40 @@ try {
   else ok("le maillot est rendu même si le match lève une exception");
 } catch (e) { fail("exception dans le contexte de compétition : " + e.stack); }
 
+/* ============================================================================
+   H) ON SOIGNE AUSSI LES AUTRES — la D2 et l'Europe guérissent, elles aussi.
+   La récupération hebdomadaire ne balayait que `G.clubs`, votre division : un joueur de D2 ou de la
+   Juventus blessé restait éclopé jusqu'à la fin des temps. Sans conséquence tant que rien ne les
+   blessait, mortel le jour où les coupes passeront par `simuleMatch` — leurs effectifs se videraient
+   saison après saison et `onze()` finirait par aligner des dépanneurs hors poste.
+   ============================================================================ */
+console.log("\nH) La D2 et l'Europe guérissent aussi");
+try {
+  api.nouvellePartie(api.CLUBS[6].id);
+  const G = api.getG();
+  const cobayes = [];
+  const pose = (vivier, nom) => {
+    const c = (G[vivier] || [])[0];
+    if (!c || !c.joueurs || !c.joueurs.length) { fail("vivier " + nom + " introuvable ou sans effectif"); return; }
+    const j = c.joueurs[0];
+    j.bless = 3; j.susp = 2; j.fraich = 40;
+    cobayes.push({ uid: j.uid, nom: nom, club: c.nom });
+  };
+  pose("autre", "D2");
+  pose("europe", "Europe");
+
+  for (let d = 0; d < 4; d++) api.jouerJournee();
+
+  const partout = [].concat(G.clubs || [], G.autre || [], G.europe || []).flatMap(c => c.joueurs || []);
+  for (const co of cobayes) {
+    const j = partout.find(x => x.uid === co.uid);
+    if (!j) { fail(co.nom + " : le cobaye a disparu des viviers"); continue; }
+    if (j.bless > 0) fail(co.nom + " (" + co.club + ") : blessure toujours à " + j.bless + " après 4 journées — personne ne le soigne");
+    else if (j.susp > 0) fail(co.nom + " (" + co.club + ") : suspension toujours à " + j.susp + " après 4 journées — elle ne se purge pas");
+    else if (!(j.fraich > 40)) fail(co.nom + " (" + co.club + ") : fraîcheur toujours à " + Math.round(j.fraich) + " — aucun repos hebdomadaire");
+    else ok(co.nom + " (" + co.club + ") : guéri, suspension purgée, fraîcheur remontée à " + Math.round(j.fraich));
+  }
+} catch (e) { fail("exception dans la récupération des autres viviers : " + e.stack); }
+
 console.log("\n" + (FAILS ? "✗ " + FAILS + " ÉCHEC(S)" : "TOUT EST VERT"));
 process.exit(FAILS ? 1 : 0);
