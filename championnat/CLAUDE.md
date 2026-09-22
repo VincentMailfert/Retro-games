@@ -1493,12 +1493,14 @@ toujours « raconter quelque chose ».
 - Tag git aux jalons (`v1.0`…).
 - Résumer les changements à l'auteur en français, style article de presse, à la fin.
 - **Une saison par jour (chantier automatisé, depuis le 22/09/2026)** : une routine cloud quotidienne
-  (4h du matin) ajoute une saison de départ par jour et **ouvre une PR** — elle ne pousse jamais sur `main`.
-  Sa file d'attente, ses règles et son journal vivent dans **`chantier-saisons.md`** : quinze saisons
-  françaises (1990-91 → 1994-95, puis 2000-01 → 2009-10), puis l'Angleterre, l'Italie et l'Espagne de
-  1990-91 à 2009-10, chacune précédée d'un lot « structure » (le jeu ne connaît qu'un pays aujourd'hui).
-  **Tant qu'une PR `saison/*` est ouverte, la routine ne démarre rien** : le rythme du chantier est celui
-  des relectures. Si l'on ajoute une saison à la main, cocher sa ligne dans ce fichier.
+  (4h du matin) ajoute une saison de départ par jour et la **livre directement sur `main`** — donc en ligne
+  chez les testeurs, sans relecture préalable (choix de l'auteur, 22/09/2026 ; la première saison, 1990-91,
+  était passée par une PR avant ce basculement). Sa file d'attente, ses règles et son journal vivent dans
+  **`chantier-saisons.md`** : quinze saisons françaises (1990-91 → 1994-95, puis 2000-01 → 2009-10), puis
+  l'Angleterre, l'Italie et l'Espagne de 1990-91 à 2009-10, chacune précédée d'un lot « structure » (le jeu
+  ne connaît qu'un pays aujourd'hui). **En livraison directe, les harnais sont la seule chose qui sépare une
+  erreur des joueurs** : un harnais rouge arrête la livraison du jour, il ne se contourne pas. Si l'on
+  ajoute une saison à la main, cocher sa ligne dans ce fichier.
 
 ## Pièges connus (déjà corrigés, ne pas réintroduire)
 - **UN DÉPANNEUR JOUE DANS LA LIGNE QU'IL BOUCHE (v1.12)** — trouvé par `harness-formations.cjs` avant livraison.

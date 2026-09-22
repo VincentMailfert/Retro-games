@@ -1,35 +1,35 @@
 # Chantier — une saison par jour
 
-Une routine cloud (« MULTIPLEX 95 — une saison par jour », tous les jours à 4h du matin) ouvre chaque
-matin **une** pull request qui ajoute **une seule** saison de départ au jeu. Ce fichier est sa mémoire :
-la file d'attente, les règles du métier, et le journal de ce qui s'est passé. L'agent le lit avant tout
-le reste, il le coche à la fin, et il ne travaille jamais deux saisons dans la même journée.
+Une routine cloud (« MULTIPLEX 95 — une saison par jour », tous les jours à 4h du matin) ajoute **une
+seule** saison de départ au jeu et la **livre sur le champ**. Ce fichier est sa mémoire : la file
+d'attente, les règles du métier, et le journal de ce qui s'est passé. L'agent le lit avant tout le reste,
+il le coche à la fin, et il ne travaille jamais deux saisons dans la même journée.
 
-L'auteur relit et fusionne la PR quand il veut. **Tant qu'une PR de saison est ouverte, la routine ne
-commence rien** — sinon elle repartirait d'un `main` qui ignore le travail de la veille et referait la
-même saison. Le rythme réel du chantier est donc celui des relectures, pas celui du calendrier.
+**Livraison directe, décidée par l'auteur le 22/09/2026** : la saison part sur `main`, donc en ligne chez
+les testeurs, sans relecture préalable. Le chantier avance tout seul, une saison par jour, sans rien
+attendre de personne. **Conséquence à prendre au sérieux : les harnais sont désormais la seule chose qui
+sépare une erreur des joueurs.** Un harnais rouge n'est plus un contretemps, c'est un incident — on ne
+livre pas, on écrit le blocage au journal, et on laisse la saison à demain.
 
 ---
 
 ## La journée type
 
-1. **Regarder s'il reste une PR ouverte** : `gh pr list --state open --json number,headRefName,title`.
-   Si une branche commence par `saison/`, **s'arrêter là** et le dire : « la PR #N attend d'être relue ».
-   Ne rien committer, ne rien pousser.
-2. **Prendre la première ligne non cochée** de la file d'attente ci-dessous. C'est le travail du jour,
-   et le seul.
-3. **Faire le travail** en suivant la méthode (ci-dessous, et surtout la section « Saison de départ au
+1. **Partir du dépôt à jour** (`git pull --rebase` sur `main`) et **prendre la première ligne non cochée**
+   de la file d'attente ci-dessous. C'est le travail du jour, et le seul.
+2. **Faire le travail** en suivant la méthode (ci-dessous, et surtout la section « Saison de départ au
    choix » de `CLAUDE.md`, qui est la vraie documentation).
-4. **Valider**, sans exception : extraction du JS + `node --check`, le nouveau harnais de la saison,
-   `harness.cjs` et `harness9900.cjs` en non-régression. Tout doit finir « TOUT EST VERT ».
-5. **Cocher la ligne** dans ce fichier, ajouter une ligne au journal en bas, écrire le paragraphe de la
+3. **Valider**, sans exception : extraction du JS + `node --check`, le nouveau harnais de la saison, puis
+   **tous les autres harnais du dossier** en non-régression. Tout doit finir « TOUT EST VERT ».
+4. **Cocher la ligne** dans ce fichier, ajouter une ligne au journal en bas, écrire le paragraphe de la
    saison dans `CLAUDE.md`, **incrémenter `VERSION`** dans `index.html`.
-6. **Ouvrir la PR** : branche `saison/<clé>` (ex. `saison/1990-91`), message de commit en français dans
-   le style des livraisons précédentes (`git log` pour le ton), puis `gh pr create`. Si `gh` n'est pas
-   disponible, pousser la branche et le dire clairement dans le compte rendu.
-7. **Si ça bloque** (source injoignable, effectifs trop pauvres, structure à inventer) : ne rien inventer,
-   ne pas livrer une saison à moitié fausse. Ouvrir quand même la PR **avec la seule mise à jour du
-   journal** ci-dessous, en expliquant le blocage, et laisser la ligne non cochée.
+5. **Livrer** : commit sur `main`, message en français dans le style des livraisons précédentes
+   (`git log` pour le ton), puis `git push`. Si le push est refusé parce que quelqu'un a poussé entre
+   temps, `git pull --rebase`, relancer les harnais, et repousser.
+6. **Si ça bloque** (source injoignable, effectifs trop pauvres, harnais rouge, structure à inventer) :
+   ne rien inventer, ne pas livrer une saison à moitié fausse. **Committer et pousser la seule mise à jour
+   du journal** ci-dessous, en expliquant le blocage, et laisser la ligne non cochée. C'est la trace que
+   l'auteur lira au réveil.
 
 ---
 
@@ -45,7 +45,8 @@ même saison. Le rythme réel du chantier est donc celui des relectures, pas cel
   en priorité les clubs que la source documente le plus mal (le cas Toulon 98/99 fait jurisprudence).
 - **Vérifier, ne jamais supposer** — les couleurs d'un club, le format d'un championnat, le vainqueur d'une
   coupe. Créteil a d'abord été fait en bleu et blanc, à tort.
-- **La validation d'abord, la livraison ensuite.** Une PR avec un harnais rouge ne part pas.
+- **La validation d'abord, la livraison ensuite.** Rien ne part avec un harnais rouge — et en livraison
+  directe, « rien ne part » veut dire qu'on s'arrête pour de bon ce jour-là, pas qu'on contourne.
 - **Un seul endroit pour la version**, la constante `VERSION` en tête de script.
 - **Tout en français**, code et commentaires compris.
 
