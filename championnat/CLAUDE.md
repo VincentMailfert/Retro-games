@@ -207,8 +207,56 @@ toujours « raconter quelque chose ».
   elles, sont correctement gardées dans le patronyme. Un joueur listé dans deux clubs (26 cas) est rangé **là où il a le
   plus joué** (arbitrage plus sûr que « club du coup d'envoi », la colonne « Membre depuis » de TM étant inutilisable).
   Validation dédiée : **`harness9899.cjs`**.
-  Pour ajouter 99/00 : même méthode avec `saison_id/1999`, entrée `"1999-00"` dans `SAISONS`, harnais calqué sur
-  `harness9899.cjs`.
+  **1999-00 (v1.15)** : `STARS_9900`/`STARS_D2_9900`, `D1_9900`/`D2_9900`, `an:1999` (**l'Euro 2000 tombe dès la
+  1re intersaison** — c'est la première saison où le grand tournoi arrive immédiatement). **La vraie D1 99/00 n'avait
+  que 18 clubs et la D2 exactement 20**, même configuration qu'en 98/99, d'où le même **double repêchage dans les deux
+  sens** : **Lorient (35 pts) et Sochaux (33)**, meilleurs relégués de D1 98/99, montent en D1 (Toulouse, 29 pts et
+  18e, reste en D2) ; la D2 retombant à 18, **Red Star (39 pts) et Beauvais (38)**, les deux relégués de D2 98/99,
+  y sont repêchés — tous deux jouaient le National en 99/00 mais Transfermarkt les documente largement (39 et 20
+  joueurs), contrairement au cas Toulon de 98/99. Un seul club neuf dans `CLUBS_EXTRA` : **Créteil** (`CRE`,
+  Dominique-Duvauchelle, **bleu et jaune**), avec blason et malédiction. **Vérifier les couleurs, ne pas les supposer** :
+  Créteil avait d'abord été fait en bleu et blanc, à tort (la fiche Wikipédia du club donne les couleurs réelles).
+  Au passage, les **cinq clubs qui tombaient encore sur l'écu gris générique** ont reçu leur blason, couleurs vérifiées
+  elles aussi : Troyes (bleu et blanc), Amiens (blanc), Valence (rouge et blanc), Louhans-Cuiseaux (jaune et noir),
+  Beauvais (rouge et blanc). Il ne reste sans blason que Mulhouse, Toulon, Épinal et Briochin, qui n'apparaissent
+  qu'en 96/97 et 97/98. Sièges européens réels : **Bordeaux (champion),
+  l'OM et Lyon en C1** (Lyon par le tour préliminaire), **Nantes en C2** (vainqueur de la Coupe 99, dernière édition
+  de la C2), Monaco/Lens **plus Montpellier, vainqueur de l'Intertoto 99**, en C3.
+  **Méthode de relevé — le proxy n'est plus nécessaire** : depuis cette machine, `curl` avec un simple User-Agent
+  navigateur passe chez Transfermarkt (HTTP 200). Les 80 pages (40 clubs × 2) sont donc aspirées en local puis parsées
+  hors ligne, ce qui remplace Firecrawl/WebFetch et ne coûte plus rien en contexte. **Attention, l'encodage varie d'une
+  réponse à l'autre** (UTF-8 ou cp1252) : décoder en UTF-8 strict et retomber sur cp1252 en cas d'échec.
+  **Découverte qui règle le piège des noms** : la page « temps de jeu » fournit une colonne **nom court** déjà au
+  format « X. Patronyme », et TM y délimite correctement le patronyme (« Bjørn Tore Kvarme » → « B. Kvarme »,
+  « John Arne Riise » → « J. Riise »). Le piège documenté en 98/99 disparaît donc — **mais TM réduit un prénom composé
+  à une seule initiale** (« Jay-Jay » → « J. ») là où le jeu écrit « J.-J. Okocha ». D'où la règle : **prendre le
+  patronyme chez TM, mais recomposer les initiales depuis le nom complet**. Sans cela, 40 joueurs déjà curés
+  échappaient à l'appariement et recevaient une note recalculée (Okocha retombait de 84 à 75).
+  **Notes** : 595 des 760 noms étaient déjà curés en 98/99 (ou 97/98) et repartent de leur note **vieillie** (+2
+  jusqu'à 21 ans, +1 jusqu'à 24, −1 de 30 à 32, −2 au-delà ; plafond 88) ; les 165 neufs reçoivent une **note de base
+  calculée** (médiane D1 70 / D2 67, modulée par le rang réel du club en 99/00 et par le rang de temps de jeu dans
+  l'effectif), puis une **table d'ajustements à la main** de 14 entrées pour ce qui se reconnaît (Sonny Anderson 84 —
+  meilleur buteur de D1 avec 23 buts —, Gallardo 79, Trezeguet 82, Márquez 75/88…). **Garde-fou qui a payé** :
+  l'appariement n'est accepté que si l'âge concorde (âge 98/99 + 1). Il a isolé exactement les deux homonymes que
+  CLAUDE.md signalait déjà — « S. N'Diaye » et « B. Clément » — au lieu de leur coller la note d'un autre.
+  **Doublons** : dédoublonner **par identifiant Transfermarkt**, pas par nom — 9 transferts d'hiver (Dugarry, Pouget,
+  Legwinski, Caveglia…) apparaissent dans deux clubs et vont à celui où ils ont le plus joué. Restent alors trois vrais
+  **« S. N'Diaye »** (Samba/Amiens, Seyni/Caen, Sylvain/Toulouse) : le plus utilisé garde l'initiale, les deux autres
+  prennent leur prénom complet (consigne auteur sur les homonymes).
+  **Le tri par minutes écarte toujours les pépites** : forçage de **Mexès, D. Cissé, Pedretti, Tacalfred, Itandje et
+  Péricard**.
+  **LE PLAFOND D'ÂGE EST LEVÉ À PARTIR DE 99/00 (décision auteur)** : les saisons 96/97 → 98/99 écartaient les 36 ans
+  et plus, ce qui coûtait ici quatre vrais titulaires — **Kastendeuch** (36 ans, 4026 minutes, le joueur le PLUS utilisé
+  de tout le championnat), **Lama** (36 ans, 40 matchs, gardien n°1 du PSG), **Cascarino** (37 ans, 15 buts, 7e buteur
+  de D1) et **Bravo** (36 ans, Nice). Ils sont désormais gardés : aucun mécanisme nouveau n'est nécessaire, puisque
+  `vieillirClub()` incrémente l'âge AVANT de tester `age>=36` — un homme de 36 ans au coup d'envoi joue donc sa saison
+  réelle puis raccroche à la 1re intersaison, exactement comme l'histoire. Seul Flucklinger (36 ans, 0 minute) reste
+  dehors, écarté par le tri aux minutes et non par l'âge. Le harnais borne les âges à 38 et vérifie nommément la
+  présence des quatre vétérans. À reconduire pour 00/01.
+  Deux effectifs sont incomplets à la source et `genJoueur` complète : Lorient n'a que 4 défenseurs répertoriés chez
+  TM, Caen qu'un seul gardien. Validation dédiée : **`harness9900.cjs`**.
+  Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
+  `harness9900.cjs`.
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
@@ -1331,7 +1379,8 @@ toujours « raconter quelque chose ».
 5. Harnais spécialisés à repasser quand on touche à leur domaine (tous doivent finir « TOUT EST VERT ») :
    `harness9697.cjs` (saison de départ 96/97), `harness9798.cjs` (saison de départ 97/98 : repêchés, Nice en C2,
    réconciliation France ↔ Europe), `harness9899.cjs` (saison de départ 98/99 : double repêchage, clubs neufs
-   Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness-euro.cjs` (les trois coupes d'Europe),
+   Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness9900.cjs` (saison de départ 99/00 : double repêchage,
+   Créteil, Euro 2000 dès la 1re intersaison, homonymes et prénoms composés), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
    rappel d'un prêt avant terme),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
