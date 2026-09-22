@@ -256,7 +256,8 @@ toujours « raconter quelque chose ».
   Deux effectifs sont incomplets à la source et `genJoueur` complète : Lorient n'a que 4 défenseurs répertoriés chez
   TM, Caen qu'un seul gardien. Validation dédiée : **`harness9900.cjs`**.
   Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
-  `harness9900.cjs`.
+  `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
+  ajoute une par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
@@ -1430,6 +1431,13 @@ toujours « raconter quelque chose ».
   commit git avec un message clair en français → push (GitHub Pages déploie tout seul).
 - Tag git aux jalons (`v1.0`…).
 - Résumer les changements à l'auteur en français, style article de presse, à la fin.
+- **Une saison par jour (chantier automatisé, depuis le 22/09/2026)** : une routine cloud quotidienne
+  (4h du matin) ajoute une saison de départ par jour et **ouvre une PR** — elle ne pousse jamais sur `main`.
+  Sa file d'attente, ses règles et son journal vivent dans **`chantier-saisons.md`** : quinze saisons
+  françaises (1990-91 → 1994-95, puis 2000-01 → 2009-10), puis l'Angleterre, l'Italie et l'Espagne de
+  1990-91 à 2009-10, chacune précédée d'un lot « structure » (le jeu ne connaît qu'un pays aujourd'hui).
+  **Tant qu'une PR `saison/*` est ouverte, la routine ne démarre rien** : le rythme du chantier est celui
+  des relectures. Si l'on ajoute une saison à la main, cocher sa ligne dans ce fichier.
 
 ## Pièges connus (déjà corrigés, ne pas réintroduire)
 - **UN DÉPANNEUR JOUE DANS LA LIGNE QU'IL BOUCHE (v1.12)** — trouvé par `harness-formations.cjs` avant livraison.
