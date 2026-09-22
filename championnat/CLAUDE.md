@@ -25,6 +25,15 @@ toujours « raconter quelque chose ».
 - Réponses à l'auteur : **prose fluide, style article de presse**, pas de listes à puces techniques,
   pas de jargon inutile. L'auteur n'est pas développeur professionnel.
 - Le ton du jeu est léger, drôle, parfois sulfureux mais bon enfant. Jamais de registre tragique.
+- **FINIR PAR DES QUESTIONS À CHOIX MULTIPLES DÈS QU'IL RESTE UNE DÉCISION À PRENDRE (consigne auteur,
+  22/09/2026)** : « pose-moi des questions plus claires, à choix multiples ». Une livraison laisse presque
+  toujours des arbitrages ouverts — où livrer, quoi faire ensuite, quel comportement retenir. Ne pas les
+  noyer dans un paragraphe d'hypothèses en fin de réponse : les poser **fermées**, deux à quatre questions,
+  deux à quatre options chacune, chaque option disant ce qu'elle IMPLIQUE (ce qui part en ligne, ce que ça
+  coûte, ce qu'on perd), et recommander la meilleure en la mettant en premier. L'auteur répond d'un clic, et
+  la session enchaîne. **Le corollaire compte autant** : quand rien n'est réellement ouvert — la décision
+  est évidente, ou elle a déjà été prise — on ne fabrique pas de questions pour la forme, on livre et on le
+  dit. Et une question ne se pose que si la réponse change ce qu'on ferait ensuite.
 - **ON N'EXPLIQUE PAS LE JEU, ON LE FAIT DÉCOUVRIR (consigne auteur, 22/09/2026)** : « un peu trop de texte
   explicatif dans le jeu. Il faut laisser les gens découvrir par eux-mêmes. Ça fait partie du délire de
   comprendre comment fonctionne le jeu, d'en découvrir les ficelles. » Un grand ménage a donc retiré en v1.17
