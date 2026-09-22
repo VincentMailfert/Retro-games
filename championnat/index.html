@@ -338,7 +338,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.18"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.19"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2748,7 +2748,9 @@ const SUBS_URGENCE=[ // {C} le club, {S} le joueur de champ sacrifié, {E} le ga
 function ligneChangement(c, s, k){
   const ent=s.banc[k], sor=s.sort[k], u=s.urgence&&s.urgence[ent.uid];
   const l={m:s.min[k], t:"occ", ic:"sub", cote:c.id, uid:ent.uid, out:sor.uid};
-  if(u){ l.urg=u.cause; // le gardien appelé par un rouge n'entre pas comme le remplaçant d'un blessé (v1.18)
+  // le gardien appelé par un rouge n'entre pas comme le remplaçant d'un blessé (v1.18) ; un changement que
+  // VOUS décidez (cause "banc", v1.19) s'annonce comme n'importe quel autre — c'est un choix, pas un drame
+  if(u && u.cause!=="banc"){ l.urg=u.cause;
     l.x=PICK(u.cause==="blessure"?SUBS_BLESSURE:SUBS_URGENCE).replace("{C}",c.nom).replace("{S}",sor.nom).replace("{E}",ent.nom); }
   else l.x="Changement pour "+c.nom+" : "+ent.nom+" entre à la place de "+sor.nom+".";
   return l;
@@ -3265,14 +3267,17 @@ function remplaceBlesse(c, m, j){
   poseRemplacement(p, entrant, j, m, "blessure", jetonBlessure(j));
   return {entre:entrant, sort:j};
 }
-/* Qui peut encore entrer : tous ceux qui ne sont pas sur la pelouse à la minute m — y compris l'homme
+/* QUI PEUT ENCORE ENTRER à la minute m : tous ceux qui ne sont pas déjà sur la pelouse — y compris l'homme
    qu'on comptait faire entrer plus tard, qu'on avance alors (avanceLeBanc) ; c'est bien ce que fait un
-   entraîneur quand son défenseur tombe à la 28e. Le poste du blessé d'abord, le plus en jambes de chacun
-   ensuite. Jamais le gardien remplaçant : il garde la cage pour le jour où elle se vide. */
-function bancBlessure(c, p, j, m){
+   entraîneur quand son défenseur tombe à la 28e. Jamais le gardien remplaçant : il garde la cage pour le
+   jour où elle se vide (cf. releveGardien). */
+function bancDispo(c, p, m){
   const dejaEntre=x=>{ const k=p.banc.indexOf(x); return k>=0 && p.min[k]<=m; };
-  return c.joueurs.filter(x=>x.pos!=="G" && alignable(x) && !p.xi.includes(x) && !dejaEntre(x))
-    .sort((x,y)=>((x.pos!==j.pos)-(y.pos!==j.pos)) || (noteSel(y)-noteSel(x)));
+  return c.joueurs.filter(x=>x.pos!=="G" && alignable(x) && !p.xi.includes(x) && !dejaEntre(x));
+}
+// pour un blessé : son poste d'abord, le plus en jambes de chacun ensuite
+function bancBlessure(c, p, j, m){
+  return bancDispo(c, p, m).sort((x,y)=>((x.pos!==j.pos)-(y.pos!==j.pos)) || (noteSel(y)-noteSel(x)));
 }
 // il devait entrer plus tard : on retire ce changement-là avant de le faire entrer maintenant, sinon il
 // entrerait deux fois. Rangé dans `annules` sous le jeton du pépin : la fenêtre du banc sait le rendre.
@@ -3428,6 +3433,75 @@ function ouvreBlessure(ctx, lg, idx){
     recolle(poidsHommeEnMoins(1), idx+1);
     conclure("🚑 "+esc(j.nom)+" est évacué : "+esc(moi.nom)+" finira la rencontre à dix.","rouge",bDix);
   };
+}
+
+/* ================= LE BANC EN DIRECT (v1.19) =================
+   Les trois changements restent tirés par le banc (57e, 65e, 73e) : si vous n'ouvrez jamais cette fenêtre,
+   rien ne change et le match se joue comme avant. Mais à tout moment du direct vous pouvez ouvrir le banc et
+   reprendre la main sur CEUX QUI RESTENT : chaque changement que vous décidez consomme l'un des trois et fait
+   sauter le dernier que le banc avait prévu (poseRemplacement s'en charge, comme pour un blessé).
+   Deux limites du modèle, assumées : on ne remplace qu'un TITULAIRE encore sur la pelouse (la feuille du jour
+   apparie un entrant à un homme du onze de départ — remplacer un remplaçant ne se dirait nulle part), et le
+   gardien ne sort que sur blessure ou carton rouge (consigne de l'auteur, v1.13).
+   Ce que le changement pèse : poidsPelouse, onze contre onze — la formule des trois zones sur les hommes
+   réellement alignés — puis la fin du match est rejouée depuis la minute courante (rejoueDepuis), exactement
+   comme une consigne changée en direct. `ctx` = {monMatch, eM, mul:{h,a}, pos(), reprendre(), suite()}. */
+function jetonBanc(j){ return "bc:"+j.uid; }
+function verdictBanc(w){ // ce que l'adjoint dirait, en mots : le jeu ne montre jamais un multiplicateur
+  if(w.mien>=1.03) return `<b class="vert">Sur le papier, vous êtes plus forts qu'il y a une minute.</b>`;
+  if(w.mien<=0.97) return `<b class="jaune">Vous y perdez un peu sur le papier — c'est un choix de jambes, pas de talent.</b>`;
+  return `<b class="dim">À forces égales, ou presque.</b>`;
+}
+function ouvreBanc(ctx){
+  const monMatch=ctx.monMatch, eM=ctx.eM, lignes=monMatch.ev;
+  const moi=eM.h.id===G.monClub?eM.h:eM.a, adv=eM.h.id===G.monClub?eM.a:eM.h;
+  const p=CHANGEMENTS[moi.id], pl=ctx.pos(), m=pl.mNow;
+  const ferme=(f, corps)=>finMoment(f, corps||"", ()=>ctx.reprendre(), null);
+  const cadre=(titre, corps)=>cadreMoment(titre, corps+`<div id="penRes"></div>`);
+  if(!p || !G._pend || monMatch._truque || pl.from<0 || pl.from>=lignes.length)
+    return ferme(cadre("🔁 LE BANC", `<p class="dim">Le résultat est acté : le banc n'y peut plus rien.</p>`));
+  const reste=3-p.min.filter(x=>x<=m).length;
+  const pelouse=enJeu(moi, m);
+  const sortants=p.xi.filter(j=>pelouse.includes(j) && j.pos!=="G");
+  const entrants=bancDispo(moi, p, m).sort((x,y)=>("DMA".indexOf(y.pos)-"DMA".indexOf(x.pos)) || (noteSel(y)-noteSel(x)));
+  const etiq=x=>esc(x.nom)+' <span class="dim">('+x.pos+" "+Math.round(x.note)+" · "+Math.round(fraich(x))+"%)</span>";
+  const entete=`<p class="dim" style="font-size:12px">${m}ᵉ minute · ${reste>0
+      ?"il vous reste <b class=\"jaune\">"+reste+"</b> changement"+(reste>1?"s":"")+(p.min.some(x=>x>m)?" — en décider un fait sauter celui que le banc avait prévu":"")
+      :"vos trois changements sont faits"}</p>`;
+  const etape1=()=>{
+    if(reste<=0 || !entrants.length || !sortants.length)
+      return ferme(cadre("🔁 LE BANC — "+m+"ᵉ MINUTE", entete+`<p>${reste<=0?"Vous avez fait vos trois changements : il faudra finir avec ces hommes-là."
+        :(!entrants.length?"Plus personne d'alignable sur le banc.":"Plus un seul titulaire à relever sur la pelouse.")}</p>`));
+    const f=cadre("🔁 LE BANC — "+m+"ᵉ MINUTE", entete+
+      `<p style="margin-top:6px">Qui entre&nbsp;?</p>
+       <p>${entrants.slice(0,6).map((x,n)=>`<button class="act bEntreB" data-n="${n}" style="margin:4px 3px 0">${etiq(x)}</button>`).join("")}</p>
+       <p style="margin-top:10px"><button class="act" id="bFermeBanc">Laisser le banc tranquille</button></p>`);
+    f.querySelectorAll(".bEntreB").forEach(b=>b.onclick=()=>etape2(entrants[+b.dataset.n]));
+    const bF=f.querySelector("#bFermeBanc"); if(bF) bF.onclick=()=>{ window._penEnCours=false; fermeFiche(); ctx.reprendre(); };
+  };
+  const etape2=(entrant)=>{
+    const f=cadre("🔁 "+esc(entrant.nom).toUpperCase()+" ENTRE", entete+
+      `<p style="margin-top:6px">À la place de qui&nbsp;?</p>
+       <p>${sortants.map((x,n)=>`<button class="act bSortB" data-n="${n}" style="margin:4px 3px 0">${etiq(x)}</button>`).join("")}</p>
+       <p style="margin-top:10px"><button class="act" id="bRetourBanc">← un autre entrant</button>
+         <button class="act" id="bFermeBanc">Annuler</button></p>`);
+    f.querySelectorAll(".bSortB").forEach(b=>b.onclick=()=>applique(entrant, sortants[+b.dataset.n]));
+    const bR=f.querySelector("#bRetourBanc"); if(bR) bR.onclick=etape1;
+    const bF=f.querySelector("#bFermeBanc"); if(bF) bF.onclick=()=>{ window._penEnCours=false; fermeFiche(); ctx.reprendre(); };
+  };
+  const applique=(entrant, sortant)=>{
+    const xiAvant=enJeu(moi, m).slice(), tok=jetonBanc(sortant);
+    avanceLeBanc(p, entrant, tok);                              // s'il devait entrer plus tard, ce changement-là saute
+    poseRemplacement(p, entrant, sortant, m, "banc", tok);      // et celui-ci prend l'une des trois places
+    const w=poidsPelouse(moi, adv, xiAvant, enJeu(moi, m).slice());
+    if(eM.h.id===G.monClub){ ctx.mul.h*=w.mien; ctx.mul.a*=w.sien; } else { ctx.mul.a*=w.mien; ctx.mul.h*=w.sien; }
+    rejoueDepuis(monMatch, eM.h, eM.a, pl.from, m, ctx.mul.h, ctx.mul.a);
+    lignes.splice(pl.from, 0, ligneChangement(moi, p, p.banc.indexOf(entrant))); // le téléscripteur l'annonce tout de suite
+    ctx.suite();
+    ferme(cadre("🔁 CHANGEMENT", entete+`<p><b>${esc(entrant.nom)}</b> entre à la place de <b>${esc(sortant.nom)}</b>.</p>
+      <p style="margin-top:6px">${verdictBanc(w)}</p>`));
+  };
+  etape1();
 }
 
 function notif(t){ (G.notifs=G.notifs||[]).push(t); }
@@ -8998,6 +9072,7 @@ function htmlCtlTactique(){
   return `<div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:12px">
        <span class="dim" id="libTacD">Tactique en direct :</span>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
+       <button class="act" id="bBanc" style="display:none; margin-left:6px">🔁 Banc</button>
      </div>`;
 }
 /* Le même contrôle, branché sur un soir de coupe ou d'Europe (v1.10) : il n'existait qu'en championnat, d'où le
@@ -10070,6 +10145,7 @@ function lanceMatch(instant){
   // une fois le résultat acté (moment de la 90e tranché), la consigne ne peut plus rien : on éteint les boutons en
   // le disant, au lieu de les laisser cliquables et muets (v1.10 — le seul échec relevé sur 152 matchs de stress)
   const figeTac=txt=>{ document.querySelectorAll(".bTacD").forEach(b=>{ b.disabled=true; b.style.opacity=".45"; });
+    const bb=document.getElementById("bBanc"); if(bb){ bb.disabled=true; bb.style.opacity=".45"; } // le banc non plus n'y peut plus rien
     const lib=document.getElementById("libTacD"); if(lib) lib.textContent=txt; };
   // résolution d'un moment : delta de score, ligne de résultat, sifflet réécrit, phase B
   const resoudMoment=(delta,lx,lic,butCote,butNom,suite)=>{
@@ -10133,6 +10209,14 @@ function lanceMatch(instant){
   const ctxBlessure={ monMatch, eM, mul:liveMul,
     reprendre:()=>{ tickerTimer=setTimeout(tic,300); },
     suite:()=>{ penIdx=idxMoment(); eM.sh=monMatch.sh; eM.sa=monMatch.sa; } };
+  /* LE BOUTON « BANC » (v1.19) : même contexte, plus la position du téléscripteur — on recolle APRÈS une
+     action déjà annoncée par la montée de tension, exactement comme un changement de consigne. */
+  const ctxBanc=Object.assign({}, ctxBlessure, {
+    pos:()=>{ const from=(lignes[i] && lignes[i]._monte) ? i+1 : i;
+      return {from, mNow:(from>i ? lignes[i].m : liveMin)}; } });
+  const bBanc=document.getElementById("bBanc");
+  if(bBanc && !instant){ bBanc.style.display="";
+    bBanc.onclick=()=>{ if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; } ouvreBanc(ctxBanc); }; }
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];

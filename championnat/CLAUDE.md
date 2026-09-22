@@ -121,6 +121,29 @@ toujours « raconter quelque chose ».
   `0 0 9px`.
 
 ## Systèmes de jeu en place (ne pas casser)
+- **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
+  le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
+  championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :
+  les trois changements restent tirés par `tireSubs` (57e/65e/73e) et le match se joue comme en v1.18. Mais à
+  tout moment on peut reprendre la main sur CEUX QUI RESTENT : chaque changement décidé consomme l'une des trois
+  places et fait sauter le dernier que le banc avait prévu (`poseRemplacement`, la même que pour un blessé et
+  pour le gardien relevé). La fenêtre se lit en deux temps — « Qui entre ? » puis « À la place de qui ? » —
+  chaque nom avec son poste, sa note et sa fraîcheur, et se referme sur un verdict **en mots** (`verdictBanc`) :
+  le jeu ne montre jamais un multiplicateur.
+  **Deux limites du modèle, assumées et dites** : on ne remplace qu'un **titulaire encore sur la pelouse**
+  (`p.xi` apparie un entrant à un homme du onze de départ — `enJeu` ne saurait pas faire entrer quelqu'un à la
+  place d'un remplaçant), et **le gardien ne sort que sur blessure ou carton rouge** (consigne v1.13).
+  **Mécanique** : `ouvreBanc(ctx)` vit au niveau du module (testable), `ctx` = `{monMatch, eM, mul:{h,a}, pos(),
+  reprendre(), suite()}` où `pos()` rend `{from, mNow}` — la position du téléscripteur, calculée exactement
+  comme pour une consigne changée (on recolle APRÈS une action déjà annoncée par la montée de tension). Le poids
+  passe par `poidsPelouse` (onze contre onze : la formule des trois zones), puis `rejoueDepuis` rejoue la fin du
+  match et la ligne « Changement pour X : A entre à la place de B. » est posée en tête de ce qui reste à lire.
+  **Le vivier est commun au pépin et au choix** : `bancDispo(c,p,m)` (jamais le gardien remplaçant, jamais un
+  homme déjà entré, mais OUI un homme que le banc comptait faire entrer plus tard — `avanceLeBanc` retire alors
+  ce changement-là). **`ligneChangement` distingue trois causes** : `blessure` (SUBS_BLESSURE), le gardien
+  appelé par un rouge (SUBS_URGENCE), et `banc` — un changement voulu s'annonce comme n'importe quel autre, sans
+  `l.urg` : c'est un choix, pas un drame. Le bouton s'éteint avec la tactique quand le résultat est acté
+  (`figeTac`). Gardé par **`harness-banc.cjs`** (sections A à I).
 - **LA BLESSURE EN DIRECT (v1.18, partie d'une capture de RFM27 rapportée par l'auteur)** — jusqu'ici un pépin
   se découvrait APRÈS la rencontre, dans les dépêches (« INFIRMERIE : X touché »), et le téléscripteur faisait
   grimacer des hommes qui se tenaient la cuisse sans que rien n'arrive jamais. Désormais, pour LA rencontre qu'on
@@ -1562,6 +1585,12 @@ toujours « raconter quelque chose ».
    du banc à la place d'un attaquant sur l'une des trois places, cage vide quand les changements sont faits ou le banc
    sans gardien, pas de troisième gardien, relais sur la blessure de la 90e, rouge effacé par le direct qui rend le
    changement sauté, et 600 matchs à gardiens nerveux, dont 300 recollés, sans ligne orpheline ni changement en double),
+   `harness-banc.cjs` (le banc en direct, v1.19 : la fenêtre qui s'ouvre et qui sait se taire — ne pas
+   l'ouvrir, c'est le jeu d'avant —, le vivier des entrants et des sortants, le changement voulu qui prend
+   l'une des trois places sans jamais en créer une quatrième, 60 changements où la pelouse suit et où le
+   moteur ne nomme personne hors de son temps de jeu, la ligne annoncée tout de suite avec les mots d'un
+   choix, le poids d'un meilleur et d'un moins bon entrant, les trois changements épuisés, la fraîcheur au
+   prorata et l'échappement des noms),
    `harness-blessure.cjs` (la blessure en direct, v1.18 : un seul tirage par homme et par match — la feuille du
    jour REMPLACE le tirage d'après-match au lieu de s'y ajouter —, la minute qui tombe dans le temps de jeu de
    l'homme, le banc qui répond dans les trois changements (y compris en avançant un entrant prévu plus tard),
