@@ -121,6 +121,24 @@ toujours « raconter quelque chose ».
   `0 0 9px`.
 
 ## Systèmes de jeu en place (ne pas casser)
+- **APRÈS CE MATCH — LES PROCHAINS RENDEZ-VOUS (v1.20, idée prise à RFM27)** : sous l'affiche du jour, trois
+  lignes au plus disent ce qui vient — l'adversaire, son rang, le lieu, et les soirs de semaine marqués comme
+  tels. Sans ça, la rotation se décidait à l'aveugle : on ménageait un cadre le samedi sans savoir qu'un
+  huitième de finale tombait le mercredi. `prochainsRdv(o, n, rdv)` est **PUR** (prend G, ou une sauvegarde
+  relue) et rend une liste triée `{j, ordre, ico, semaine, txt}` ; `blocProchains(o, rdv)` la rend. Posé sous
+  l'affiche dans `ecranCalendrier` (le samedi comme les soirs de semaine, une seule insertion) et dans le
+  panneau « ⚽ LE PROCHAIN MATCH » de `ecranReprise`.
+  **La règle, et elle est stricte : on n'annonce que ce qu'on SAIT** (cf. le piège « une ligne ne doit jamais
+  affirmer une phase de jeu qu'elle ne connaît pas »). Les journées de championnat à venir, oui — le calendrier
+  les porte. Le **prochain** tour de coupe et la **prochaine** manche européenne, oui, à leur journée
+  (`COUPE_TOURS[tourIdx].j`, `EURO_TOURS[tourIdx].j`/`.jr`) — mais **jamais les tours d'après**, qui n'existeront
+  que si l'on y est encore, et dont l'adversaire n'est pas tiré ; un tour à venir se dit d'ailleurs
+  « adversaire à tirer », alors qu'une manche RETOUR nomme l'adversaire de l'aller (`eu.attente.mien`). Éliminé,
+  le tour disparaît. **Le rendez-vous qu'on joue ce soir n'y figure pas** (`rdv`, celui de `rdvEnAttente`) : il
+  est déjà à l'écran, mais le samedi de la même journée, lui, y entre. **L'ordre à l'intérieur d'une journée est
+  celui de `rdvEnAttente`** : Europe, puis Coupe de France, puis le championnat. Un tour encore lointain ne prend
+  pas la place d'un samedi : la liste est chronologique et coupée à trois.
+  Gardé par la **section H de `harness-rdv.cjs`**.
 - **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
   le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
   championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :
@@ -1610,7 +1628,10 @@ toujours « raconter quelque chose ».
    `harness-progression.cjs` (le cap franchi : `aMoi()` qui tranche sur le contrat et non sur le vestiaire,
    la notification qui part au Debrief et plus dans les dépêches, la carte postale du prêté, le silence sur
    l'emprunté, un prêt de quinze journées joué pour de bon, et le +1 de la sélection nationale),
-   `harness-rdv.cjs` (les rendez-vous de semaine : consigne et prime neutres par défaut puis efficaces en coupe et
+   `harness-rdv.cjs` (les rendez-vous de semaine, **et depuis v1.20 le bloc « APRÈS CE MATCH »** — les
+   trois prochains rendez-vous, le tour de coupe qui ne s'annonce qu'à sa journée et sans promettre
+   d'adversaire, la manche retour qui nomme le sien, le soir qu'on joue déjà et qui n'y figure pas, l'ordre
+   Europe → coupe → championnat, et la fin de saison qui n'annonce plus rien : consigne et prime neutres par défaut puis efficaces en coupe et
    en Europe, prime payée à la qualification et remise à zéro, consigne changée en direct qui rejoue la fin sans
    toucher au montré ni fausser la loi du score, verdicts européens recalculés, et le Calendrier qui montre le
    rendez-vous à préparer au lieu d'une fenêtre verrouillée),

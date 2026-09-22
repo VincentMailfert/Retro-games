@@ -175,7 +175,10 @@ console.log("D) Le sortant se tait, l'entrant joue");
   let faux = null, faits = 0;
   for (let n = 0; n < 60 && !faux; n++) {
     const s = scene(["LIL", "REN", "OM", "AUX"][n % 4], 30 + (n % 20));
-    const avantN = api.enJeu(s.moi, s.m + 1).length; // un rouge d'avant la minute courante a pu laisser l'équipe à dix
+    // on compte À la minute du changement, pas après : la fin rejouée peut sortir un rouge dès la minute
+    // suivante, et ce n'est pas le changement qui aurait retiré l'homme. Un rouge d'AVANT, lui, compte :
+    // l'équipe est peut-être déjà à dix.
+    const avantN = api.enJeu(s.moi, s.m).length;
     api.ouvreBanc(s.ctx);
     const boutons = FICHE.querySelectorAll(".bEntreB");
     if (!boutons.length) continue;
@@ -186,7 +189,7 @@ console.log("D) Le sortant se tait, l'entrant joue");
     faits++;
     const k = s.p.min.lastIndexOf(s.m);
     const entrant = s.p.banc[k], sortant = s.p.sort[k];
-    const pel = api.enJeu(s.moi, s.m + 1);
+    const pel = api.enJeu(s.moi, s.m);
     if (!pel.includes(entrant)) faux = `${entrant.nom} est entré à la ${s.m}e mais n'est pas sur la pelouse`;
     if (pel.includes(sortant)) faux = `${sortant.nom} est sorti à la ${s.m}e mais joue toujours`;
     if (pel.length !== avantN) faux = `${avantN} hommes sur la pelouse avant le changement, ${pel.length} après : un changement n'ajoute ni ne retire personne`;

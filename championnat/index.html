@@ -338,7 +338,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.19"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.20"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4763,6 +4763,55 @@ function prochainMatchDe(o){ // l'affiche du week-end, lue dans le calendrier (p
   const adv=(o.clubs||[]).find(c=>c.id===advId) || ((o.autre||[]).find(c=>c.id===advId)) || metaClub(advId);
   return {advId, dom, adv, nom:adv?adv.nom:String(advId)};
 }
+/* LES PROCHAINS RENDEZ-VOUS (v1.20) — ce qui vient APRÈS le match qu'on prépare. Sans eux, la rotation se
+   décidait à l'aveugle : on ménageait un cadre le samedi sans savoir qu'un huitième de finale tombait le
+   mercredi, ou l'on grillait son banc la veille d'un déplacement chez le leader. **On n'annonce que ce qu'on
+   SAIT** (cf. le piège « une ligne ne doit jamais affirmer une phase de jeu qu'elle ne connaît pas ») : les
+   prochaines journées de championnat, avec l'adversaire, son rang et le lieu ; puis le PROCHAIN tour de coupe
+   et la PROCHAINE manche européenne — jamais les tours d'après, qui n'existeront que si l'on y est encore et
+   dont l'adversaire n'est même pas tiré. Le rendez-vous qu'on joue CE SOIR (`rdv`) n'y figure pas : il est
+   déjà à l'écran. Pur : prend un objet (G en jeu, ou une sauvegarde relue). */
+function prochainsRdv(o, n, rdv){
+  if(!o) return [];
+  const j0=o.journee||0, cal=o.calendrier||[], out=[];
+  const cl=(rangDe(o)||{}).cl||[];
+  const rangId=id=>{ const k=cl.findIndex(c=>c.id===id); return k<0?0:k+1; };
+  const nomId=id=>{ const c=(o.clubs||[]).find(x=>x.id===id) || ((o.autre||[]).find(x=>x.id===id)) || metaClub(id);
+    return (c&&c.nom)||String(id); };
+  // le soir de semaine qui vient : la manche européenne d'abord, comme rdvEnAttente les sert
+  const eu=o.euro;
+  if(eu && eu.enLice && !eu.elimine && !eu.vainqueur && eu.tourIdx<EURO_TOURS.length && !(rdv&&rdv.type==="euro")){
+    const T=EURO_TOURS[eu.tourIdx], at=eu.attente, CP=competDe(eu.compet);
+    const adv=(at&&at.mien)?nomEuro(at.mien.advId):null;
+    out.push({j:Math.max(j0, at?(T.jr||T.j):T.j), ordre:0, ico:CP.emoji, semaine:true,
+      txt:T.nom+(at?", retour":(T.jr?", aller":""))+(adv?" contre "+adv:" — adversaire à tirer")});
+  }
+  const co=o.coupe;
+  if(co && !co.elimine && !co.vainqueur && co.tourIdx<COUPE_TOURS.length && !(rdv&&rdv.type==="coupe")){
+    const T=COUPE_TOURS[co.tourIdx];
+    out.push({j:Math.max(j0, T.j), ordre:1, ico:"🏆", semaine:true, txt:"Coupe de France, "+T.nom.toLowerCase()+" — adversaire à tirer"});
+  }
+  // puis les samedis : celui de ce soir n'y est que si c'est la coupe qu'on joue d'abord
+  let pris=0;
+  for(let jj=(rdv?j0:j0+1); jj<38 && jj<cal.length && pris<n; jj++){
+    const day=cal[jj]; if(!day||!day.find) continue;
+    const paire=day.find(x=>x[0]===o.monClub||x[1]===o.monClub); if(!paire) continue;
+    const dom=(paire[0]===o.monClub), advId=dom?paire[1]:paire[0], r=rangId(advId);
+    out.push({j:jj, ordre:2, ico:"⚽", semaine:false,
+      txt:nomId(advId)+(r?" ("+ordinal(r)+")":"")+" — "+(dom?"à domicile":"à l'extérieur")});
+    pris++;
+  }
+  return out.sort((a,b)=>(a.j-b.j)||(a.ordre-b.ordre)).slice(0,n);
+}
+/* Le petit bloc qu'on lit sous l'affiche : trois lignes au plus, et rien si la saison est finie. */
+function blocProchains(o, rdv){
+  const l=prochainsRdv(o, 3, rdv);
+  if(!l.length) return "";
+  return `<div class="panel" style="padding:8px 10px;margin-top:0">
+     <p class="ctr" style="margin:0;font-size:12px"><span class="dim">APRÈS CE MATCH</span>${
+       l.map(x=>`<br>${x.ico} <b>J${Math.min(38,x.j+1)}</b>${x.semaine?' <span class="dim">(en semaine)</span>':""} · ${esc(x.txt)}`).join("")}</p>
+   </div>`;
+}
 /* « Ce match compte parce que… » — la ligne qui manquait à l'avant-match. Tout est déjà en mémoire :
    la rivalité, la bête noire, la table, les anciens du club en face, la série, et le record à portée. */
 function raisonsMatch(o){
@@ -5118,7 +5167,8 @@ function ecranReprise(){
        <p class="ctr dim">Journée ${Math.min(G.journee+1,38)} · ${S.pm.dom?"à domicile":"à l'extérieur"}</p>
        ${S.raisons.length?`<p style="margin-top:8px"><span class="dim">Ce match compte parce que…</span></p>
          ${S.raisons.slice(0,3).map(x=>`<p style="margin:3px 0">${x.ico} ${esc(x.txt)}</p>`).join("")}`
-        :`<p class="ctr dim" style="margin-top:8px">Un match de championnat comme un autre — ils comptent tous pareil au classement.</p>`}`
+        :`<p class="ctr dim" style="margin-top:8px">Un match de championnat comme un autre — ils comptent tous pareil au classement.</p>`}
+       ${blocProchains(G, null)}`
       :`<p class="dim">La saison est terminée : il reste l'intersaison à dérouler.</p>`}
      <p class="ctr" style="margin-top:14px"><button class="big" id="bReprise">REPRENDRE LA SAISON</button></p>
    </div>`);
@@ -8971,6 +9021,7 @@ function ecranCalendrier(){
        <button class="big" id="bRenfort" style="margin-top:6px">Piocher en urgence chez les joueurs libres</button>
      </p>`}
    </div>`}
+   ${blocProchains(G, rdv)}
    <div class="panel" id="pTableau" style="display:none">
      <div id="tabScore"></div>
      <div id="tabButs"></div>

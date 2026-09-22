@@ -45,7 +45,7 @@ const api = new Function(script + "\n;return {nouvellePartie,jouerJournee,clubBy
   "genEvCoupe,corpsCoupe,finCoupe,rejoueRdv,annoteButs,clubAffiche,onzeEuro," +
   "coupeTireTour,coupeResoutTour,COUPE_TOURS,COUPE_TERRAIN,COUPE_RECETTE," +
   "euroInit,euroTireTour,euroResoutTour,euroManche,euroCloture,euroClotureAvec,euroFinaleSeche,euroFinaleAvec,EURO_TOURS,EURO_TERRAIN,COMPETS," +
-  "rdvEnAttente,panneauRdv,ecranCalendrier,CONSIGNES,getG:function(){return G;}};")();
+  "rdvEnAttente,panneauRdv,ecranCalendrier,prochainsRdv,blocProchains,CONSIGNES,getG:function(){return G;}};")();
 
 let F = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) F++; };
@@ -293,6 +293,74 @@ console.log("\nG) Le Calendrier montre le rendez-vous à préparer, sans rien ve
   api.coupeTireTour(api.COUPE_TOURS[1]);
   G.coupe.aJouer.paires = G.coupe.aJouer.paires.filter(p => p.hid !== G.monClub && p.aid !== G.monClub);
   ok(api.rdvEnAttente() === null && G.coupe.aJouer === null, "un tour où vous ne jouez pas se résout en silence, sans rendez-vous");
+}
+
+/* ===== H) « APRÈS CE MATCH » : ce qui vient, et rien de plus (v1.20) ===== */
+console.log("\nH) Les prochains rendez-vous : on n'annonce que ce qu'on sait");
+{
+  const G = neuve("MET");
+  G.coupe.elimine = true; G.euro.elimine = true; // d'abord le cas nu : rien que le championnat
+  const advDe = (jj) => { const p = G.calendrier[jj].find(x => x[0] === G.monClub || x[1] === G.monClub);
+    return { dom: p[0] === G.monClub, id: p[0] === G.monClub ? p[1] : p[0] }; };
+  let l = api.prochainsRdv(G, 3, null);
+  ok(l.length === 3 && l.every(x => x.ico === "⚽"), `trois rendez-vous annoncés, tous de championnat (${l.length})`);
+  ok(l[0].j === 1 && l[1].j === 2 && l[2].j === 3, `et ce sont les journées qui SUIVENT celle qu'on prépare (J${l.map(x => x.j + 1).join(", J")})`);
+  const a1 = advDe(1), nom1 = api.clubById(a1.id).nom;
+  ok(l[0].txt.indexOf(nom1) === 0 && new RegExp(a1.dom ? "à domicile" : "à l'extérieur").test(l[0].txt),
+    `le premier dit l'adversaire et le lieu : « ${l[0].txt} »`);
+  ok(/\(\d+(er|ᵉ|e)\)/.test(l[0].txt), "avec le rang de l'adversaire au classement du moment");
+
+  // un soir de coupe en attente : c'est LUI qu'on joue, donc il n'est pas dans la liste — mais le samedi y entre
+  G.coupe.elimine = false; G.coupe.aJouer = null;
+  api.coupeTireTour(api.COUPE_TOURS[0]);
+  const rdv = api.rdvEnAttente();
+  l = api.prochainsRdv(G, 3, rdv);
+  ok(!l.some(x => x.ico === "🏆"), "le tour de coupe qu'on joue ce soir ne figure pas dans « après ce match »");
+  ok(l[0].j === G.journee, `en revanche le match du samedi, lui, y entre (J${l[0].j + 1})`);
+
+  // un tour de coupe encore loin ne prend pas la place d'un samedi : « après ce match », c'est ce qui vient
+  api.coupeResoutTour(false);
+  G.coupe.elimine = false;
+  G.journee = 0;
+  ok(!api.prochainsRdv(G, 3, null).some(x => x.ico === "🏆"),
+    `le tour suivant tombe à la J${api.COUPE_TOURS[G.coupe.tourIdx].j + 1} : à la J1, il n'encombre pas la liste`);
+
+  // …mais à sa veille, il s'annonce, en tête, et sans promettre d'adversaire (le tirage n'a pas eu lieu)
+  const jCF = api.COUPE_TOURS[G.coupe.tourIdx].j;
+  G.journee = jCF - 1;
+  l = api.prochainsRdv(G, 3, null);
+  const cf = l.find(x => x.ico === "🏆");
+  ok(cf && cf.semaine && /adversaire à tirer/.test(cf.txt), cf ? `à la veille, il s'annonce sans mentir : « ${cf.txt} »` : "le tour suivant devrait être annoncé");
+  ok(cf && cf.j === jCF, `à la journée où il se jouera (J${jCF + 1})`);
+  ok(cf && l.indexOf(cf) === 0, "et AVANT le samedi de la même journée : en semaine, on joue d'abord la coupe");
+  G.coupe.elimine = true;
+  ok(!api.prochainsRdv(G, 3, null).some(x => x.ico === "🏆"), "éliminé, il disparaît : on n'annonce pas un tour qu'on ne jouera pas");
+
+  // Europe : le retour se nomme, parce que l'adversaire de l'aller est connu, lui
+  G.euroCompet = "C1"; api.euroInit();
+  G.journee = api.EURO_TOURS[0].j;
+  api.euroTireTour();
+  const p = G.euro.aJouer.paires.find(x => x[0] === G.monClub || x[1] === G.monClub);
+  api.euroResoutTour(true, { aid: p[0], bid: p[1], l1: [1, 1] });
+  G.journee = api.EURO_TOURS[0].jr - 1;
+  l = api.prochainsRdv(G, 3, null);
+  const eu = l.find(x => x.semaine && /retour/.test(x.txt));
+  ok(eu && /contre /.test(eu.txt), eu ? `la manche retour dit contre qui : « ${eu.txt} »` : "la manche retour devrait être annoncée");
+  ok(eu && eu.j === api.EURO_TOURS[0].jr, `et à la bonne journée (J${api.EURO_TOURS[0].jr + 1})`);
+
+  // le rendu, sur l'écran réel
+  let pepin = null;
+  try { api.ecranCalendrier(); } catch (e) { pepin = e.message; }
+  ok(!pepin, "l'écran Calendrier se rend avec le bloc" + (pepin ? " : " + pepin : ""));
+  ok(/APRÈS CE MATCH/.test(APP.innerHTML), "et l'on y lit « APRÈS CE MATCH »");
+  ok(APP.innerHTML.indexOf("<img") < 0, "aucune balise ouverte par un nom de club");
+
+  // fin de saison : plus rien à annoncer, et rien ne casse
+  G.journee = 37;
+  ok(api.prochainsRdv(G, 3, null).filter(x => x.ico === "⚽").length === 0, "à la dernière journée, plus un samedi à annoncer");
+  G.journee = 38;
+  let boum = null; try { api.prochainsRdv(G, 3, null); api.blocProchains(G, null); } catch (e) { boum = e.message; }
+  ok(!boum, "et passé la 38e, la liste se calcule et se rend sans lever d'exception" + (boum ? " : " + boum : ""));
 }
 
 console.log(F ? "\n❌ HARNAIS RENDEZ-VOUS DE SEMAINE : " + F + " PROBLÈME(S)" : "\n✅ HARNAIS RENDEZ-VOUS DE SEMAINE : TOUT EST VERT");
