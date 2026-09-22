@@ -338,7 +338,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.17"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.18"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2181,8 +2181,8 @@ function placeXI(xi, F){
   for(const j of reste){ const z=["D","M","A","G"].find(p=>n[p]<F[p]) || j.pos; n[z]++; place.push({j, z, hors:z!==j.pos}); }
   return place;
 }
-function forces(c){
-  const xi=onze(c), F=formationDe(c), place=placeXI(xi, F);
+function forces(c, xiIn){ // xiIn (v1.18) : les hommes RÉELLEMENT sur la pelouse — le direct s'en sert pour peser un blessé qu'on garde ou un remplaçant plus faible
+  const xi=xiIn||onze(c), F=formationDe(c), place=placeXI(xi, F);
   let exces=0; xi.forEach(j=>{ if((j.ego||5)>=8) exces+=(j.ego-7); });
   const L=leadership(capitaineDuXI(xi)); // qualité du capitaine effectif (0..~1,15)
   let coh=Math.max(0.85, 1-0.012*exces*(1-0.40*L)); // un fort capitaine tempère les divas
@@ -2684,9 +2684,9 @@ let CHANGEMENTS={}, MIN_JEU=0;
 function enJeu(c, m){
   const p=c&&CHANGEMENTS[c.id];
   if(!p) return onze(c);
-  const t=m==null?MIN_JEU:m, rouge=p.rouge||{};
+  const t=m==null?MIN_JEU:m, rouge=p.rouge||{}, sorti=p.sorti||{};
   const xi=p.xi.map(j=>{ const k=p.sort.indexOf(j); return (k>=0 && t>=p.min[k]) ? p.banc[k] : j; })
-               .filter(j=>!(rouge[j.uid]<=t)); // l'expulsé a quitté la pelouse, et personne ne reprend sa place (le gardien remplaçant prend celle d'un joueur de champ)
+               .filter(j=>!(rouge[j.uid]<=t) && !(sorti[j.uid]<=t)); // l'expulsé a quitté la pelouse, et personne ne reprend sa place (le gardien remplaçant prend celle d'un joueur de champ) ; `sorti` (v1.18) : le blessé qu'on a sorti sans le remplacer, et le gardien touché sans doublure
   return xi.length ? xi : onze(c);
 }
 /* Un carton rouge sort l'homme du jeu à la minute m. S'il devait être remplacé PLUS TARD, ce changement
@@ -2730,11 +2730,7 @@ function releveGardien(c, m, gk, cause){
     .sort((x,y)=>("AMD".indexOf(x.pos)-"AMD".indexOf(y.pos)) || (prevu(y)-prevu(x)) || (noteSel(x)-noteSel(y)))[0];
   if(!sort) return {gants:gants(), raison:"trois"};
   const par=blessure?null:gk.uid; // un rouge effacé par le direct rendra ce qu'il a pris ; une blessure, non
-  if(prevu(sort)) annuleChangement(p, p.sort.indexOf(sort), par);
-  else if(p.min.length>=3){ const aVenir=p.min.filter(x=>x>m); // plus de place pour lui : le dernier changement prévu saute
-    if(aVenir.length) annuleChangement(p, p.min.lastIndexOf(Math.max(...aVenir)), par); }
-  p.banc.push(doublure); p.sort.push(sort); p.min.push(m);
-  (p.urgence||(p.urgence={}))[doublure.uid]={cause, par};
+  poseRemplacement(p, doublure, sort, m, cause, par); // la même pose que pour un blessé de champ (v1.18)
   return {entre:doublure, sort, cause};
 }
 // L'infériorité numérique encaissée : 1,18 pour un homme de moins, 1,34 quand plus personne de métier ne garde les
@@ -2752,7 +2748,8 @@ const SUBS_URGENCE=[ // {C} le club, {S} le joueur de champ sacrifié, {E} le ga
 function ligneChangement(c, s, k){
   const ent=s.banc[k], sor=s.sort[k], u=s.urgence&&s.urgence[ent.uid];
   const l={m:s.min[k], t:"occ", ic:"sub", cote:c.id, uid:ent.uid, out:sor.uid};
-  if(u){ l.urg=u.cause; l.x=PICK(SUBS_URGENCE).replace("{C}",c.nom).replace("{S}",sor.nom).replace("{E}",ent.nom); }
+  if(u){ l.urg=u.cause; // le gardien appelé par un rouge n'entre pas comme le remplaçant d'un blessé (v1.18)
+    l.x=PICK(u.cause==="blessure"?SUBS_BLESSURE:SUBS_URGENCE).replace("{C}",c.nom).replace("{S}",sor.nom).replace("{E}",ent.nom); }
   else l.x="Changement pour "+c.nom+" : "+ent.nom+" entre à la place de "+sor.nom+".";
   return l;
 }
@@ -3116,12 +3113,13 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
   // deux fois : ICI, contre la feuille que l'effacement des rouges vient de rendre (le gardien d'urgence d'un rouge effacé
   // n'a plus de ligne — si le nouveau fil le rappelle, simuleReste l'écrit à neuf), et après la re-simulation
   const enFeuille=l=>{ const p=CHANGEMENTS[l.cote]; return !p || p.banc.some(j=>j.uid===l.uid); };
-  const changes=r.ev.slice(fromIdx).filter(l=>l.ic==="sub" && enFeuille(l)).concat(rendus).sort((x,y)=>x.m-y.m);
+  // la SCÈNE d'un pépin survit toujours au recollage (v1.18) : une consigne changée n'empêche personne de se blesser
+  const changes=r.ev.slice(fromIdx).filter(l=>l.bl || (l.ic==="sub" && enFeuille(l))).concat(rendus).sort((x,y)=>x.m-y.m);
   const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r));
   r.ev.length=fromIdx;
   const fil=out.ev.slice();
   for(const s of changes){
-    if(!enFeuille(s)) continue; // un rouge du nouveau fil l'a fait sauter
+    if(!s.bl && !enFeuille(s)) continue; // un rouge du nouveau fil l'a fait sauter
     const k=fil.findIndex(l=>l.m>s.m); fil.splice(k<0?fil.length:k, 0, s); // à sa minute, sans réordonner le reste du fil
   }
   for(const e of fil) r.ev.push(e);
@@ -3159,21 +3157,16 @@ function appliqueResultat(h,a,sh,sa,pre){
   else {h.pts++;a.pts++;h.n++;a.n++;h.forme.push(0);a.forme.push(0);}
   const entre=(c,pick,decal)=>{
     const sel=pick||tireSubs(c,decal);
-    const sortie=(j,k)=>{ const r=sel.rouge&&sel.rouge[j.uid]; return Math.min(k<0?90:sel.min[k], r==null?90:r); }; // minute où il quitte la pelouse
+    // minute où il quitte la pelouse : son changement, son rouge, ou le brancard qu'on n'a pas pu remplacer (v1.18)
+    const sortie=(j,k)=>{ const r=sel.rouge&&sel.rouge[j.uid], b=sel.sorti&&sel.sorti[j.uid];
+      return Math.min(k<0?90:sel.min[k], r==null?90:r, b==null?90:b); };
     sel.xi.forEach(j=>{j.matchs++; j._joue=1;
-      const niv=(c.id===G.monClub)?G.centre:1;
-      let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
-      if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
-      // un homme qui n'a pas récupéré se claque : neutre au-dessus de 80, ×2 à 65, jusqu'à ×4 au fond.
-      // Le tirage se fait sur la fraîcheur D'AVANT le coup d'envoi, avant d'en retirer le prix du match.
-      proba*=coefBlessureFraich(j);
-      if(Math.random()<proba){
-        let d=RNDI(1, 2+Math.round((j.fragile||5)*0.9));
-        d=Math.max(1, Math.round(d*(1-0.10*(niv-1))));
-        j.bless=d;
-        if(c.id===G.monClub){ G.news.unshift("INFIRMERIE : "+j.nom+" touché — indisponible "+d+" journée"+(d>1?"s":"")+".");
-          notif("🏥 "+j.nom+" blessé — indisponible "+d+" journée"+(d>1?"s":"")+"."); }
-      }
+      /* LE PÉPIN N'A QU'UN SEUL TIRAGE (v1.18). Pour la rencontre qu'on joue, il est déjà tombé AVANT le
+         coup d'envoi — le téléscripteur l'a raconté à la minute près et le banc y a répondu : on se
+         contente ici de relire la feuille du jour (sel.bless). Pour les neuf autres matchs, rien ne
+         change, il se tire au coup de sifflet comme il l'a toujours fait. */
+      const d=sel.bless ? blessureDuMatch(sel, j) : tirageBlessure(c, j);
+      if(d) declareBlessure(c, j, d);
       // au prorata du temps passé sur le terrain : jusqu'au coup de sifflet, à son remplacement, ou à son expulsion
       useFraich(j, coutMinutes(sortie(j, sel.sort?sel.sort.indexOf(j):-1)));});
     sel.banc.forEach((j,k)=>{j.matchs++; j._joue=0.6; useFraich(j, coutMinutes(sortie(j,-1)-(sel.min?sel.min[k]:60)));});
@@ -3203,6 +3196,238 @@ function tireSubs(c, decal){
     banc.push(j); sort.push(releve);
   }
   return {xi, banc, sort, min};
+}
+
+/* ================= LA BLESSURE EN DIRECT (v1.18) =================
+   Jusqu'ici un pépin se découvrait APRÈS la rencontre, dans les dépêches : « INFIRMERIE : X touché ».
+   Le téléscripteur, lui, faisait grimacer des joueurs qui se tenaient la cuisse sans que rien n'arrive
+   jamais, et le banc ne se levait pas. Désormais, pour LA rencontre qu'on joue, le pépin se tire AVANT
+   le coup d'envoi (même règle et même probabilité qu'ailleurs — `tirageBlessure` est le seul tirage, et
+   il n'a toujours lieu qu'une fois par homme et par match), il tombe à une MINUTE, et le banc y répond
+   tout de suite. Le moteur travaille donc avec la bonne pelouse dès la première simulation : l'homme
+   touché ne marque plus à la 80e depuis le vestiaire, et son remplaçant joue vraiment.
+   LE DIRECT, lui, vous laisse dévier de cette réponse par défaut (cf. `ouvreBlessure` dans lanceMatch) :
+   un autre homme du banc, ou personne du tout. Ce que la déviation coûte n'est pas un barème inventé,
+   c'est la formule des trois zones repassée sur le onze réellement aligné (`poidsPelouse`), appliquée
+   par les mêmes rails que l'infériorité numérique d'un carton rouge. */
+const BLESS_MIN=7;        // pas de pépin avant la 7e : le temps que le match s'installe
+const BLESS_MAX=85;       // ni après la 85e : on ne fait plus lever personne pour cinq minutes
+const BLESS_BOITE=0.55;   // ce que vaut encore un homme qui finit le match en boitant
+const BLESS_AGGRAVE=0.45; // et la part de ceux à qui cet entêtement coûte des journées de plus
+/* LE TIRAGE DU PÉPIN — une seule règle, un seul appel par homme et par match : avant le coup d'envoi
+   pour la rencontre qu'on joue (tireBlessures), au coup de sifflet pour les neuf autres. */
+function tirageBlessure(c, j){
+  const niv=(c.id===G.monClub)?G.centre:1;
+  let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
+  if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
+  // un homme qui n'a pas récupéré se claque : neutre au-dessus de 80, ×2 à 65, jusqu'à ×4 au fond.
+  // Le tirage se fait sur la fraîcheur D'AVANT le coup d'envoi, avant d'en retirer le prix du match.
+  proba*=coefBlessureFraich(j);
+  if(Math.random()>=proba) return 0;
+  const d=RNDI(1, 2+Math.round((j.fragile||5)*0.9));
+  return Math.max(1, Math.round(d*(1-0.10*(niv-1))));
+}
+function blessureDuMatch(sel, j){ const b=(sel.bless||[]).find(x=>x.uid===j.uid); return b?b.d:0; }
+function declareBlessure(c, j, d){
+  j.bless=d;
+  if(c.id===G.monClub){ G.news.unshift("INFIRMERIE : "+j.nom+" touché — indisponible "+d+" journée"+(d>1?"s":"")+".");
+    notif("🏥 "+j.nom+" blessé — indisponible "+d+" journée"+(d>1?"s":"")+"."); }
+}
+/* Les pépins de la rencontre qu'on joue, tirés au coup d'envoi et rangés sur la feuille du jour. La
+   minute tombe dans le TEMPS DE JEU de l'homme : un titulaire qu'un changement doit sortir à la 57e ne
+   se blesse pas à la 70e depuis le banc. `m:0` = pas de scène (il sortait trop tôt) : la blessure existe
+   quand même, elle se découvrira aux dépêches, comme avant. */
+function tireBlessures(c, sel){
+  const out=[];
+  for(const j of sel.xi){
+    const d=tirageBlessure(c, j);
+    if(!d) continue;
+    const k=sel.sort.indexOf(j), fin=(k>=0?sel.min[k]:90), haut=Math.min(BLESS_MAX, fin-1);
+    out.push({uid:j.uid, d, m:(haut>=BLESS_MIN?RNDI(BLESS_MIN, haut):0)});
+  }
+  return out.sort((x,y)=>x.m-y.m);
+}
+/* LE BANC SE LÈVE POUR UN BLESSÉ — le cousin de releveGardien, pour un joueur de champ. L'entrant est
+   celui de son poste qui rend le plus aujourd'hui, sinon le meilleur homme resté assis (un dépanneur).
+   Il prend l'une des TROIS places : si le blessé devait sortir plus tard, c'est ce changement-là qui se
+   fait tout de suite ; sinon le dernier prévu saute. Les trois déjà faits, personne n'entre et le blessé
+   reste sur la pelouse en serrant les dents (le direct proposera alors de finir à dix). Un gardien passe
+   par releveGardien, qui sait, lui, à qui donner les gants. */
+function remplaceBlesse(c, m, j){
+  const p=CHANGEMENTS[c.id]; if(!p) return null;
+  if(j.pos==="G"){ const rel=releveGardien(c, m, j, "blessure");
+    if(rel && rel.gants) (p.sorti||(p.sorti={}))[j.uid]=m; // personne pour prendre sa place : il quitte la pelouse, un joueur de champ enfile les gants
+    return rel; }
+  if(p.min.filter(x=>x<=m).length>=3) return {plus:true}; // les trois changements sont faits : il n'y a plus de banc
+  const entrant=bancBlessure(c, p, j, m)[0];
+  if(!entrant) return {plus:true};
+  avanceLeBanc(p, entrant, jetonBlessure(j));
+  poseRemplacement(p, entrant, j, m, "blessure", jetonBlessure(j));
+  return {entre:entrant, sort:j};
+}
+/* Qui peut encore entrer : tous ceux qui ne sont pas sur la pelouse à la minute m — y compris l'homme
+   qu'on comptait faire entrer plus tard, qu'on avance alors (avanceLeBanc) ; c'est bien ce que fait un
+   entraîneur quand son défenseur tombe à la 28e. Le poste du blessé d'abord, le plus en jambes de chacun
+   ensuite. Jamais le gardien remplaçant : il garde la cage pour le jour où elle se vide. */
+function bancBlessure(c, p, j, m){
+  const dejaEntre=x=>{ const k=p.banc.indexOf(x); return k>=0 && p.min[k]<=m; };
+  return c.joueurs.filter(x=>x.pos!=="G" && alignable(x) && !p.xi.includes(x) && !dejaEntre(x))
+    .sort((x,y)=>((x.pos!==j.pos)-(y.pos!==j.pos)) || (noteSel(y)-noteSel(x)));
+}
+// il devait entrer plus tard : on retire ce changement-là avant de le faire entrer maintenant, sinon il
+// entrerait deux fois. Rangé dans `annules` sous le jeton du pépin : la fenêtre du banc sait le rendre.
+function avanceLeBanc(p, entrant, tok){
+  const k=p.banc.indexOf(entrant);
+  if(k>=0) annuleChangement(p, k, tok);
+}
+// le jeton qui signe le changement sauté par un pépin : jamais un uid de joueur, donc jamais rendu par
+// l'effacement d'un rouge (rejoueDepuis) — seule la fenêtre du banc sait le défaire
+function jetonBlessure(j){ return "bl:"+j.uid; }
+/* Poser un changement d'urgence sur la feuille du jour : il prend l'une des trois places (celle du
+   sortant s'il devait sortir plus tard, sinon la dernière prévue), et l'entrant est marqué `urgence`
+   pour que le direct l'annonce à sa minute et pas au coup d'envoi. */
+function poseRemplacement(p, entrant, sortant, m, cause, par){
+  const k=p.sort.indexOf(sortant);
+  if(k>=0 && p.min[k]>m) annuleChangement(p, k, par);
+  else if(p.min.length>=3){ const aVenir=p.min.filter(x=>x>m); // plus de place pour lui : le dernier changement prévu saute
+    if(aVenir.length) annuleChangement(p, p.min.lastIndexOf(Math.max(...aVenir)), par); }
+  p.banc.push(entrant); p.sort.push(sortant); p.min.push(m);
+  (p.urgence||(p.urgence={}))[entrant.uid]={cause, par};
+}
+const BLESSURE_DIT=[ // {A} l'homme touché, {C} son club
+  "{A} reste au sol et se tient l'arrière de la cuisse. Le banc de {C} se lève d'un bloc.",
+  "Coup dur pour {C} : {A} s'écroule sans personne autour de lui et fait signe qu'il ne peut pas continuer.",
+  "Le soigneur de {C} est déjà sur la pelouse : {A} grimace, la cheville ne le porte plus.",
+  "{A} tente deux foulées, s'arrête net et lève le bras vers le banc de {C}. Il est touché.",
+  "Réception ratée, {A} reste à terre. Les visages se ferment sur le banc de {C}.",
+  "{A} s'est tordu en retombant et frappe la pelouse du poing. {C} retient son souffle.",
+];
+const SUBS_BLESSURE=[ // {C} le club, {S} le blessé, {E} celui qui entre
+  "{S} ne peut pas reprendre : {E} entre à sa place, échauffement écourté.",
+  "Changement forcé pour {C} : {S} sort sur blessure, {E} le remplace au pied levé.",
+  "{S} quitte la pelouse en boitant, applaudi par les siens ; {E} prend sa place.",
+  "On ne prend aucun risque chez {C} : {S} rejoint le banc, {E} entre en jeu.",
+];
+function ligneBlessure(c, j, m){
+  return {m, t:"crd", ic:"soin", cote:c.id, bl:{cote:c.id, nom:j.nom, uid:j.uid},
+    x:PICK(BLESSURE_DIT).replace("{A}", j.nom).replace("{C}", c.nom)};
+}
+/* Ce que le téléscripteur écrit d'un pépin : la scène, puis la réponse du banc — l'entrant, le joueur
+   de champ qui enfile les gants, ou l'aveu de celui qui n'a plus de changement. */
+function lignesBlessure(c, j, m, rel){
+  const out=[ligneBlessure(c, j, m)];
+  const suite=(rel&&(rel.entre||rel.gants)) ? ligneApresRouge(c, rel, m)
+    : {m, t:"amb", x:c.nom+" a épuisé ses changements : "+j.nom+" reste sur la pelouse en serrant les dents."};
+  if(suite) out.push(suite);
+  return out;
+}
+/* CE QUE PÈSE LA PELOUSE — deux questions différentes, deux réponses, et il ne faut pas les mélanger.
+   (1) UN AUTRE HOMME À ONZE CONTRE ONZE (on fait entrer Untel plutôt que Machin) : c'est le domaine
+   naturel de la formule des trois zones. On repasse les deux camps dedans, une fois avec le onze prévu,
+   une fois avec celui qu'on aligne, et l'on garde le rapport des buts attendus — aucun barème inventé,
+   c'est l'arithmétique du moteur. Bornée tout de même par les rails ci-dessous : un remplaçant, même
+   médiocre, vaut mieux qu'un trou.
+   (2) UN HOMME EN MOINS, ENTIER OU PAR MORCEAUX (on finit à dix, ou l'on garde un blessé qui boite) :
+   là, la formule des zones ment. Elle divise par les places de la formation, si bien qu'un attaquant
+   manquant sur deux ferait fondre l'attaque de moitié — alors qu'une équipe à dix se réorganise. On
+   reprend donc les rails du CARTON ROUGE (0,78 pour nos buts, 1,18 pour les leurs — le barème calibré
+   de « un homme de moins », cf. simuleMatch et malusRouge), au prorata de ce qui manque : un homme qui
+   joue blessé, c'est une fraction d'homme en moins, et jamais un homme entier.
+   Les deux rendent {mien, sien}, les multiplicateurs à appliquer aux lambdas du direct. */
+const BLESS_DIX=0.78, BLESS_DIX_ADV=1.18; // un homme de moins : exactement le barème du rouge
+function poidsHommeEnMoins(part){ // part=1 : il sort et personne ne le remplace · part<1 : il reste, diminué
+  return {mien:Math.pow(BLESS_DIX,part), sien:Math.pow(BLESS_DIX_ADV,part)};
+}
+function poidsPelouse(moi, adv, xiAvant, xiApres){
+  const manque=xiAvant.length-xiApres.length;
+  if(manque>0) return poidsHommeEnMoins(manque);
+  const fa=forces(adv);
+  const [a0,d0]=lambdasZones(forces(moi, xiAvant), fa);
+  const [a1,d1]=lambdasZones(forces(moi, xiApres), fa);
+  const borne=(x,lo,hi)=>Math.max(lo, Math.min(hi, x));
+  return {mien:borne(a0>0?a1/a0:1, BLESS_DIX, 1/BLESS_DIX),
+          sien:borne(d0>0?d1/d0:1, 1/BLESS_DIX_ADV, BLESS_DIX_ADV)};
+}
+
+/* LA FENÊTRE DU BANC — le seul moment où le match vous demande quelque chose avant la 90e. Le banc a
+   DÉJÀ répondu au pépin (le remplaçant évident est entré, cf. jouerJournee) : cette fenêtre sert à
+   DÉVIER de cette réponse. Chaque déviation est pesée (poidsPelouse à onze contre onze, poidsHommeEnMoins
+   quand il manque un homme ou un morceau d'homme), puis la fin du match est rejouée depuis la minute du
+   pépin, sur les mêmes rails qu'une consigne changée en direct. Le remplacement rapide, lui, ne rejoue
+   rien : c'est la réponse par défaut, celle que le moteur a déjà jouée.
+   Elle vit ICI, et non dans lanceMatch, pour être jouable au harnais : tout ce qu'elle a besoin de savoir
+   du direct tient dans `ctx` — {monMatch, eM, mul:{h,a}, reprendre(), suite()}. */
+function ouvreBlessure(ctx, lg, idx){
+  const monMatch=ctx.monMatch, eM=ctx.eM, lignes=monMatch.ev;
+  const reprendre=()=>ctx.reprendre();
+  const moi=eM.h.id===G.monClub?eM.h:eM.a, adv=eM.h.id===G.monClub?eM.a:eM.h;
+  const j=byUid(lg.bl.uid), p=CHANGEMENTS[moi.id], m=lg.m;
+  if(!j || !p || !G._pend || monMatch._truque){ reprendre(); return; } // résultat déjà acté, ou victoire achetée : on ne rejoue rien
+  const kL=lignes.findIndex((l,n)=>n>idx && l.m===m && l.ic==="sub" && l.out===j.uid);
+  const entrant=(kL>=0)?byUid(lignes[kL].uid):null; // celui que le banc a fait entrer tout seul
+  const xiAvant=enJeu(moi, m).slice();              // la pelouse SANS déviation : c'est la référence du calcul
+  const recolle=(w, from, rendue)=>{
+    if(eM.h.id===G.monClub){ ctx.mul.h*=w.mien; ctx.mul.a*=w.sien; } else { ctx.mul.a*=w.mien; ctx.mul.h*=w.sien; }
+    rejoueDepuis(monMatch, eM.h, eM.a, from, m, ctx.mul.h, ctx.mul.a);
+    if(rendue){ const k=lignes.findIndex((l,n)=>n>=from && l.m>rendue.m); // le changement que le pépin avait fait sauter reprend sa place
+      lignes.splice(k<0?Math.max(from, lignes.length-1):k, 0, rendue); }
+    ctx.suite();
+  };
+  const serreLesDents=()=>{ // l'entêtement se paie une fois sur deux, et pas en monnaie de singe
+    const b=(p.bless||[]).find(x=>x.uid===j.uid);
+    if(Math.random()<BLESS_AGGRAVE){ if(b) b.d+=RNDI(1,3);
+      return "🦵 Il finit le match en boitant. Au vestiaire, le médecin du club fera la grimace."; }
+    eff(j,{moral:+4});
+    return "🦵 Il finit le match en boitant, et le virage scande son nom.";
+  };
+  const cands=bancBlessure(moi, p, j, m).filter(x=>x!==entrant).slice(0,3);
+  const lib=x=>esc(x.nom)+' <span class="dim">('+x.pos+" "+Math.round(x.note)+")</span>";
+  const fiche=cadreMoment("🏥 BLESSURE — "+m+"ᵉ MINUTE",
+    `<p><b>${esc(j.nom)}</b> ne peut pas reprendre. ${entrant?"Le banc a déjà fait lever <b>"+esc(entrant.nom)+"</b>.":esc(moi.nom)+" a fait ses trois changements : plus personne ne peut entrer."}</p>
+     <p class="dim">${entrant?"Le garder sur la pelouse, c'est jouer à dix et demi — et risquer de l'abîmer pour plusieurs journées.":"Le sortir maintenant, c'est finir la rencontre à dix."}</p>
+     <p style="margin-top:10px">
+       ${entrant?`<button class="big zChoix" id="bVite" style="padding:12px">⚡ Remplacement rapide : ${esc(entrant.nom)}</button>`:""}
+       ${(entrant&&cands.length)?`<br><span class="dim" style="font-size:12px">ou faire entrer&nbsp;:</span><br>${cands.map((x,n)=>`<button class="act zChoix bAutreB" data-n="${n}" style="margin:4px 3px 0">${lib(x)}</button>`).join("")}`:""}
+       <br><button class="act zChoix" id="bDents" style="margin-top:10px;padding:10px">🦵 Il serre les dents et reste sur la pelouse</button>
+       ${entrant?"":`<br><button class="act zChoix" id="bDix" style="margin-top:6px;padding:10px">🚑 Le sortir quand même — finir à dix</button>`}
+     </p><div id="penRes"></div>`);
+  const conclure=(txt, classe, choisi)=>finMoment(fiche, `<p class="${classe}" style="font-size:15px;margin-top:8px">${txt}</p>`, reprendre, choisi);
+  const bVite=fiche.querySelector("#bVite"), bDents=fiche.querySelector("#bDents"), bDix=fiche.querySelector("#bDix");
+  if(bVite) bVite.onclick=()=>conclure("Le banc avait vu juste : "+esc(entrant.nom)+" est déjà sur la pelouse.","vert",bVite);
+  fiche.querySelectorAll(".bAutreB").forEach(b=>b.onclick=()=>{
+    const autre=cands[+b.dataset.n]; if(!autre) return;
+    avanceLeBanc(p, autre, jetonBlessure(j)); // s'il devait entrer plus tard, ce changement-là saute
+    const k=p.banc.indexOf(entrant);
+    if(k>=0) p.banc[k]=autre;
+    if(p.urgence){ p.urgence[autre.uid]=p.urgence[entrant.uid]; delete p.urgence[entrant.uid]; }
+    const l=lignes[kL]; l.uid=autre.uid; // la ligne du direct suit : c'est LUI qui entre, et le recollage le gardera
+    l.x=PICK(SUBS_BLESSURE).replace("{C}",moi.nom).replace("{S}",j.nom).replace("{E}",autre.nom);
+    recolle(poidsPelouse(moi, adv, xiAvant, enJeu(moi,m).slice()), kL+1);
+    conclure("C'est "+esc(autre.nom)+" qui entre — vous l'avez désigné du doigt.","vert",b);
+  });
+  if(bDents) bDents.onclick=()=>{
+    /* S'il n'y avait personne à faire entrer, le garder EST la réponse par défaut, celle que le moteur a
+       déjà jouée : on ne rejoue rien (sinon le même choix coûterait au téléscripteur ce qu'il ne coûte
+       pas en résultat instantané). On ne recolle que si l'on renonce à un remplaçant offert. */
+    if(entrant){
+      let rendue=null, from=idx+1;
+      const k=p.banc.indexOf(entrant); // on défait le changement que le banc avait fait tout seul
+      if(k>=0){ p.banc.splice(k,1); p.sort.splice(k,1); p.min.splice(k,1); }
+      if(p.urgence) delete p.urgence[entrant.uid];
+      const tok=jetonBlessure(j);
+      p.annules=(p.annules||[]).filter(x=>{ if(x.par!==tok) return true; // et l'on rend celui qu'il avait fait sauter
+        p.banc.push(x.banc); p.sort.push(x.sort); p.min.push(x.min);
+        rendue=ligneChangement(moi, p, p.banc.length-1); return false; });
+      if(kL>=0){ lignes.splice(kL,1); from=kL; }
+      recolle(poidsHommeEnMoins(1-BLESS_BOITE), from, rendue); // il reste, mais amputé de ce qu'il ne peut plus faire
+    }
+    conclure(serreLesDents(),"jaune",bDents);
+  };
+  if(bDix) bDix.onclick=()=>{
+    (p.sorti||(p.sorti={}))[j.uid]=m; // il quitte la pelouse, et personne ne reprend sa place
+    recolle(poidsHommeEnMoins(1), idx+1);
+    conclure("🚑 "+esc(j.nom)+" est évacué : "+esc(moi.nom)+" finira la rencontre à dix.","rouge",bDix);
+  };
 }
 
 function notif(t){ (G.notifs=G.notifs||[]).push(t); }
@@ -3258,6 +3483,16 @@ function jouerJournee(evCb){
     // match ne le réécrit plus après coup
     const pre={h:tireSubs(h,0), a:tireSubs(a,3)};
     CHANGEMENTS[h.id]=pre.h; CHANGEMENTS[a.id]=pre.a;
+    /* LE PÉPIN SE VIT PENDANT LE MATCH (v1.18) : pour la rencontre qu'on joue, il se tire AVANT le coup
+       d'envoi et le banc y répond tout de suite, des deux côtés. Le moteur sait donc qui est sur la
+       pelouse à chaque minute — au téléscripteur comme en résultat instantané, et donc au harnais. Les
+       neuf autres rencontres gardent l'ancien chemin : tirage au coup de sifflet (cf. appliqueResultat). */
+    const pepins=[];
+    if(mien) for(const [c,s] of [[h,pre.h],[a,pre.a]]){
+      s.bless=tireBlessures(c, s);
+      for(const b of s.bless){ const j=byUid(b.uid);
+        if(j && b.m) pepins.push({c, s, j, b, rel:remplaceBlesse(c, b.m, j)}); }
+    }
     const r=simuleMatch(h,a,mien);
     if(mien && G.truque){ // la mallette a parlé : victoire garantie
       const dom=hid===G.monClub;
@@ -3285,6 +3520,17 @@ function jouerJournee(evCb){
     // le direct écrit les changements que la fraîcheur fera payer : même minute, même homme qui sort
     // (le gardien appelé par un rouge est déjà écrit, juste sous son rouge : lignesChangements ne rend que les prévus)
     for(const [c,s] of [[h,pre.h],[a,pre.a]]) lignes.push(...lignesChangements(c, s));
+    /* La scène du pépin, puis la réponse du banc — écrite APRÈS la simulation, parce que le match a pu
+       défaire ce qu'on avait posé au coup d'envoi (trouvé par harness-effectif) :
+       • un carton rouge pour le blessé AVANT sa minute : il a déjà quitté la pelouse, la scène n'a
+         pas lieu du tout (expulse a défait son changement, le moteur ne le nomme plus) ;
+       • un rouge de l'autre camp de la feuille, ou un gardien à relever, qui a fait SAUTER le
+         changement qu'on lui destinait : personne n'entre finalement, et le fil doit le dire. */
+    for(const q of pepins){
+      if(q.s.rouge && q.s.rouge[q.j.uid]!=null && q.s.rouge[q.j.uid]<q.b.m){ q.b.m=0; continue; }
+      const rel=(q.rel && q.rel.entre && !q.s.banc.includes(q.rel.entre)) ? {plus:true} : q.rel;
+      lignes.push(...lignesBlessure(q.c, q.j, q.b.m, rel));
+    }
     const fin=r.ev.pop();
     r.ev=r.ev.concat(lignes).sort((x,y)=>x.m-y.m); r.ev.push(fin);
     // un moment de match à l'ultime seconde ?
@@ -8791,6 +9037,7 @@ const ICO={
  cj:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="7" y="1.6" width="8" height="12.8" fill="#ffd24a" transform="rotate(8 11 8)"/></svg>`,
  cr:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="7" y="1.6" width="8" height="12.8" fill="#ff6f61" transform="rotate(8 11 8)"/></svg>`,
  sub:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="5" y="5" width="2" height="9" fill="#5fd98f"/><path d="M6 1l4 5H2z" fill="#5fd98f"/><rect x="15" y="3" width="2" height="9" fill="#ff6f61"/><path d="M16 15l-4-5h8z" fill="#ff6f61"/></svg>`,
+ soin:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="9" y="2" width="4" height="12" fill="#ff6f61"/><rect x="5" y="6" width="12" height="4" fill="#ff6f61"/></svg>`,
 };
 
 let tickerTimer=null, tickerDelai=1600, butFlashTimer=null;
@@ -9849,7 +10096,9 @@ function lanceMatch(instant){
     return;
   }
   tickerDelai=1600;
-  let i=0, liveMin=0, liveMulH=1, liveMulA=1; // suivi du direct (minute jouée, infériorité numérique en cours) pour la re-sim tactique
+  // suivi du direct : minute jouée, et les multiplicateurs en cours (infériorité numérique, blessures) pour
+  // la re-sim. Ils vivent dans un objet parce que la fenêtre du banc, qui est hors d'ici, les modifie aussi.
+  let i=0, liveMin=0; const liveMul={h:1, a:1};
   // contrôle de tactique EN DIRECT : on re-simule les minutes restantes avec la nouvelle consigne. Depuis v1.04 il
   // est là à CHAQUE match joué au téléscripteur, moment de la 90e compris (la ligne du moment survit à la re-sim) :
   // seul le match truqué garde les boutons grisés — le résultat est acheté, la consigne n'y peut plus rien.
@@ -9872,13 +10121,18 @@ function lanceMatch(instant){
     // une action déjà annoncée par la montée de tension (« X se présente seul… ») va à son terme : on recolle APRÈS
     // elle (v1.10). Avant, elle restait en l'air et le fil repartait sur tout autre chose.
     const from=(lignes[i] && lignes[i]._monte) ? i+1 : i, mNow=from>i ? lignes[i].m : liveMin;
-    rejoueDepuis(monMatch, eM.h, eM.a, from, mNow, liveMulH, liveMulA);
+    rejoueDepuis(monMatch, eM.h, eM.a, from, mNow, liveMul.h, liveMul.a);
     penIdx=idxMoment(); // le moment de la 90e a été recollé plus loin (ou plus près) dans le fil
     eM.sh=monMatch.sh; eM.sa=monMatch.sa; // la feuille et le tableau suivront le nouveau cours
     ajouteLigne(tk,{m:liveMin,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
     tk.scrollTop=0; majTacBtns();
   };
   document.querySelectorAll(".bTacD").forEach(b=>b.onclick=()=>changeTactique(b.dataset.k));
+  // ce que la fenêtre du banc (ouvreBlessure) a besoin de savoir du direct : le match montré, la feuille
+  // du tableau d'affichage, les multiplicateurs en cours, et de quoi reprendre le téléscripteur
+  const ctxBlessure={ monMatch, eM, mul:liveMul,
+    reprendre:()=>{ tickerTimer=setTimeout(tic,300); },
+    suite:()=>{ penIdx=idxMoment(); eM.sh=monMatch.sh; eM.sa=monMatch.sa; } };
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
@@ -9900,7 +10154,7 @@ function lanceMatch(instant){
     if(lg && lg.m) liveMin=lg.m; // minute jouée (pour une éventuelle re-sim tactique)
     if(lg && lg.c && lg.c.rouge){ // infériorité numérique en cours : on reflète l'effet du moteur sur les attaques
       const dDef=lg.c.gardien&&!lg.c.releve?1.34:1.18; // même barème que le moteur (malusRouge) : un gardien relevé ne laisse que dix hommes
-      if(lg.c.cote===eM.h.id){ liveMulH*=0.78; liveMulA*=dDef; } else { liveMulA*=0.78; liveMulH*=dDef; }
+      if(lg.c.cote===eM.h.id){ liveMul.h*=0.78; liveMul.a*=dDef; } else { liveMul.a*=0.78; liveMul.h*=dDef; }
     }
     tk.scrollTop=0;
     if(courante===penIdx){
@@ -9920,6 +10174,13 @@ function lanceMatch(instant){
       celebreFlash({classe:"contre", gros:"🟥 CARTON ROUGE",
         sub:`<b class="jaune">${esc(lg.c.nom)}</b> · ${lg.m}'${contre?" — un des vôtres&nbsp;!":""}`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
+    }
+    if(lg && lg.bl){ // BLESSURE (v1.18) : la vôtre arrête le match et ouvre la fenêtre du banc, celle d'en face se lit au fil
+      if(lg.bl.cote!==G.monClub){ tickerTimer=setTimeout(tic,tickerDelai); return; }
+      celebreFlash({classe:"contre", gros:"🏥 BLESSURE",
+        sub:`<b class="jaune">${esc(lg.bl.nom)}</b> · ${lg.m}' — il ne peut pas continuer`,
+        detail:lg.x}, ()=>ouvreBlessure(ctxBlessure, lg, courante));
       return;
     }
     if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : c'est ICI qu'il se résout en direct (v1.04),
