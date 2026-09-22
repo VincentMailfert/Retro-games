@@ -241,6 +241,25 @@
 .fmatch{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:10px;margin-top:10px}
 .fmatch .hdm{border-top:1px solid var(--line);padding-top:6px} /* l'homme du match, détaché du reste de la feuille */
 
+/* LE MULTIPLEX DE FIN DE JOURNÉE (v1.17) : les deux cartes qui suivent la feuille de match dans le
+   téléscripteur — tous les stades, puis le classement. Tailles en `em` : le mode direct grossit
+   déjà le téléscripteur (19px), la carte doit suivre au lieu de se figer à 15. */
+.mpx{border:1px solid var(--cyan);background:rgba(111,214,232,.05);padding:10px;margin-top:10px}
+.mpx h3{margin:0 0 7px;font-size:.95em;letter-spacing:1px;color:var(--cyan);text-align:center}
+.mpxL{display:flex;align-items:baseline;gap:6px;margin:2px 0;max-width:540px;margin-left:auto;margin-right:auto}
+.mpxIc{flex:0 0 22px;text-align:center}
+.mpxD{flex:1 1 0;text-align:right;min-width:0}
+.mpxG{flex:1 1 0;min-width:0}
+.mpxS{font-family:var(--font-led);color:var(--jaune);flex:0 0 auto;min-width:52px;text-align:center}
+.mpxUne{border-top:1px solid var(--line);max-width:540px;margin:7px auto 0;padding-top:6px}
+.mpxUne p{margin:2px 0;font-size:.9em}
+.mpxT{width:100%;max-width:540px;min-width:0;margin:0 auto;border-collapse:collapse}
+.mpxT td{padding:1px 5px;border-bottom:none}
+.mpxT td.mvt{width:34px;text-align:center}
+/* À 390 px le mode direct écrit en 19 px : « Montpellier HSC » passe alors à la ligne et le score
+   dérive d'une ligne à l'autre. On resserre la carte des stades, elle seule. */
+@media(max-width:700px){ .mpxL{font-size:.82em;gap:4px} .mpxIc{flex-basis:18px} .mpxS{min-width:42px} }
+
 /* ---------- mode direct : le match occupe tout l'écran (immersion, surtout sur mobile) ----------
    Posé sur <body> par lanceMatch/lanceCoupe/lanceEuroLeg au coup d'envoi, retiré par abandonneDirect
    (le point de passage obligé de toute transition d'écran) au coup de sifflet suivant ou à la sortie.
@@ -319,7 +338,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.16"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.17"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3220,6 +3239,10 @@ function posePend(v){
 }
 function jouerJournee(evCb){
   veilleEffectif(); // aucun club ne prend le départ d'une journée avec un effectif hors des clous
+  /* LE CLASSEMENT D'AVANT LE COUP D'ENVOI (v1.17) : sans lui, la carte de fin de journée ne peut pas dire
+     qui a gagné des places et qui en a perdu — les neuf autres matchs sont appliqués dès la boucle
+     ci-dessous. Vingt entrées {id: rang}, quelques dizaines d'octets dans la sauvegarde. */
+  G.rangAv={}; classement().forEach((c,i)=>{ G.rangAv[c.id]=i+1; });
   G.notifs=[];
   noteSuivis(); // où en sont les joueurs suivis à l'étoile, AVANT le coup d'envoi : le debrief comparera
   G.offreExt=null; G.offrePret=null; // les offres de la semaine passée expirent
@@ -3839,6 +3862,7 @@ function finirJournee(delta){
   // (passés par référence), soit ~100 Ko de sauvegarde par journée. En milieu de saison le fichier
   // dépassait le quota du navigateur et la sauvegarde automatique échouait en silence.
   G.histo.push(res.map(e=>({h:e.h.id, a:e.a.id, sh:e.sh, sa:e.sa, mien:!!e.mien})));
+  G.multiplex=bilanJournee(res); // la carte de fin de journée, figée ici (cf. bilanJournee)
   if(G.news.length>60) G.news.length=60; // on n'affiche que les 10 dernières dépêches : le reste est du poids mort
   genPresse(res);
   debriefSuivis(); // l'étoile « Suivre » ne servait qu'au mercato : le debrief raconte le samedi de vos chouchous
@@ -6265,7 +6289,7 @@ function ouvreRecrutement(id){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px;max-height:88vh;overflow-y:auto">
     <h2 style="color:#6fd6e8">${poste.pic} RECRUTER — ${esc(poste.nom.toUpperCase())}</h2>
-    <p class="dim" style="font-size:12px;margin-bottom:8px">Un as, un confirmé et un espoir se présentent. Chacun réclame une indemnité à l'embauche et un salaire hebdomadaire — l'as se paie cher, à vous de voir ce que vos finances permettent.</p>
+    <p class="dim" style="font-size:12px;margin-bottom:8px">Un as, un confirmé et un espoir se présentent.</p>
     ${_COACHCANDS.map((c,i)=>`<div style="border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:6px 0">
        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
          <b>${esc(c.nom)}</b><span class="jaune" style="letter-spacing:1px">${etoiles(c.tier)}</span></div>
@@ -7915,6 +7939,7 @@ function migre(){
   G.poolPromus=G.poolPromus||[];
   G.centre=G.centre||1; G.offreExt=G.offreExt||null; G.offrePret=G.offrePret||null;
   G.flash=G.flash||null; G.intro=(G.intro==null?null:G.intro); // occasion de la semaine + mot d'ouverture de saison
+  G.multiplex=G.multiplex||null; G.rangAv=G.rangAv||null; // le multiplex de fin de journée (v1.17) : absent des carrières d'avant
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
   G.confPresse=G.confPresse||null; G.confRecents=G.confRecents||[];
   G.arc=G.arc||null; G._arcFait=!!G._arcFait; // arc narratif de saison
@@ -8352,7 +8377,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
   const imp=`<label class="act" style="cursor:pointer">📂 Importer un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`;
   if(!parties.length) return `<div class="panel">
      <h2>Reprendre une carrière</h2>
-     <p class="dim" style="font-size:12px;margin-bottom:8px">Aucune carrière sauvegardée dans ce navigateur. Choisissez un club plus bas : la partie se sauvegarde toute seule, et vous la retrouverez ici à votre prochaine visite. Rien n'oblige à n'en mener qu'une.</p>
+     <p class="dim" style="font-size:12px;margin-bottom:8px">Aucune carrière sauvegardée dans ce navigateur — choisissez un club plus bas.</p>
      <p class="carSous">${imp}</p>
    </div>`;
   const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}`;
@@ -8399,7 +8424,7 @@ function ecranAccueil(){
    </div>
    <div class="panel">
      <h2>Choisissez votre club</h2>
-     <p class="dim" style="margin-bottom:8px">Quarante clubs, classés par ambition. Cliquez sur un club pour découvrir sa fiche, puis prenez les rênes.</p>
+     <p class="dim" style="margin-bottom:8px">Quarante clubs, classés par ambition.</p>
      <div class="accTabs">
        <button id="tabD1" class="${ACCUEIL_DIV===1?"onD1":""}">DIVISION 1</button>
        <button id="tabD2" class="${ACCUEIL_DIV===2?"onD2":""}">DIVISION 2</button>
@@ -8569,7 +8594,7 @@ function ecranCalendrier(){
      <p>${G.offrePret.interlope
         ?`<b class="jaune">${esc(G.offrePret.club)}</b> a flairé <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) pendant son prêt et veut l'acheter définitivement`
         :`<b class="jaune">${esc(G.offrePret.club)}</b>, où <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) brille en prêt, veut lever l'option`} pour <b class="jaune">${(G.offrePret.prix/1e6).toFixed(1)} MF</b>.</p>
-     <p class="dim">Accepter, c'est encaisser tout de suite — mais le joueur ne reviendra pas. Refuser, c'est le récupérer à la fin du prêt. L'offre expire après la prochaine journée.</p>
+     <p class="dim">L'offre expire après la prochaine journée.</p>
      <p style="margin-top:8px"><button class="act" id="bPretAcc">Vendre (${(G.offrePret.prix/1e6).toFixed(1)} MF)</button>
      <button class="act" id="bPretRef">Refuser, il reviendra</button></p></div>`:"";
   const offre=(G.offreExt&&offreJ)?`<div class="panel" style="border-color:#6fd6e8">
@@ -8583,7 +8608,7 @@ function ecranCalendrier(){
   const affaire=G.affaire?`<div class="panel" style="border-color:#b86a2e">
      <h2 style="color:#ffd24a">Un intermédiaire vous approche...</h2>
      <p>« Le match de cette semaine ? Considérez-le comme... acquis. ${(G.affaire.prix/1e6).toFixed(0)} MF, en liquide, et personne n'en saura rien. »</p>
-     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Le juge fouinera quelques journées : passé ce délai sans fuite, la piste se refroidit et vous êtes tranquille. Mais si l'affaire éclate : 6 points de pénalité, 8 MF d'amende, et un président furieux.</p>
+     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Si l'affaire éclate : 6 points de pénalité, 8 MF d'amende, et un président furieux.</p>
      <p style="margin-top:8px"><button class="act" id="bMalAcc">Accepter la mallette (${(G.affaire.prix/1e6).toFixed(0)} MF)</button>
      <button class="act" id="bMalRef">Éconduire l'intermédiaire</button></p></div>`:"";
   chrome("calendrier",`
@@ -8616,8 +8641,7 @@ function ecranCalendrier(){
        const noms=cuits.slice(0,4).map(j=>esc(j.nom)).join(", ")+(cuits.length>4?"…":"");
        return `<p class="ctr ${rouges.length?"rouge":"jaune"}" style="margin-top:4px;font-size:12px">
          ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s sont CUITS":" est CUIT")+" (sous 65) — jambes, blessures ET moral"
-                        :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s entamés":" entamé")+" : sous 90, on ne joue plus à plein régime"} : ${noms}.
-         <span class="dim">L'écran Effectif permet de les mettre au repos.</span></p>`;
+                        :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s entamés":" entamé")+" : sous 90, on ne joue plus à plein régime"} : ${noms}.</p>`;
      })()}
      ${feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
@@ -8682,7 +8706,6 @@ function ecranCalendrier(){
       <h2 class="jaune">🎟️ Tribunes clairsemées</h2>
       <p>Le service billetterie tire la sonnette : à ce rythme, <b>${esc(h.stade)}</b> ne sera rempli qu'à <b class="rouge">${Math.round(projFill*100)} %</b> ce week-end. Soit près de <b>${FMT(placesVides)}</b> sièges vides.</p>
       <p style="margin-top:8px">Le directeur propose une <b>opération « tribunes scolaires »</b> : on ouvre les portes aux écoles et clubs du quartier à <b class="jaune">${PROMO_PRIX} FF</b> la place. La recette sera maigre, mais un stade plein, ça <b>pousse l'équipe</b> — et ça soigne l'image.</p>
-      <p class="dim" style="font-size:12px;margin-top:8px">Effet pour ce match : stade quasi comble (ambiance + ferveur du 12e homme), petit gain de réputation. Contrepartie : ces places-là ne rapportent presque rien.</p>
       <p style="margin-top:12px"><button class="big" id="bPromoOui">On remplit le stade !</button>
         <button class="act" id="bPromoNon" style="margin-left:8px">Non, tarif normal</button></p></div>`;
     fiche.style.display="flex"; window._penEnCours=true;
@@ -8699,7 +8722,6 @@ function ecranCalendrier(){
       <p>${esc(e.ere)}</p>
       <p style="margin-top:10px">De nouveaux sponsors, très généreux mais à l'odeur de soufre, vont frapper à votre porte. La question est simple, et elle est pour vous :</p>
       <p style="margin-top:6px;font-style:italic;color:#b388e8">« Que ferez-vous ? Quel est l'ADN de votre club ? »</p>
-      <p class="dim" style="font-size:11px;margin-top:8px">L'argent facile gonfle les caisses mais entache la réputation. La fidélité aux valeurs se paie en patience. À vous de tracer la ligne.</p>
       <p style="margin-top:12px"><button class="big" id="bEreOk">J'ai compris l'enjeu</button></p></div>`;
     fiche.style.display="flex";
     fiche.querySelector("#bEreOk").onclick=()=>{ fermeFiche(); suite(); };
@@ -9603,6 +9625,97 @@ const ARCS={
  },
 };
 
+/* ---------- LE MULTIPLEX DE FIN DE JOURNÉE (v1.17) ----------
+   Retour de playtest : « après chaque match ça passe à la journée suivante, et je ne suis même pas sûr
+   qu'on voie les autres résultats ni le classement qui bouge ». Le coup de sifflet déroule donc DEUX
+   CARTES à la suite de la feuille de match, là où les neuf autres scores tombaient en vrac : TOUS LES
+   STADES (les affiches qui comptent signalées — le leader, votre rival, vos voisins de tableau), puis
+   LE CLASSEMENT (la tranche utile du tableau, et ce que chacun y a gagné ou perdu comme places).
+   TOUT EST FIGÉ dans `G.multiplex` au moment où la journée se termine — noms, points, rangs — et pas
+   relu à l'affichage. Deux raisons : la J38 remet les compteurs à zéro juste après (`finDeSaison` passe
+   dans la même `finirJournee`, et la carte parlerait alors d'un classement vide), et la carte doit se
+   relire telle quelle si la page est rechargée. Une trentaine de lignes de sauvegarde, écrasées chaque
+   semaine — sans commune mesure avec les ~100 Ko qu'aurait coûtés `res` avec ses objets clubs. */
+function bilanJournee(res){
+  const av=G.rangAv||{};
+  const tab=classement().map((c,i)=>({id:c.id, nom:c.nom, pts:c.pts, r:i+1, av:av[c.id]||(i+1)}));
+  const e=enjeuDe(G);
+  return {j:G.journee, div:G.div||1, moi:G.monClub, enjeu:e?e.txt:null, tab,
+    m:res.map(x=>({h:x.h.id, hn:x.h.nom, a:x.a.id, an:x.a.nom, sh:x.sh, sa:x.sa, mien:!!x.mien}))};
+}
+/* Carte 1 — les autres stades. Trois pastilles, et pas de légende : on comprend à la deuxième journée
+   que la couronne suit le leader, l'épée votre rival de toujours, la cible celui qui vous encadre. */
+function mpxStades(M){
+  const chef=M.tab.length?M.tab[0].id:null, rival=RIVAL[M.moi]||null;
+  const moiT=M.tab.find(t=>t.id===M.moi);
+  const voisins=moiT?M.tab.filter(t=>Math.abs(t.r-moiT.r)===1).map(t=>t.id):[];
+  const pastille=x=>{
+    if(x.h===chef||x.a===chef) return "👑";
+    if(rival&&(x.h===rival||x.a===rival)) return "⚔️";
+    if(voisins.indexOf(x.h)>=0||voisins.indexOf(x.a)>=0) return "🎯";
+    return "";
+  };
+  const ligne=x=>`<div class="mpxL"><span class="mpxIc">${pastille(x)}</span><span class="mpxD${x.sh>x.sa?" jaune":""}">${esc(x.hn)}</span><span class="mpxS">${x.sh}—${x.sa}</span><span class="mpxG${x.sa>x.sh?" jaune":""}">${esc(x.an)}</span></div>`;
+  return `<div class="mpx"><h3>📻 TOUS LES STADES · J${M.j}</h3>
+    ${M.m.filter(x=>!x.mien).map(ligne).join("")}
+    ${mpxUne(M)}
+    <p class="ctr" style="margin-top:9px"><button class="big" id="bMpxNext">Le classement ▸</button></p></div>`;
+}
+/* La une de la semaine : deux lignes au plus, et seulement si la journée a produit quelque chose. Un
+   changement de leader passe avant tout le reste — c'est LE fil qu'on veut garder d'une semaine à l'autre. */
+function mpxUne(M){
+  const out=[], autres=M.m.filter(x=>!x.mien), chef=M.tab[0];
+  if(chef && chef.av>1) out.push(`👑 <b class="jaune">${esc(chef.nom)}</b> prend la tête du championnat.`);
+  const claque=autres.slice().sort((a,b)=>Math.abs(b.sh-b.sa)-Math.abs(a.sh-a.sa))[0];
+  const fest=autres.slice().sort((a,b)=>(b.sh+b.sa)-(a.sh+a.sa))[0];
+  if(claque && Math.abs(claque.sh-claque.sa)>=3){
+    const g=claque.sh>claque.sa;
+    out.push(`💥 <b>${esc(g?claque.hn:claque.an)}</b> ${Math.max(claque.sh,claque.sa)}-${Math.min(claque.sh,claque.sa)} ${esc(g?claque.an:claque.hn)}.`);
+  } else if(fest && fest.sh+fest.sa>=6) out.push(`🎆 ${esc(fest.hn)} ${fest.sh}-${fest.sa} ${esc(fest.an)}.`);
+  return out.length?`<div class="mpxUne">${out.slice(0,2).map(t=>`<p>${t}</p>`).join("")}</div>`:"";
+}
+/* Carte 2 — le classement. On ne redonne pas les vingt lignes (l'onglet CLASSEMENT est là pour ça) :
+   la tête, vos deux voisins de part et d'autre, et le bas de tableau. Les rangs sautés se disent ⋯. */
+function mpxTable(M){
+  const T=M.tab, n=T.length, moiT=T.find(t=>t.id===M.moi), mr=moiT?moiT.r:0;
+  const garde={}, pose=r=>{ if(r>=1&&r<=n) garde[r]=1; };
+  for(let r=1;r<=3;r++) pose(r);
+  for(let r=mr-2;r<=mr+2;r++) pose(r);
+  for(let r=n-2;r<=n;r++) pose(r);
+  const mvt=t=>{ const d=(t.av||t.r)-t.r;
+    return d>0?`<span class="vert">▲${d}</span>`:(d<0?`<span class="rouge">▼${-d}</span>`:`<span class="dim">·</span>`); };
+  let corps="", prec=0;
+  for(const r of Object.keys(garde).map(Number).sort((a,b)=>a-b)){
+    const t=T[r-1]; if(!t) continue;
+    if(prec && r>prec+1) corps+=`<tr><td colspan="4" class="dim ctr">⋯</td></tr>`;
+    prec=r;
+    const zone=(r<=3)?"vert":((M.div===1&&r>n-3)?"rouge":"dim");
+    corps+=`<tr class="${t.id===M.moi?"me":""}"><td class="num ${zone}">${r}</td><td class="mvt">${mvt(t)}</td><td>${esc(t.nom)}</td><td class="num"><b>${t.pts}</b></td></tr>`;
+  }
+  const d=moiT?((moiT.av||moiT.r)-moiT.r):0;
+  const places=d?`<span class="${d>0?"vert":"rouge"}">${d>0?"▲":"▼"}${Math.abs(d)} place${Math.abs(d)>1?"s":""}</span>`:`<span class="dim">sur place</span>`;
+  return `<div class="mpx"><h3>📊 LE CLASSEMENT · J${M.j}</h3>
+    ${moiT?`<p class="ctr" style="margin-bottom:6px"><b class="jaune">${esc(M.enjeu||ordinal(moiT.r))}</b> · ${places}</p>`:""}
+    <table class="mpxT">${corps}</table>
+    <p class="ctr" style="margin-top:9px"><button class="big" id="bMpxNext">Prochaine journée 📆</button></p></div>`;
+}
+/* Le rendu des deux cartes, l'une après l'autre, dans le nœud qu'on lui donne (le téléscripteur, sous
+   la feuille de match). `fini` est le passage à la suite — on y arrive toujours, même si la carte manque. */
+function mpxVise(hote){ // amène le haut de la carte en haut du téléscripteur (sans toucher au reste de la page)
+  const tk=document.getElementById("ticker");
+  if(!tk || !hote || typeof hote.getBoundingClientRect!=="function" || typeof tk.getBoundingClientRect!=="function") return;
+  tk.scrollTop += hote.getBoundingClientRect().top - tk.getBoundingClientRect().top;
+}
+function rendMultiplex(hote, carte, fini){
+  if(!hote) return;
+  const M=G.multiplex;
+  hote.innerHTML = !M ? `<p class="ctr" style="margin-top:8px"><button class="big" id="bMpxNext">Prochaine journée 📆</button></p>`
+    : (carte===2 ? mpxTable(M) : mpxStades(M));
+  const b=hote.querySelector("#bMpxNext");
+  mpxVise(hote);
+  if(b) b.onclick=()=>{ if(M && carte!==2) rendMultiplex(hote,2,fini); else fini(); };
+}
+
 function lanceMatch(instant){
   // le coup d'envoi est donné : on passe en mode direct plein écran (le match prend tout l'écran), retiré au sifflet par abandonneDirect
   if(document.body) document.body.classList.add("mode-direct");
@@ -9672,12 +9785,9 @@ function lanceMatch(instant){
     const colBut=(cote,droite)=>buts.filter(l=>l.g.cote===cote)
       .map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}${l.g.cf?' <span class="dim">(cf)</span>':l.g.pen?' <span class="dim">(sp)</span>':""}</p>`).join("")||'<p class="dim">—</p>';
     const afficheFeuille=()=>{
-      // le téléscripteur insère en tête : on pose donc les autres résultats D'ABORD pour que la feuille
-      // de match, posée ensuite, ressorte AU-DESSUS d'eux — lecture : feuille, autres scores, bouton
-      const autres=res.filter(r=>r.h.id!==G.monClub&&r.a.id!==G.monClub)
-        .map(r=>`<p class="dim">${esc(r.h.nom)} ${r.sh} - ${r.sa} ${esc(r.a.nom)}</p>`).join("");
-      tk.insertAdjacentHTML("afterbegin",`<p class="sys">— Les autres résultats de la journée —</p>${autres}
-        <p style="margin-top:6px"><button class="big" id="bSuite">Prochaine journée 📆</button></p>`);
+      // le téléscripteur insère en tête : on pose donc le multiplex D'ABORD pour que la feuille de
+      // match, posée ensuite, ressorte AU-DESSUS de lui — lecture : feuille, puis les deux cartes
+      tk.insertAdjacentHTML("afterbegin",`<div id="mpxHote"></div>`);
       tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
         <p class="sys" style="margin-bottom:4px">— FEUILLE DE MATCH —</p>
         <p style="text-align:center;font-size:16px"><b>${esc(eM.h.nom)} <span class="jaune">${eM.sh}</span> — <span class="jaune">${eM.sa}</span> ${esc(eM.a.nom)}</b></p>
@@ -9690,8 +9800,11 @@ function lanceMatch(instant){
           <span class="dim">(${esc(clubById(G.hdm.club)?clubById(G.hdm.club).nom:"")}) : ${esc(G.hdm.motif)}.</span></p>`:""}
         <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(monMatch.aff||0)} spectateurs — ${esc(eM.h.stade)}</p>
       </div>`);
+      // LE MULTIPLEX (v1.17) : les neuf autres scores ne tombent plus en vrac sous la feuille — ils
+      // ouvrent une carte qui dit lesquels comptent, suivie du classement et de ce qu'on y a gagné.
+      // Le bouton de sortie vit désormais au bas de la seconde carte : on passe donc par elle.
       tk.scrollTop=0;
-      document.getElementById("bSuite").onclick=()=>montre("calendrier");
+      rendMultiplex(document.getElementById("mpxHote"), 1, ()=>montre("calendrier"));
     };
     // coup(s) du chapeau du match : une fenêtre dédiée avant la feuille, le héros repart avec le ballon
     const chaps=[...new Set(buts.filter(l=>l.g&&l.g.chapeau).map(l=>l.g.but))]
@@ -10090,7 +10203,7 @@ function ecranClassement(){
      <td class="num">${c.n}</td><td class="num">${c.p}</td><td class="num">${c.bp}</td><td class="num">${c.bc}</td>
      <td class="num">${c.bp-c.bc>0?"+":""}${c.bp-c.bc}</td><td class="num"><b>${c.pts}</b></td></tr>`;}).join("")}
    </table>
-   <p class="dim" style="margin-top:6px">Victoire 3 pts · ${G.div===1?"Les trois derniers (▼) descendent en Division 2":"Les trois premiers (▲) montent en Division 1 !"} · Cliquez sur un club pour consulter son effectif.</p></div>
+   </div>
    <div class="grid3">
    <div class="panel"><h2>Buteurs</h2>
      <table class="fit">${buteurs.length?buteurs.map((j,i)=>`<tr><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.buts}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Aucun but inscrit pour l'instant.</td></tr>`}</table>
@@ -10100,7 +10213,6 @@ function ecranClassement(){
    </div>
    <div class="panel"><h2>🏅 Hommes du match</h2>
      <table class="fit">${decores.length?decores.map((j,i)=>`<tr class="${j.club===G.monClub?"me":""}"><td>${i+1}</td><td>${esc(j.nom)}</td><td class="dim">${esc(clubById(j.club)?clubById(j.club).nom:"")}</td><td class="num"><b>${j.hdm||0}</b></td></tr>`).join(""):`<tr><td class="dim" colspan="4">Personne n'a encore été désigné.</td></tr>`}</table>
-     <p class="dim" style="margin-top:4px;font-size:11px">Une distinction par rencontre : buts, passes décisives et cage inviolée comptent, un carton rouge disqualifie.</p>
    </div></div>`);
   app.querySelectorAll("tr.click").forEach(tr=>tr.onclick=()=>{
     if(tr.dataset.id===G.monClub) montre("effectif"); else ecranClubVue(tr.dataset.id);
@@ -10241,10 +10353,9 @@ function ecranEffectif(){
        : `<p class="dim" style="margin-top:4px;font-size:12px">🎓 Le centre de formation a donné ses ${MONTEES_MAX} jeunes de la saison — les suivants monteront à l'intersaison.</p>`;
      return `<p class="${cls}" style="margin-top:8px;font-size:12px">⚖️ Plancher réglementaire : <b>${PLANCHER_TOTAL} joueurs</b> sous contrat (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — 11 titulaires et 5 remplaçants sur la feuille de match. Effectif actuel : <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
    })()}
-   <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême. Survolez pour le détail, ouvrez la fiche pour tout savoir.</p>
-   <p class="dim" style="margin-top:6px">Les quatre boutons de chaque ligne : <b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> mettre en vente · <b>📤</b> prêter — allumés en cyan quand la décision est en cours, un second appui l'annule. Touchez le nom pour ouvrir la fiche.</p>
-   <p class="dim" style="margin-top:6px">★ = titularisé de force, prioritaire dans le ${G.formation} même moins bien noté — idéal pour faire jouer une pépite. Trois remplaçants entrent en jeu chaque match et progressent aussi, plus lentement. Vente éclair, prêts : ouvrez la fiche du joueur. Échap ferme les fiches.</p>
-   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> sur 100 — 💪 frais (90 et plus) · 😐 entamé (80) · 😓 émoussé (65) · 🥵 jambes lourdes (50) · 🥴 sur les rotules. Un match coûte 20 points de fraîcheur, une entrée en jeu 8, et une semaine de repos en rend 20. Passé 29 ans (⏳), sept jours ne suffisent plus tout à fait : le déficit s'accumule de match en match. <b>Au-dessus de 90, aucun effet.</b> De 80 à 90, on joue à son pourcentage de forme — à 82, on rend 82 %. De 65 à 80, la note ET le risque de blessure s'aggravent. <b>Sous 65, l'impact devient massif et le moral se met à fuir</b> : là, c'est le repos ou rien. <b>Le onze écarte de lui-même un homme émoussé</b> — ★ passe outre, 🛌 Repos l'écarte pour de bon jusqu'à ce qu'il ait refait le plein.</p>
+   <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême.</p>
+   <p class="dim" style="margin-top:6px"><b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> vendre · <b>📤</b> prêter</p>
+   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> : 💪 frais · 😐 entamé · 😓 émoussé · 🥵 jambes lourdes · 🥴 sur les rotules. ⏳ = les années pèsent sur la récupération.</p>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
     <p class="dim" style="font-size:12px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b> — contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>
     <table><tr><th>Joueur</th><th>P</th><th>Chez</th><th class="num">Note</th><th class="num" title="Ce que le club hôte vous verse par journée de prêt">Encaissé</th><th>Retour</th></tr>
@@ -10486,8 +10597,7 @@ function ecranMercato(){
    </div>
    <div class="panel">
     <h2>Le marché des transferts</h2>
-    <p class="dim" style="margin-bottom:6px">Cliquez sur les en-têtes pour trier · ☆ pour suivre un joueur · cliquez une ligne pour l'avis du recruteur et les options.</p>
-    <p class="dim" style="margin-bottom:6px">⚖️ Un club ne vous cède pas plus de <b>${QUOTA_CESSIONS} joueurs par saison</b>, et jamais son second gardien : on ne vide pas l'effectif d'un adversaire. De votre côté, la Ligue impose <b>${PLANCHER_TOTAL} joueurs sous contrat</b> (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — recrutez avant de vendre.</p>
+    <p class="dim" style="margin-bottom:6px">⚖️ <b>${QUOTA_CESSIONS} joueurs par saison</b> au plus chez un même club · <b>${PLANCHER_TOTAL} sous contrat</b> au minimum chez vous.</p>
     <div class="row" style="margin:8px 0;flex-wrap:wrap;gap:8px;align-items:center">
       <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:150px" value="${esc(txtF)}">
       <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsPos}</span>
@@ -10546,18 +10656,15 @@ function ecranFinances(){
     <tr><td>Sponsor maillot</td><td class="num">${G.sponsor?'<span class="vert">'+esc(G.sponsor.nom)+" : +"+FMT(G.sponsor.fixe)+" FF/j"+(G.sponsor.prime?" +"+FMT(G.sponsor.prime)+" FF/victoire":"")+"</span>":'<span class="dim">aucun contrat</span>'}</td></tr>
     <tr><td>Billet moyen</td><td class="num">${pb.prix} FF <span class="dim">(${esc(pb.nom.toLowerCase())})</span></td></tr>
     <tr><td>Capacité de ${esc(c.stade)}</td><td class="num">${FMT(c.cap)} places</td></tr>
-   </table>
-   <p class="dim" style="margin-top:8px">Salaires et frais de fonctionnement sont prélevés chaque journée : une masse salariale trop lourde plombe les caisses. La billetterie n'est encaissée qu'à domicile, les primes de classement tombent en fin de saison. Trésorerie dans le rouge = président mécontent.</p></div>
+   </table></div>
    <div class="panel"><h2>Vases communicants — budget ↔ caisse</h2>
-    <p class="dim">Deux poches séparées : le <b class="jaune">budget transferts</b> recrute, la <b>trésorerie</b> fait tourner le club (salaires, frais, stade, centre). Quand le mercato déborde mais que la caisse est vide — impossible d'agrandir le stade —, le président autorise à <b>transvaser</b> d'une poche à l'autre. La manœuvre a un coût : <b class="rouge">${Math.round(FRAIS_VIRE*100)} %</b> de frais (banque, fisc, commissions). À sortir pour débloquer un projet, pas pour jongler.</p>
+    <p class="dim">Deux poches séparées : le <b class="jaune">budget transferts</b> recrute, la <b>trésorerie</b> fait tourner le club. Transvaser coûte <b class="rouge">${Math.round(FRAIS_VIRE*100)} %</b> de frais.</p>
     <p class="row" style="margin:10px 0">Montant&nbsp;:
       <select id="selVire">${[5,10,25,50,100].map(m=>`<option value="${m}">${m} MF</option>`).join("")}</select>
       <button class="act" id="bVcaisse">Mercato → caisse</button>
       <button class="act" id="bVmercato">Caisse → mercato</button>
-    </p>
-    <p class="dim" style="font-size:11px">« Mercato → caisse » puise dans le budget transferts pour renflouer le fonctionnement (et financer stade ou centre). « Caisse → mercato » réinvestit vos bénéfices d'exploitation en recrues. Dans les deux sens, ${Math.round(FRAIS_VIRE*100)} % partent en frais.</p></div>
+    </p></div>
    <div class="panel"><h2>Billetterie — politique tarifaire</h2>
-    <p class="dim">Le prix du billet arbitre entre recette à l'unité et ferveur des tribunes. Un stade plein dope le moral des joueurs — donc le jeu ; un club qui gagne peut faire payer plus cher sans vider Bollaert, au prix de son image. Quand l'équipe coule, brader ramène le peuple et remonte le moral.</p>
     <p class="row" style="margin:10px 0">Tarif appliqué&nbsp;:
       <select id="selPrix">${PRIX_BILLET.map((p,k)=>`<option value="${k}"${k===(G.prixBillet!=null?G.prixBillet:2)?" selected":""}>${esc(p.nom)} — ${p.prix} FF</option>`).join("")}</select>
     </p>
@@ -10688,13 +10795,12 @@ function ecranClub(){
          <span style="display:block;height:100%;width:${affPct}%;background:${affCol}"></span>
        </span> ${affPct}%${affEstim?' <span class="dim" style="font-size:10px">(estim.)</span>':''}</p>
      ${baroTribunes()}
-     ${G.chantier?"":`<p class="ctr dim" style="font-size:11px;margin-top:6px">Un projet à la fois — chaque livraison apparaît sur le stade et renforce le club. Cliquez une tribune pour l'agrandir.</p>`}
+     ${G.chantier?"":`<p class="ctr dim" style="font-size:11px;margin-top:6px">Un projet à la fois — cliquez une tribune.</p>`}
      <div class="ctr" style="margin-top:8px">${projetsHTML()}</div>
      <h3 style="margin-top:12px">Centre d'entraînement — niveau ${G.centre}/5</h3>
      <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} % et soignées plus vite${G.centre>=3?" · Le staff médical réduit la fragilité chaque intersaison":""}</p>
      <p style="margin-top:4px"><button class="act" id="bCe" ${G.centre>=5?"disabled":""}>Améliorer le centre (niveau ${G.centre+1} — ${8*G.centre} MF)</button></p>
      <h3 style="margin-top:12px">Staff technique</h3>
-     <p class="dim" style="font-size:11px">Six spécialistes à recruter — chacun donne un coup de pouce à son secteur (votre match) et coûte un salaire chaque journée. À chaque poste, un as / un confirmé / un espoir : l'as se paie cher.</p>
      <div>${staffHTML()}</div>
    </div>
    <div class="panel"><h2>Direction &amp; mémoire</h2>
@@ -10711,7 +10817,6 @@ function ecranClub(){
          <span style="display:block;height:100%;width:${Math.round(G.reput==null?75:G.reput)}%;background:${(G.reput||75)>65?"var(--vert)":((G.reput||75)>40?"var(--jaune)":"var(--rouge)")}"></span>
        </span> ${Math.round(G.reput==null?75:G.reput)}/100</p>
      <p class="dim">${(G.reput||75)>=80?"Un club respecté, fidèle à ses valeurs.":((G.reput||75)>=55?"Une image honorable.":((G.reput||75)>=35?"L'image se ternit — sponsors douteux, cadres bradés...":"Réputation au plus bas. Les puristes vous ont tourné le dos."))}</p>
-     <p class="dim" style="font-size:11px">Sponsors sulfureux, divas mercenaires et départs forcés de cadres écornent l'image ; recrues exemplaires et fidélité la nourrissent. Un club respecté remplit plus facilement son stade.</p>
      <h3 style="margin-top:12px">Mémoire du club</h3>
      ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> — ${esc(nomRivalite(c.id,RIVAL[c.id]))}. La confiance se joue aussi là.</p>`:""}
      <p>Bête noire : <b class="jaune">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"—")}</b>${c.bnBattue?' <span class="vert">— signe indien brisé cette saison ✓</span>':' <span class="dim">— ils jouent toujours bien contre vous... jusqu'+"'"+'à la première victoire.</span>'}</p>

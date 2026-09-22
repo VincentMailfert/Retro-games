@@ -25,6 +25,19 @@ toujours « raconter quelque chose ».
 - Réponses à l'auteur : **prose fluide, style article de presse**, pas de listes à puces techniques,
   pas de jargon inutile. L'auteur n'est pas développeur professionnel.
 - Le ton du jeu est léger, drôle, parfois sulfureux mais bon enfant. Jamais de registre tragique.
+- **ON N'EXPLIQUE PAS LE JEU, ON LE FAIT DÉCOUVRIR (consigne auteur, 22/09/2026)** : « un peu trop de texte
+  explicatif dans le jeu. Il faut laisser les gens découvrir par eux-mêmes. Ça fait partie du délire de
+  comprendre comment fonctionne le jeu, d'en découvrir les ficelles. » Un grand ménage a donc retiré en v1.17
+  les paragraphes de mode d'emploi qui meublaient les écrans : le barème et la zone rouge du classement, le
+  barème de l'homme du match, l'usage des boutons de l'effectif et du mercato, les huit cents signes qui
+  récitaient la fraîcheur, le fonctionnement des finances, de la billetterie, du staff et de la réputation,
+  et les modes d'emploi des choix (promo billets, nouvelle ère, offre sur un prêté, mallette).
+  **La ligne de partage** : on GARDE ce qui est une **information de situation** (un délai qui court,
+  une règle qui refuse un geste, la mise d'un pari, un glossaire de pictos sans lequel l'écran est illisible)
+  et ce qui est de la **narration** ; on COUPE ce qui **explique une mécanique** que jouer suffit à révéler,
+  ce qui décrit une **affordance** (« cliquez sur un club », « survolez pour le détail ») et ce qui **répète
+  un tableau** placé juste au-dessus. **À tenir pour tout nouvel écran** : si un paragraphe commence par
+  décrire comment le jeu marche, il n'a rien à y faire.
 
 ## Architecture (un seul fichier)
 - `index.html` : tout est dedans — `<style>`, `<body>` minimal, gros `<script>` vanilla.
@@ -1411,6 +1424,44 @@ toujours « raconter quelque chose ».
   évite qu'il reste seul dans un `grid2` à deux colonnes, donc à moitié vide. Les deux tableaux gardent
   `class="fit"` (voir le piège mobile plus bas). Aucun effet moteur.
 
+- **LE MULTIPLEX DE FIN DE JOURNÉE (v1.17, retour de playtest : « après chaque match ça passe à la journée
+  suivante, je ne suis même pas sûr qu'on voie les résultats des autres matchs ni le classement mis à jour
+  avec les évolutions — il faudrait une notif story de fin de journée, pour qu'on garde le fil »)**. Les neuf
+  autres scores tombaient bien au coup de sifflet, mais en **vrac, en gris, sous la feuille de match** : rien
+  ne disait lesquels comptaient, le classement n'apparaissait pas, et sur un téléphone tout cela vivait
+  **sous la ligne de flottaison** du téléscripteur. Le sifflet déroule désormais **deux cartes**, à la suite
+  de la feuille, et c'est par elles qu'on passe à la journée suivante.
+  • **Carte 1 — « 📻 TOUS LES STADES »** (`mpxStades`) : les neuf autres affiches, vainqueur en jaune, avec
+    **trois pastilles et AUCUNE légende** (on comprend à la deuxième journée, c'est la consigne « laisser
+    découvrir ») — 👑 le match du leader, ⚔️ celui de votre rival historique (`RIVAL`), 🎯 celui d'un club qui
+    vous encadre au classement. Dessous, **la une de la semaine** (`mpxUne`), **deux lignes au plus et
+    seulement s'il y a quelque chose** : un changement de leader passe avant tout (c'est LE fil qu'on veut
+    garder), sinon la claque du jour (3 buts d'écart) ou le festival (6 buts). Une journée sans relief n'écrit
+    rien — la carte reste maigre plutôt que bavarde.
+  • **Carte 2 — « 📊 LE CLASSEMENT »** (`mpxTable`) : pas les vingt lignes (l'onglet CLASSEMENT est là pour
+    ça) mais **la tranche utile** — le podium, vos deux voisins de part et d'autre, le bas de tableau, les
+    rangs sautés dits `⋯`. Chaque ligne porte **ce qu'elle a gagné ou perdu comme places** (▲n vert / ▼n
+    rouge / `·`), et l'en-tête reprend `enjeuDe(G)` (« 5ᵉ, à égalité de points pour l'Europe ») suivi de votre
+    propre mouvement. Le bouton **« Prochaine journée 📆 »** vit au bas de cette seconde carte.
+  • **Les données sont FIGÉES, pas relues** : `bilanJournee(res)` écrit `G.multiplex` = `{j, div, moi, enjeu,
+    tab:[{id,nom,pts,r,av}], m:[{h,hn,a,an,sh,sa,mien}]}` **à la fin de `finirJournee`**, juste après
+    `G.histo.push`. Deux raisons, et la première est un piège : **la J38 passe dans la MÊME `finirJournee`**
+    (`finDeSaison` → `razStatsClub`), donc une carte qui relirait `classement()` à l'affichage parlerait d'un
+    championnat remis à zéro ; la seconde est qu'une carte figée se relit telle quelle après un rechargement.
+    Le rang d'AVANT vient de **`G.rangAv`**, pris **en tête de `jouerJournee`** — il le faut, les neuf autres
+    matchs sont appliqués dès la boucle qui suit. Poids mesuré : **2,2 Ko, 0,46 % de la sauvegarde**, écrasés
+    chaque semaine (on ne garde que la dernière journée).
+  • **Branchement** : `afficheFeuille` (dans `fin()` de `lanceMatch`) pose `<div id="mpxHote">` puis la feuille
+    **par-dessus** (le téléscripteur écrit du plus récent au plus ancien, cf. le piège dédié plus bas), et
+    appelle **`rendMultiplex(hote, 1, ()=>montre("calendrier"))`**, qui rend la carte 1, puis la carte 2 au
+    clic, puis la suite. **`mpxVise(hote)`** amène le haut de la carte en haut du téléscripteur
+    (`tk.scrollTop += rect.top − rectTk.top`) : sans ça, la feuille de match la repoussait hors de l'écran à
+    390 px — le défaut même que l'auteur signalait. Repli intégral si `G.multiplex` manque (carrière d'avant
+    la v1.17, nœud sans géométrie) : le bouton de sortie est quand même écrit, on n'est jamais coincé.
+  • **Championnat seulement.** Les soirs de coupe et d'Europe ont leurs propres verdicts, et `finirJournee`
+    n'y passe pas. Aucun effet moteur : rien n'est simulé, on relit ce que la journée a produit.
+  Validation dédiée : **`harness-multiplex.cjs`** (sections A à G).
+
 - **PLUS UNE SEULE BOÎTE DU NAVIGATEUR (v1.05)** : le jeu appelait encore `alert` **32 fois**, `confirm` une
   fois (supprimer une carrière) et `prompt` une fois (renommer une carrière). Chaque apparition crevait le
   décor télétexte — police du système, bouton « OK » en anglais selon la machine — et sur mobile le navigateur
@@ -1480,6 +1531,12 @@ toujours « raconter quelque chose ».
    le premier record qui se tait et celui qui se crie, le palmarès élargi, le cumul d'une fiche de vie sur
    deux saisons, le jubilé, les sifflets du virage, le baromètre des tribunes et ses alertes, l'étoile
    « Suivre » au debrief, et l'écran de reprise qui se calcule ET se rend).
+   `harness-multiplex.cjs` (le multiplex de fin de journée, v1.17 : la carte construite à chaque journée,
+   les mouvements de rang qui ne divergent jamais du classement réel, la carte figée qui survit à la remise à
+   zéro de l'intersaison, le rendu des deux cartes — noms échappés, podium et voisins toujours montrés, une
+   qui n'annonce un nouveau leader qu'à bon escient —, l'enchaînement carte 1 → carte 2 → journée suivante
+   avec le défilement qui amène la carte sous les yeux, le repli quand la carte manque, le poids dans la
+   sauvegarde, et 114 cartes rendues sur trois saisons d'affilée),
    `harness-formations.cjs` (les formations, v1.12 : le 4-4-2 neutre par défaut et pour l'IA, le onze / la rotation de
    coupe / les ★ qui suivent la formation, le dépanneur d'un effectif décimé qui joue dans la ligne qu'il bouche, les
    trois caractères à joueurs égaux sans points gratuits, « trois bons milieux valent mieux que quatre moyens », le
@@ -1757,8 +1814,8 @@ toujours « raconter quelque chose ».
   `ajouteLigne` porte la règle pour les lignes de jeu ; les blocs de fin de match l'appliquent à la main.
   **Conséquence contre-intuitive, le vrai piège** : un bloc inséré APRÈS un autre ressort AU-DESSUS de lui.
   Un panneau en plusieurs morceaux doit donc être posé dans l'ordre **INVERSE** de la lecture voulue — c'est
-  pourquoi `afficheFeuille` (championnat) pose d'abord « Les autres résultats » **puis** la feuille de match,
-  pour qu'on lise feuille → autres scores → bouton. En Europe l'ordre naturel joue à l'endroit : la ligne
+  pourquoi `afficheFeuille` (championnat) pose d'abord le **multiplex de fin de journée** (v1.17) **puis** la
+  feuille de match, pour qu'on lise feuille → cartes → bouton. En Europe l'ordre naturel joue à l'endroit : la ligne
   « Fin de l'aller » / « TIRS AU BUT » est posée après la feuille, donc s'affiche au-dessus — le verdict
   d'abord, le détail ensuite, ce qu'on veut. **Ne PAS toucher** aux trois `insertAdjacentHTML("beforeend")`
   qui restent : ce sont les colonnes de buteurs du tableau d'affichage (`tBuH`/`tBuA`), qui doivent, elles,
