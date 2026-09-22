@@ -121,6 +121,97 @@ toujours « raconter quelque chose ».
   `0 0 9px`.
 
 ## Systèmes de jeu en place (ne pas casser)
+- **APRÈS CE MATCH — LES PROCHAINS RENDEZ-VOUS (v1.20, idée prise à RFM27)** : sous l'affiche du jour, trois
+  lignes au plus disent ce qui vient — l'adversaire, son rang, le lieu, et les soirs de semaine marqués comme
+  tels. Sans ça, la rotation se décidait à l'aveugle : on ménageait un cadre le samedi sans savoir qu'un
+  huitième de finale tombait le mercredi. `prochainsRdv(o, n, rdv)` est **PUR** (prend G, ou une sauvegarde
+  relue) et rend une liste triée `{j, ordre, ico, semaine, txt}` ; `blocProchains(o, rdv)` la rend. Posé sous
+  l'affiche dans `ecranCalendrier` (le samedi comme les soirs de semaine, une seule insertion) et dans le
+  panneau « ⚽ LE PROCHAIN MATCH » de `ecranReprise`.
+  **La règle, et elle est stricte : on n'annonce que ce qu'on SAIT** (cf. le piège « une ligne ne doit jamais
+  affirmer une phase de jeu qu'elle ne connaît pas »). Les journées de championnat à venir, oui — le calendrier
+  les porte. Le **prochain** tour de coupe et la **prochaine** manche européenne, oui, à leur journée
+  (`COUPE_TOURS[tourIdx].j`, `EURO_TOURS[tourIdx].j`/`.jr`) — mais **jamais les tours d'après**, qui n'existeront
+  que si l'on y est encore, et dont l'adversaire n'est pas tiré ; un tour à venir se dit d'ailleurs
+  « adversaire à tirer », alors qu'une manche RETOUR nomme l'adversaire de l'aller (`eu.attente.mien`). Éliminé,
+  le tour disparaît. **Le rendez-vous qu'on joue ce soir n'y figure pas** (`rdv`, celui de `rdvEnAttente`) : il
+  est déjà à l'écran, mais le samedi de la même journée, lui, y entre. **L'ordre à l'intérieur d'une journée est
+  celui de `rdvEnAttente`** : Europe, puis Coupe de France, puis le championnat. Un tour encore lointain ne prend
+  pas la place d'un samedi : la liste est chronologique et coupée à trois.
+  Gardé par la **section H de `harness-rdv.cjs`**.
+- **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
+  le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
+  championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :
+  les trois changements restent tirés par `tireSubs` (57e/65e/73e) et le match se joue comme en v1.18. Mais à
+  tout moment on peut reprendre la main sur CEUX QUI RESTENT : chaque changement décidé consomme l'une des trois
+  places et fait sauter le dernier que le banc avait prévu (`poseRemplacement`, la même que pour un blessé et
+  pour le gardien relevé). La fenêtre se lit en deux temps — « Qui entre ? » puis « À la place de qui ? » —
+  chaque nom avec son poste, sa note et sa fraîcheur, et se referme sur un verdict **en mots** (`verdictBanc`) :
+  le jeu ne montre jamais un multiplicateur.
+  **Deux limites du modèle, assumées et dites** : on ne remplace qu'un **titulaire encore sur la pelouse**
+  (`p.xi` apparie un entrant à un homme du onze de départ — `enJeu` ne saurait pas faire entrer quelqu'un à la
+  place d'un remplaçant), et **le gardien ne sort que sur blessure ou carton rouge** (consigne v1.13).
+  **Mécanique** : `ouvreBanc(ctx)` vit au niveau du module (testable), `ctx` = `{monMatch, eM, mul:{h,a}, pos(),
+  reprendre(), suite()}` où `pos()` rend `{from, mNow}` — la position du téléscripteur, calculée exactement
+  comme pour une consigne changée (on recolle APRÈS une action déjà annoncée par la montée de tension). Le poids
+  passe par `poidsPelouse` (onze contre onze : la formule des trois zones), puis `rejoueDepuis` rejoue la fin du
+  match et la ligne « Changement pour X : A entre à la place de B. » est posée en tête de ce qui reste à lire.
+  **Le vivier est commun au pépin et au choix** : `bancDispo(c,p,m)` (jamais le gardien remplaçant, jamais un
+  homme déjà entré, mais OUI un homme que le banc comptait faire entrer plus tard — `avanceLeBanc` retire alors
+  ce changement-là). **`ligneChangement` distingue trois causes** : `blessure` (SUBS_BLESSURE), le gardien
+  appelé par un rouge (SUBS_URGENCE), et `banc` — un changement voulu s'annonce comme n'importe quel autre, sans
+  `l.urg` : c'est un choix, pas un drame. Le bouton s'éteint avec la tactique quand le résultat est acté
+  (`figeTac`). Gardé par **`harness-banc.cjs`** (sections A à I).
+- **LA BLESSURE EN DIRECT (v1.18, partie d'une capture de RFM27 rapportée par l'auteur)** — jusqu'ici un pépin
+  se découvrait APRÈS la rencontre, dans les dépêches (« INFIRMERIE : X touché »), et le téléscripteur faisait
+  grimacer des hommes qui se tenaient la cuisse sans que rien n'arrive jamais. Désormais, pour LA rencontre qu'on
+  joue, il tombe à une minute, le direct s'arrête et le banc se lève.
+  **Le tirage n'a pas bougé d'un iota.** `tirageBlessure(c,j)` est la seule règle (fragilité, centre de formation,
+  préparateur physique, fraîcheur d'AVANT le coup d'envoi — les chiffres d'avant, au centième près) et n'est
+  appelée qu'UNE fois par homme et par match. Ce qui change, c'est QUAND : pour mon match, `tireBlessures` la joue
+  avant le coup d'envoi et range le résultat sur la feuille du jour (`sel.bless` = `[{uid, d, m}]`) ;
+  `appliqueResultat` la RELIT au lieu de tirer une seconde fois (`sel.bless` présent → plus de tirage). Les neuf
+  autres rencontres gardent l'ancien chemin, intact. Mesuré sur 6 carrières × 38 journées et plusieurs tirages :
+  0,22 blessure par match pour mon club et 0,20 pour les dix-neuf autres en v1.17, 0,23 et 0,20 en v1.18 — dans
+  le bruit. (Mon club a toujours eu un taux un peu supérieur : incidents de vestiaire et moment de la 90e.)
+  **La minute tombe dans SON temps de jeu**, jamais depuis le banc : si un changement devait le sortir à la 57e,
+  le pépin tombe avant. `m:0` = il sortait trop tôt pour que la scène ait lieu — la blessure existe quand même et
+  se découvre aux dépêches, comme avant.
+  **Le banc répond AVANT la simulation.** `remplaceBlesse(c,m,j)` fait entrer celui de son poste qui rend le plus
+  (sinon le meilleur dépanneur resté assis), y compris un homme qu'on comptait faire entrer plus tard —
+  `avanceLeBanc` retire alors ce changement-là, sans quoi il entrerait deux fois. C'est l'un des TROIS changements
+  (`poseRemplacement`, désormais partagée avec `releveGardien`, qui s'en servait déjà mot pour mot). Un gardien
+  passe par `releveGardien(…, "blessure")` ; sans doublure valide, `p.sorti[uid]=m` le sort de la pelouse et un
+  joueur de champ enfile les gants. **`enJeu` et le prorata de fraîcheur lisent `sorti` comme ils lisent `rouge`**
+  (la minute où l'on quitte le terrain, quelle qu'en soit la raison). Conséquence essentielle : le moteur travaille
+  avec la bonne pelouse dès la PREMIÈRE simulation — au téléscripteur, en résultat instantané et au harnais.
+  **La fenêtre du banc** (`ouvreBlessure(ctx, lg, idx)`, posée HORS de `lanceMatch` pour être jouable au harnais ;
+  `ctx` = `{monMatch, eM, mul:{h,a}, reprendre(), suite()}`) ne s'ouvre que pour VOTRE club, en direct, résultat
+  non acté, hors match truqué. **Le remplacement rapide est la réponse PAR DÉFAUT — celle que le moteur a déjà
+  jouée — et ne rejoue donc rien.** Trois déviations, chacune recollée par `rejoueDepuis` depuis la minute du
+  pépin : un autre homme du banc, « il serre les dents » (le remplaçant se rassoit, et le changement que le pépin
+  avait fait sauter revient à sa minute), et « le sortir quand même » quand il n'y a plus de banc. Règle qui tient
+  tout l'édifice : **on ne rejoue JAMAIS le défaut**, sinon le même choix coûterait au téléscripteur ce qu'il ne
+  coûte pas en résultat instantané.
+  **Ce que coûte une déviation — deux questions, deux réponses, à ne pas mélanger.** À onze contre onze (faire
+  entrer un autre), c'est `poidsPelouse` : la formule des trois zones repassée sur le onze réellement aligné, et
+  l'on garde le rapport des buts attendus. Quand il MANQUE un homme, entier ou par morceaux (finir à dix, ou garder
+  un boiteux), c'est `poidsHommeEnMoins(part)` : les rails du carton rouge (0,78 pour nos buts, 1,18 pour les leurs)
+  au prorata. **Pourquoi** : la formule des zones divise par les PLACES de la formation — un attaquant manquant sur
+  deux ferait fondre l'attaque de moitié (×0,49 mesuré) alors qu'une équipe à dix se réorganise. Un boiteux
+  (`BLESS_BOITE`=0,55, donc 45 % d'homme en moins) vaut ×0,89/×1,08 : toujours mieux qu'un trou, le choix n'est
+  jamais joué d'avance. **S'entêter se paie** : 45 % du temps (`BLESS_AGGRAVE`) l'absence s'allonge de 1 à 3
+  journées, sinon le virage scande son nom (+4 de moral).
+  **PIÈGE PAYÉ, trouvé par `harness-effectif`** : le changement posé au coup d'envoi peut avoir SAUTÉ pendant la
+  simulation — un rouge annule le changement prévu pour l'expulsé, un gardien à relever fait sauter le dernier
+  changement à venir. Les lignes du fil s'écrivent donc APRÈS `simuleMatch`, en revérifiant que l'entrant est
+  toujours sur la feuille (sinon on écrit « il reste sur la pelouse ») ; et un blessé qu'un rouge avait déjà sorti
+  n'a pas de scène du tout (`b.m=0`).
+  **Le fil** : `ligneBlessure` porte `bl:{cote,nom,uid}` et surtout PAS de `uid` en propre — `enFeuille`, dans
+  `rejoueDepuis`, le prendrait pour un entrant et jetterait la ligne. `rejoueDepuis` fait survivre la scène au
+  recollage : une consigne changée n'empêche personne de se blesser. Icône `soin` (la croix rouge) dans `ICO`,
+  textes dans `BLESSURE_DIT` et `SUBS_BLESSURE` (`ligneChangement` choisit son vivier selon `u.cause`).
+  Gardé par **`harness-blessure.cjs`**, sections A à K.
 - **CHANTIER « UN SEUL MOTEUR » — les fondations (22/09/2026, ouvert après la v1.16)**. Objectif : router la
   Coupe de France et la Coupe d'Europe par **`simuleMatch`**, le moteur du championnat, au lieu du modèle de
   force autonome — « je ne veux pas d'un moteur au rabais pour les coupes » (l'auteur). La fatigue, le moral,
@@ -202,6 +293,14 @@ toujours « raconter quelque chose ».
      ça que les petits y battent les grands**. Coefficient ramené à 0,002 et fourchette resserrée à
      [0,60 ; 0,88] → le village sort le PSG 22 % du temps, Rennes 39 %. Second piège : la mort subite
      bornée trop court laissait deux séances sur trois mille finir à égalité. **Gardé par la section J.**
+  **FUSION DU 22/09/2026** : `main` (v1.18 à v1.20 — la blessure en direct, le banc, les prochains
+  rendez-vous) a été fusionnée dans ce chantier. Un seul conflit, dans `registreDesHommes` : les deux côtés
+  y touchaient au même bloc. Résolu en gardant les deux — le contexte de compétition (`kM=cleMatchs()`) du
+  chantier ET le tirage unique de la blessure de la v1.18. **Conséquence à retenir pour la bascule** : un
+  soir de coupe passe par `registreDesHommes` sans `sel.bless`, donc son pépin se tire au coup de sifflet,
+  comme avant. Le jour où les coupes ouvriront la fenêtre du banc (l'auteur l'a demandé le 22/09 : « partout »),
+  il faudra leur poser une feuille du jour — `tireBlessures` + `remplaceBlesse` avant `simuleMatch`, comme
+  `jouerJournee` le fait pour le samedi.
 - **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
   `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** (référence de curation :
   **Transfermarkt**, page effectif par club et saison — `…/kader/verein/<id>/saison_id/1995`) — viser ~97% de vrais
@@ -1593,6 +1692,21 @@ toujours « raconter quelque chose ».
    du banc à la place d'un attaquant sur l'une des trois places, cage vide quand les changements sont faits ou le banc
    sans gardien, pas de troisième gardien, relais sur la blessure de la 90e, rouge effacé par le direct qui rend le
    changement sauté, et 600 matchs à gardiens nerveux, dont 300 recollés, sans ligne orpheline ni changement en double),
+   `harness-banc.cjs` (le banc en direct, v1.19 : la fenêtre qui s'ouvre et qui sait se taire — ne pas
+   l'ouvrir, c'est le jeu d'avant —, le vivier des entrants et des sortants, le changement voulu qui prend
+   l'une des trois places sans jamais en créer une quatrième, 60 changements où la pelouse suit et où le
+   moteur ne nomme personne hors de son temps de jeu, la ligne annoncée tout de suite avec les mots d'un
+   choix, le poids d'un meilleur et d'un moins bon entrant, les trois changements épuisés, la fraîcheur au
+   prorata et l'échappement des noms),
+   `harness-blessure.cjs` (la blessure en direct, v1.18 : un seul tirage par homme et par match — la feuille du
+   jour REMPLACE le tirage d'après-match au lieu de s'y ajouter —, la minute qui tombe dans le temps de jeu de
+   l'homme, le banc qui répond dans les trois changements (y compris en avançant un entrant prévu plus tard),
+   400 matchs où le blessé remplacé ne touche plus un ballon et où son remplaçant marque pour de bon, le gardien
+   touché avec et sans doublure, la fraîcheur au prorata, la scène toujours suivie de la réponse du banc à sa
+   minute, le poids d'un boiteux et d'une fin à dix, la survie de la scène au recollage d'une consigne, une saison
+   entière sans exception avec le taux de blessures dans sa plage, et **la fenêtre du banc cliquée pour de vrai**
+   sur un vrai nœud DOM — les quatre boutons, ce que chacun change sur la feuille du jour, l'échappement des noms,
+   et le résultat déjà acté qui ne rouvre rien),
    `harness-modales.cjs` (les fenêtres maison qui ont remplacé alert/confirm/prompt : rendu réel dans un vrai
    nœud `#msgbox`, échappement de tout ce qui vient du joueur ou d'un fichier, la confirmation qui ne dit
    « oui » que si on clique « oui », et **Échap qui dépile le message sans percer une fenêtre verrouillée**),
@@ -1603,7 +1717,10 @@ toujours « raconter quelque chose ».
    `harness-progression.cjs` (le cap franchi : `aMoi()` qui tranche sur le contrat et non sur le vestiaire,
    la notification qui part au Debrief et plus dans les dépêches, la carte postale du prêté, le silence sur
    l'emprunté, un prêt de quinze journées joué pour de bon, et le +1 de la sélection nationale),
-   `harness-rdv.cjs` (les rendez-vous de semaine : consigne et prime neutres par défaut puis efficaces en coupe et
+   `harness-rdv.cjs` (les rendez-vous de semaine, **et depuis v1.20 le bloc « APRÈS CE MATCH »** — les
+   trois prochains rendez-vous, le tour de coupe qui ne s'annonce qu'à sa journée et sans promettre
+   d'adversaire, la manche retour qui nomme le sien, le soir qu'on joue déjà et qui n'y figure pas, l'ordre
+   Europe → coupe → championnat, et la fin de saison qui n'annonce plus rien : consigne et prime neutres par défaut puis efficaces en coupe et
    en Europe, prime payée à la qualification et remise à zéro, consigne changée en direct qui rejoue la fin sans
    toucher au montré ni fausser la loi du score, verdicts européens recalculés, et le Calendrier qui montre le
    rendez-vous à préparer au lieu d'une fenêtre verrouillée),
