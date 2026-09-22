@@ -59,7 +59,7 @@ const GRAINE = Number(process.env.GRAINE || 20250922);
   };
 })(GRAINE);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,estAmateur,niveauCoupe,forceCoupe,forceEuro,nomCoupe,resoudreCoupe,euroManche,simuleMatch,enCompet,clubById,CLUBS,CLUBS_D2,CLUBS_AMATEURS,COUPE_TOURS,EURO_TOURS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,estAmateur,niveauCoupe,forceCoupe,forceEuro,nomCoupe,resoudreCoupe,euroManche,simuleMatch,enCompet,clubById,clubAmateur,amaById,forceClub,COUPE_POUCET_BONUS,CLUBS,CLUBS_D2,CLUBS_AMATEURS,COUPE_TOURS,EURO_TOURS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -342,10 +342,14 @@ try {
   /* 3) le maillot se rend TOUJOURS, même quand le match explose en vol : une variable laissée sur
         "CF" ferait disparaître la journée de championnat suivante des classements. */
   try { api.enCompet("CF", () => { throw new Error("coup de sifflet interrompu"); }); } catch (e) { /* attendu */ }
-  const av3 = somme("buts");
-  api.simuleMatch(h, v, false);
-  if (somme("buts") === av3) fail("après une exception en coupe, le championnat n'écrit plus dans son compteur : le maillot n'a pas été rendu");
-  else ok("le maillot est rendu même si le match lève une exception");
+  const av3 = { buts: somme("buts"), butsC: somme("butsC") };
+  // vingt matchs, pas un seul : un match isolé peut finir 0-0 et le test crierait au loup pour rien
+  let marques3 = 0;
+  for (let i = 0; i < 20; i++) { const r = api.simuleMatch(h, v, false); marques3 += r.sh + r.sa; }
+  const ap3 = { buts: somme("buts"), butsC: somme("butsC") };
+  if (ap3.butsC !== av3.butsC) fail("après une exception en coupe, le championnat écrit encore dans le compteur de coupe : le maillot n'a pas été rendu");
+  else if (ap3.buts - av3.buts !== marques3) fail("après une exception, le championnat n'enregistre plus ses buts correctement (" + (ap3.buts - av3.buts) + " pour " + marques3 + " marqués)");
+  else ok("le maillot est rendu même si le match lève une exception (" + marques3 + " buts, tous au championnat)");
 } catch (e) { fail("exception dans le contexte de compétition : " + e.stack); }
 
 /* ============================================================================
@@ -382,6 +386,110 @@ try {
     else ok(co.nom + " (" + co.club + ") : guéri, suspension purgée, fraîcheur remontée à " + Math.round(j.fraich));
   }
 } catch (e) { fail("exception dans la récupération des autres viviers : " + e.stack); }
+
+/* ============================================================================
+   I) LES EFFECTIFS DE VILLAGE — les amateurs ont des joueurs, et ce sont les bons.
+   Seize hommes par club réellement au tableau, une moyenne de onze qui vaut exactement la note de
+   force du club (sans quoi le calibrage des coupes partirait à la dérive), le Petit Poucet bâti sur
+   sa force majorée, des noms qui n'empiètent pas sur ceux des vrais joueurs, un effectif STABLE d'un
+   tour à l'autre — c'est tout l'intérêt : suivre le buteur du Poucet pendant son parcours — et remis
+   à neuf à chaque intersaison, comme l'a voulu l'auteur.
+   ============================================================================ */
+console.log("\nI) Les effectifs de village");
+try {
+  api.nouvellePartie(api.CLUBS[4].id);
+  const G = api.getG();
+  const co = G.coupe;
+  const auTableau = co.vivants.filter(api.estAmateur);
+
+  /* À LA DEMANDE : au tirage, aucun vestiaire n'est encore monté. Les bâtir tous d'un bloc ajoutait
+     ~100 Ko par sauvegarde et faisait passer quatre carrières au-dessus des ~5 Mo du navigateur. */
+  if (Object.keys(co.effectifs || {}).length !== 0)
+    fail("au tirage, " + Object.keys(co.effectifs).length + " effectifs déjà bâtis : ils doivent naître à la première affiche");
+  else ok("au tirage, aucun effectif de village n'est encore monté (ils naissent quand ils jouent)");
+
+  /* structure : seize hommes, 2 gardiens / 5 défenseurs / 5 milieux / 4 attaquants */
+  let malFormes = 0;
+  for (const id of auTableau) {
+    const c = api.clubAmateur(id);
+    const n = { G: 0, D: 0, M: 0, A: 0 };
+    for (const j of c.joueurs) n[j.pos]++;
+    if (c.joueurs.length !== 16 || n.G !== 2 || n.D !== 5 || n.M !== 5 || n.A !== 4) malFormes++;
+  }
+  if (malFormes) fail(malFormes + " effectif(s) hors format (attendu 16 hommes : 2G 5D 5M 4A)");
+  else ok("tous les effectifs sont au format : 16 hommes, 2G 5D 5M 4A");
+
+  /* calibrage : la moyenne du onze vaut la force du club, au point près. C'est CE chiffre que
+     l'ancien modèle lisait, donc c'est lui qui garantit que le calibrage ne dérive pas. */
+  let pire = 0, pireNom = "";
+  for (const id of auTableau) {
+    const c = api.clubAmateur(id);
+    const cible = api.amaById(id).force + (id === co.poucetId ? api.COUPE_POUCET_BONUS : 0);
+    const d = Math.abs(api.forceClub(c) - cible);
+    if (d > pire) { pire = d; pireNom = c.nom + " (visé " + cible + ", obtenu " + api.forceClub(c).toFixed(2) + ")"; }
+  }
+  if (pire > 1) fail("recentrage rate : ecart de " + pire.toFixed(2) + " sur " + pireNom);
+  else ok("moyenne du onze conforme à la force du club partout (écart max " + pire.toFixed(2) + ")");
+
+  /* le Petit Poucet joue bien au-dessus de son rang */
+  const p = api.clubAmateur(co.poucetId);
+  if (!p) fail("le Petit Poucet n'a pas d'effectif");
+  else if (api.forceClub(p) < api.amaById(co.poucetId).force + api.COUPE_POUCET_BONUS - 1)
+    fail("le Petit Poucet n'a pas reçu son bonus : " + api.forceClub(p).toFixed(1));
+  else ok("le Petit Poucet (" + p.nom + ") est bâti à " + api.forceClub(p).toFixed(1) + ", loin au-dessus de son rang");
+
+  /* aucun joueur de village ne porte le nom d'un vrai joueur */
+  const vrais = new Set([].concat(G.clubs || [], G.autre || [], G.europe || []).flatMap(c => c.joueurs || []).map(j => j.nom));
+  const collisions = auTableau.flatMap(id => api.clubAmateur(id).joueurs).filter(j => vrais.has(j.nom));
+  if (collisions.length) fail(collisions.length + " joueur(s) de village portent le nom d'un vrai joueur (ex. " + collisions[0].nom + ")");
+  else ok("aucun homonyme entre les villages et les vrais effectifs");
+
+  /* On traverse les 32es (J10), puis on relève l'état. ATTENTION à l'ordre : lire `clubAmateur` d'un
+     club éliminé lui rebâtit un vestiaire — la mesure du rangement doit donc précéder toute lecture. */
+  const temoin = auTableau[0];
+  for (let d = api.getG().journee; d < 11; d++) api.jouerJournee();
+
+  /* ON RANGE CE QUI SORT : un village éliminé ne pèse plus rien dans la sauvegarde */
+  const enLice = api.getG().coupe.vivants.filter(api.estAmateur);
+  const gardes = Object.keys(api.getG().coupe.effectifs || {});
+  const fantomes = gardes.filter(id => !enLice.includes(id));
+  if (fantomes.length) fail(fantomes.length + " vestiaire(s) gardé(s) pour des villages éliminés (ex. " + fantomes[0] + ")");
+  else ok(gardes.length + " vestiaires pour " + enLice.length + " villages encore en lice — les éliminés sont rangés");
+  if (!gardes.includes(temoin) && enLice.includes(temoin)) fail("un village encore en lice a perdu son vestiaire");
+
+  /* STABILITÉ : tant qu'un village est en lice, ce sont les MÊMES onze hommes. C'est tout l'intérêt de
+     l'effectif à la saison — suivre le buteur du Petit Poucet d'un tour à l'autre. */
+  const snap = {};
+  for (const id of enLice) { const e = api.getG().coupe.effectifs[id]; if (e) snap[id] = e.joueurs.map(j => j.uid).join(","); }
+  for (let d = api.getG().journee; d < 16; d++) api.jouerJournee();   // on traverse les 16es (J15)
+  let testes = 0, bouges = 0;
+  for (const id of api.getG().coupe.vivants.filter(api.estAmateur)) {
+    if (!snap[id]) continue;
+    testes++;
+    const e = api.getG().coupe.effectifs[id];
+    if (!e || e.joueurs.map(j => j.uid).join(",") !== snap[id]) bouges++;
+  }
+  if (bouges) fail(bouges + " village(s) encore en lice ont vu leur effectif changer d'un tour à l'autre");
+  else if (!testes) console.log("   (aucun village n'a franchi deux tours ce coup-ci — stabilité non mesurée)");
+  else ok(testes + " village(s) ont franchi un tour de plus avec exactement les mêmes onze hommes");
+
+  /* et tout est remis à neuf à l'intersaison */
+  for (let d = api.getG().journee; d < 38; d++) api.jouerJournee();
+  api.getG().vire = null;
+  api.intersaison();
+  const neuf = api.getG().coupe;
+  const memeClub = neuf.effectifs && neuf.effectifs[temoin];
+  if (memeClub && memeClub.joueurs.map(j => j.uid).join(",") === avant)
+    fail("l'intersaison a gardé le même effectif de village : il devait être tiré à neuf");
+  else ok("l'intersaison tire des effectifs de village neufs");
+
+  /* filet : une sauvegarde d'avant le chantier n'a pas d'effectifs — on les rebâtit à la volée */
+  neuf.effectifs = null;
+  const rattrape = api.clubAmateur(neuf.vivants.filter(api.estAmateur)[0]);
+  if (!rattrape || !rattrape.joueurs || rattrape.joueurs.length !== 16)
+    fail("une sauvegarde sans effectifs ne se rattrape pas : clubAmateur devrait en rebâtir un");
+  else ok("une sauvegarde d'avant le chantier se rattrape toute seule (effectif rebâti à la volée)");
+} catch (e) { fail("exception dans les effectifs de village : " + e.stack); }
 
 console.log("\n" + (FAILS ? "✗ " + FAILS + " ÉCHEC(S)" : "TOUT EST VERT"));
 process.exit(FAILS ? 1 : 0);

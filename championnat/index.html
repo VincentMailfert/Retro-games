@@ -1960,7 +1960,6 @@ function nouvellePartie(clubId, saisonKey){
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
-  coupeInit();       // tirage de la Coupe de France de la saison
   // vivier européen (C1 + C2 + C3), figé en 95-96 : un joueur réel employé en France à la saison de départ
   // (Ravanelli à l'OM en 97/98, Collins à Monaco dès 96/97…) quitte son club européen pour ne pas jouer sur deux terrains
   const enFrance=new Set([].concat(...Object.values(S.starsD1), ...Object.values(S.starsD2)).map(t=>t[0]));
@@ -1969,6 +1968,11 @@ function nouvellePartie(clubId, saisonKey){
   G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3), starsEur);
   G.euroCompet=(S.euroC1||[]).includes(clubId)?"C1":((S.euroC2||[]).includes(clubId)?"C2":((S.euroC3||[]).includes(clubId)?"C3":null)); // compétition européenne de la 1re saison (sièges français réels)
   euroInit();        // tirage de la compétition européenne
+  // LE TIRAGE DE LA COUPE DE FRANCE VIENT EN DERNIER, ET C'EST VOULU : depuis qu'il bâtit les effectifs
+  // de village, il a besoin de connaître TOUS les noms déjà pris pour n'en reprendre aucun. Lancé avant
+  // `construitDivision` de l'Europe, il ignorait les remplaçants générés des clubs européens, et l'on
+  // voyait un joueur de village porter le nom d'un homme de la Juventus (attrapé par harness-coupes, section I).
+  coupeInit();       // tirage de la Coupe de France de la saison, et des effectifs de village
   PARTIE=partieNeuve(); G.pid=PARTIE.id; // une carrière DE PLUS : celles déjà ouvertes sont conservées
   majTitre(); montre("calendrier");
 }
@@ -6983,6 +6987,74 @@ function soldePrime(gagne, quoi){
     notif("💰 Prime de victoire versée : "+(cout/1e6).toFixed(2)+" MF."); }
   G.primeMatch=0;
 }
+/* ============================================================================
+   LES CLUBS AMATEURS ONT DES JOUEURS (chantier « un seul moteur »)
+   Jusqu'ici un club de village n'était qu'une ligne de `CLUBS_AMATEURS` : un nom, une ville, une note
+   de force. Le téléscripteur lui inventait des buteurs à chaque affiche, si bien que le héros du tour
+   précédent n'existait plus au tour suivant. Le vrai moteur, lui, EXIGE un effectif : onze hommes sur
+   la pelouse, un gardien qu'on peut nommer, un banc, des jambes qui se fatiguent.
+   CHOIX DE L'AUTEUR : un effectif PAR SAISON. Les seize joueurs naissent au tirage du tableau
+   (`coupeInit`) et vivent jusqu'à l'intersaison, qui en tire un jeu neuf. Le Petit Poucet a donc des
+   noms qu'on suit d'un tour à l'autre, sans que la sauvegarde traîne quarante effectifs de village
+   d'une décennie sur la suivante.
+   CALIBRAGE : les notes sont recentrées pour que `forceClub` du onze tombe EXACTEMENT sur la note de
+   force du club — c'est la mesure qu'utilisait déjà l'ancien modèle, donc le calibrage des coupes ne
+   bouge pas d'un cheveu tant qu'on n'a pas basculé le moteur. Le Petit Poucet est bâti sur sa force
+   MAJORÉE (`COUPE_POUCET_BONUS`) : son talent vit désormais dans ses joueurs, et plus dans un bonus
+   accroché au résultat — c'est ce qui permettra au vrai moteur de le faire briller tout seul.
+   ============================================================================ */
+const AMA_CIBLE={G:2,D:5,M:5,A:4}; // seize hommes : le onze et cinq sur le banc, même découpe que les pros
+function nomsPris(){ // tout ce qui est déjà porté dans la partie : un joueur de village ne s'appelle pas comme une vedette
+  const s=new Set();
+  for(const c of (G.clubs||[]).concat(G.autre||[], G.europe||[])) for(const j of (c.joueurs||[])) s.add(j.nom);
+  for(const t in (G.vivier||{})) for(const e of (G.vivier[t]||[])) s.add(e[0]);
+  for(const k in ((G.coupe&&G.coupe.effectifs)||{})) for(const j of (G.coupe.effectifs[k].joueurs||[])) s.add(j.nom);
+  return s;
+}
+function joueurAmateur(pos, force, pris){
+  let nom, tours=0;
+  do { nom=PICK(PRENOMS)+" "+PICK(NOMS); } while(pris.has(nom) && ++tours<40);
+  pris.add(nom);
+  // un village aligne des gamins et des vétérans côte à côte, sans la pyramide d'âge d'un club pro
+  const j={nom, pos, age:RNDI(18,35), note:Math.max(25, Math.round(force+RND(-6,6))), pot:0,
+           moral:RNDI(60,80), sansJouer:0, nat:"FR", fraich:100, bless:0, susp:0, repos:false};
+  j.pot=j.note; // un amateur ne « perce » pas : il joue le dimanche et travaille le lundi
+  initTraits(j);
+  return j;
+}
+function batitAmateur(a, force, pris){
+  const court=(a.ville.match(/[A-Za-z]/g)||["A","M","A"]).slice(0,3).join("").toUpperCase();
+  const c={ id:a.id, nom:a.nom, ville:a.ville, amateur:true, court, pres:1,
+            stade:"stade municipal de "+a.ville, cap:RNDI(1200,3500),
+            joueurs:[], pts:0, j:0, g:0, n:0, p:0, bp:0, bc:0, forme:[], beteNoire:"", bnBattue:true };
+  const dejaVus=pris||nomsPris();
+  for(const pos of ["G","D","M","A"]) for(let k=0;k<AMA_CIBLE[pos];k++) c.joueurs.push(joueurAmateur(pos, force, dejaVus));
+  // recentrage : la moyenne du onze doit valoir la force du club, au point près (un décalage constant
+  // ne change pas l'ordre, donc `onze` retient les mêmes hommes et le recentrage est exact du premier coup)
+  const ecart=Math.round(force - forceClub(c));
+  if(ecart) c.joueurs.forEach(j=>{ j.note=Math.max(25, j.note+ecart); j.pot=j.note; });
+  c.joueurs.forEach(j=>{ j.club=c.id; j.avendre=false; j.buts=0; j.passes=0; j.matchs=0;
+    j.butsC=0; j.passesC=0; j.matchsC=0; j.note0=j.note; j.fav=false; j.titu=false; j.uid=uidGen(); j.reel=false; });
+  return c;
+}
+function forceAmateur(id, poucetId){ return amaById(id).force + (id===poucetId?COUPE_POUCET_BONUS:0); }
+/* ON NE BÂTIT QUE CE QUI JOUE, ET ON RANGE CE QUI SORT. Construire les vingt-quatre effectifs d'un
+   bloc au tirage ajoutait près de 100 Ko à chaque sauvegarde — quatre carrières passaient alors au-dessus
+   des ~5 Mo du navigateur (attrapé par harness-sauvegardes). Un village naît donc à sa première affiche
+   (`clubAmateur`, appelé par `clubAffiche`) et disparaît dès qu'il est éliminé : à l'heure où la partie
+   s'enregistre, seuls les survivants coûtent quelque chose, et ils sont de moins en moins nombreux.
+   La promesse tient quand même : tant qu'un club est en lice, ce sont les MÊMES onze hommes. */
+function rangeAmateursSortis(){
+  const co=G&&G.coupe; if(!co||!co.effectifs) return;
+  const vivants=new Set(co.vivants||[]);
+  for(const id in co.effectifs) if(!vivants.has(id)) delete co.effectifs[id];
+}
+function clubAmateur(id){ // l'effectif de village de la saison ; rebâti à la volée pour une sauvegarde d'avant le chantier
+  const co=G&&G.coupe; if(!co) return null;
+  if(!co.effectifs) co.effectifs={};
+  if(!co.effectifs[id] && amaById(id)) co.effectifs[id]=batitAmateur(amaById(id), forceAmateur(id, co.poucetId));
+  return co.effectifs[id]||null;
+}
 function coupeInit(){ // (re)tirage du tableau pour la saison en cours
   if(!G||!G.clubs) return;
   const pros=G.clubs.concat(G.autre||[]).map(c=>c.id);
@@ -6994,7 +7066,7 @@ function coupeInit(){ // (re)tirage du tableau pour la saison en cours
   G.coupe={ saison:G.saison, tourIdx:0, vivants,
     poucetId:poucet, poucetVivant:true, poucetParcours:[], poucetSortie:null,
     monParcours:[], elimine:false, tourSortie:null, vainqueur:null,
-    dernierTour:null, rotation:"mixte", gains:0, aJouer:null, enDirect:null };
+    dernierTour:null, rotation:"mixte", gains:0, aJouer:null, enDirect:null, effectifs:{} };
 }
 function coupeTick(){ // appelé en fin de journée : déclenche le tour de semaine s'il est à l'heure
   if(!G.coupe || G.coupe.vainqueur || G.coupe.tourIdx>=COUPE_TOURS.length) return;
@@ -7079,6 +7151,7 @@ function coupeResoutTour(interactif, forced){ // résout les affiches de co.aJou
     }
   }
   co.vivants=gagnants;
+  rangeAmateursSortis(); // les villages éliminés rendent leur vestiaire : la sauvegarde ne les traîne pas jusqu'en mai
   co.tourIdx++;
   co.aJouer=null; // le tour est joué
   if(gagnants.length===1) coupeSacre(gagnants[0]);
@@ -7107,9 +7180,9 @@ function coupeSacre(id){
    ATTERRIT sur le score donné, sans jamais toucher aux stats de qui que ce soit (les buteurs cités sont des
    chaînes, aucun j.buts n'est incrémenté). Les amateurs (sans effectif) reçoivent des noms générés à la volée. */
 function clubAffiche(id){ // objet club-like pour le tableau d'affichage et les lignes-but
-  if(estAmateur(id)){ const a=amaById(id);
-    const court=(a.ville.match(/[A-Za-z]/g)||["A","M","A"]).slice(0,3).join("").toUpperCase();
-    return {id, nom:a.nom, ville:a.ville, stade:"stade municipal de "+a.ville, cap:RNDI(1200,3500), amateur:true, court}; }
+  // amateur : son effectif de village de la saison (clubAmateur), stade et capacité compris. Il ne change
+  // plus d'un tour à l'autre — c'est ce qui permet de suivre le buteur du Petit Poucet tout un parcours.
+  if(estAmateur(id)) return clubAmateur(id);
   const e=(G.europe||[]).find(c=>c.id===id); if(e) return e; // club européen (Coupe d'Europe au direct)
   return clubById(id);
 }
@@ -7118,14 +7191,19 @@ function onzeEuro(c){ // le onze de coupe d'Europe : pour VOTRE club, il suit la
 }
 function blasonAff(c,s){ return c.amateur ? blason({id:c.court}, s) : blason(c, s); } // amateur : écu gris générique, label court lisible
 function tagAff(c){ return c.amateur ? c.court : c.id; } // étiquette courte pour les lignes système
-function nomsAffiche(aff, onzeFn){ // une petite liste de buteurs plausibles pour le camp (générés pour les amateurs)
-  if(!aff.amateur){ const xi=(onzeFn||onzeCoupe)(aff), att=xi.filter(j=>"MA".includes(j.pos)).map(j=>j.nom); // la rotation fait jouer d'autres noms
-    return att.length?att:xi.map(j=>j.nom); }
-  const noms=[], vus=new Set();
+function nomsAffiche(aff, onzeFn){ // les buteurs plausibles du camp : ses vrais joueurs, amateurs compris depuis qu'ils en ont
+  if(aff && aff.joueurs && aff.joueurs.length){
+    const xi=(onzeFn||onzeCoupe)(aff), att=xi.filter(j=>"MA".includes(j.pos)).map(j=>j.nom); // la rotation fait jouer d'autres noms
+    if(att.length) return att;
+    if(xi.length) return xi.map(j=>j.nom);
+  }
+  const noms=[], vus=new Set(); // filet : un club sans effectif (vieille sauvegarde) garde des noms de circonstance
   while(noms.length<6){ const n=PICK(PRENOMS)[0]+". "+PICK(NOMS); if(!vus.has(n)){ vus.add(n); noms.push(n); } }
   return noms;
 }
-function gardienAff(aff, onzeFn){ if(aff.amateur) return "le gardien"; const g=(onzeFn||onzeCoupe)(aff).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
+function gardienAff(aff, onzeFn){ // même le portier du village a un nom, désormais
+  if(!aff||!aff.joueurs||!aff.joueurs.length) return "le gardien";
+  const g=(onzeFn||onzeCoupe)(aff).find(j=>j.pos==="G"); return g?g.nom:"le gardien"; }
 const COUPE_AMB=["Quelle ambiance sur ce terrain !","Le public pousse derrière son équipe.","On joue à fond, des deux côtés.",
   "Le rythme est haché mais l'engagement est total.","Beau mouvement collectif, mais ça butte sur la défense.","L'arbitre laisse jouer."];
 function genEvCoupe(H, A, r, onzeFn){ // r = {sh,sa,tab,win} déjà tiré ; renvoie {ev, aff} — pure mise en scène, aucune stat touchée

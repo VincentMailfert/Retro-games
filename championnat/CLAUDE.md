@@ -158,6 +158,29 @@ toujours « raconter quelque chose ».
      des dépanneurs hors poste et leur force s'effondrerait toute seule au fil de la saison. `reposHebdo`
      porte en plus une ceinture (club sans effectif dans une vieille sauvegarde). **Gardé par la section H
      de `harness-coupes.cjs`**, vérifiée rouge sur le code d'avant le correctif.
+  4. **LES CLUBS AMATEURS ONT DES JOUEURS.** Un club de village n'était qu'une ligne de `CLUBS_AMATEURS`
+     (nom, ville, note de force) et le téléscripteur lui inventait des buteurs à chaque affiche : le héros
+     du tour précédent n'existait plus au tour suivant. `batitAmateur` lui monte désormais un vestiaire de
+     **seize hommes (2G 5D 5M 4A, `AMA_CIBLE`)**, ce qu'exige `simuleMatch` — onze sur la pelouse, un
+     gardien qu'on nomme, un banc, des jambes. **Calibrage** : les notes sont recentrées d'un décalage
+     constant (qui ne change pas l'ordre, donc `onze` retient les mêmes hommes et le recentrage est exact
+     du premier coup) pour que `forceClub` tombe sur la note de force du club — la mesure même que lisait
+     l'ancien modèle, donc le calibrage des coupes ne dérive pas. Le **Petit Poucet** est bâti sur sa force
+     MAJORÉE (`COUPE_POUCET_BONUS`) : son talent vit dans ses joueurs, plus dans un bonus accroché au
+     résultat, ce qui permettra au vrai moteur de le faire briller tout seul. **Trois pièges, tous payés** :
+     (a) **le poids** — les bâtir tous d'un bloc au tirage ajoutait ~100 Ko par sauvegarde et faisait passer
+     quatre carrières à 5,6 Mo, au-dessus des ~5 Mo du navigateur (attrapé par `harness-sauvegardes`) ; un
+     village naît donc **à sa première affiche** (`clubAmateur`, appelé par `clubAffiche`) et son vestiaire
+     est **rangé dès l'élimination** (`rangeAmateursSortis`, appelé par `coupeResoutTour`) — on est retombé
+     à 559 Ko et 4,0 Mo. Corollaire à retenir : **lire `clubAmateur` d'un club éliminé lui rebâtit un
+     vestiaire neuf**, donc toute mesure du rangement doit précéder les lectures. (b) **les homonymes** —
+     `coupeInit` est descendu APRÈS `construitDivision` de l'Europe dans `nouvellePartie` : lancé avant, il
+     ignorait les remplaçants générés des clubs européens et l'on voyait un villageois porter le nom d'un
+     homme de la Juventus. `nomsPris` balaie les trois viviers, le vivier de transferts et les villages déjà
+     bâtis. (c) **pas de biographie** pour un villageois (personne n'ouvre sa fiche, et 384 `genHistoire`
+     pesaient lourd) ; `reel:false` est posé en dur, sans passer par `j.reel=!j.histoire`. L'affichage
+     (`clubAffiche`, `nomsAffiche`, `gardienAff`) est branché sur ces effectifs et garde un filet de noms de
+     circonstance pour un club sans vestiaire. **Gardé par la section I de `harness-coupes.cjs`.**
 - **Effectifs réels** : la constante `STARS` (par club) contient de vrais joueurs de la D1 95-96
   `[nom, poste, âge, note, pot]`, curés à la main et **vérifiés par recherche** (référence de curation :
   **Transfermarkt**, page effectif par club et saison — `…/kader/verein/<id>/saison_id/1995`) — viser ~97% de vrais
