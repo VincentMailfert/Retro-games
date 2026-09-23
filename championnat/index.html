@@ -192,7 +192,10 @@
     display:flex;flex-direction:column;gap:4px;cursor:pointer;}
   .mercRap .carte:hover{border-color:var(--line);}
   #listeM tr.sel td{background:rgba(255,210,74,.09);}
-  .mercWrap{display:grid;grid-template-columns:1fr 360px;gap:0 16px;align-items:start;}
+  .mercWrap{display:grid;grid-template-columns:1fr 320px;gap:0 16px;align-items:start;}
+  /* marché des transferts (lot 4) : une ligne par joueur — le club se tronque plutôt que de passer à la ligne */
+  #listeM td, #listeM th{white-space:nowrap;}
+  #listeM td.mClub{max-width:150px; overflow:hidden; text-overflow:ellipsis;}
   .mercFiche{position:sticky;top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:12px 14px;}
   .mercFiche .noteLed, tr.mercDet .noteLed{font-family:var(--font-led);font-size:26px;color:var(--jaune);
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
@@ -11167,7 +11170,7 @@ function ecranEffectif(){
       +`</span>`;
   };
   chrome("effectif",`<div class="panel"><h2>Effectif — ${esc(c.nom)}</h2>
-   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num" title="Valeur marchande, en millions de francs">Valeur MF</th><th class="num">Buts</th><th class="num" title="Passes décisives">P.déc.</th><th></th></tr>
+   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th class="num" title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num" title="Valeur marchande, en millions de francs">Valeur MF</th><th></th></tr>
    ${js.map(j=>{ const i=c.joueurs.indexOf(j), lf=libFraich(j), f=Math.round(fraich(j));
      const etats=[
        j.bless>0?`<span class="rouge">blessé ${j.bless} j.</span>`:"",
@@ -11175,16 +11178,13 @@ function ecranEffectif(){
        j.pretIn?`<span>prêt, retour J${(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin}</span>`:""].filter(Boolean);
      return `<tr class="click" data-i="${i}">
      <td class="effEtat">${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span title="Titularisé de force">★</span>':""}${j.repos?'<span title="Mis au repos — il récupère">🛌</span>':""}${j.avendre?'<span title="Sur la liste des transferts">🏷️</span>':""}</td>
-     <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
+     <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${(p=>p.includes("class=\"dim\"")?"":` <span class="effCar">${p}</span>`)(pictos(j))}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
      <td class="pos-${j.pos}">${j.pos}</td>
      <td class="num">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux" title="Passé 29 ans, sept jours ne suffisent plus à refaire le plein">⏳</span>':""}${j.age}</td>
-     <td class="num"><b>${j.note}</b></td>
-     <td class="effCar">${pictos(j)}</td>
+     <td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
      <td class="num effForme" title="${esc(lf[1])} — ${f}/100"><b class="${lf[2]}">${f}</b> <span aria-label="${esc(lf[1])}">${lf[3]}</span></td>
      <td class="num"><span class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"dim")}">${Math.round(j.moral||65)}</span></td>
-     <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲ +'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
      <td class="num">${(valeur(j)/1e6).toFixed(1)}</td>
-     <td class="num">${j.buts}</td><td class="num">${j.passes||0}</td>
      <td class="effAct">${barre(j,i)}</td></tr>`;}).join("")}
    </table>
    ${(()=>{ // le plancher réglementaire, expliqué là où l'on vend
@@ -11378,23 +11378,16 @@ function ecranMercato(){
         <th>P</th>
         <th class="num click" data-c="age">Âge${fl("age")}</th>
         <th class="num click" data-c="note">Note${fl("note")}</th>
-        <th class="num click" data-c="prog">Prog.${fl("prog")}</th>
-        <th title="Caractère — 🎯 tireur d'élite · 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal">Car.</th>
         <th class="click" data-c="club">Club${fl("club")}</th>
-        <th>Div</th>
         <th class="num click" data-c="prix">Prix${fl("prix")}</th><th></th></tr>
       ${dispo.map((j,i)=>`<tr class="click${j.uid===MERCF.sel?' sel':''}" data-k="${i}">
         <td><button class="act bF" data-k="${i}" title="Suivre ce joueur">${j.fav?'<span class="jaune">★</span>':"☆"}</button></td>
         <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
-        <td class="num">${j.age}</td><td class="num"><b>${j.note}</b></td>
-        <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲+'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
-        <td>${pictos(j,true)}</td>
-        <td class="dim">${esc(clubById(j.club).nom)}</td>
-        <td><b class="fort">D${divOf(j)}</b></td>
-        <td class="num">${(prixAchat(j)/1e6).toFixed(1)} MF</td>
-        <td><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button>
-            <button class="act bP" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Prêt</button></td></tr>${
-        j.uid===MERCF.sel?`<tr class="mercDet"><td colspan="11"><div class="mercDetInner">${ficheMercato(j)}</div></td></tr>`:""}`).join("")}
+        <td class="num">${j.age}</td><td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
+        <td class="mClub dim" title="${esc(clubById(j.club).nom)}">${divOf(j)===2?'<b class="fort">D2</b> · ':""}${esc(clubById(j.club).nom)}</td>
+        <td class="num mPrix">${(prixAchat(j)/1e6).toFixed(1)} MF</td>
+        <td><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button></td></tr>${
+        j.uid===MERCF.sel?`<tr class="mercDet"><td colspan="8"><div class="mercDetInner">${ficheMercato(j)}</div></td></tr>`:""}`).join("")}
       </table>
       <p class="mercPag">
         <button class="act" id="pgPrev" ${page<=1?"disabled":""}>◀ Précédente</button>
