@@ -53,6 +53,29 @@ const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,on
   "getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 
+/* « I. Ba » est un morceau de « I. Bakayoko ». Un simple `includes` accusait donc le moteur de nommer un
+   homme sorti du terrain alors qu'il n'avait jamais bougé — et ce harnais rougissait une fois sur vingt
+   pour un faux témoignage. On exige désormais que le nom ne soit pas collé à une lettre. */
+const ditLeNom = (txt, nom) => {
+  if (typeof txt !== "string" || !nom) return false;
+  const lettre = ch => ch != null && /[\p{L}\p{M}'’-]/u.test(ch);
+  for (let i = txt.indexOf(nom); i >= 0; i = txt.indexOf(nom, i + 1))
+    if (!lettre(txt[i - 1]) && !lettre(txt[i + nom.length])) return true;
+  return false;
+};
+
+/* Deux hommes peuvent porter le même nom court dans une même rencontre (un A. Traoré dans chaque camp) :
+   le texte d'une ligne ne permet alors plus de dire lequel des deux elle nomme, et le harnais accusait le
+   moteur d'avoir fait agir un remplaçant resté sur le banc. On relève donc les noms portés en double avant
+   chaque match, et on ne juge jamais sur le texte d'une ligne qui porte déjà un identifiant. */
+let AMBIGUS = new Set();
+const poseAmbigus = (chg) => {
+  const cpt = {};
+  for (const s of Object.values(chg)) for (const j of s.xi.concat(s.banc)) cpt[j.nom] = (cpt[j.nom] || 0) + 1;
+  AMBIGUS = new Set(Object.keys(cpt).filter(n => cpt[n] > 1));
+};
+
+
 let FAILS = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) FAILS++; };
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -249,11 +272,19 @@ G = api.getG();
   api.nouvellePartie("MON");
   G = api.getG(); const cm = api.clubById(G.monClub);
   cm.joueurs.forEach(j => { j.fraich = 100; j.moral = 65; j.repos = false; });
-  const temoin = cm.joueurs[0], epuise = cm.joueurs[1];
+  /* Le témoin était un seul coéquipier, tiré au hasard dans l'effectif — et son moral à lui bouge pour
+     ses propres raisons (il joue ou il reste assis, le club gagne ou perd). Une fois sur soixante, le
+     témoin baissait plus que l'épuisé et le harnais criait à la régression. On garde le contrôle, qui
+     est utile — ce qu'on veut voir, c'est l'épuisé décrocher de ses camarades, pas l'effectif entier
+     perdre le moral — mais on le prend sur la MÉDIANE de l'effectif, que le sort d'un homme ne renverse
+     pas. */
+  const epuise = cm.joueurs[1];
   epuise.fraich = 30;
   api.jouerJournee();
-  ok(epuise.moral < temoin.moral - 1,
-    `sous 65, le moral fuit aussi : ${Math.round(epuise.moral)} pour l'épuisé contre ${Math.round(temoin.moral)} pour son coéquipier frais`);
+  const moraux = cm.joueurs.filter(j => j !== epuise).map(j => j.moral == null ? 65 : j.moral).sort((a, b) => a - b);
+  const median = moraux[Math.floor(moraux.length / 2)];
+  ok(epuise.moral < median - 1,
+    `sous 65, le moral fuit aussi : ${Math.round(epuise.moral)} pour l'épuisé contre ${Math.round(median)} de moral médian chez ses coéquipiers frais`);
   // personne ne finit la saison à zéro : le système doit se réguler tout seul
   api.nouvellePartie("CAN");
   G = api.getG();
@@ -383,9 +414,11 @@ console.log("I) Un bout de match se paie au prorata — et l'homme qui sort ne m
 
   // 4) LE MOTEUR : sur des centaines de matchs racontés, personne n'agit hors de la pelouse
   const nomme = (l, j) => (l.g && (l.g.uid === j.uid || l.g.pasUid === j.uid)) || (l.c && l.c.uid === j.uid)
-    || (l.q && l.q.but === j.nom) || (l.ic !== "sub" && typeof l.x === "string" && l.x.includes(j.nom));
+    || (l.q && l.q.but === j.nom)
+    || (!l.g && !l.c && l.ic !== "sub" && typeof l.x === "string" && !AMBIGUS.has(j.nom) && ditLeNom(l.x, j.nom));
   let faux = null, butsEntrants = 0, butsTotal = 0, rougesVus = 0;
   const verifie = (r, chg) => {
+    poseAmbigus(chg);
     for (const s of Object.values(chg)) {
       s.banc.forEach((ent, k) => { const mnk = s.min[k], sk = s.sort[k];
         // le gardien appelé par un rouge (v1.13) entre à la minute même du rouge : la frontière est sa ligne, pas la minute
@@ -606,7 +639,7 @@ console.log("J) Un gardien ne sort que sur blessure ou carton rouge — et c'est
         else if (/[{}]/.test(suite.x) || !suite.x.includes(ent.nom) || !suite.x.includes(sor.nom)) pb7 = "ligne du relais mal écrite : " + suite.x;
         else if (pelr.filter(estG).length !== 1 || !pelr.includes(ent) || pelr.includes(sor)) pb7 = `après le relais, ${c.nom} n'a pas un seul gardien sur la pelouse`;
         for (const l2 of r.ev.slice(i + 2)) if (l2.t !== "sys" && ((l2.g && (l2.g.uid === sor.uid || l2.g.pasUid === sor.uid)) || (l2.c && l2.c.uid === sor.uid)
-          || (l2.q && l2.q.but === sor.nom) || (l2.ic !== "sub" && typeof l2.x === "string" && l2.x.includes(sor.nom)))) pb7 = `${sor.nom}, sacrifié à la ${l.m}e, nommé à la ${l2.m}e : « ${l2.x} »`;
+          || (l2.q && l2.q.but === sor.nom) || (l2.ic !== "sub" && typeof l2.x === "string" && ditLeNom(l2.x, sor.nom)))) pb7 = `${sor.nom}, sacrifié à la ${l.m}e, nommé à la ${l2.m}e : « ${l2.x} »`;
       } else if (suite && /enfile le maillot du gardien/.test(suite.x || "")) gantsVus++;
       else if (!api.enJeu(c, l.m).some(estG)) pb7 = `rouge de ${l.c.nom} : ni gardien remplaçant ni joueur de champ dans les buts — « ${suite && suite.x} »`;
     });

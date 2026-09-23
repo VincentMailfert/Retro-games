@@ -113,7 +113,12 @@ console.log("\nC) Votre homme du match repart avec du moral et un mot dans le de
 {
   api.nouvellePartie("PSG");
   G = api.getG();
-  let vuChezMoi = 0, vuEnFace = 0, moralMonte = 0;
+  // `horsPlafond` sort du compte les décorés déjà à 100 de moral : le leur ne PEUT pas monter, et les
+  // garder au dénominateur faisait tomber ce harnais sous la barre un soir sur cent sans qu'aucune
+  // régression ne s'y cache. Le plafond n'explique d'ailleurs pas tout : le moral d'un homme bouge pour
+  // plusieurs raisons le même jour, et il arrive qu'une saison compte un décoré rentré à l'équilibre.
+  // Mesuré sur 199 saisons : 0,92 au pire, 0,996 en moyenne — la barre à 0,8 laisse de la marge.
+  let vuChezMoi = 0, vuEnFace = 0, moralMonte = 0, horsPlafond = 0;
   for (let d = 0; d < 34; d++) {
     const avant = {};
     api.clubById(G.monClub).joueurs.forEach(j => { avant[j.uid] = (j.moral == null ? 65 : j.moral); });
@@ -121,12 +126,13 @@ console.log("\nC) Votre homme du match repart avec du moral et un mot dans le de
     if (!G.hdm) continue;
     const j = api.byUid(G.hdm.uid);
     if (!j) continue;
-    if (j.club === G.monClub) { vuChezMoi++; if ((j.moral || 65) > avant[j.uid]) moralMonte++; }
+    if (j.club === G.monClub) { vuChezMoi++;
+      if (avant[j.uid] < 100) { horsPlafond++; if ((j.moral || 65) > avant[j.uid]) moralMonte++; } }
     else vuEnFace++;
     if (!(G.notifs || []).some(n => /Homme du match/.test(n))) { F++; console.log("  ✗ J" + (d + 1) + " : pas de ligne de debrief pour l'homme du match"); break; }
   }
   ok(vuChezMoi > 0 && vuEnFace > 0, "sur une saison, l'honneur revient tantôt à vous (" + vuChezMoi + "), tantôt à l'adversaire (" + vuEnFace + ")");
-  ok(moralMonte >= vuChezMoi * 0.8, "le moral du décoré monte presque toujours (" + moralMonte + "/" + vuChezMoi + " — le plafond de 100 explique le reste)");
+  ok(horsPlafond > 0 && moralMonte >= horsPlafond * 0.8, "le moral du décoré monte presque toujours (" + moralMonte + "/" + horsPlafond + " hors plafond ; " + (vuChezMoi - horsPlafond) + " étaient déjà à 100)");
   ok(G.hdm && G.hdm.nom && G.hdm.motif && G.hdm.club, "G.hdm porte de quoi écrire la ligne de la feuille de match : " + JSON.stringify(G.hdm));
 }
 

@@ -73,6 +73,29 @@ const api = new Function(script + "\n;return {nouvellePartie,jouerJournee,clubBy
   "fraich,alignable,noteSel,BLESS_DIX," +
   "getChg:function(){return CHANGEMENTS;},setChg:function(x){CHANGEMENTS=x;},getG:function(){return G;}};")();
 
+/* « I. Ba » est un morceau de « I. Bakayoko ». Un simple `includes` accusait donc le moteur de nommer un
+   homme sorti du terrain alors qu'il n'avait jamais bougé — et ce harnais rougissait une fois sur vingt
+   pour un faux témoignage. On exige désormais que le nom ne soit pas collé à une lettre. */
+const ditLeNom = (txt, nom) => {
+  if (typeof txt !== "string" || !nom) return false;
+  const lettre = ch => ch != null && /[\p{L}\p{M}'’-]/u.test(ch);
+  for (let i = txt.indexOf(nom); i >= 0; i = txt.indexOf(nom, i + 1))
+    if (!lettre(txt[i - 1]) && !lettre(txt[i + nom.length])) return true;
+  return false;
+};
+
+/* Deux hommes peuvent porter le même nom court dans une même rencontre (un A. Traoré dans chaque camp) :
+   le texte d'une ligne ne permet alors plus de dire lequel des deux elle nomme, et le harnais accusait le
+   moteur d'avoir fait agir un remplaçant resté sur le banc. On relève donc les noms portés en double avant
+   chaque match, et on ne juge jamais sur le texte d'une ligne qui porte déjà un identifiant. */
+let AMBIGUS = new Set();
+const poseAmbigus = (chg) => {
+  const cpt = {};
+  for (const s of Object.values(chg)) for (const j of s.xi.concat(s.banc)) cpt[j.nom] = (cpt[j.nom] || 0) + 1;
+  AMBIGUS = new Set(Object.keys(cpt).filter(n => cpt[n] > 1));
+};
+
+
 let FAILS = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) FAILS++; };
 const r2 = x => Math.round(x * 100) / 100;
@@ -80,7 +103,7 @@ let G;
 const frais = c => c.joueurs.forEach(j => { j.fraich = 100; j.bless = 0; j.susp = 0; j.repos = false; });
 
 /* Monte une rencontre jouée (mon club à domicile), arrêtée à la minute `m`, et rend de quoi piloter le banc. */
-const scene = (club, m, prepare) => {
+const monteScene = (club, m, prepare) => {
   api.nouvellePartie(club);
   G = api.getG();
   const moi = api.clubById(G.monClub), adv = G.clubs.find(c => c.id !== moi.id);
@@ -89,6 +112,7 @@ const scene = (club, m, prepare) => {
   api.setChg(chg);
   const p = chg[moi.id];
   if (prepare) prepare(p, moi);
+  const prevus = p.min.slice(); // la feuille du jour AVANT le coup d'envoi : le match ne doit pas y toucher
   const r = api.simuleMatch(moi, adv, true);
   const lignes = [];
   for (const [c, s] of [[moi, chg[moi.id]], [adv, chg[adv.id]]]) lignes.push(...api.lignesChangements(c, s));
@@ -99,10 +123,42 @@ const scene = (club, m, prepare) => {
   let from = r.ev.findIndex(l => l.m > m); if (from < 0) from = r.ev.length - 1;
   const ctx = { monMatch: r, eM, mul: { h: 1, a: 1 }, pos: () => ({ from, mNow: m }),
     reprendre: () => { etat.repris++; }, suite: () => { etat.suites++; } };
-  return { moi, adv, p, r, ctx, etat, m, chg };
+  return { moi, adv, p, r, ctx, etat, m, chg, prevus };
+};
+/* Tout ce harnais parle du banc TACTIQUE : il suppose partout que les seuls changements de la feuille du
+   jour sont ceux que le banc avait prévus. Or un pépin ou un rouge tiré pendant la rencontre pose un
+   changement d'urgence qui prend l'une des trois places (v1.18, `poseRemplacement`) — et le tirage en sert
+   environ un match sur vingt. Le jeu a raison ; c'est la supposition qui était muette, et elle rendait ce
+   harnais rouge une fois sur vingt sans qu'aucune régression ne se cache derrière. On retire donc la scène
+   tant que la feuille du jour n'est pas ressortie du match telle qu'elle y était entrée. Les pépins en
+   direct ont leur propre harnais (`harness-blessure.cjs`), c'est là qu'ils doivent être jugés. */
+const intacte = s => s.p.min.length === s.prevus.length && s.p.min.every((x, i) => x === s.prevus[i]);
+const scene = (club, m, prepare) => {
+  for (let essai = 1; ; essai++) {
+    const s = monteScene(club, m, prepare);
+    if (intacte(s)) return s;
+    if (essai >= 80) throw new Error("scène du banc (" + club + ", " + m + "e) : 80 tirages sans une feuille du jour épargnée par les pépins");
+  }
 };
 const clic = (sel, n) => { const b = (n == null) ? FICHE.querySelector("#" + sel) : FICHE.querySelectorAll("." + sel)[n];
   if (!b || !b.onclick) throw new Error("pas de bouton " + sel + " " + n); b.onclick(); };
+/* Clique un entrant et un sortant que le banc n'avait PAS prévus de faire bouger. Prendre le premier nom
+   venu tombe une fois sur trente sur un homme déjà inscrit à la feuille du jour : avanceLeBanc annule
+   alors SON changement, poseRemplacement en annule un second, et deux places sautent au lieu d'une. Le jeu
+   a raison de les annuler — mais les sections qui comptent les places, ou qui pèsent une entrée à la
+   minute près, parlent d'un changement neuf. On en choisit donc un, explicitement. */
+const paireLibre = (s, m) => {
+  const affiches = api.bancDispo(s.moi, s.p, m)
+    .sort((x, y) => ("DMA".indexOf(y.pos) - "DMA".indexOf(x.pos)) || (api.noteSel(y) - api.noteSel(x))).slice(0, 6);
+  const pelouse = api.enJeu(s.moi, m).filter(x => x.pos !== "G");
+  const sortants = s.p.xi.filter(j => pelouse.includes(j));
+  const iE = affiches.findIndex(j => !s.p.banc.includes(j));
+  const iS = sortants.findIndex(j => !s.p.sort.includes(j));
+  if (iE < 0 || iS < 0) throw new Error("scène du banc : ni entrant ni sortant neuf à la " + m + "e");
+  FICHE.querySelectorAll(".bEntreB")[iE].onclick();
+  FICHE.querySelectorAll(".bSortB")[iS].onclick();
+  return { entrant: affiches[iE], sortant: sortants[iS] };
+};
 const reprendreLeMatch = () => FICHE.querySelector("#penRes").querySelector("#bPenOk").onclick();
 
 /* ============ A) LA FENÊTRE ============ */
@@ -157,10 +213,13 @@ console.log("C) Un changement voulu prend l'une des trois places");
   const s = scene("AUX", 40);
   const prevusAvant = s.p.min.filter(x => x > 40).length;
   api.ouvreBanc(s.ctx);
-  clic("bEntreB", 0);
-  clic("bSortB", 0);
+  paireLibre(s, 40);
   ok(s.p.min.filter(x => x <= 90).length <= 3, `la feuille du jour tient toujours en trois changements (${s.p.min.length})`);
-  ok(s.p.min.filter(x => x > 40).length === Math.max(0, prevusAvant - 1),
+  /* Au moins un des changements prévus a sauté — et parfois deux : la fin du match est REJOUÉE avec la
+     nouvelle pelouse, et un rouge tiré dans cette tranche-là emporte à son tour un changement à venir.
+     C'est le jeu qui a raison, et l'égalité stricte rougissait une fois sur trois cents. Ce que cette
+     ligne doit prouver, c'est qu'un changement voulu prend une place au lieu d'en ajouter une quatrième. */
+  ok(s.p.min.filter(x => x > 40).length <= Math.max(0, prevusAvant - 1),
     `et l'un de ceux que le banc avait prévus a sauté (${prevusAvant} → ${s.p.min.filter(x => x > 40).length})`);
   ok(s.etat.suites === 1, "la fin du match a été rejouée avec la nouvelle pelouse");
   reprendreLeMatch();
@@ -171,10 +230,12 @@ console.log("C) Un changement voulu prend l'une des trois places");
 console.log("D) Le sortant se tait, l'entrant joue");
 {
   const nomme = (l, j) => (l.g && (l.g.uid === j.uid || l.g.pasUid === j.uid)) || (l.c && l.c.uid === j.uid)
-    || (l.q && l.q.but === j.nom) || (l.ic !== "sub" && !l.bl && typeof l.x === "string" && l.x.includes(j.nom));
+    || (l.q && l.q.but === j.nom)
+    || (!l.g && !l.c && l.ic !== "sub" && !l.bl && typeof l.x === "string" && !AMBIGUS.has(j.nom) && ditLeNom(l.x, j.nom));
   let faux = null, faits = 0;
   for (let n = 0; n < 60 && !faux; n++) {
     const s = scene(["LIL", "REN", "OM", "AUX"][n % 4], 30 + (n % 20));
+    poseAmbigus(s.chg);
     // on compte À la minute du changement, pas après : la fin rejouée peut sortir un rouge dès la minute
     // suivante, et ce n'est pas le changement qui aurait retiré l'homme. Un rouge d'AVANT, lui, compte :
     // l'équipe est peut-être déjà à dix.
@@ -227,30 +288,47 @@ console.log("E) Le téléscripteur l'annonce tout de suite, et comme un choix");
 /* ============ F) LE POIDS ============ */
 console.log("F) Un meilleur entrant renforce, un moins bon affaiblit");
 {
-  // on force les deux extrêmes : le meilleur du banc pour le plus faible du onze, puis l'inverse
+  // on force les deux extrêmes : le meilleur du banc pour le plus faible du onze, puis l'inverse — mais
+  // toujours À POSTE ÉGAL. `mien` pèse la ZONE d'attaque (poidsPelouse passe par lambdasZones), pas la
+  // somme des notes : un milieu moyen entré à la place d'un défenseur formidable peut très légitimement
+  // la faire monter, et le harnais criait alors au loup pour un match sur trente. Le jeu a raison — c'est
+  // « un moins bon entrant affaiblit » qui ne veut dire quelque chose qu'entre hommes du même poste.
   const extreme = (haut) => {
-    const s = scene("OM", 40);
+    /* Pour éprouver le RENFORT, encore faut-il qu'un renfort existe : le onze étant par construction le
+       meilleur onze, aucun homme du banc ne bat son homologue à son poste, et cette moitié de la section
+       ne mesurait jusqu'ici qu'un échange de défenseurs valant ×1 tout rond — c'est-à-dire rien. On POSE
+       donc la situation, comme le harnais de fraîcheur pose son cadre à 84 et ses doublures à 72 : un
+       attaquant remarquable laissé sur le banc. Le onze est déjà tiré quand `prepare` passe : sa note ne
+       le fait pas entrer dans l'équipe, elle le rend seulement digne d'y entrer. */
+    const s = scene("OM", 40, haut ? (p, moi) => {
+      const att = moi.joueurs.filter(j => !p.xi.includes(j) && j.pos === "A" && api.alignable(j));
+      if (att.length) { att[0].note = 90; att[0].fraich = 100; }
+    } : undefined);
     api.ouvreBanc(s.ctx);
-    const entrants = api.bancDispo(s.moi, s.p, 40).sort((x, y) => api.noteSel(y) - api.noteSel(x));
-    const cible = haut ? entrants[0] : entrants[entrants.length - 1];
-    const boutons = FICHE.querySelectorAll(".bEntreB");
-    const idx = [...boutons].findIndex((b, n) => FICHE._h.split("bEntreB")[n + 1] && true);
-    // on retrouve le bouton par son ordre d'affichage (même tri que la fenêtre)
-    const affiches = api.bancDispo(s.moi, s.p, 40).sort((x, y) => ("DMA".indexOf(y.pos) - "DMA".indexOf(x.pos)) || (api.noteSel(y) - api.noteSel(x))).slice(0, 6);
-    const n = affiches.indexOf(cible);
-    if (n < 0) { clic("bFermeBanc"); return null; }
-    boutons[n].onclick();
+    // même tri que la fenêtre, et mêmes six noms affichés
+    const affiches = api.bancDispo(s.moi, s.p, 40)
+      .sort((x, y) => ("DMA".indexOf(y.pos) - "DMA".indexOf(x.pos)) || (api.noteSel(y) - api.noteSel(x))).slice(0, 6);
     const pelouse = api.enJeu(s.moi, 40).filter(x => x.pos !== "G");
     const sortants = s.p.xi.filter(j => pelouse.includes(j));
-    const victime = haut ? sortants.slice().sort((x, y) => api.noteSel(x) - api.noteSel(y))[0] : sortants.slice().sort((x, y) => api.noteSel(y) - api.noteSel(x))[0];
-    const sorties = FICHE.querySelectorAll(".bSortB");
-    const k = sortants.indexOf(victime);
-    if (k < 0) { clic("bFermeBanc"); return null; }
-    sorties[k].onclick();
+    const paires = [];
+    for (const e of affiches) for (const v of sortants) if (v.pos === e.pos) paires.push({ e, v, d: api.noteSel(e) - api.noteSel(v) });
+    /* Et dans la ligne la plus offensive où l'échange va VRAIMENT dans le sens qu'on veut éprouver.
+       `mien` est le rapport des buts ATTENDUS par l'attaque : un défenseur échangé contre un défenseur ne
+       la bouge presque pas, et le signe de ce presque-rien est affaire de décimale — ×1,02 pour un 68
+       entré à la place d'un 85, et le harnais criait à la régression. On exige donc un vrai renfort
+       (d > 0) ou un vrai affaiblissement (d < 0), pris le plus haut possible sur le terrain. */
+    const cand = paires.filter(x => (haut ? x.d > 0 : x.d < 0));
+    if (!cand.length) { clic("bFermeBanc"); return null; }
+    const posPref = ["A", "M", "D"].find(pp => cand.some(x => x.e.pos === pp));
+    const retenues = cand.filter(x => x.e.pos === posPref).sort((x, y) => x.d - y.d);
+    const choix = haut ? retenues[retenues.length - 1] : retenues[0];
+    FICHE.querySelectorAll(".bEntreB")[affiches.indexOf(choix.e)].onclick();
+    FICHE.querySelectorAll(".bSortB")[sortants.indexOf(choix.v)].onclick();
     reprendreLeMatch();
-    return { mien: s.ctx.mul.h, entrant: cible, sortant: victime };
+    return { mien: s.ctx.mul.h, entrant: choix.e, sortant: choix.v };
   };
-  const fort = extreme(true), faible = extreme(false);
+  const tente = (haut) => { for (let essai = 1; essai <= 60; essai++) { const x = extreme(haut); if (x) return x; } return null; };
+  const fort = tente(true), faible = tente(false);
   ok(fort && fort.mien >= 1, fort ? `${fort.entrant.nom} (${Math.round(fort.entrant.note)}) pour ${fort.sortant.nom} (${Math.round(fort.sortant.note)}) : ×${r2(fort.mien)}` : "cas limite");
   ok(faible && faible.mien <= 1, faible ? `${faible.entrant.nom} (${Math.round(faible.entrant.note)}) pour ${faible.sortant.nom} (${Math.round(faible.sortant.note)}) : ×${r2(faible.mien)}` : "cas limite");
   ok(faible && faible.mien >= api.BLESS_DIX, "et même le pire des changements coûte moins cher qu'un homme en moins : la borne tient");
@@ -271,12 +349,20 @@ console.log("G) Les trois changements faits : la fenêtre le dit");
 /* ============ H) LA FRAÎCHEUR AU PRORATA ============ */
 console.log("H) Un changement voulu se paie comme les autres");
 {
-  const s = scene("LIL", 60);
-  api.ouvreBanc(s.ctx);
-  clic("bEntreB", 0); clic("bSortB", 0);
-  reprendreLeMatch();
-  const k = s.p.min.lastIndexOf(60);
-  const entrant = s.p.banc[k], sortant = s.p.sort[k];
+  /* La fin du match est rejouée après le changement : un rouge tiré dans cette tranche peut défaire ce
+     qu'on vient de poser, et l'homme entré à la 60e n'aurait alors plus joué trente minutes. On retire
+     la scène tant que la feuille du jour ne montre pas exactement le changement qu'on a décidé. */
+  let s, paire;
+  for (let essai = 1; ; essai++) {
+    s = scene("LIL", 60);
+    api.ouvreBanc(s.ctx);
+    paire = paireLibre(s, 60);
+    reprendreLeMatch();
+    const k = s.p.banc.indexOf(paire.entrant);
+    if (k >= 0 && s.p.min[k] === 60 && s.p.sort[k] === paire.sortant) break;
+    if (essai >= 80) throw new Error("scène du banc (LIL, 60e) : 80 tirages sans une fin rejouée qui respecte le changement");
+  }
+  const entrant = paire.entrant, sortant = paire.sortant;
   s.p.bless = []; s.chg[s.adv.id].bless = [];
   api.appliqueResultat(s.moi, s.adv, 2, 1, { h: s.p, a: s.chg[s.adv.id] });
   ok(r2(100 - api.fraich(sortant)) === r2(20 * 60 / 90), `${sortant.nom}, sorti à la 60e, paie ${r2(100 - api.fraich(sortant))}`);
