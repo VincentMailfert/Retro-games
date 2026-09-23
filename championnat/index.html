@@ -3180,7 +3180,11 @@ function tirsAuBut(home, away, verbeux, ev){
   return {h, a, win};
 }
 function simuleMatch(home,away,verbeux,opts){
-  const O=opts||{};                                  // {neutre, prolong} — absent = le samedi, tout est comme avant
+  const O=opts||{};                                  // {neutre, prolong, egalite} — absent = le samedi, tout est comme avant
+  /* CE QUI LES DÉPARTAGE n'est pas toujours le score du soir : sur une manche RETOUR, c'est le cumul des
+     deux matchs, et le but marqué à l'extérieur. `egalite(sh,sa)` dit « rien ne les sépare encore » ;
+     sans elle, c'est le score du soir, ce qui est la bonne réponse pour une finale sèche. */
+  const egalite=O.egalite||((x,y)=>x===y);
   const fh=forces(home), fa=forces(away);
   // ferveur du public : un stade plein pousse l'équipe à domicile et gêne le visiteur ; un stade clairsemé pèse.
   // Centrée sur ~62 % de remplissage (la moyenne) → l'avantage du terrain moyen reste celui d'avant : calibrage préservé,
@@ -3301,7 +3305,7 @@ function simuleMatch(home,away,verbeux,opts){
     /* FIN DU TEMPS RÈGLEMENTAIRE : si la compétition exige un vainqueur et que rien ne les sépare,
        on rallonge de deux fois quinze minutes. L'usure des trente minutes frappe alors chaque camp
        selon l'état dans lequel il y arrive — c'est là que le banc se paie. */
-    if(m===90 && O.prolong && sh===sa && !prolong){
+    if(m===90 && O.prolong && egalite(sh,sa) && !prolong){
       prolong=true; fin=120;
       mulH*=usureProlong(home); mulA*=usureProlong(away);
       if(verbeux){
@@ -3320,7 +3324,7 @@ function simuleMatch(home,away,verbeux,opts){
      match (un 1-1 reste un 1-1 dans les livres) ; elle désigne un qualifié, et rend le détail des
      frappes a qui veut le raconter. */
   let tab=null;
-  if(O.prolong && sh===sa) tab=tirsAuBut(home, away, verbeux, verbeux?ev:null);
+  if(O.prolong && egalite(sh,sa)) tab=tirsAuBut(home, away, verbeux, verbeux?ev:null);
   if(verbeux && tab) ev.push({m:fin,t:"sys",x:"TIRS AU BUT : "+(tab.win===home.id?home.nom:away.nom)+" se qualifie ("+tab.h+"-"+tab.a+")."});
   const R={sh,sa,ev,aff,prolong,tab,faits:FAITS,gk:{h:gkH?gkH.uid:null,a:gkA?gkA.uid:null}}; memoireDe(R,vusC); return R; // la mémoire anti-répétition voyage avec le match (cf. memoireDe)
 }
@@ -8099,29 +8103,52 @@ function forceEuro(id){
   if(id===G.monClub && G.euro) f*=(ROTATION_COUPE[G.euro.rotation]||ROTATION_COUPE.mixte).mult; // votre rotation pèse (préparé pour le lot 2)
   return f;
 }
-function euroManche(hid,aid){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
-  return scoreCoupe(forceEuro(hid)+EURO_TERRAIN, forceEuro(aid), ...multTactique(hid,aid)); // [buts hôte, buts visiteur]
+/* LA BASCULE (v1.25) — une manche européenne se joue par `simuleMatch`, le moteur du samedi. Plus de
+   modèle de force autonome : ce sont les onze hommes qui jouent, avec leur fraîcheur, leur cohésion,
+   leurs cartons et leurs pépins. `enCompet("EU")` rend le maillot dans un `finally` : les buts de la nuit
+   vont dans `butsC`/`passesC` et ne touchent jamais le classement des buteurs du championnat.
+   La consigne et la prime n'ont plus besoin de `multTactique` — `simuleMatch` les connaît déjà. */
+function euroMatchReel(hid,aid,opts){
+  const H=euroClub(hid), A=euroClub(aid);
+  if(!H || !A || !onze(H).length || !onze(A).length)            // filet : vieille sauvegarde sans effectif
+    return {sh:0, sa:0, tab:null, _sansEffectif:true};
+  return enCompet("EU", ()=>simuleMatch(H, A, false, opts||{}));
 }
-function euroFinaleAvec(a,b,s){ // le verdict d'une finale dont on connaît le score s=[buts a, buts b]
+function euroManche(hid,aid){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
+  const r=euroMatchReel(hid, aid);
+  if(r._sansEffectif) return scoreCoupe(forceEuro(hid)+EURO_TERRAIN, forceEuro(aid), ...multTactique(hid,aid));
+  return [r.sh, r.sa]; // [buts hôte, buts visiteur]
+}
+function euroFinaleAvec(a,b,s,tabR){ // le verdict d'une finale dont on connaît le score s=[buts a, buts b]
   const fh=forceEuro(a), fa=forceEuro(b), [sa,sb]=s;
   let tab=false, win;
-  if(sa>sb) win=a; else if(sb>sa) win=b; else { tab=true; win=(Math.random()<fh/(fh+fa))?a:b; }
+  if(sa>sb) win=a; else if(sb>sa) win=b;
+  else { tab=true; win=tabR ? tabR.win : ((Math.random()<fh/(fh+fa))?a:b); } // la séance vient du moteur quand il l'a jouée
   return {aid:a, bid:b, neutre:true, s:[sa,sb], tab, win};
 }
-function euroFinaleSeche(a,b){ // FINALE : match sec sur terrain neutre, pas d'avantage du terrain
-  return euroFinaleAvec(a, b, scoreCoupe(forceEuro(a), forceEuro(b), ...multTactique(a,b)));
+function euroFinaleSeche(a,b){ // FINALE : match sec sur terrain neutre, prolongations puis tirs au but
+  const r=euroMatchReel(a, b, {neutre:true, prolong:true});
+  if(r._sansEffectif) return euroFinaleAvec(a, b, scoreCoupe(forceEuro(a), forceEuro(b), ...multTactique(a,b)));
+  return euroFinaleAvec(a, b, [r.sh, r.sa], r.tab);
 }
-function euroCloture(a,b,l1){ // manche RETOUR chez b, une semaine après l'aller `l1` → cumul et verdict
-  return euroClotureAvec(a, b, l1, euroManche(b,a));
+/* MANCHE RETOUR chez b. Ce qui les départage n'est pas le score du soir mais le CUMUL, puis le but
+   marqué à l'extérieur : la prolongation ne se joue donc que si la double confrontation serait, sans
+   elle, partie aux tirs au but. C'est exactement ce que dit `egalite` à `simuleMatch` — au retour, son
+   `sh` est le total de b et son `sa` celui de a. */
+function euroCloture(a,b,l1){
+  const egalite=(sh,sa)=>((l1[0]+sa)===(l1[1]+sh)) && (sa===l1[1]); // cumul égal ET buts à l'extérieur égaux
+  const r=euroMatchReel(b, a, {prolong:true, egalite});
+  if(r._sansEffectif) return euroClotureAvec(a, b, l1, scoreCoupe(forceEuro(b)+EURO_TERRAIN, forceEuro(a), ...multTactique(b,a)));
+  return euroClotureAvec(a, b, l1, [r.sh, r.sa], r.tab);
 }
-function euroClotureAvec(a,b,l1,l2){ // même verdict, le score du retour l2=[buts b, buts a] étant connu (re-simulation en direct)
+function euroClotureAvec(a,b,l1,l2,tabR){ // même verdict, le score du retour l2=[buts b, buts a] étant connu (re-simulation en direct)
   const [b2,a2]=l2;                         // retour chez b → [buts b, buts a]
   const aggA=l1[0]+a2, aggB=l1[1]+b2;       // cumul sur les deux matchs
   const awayA=a2, awayB=l1[1];              // buts marqués à l'extérieur (a chez b ; b chez a)
   let tab=false, win;
   if(aggA>aggB) win=a; else if(aggB>aggA) win=b;             // cumul
   else if(awayA>awayB) win=a; else if(awayB>awayA) win=b;    // but à l'extérieur double (règle de l'époque)
-  else { tab=true; win=(Math.random()<forceEuro(a)/(forceEuro(a)+forceEuro(b)))?a:b; } // t.a.b.
+  else { tab=true; win=tabR ? tabR.win : ((Math.random()<forceEuro(a)/(forceEuro(a)+forceEuro(b)))?a:b); } // t.a.b. — du moteur quand il les a tirés
   return {aid:a, bid:b, neutre:false, l1:l1.slice(), l2:[b2,a2], agg:[aggA,aggB], tab, win};
 }
 function euroInit(){ // (re)tirage de la compétition européenne de la saison (C1 par défaut si non qualifié)

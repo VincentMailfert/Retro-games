@@ -9,8 +9,9 @@
    - C) Le Petit Poucet : jusqu'où il va, saison après saison.
    - D) Votre parcours : tour atteint, taux de sacre.
    - E) Coupe d'Europe : buts par manche, part des t.a.b., victoire du favori.
-   - F) L'INVARIANT DES BUTEURS : résoudre des milliers d'affiches ne doit toucher AUCUN compteur
-        de joueur, dans aucun vivier (France, D2, Europe).
+   - F) L'INVARIANT DES BUTEURS : résoudre des milliers d'affiches ne doit toucher aucun compteur de
+        CHAMPIONNAT, dans aucun vivier (France, D2, Europe) — et, depuis la bascule de l'Europe (v1.25),
+        les buts européens doivent en revanche bien atterrir dans le compteur de COUPE.
    Les chiffres sont comparés à un ÉTALON gravé plus bas, sur un hasard à graine fixe : deux lancers
    rendent exactement les mêmes valeurs, donc tout écart est un vrai écart.
    Usage : node harness-coupes.cjs   (ou GRAINE=1234 node harness-coupes.cjs pour un autre tirage) */
@@ -85,9 +86,22 @@ const ETALON = {
   exploit: [0.161, 0.028],
   poucetLoin: [0.122, 0.060],
   monPremierTour: [0.350, 0.080],
-  butsMancheEuro: [2.369, 0.09],
-  tabEuro: [0.083, 0.025],
-  favoriEuro: [0.652, 0.040],
+  /* EUROPE — RÉÉCRIT SCIEMMENT LE 23/09/2026, à la bascule vers `simuleMatch` (v1.25). Les trois
+     valeurs ci-dessous sont les seules de ce fichier qui aient bougé, et elles bougent toutes pour la
+     MÊME raison, voulue : on joue désormais les prolongations pour de vrai au lieu de sauter aux tirs
+     au but. Mesuré sur quatre graines (défaut, 1234, 7, 99).
+     · `butsMancheEuro` 2,369 → 2,484 : trente minutes de plus font des buts en plus (la section J
+       mesure +0,219 but par affiche prolongée). Le modèle de force, lui, n'allongeait jamais.
+     · `tabEuro` 0,083 → 0,038 : moitié moins de séances, parce que 52 % seulement des prolongations
+       vont jusqu'au bout — les autres se décident sur le terrain. C'est exactement l'effet recherché.
+     · `favoriEuro` 0,652 → 0,669 : le favori passe un peu plus souvent, la profondeur d'effectif
+       pesant enfin sur cent vingt minutes. L'écart tient dans l'ancienne tolérance ; on recentre.
+     Ce qui N'A PAS bougé, et c'est la vraie nouvelle : les buts par manche du temps réglementaire, la
+     part de l'hôte et le taux de qualification du favori se transfèrent quasiment intacts d'un moteur
+     à l'autre (mesuré à 0,009 but près sur 3 733 affiches avant la bascule). */
+  butsMancheEuro: [2.484, 0.09],
+  tabEuro: [0.038, 0.012],
+  favoriEuro: [0.669, 0.040],
 };
 function etalonne(cle, mesure, libelle) {
   const ref = ETALON[cle];
@@ -307,7 +321,16 @@ try {
   }
   const apresE = releve();
   if (apresE !== avantE) fail("Coupe d'Europe : " + (apresE - avantE) + " point(s) de statistique crédité(s) par " + butsEuro + " buts de manche");
-  else ok("Coupe d'Europe : " + butsEuro + " buts résolus, zéro statistique touchée");
+  else ok("Coupe d'Europe : " + butsEuro + " buts résolus, zéro compteur de CHAMPIONNAT touché");
+  /* Et l'autre moitié de l'invariant, qui ne servait à rien tant que les manches étaient abstraites :
+     depuis la bascule (v1.25) ces buts sont marqués par de vrais hommes, donc ils doivent ATTERRIR
+     quelque part. S'ils ne comptaient nulle part, la ligne ci-dessus resterait verte et le but de coupe
+     serait purement et simplement perdu — l'invariant dirait alors le contraire de ce qu'il croit dire. */
+  const releveC = () => tousLesJoueurs().reduce((s, j) => s + (j.butsC || 0) + (j.passesC || 0), 0);
+  const apresCoupeC = releveC();
+  if (butsEuro > 0 && apresCoupeC === 0)
+    fail("Coupe d'Europe : " + butsEuro + " buts marqués et pas un seul crédité au compteur de coupe — ils se perdent");
+  else ok("et ils atterrissent bien au compteur de coupe : " + apresCoupeC + " buts et passes européens inscrits sur les fiches");
 } catch (e) { fail("exception dans l'invariant des buteurs : " + e.stack); }
 
 /* ============================================================================

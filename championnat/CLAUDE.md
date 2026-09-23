@@ -1780,6 +1780,37 @@ moments n'avaient aucun harnais du tout — rien n'empêchait l'un d'eux de se m
 score. Choisir un adversaire qui ne soit pas le rival du club : le derby a sa propre porte de sortie
 (`provoc`) avant même la branche du décor.
 
+### LA BASCULE DE L'EUROPE — FAITE À MOITIÉ, NE PAS LIVRER EN L'ÉTAT
+
+**Ce qui est fait.** Une manche européenne se joue par `simuleMatch` : `euroManche`, `euroCloture` et
+`euroFinaleSeche` passent toutes par `euroMatchReel`, qui entre par `enCompet("EU")` et garde un repli sur
+l'ancien modèle si un club n'a pas d'effectif (vieille sauvegarde). La finale se joue sur terrain neutre
+avec prolongations ; la manche retour prolonge **seulement si la double confrontation partirait sinon aux
+tirs au but** — c'est le rôle du nouvel `opts.egalite` de `simuleMatch`, qui dit « rien ne les sépare
+encore » autrement que par le score du soir. Les t.a.b. viennent désormais du moteur (`r.tab`), plus d'un
+rapport de forces. `multTactique` n'est plus nécessaire : `simuleMatch` connaît déjà consigne et prime.
+
+**Étalon réécrit sciemment** : `butsMancheEuro` 2,369 → 2,484, `tabEuro` 0,083 → 0,038,
+`favoriEuro` 0,652 → 0,669. Les trois bougent pour la même raison voulue — on joue les prolongations. Tout
+le reste du fichier est resté conforme sans y toucher : le calibrage se transfère d'un moteur à l'autre.
+L'invariant des buteurs a gagné sa seconde moitié (les buts de coupe doivent ATTERRIR dans `butsC`, pas
+seulement épargner le championnat) et il a été vérifié rouge en retirant `enCompet`.
+
+**CE QUI MANQUE, et qui interdit la livraison.** Votre soirée européenne, celle que vous regardez, tire son
+score par `euroManche` — donc par `simuleMatch`, qui **crédite de vrais buteurs**. Mais le téléscripteur
+met ce score en scène avec `corpsCoupe`, qui **invente ses propres buteurs** (des noms, pas des `uid`). Un
+homme peut donc voir trois buts européens sur sa fiche sans être apparu une fois dans le fil. Pire : si
+vous changez de consigne en cours de match, `rejoueRdv` **réinvente des buts** que personne n'a crédités, et
+le score affiché s'éloigne de ce que les fiches ont enregistré.
+
+**Le dernier kilomètre, tel qu'il faut le faire** : la soirée européenne doit consommer le fil de
+`simuleMatch` lui-même (`simuleMatch(H, A, true, opts)` → `r.ev`, même forme que le samedi) au lieu du fil
+fabriqué par `corpsCoupe`, et le changement de consigne doit passer par **`rejoueDepuis`** — qui sait
+défaire les buts effacés, `cleButs()` compris — au lieu de `rejoueRdv`, qui ne le sait pas. C'est du
+câblage d'écran (`euroJoue`, le `tic()` de la nuit européenne, `cableTactiqueRdv` → `cableTactique`), à
+faire avec une capture Playwright sous les yeux. La Coupe de France posera exactement la même question le
+jour venu.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
