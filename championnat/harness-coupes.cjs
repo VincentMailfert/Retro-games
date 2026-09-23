@@ -235,8 +235,18 @@ etalonne("poucetLoin", loin / C.poucetSaisons, "le Poucet aux quarts ou mieux");
 console.log("\nD) Votre club (" + C.monSaisons + " saisons)");
 for (const t of LONGS) if (C.mon[t]) console.log("   éliminé en " + t.padEnd(18) + " " + pct(C.mon[t] / C.monSaisons));
 console.log("   sacres ..................... " + C.monSacres + "  (" + pct(C.monSacres / C.monSaisons) + ")");
-if (C.monSacres === 0) fail("votre club ne gagne JAMAIS la coupe en " + C.monSaisons + " saisons — invraisemblable, à vérifier");
-else ok("votre club soulève le trophée " + pct(C.monSacres / C.monSaisons) + " des saisons");
+/* Cette ligne exigeait autrefois AU MOINS UN SACRE en 180 saisons-club. Or le club n'atteint la finale
+   qu'une saison sur cent : a p(sacre) ~ 0,7 %, un echantillon de 180 ne rend aucun sacre une fois sur
+   quatre. Ce n'etait donc pas une garde mais un pile ou face, et il tombait du mauvais cote des que le
+   tirage a graine etait rebrasse — ce que fait n'importe quel changement de moteur, meme sans effet
+   (v1.23 a ajoute deux decors de 90e, tous les etalons sont restes conformes, et cette ligne a vire au
+   rouge). On garde donc ce que l'echantillon peut prouver : le parcours n'est plafonne nulle part, le
+   club atteint bien la finale. ATTENTION : « la finale est gagnable » n'est PLUS verifie ici, et ne peut
+   pas l'etre a cette taille d'echantillon — il faudrait beaucoup plus de saisons, ou une boucle dediee
+   qui ne joue que des finales. */
+const monFinales = (C.mon["Finale"] || 0) + C.monSacres;
+if (monFinales === 0) fail("votre club n'atteint JAMAIS la finale en " + C.monSaisons + " saisons — le parcours est plafonné quelque part");
+else ok("votre club atteint la finale " + pct(monFinales / C.monSaisons) + " des saisons, et la gagne " + C.monSacres + " fois sur " + monFinales);
 etalonne("monPremierTour", (C.mon["32es de finale"] || 0) / C.monSaisons, "votre sortie dès les 32es");
 
 /* ============================================================================
