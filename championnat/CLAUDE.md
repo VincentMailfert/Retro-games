@@ -57,7 +57,7 @@ toujours « raconter quelque chose ».
 - `index.html` : tout est dedans — `<style>`, `<body>` minimal, gros `<script>` vanilla.
 - **Aucun framework, aucun build, et aucune dépendance externe dans la logique de jeu.** HTML/CSS/JS pur.
   Deux entorses purement cosmétiques chargées depuis le `<head>`, sans effet sur le moteur (voir plus bas) :
-  les fontes Google (VT323/Silkscreen) et le compteur GoatCounter — toutes deux dégradent proprement si le
+  les fontes Google (IBM Plex Sans/VT323/Silkscreen) et le compteur GoatCounter — toutes deux dégradent proprement si le
   réseau manque (repli `monospace`, pas de comptage). Un troisième ajout au `<head>` ne compte PAS comme une
   dépendance : le favicon est embarqué en `data:` URI (un ballon jaune sur bleu nuit, aux couleurs du jeu) —
   zéro requête réseau, il évite simplement le 404 `/favicon.ico`.
@@ -122,17 +122,22 @@ toujours « raconter quelque chose ».
 - Constantes de données en MAJUSCULES (`CLUBS`, `STARS`, `INCIDENTS`, `SPONSORS_SULFUREUX`…).
 - Helpers courts en camelCase (`clubById`, `onze`, `majReput`, `tireIncident`…).
 - Montants en francs (FF) ou millions de francs (MF). Époque oblige.
-- Style visuel : télétexte Championship Manager 2 — fond bleu nuit `#0b1626`, jaune `#ffd24a`,
-  cyan `#6fd6e8`. Respecter cette palette.
-- **Typographie** : deux fontes d'écran rétro, déclarées en variables `:root` (toujours garder le repli
-  `monospace`). `--font-ui` = **VT323** (toute l'interface, portée par `body`) ; `--font-led` = **Silkscreen**
-  (la « voix tableau d'affichage » : flash de but `#butFlash .gros`, `.scoreline`, et les chiffres de score
-  `.tSc`/`.tSep`). **Piège de métrique** : VT323 rend nettement plus petit que Consolas à taille égale — la base
-  est à `17px` (pas 14) et toutes les `font-size` (sous-éléments **et** bloc mobile) ont été remontées d'environ
-  20 % pour rester lisibles. Si on change de fonte ou qu'on ajoute un écran, relire les tailles (surtout les
-  tableaux mercato/classement). Les temps forts LED portent un **halo serré + ombre pixel**
-  (`text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6)`), pas un néon flou — ne pas réintroduire le
-  `0 0 9px`.
+- **Style visuel (refonte d'interface du 23/09/2026, direction « Vestiaire de nuit »)** : fond bleu nuit
+  `#0b1626`, texte `--txt`, blanc cassé `--clair` `#f2f5fa`, gris `--dim`. **Le jaune `#ffd24a` ne veut dire
+  que trois choses** : VOTRE club (le « XI », le capitaine, votre ligne, vos victoires), l'ACTION offerte (bouton
+  plein, cf. v1.02) et l'AVERTISSEMENT (carton, fraîcheur entamée, moral moyen, match nul) ; les scores du match
+  le gardent aussi. Tout nom ou montant qu'on veut faire ressortir prend la classe `.fort` (blanc gras), jamais
+  `.jaune`. Vert/rouge = hausse/baisse. **Plus de cyan ni de violet** (retirés à la demande de l'auteur) ; les
+  titres `h2`/`h3` sont en blanc cassé. Plancher de texte : **13 px**.
+- **Typographie** : trois fontes déclarées en variables `:root`, chacune avec sa pile de repli.
+  `--font-texte` = **IBM Plex Sans** (tout ce qu'on lit, porté par `body` : tableaux, textes, boutons ;
+  chiffres `tabular-nums`). Le rétro est réservé aux MOMENTS : `--font-ui` = **VT323** (le téléscripteur
+  `#ticker` seulement) ; `--font-led` = **Silkscreen** (la « voix tableau d'affichage » : flash de but
+  `#butFlash .gros`, `.scoreline`, les chiffres de score `.tSc`/`.tSep`, la note du mercato). Base à `15px`
+  (14 sur téléphone), tableaux et boutons à 14. **Piège de métrique** : VT323 rend bien plus petit que Plex à
+  taille égale — si on le remet quelque part, remonter sa taille d'environ 20 %. Les temps forts LED portent un
+  **halo serré + ombre pixel** (`text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6)`), pas un néon flou —
+  ne pas réintroduire le `0 0 9px`.
 
 ## Systèmes de jeu en place (ne pas casser)
 - **APRÈS CE MATCH — LES PROCHAINS RENDEZ-VOUS (v1.20, idée prise à RFM27)** : sous l'affiche du jour, trois
