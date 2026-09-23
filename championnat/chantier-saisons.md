@@ -83,7 +83,7 @@ trois clubs muets, on bloque » servira. Belle matière narrative, au passage : 
 Coupe d'Europe 93, puis VA-OM.
 
 - [x] **1990-91** — `STARS_9091`/`STARS_D2_9091`, `D1_9091`/`D2_9091`, `an:1990`, `saison_id/1990`
-- [ ] **1991-92** — `STARS_9192`/`STARS_D2_9192`, `D1_9192`/`D2_9192`, `an:1991`, `saison_id/1991`
+- [x] **1991-92** — `STARS_9192`/`STARS_D2_9192`, `D1_9192`/`D2_9192`, `an:1991`, `saison_id/1991`
 - [ ] **1992-93** — `STARS_9293`/`STARS_D2_9293`, `D1_9293`/`D2_9293`, `an:1992`, `saison_id/1992`
 - [ ] **1993-94** — `STARS_9394`/`STARS_D2_9394`, `D1_9394`/`D2_9394`, `an:1993`, `saison_id/1993`
 - [ ] **1994-95** — `STARS_9495`/`STARS_D2_9495`, `D1_9495`/`D2_9495`, `an:1994`, `saison_id/1994`
@@ -206,3 +206,4 @@ années 90 **en trois langues au hasard**, avec un anti-robot qu'un autre domain
 |---|---|---|
 | 2026-09-22 | — | Chantier ouvert. Base du jeu : 1995-96 → 1999-00 (v1.15). |
 | 2026-09-22 | 1990-91 | Livrée (v1.16). 760 vrais joueurs, 40 clubs, dont **onze clubs neufs** (Brest, Valenciennes, Alès, Istres, Avignon, Rodez, Annecy, Angers, Rouen, Reims, Tours). La D2 réelle étant en deux groupes de dix-huit, le jeu retient **les dix premiers de chaque groupe** ; **Saint-Seurin écarté** (17 joueurs documentés pour 18 places, jurisprudence Toulon). Étés **1992** et **1994** écrits dans `HONNEURS`. Deux pièges neufs : le **sens du temps inversé** pour les notes, et l'**anti-robot** de Transfermarkt. Un correctif de moteur au passage : `regarnitVivier` pouvait inventer le nom d'un joueur déjà employé. `harness9091.cjs` vert, plus les seize autres harnais en non-régression. |
+| 2026-09-23 | 1991-92 | Livrée (v1.21). **758 vrais joueurs**, 40 clubs, dont **deux clubs neufs** seulement (Bourges et le Gazélec Ajaccio) : le plateau de 91/92 est presque entièrement déjà connu du jeu. La D1 réelle avait ses vingt clubs **sans aucun repêchage** — Bordeaux, Brest et Nice rétrogradés administrativement, Le Havre, Lens et Nîmes promus — ce qui est le premier cas depuis 96/97 où le compte tombe juste tout seul. La D2 étant encore en deux groupes de dix-huit, on reprend la règle de 90/91 (les dix premiers de chaque groupe) ; **Tours écarté** (seize joueurs pour dix-huit places), **Ancenis sauté** (dix-sept), **Beauvais entre**. Sens du temps de nouveau normal : 495 des 758 noms héritent de leur note 90/91 **vieillie** d'un an, ce qui évite complètement le piège de l'inversion. Aucun forçage nécessaire cette année : Zidane, Thuram, Barthez, Vairelles et Lamouchi passent tous au temps de jeu. `harness9192.cjs` vert cinq fois de suite, plus les vingt autres harnais en non-régression. |

@@ -518,6 +518,65 @@ toujours « raconter quelque chose ».
   un effectif ET chez les recrues possibles. Le nom est désormais retiré au sort jusqu'à en trouver un inconnu.
   Neuf effectifs que la source laisse incomplets et que `genJoueur` complète à la marge (Lyon et le PSG n'ont qu'un
   gardien répertorié, Laval que quatre milieux). Validation dédiée : **`harness9091.cjs`**.
+  **1991-92 (v1.21)** : `STARS_9192`/`STARS_D2_9192`, `D1_9192`/`D2_9192`, `an:1991`, `saison_id/1991` — la
+  deuxième saison ajoutée en remontant le temps, mais la première qui **redescend** le cours du temps depuis une
+  saison déjà curée : 90/91 est juste derrière, et c'est ce qui change tout (voir les notes plus bas).
+  **Le plateau tombe juste tout seul, pour la première fois depuis 96/97** : la D1 réelle avait ses vingt clubs et
+  n'a repêché personne. Elle le doit à trois rétrogradations **administratives** — Bordeaux (10e), Brest (11e) et
+  Nice (14e), tous trois coulés par leurs finances — qui sauvent Toulouse (19e) et Rennes (20e) de la descente
+  sportive ; Le Havre, Lens et Nîmes montent. **Vérifier ce genre de chose plutôt que de lire un classement** :
+  prendre les deux derniers pour des relégués aurait donné un championnat faux de trois clubs.
+  La D2 se jouait toujours en **deux groupes de dix-huit** : on reconduit la règle de 90/91, **les dix premiers de
+  chaque groupe** (groupe A : Valenciennes, Angers, Le Mans, Louhans-Cuiseaux, Laval, Guingamp, Rouen, Bourges,
+  Dunkerque ; groupe B : Bordeaux, Strasbourg, Istres, Bastia, Gazélec Ajaccio, Rodez, Perpignan, Châteauroux,
+  Nice, Alès). **Tours, 9e du groupe A, a été écarté** — Transfermarkt ne lui connaît que seize joueurs pour
+  dix-huit places, et cinq de ses vingt lignes sont inexploitables (jurisprudence Saint-Seurin) ; **Ancenis, 11e,
+  a été sauté à son tour** parce qu'il n'est pas mieux servi (dix-sept), et c'est **Beauvais, 12e**, qui entre.
+  Deux clubs neufs seulement dans `CLUBS_EXTRA`, le plateau étant déjà presque entièrement connu du jeu :
+  **Bourges** (`BOU`, Jacques-Rimbault, **rouge et bleu**) et le **Gazélec Ajaccio** (`GFC`, **Mezzavia** —
+  attention, le stade ne devient Ange-Casanova qu'en 1994 —, rouge et bleu rayé), couleurs vérifiées une à une.
+  **`GFC` n'est pas `AJA`** : le Gazélec et l'AC Ajaccio sont deux clubs distincts, comme `VAN` (Valenciennes) et
+  `VAL` (Valence) le sont depuis 90/91. Sièges européens réels : **l'OM en C1** (champion), **Monaco en C2**
+  (vainqueur de la Coupe de France 1991, contre l'OM en finale), **Auxerre, Cannes et Lyon en C3** — trois places
+  UEFA cette année-là contre deux en 90/91, vérifié sur le tableau de la Coupe UEFA 1991-92.
+  `HONNEURS` n'a rien eu à apprendre : partir de 91/92 fait tomber **l'Euro 92 dès la première intersaison** et le
+  Mondial 94 à la troisième, deux étés déjà écrits par 90/91.
+  **LE SENS DU TEMPS EST REDEVENU NORMAL, et c'est la bonne nouvelle de cette saison.** 90/91 est à un an de
+  distance : **495 des 758 noms héritent simplement de leur note 90/91 vieillie d'un an** (+2 jusqu'à 21 ans, +1
+  jusqu'à 24, −1 de 30 à 32, −2 au-delà), c'est-à-dire par la règle éprouvée et dans le bon sens. Le piège de
+  l'inversion documenté en 90/91 ne concerne plus que 86 noms, ancrés sur 95/96 ou plus tard, qui passent par la
+  moyenne rajeunie/calculée ; 151 sont entièrement calculés. **Règle neuve, et à garder** : le **potentiel se
+  reprend tel quel à l'ancre** au lieu d'être recalculé — sans cela Zidane ressortait à 91 de potentiel en 91/92
+  alors que 90/91 lui en donne 95, et Thuram à 84 contre 90. Le potentiel d'un homme ne rétrécit pas d'une saison
+  à l'autre. Table d'ajustements à la main de 26 entrées, plus courte qu'en 90/91 parce que l'héritage fait le
+  travail : Papin 89 (**Ballon d'or 1991**, vingt-sept buts, meilleur buteur pour la cinquième année), Waddle 86,
+  Abedi Pelé 85 (meilleur joueur africain 1991 *et* 1992), Weah et Boli 83, Márcico, Moravčík et Fernandez 82,
+  Cantona 81, Valdo et Ricardo Gomes 80 — les deux Brésiliens que le PSG a fait venir de Benfica, que le calcul ne
+  pouvait pas connaître.
+  **Aucun forçage nécessaire cette année**, une première : le tri aux minutes n'a écarté aucune pépite, parce que
+  les dix premiers de chaque groupe offrent des effectifs généreux et que les minimums de poste rattrapent le
+  reste. Zidane (19 ans, 3 042 minutes à Cannes), Thuram, Barthez, Desailly, Djorkaeff, Petit, Laigle, Déhu, Goma,
+  Grimandi, Pedros, Ouédec, Karembeu, Guivarc'h, Vairelles (18 ans) et Lamouchi passent tous tout seuls, comme
+  Lizarazu et Dugarry dans le Bordeaux de Division 2. La liste `FORCES` reste en place, vide, pour la saison où
+  il faudra s'en servir.
+  **Trois homonymes** réglés à la convention de 99/00 (le plus utilisé garde l'initiale) : **Jean-Michel Ferri**
+  (Nantes) écrit en toutes lettres face au **J.-M. Ferri** du Gazélec, qui a joué davantage ; **Zoran Vujovic**
+  (Cannes) face à son frère jumeau **Z. Vujovic** (Zlatko, Sochaux). Le troisième cas n'avait aucune issue —
+  **deux Olivier Baudry**, prénom ET patronyme identiques, à Sochaux et à Louhans : le plus marginal cède sa
+  place à un autre vrai joueur de son club (convention de 97/98).
+  **Deux découvertes de relevé.** (1) Transfermarkt sert aussi des **libellés de poste génériques en français**
+  (« Défense », « Milieu ») en plus des libellés précis des trois langues : sans eux, trente-cinq joueurs
+  perdaient leur poste, Châteauroux tombait à dix hommes et Tours à cinq. La règle de blocage (plus de trois
+  clubs sous dix joueurs) n'aurait pas été déclenchée pour autant, et c'est bien le danger : on aurait livré
+  deux effectifs fantômes en croyant la source pauvre. **Contrôler les libellés non reconnus avant de conclure
+  qu'un club est mal documenté.**
+  (2) Les **mononymes brésiliens** (Valdo, Geraldão, Baltazar) ne doivent pas recevoir d'initiale : `nom_jeu`
+  les écrit tels quels, comme le jeu le fait déjà pour Bebeto ou Aldair.
+  Vingt et un joueurs procéduraux au total, dont **quinze deuxièmes gardiens** : la source mentionne bien la
+  doublure de chaque club, mais la marque « pas dans l'effectif cette saison », ce qui l'écarte à juste titre.
+  C'est la même marge qu'en 90/91 (Lyon et le PSG à un seul gardien). L'OM n'a que dix-neuf hommes ayant joué et
+  Istres dix-sept — la source fait foi, et la D1 n'offre aucun remplaçant possible. Validation dédiée :
+  **`harness9192.cjs`**.
   Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
   `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
   ajoute une par une — sont dans `chantier-saisons.md`.**
@@ -1682,7 +1741,9 @@ toujours « raconter quelque chose ».
    `harness9697.cjs` (saison de départ 96/97), `harness9798.cjs` (saison de départ 97/98 : repêchés, Nice en C2,
    réconciliation France ↔ Europe), `harness9899.cjs` (saison de départ 98/99 : double repêchage, clubs neufs
    Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness9900.cjs` (saison de départ 99/00 : double repêchage,
-   Créteil, Euro 2000 dès la 1re intersaison, homonymes et prénoms composés), `harness-euro.cjs` (les trois coupes d'Europe),
+   Créteil, Euro 2000 dès la 1re intersaison, homonymes et prénoms composés),
+   `harness9192.cjs` (saison de départ 91/92 : aucun repêchage en D1, Tours écarté et Beauvais repêché,
+   Bourges et le Gazélec, Euro 92 dès la 1re intersaison, homonymes Ferri/Vujovic), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
    rappel d'un prêt avant terme),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
