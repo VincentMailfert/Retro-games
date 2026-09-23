@@ -25,15 +25,20 @@ toujours « raconter quelque chose ».
 - Réponses à l'auteur : **prose fluide, style article de presse**, pas de listes à puces techniques,
   pas de jargon inutile. L'auteur n'est pas développeur professionnel.
 - Le ton du jeu est léger, drôle, parfois sulfureux mais bon enfant. Jamais de registre tragique.
-- **FINIR PAR DES QUESTIONS À CHOIX MULTIPLES DÈS QU'IL RESTE UNE DÉCISION À PRENDRE (consigne auteur,
-  22/09/2026)** : « pose-moi des questions plus claires, à choix multiples ». Une livraison laisse presque
-  toujours des arbitrages ouverts — où livrer, quoi faire ensuite, quel comportement retenir. Ne pas les
-  noyer dans un paragraphe d'hypothèses en fin de réponse : les poser **fermées**, deux à quatre questions,
-  deux à quatre options chacune, chaque option disant ce qu'elle IMPLIQUE (ce qui part en ligne, ce que ça
-  coûte, ce qu'on perd), et recommander la meilleure en la mettant en premier. L'auteur répond d'un clic, et
-  la session enchaîne. **Le corollaire compte autant** : quand rien n'est réellement ouvert — la décision
-  est évidente, ou elle a déjà été prise — on ne fabrique pas de questions pour la forme, on livre et on le
-  dit. Et une question ne se pose que si la réponse change ce qu'on ferait ensuite.
+- **FINIR SYSTÉMATIQUEMENT PAR DES QUESTIONS À CHOIX MULTIPLES — SANS EXCEPTION (consigne auteur,
+  22/09/2026, durcie le 23/09/2026)** : « pose-moi des questions plus claires, à choix multiples », puis
+  « termine **systématiquement** par une question à choix multiples, car tes messages sont difficiles à
+  décrypter. **On ne comprend pas à quel point tu attends une réponse** ». Les poser **fermées**, deux à
+  quatre questions, deux à quatre options chacune, chaque option disant ce qu'elle IMPLIQUE (ce qui part en
+  ligne, ce que ça coûte, ce qu'on perd), et recommander la meilleure en la mettant en premier. L'auteur
+  répond d'un clic, et la session enchaîne.
+  **Le corollaire du 22/09 est ANNULÉ.** Il disait : « quand rien n'est réellement ouvert, on ne fabrique
+  pas de questions pour la forme ». L'auteur a tranché dans l'autre sens le 23/09, après une réponse qui
+  s'était terminée sur un simple récapitulatif : **mieux vaut une question dont la réponse est évidente
+  qu'un message où il ne sait pas s'il doit répondre.** Le bloc de questions est le seul signal non
+  ambigu de « à vous » dans une réponse en prose. Donc : **aucune réponse ne se termine sur un
+  récapitulatif**, même quand tout est livré et vert. S'il ne reste aucune décision de fond, la question
+  porte sur la suite — quoi lancer ensuite, où livrer, quoi approfondir.
 - **ON N'EXPLIQUE PAS LE JEU, ON LE FAIT DÉCOUVRIR (consigne auteur, 22/09/2026)** : « un peu trop de texte
   explicatif dans le jeu. Il faut laisser les gens découvrir par eux-mêmes. Ça fait partie du délire de
   comprendre comment fonctionne le jeu, d'en découvrir les ficelles. » Un grand ménage a donc retiré en v1.17
