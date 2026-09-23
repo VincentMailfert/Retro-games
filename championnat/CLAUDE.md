@@ -1662,6 +1662,30 @@ deux à cinq mots, trente-quatre caractères au plus, français d'époque, ton l
 partagé avec une autre saison ni avec le titre d'un feuilleton** (`ARCS` : le diamant, le sac, le sortilège
 et la buvette sont pris). `harness-noms.cjs` refuse tout le reste.
 
+### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
+
+La 90ᵉ tire parfois une respiration comique qui ne touche à rien : ni au score, ni à un joueur, ni à une
+statistique. Il y en avait trois (`chien`, `pigeon`, `streaker`), il y en a cinq — **`projos`** (les quatre
+pylônes qui lâchent, briquets dans les tribunes, halogènes qui refusent de redémarrer) et **`banderole`**
+(quarante mètres de drap dans le virage, une vanne pour l'arbitre). Textes de **Fable 5.1 en atelier**.
+
+Le câblage tient en trois endroits, et c'est le gabarit à recopier pour un sixième : le `PICK` de la branche
+décor en fin de `tireMoment` (après le seuil `t < 0.97`), un `if(decor==="…") return {type, annonce}` juste
+à côté, et un bloc `if(lg && lg.mo==="…")` dans le téléscripteur qui appelle `celebreFlash`. **Ne jamais
+l'inscrire dans `MOMENTS_BUT`** : c'est cette table qui distingue un moment qui change le score d'un moment
+qui n'est que raconté, et `autoMoment` rend alors 0 sans qu'on ait rien à écrire.
+
+`PROJOS_ART` rejoint `DOG_ART` et `PIGEON_ART`. **Attention : `celebreFlash` écrit `o.art` SANS
+l'échapper** (contrairement à `o.detail`) — un dessin ne doit donc contenir ni `<`, ni `>`, ni `&`.
+
+**Ce qui les garde désormais** : `harness.cjs`, section **B ter**. Elle force le premier `Math.random()` de
+`tireMoment` (la variable `t`) pour tomber dans la branche décor et laisse courir le reste, ce qui fait
+sortir les cinq au fil des essais. Elle vérifie pour chacun : une annonce à lire, **aucune accolade**
+survivante, **aucun `uid`** (un décor ne nomme personne), et **`autoMoment` qui rend 0**. Jusqu'ici ces
+moments n'avaient aucun harnais du tout — rien n'empêchait l'un d'eux de se mettre un jour à toucher au
+score. Choisir un adversaire qui ne soit pas le rival du club : le derby a sa propre porte de sortie
+(`provoc`) avant même la branche du décor.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`

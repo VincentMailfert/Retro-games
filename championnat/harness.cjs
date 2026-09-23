@@ -108,6 +108,46 @@ try {
   ok("types vus : " + Object.keys(types).sort().join(", "));
 } catch (e) { fail("exception moments : " + e.stack); }
 
+/* ===== B ter) les moments de PUR DÉCOR : ça se raconte, ça ne change rien =====
+   Un match sur cent environ, la 90e tire une respiration comique — un chien, un pigeon, un intrus, les
+   projecteurs qui lâchent, une banderole du kop. Ils n'avaient jusqu'ici aucun harnais : rien ne garantissait
+   qu'un jour l'un d'eux ne se mette pas à toucher au score, ou à nommer un joueur qu'il n'a pas.
+   Le tirage se force par le PREMIER `Math.random()` de `tireMoment` (la variable `t`) ; le reste court
+   librement, ce qui fait sortir les cinq décors au fil des essais. */
+console.log("B ter) Pur décor : la 90e se raconte, et ne touche à rien");
+try {
+  api.nouvellePartie(api.CLUBS[2].id);
+  const G = api.getG();
+  const moi = G.clubs.find(c => c.id === G.monClub);
+  // jamais un derby : il a sa propre porte de sortie (« provoc ») avant même la branche du décor
+  const adv = G.clubs.find(c => c.id !== moi.id && c.id !== "OM" && c.id !== "PSG");
+  const DECOR = ["chien", "pigeon", "streaker", "projos", "banderole"];
+  const vus = {};
+  let pb = null;
+  const vraiRandom = Math.random;
+  try {
+    for (let i = 0; i < 4000 && !pb; i++) {
+      let premier = true;
+      Math.random = () => { if (premier) { premier = false; return 0.99; } return vraiRandom(); };
+      const mo = api.tireMoment(moi, adv);
+      Math.random = vraiRandom;
+      if (!mo) { pb = "la branche du décor a rendu null"; break; }
+      if (!DECOR.includes(mo.type)) { pb = "type inattendu dans la branche du décor : " + mo.type; break; }
+      if (!mo.annonce || mo.annonce.length < 40) { pb = mo.type + " : pas d'annonce à lire"; break; }
+      if (/[{}]/.test(mo.annonce)) { pb = mo.type + " : une accolade a survécu dans l'annonce"; break; }
+      if (mo.uid != null) { pb = mo.type + " : un décor ne nomme personne, il ne doit pas porter d'uid"; break; }
+      const d = api.autoMoment(mo);
+      if (d !== 0) { pb = mo.type + " : delta=" + d + " — un décor ne touche pas au score"; break; }
+      vus[mo.type] = (vus[mo.type] || 0) + 1;
+    }
+  } finally { Math.random = vraiRandom; }
+  if (pb) fail(pb);
+  const manquants = DECOR.filter(t => !vus[t]);
+  if (manquants.length) fail("décors jamais tirés en 4000 essais : " + manquants.join(", "));
+  else if (!pb) ok("les " + DECOR.length + " décors sortent tous, sans uid, sans accolade, et sans toucher au score");
+  if (!pb) ok("tirages : " + DECOR.map(t => t + " " + (vus[t] || 0)).join(" · "));
+} catch (e) { fail("exception décor : " + e.stack); }
+
 /* ===== B bis) tactique en direct SUR UN MATCH À MOMENT (v1.04) =====
    Depuis v1.04 on peut changer de consigne même quand un moment attend à la 90e : le recollage doit donc
    rendre un fil qui tient encore debout — moment présent une seule fois, sifflet en dernier, score = lignes-but. */
