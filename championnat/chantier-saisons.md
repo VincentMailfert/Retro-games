@@ -19,14 +19,21 @@ livre pas, on écrit le blocage au journal, et on laisse la saison à demain.
    de la file d'attente ci-dessous. C'est le travail du jour, et le seul.
 2. **Faire le travail** en suivant la méthode (ci-dessous, et surtout la section « Saison de départ au
    choix » de `CLAUDE.md`, qui est la vraie documentation).
-3. **Valider**, sans exception : extraction du JS + `node --check`, le nouveau harnais de la saison, puis
+3. **Lui donner un nom** (depuis la v1.22) : chaque saison porte un champ `nom` à côté de son `titre`, et
+   c'est ce nom que l'écran d'accueil met en avant — « Sur tapis vert — 1991-92 ». Deux à cinq mots,
+   trente-quatre caractères au plus, français d'époque, ton léger, tiré de ce que la saison a de
+   singulier. **Aucun mot marquant déjà utilisé par une autre saison ni par un feuilleton** (`ARCS` : le
+   diamant, le sac, le sortilège, la buvette sont pris). `harness-noms.cjs` refuse tout le reste, et il
+   refuse aussi qu'on touche à `titre`, qui reste le créneau daté. Voir « LES SAISONS NOMMÉES » dans
+   `CLAUDE.md`.
+4. **Valider**, sans exception : extraction du JS + `node --check`, le nouveau harnais de la saison, puis
    **tous les autres harnais du dossier** en non-régression. Tout doit finir « TOUT EST VERT ».
-4. **Cocher la ligne** dans ce fichier, ajouter une ligne au journal en bas, écrire le paragraphe de la
+5. **Cocher la ligne** dans ce fichier, ajouter une ligne au journal en bas, écrire le paragraphe de la
    saison dans `CLAUDE.md`, **incrémenter `VERSION`** dans `index.html`.
-5. **Livrer** : commit sur `main`, message en français dans le style des livraisons précédentes
+6. **Livrer** : commit sur `main`, message en français dans le style des livraisons précédentes
    (`git log` pour le ton), puis `git push`. Si le push est refusé parce que quelqu'un a poussé entre
    temps, `git pull --rebase`, relancer les harnais, et repousser.
-6. **Si ça bloque** (source injoignable, effectifs trop pauvres, harnais rouge, structure à inventer) :
+7. **Si ça bloque** (source injoignable, effectifs trop pauvres, harnais rouge, structure à inventer) :
    ne rien inventer, ne pas livrer une saison à moitié fausse. **Committer et pousser la seule mise à jour
    du journal** ci-dessous, en expliquant le blocage, et laisser la ligne non cochée. C'est la trace que
    l'auteur lira au réveil.
