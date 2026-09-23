@@ -56,7 +56,21 @@
   }
   nav button.on{background:var(--jaune); color:#16243c; font-weight:bold; border-color:var(--jaune);}
   nav button:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
-  .panel{background:var(--panel); border:1px solid var(--line); padding:10px 12px; margin-bottom:8px;}
+  /* MOINS DE CADRES (chantier interface, lot 3) : un panneau se détache du fond par sa teinte et l'espace
+     autour, plus par un filet. Le bord reste là, transparent, pour que les rares panneaux qui portent une
+     couleur en ligne (le prochain match, le mercato ouvert, les rendez-vous) soient les SEULS encadrés. */
+  .panel{background:var(--panel); border:1px solid transparent; border-radius:6px; padding:16px 18px; margin-bottom:12px;}
+  /* action secondaire posée à côté du bouton plein : un lien, pas un second bouton qui lui dispute l'œil */
+  button.lien{background:none; border:0; color:var(--dim); font-family:inherit; font-size:14px; padding:6px 8px;
+    text-decoration:underline; text-underline-offset:3px; cursor:pointer;}
+  button.lien:hover:not(:disabled){color:var(--clair);}
+  button.lien:disabled{opacity:.4; cursor:default;}
+  button.lien:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
+  /* glossaire des pictos : replié par défaut, il reste à un clic pour qui en a besoin */
+  details.legende{margin-top:12px; color:var(--dim); font-size:13px;}
+  details.legende summary{cursor:pointer; width:max-content; padding:2px 0;}
+  details.legende summary:hover{color:var(--clair);}
+  details.legende p{margin-top:6px;}
   h2{color:var(--clair); font-size:15px; font-weight:600; letter-spacing:.06em; margin-bottom:10px; text-transform:uppercase;}
   h3{color:var(--clair); font-size:14px; font-weight:600; margin:12px 0 4px;}
   table{width:100%; border-collapse:collapse; font-size:14px;}
@@ -174,12 +188,12 @@
   .mChip.on{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
   .mChip.onD2{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
   .mercRap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-  .mercRap .carte{background:var(--panel2);border:1px solid var(--line);padding:8px 10px;
+  .mercRap .carte{background:var(--panel2);border:1px solid transparent;border-radius:6px;padding:10px 12px;
     display:flex;flex-direction:column;gap:4px;cursor:pointer;}
-  .mercRap .carte:hover{border-color:var(--jaune);}
+  .mercRap .carte:hover{border-color:var(--line);}
   #listeM tr.sel td{background:rgba(255,210,74,.09);}
   .mercWrap{display:grid;grid-template-columns:1fr 360px;gap:0 16px;align-items:start;}
-  .mercFiche{position:sticky;top:12px;background:var(--panel2);border:2px solid var(--jaune);padding:12px 14px;}
+  .mercFiche{position:sticky;top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:12px 14px;}
   .mercFiche .noteLed, tr.mercDet .noteLed{font-family:var(--font-led);font-size:26px;color:var(--jaune);
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
   .mercFiche .avis, tr.mercDet .avis{font-size:14px;background:rgba(255,255,255,.05);border-radius:3px;
@@ -231,6 +245,9 @@
   #msgbox input[type=text]{display:block; width:100%; margin-top:8px; background:#0b1626; color:#dfe9ff;
      border:1px solid #38507a; border-radius:4px; font-family:inherit; font-size:14px; padding:9px;}
   .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px;}
+  /* la sauvegarde est automatique : les outils de carrière se font discrets en pied de page (lot 3) */
+  .footer .act{background:none; border-color:transparent; color:var(--dim);}
+  .footer .act:hover{border-color:transparent; color:var(--clair);}
 
 /* tableau d'affichage */
 #tabScore{display:flex;align-items:center;justify-content:center;gap:12px}
@@ -5051,7 +5068,7 @@ function saisonSuivante(){ const a=anneeJeu()+1; return a+"-"+String((a+1)%100).
    cette semaine, et la porte vers le point de situation complet. */
 function panneauActe(){
   const a=acteDe(G.journee), e=enjeuDe(G);
-  return `<div class="panel" style="border-color:${a.coul};padding:8px 10px">
+  return `<div class="panel" style="padding:10px 18px">
     <p style="margin:0;display:flex;flex-wrap:wrap;gap:2px 14px;align-items:baseline">
       <b style="color:${a.coul};letter-spacing:1px">ACTE ${ROMAIN[a.n]} · ${esc(a.nom)}</b>
       <span class="dim" style="font-size:13px">journée ${Math.min(G.journee+1,38)} sur 38</span>
@@ -7027,7 +7044,7 @@ function staffHTML(){
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:2px">
         <span class="dim" style="font-size:13px">${esc(p.eff(c.tier))} · ${FMT(c.salaire)} FF/sem</span>
         <button class="act bCoachOut" data-id="${p.id}" style="font-size:13px;padding:2px 8px">Remercier</button></div></div>`;
-    return `<div style="border:1px dashed var(--line);border-radius:4px;padding:6px 8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;gap:6px">
+    return `<div style="background:rgba(255,255,255,.03);border-radius:4px;padding:8px 10px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;gap:6px">
       <span class="dim">${p.pic} ${esc(p.nom)} — <i>poste vacant</i></span>
       <button class="act bCoachIn" data-id="${p.id}" style="font-size:13px">Recruter</button></div>`;
   }).join("");
@@ -9437,7 +9454,7 @@ function ecranCalendrier(){
      })()}
      ${feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
-       <button class="act" id="bVite" style="margin-left:8px">Résultat instantané</button>
+       <button class="lien" id="bVite" style="margin-left:8px">Résultat instantané</button>
      </p>`:`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <span class="rouge">Impossible d'aligner onze joueurs : le coup d'envoi ne peut pas être donné.</span><br>
        <button class="big" id="bRenfort" style="margin-top:6px">Piocher en urgence chez les joueurs libres</button>
@@ -9781,7 +9798,7 @@ function panneauRdv(rdv, h, a){
      ${blocConsignePrime(quand, onzeRotation(clubById(G.monClub), rot))}
      <p class="ctr" style="margin-top:12px">
        <button class="big" id="bRdvGo">▶ JOUER LE MATCH</button>
-       <button class="act" id="bRdvVite" style="margin-left:8px">Résultat instantané</button>
+       <button class="lien" id="bRdvVite" style="margin-left:8px">Résultat instantané</button>
      </p>
      <p class="ctr dim" style="font-size:13px;margin-top:8px">Ensuite, samedi : ${esc(h.nom)} — ${esc(a.nom)} (J${G.journee+1})</p>
    </div>`;
@@ -11186,9 +11203,11 @@ function ecranEffectif(){
        : `<p class="dim" style="margin-top:4px;font-size:13px">🎓 Le centre de formation a donné ses ${MONTEES_MAX} jeunes de la saison — les suivants monteront à l'intersaison.</p>`;
      return `<p class="${cls}" style="margin-top:8px;font-size:13px">⚖️ Plancher réglementaire : <b>${PLANCHER_TOTAL} joueurs</b> sous contrat (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — 11 titulaires et 5 remplaçants sur la feuille de match. Effectif actuel : <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
    })()}
-   <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême.</p>
-   <p class="dim" style="margin-top:6px"><b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> vendre · <b>📤</b> prêter</p>
-   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> : 💪 frais · 😐 entamé · 😓 émoussé · 🥵 jambes lourdes · 🥴 sur les rotules. ⏳ = les années pèsent sur la récupération.</p>
+   <details class="legende"><summary>Légende des pictos</summary>
+   <p>Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême.</p>
+   <p><b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> vendre · <b>📤</b> prêter</p>
+   <p>🛌 <b>Forme</b> : 💪 frais · 😐 entamé · 😓 émoussé · 🥵 jambes lourdes · 🥴 sur les rotules. ⏳ = les années pèsent sur la récupération.</p>
+   </details>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
     <p class="dim" style="font-size:13px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b> — contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>
     <table><tr><th>Joueur</th><th>P</th><th>Chez</th><th class="num">Note</th><th class="num" title="Ce que le club hôte vous verse par journée de prêt">Encaissé</th><th>Retour</th></tr>
