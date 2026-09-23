@@ -1640,6 +1640,28 @@ toujours « raconter quelque chose ».
   seule fois. **Pour étendre** : ne jamais réintroduire `alert`/`confirm`/`prompt` ; un `grep` sur ces trois
   noms doit ne rendre que les commentaires qui racontent leur disparition.
 
+### LES SAISONS NOMMÉES (v1.22)
+
+Sept saisons de départ affichées « Saison 1990-91 », « Saison 1991-92 »… faisaient déjà un mur de dates, et
+la routine quotidienne en ajoute une par nuit : soixante-quatorze au bout du chantier. Chaque entrée de
+`SAISONS` porte donc désormais un champ **`nom`**, et c'est lui que l'écran d'accueil met en avant — le menu
+déroulant lit « Sur tapis vert — 1991-92 », et le nom s'affiche en jaune au-dessus du `sous` déjà écrit.
+
+**`nom` s'ajoute à `titre`, il ne le remplace jamais.** `titre` reste le créneau daté (« 1991-92 ») parce
+qu'il alimente `G.saison`, donc les sauvegardes et une assertion de chaque harnais de saison : y toucher
+casserait les carrières en cours et rougirait la moitié du dossier. `harness-noms.cjs` tient cette frontière.
+
+Les sept noms — *Le bal des débutants*, *Sur tapis vert*, *Retour à la case départ*, *Ascenseur pour
+l'élite*, *L'été sera chaud*, *Lendemain de fête*, *Le bug de l'an 2000* — sont écrits par **Fable 5.1 en
+atelier**, jamais au runtime, comme tout le contenu narratif du jeu. L'idée vient des scénarios nommés de
+RFM27 ; la **contrainte de jeu qui les accompagne chez eux a été écartée** (décision de l'auteur) : ici le
+nom est une accroche, il ne change pas une ligne de moteur.
+
+**Pour étendre** — c'est le geste que la routine quotidienne devra faire à chaque saison neuve : un `nom` de
+deux à cinq mots, trente-quatre caractères au plus, français d'époque, ton léger, **aucun mot marquant
+partagé avec une autre saison ni avec le titre d'un feuilleton** (`ARCS` : le diamant, le sac, le sortilège
+et la buvette sont pris). `harness-noms.cjs` refuse tout le reste.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
@@ -1655,6 +1677,8 @@ toujours « raconter quelque chose ».
    Créteil, Euro 2000 dès la 1re intersaison, homonymes et prénoms composés),
    `harness9192.cjs` (saison de départ 91/92 : aucun repêchage en D1, Tours écarté et Beauvais repêché,
    Bourges et le Gazélec, Euro 92 dès la 1re intersaison, homonymes Ferri/Vujovic), `harness-euro.cjs` (les trois coupes d'Europe),
+   `harness-noms.cjs` (les saisons nommées : un nom par saison, la collection sans doublon, et surtout le
+   créneau daté laissé intact dans `titre` et `G.saison`),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
    rappel d'un prêt avant terme),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,

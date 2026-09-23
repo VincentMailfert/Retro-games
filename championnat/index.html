@@ -338,7 +338,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.21"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.22"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -2075,19 +2075,19 @@ const D1_9192=["OM","MON","PSG","AUX","CAE","MTP","LEH","LEN","NAN","STE","TOU",
 const D2_9192=["VAN","ANG","LMN","LOU","LAV","GUI","ROU","BOU","DUN","BEA","BOR","STR","IST","BAS","GFC","ROD","PER","CHA","NIC","ALE"];
 
 const SAISONS={
- "1990-91":{ an:1990, titre:"1990-91", d1:D1_9091, d2:D2_9091, starsD1:STARS_9091, starsD2:STARS_D2_9091, euroC1:["OM"], euroC2:["MTP"], euroC3:["BOR","MON"],
+ "1990-91":{ an:1990, titre:"1990-91", nom:"Le bal des débutants", d1:D1_9091, d2:D2_9091, starsD1:STARS_9091, starsD2:STARS_D2_9091, euroC1:["OM"], euroC2:["MTP"], euroC3:["BOR","MON"],
    sous:"Le plus ancien plateau du jeu. Marseille écrase la France et court l'Europe jusqu'à la finale de Bari ; Papin plante vingt-trois buts et prendra le Ballon d'or, Waddle et Abedi Pelé enchantent le Vélodrome. Monaco finit deuxième et gagnera la Coupe de France. Ailleurs, des gamins débutent : Zidane a dix-huit ans à Cannes, Thuram quinze minutes en tout à Monaco, Weah en plante déjà sur le Rocher. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
- "1991-92":{ an:1991, titre:"1991-92", d1:D1_9192, d2:D2_9192, starsD1:STARS_9192, starsD2:STARS_D2_9192, euroC1:["OM"], euroC2:["MON"], euroC3:["AUX","CAN","LYO"],
+ "1991-92":{ an:1991, titre:"1991-92", nom:"Sur tapis vert", d1:D1_9192, d2:D2_9192, starsD1:STARS_9192, starsD2:STARS_D2_9192, euroC1:["OM"], euroC2:["MON"], euroC3:["AUX","CAN","LYO"],
    sous:"Le quatrième titre d'affilée de l'OM, et le Ballon d'or de Papin — vingt-sept buts, meilleur buteur pour la cinquième année de suite. Waddle et Abedi Pelé règnent encore sur le Vélodrome, Weah fait ses adieux au Rocher, Ginola explose au Parc à la trêve et Cantona jette un ballon à un arbitre avant de partir pour Leeds. Bordeaux, Brest et Nice sont rétrogradés administrativement : la D1 garde ses vingt clubs sans repêcher personne, et les Girondins jouent la D2 avec Lizarazu et un Dugarry de dix-neuf ans. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
- "1995-96":{ an:1995, titre:"1995-96", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2, euroC1:["NAN"], euroC2:["PSG"], euroC3:["BOR","LEN","MON","LYO"],
+ "1995-96":{ an:1995, titre:"1995-96", nom:"Retour à la case départ", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2, euroC1:["NAN"], euroC2:["PSG"], euroC3:["BOR","LEN","MON","LYO"],
    sous:"La saison fondatrice. L'OM purge sa relégation en D2 (affaire VA-OM) — à vous de le ramener dans l'élite." },
- "1996-97":{ an:1996, titre:"1996-97", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AUX"], euroC2:["GUI"], euroC3:["MON","MET","LEN"],
+ "1996-97":{ an:1996, titre:"1996-97", nom:"Ascenseur pour l'élite", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AUX"], euroC2:["GUI"], euroC3:["MON","MET","LEN"],
    sous:"L'OM est de retour dans l'élite ; Saint-Étienne, Gueugnon et Martigues découvrent la Division 2. Henry et Trezeguet percent à Monaco." },
- "1997-98":{ an:1997, titre:"1997-98", d1:D1_9798, d2:D2_9798, starsD1:STARS_9798, starsD2:STARS_D2_9798, euroC1:["MON","PSG"], euroC2:["NIC"], euroC3:["NAN","BOR","MET","STR","AUX","LYO","BAS"],
+ "1997-98":{ an:1997, titre:"1997-98", nom:"L'été sera chaud", d1:D1_9798, d2:D2_9798, starsD1:STARS_9798, starsD2:STARS_D2_9798, euroC1:["MON","PSG"], euroC2:["NIC"], euroC3:["NAN","BOR","MET","STR","AUX","LYO","BAS"],
    sous:"L'année du Mondial à domicile. Blanc et Ravanelli débarquent à l'OM ; Nice, vainqueur de la Coupe, joue la Coupe des Coupes depuis la D2. La D1 passe à 18 : Caen et Nancy sont repêchés pour tenir la vingtaine." },
- "1998-99":{ an:1998, titre:"1998-99", d1:D1_9899, d2:D2_9899, starsD1:STARS_9899, starsD2:STARS_D2_9899, euroC1:["LEN","MET"], euroC2:["PSG"], euroC3:["MON","OM","BOR","BAS","AUX","LYO"],
+ "1998-99":{ an:1998, titre:"1998-99", nom:"Lendemain de fête", d1:D1_9899, d2:D2_9899, starsD1:STARS_9899, starsD2:STARS_D2_9899, euroC1:["LEN","MET"], euroC2:["PSG"], euroC3:["MON","OM","BOR","BAS","AUX","LYO"],
    sous:"L'après-Mondial : les champions du monde sont des dieux. Bordeaux et Marseille se tirent la bourre jusqu'au dernier jour, Lens découvre la Ligue des Champions, Okocha débarque au PSG pour un pont d'or. En D2, Saint-Étienne veut sortir du purgatoire — et un certain Didier Drogba, vingt ans, cire le banc du Mans." },
- "1999-00":{ an:1999, titre:"1999-00", d1:D1_9900, d2:D2_9900, starsD1:STARS_9900, starsD2:STARS_D2_9900, euroC1:["BOR","OM","LYO"], euroC2:["NAN"], euroC3:["MON","LEN","MTP"],
+ "1999-00":{ an:1999, titre:"1999-00", nom:"Le bug de l'an 2000", d1:D1_9900, d2:D2_9900, starsD1:STARS_9900, starsD2:STARS_D2_9900, euroC1:["BOR","OM","LYO"], euroC2:["NAN"], euroC3:["MON","LEN","MTP"],
    sous:"Le dernier championnat du siècle. Monaco reprend le titre à Bordeaux ; Sonny Anderson plante vingt-trois buts pour Lyon, Trezeguet et Simone quarante-trois à eux deux sur le Rocher. L'OM, quinzième, frôle le gouffre toute l'année. Lille écrase la D2, où Drogba et Malouda se font un nom. La D1 réelle n'ayant que dix-huit clubs, Lorient et Sochaux sont repêchés — et Red Star et Beauvais reviennent tenir les vingt de la D2." },
 };
 const SAISON_DEFAUT="1995-96";
@@ -8956,7 +8956,7 @@ function ecranAccueil(){
   const parties=partiesListe();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   const cD1=S.d1.map(metaClub), cD2=S.d2.map(metaClub);
-  const opts=Object.keys(SAISONS).map(k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>Saison ${esc(SAISONS[k].titre)}</option>`).join("");
+  const opts=Object.keys(SAISONS).map(k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${esc(SAISONS[k].nom)} — ${esc(SAISONS[k].titre)}</option>`).join("");
   const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:9px">
         ${blason(c,22)}<span style="flex:1;line-height:1.1"><b>${esc(c.nom)}</b><br><span class="sous">${esc(c.stade)} · ${FMT(c.cap)} places</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</button>`; };
   const colonne=groupes=>groupes.map(g=>`
@@ -8970,7 +8970,8 @@ function ecranAccueil(){
      <label style="display:block;font-size:12px" class="cyan"><b>Saison de départ</b>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
      </label>
-     <p class="dim" style="margin-top:8px;font-size:12px">${esc(S.sous)}</p>
+     <p class="jaune" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
+     <p class="dim" style="margin-top:3px;font-size:12px">${esc(S.sous)}</p>
    </div>
    <div class="panel">
      <h2>Choisissez votre club</h2>
