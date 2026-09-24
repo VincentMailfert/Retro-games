@@ -587,6 +587,52 @@ toujours « raconter quelque chose ».
   C'est la même marge qu'en 90/91 (Lyon et le PSG à un seul gardien). L'OM n'a que dix-neuf hommes ayant joué et
   Istres dix-sept — la source fait foi, et la D1 n'offre aucun remplaçant possible. Validation dédiée :
   **`harness9192.cjs`**.
+  **1992-93 (v1.27)** : `STARS_9293`/`STARS_D2_9293`, `D1_9293`/`D2_9293`, `an:1992`, `saison_id/1992` — la
+  saison que l'OM gagne en Europe et perd au bureau : sacré à Munich le 26 mai (une tête de Boli), déclassé du
+  championnat le 22 septembre par le Conseil fédéral, et le PSG, deuxième, **refuse le titre** au motif qu'il ne
+  l'a pas gagné sur le terrain. Le palmarès de 1993 reste vide, ce que le sous-titre de la saison raconte.
+  **Le plateau tombe juste tout seul, comme en 91/92** : la D1 réelle avait ses vingt clubs et n'a repêché
+  personne — Bordeaux, Strasbourg et Valenciennes montent, Cannes, Nancy et Rennes descendent.
+  La D2 se jouait toujours en **deux groupes de dix-huit** : on reconduit la règle de 90/91, **les dix premiers
+  de chaque groupe** (groupe A : Martigues, Cannes, Nice, Nancy, Valence, Sedan, Bastia, Istres, Charleville,
+  Alès ; groupe B : Angers, Rennes, Rouen, Red Star, Le Mans, Dunkerque, Bourges, Beauvais, Laval, Niort).
+  **Aucun club écarté, et surtout AUCUN CLUB NEUF — une première depuis l'ouverture du chantier** : les quarante
+  clubs du plateau étaient déjà au registre, Charleville (`CHV`) et Niort (`NIO`) compris, hérités des saisons
+  précédentes. Rien à dessiner, rien à vérifier côté couleurs : la journée a été entièrement consacrée aux hommes.
+  Sièges européens réels : **l'OM en C1** (champion en titre, il ira la gagner), **Monaco en C2** — et c'est le
+  piège d'époque de cette saison : **la Coupe de France 1992 n'a PAS eu de vainqueur**, la compétition ayant été
+  arrêtée après le drame de Furiani, si bien que c'est le **finaliste** qui prend le siège —, **Auxerre, le PSG et
+  Caen en C3**, vérifié sur le tableau de la Coupe UEFA 1992-93.
+  `HONNEURS` n'a rien eu à apprendre, et **partir de 92/93 est le second cas du jeu où la PREMIÈRE intersaison ne
+  porte aucun tournoi** (après 90/91) : l'été 93 est muet, le Mondial 94 tombe à la deuxième.
+  **Le sens du temps reste normal, et l'héritage fait presque tout le travail** : 91/92 est à un an de distance,
+  **504 des 757 noms reprennent leur note 91/92 vieillie d'un an** par la règle éprouvée, 36 de plus viennent de
+  90/91, et il ne reste que 104 noms à passer par la moyenne rajeunie/calculée et 101 à calculer entièrement.
+  Table d'ajustements à la main réduite à **douze entrées**, la plus courte du chantier : Klinsmann 85 et Völler 83
+  (champions du monde 1990, débarqués l'un sur le Rocher, l'autre au Vélodrome), **Bokšić 83** (vingt-trois buts,
+  meilleur buteur du championnat), Márcio Santos 79 (futur champion du monde 1994 avec le Brésil), Martín Vázquez 79,
+  Dobrovolskiy 78, Calderón 77, Songo'o et Verlaat 76, Hadji 75. Papin et Waddle ont quitté l'OM à l'été 92 et
+  sont donc **absents du jeu** : le relevé le confirme tout seul, c'est un bon contrôle de la méthode.
+  **Forçage de six pépites** que le tri aux minutes écartait : **Vincent Candela** (19 ans, 107 minutes à Toulouse,
+  champion du monde 1998), Legwinski, Pouget, Lambourde, Charvet et Ipoua.
+  **Trois découvertes de relevé, à garder.** (1) **Transfermarkt n'abrège pas les prénoms courts** : la colonne
+  « nom court » rend « Eric Roy », « Luc Sonor », « Abedi Pelé » en toutes lettres là où elle rend « F. Barthez ».
+  Sans correctif, onze joueurs se retrouvaient traités comme des mononymes brésiliens — et Abedi Pelé perdait son
+  ancre, donc sa note de 85. La règle : **un nom court à deux mots ou plus s'abrège comme les autres**, seul un
+  vrai mononyme d'un seul mot (Valdo, Valdeir) reste tel quel.
+  (2) **L'appariement des ancres doit être insensible aux accents et à la forme des initiales** : « Jean-Michel Ferri »
+  (écrit en toutes lettres en 91/92 pour le distinguer du Gazélec) et « J.-M. Ferri » sont le même homme, « É. Di Meco »
+  et « Eric Di Meco » aussi. On cherche donc d'abord le nom exact, puis une clé aplatie (sans accents, prénom réduit à
+  sa première lettre), **toujours sous le garde-fou de l'âge**, et **on refuse l'appariement approché dès que deux noms
+  distincts y répondent** — c'est ce refus qui protège les **jumeaux Vujović**.
+  (3) Et justement : **Zlatko ET Zoran Vujović jouaient tous les deux à Nice en 92/93**. Transfermarkt date Zoran de
+  1986, ce qui lui ferait six ans au coup d'envoi ; plutôt que d'écarter un titulaire de 1 246 minutes, on corrige sa
+  naissance (1958, il est le jumeau de Zlatko, et le jeu le connaît déjà à cet âge depuis 90/91) et on applique la
+  convention de 99/00 : le plus utilisé garde l'initiale, l'autre passe en toutes lettres. **Corriger une date que
+  deux sources concordantes tranchent n'est pas la deviner** — six autres joueurs, que rien ne permet de dater,
+  restent écartés.
+  Vingt-trois joueurs procéduraux au total, dont **douze deuxièmes gardiens**, même marge qu'en 91/92. Le PSG n'a que
+  dix-neuf hommes ayant joué — la source fait foi. Validation dédiée : **`harness9293.cjs`**.
   Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
   `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
   ajoute une par une — sont dans `chantier-saisons.md`.**
@@ -1798,6 +1844,8 @@ score. Choisir un adversaire qui ne soit pas le rival du club : le derby a sa pr
    réconciliation France ↔ Europe), `harness9899.cjs` (saison de départ 98/99 : double repêchage, clubs neufs
    Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness9900.cjs` (saison de départ 99/00 : double repêchage,
    Créteil, Euro 2000 dès la 1re intersaison, homonymes et prénoms composés),
+   `harness9293.cjs` (saison de départ 92/93 : aucun repêchage, aucun club neuf, Monaco en C2 faute de
+   vainqueur de la Coupe 92, été 93 muet, jumeaux Vujović),
    `harness9192.cjs` (saison de départ 91/92 : aucun repêchage en D1, Tours écarté et Beauvais repêché,
    Bourges et le Gazélec, Euro 92 dès la 1re intersaison, homonymes Ferri/Vujovic), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-noms.cjs` (les saisons nommées : un nom par saison, la collection sans doublon, et surtout le
