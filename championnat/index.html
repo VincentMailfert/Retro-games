@@ -3452,7 +3452,7 @@ function simuleMatch(home,away,verbeux,opts){
   // et l'effectif aura déjà bougé (fatigue, blessures) quand on relira la feuille après le coup de sifflet
   const gkH=onze(home).find(j=>j.pos==="G"), gkA=onze(away).find(j=>j.pos==="G");
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
-    ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+"Coup d'envoi à "+home.stade+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv});
+    ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+(O.neutre?"Coup d'envoi sur terrain neutre":"Coup d'envoi "+aStade(home.stade))+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv});
     const fH=cleFormation(home), fA=cleFormation(away); // les deux dispositifs, annoncés au coup d'envoi (v1.12)
     ev.push({m:0,t:"sys",x:fH===fA?"Les deux équipes se présentent en "+fH+".":home.nom+" se présente en "+fH+", "+away.nom+" en "+fA+"."}); }
   /* L'HORLOGE VA DÉSORMAIS PLUS LOIN QUE 90 (chantier « un seul moteur »). `fin` est mobile : elle
@@ -3559,12 +3559,17 @@ function simuleMatch(home,away,verbeux,opts){
 // changement de consigne à la mi-temps repartait d'une ardoise vierge et pouvait resservir une
 // ligne déjà lue en première période. (Les lignes du tail annulé, jamais affichées, y restent :
 // ça ne coûte qu'un peu plus de variété.)
-function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
+/* UN SOIR DE COUPE (chantier « un seul moteur ») : `opts` = ceux du match rejoué ({neutre, prolong, egalite}), plus
+   `enProlong` si l'on recolle alors que les prolongations ont déjà commencé. Absent (le samedi), rien ne change —
+   pas même le nombre de tirages au hasard : le calibrage du championnat ne bouge pas d'un iota. */
+function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus,opts){
+  const O=opts||null, egalite=(O&&O.egalite)||((x,y)=>x===y);
   const fh=forces(home), fa=forces(away);
-  const aff=affluence(home,away), fill=Math.min(1,aff/Math.max(1,home.cap)), ferveur=1+0.18*(fill-0.62);
-  const [zh,za]=lambdasZones(fh,fa);
-  let lh=Math.max(.25, zh*1.18*ferveur);
-  let la=Math.max(.20, za*0.92*(2-ferveur));
+  const aff=(O&&O.neutre) ? home.cap : ((O&&!enChampionnat()) ? affluenceCoupe(home,away) : affluence(home,away));
+  const fill=Math.min(1,aff/Math.max(1,home.cap)), ferveur=(O&&O.neutre) ? 1 : 1+0.18*(fill-0.62);
+  const [zh,za]=lambdasZones(fh,fa), TN=Math.sqrt(1.18*0.92);
+  let lh=Math.max(.25, zh*((O&&O.neutre)?TN:1.18*ferveur));
+  let la=Math.max(.20, za*((O&&O.neutre)?TN:0.92*(2-ferveur)));
   if(home.id===G.monClub||away.id===G.monClub){
     const Cc=CONSIGNES[G.consigne]||CONSIGNES.equilibre;
     if(home.id===G.monClub){ lh*=Cc.att; la*=Cc.adv; } else { la*=Cc.att; lh*=Cc.adv; }
@@ -3574,7 +3579,9 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
   if(away.beteNoire===home.id && !away.bnBattue) lh*=1.12;
   const derby=(RIVAL[home.id]===away.id);
   const ev=[], vusC=vus||[], booked=new Set(); // anti-répétition (héritée du match en cours) + joueurs avertis (uid), propres au reste de match re-simulé
-  for(let m=mStart+1;m<=90;m++){ MIN_JEU=m;
+  let prolong=!!(O&&O.enProlong), fin=prolong?120:90;
+  if(prolong){ mulH*=usureProlong(home); mulA*=usureProlong(away); } // on recolle en pleine prolongation : l'usure est déjà là
+  for(let m=mStart+1;m<=fin;m++){ MIN_JEU=m;
     const elh=lh*mulH, ela=la*mulA, r=Math.random();
     if(r < elh/90){
       const ct=estContre(home,m);
@@ -3621,19 +3628,34 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus){
     if(Math.random()<0.003){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:pickNR(METEO_MATCH.amb,vusC)}); }
+    if(O){ // les jalons d'un soir de coupe, exactement comme simuleMatch les pose
+      if(m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
+      if(m===90 && O.prolong && egalite(sh,sa) && !prolong){
+        prolong=true; fin=120; mulH*=usureProlong(home); mulA*=usureProlong(away);
+        ev.push({m:90,t:"sys",x:"Rien n'a pu les départager. PROLONGATIONS : deux fois quinze minutes."});
+        ev.push({m:90,t:"amb",x:pickNR(COMM.amb,vusC)});
+      }
+      if(prolong && m===105) ev.push({m,t:"sys",x:"Fin de la première prolongation. "+home.id+" "+sh+" - "+sa+" "+away.id});
+    }
   }
-  return {ev, sh, sa};
+  return {ev, sh, sa, prolong, fin};
 }
 /* Recolle un nouveau cours de match à partir de l'index non encore joué (fromIdx) : annule les stats du tail
    pré-tiré, repart du score affiché et re-simule. Mute monMatch (r.ev, r.sh, r.sa) en place. */
-function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
+/* `opts` (soir de coupe) : ceux du match d'origine. Le sifflet tombe alors à la bonne minute (90 ou 120), et si
+   rien ne les sépare encore, la séance de tirs au but se rejoue avec le reste — `r.tab` suit. À appeler sous le
+   maillot de la compétition (enCompet) : c'est lui qui dit dans quel compteur défaire les buts effacés. */
+function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA,opts){
   const effaces=[];
+  /* On cherche d'abord dans les deux vestiaires DU MATCH : `byUid` ne connaît que votre division, et un soir
+     d'Europe l'adversaire n'y est pas — ses buts effacés restaient alors sur sa fiche (trouvé par harness-euro J). */
+  const qui=uid=>(h.joueurs&&h.joueurs.find(j=>j.uid===uid))||(a.joueurs&&a.joueurs.find(j=>j.uid===uid))||byUid(uid);
   for(let k=fromIdx;k<r.ev.length;k++){ const l=r.ev[k];
     // on défait le but dans le compteur où `marque` l'avait déposé : même compétition, même clé
     if(l.g){ const kB=cleButs(), kP=clePasses();
-      const b=l.g.uid&&byUid(l.g.uid); if(b) b[kB]=Math.max(0,(b[kB]||0)-1);
-      const p=l.g.pasUid&&byUid(l.g.pasUid); if(p) p[kP]=Math.max(0,(p[kP]||0)-1); }
-    if(l.c&&l.c.rouge&&l.c.uid){ const j=byUid(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); effaces.push(l.c); }
+      const b=l.g.uid&&qui(l.g.uid); if(b) b[kB]=Math.max(0,(b[kB]||0)-1);
+      const p=l.g.pasUid&&qui(l.g.pasUid); if(p) p[kP]=Math.max(0,(p[kP]||0)-1); }
+    if(l.c&&l.c.rouge&&l.c.uid){ const j=qui(l.c.uid); if(j) j.susp=Math.max(0,(j.susp||0)-3); effaces.push(l.c); }
   }
   // l'expulsé revient sur la pelouse du fil recollé — et ce que son rouge avait déclenché se défait (v1.13) : le gardien
   // remplaçant appelé en urgence retourne sur le banc, les changements que le rouge avait fait sauter reviennent.
@@ -3651,7 +3673,8 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
   let sh=0,sa=0; for(let k=0;k<fromIdx;k++){ const l=r.ev[k]; if(l.g){ if(l.g.cote===h.id) sh++; else sa++; } }
   // ce qui doit SURVIVRE au recollage (v1.04) : l'annonce du temps additionnel et surtout la ligne du MOMENT de la
   // 90e, qui n'est résolue qu'au coup de sifflet. Sans ça, changer de consigne effaçait le penalty/la cagade à venir.
-  const queue=r.ev.slice(fromIdx).filter(l=>l.mo || (l.t==="sys" && /temps additionnel/.test(l.x||"")));
+  const queue=r.ev.slice(fromIdx).filter(l=>l.mo || (!opts && l.t==="sys" && /temps additionnel/.test(l.x||"")));
+  const enProlong=!!opts && mNow>=90 && r.ev.slice(0,fromIdx).some(l=>l.t==="sys" && /^Rien n'a pu les départager/.test(l.x||""));
   // les CHANGEMENTS pas encore montrés survivent aussi (v1.11) : ils sont décidés au coup d'envoi, pas par la consigne —
   // sauf celui qu'un rouge du fil recollé vient d'annuler (expulse), puisqu'on ne remplace pas un expulsé. Le tri se fait
   // deux fois : ICI, contre la feuille que l'effacement des rouges vient de rendre (le gardien d'urgence d'un rouge effacé
@@ -3659,7 +3682,7 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
   const enFeuille=l=>{ const p=CHANGEMENTS[l.cote]; return !p || p.banc.some(j=>j.uid===l.uid); };
   // la SCÈNE d'un pépin survit toujours au recollage (v1.18) : une consigne changée n'empêche personne de se blesser
   const changes=r.ev.slice(fromIdx).filter(l=>l.bl || (l.ic==="sub" && enFeuille(l))).concat(rendus).sort((x,y)=>x.m-y.m);
-  const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r));
+  const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r),opts?Object.assign({},opts,{enProlong}):undefined);
   r.ev.length=fromIdx;
   const fil=out.ev.slice();
   for(const s of changes){
@@ -3668,12 +3691,23 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA){
   }
   for(const e of fil) r.ev.push(e);
   for(const l of queue) r.ev.push(l);
-  r.ev.push({m:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom});
+  if(opts) r.ev.push({m:out.fin,t:"sys",x:"L'arbitre annonce "+PICK([1,2,2,3,3,4,5])+" minutes de temps additionnel."});
+  r.ev.push({m:opts?out.fin:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom+(opts&&out.prolong?" après prolongations.":"")});
   r.sh=out.sh; r.sa=out.sa;
+  if(opts){ const eg=opts.egalite||((x,y)=>x===y);
+    r.prolong=!!out.prolong; r.tab=null;
+    if(opts.prolong && eg(out.sh,out.sa)){
+      r.tab=tirsAuBut(h, a, true, r.ev);
+      r.ev.push({m:out.fin,t:"sys",x:"TIRS AU BUT : "+(r.tab.win===h.id?h.nom:a.nom)+" se qualifie ("+r.tab.h+"-"+r.tab.a+")."});
+    }
+  }
   annoteButs(r.ev); // re-décompte des buts/coups du chapeau sur tout le fil recollé
   return out;
 }
 function fmtC(t,j,opp){ return t.replace("{A}",j.nom).replace("{G}","le gardien").replace("{D}",opp.nom); }
+/* « à » + le nom d'un stade : les stades européens portent leur article (« le Stadio delle Alpi »), les
+   français non (« Roudourou ») — « à le » se contracte en « au », « à les » en « aux ». */
+function aStade(s){ s=String(s||"le stade"); return /^le /i.test(s)?"au "+s.slice(3):(/^les /i.test(s)?"aux "+s.slice(4):"à "+s); }
 
 function affluence(home,away,sansPromo){
   const forme=home.forme.slice(-5).reduce((a,b)=>a+b,0); // -5..+5
@@ -8096,7 +8130,7 @@ function genEvCoupe(H, A, r, onzeFn){ // r = {sh,sa,tab,win} déjà tiré ; renv
   // le décor du match (noms, mémoire anti-répétition) vit dans `ctx` : la re-simulation en direct (rejoueRdv) le
   // reprend tel quel, pour que la fin rejouée ne resserve pas une ligne déjà lue
   const ctx={H, A, vus:[], nomsH:nomsAffiche(H,onzeFn), nomsA:nomsAffiche(A,onzeFn)};
-  const ev=[{m:0,t:"sys",x:"Coup d'envoi à "+H.stade+" devant "+FMT(aff)+" spectateurs. "+H.nom+" reçoit "+A.nom+"."}];
+  const ev=[{m:0,t:"sys",x:"Coup d'envoi "+aStade(H.stade)+" devant "+FMT(aff)+" spectateurs. "+H.nom+" reçoit "+A.nom+"."}];
   corpsCoupe(ctx, ev, 0, 0, 0, r.sh, r.sa, true);
   finCoupe(ctx, ev, r);
   annoteButs(ev); // doublé/triplé/coup du chapeau au téléscripteur de coupe aussi
@@ -8331,15 +8365,20 @@ function forceEuro(id){
    leurs cartons et leurs pépins. `enCompet("EU")` rend le maillot dans un `finally` : les buts de la nuit
    vont dans `butsC`/`passesC` et ne touchent jamais le classement des buteurs du championnat.
    La consigne et la prime n'ont plus besoin de `multTactique` — `simuleMatch` les connaît déjà. */
-function euroMatchReel(hid,aid,opts){
+/* `sortie` (VOTRE manche, celle qu'on regarde) : le match est joué BAVARD et l'on rend dans sortie.r le fil
+   même du moteur (r.ev) et dans sortie.o ses options — le direct le met en scène tel quel, et c'est lui que
+   rejoueDepuis recolle si la consigne change. Mêmes buteurs au téléscripteur et sur les fiches. */
+function euroMatchReel(hid,aid,opts,verbeux){
   const H=euroClub(hid), A=euroClub(aid);
   if(!H || !A || !onze(H).length || !onze(A).length)            // filet : vieille sauvegarde sans effectif
     return {sh:0, sa:0, tab:null, _sansEffectif:true};
-  return enCompet("EU", ()=>simuleMatch(H, A, false, opts||{}));
+  return enCompet("EU", ()=>simuleMatch(H, A, !!verbeux, opts||{}));
 }
-function euroManche(hid,aid){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
-  const r=euroMatchReel(hid, aid);
+function euroSortie(sortie, r, o){ if(sortie && !r._sansEffectif){ sortie.r=r; sortie.o=o; } }
+function euroManche(hid,aid,sortie){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
+  const o={}, r=euroMatchReel(hid, aid, o, !!sortie);
   if(r._sansEffectif) return scoreCoupe(forceEuro(hid)+EURO_TERRAIN, forceEuro(aid), ...multTactique(hid,aid));
+  euroSortie(sortie, r, o);
   return [r.sh, r.sa]; // [buts hôte, buts visiteur]
 }
 function euroFinaleAvec(a,b,s,tabR){ // le verdict d'une finale dont on connaît le score s=[buts a, buts b]
@@ -8349,19 +8388,21 @@ function euroFinaleAvec(a,b,s,tabR){ // le verdict d'une finale dont on connaît
   else { tab=true; win=tabR ? tabR.win : ((Math.random()<fh/(fh+fa))?a:b); } // la séance vient du moteur quand il l'a jouée
   return {aid:a, bid:b, neutre:true, s:[sa,sb], tab, win};
 }
-function euroFinaleSeche(a,b){ // FINALE : match sec sur terrain neutre, prolongations puis tirs au but
-  const r=euroMatchReel(a, b, {neutre:true, prolong:true});
+function euroFinaleSeche(a,b,sortie){ // FINALE : match sec sur terrain neutre, prolongations puis tirs au but
+  const o={neutre:true, prolong:true}, r=euroMatchReel(a, b, o, !!sortie);
   if(r._sansEffectif) return euroFinaleAvec(a, b, scoreCoupe(forceEuro(a), forceEuro(b), ...multTactique(a,b)));
+  euroSortie(sortie, r, o);
   return euroFinaleAvec(a, b, [r.sh, r.sa], r.tab);
 }
 /* MANCHE RETOUR chez b. Ce qui les départage n'est pas le score du soir mais le CUMUL, puis le but
    marqué à l'extérieur : la prolongation ne se joue donc que si la double confrontation serait, sans
    elle, partie aux tirs au but. C'est exactement ce que dit `egalite` à `simuleMatch` — au retour, son
    `sh` est le total de b et son `sa` celui de a. */
-function euroCloture(a,b,l1){
+function euroCloture(a,b,l1,sortie){
   const egalite=(sh,sa)=>((l1[0]+sa)===(l1[1]+sh)) && (sa===l1[1]); // cumul égal ET buts à l'extérieur égaux
-  const r=euroMatchReel(b, a, {prolong:true, egalite});
+  const o={prolong:true, egalite}, r=euroMatchReel(b, a, o, !!sortie);
   if(r._sansEffectif) return euroClotureAvec(a, b, l1, scoreCoupe(forceEuro(b)+EURO_TERRAIN, forceEuro(a), ...multTactique(b,a)));
+  euroSortie(sortie, r, o);
   return euroClotureAvec(a, b, l1, [r.sh, r.sa], r.tab);
 }
 function euroClotureAvec(a,b,l1,l2,tabR){ // même verdict, le score du retour l2=[buts b, buts a] étant connu (re-simulation en direct)
@@ -9825,6 +9866,30 @@ function htmlCtlTactique(){
    retour de playtest « certains matchs, je ne peux pas changer la stratégie en cours de match » — c'étaient les
    matchs de semaine. `o` = {lignes, gen, r, tk, pos:()=>index du prochain évènement, lambdas:()=>[lh,la] du moment,
    verdict:()=>recalcule t.a.b./vainqueur/cumul sur o.r}. */
+/* LA CONSIGNE EN DIRECT, BRANCHÉE SUR LE MOTEUR (chantier « un seul moteur ») : le même geste que le samedi
+   (changeTactique de lanceMatch). On recolle APRÈS une action déjà annoncée par la montée de tension, on rejoue le
+   reste du match par rejoueDepuis (`o.rejoue`, qui connaît la compétition), puis l'appelant rend son verdict (cumul,
+   t.a.b.). Plus rien à faire une fois le sifflet passé. La Coupe de France s'y branchera le jour de sa bascule. */
+function cableTactiqueDirect(o){
+  const ctlT=document.getElementById("ctlTactique"); if(!ctlT) return;
+  const btns=[...document.querySelectorAll(".bTacD")];
+  const maj=()=>btns.forEach(b=>{ const on=b.dataset.k===G.consigne;
+    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; });
+  ctlT.style.display="block"; maj();
+  btns.forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k, L=o.lignes, i=o.pos();
+    if(k===G.consigne || i>=L.length) return;
+    const from=(L[i] && L[i]._monte) ? i+1 : i;
+    const sif=L.findIndex(l=>l.t==="sys" && /^COUP DE SIFFLET FINAL/.test(l.x||""));
+    if(sif<0 || from>sif) return;                  // le sifflet est passé : il n'y a plus rien à rejouer
+    G.consigne=k;
+    const mNow=from>i ? L[i].m : o.minute();
+    o.rejoue(from, mNow);
+    o.verdict();
+    ajouteLigne(o.tk,{m:mNow,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
+    o.tk.scrollTop=0; maj();
+  });
+}
 function cableTactiqueRdv(o){
   const ctlT=document.getElementById("ctlTactique"); if(!ctlT) return;
   const btns=[...document.querySelectorAll(".bTacD")];
@@ -10086,9 +10151,13 @@ function euroJoue(instant){
     return aller ? euroFenetreAller(advId, suite) : euroFenetreVerdict(advId, tourIdx, nom, suite); }
   const l1=(!aller && !aj.finale && aj.allers)?aj.allers[idx]:null; // le score de l'aller, une semaine plus tôt
   const socle={aid:pair[0], bid:pair[1], advId, tourIdx:aj.tourIdx, nom:aj.nom, finale:aj.finale, manche};
-  // le score est tiré ici (modèle de force, consigne et prime comprises) ; le téléscripteur ne fait que le mettre en scène
-  if(aller) eu.enDirect=Object.assign(socle, {l1:euroManche(pair[0], pair[1])});
-  else eu.enDirect=Object.assign(socle, {tie: aj.finale ? euroFinaleSeche(pair[0], pair[1]) : euroCloture(pair[0], pair[1], l1||euroManche(pair[0], pair[1]))});
+  // le match est joué ici par le moteur du samedi, BAVARD : le téléscripteur montrera son propre fil (sortie.r),
+  // pas un fil inventé à côté — les buteurs du direct sont ceux que les fiches ont enregistrés
+  const sortie={};
+  if(aller) eu.enDirect=Object.assign(socle, {l1:euroManche(pair[0], pair[1], sortie)});
+  else eu.enDirect=Object.assign(socle, {tie: aj.finale ? euroFinaleSeche(pair[0], pair[1], sortie) : euroCloture(pair[0], pair[1], l1||euroManche(pair[0], pair[1]), sortie)});
+  // hors sauvegarde (non énumérable) : une reprise en plein match retombe sur le fil de secours, sans rien casser
+  if(sortie.r) Object.defineProperty(eu.enDirect, "_sim", {value:sortie, writable:true, configurable:true});
   montre("euromatch"); // la finalisation reprendra le fil par montre("calendrier")
 }
 /* Coupe d'Europe — le tour de C1 en milieu de semaine, événementialisé (aller-retour).
@@ -10290,8 +10359,12 @@ function lanceEuroLeg(H, A, ed, legScore){
   const tab = ed.finale ? ed.tie.tab : false;               // seule la finale (match sec) porte les t.a.b. dans une manche
   const win = legScore[0]>legScore[1]?H.id:(legScore[1]>legScore[0]?A.id:(ed.finale?ed.tie.win:null));
   const r={hid:H.id, aid:A.id, sh:legScore[0], sa:legScore[1], tab, win};
-  const gen=genEvCoupe(H, A, r, onzeEuro);
-  const lignes=gen.ev;
+  // LE FIL DU MOTEUR (chantier « un seul moteur ») : celui que simuleMatch a écrit en jouant la manche. Le fil
+  // inventé de genEvCoupe ne reste qu'en secours (vieille sauvegarde sans effectif, reprise en plein match).
+  const S=ed._sim, R=S&&S.r&&S.r.ev ? S.r : null;
+  const gen=R ? null : genEvCoupe(H, A, r, onzeEuro);
+  const lignes=R ? R.ev : gen.ev, affSoir=R ? R.aff : gen.aff;
+  let liveMin=0; const liveMul={h:1, a:1}; // la minute jouée et l'infériorité numérique, pour un recollage
   const tk=document.getElementById("ticker"); tk.innerHTML="";
   const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=1600; surligneVitesse(); }
   document.getElementById("tabScore").innerHTML=
@@ -10316,7 +10389,7 @@ function lanceEuroLeg(H, A, ed, legScore){
       <div style="display:flex;gap:18px;margin-top:4px">
         <div style="flex:1;text-align:right">${colBut(H.id)}</div>
         <div style="flex:1">${colBut(A.id)}</div></div>
-      <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(gen.aff||0)} spectateurs — ${esc(H.stade||"le stade")}</p>
+      <p class="dim" style="margin-top:6px;text-align:center">Affluence : ${FMT(affSoir||0)} spectateurs — ${esc(H.stade||"le stade")}</p>
     </div>`);
     tk.scrollTop=0;
     const pa=document.getElementById("preMatchAct"); if(!pa) return;
@@ -10330,7 +10403,7 @@ function lanceEuroLeg(H, A, ed, legScore){
       pa.innerHTML='<button class="big" id="bENext">Les autres résultats →</button>';
       document.getElementById("bENext").onclick=()=>euroFenetreAller(advId, ()=>montre("calendrier"));
     } else { // manche décisive : on résout le tour avec le tie déjà joué (les autres au modèle), sans notif perso (le verdict suit)
-      if(!ed.finale && ed.tie.tab){ // cumul ET buts à l'extérieur à égalité → tirs au but sur l'ensemble des deux matchs
+      if(!ed.finale && ed.tie.tab && !R){ // (le fil du moteur a déjà raconté la séance) cumul ET but à l'extérieur à égalité → tirs au but
         tk.insertAdjacentHTML("afterbegin",`<p class="sys" style="text-align:center;margin-top:4px">Tout est égal sur les deux matchs (cumul et but à l'extérieur) : TIRS AU BUT. ${esc(clubAffiche(ed.tie.win).nom)} se qualifie !</p>`);
         tk.scrollTop=0;
       }
@@ -10344,17 +10417,23 @@ function lanceEuroLeg(H, A, ed, legScore){
   let i=0;
   // consigne en direct : la manche se rejoue, puis le tie suit — score de l'aller, cumul et but à l'extérieur au
   // retour, t.a.b. en finale. `legScore` et `ed.tie` sont relus au sifflet par fin() : on les met à jour en place.
-  cableTactiqueRdv({lignes, gen, r, tk, pos:()=>i,
+  // `tabR` : la séance que le moteur a tirée (fil du moteur) ; absent, le fil de secours la tire au rapport de forces.
+  const verdict=tabR=>{
+    legScore[0]=r.sh; legScore[1]=r.sa;
+    if(ed.finale){ ed.tie=euroFinaleAvec(ed.aid, ed.bid, [r.sh, r.sa], tabR); r.tab=ed.tie.tab; r.win=ed.tie.win; }
+    else {
+      r.win=r.sh>r.sa?H.id:(r.sa>r.sh?A.id:null);
+      if(aller) ed.l1=[r.sh, r.sa];
+      else ed.tie=euroClotureAvec(ed.aid, ed.bid, ed.tie.l1, [r.sh, r.sa], tabR); // au retour, l'hôte est b : [buts b, buts a]
+    }
+  };
+  if(R) cableTactiqueDirect({lignes, tk, pos:()=>i, minute:()=>liveMin,
+    // le reste du match se rejoue SOUS LE MAILLOT EUROPÉEN : les buts effacés sortent de butsC, pas du championnat
+    rejoue:(from, mNow)=>enCompet("EU", ()=>rejoueDepuis(R, euroClub(H.id), euroClub(A.id), from, mNow, liveMul.h, liveMul.a, S.o)),
+    verdict:()=>{ r.sh=R.sh; r.sa=R.sa; verdict(R.tab||undefined); }});
+  else cableTactiqueRdv({lignes, gen, r, tk, pos:()=>i,
     lambdas:()=>lambdasRdv(H.id, A.id, ed.finale?0:EURO_TERRAIN, forceEuro),
-    verdict:()=>{
-      legScore[0]=r.sh; legScore[1]=r.sa;
-      if(ed.finale){ ed.tie=euroFinaleAvec(ed.aid, ed.bid, [r.sh, r.sa]); r.tab=ed.tie.tab; r.win=ed.tie.win; }
-      else {
-        r.win=r.sh>r.sa?H.id:(r.sa>r.sh?A.id:null);
-        if(aller) ed.l1=[r.sh, r.sa];
-        else ed.tie=euroClotureAvec(ed.aid, ed.bid, ed.tie.l1, [r.sh, r.sa]); // au retour, l'hôte est b : [buts b, buts a]
-      }
-    }});
+    verdict:()=>verdict()});
   const tic=()=>{
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
@@ -10368,11 +10447,23 @@ function lanceEuroLeg(H, A, ed, legScore){
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
     ajouteLigne(tk,lg); majTab(lg); i++;
+    if(lg && lg.m) liveMin=lg.m;
+    if(lg && lg.c && lg.c.rouge){ // infériorité numérique : même barème que le moteur (malusRouge), pour un recollage
+      const dDef=lg.c.gardien&&!lg.c.releve?1.34:1.18;
+      if(lg.c.cote===H.id){ liveMul.h*=0.78; liveMul.a*=dDef; } else { liveMul.a*=0.78; liveMul.h*=dDef; }
+    }
     tk.scrollTop=0;
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} — ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
+    }
+    if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE — le fil du moteur en distribue, un soir d'Europe comme le samedi
+      const contre=lg.c.cote===G.monClub;
+      celebreFlash({classe:"contre", gros:"🟥 CARTON ROUGE",
+        sub:`<b class="jaune">${esc(lg.c.nom)}</b> · ${lg.m}'${contre?" — un des vôtres&nbsp;!":""}`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }

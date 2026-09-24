@@ -24,7 +24,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,acheterJoker,retireDEurope,euroInit,CLUBS,CLUBS_D2,CLUBS_EUROPE,STARS_EUROPE,EURO_TOURS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,acheterJoker,retireDEurope,euroInit,CLUBS,CLUBS_D2,CLUBS_EUROPE,STARS_EUROPE,EURO_TOURS,euroManche,euroCloture,euroFinaleSeche,euroClub,enCompet,rejoueDepuis,aStade,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -241,6 +241,68 @@ try {
   else if (G.euro.dernierTour.faits.length !== 1 || !G.euro.dernierTour.finale) fail("la finale n'est pas un match sec");
   else ok("finale = match sec à la J" + T[3].j + ", vainqueur = " + G.euro.vainqueur);
 } catch (e) { fail("exception I : " + e.stack); }
+
+/* ===== J) LE DIRECT EUROPÉEN (chantier « un seul moteur ») ===== */
+console.log("J) Le direct européen montre le fil du moteur, et la consigne le recolle sans trahir les fiches");
+try {
+  api.nouvellePartie("NAN");
+  const G = api.getG(), moi = G.monClub;
+  const advs = G.europe.slice(0, 6).map(c => c.id);
+  const lesDeux = (x, y) => [api.euroClub(x), api.euroClub(y)];
+  const photo = (cs) => { const m = new Map(); for (const c of cs) for (const j of c.joueurs) m.set(j.uid, {b: j.buts || 0, bc: j.butsC || 0}); return m; };
+  // ce que les fiches ont reçu depuis la photo : buts de COUPE par homme — et un buteur de championnat, jamais
+  const recu = (cs, av) => { const d = new Map(); let ligue = 0;
+    for (const c of cs) for (const j of c.joueurs) { const a = av.get(j.uid); const x = (j.butsC || 0) - a.bc; if (x) d.set(j.uid, x); if ((j.buts || 0) !== a.b) ligue++; }
+    return {d, ligue}; };
+  const auFil = (ev) => { const d = new Map(); for (const l of ev) if (l.g && l.g.uid) d.set(l.g.uid, (d.get(l.g.uid) || 0) + 1); return d; };
+  const memes = (a, b) => a.size === b.size && [...a].every(([k, v]) => b.get(k) === v);
+  const sifflet = (ev) => ev.find(l => l.t === "sys" && /^COUP DE SIFFLET FINAL/.test(l.x || ""));
+  let n = 0, filOk = 0, recolleOk = 0, scoreOk = 0, ligueTouchee = 0, tabOk = 0, tabVus = 0, sifOk = 0, sansFil = 0;
+  const consignes = ["prudent", "offensif", "equilibre"];
+  for (let k = 0; k < 90; k++) {
+    const adv = advs[k % advs.length], type = k % 3; // 0 aller · 1 retour (aller nul et vierge : prolongations fréquentes) · 2 finale
+    const sortie = {}; let home, away;
+    const cs = lesDeux(moi, adv), av = photo(cs);
+    if (type === 0) { api.euroManche(moi, adv, sortie); home = moi; away = adv; }
+    else if (type === 1) { api.euroCloture(moi, adv, [0, 0], sortie); home = adv; away = moi; }
+    else { api.euroFinaleSeche(moi, adv, sortie); home = moi; away = adv; }
+    const R = sortie.r; if (!R || !R.ev) { sansFil++; continue; }
+    n++;
+    // 1) le fil du moteur crédite EXACTEMENT les buteurs qu'il raconte
+    const r1 = recu(cs, av); if (memes(auFil(R.ev), r1.d)) filOk++; ligueTouchee += r1.ligue;
+    // 2) la consigne change à une minute au hasard avant le sifflet : le reste se rejoue
+    const sif = R.ev.indexOf(sifflet(R.ev)), from = 1 + Math.floor(Math.random() * Math.max(1, sif - 1)), mNow = R.ev[from - 1].m;
+    G.consigne = consignes[k % 3];
+    const [H, A] = [api.euroClub(home), api.euroClub(away)];
+    api.enCompet("EU", () => api.rejoueDepuis(R, H, A, from, mNow, 1, 1, sortie.o));
+    G.consigne = "equilibre";
+    const r2 = recu(cs, av); if (memes(auFil(R.ev), r2.d)) recolleOk++; ligueTouchee += r2.ligue;
+    const shF = R.ev.filter(l => l.g && l.g.cote === home).length, saF = R.ev.filter(l => l.g && l.g.cote === away).length;
+    if (shF === R.sh && saF === R.sa) scoreOk++;
+    // 3) le sifflet tombe à la bonne minute, et la séance suit l'égalité que la compétition définit
+    const s = sifflet(R.ev), eg = (sortie.o && sortie.o.egalite) || ((x, y) => x === y);
+    if (s && s.m === (R.prolong ? 120 : 90) && /après prolongations/.test(s.x) === !!R.prolong) sifOk++;
+    if (sortie.o && sortie.o.prolong) { tabVus++;
+      const doit = eg(R.sh, R.sa);
+      if (doit ? (R.tab && (R.tab.win === home || R.tab.win === away)) : !R.tab) tabOk++; }
+  }
+  if (sansFil) fail(sansFil + " manches sans fil du moteur (le direct retomberait sur le fil inventé)");
+  if (filOk !== n) fail("fil du moteur : " + (n - filOk) + "/" + n + " manches dont les buteurs racontés ≠ buteurs crédités");
+  else ok("le fil du moteur crédite exactement les buteurs qu'il raconte (" + n + " manches : aller, retour, finale)");
+  if (recolleOk !== n) fail("recollage : " + (n - recolleOk) + "/" + n + " manches où les fiches ne suivent pas le nouveau fil (buts effacés mal défaits)");
+  else ok("consigne changée en direct : les buts effacés sortent des fiches, les nouveaux y entrent (" + n + " recollages)");
+  if (scoreOk !== n) fail("recollage : le score annoncé ne correspond pas aux buts du fil (" + (n - scoreOk) + " cas)");
+  else ok("après recollage, le score annoncé est celui que raconte le fil");
+  if (ligueTouchee) fail(ligueTouchee + " buts européens sont tombés dans le classement des buteurs du CHAMPIONNAT");
+  else ok("aucun but européen ne touche le classement des buteurs du championnat");
+  if (sifOk !== n) fail("sifflet : " + (n - sifOk) + " fils recollés sifflent à la mauvaise minute (90/120) ou oublient les prolongations");
+  else ok("le sifflet recollé tombe à 90 ou à 120 et dit « après prolongations » quand il le faut");
+  if (tabOk !== tabVus) fail("tirs au but : " + (tabVus - tabOk) + "/" + tabVus + " recollages où la séance ne suit pas l'égalité de la compétition");
+  else ok("la séance de tirs au but se rejoue exactement quand rien ne sépare les deux camps (" + tabVus + " manches à prolongations)");
+  const st = [api.aStade("le Stadio delle Alpi"), api.aStade("les Brisbane"), api.aStade("Roudourou")];
+  if (st.join("|") !== "au Stadio delle Alpi|aux Brisbane|à Roudourou") fail("aStade : " + st.join(" | "));
+  else ok("« au Stadio delle Alpi », « à Roudourou » : plus de « à le » au coup d'envoi");
+} catch (e) { fail("exception J : " + e.stack); }
 
 console.log(FAILS ? ("\n❌ HARNAIS EUROPE : " + FAILS + " ÉCHEC(S)") : "\n✅ HARNAIS EUROPE : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

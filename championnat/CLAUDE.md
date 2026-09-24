@@ -1834,7 +1834,7 @@ moments n'avaient aucun harnais du tout — rien n'empêchait l'un d'eux de se m
 score. Choisir un adversaire qui ne soit pas le rival du club : le derby a sa propre porte de sortie
 (`provoc`) avant même la branche du décor.
 
-### LA BASCULE DE L'EUROPE — FAITE À MOITIÉ, NE PAS LIVRER EN L'ÉTAT
+### LA BASCULE DE L'EUROPE — FAITE (résolution ET direct)
 
 **Ce qui est fait.** Une manche européenne se joue par `simuleMatch` : `euroManche`, `euroCloture` et
 `euroFinaleSeche` passent toutes par `euroMatchReel`, qui entre par `enCompet("EU")` et garde un repli sur
@@ -1850,20 +1850,29 @@ le reste du fichier est resté conforme sans y toucher : le calibrage se transf�
 L'invariant des buteurs a gagné sa seconde moitié (les buts de coupe doivent ATTERRIR dans `butsC`, pas
 seulement épargner le championnat) et il a été vérifié rouge en retirant `enCompet`.
 
-**CE QUI MANQUE, et qui interdit la livraison.** Votre soirée européenne, celle que vous regardez, tire son
-score par `euroManche` — donc par `simuleMatch`, qui **crédite de vrais buteurs**. Mais le téléscripteur
-met ce score en scène avec `corpsCoupe`, qui **invente ses propres buteurs** (des noms, pas des `uid`). Un
-homme peut donc voir trois buts européens sur sa fiche sans être apparu une fois dans le fil. Pire : si
-vous changez de consigne en cours de match, `rejoueRdv` **réinvente des buts** que personne n'a crédités, et
-le score affiché s'éloigne de ce que les fiches ont enregistré.
+**Le dernier kilomètre, fait le 24/09/2026.** VOTRE soirée européenne se joue BAVARDE : `euroJoue` passe un
+objet `sortie` à `euroManche`/`euroCloture`/`euroFinaleSeche`, qui y rendent le fil même du moteur (`sortie.r`,
+le `r.ev` de `simuleMatch`) et ses options (`sortie.o` : `neutre`, `prolong`, `egalite`). Il voyage dans
+`eu.enDirect._sim`, **non énumérable** (hors sauvegarde) : une reprise en plein match retombe sur le fil de secours
+`genEvCoupe` sans rien casser. `lanceEuroLeg` met ce fil en scène tel quel — **les buteurs du téléscripteur sont
+ceux que les fiches ont enregistrés** — suit la minute et l'infériorité numérique (`liveMul`), et arrête le fil
+sur un carton rouge comme le samedi. Le changement de consigne passe par **`cableTactiqueDirect`** (le geste de
+`changeTactique`), qui appelle `rejoueDepuis` **sous `enCompet("EU")`** ; le verdict (cumul, but à l'extérieur,
+t.a.b.) reprend la séance tirée par le moteur (`R.tab`). `cableTactiqueRdv`/`rejoueRdv` ne servent plus qu'au
+fil de secours — et à la Coupe de France, qui n'a pas encore basculé.
 
-**Le dernier kilomètre, tel qu'il faut le faire** : la soirée européenne doit consommer le fil de
-`simuleMatch` lui-même (`simuleMatch(H, A, true, opts)` → `r.ev`, même forme que le samedi) au lieu du fil
-fabriqué par `corpsCoupe`, et le changement de consigne doit passer par **`rejoueDepuis`** — qui sait
-défaire les buts effacés, `cleButs()` compris — au lieu de `rejoueRdv`, qui ne le sait pas. C'est du
-câblage d'écran (`euroJoue`, le `tic()` de la nuit européenne, `cableTactiqueRdv` → `cableTactique`), à
-faire avec une capture Playwright sous les yeux. La Coupe de France posera exactement la même question le
-jour venu.
+**Ce que le moteur a appris pour ça.** `simuleReste` et `rejoueDepuis` prennent un `opts` de soir de coupe :
+public de coupe ou terrain neutre, mi-temps, **prolongations** (y compris un recollage en pleine prolongation,
+`enProlong`), sifflet à 90 ou 120, et **séance de tirs au but rejouée** quand `egalite` le dit (`r.tab` suit).
+Sans `opts` (le samedi), rien ne change, pas même le nombre de tirages au hasard. **PIÈGE PAYÉ** :
+`byUid` ne connaît que votre division — un soir d'Europe, les buts effacés de l'adversaire restaient sur sa
+fiche. `rejoueDepuis` cherche désormais d'abord dans les deux vestiaires du match (`qui`). Gardé par la
+**section J de `harness-euro.cjs`** (90 manches aller/retour/finale, rouge avant le correctif, 25/25 vert
+après) : fil = fiches, recollage = fiches, score = fil, championnat intact, sifflet à la bonne minute, séance
+exactement quand il le faut. Au passage, `aStade` contracte « à le Stadio » en « au Stadio ».
+
+**Ce qui reste** : la Coupe de France pose exactement la même question (`lanceCoupe` met encore en scène un fil
+inventé par `genEvCoupe`) — elle se branchera sur `cableTactiqueDirect` le jour de sa bascule.
 
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
