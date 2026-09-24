@@ -24,7 +24,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,acheterJoker,retireDEurope,euroInit,CLUBS,CLUBS_D2,CLUBS_EUROPE,STARS_EUROPE,EURO_TOURS,euroManche,euroCloture,euroFinaleSeche,euroClub,enCompet,rejoueDepuis,aStade,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,acheterJoker,retireDEurope,euroInit,CLUBS,CLUBS_D2,CLUBS_EUROPE,STARS_EUROPE,EURO_TOURS,euroManche,euroCloture,euroFinaleSeche,euroClub,enCompet,rejoueDepuis,euroRejoue,onzeRotation,onze,aStade,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -274,7 +274,7 @@ try {
     const sif = R.ev.indexOf(sifflet(R.ev)), from = 1 + Math.floor(Math.random() * Math.max(1, sif - 1)), mNow = R.ev[from - 1].m;
     G.consigne = consignes[k % 3];
     const [H, A] = [api.euroClub(home), api.euroClub(away)];
-    api.enCompet("EU", () => api.rejoueDepuis(R, H, A, from, mNow, 1, 1, sortie.o));
+    api.euroRejoue(sortie, home, away, from, mNow, 1, 1); // sous le maillot européen ET sur la feuille du coup d'envoi
     G.consigne = "equilibre";
     const r2 = recu(cs, av); if (memes(auFil(R.ev), r2.d)) recolleOk++; ligueTouchee += r2.ligue;
     const shF = R.ev.filter(l => l.g && l.g.cote === home).length, saF = R.ev.filter(l => l.g && l.g.cote === away).length;
@@ -303,6 +303,42 @@ try {
   if (st.join("|") !== "au Stadio delle Alpi|aux Brisbane|à Roudourou") fail("aStade : " + st.join(" | "));
   else ok("« au Stadio delle Alpi », « à Roudourou » : plus de « à le » au coup d'envoi");
 } catch (e) { fail("exception J : " + e.stack); }
+
+/* ===== K) LA ROTATION FAIT JOUER CEUX QU'ON A CHOISIS (correctif de la v1.31) ===== */
+console.log("K) Rotation : en Europe, ce sont les hommes choisis qui jouent — et la réserve pèse");
+try {
+  api.nouvellePartie("NAN");
+  const G = api.getG(), moi = G.monClub, c = api.euroClub(moi);
+  const adv = G.europe.find(e => e.id !== moi).id;
+  /* N = 1500 par rotation : l'écart attendu est de ~13 % (1,02 contre 1,17 but par match pour Nantes) ; à 300 matchs
+     un seuil à −8 % tombait à vide une fois sur quatre. À 1500, l'écart-type de la différence est ~0,04 but et le
+     seuil à −3 % laisse ~3 écarts-types de marge. La garde qui ne tremble pas est au-dessus : la feuille. */
+  let horsFeuille = 0, sansFeuille = 0, buts = {cadres: 0, reserve: 0}; const N = 1500;
+  for (const rot of ["cadres", "reserve"]) {
+    G.euro.rotation = rot;
+    for (let k = 0; k < N; k++) {
+      for (const e of [c, api.euroClub(adv)]) for (const j of e.joueurs) { j.susp = 0; } // les rouges des matchs précédents ne doivent vider AUCUN des deux effectifs
+      const attendu = api.onzeRotation(c, rot).map(j => j.uid).sort().join(); // le onze que la rotation doit aligner, AVANT le coup d'envoi
+      const sortie = {}; api.euroManche(moi, adv, sortie);
+      const o = sortie.o; if (!o || !o.xiH) { sansFeuille++; continue; }
+      const mien = new Set(o.xiH.map(j => j.uid)), lui = new Set(o.xiA.map(j => j.uid));
+      for (const l of sortie.r.ev) if (l.g && l.g.uid) {
+        const surLaFeuille = l.g.cote === moi ? mien.has(l.g.uid) : lui.has(l.g.uid);
+        if (!surLaFeuille) horsFeuille++;
+        if (l.g.cote === moi) buts[rot]++;
+      }
+      // la feuille elle-même suit la rotation
+      if (o.xiH.map(j => j.uid).sort().join() !== attendu) sansFeuille++;
+    }
+  }
+  if (sansFeuille) fail(sansFeuille + " matchs dont la feuille ne suit pas la rotation choisie");
+  else ok("votre onze européen est celui de la rotation choisie (" + (2 * N) + " matchs, cadres puis réserve)");
+  if (horsFeuille) fail(horsFeuille + " buts marqués par un homme qui n'était pas sur la feuille");
+  else ok("chaque but est marqué par un homme réellement aligné, des deux côtés");
+  const mc = buts.cadres / N, mr = buts.reserve / N;
+  if (!(mr < mc * 0.97)) fail("la réserve marque autant que les cadres (" + mr.toFixed(2) + " contre " + mc.toFixed(2) + " buts par match) : la rotation ne pèse pas");
+  else ok("la réserve pèse : " + mr.toFixed(2) + " buts par match contre " + mc.toFixed(2) + " pour les cadres");
+} catch (e) { fail("exception K : " + e.stack); }
 
 console.log(FAILS ? ("\n❌ HARNAIS EUROPE : " + FAILS + " ÉCHEC(S)") : "\n✅ HARNAIS EUROPE : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

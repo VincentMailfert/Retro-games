@@ -115,7 +115,12 @@ function etalonne(cle, mesure, libelle) {
 /* ============================================================================
    Collecte : on joue de vraies saisons et on relit `dernierTour` à chaque tour.
    ============================================================================ */
-const SAISONS = 60;                                   // 60 saisons × 3 clubs × 63 affiches = ~11 000 affiches
+/* 150 saisons × 3 clubs × 63 affiches = ~28 000 affiches (60 jusqu'au 24/09/2026). À 60, « votre sortie dès les
+   32es » ne reposait que sur 180 saisons : un écart-type de 3,6 points pour une tolérance de 8. Le correctif de la
+   rotation européenne (v1.32), qui ne touche pas la Coupe de France, a rebrassé le tirage et l'a fait tomber à
+   45,6 % — alors que six autres graines donnaient 32-41 %, sur la v1.31 comme après. À 150, on remonte à ~2,3
+   points d'écart-type : la tolérance en vaut plus de trois. Mesure plus précise, tolérance inchangée. */
+const SAISONS = 150;
 const DEPARTS = [api.CLUBS[0].id, api.CLUBS[9].id, api.CLUBS_D2[2].id];
 
 const C = {                                            // Coupe de France
@@ -565,8 +570,14 @@ try {
   if (domChezA - partAChezLui < 0.02) fail("le terrain neutre ne se distingue pas d'un match à domicile (" + pct(domChezA) + " vs " + pct(partAChezLui) + ")");
   else ok("l'avantage du terrain existe bien et disparaît en neutre (" + pct(domChezA) + " à domicile, " + pct(partAChezLui) + " en neutre)");
 
-  if (Math.abs(neutreChezA.buts - samedi.buts) > 0.10) fail("terrain neutre : " + neutreChezA.buts.toFixed(3) + " buts contre " + samedi.buts.toFixed(3) + " — le total a bougé, seule la répartition devait changer");
-  else ok("le total de buts ne bouge pas en neutre (" + neutreChezA.buts.toFixed(3) + " contre " + samedi.buts.toFixed(3) + ")");
+  /* LE BON TÉMOIN (corrigé le 24/09/2026) : le neutre donne aux deux camps la moyenne géométrique de 1,18 et 0,92.
+     Face au seul « A reçoit B », le total ne se conserve que si A et B se valent — entre deux équipes inégales,
+     l'écart attendu dépassait la tolérance selon les effectifs tirés, et l'assertion rougissait sur la v1.31
+     elle-même dès que le tirage changeait. Ce que le neutre conserve, c'est la moyenne des DEUX samedis
+     (A chez lui, B chez lui) : à ~1 % près, quel que soit l'écart de niveau. */
+  const samediBA = lot(B, A, undefined, 3000), deuxSamedis = (samedi.buts + samediBA.buts) / 2;
+  if (Math.abs(neutreChezA.buts - deuxSamedis) > 0.10) fail("terrain neutre : " + neutreChezA.buts.toFixed(3) + " buts contre " + deuxSamedis.toFixed(3) + " en moyenne sur les deux samedis — le total a bougé, seule la répartition devait changer");
+  else ok("le total de buts ne bouge pas en neutre (" + neutreChezA.buts.toFixed(3) + " contre " + deuxSamedis.toFixed(3) + " en moyenne sur les deux samedis)");
 
   /* 3) PROLONGATIONS : une affiche de coupe ne peut pas finir à égalité */
   const coupe = lot(A, B, { prolong: true }, 3000);

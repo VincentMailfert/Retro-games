@@ -1962,7 +1962,7 @@ inventé par `genEvCoupe`) — elle se branchera sur `cableTactiqueDirect` le jo
    échappé, annonce au coup d'envoi — et deux saisons en changeant de formation chaque semaine),
    `harness-coupes.cjs` (**l'ÉTALON des coupes**, posé le 22/09/2026 en ouverture du chantier « un seul moteur » :
    sur un hasard à graine fixe — deux lancers rendent les mêmes chiffres, `GRAINE=…` pour un autre tirage — il
-   joue 60 saisons × 3 clubs et mesure ce que le modèle de force autonome produit, puis le compare à des valeurs
+   joue 150 saisons × 3 clubs (60 jusqu'au 24/09/2026) et mesure ce que le modèle de force autonome produit, puis le compare à des valeurs
    gravées dans le fichier : buts par match en Coupe de France (2,63), pro contre pro (2,37) et pro contre amateur
    (3,06), part des tirs au but (21,5 %), **taux d'exploit d'un amateur sur un pro (16,1 %)**, parcours du Petit
    Poucet (12,2 % de quarts ou mieux), tour de sortie de votre club (35 % dès les 32es), Europe (2,37 buts par

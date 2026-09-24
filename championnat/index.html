@@ -3408,7 +3408,7 @@ function simuleMatch(home,away,verbeux,opts){
      deux matchs, et le but marqué à l'extérieur. `egalite(sh,sa)` dit « rien ne les sépare encore » ;
      sans elle, c'est le score du soir, ce qui est la bonne réponse pour une finale sèche. */
   const egalite=O.egalite||((x,y)=>x===y);
-  const fh=forces(home), fa=forces(away);
+  const fh=forces(home, O.xiH), fa=forces(away, O.xiA); // O.xiH/xiA : le onze choisi par la rotation un soir de coupe (absent le samedi)
   // ferveur du public : un stade plein pousse l'équipe à domicile et gêne le visiteur ; un stade clairsemé pèse.
   // Centrée sur ~62 % de remplissage (la moyenne) → l'avantage du terrain moyen reste celui d'avant : calibrage préservé,
   // car ce que le domicile gagne en attaque, le visiteur le perd à peu près à l'identique (somme des buts ≈ constante).
@@ -3450,7 +3450,7 @@ function simuleMatch(home,away,verbeux,opts){
   FAITS=[]; // feuille de match brute (buts, passes) — lue par l'homme du match, y compris dans les rencontres muettes
   // les deux portiers du coup d'envoi, retenus par uid : c'est eux qu'on décorera d'une cage inviolée,
   // et l'effectif aura déjà bougé (fatigue, blessures) quand on relira la feuille après le coup de sifflet
-  const gkH=onze(home).find(j=>j.pos==="G"), gkA=onze(away).find(j=>j.pos==="G");
+  const gkH=(O.xiH||onze(home)).find(j=>j.pos==="G"), gkA=(O.xiA||onze(away)).find(j=>j.pos==="G");
   if(verbeux){ METEO_MATCH=tireMeteo(G&&G.journee);
     ev.push({m:0,t:"sys",x:(derby?nomRivalite(home.id,away.id).toUpperCase()+" ! ":"")+(O.neutre?"Coup d'envoi sur terrain neutre":"Coup d'envoi "+aStade(home.stade))+" devant "+FMT(aff)+" spectateurs."+METEO_MATCH.ouv});
     const fH=cleFormation(home), fA=cleFormation(away); // les deux dispositifs, annoncés au coup d'envoi (v1.12)
@@ -3564,7 +3564,7 @@ function simuleMatch(home,away,verbeux,opts){
    pas même le nombre de tirages au hasard : le calibrage du championnat ne bouge pas d'un iota. */
 function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus,opts){
   const O=opts||null, egalite=(O&&O.egalite)||((x,y)=>x===y);
-  const fh=forces(home), fa=forces(away);
+  const fh=forces(home, O&&O.xiH), fa=forces(away, O&&O.xiA);
   const aff=(O&&O.neutre) ? home.cap : ((O&&!enChampionnat()) ? affluenceCoupe(home,away) : affluence(home,away));
   const fill=Math.min(1,aff/Math.max(1,home.cap)), ferveur=(O&&O.neutre) ? 1 : 1+0.18*(fill-0.62);
   const [zh,za]=lambdasZones(fh,fa), TN=Math.sqrt(1.18*0.92);
@@ -8368,11 +8368,32 @@ function forceEuro(id){
 /* `sortie` (VOTRE manche, celle qu'on regarde) : le match est joué BAVARD et l'on rend dans sortie.r le fil
    même du moteur (r.ev) et dans sortie.o ses options — le direct le met en scène tel quel, et c'est lui que
    rejoueDepuis recolle si la consigne change. Mêmes buteurs au téléscripteur et sur les fiches. */
+/* LA ROTATION FAIT JOUER CEUX QU'ON A CHOISIS (correctif de la v1.31). Le moteur du samedi aligne `onze()` :
+   sans feuille de match, envoyer « la réserve » en Europe ne changeait plus RIEN au terrain — seule la fatigue
+   tombait, et sur des hommes qui n'avaient pas joué. Pour VOTRE match, on pose donc une feuille (le onze de la
+   rotation, et celui d'en face) le temps du match : la force, le buteur, le passeur, le gardien et l'expulsé
+   viennent des hommes réellement sur la pelouse. La feuille voyage dans `opts.feuilles` : un recollage en direct
+   (euroRejoue) la reprend telle quelle, rouges compris. Les autres affiches restent sans feuille, comme avant. */
+function feuilleDe(xi){ return {xi, banc:[], sort:[], min:[]}; }
+function sousFeuilles(feuilles, fn){ // pose des feuilles de match le temps de fn, puis rend l'état d'avant
+  const avant={}; for(const id in feuilles){ avant[id]=CHANGEMENTS[id]; CHANGEMENTS[id]=feuilles[id]; }
+  try { return fn(); } finally { for(const id in avant){ if(avant[id]===undefined) delete CHANGEMENTS[id]; else CHANGEMENTS[id]=avant[id]; } }
+}
 function euroMatchReel(hid,aid,opts,verbeux){
   const H=euroClub(hid), A=euroClub(aid);
   if(!H || !A || !onze(H).length || !onze(A).length)            // filet : vieille sauvegarde sans effectif
     return {sh:0, sa:0, tab:null, _sansEffectif:true};
-  return enCompet("EU", ()=>simuleMatch(H, A, !!verbeux, opts||{}));
+  const o=opts||{};
+  if(hid!==G.monClub && aid!==G.monClub) return enCompet("EU", ()=>simuleMatch(H, A, !!verbeux, o));
+  o.xiH=onzeEuro(H); o.xiA=onzeEuro(A);                           // votre onze suit la rotation, celui d'en face est le meilleur
+  o.feuilles={[H.id]:feuilleDe(o.xiH), [A.id]:feuilleDe(o.xiA)};
+  return enCompet("EU", ()=>sousFeuilles(o.feuilles, ()=>simuleMatch(H, A, !!verbeux, o)));
+}
+/* Recoller VOTRE manche après un changement de consigne : sous le maillot européen (les buts effacés sortent de
+   butsC) et sur la feuille du coup d'envoi (mêmes hommes, mêmes expulsés). */
+function euroRejoue(sortie, hid, aid, from, mNow, mulH, mulA){
+  const o=sortie.o||{};
+  return enCompet("EU", ()=>sousFeuilles(o.feuilles||{}, ()=>rejoueDepuis(sortie.r, euroClub(hid), euroClub(aid), from, mNow, mulH, mulA, o)));
 }
 function euroSortie(sortie, r, o){ if(sortie && !r._sansEffectif){ sortie.r=r; sortie.o=o; } }
 function euroManche(hid,aid,sortie){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
@@ -10429,7 +10450,7 @@ function lanceEuroLeg(H, A, ed, legScore){
   };
   if(R) cableTactiqueDirect({lignes, tk, pos:()=>i, minute:()=>liveMin,
     // le reste du match se rejoue SOUS LE MAILLOT EUROPÉEN : les buts effacés sortent de butsC, pas du championnat
-    rejoue:(from, mNow)=>enCompet("EU", ()=>rejoueDepuis(R, euroClub(H.id), euroClub(A.id), from, mNow, liveMul.h, liveMul.a, S.o)),
+    rejoue:(from, mNow)=>euroRejoue(S, H.id, A.id, from, mNow, liveMul.h, liveMul.a),
     verdict:()=>{ r.sh=R.sh; r.sa=R.sa; verdict(R.tab||undefined); }});
   else cableTactiqueRdv({lignes, gen, r, tk, pos:()=>i,
     lambdas:()=>lambdasRdv(H.id, A.id, ed.finale?0:EURO_TERRAIN, forceEuro),
