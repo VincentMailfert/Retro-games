@@ -49,13 +49,24 @@
   /* La division, sur le bandeau JAUNE : pastille inversée, fond sombre et texte jaune. Un simple .jaune y
      était invisible (jaune sur jaune). D1 et D2 portent la même pastille : le chiffre suffit (chantier interface, lot 1). */
   .topbar .divTag{background:#16243c; color:var(--jaune); padding:0 5px; letter-spacing:0;}
-  nav{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;}
+  /* quatre onglets soulignés ; le jaune ne marque que l'onglet où l'on est */
+  nav{display:flex; gap:26px; margin:2px 0 0; padding:0 4px; border-bottom:1px solid var(--line);}
   nav button{
-    background:var(--panel); color:var(--txt); border:1px solid var(--line);
-    font-family:inherit; font-size:14px; padding:6px 12px; cursor:pointer;
+    background:none; color:var(--dim); border:0; border-bottom:2px solid transparent; margin-bottom:-1px;
+    font-family:inherit; font-size:15px; font-weight:500; padding:10px 2px 9px; cursor:pointer;
   }
-  nav button.on{background:var(--jaune); color:#16243c; font-weight:bold; border-color:var(--jaune);}
+  nav button:hover{color:var(--clair);}
+  nav button.on{color:var(--clair); border-bottom-color:var(--jaune);}
   nav button:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
+  nav .navIco{display:none;}
+  /* sous-onglets de la famille ouverte : des pastilles discrètes, pas une seconde rangée de boutons */
+  .sousNav{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0;}
+  .sousNav button{background:none; color:var(--dim); border:1px solid transparent; border-radius:16px;
+    font-family:inherit; font-size:13px; padding:4px 12px; cursor:pointer;}
+  .sousNav button:hover{color:var(--clair);}
+  .sousNav button.on{background:var(--panel); color:var(--clair); border-color:var(--line);}
+  .sousNav button:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
+  #corps{margin-top:12px;}
   /* MOINS DE CADRES (chantier interface, lot 3) : un panneau se détache du fond par sa teinte et l'espace
      autour, plus par un filet. Le bord reste là, transparent, pour que les rares panneaux qui portent une
      couleur en ligne (le prochain match, le mercato ouvert, les rendez-vous) soient les SEULS encadrés. */
@@ -290,7 +301,7 @@
    sauf le tableau de score (figé en haut) et le téléscripteur, qui s'étire pour prendre la hauteur
    restante. Texte agrandi pour la lisibilité au téléphone. Purement cosmétique : aucun effet moteur. */
 body.mode-direct{overflow:hidden}
-body.mode-direct .topbar, body.mode-direct nav, body.mode-direct .footer{display:none}
+body.mode-direct .topbar, body.mode-direct nav, body.mode-direct .sousNav, body.mode-direct .footer{display:none}
 body.mode-direct #app{height:100vh;height:100dvh;padding:6px 8px;display:flex;flex-direction:column}
 body.mode-direct #corps{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 body.mode-direct #corps>.panel{display:none}
@@ -306,8 +317,16 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .wrap{padding:4px}
   .topbar{flex-wrap:wrap;gap:2px;padding:6px 8px}
   .topbar .r{font-size:13px;width:100%}
-  nav{display:flex;flex-wrap:wrap;gap:3px}
-  nav button{flex:1 1 30%;padding:9px 2px;font-size:13px;letter-spacing:0}
+  /* les quatre onglets descendent sous le pouce, en barre fixe ; la marge basse de #app leur fait place */
+  #app{padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px))}
+  nav{position:fixed; left:0; right:0; bottom:0; z-index:8; margin:0; padding:0 0 env(safe-area-inset-bottom, 0px);
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0; background:#0b1626; border-top:1px solid var(--line); border-bottom:0}
+  nav button{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 2px 9px; min-height:56px;
+    font-size:13px; border-bottom:0; border-top:2px solid transparent; margin:0}
+  nav button.on{border-top-color:var(--jaune)}
+  nav .navIco{display:block; font-size:19px; line-height:1}
+  .sousNav{margin-top:8px}
+  .sousNav button{padding:8px 14px; min-height:36px}
   .panel{padding:8px;overflow-x:auto}
   table{min-width:540px}
   table.fit{min-width:0} /* tables clé/valeur étroites : tiennent dans l'écran, pas de scroll horizontal */
@@ -9433,6 +9452,32 @@ function ecranAccueil(){
   if(t2) t2.onclick=()=>{ ACCUEIL_DIV=2; ecranAccueil(); };
 }
 
+/* QUATRE ONGLETS (chantier interface, lot 5) : neuf écrans rangés en quatre familles. Un onglet qui en
+   regroupe plusieurs montre ses sous-onglets juste en dessous, et se souvient du dernier écran ouvert
+   (DERNIER_ECRAN, simple confort de session : rien n'entre dans la sauvegarde). « À propos » descend en
+   pied de page. Sur téléphone, les quatre onglets deviennent une barre fixe en bas, sous le pouce. */
+const GROUPES_NAV=[
+  {k:"match",  lib:"Match",        ico:"⚽", ecrans:["calendrier"]},
+  {k:"equipe", lib:"Équipe",       ico:"👕", ecrans:["effectif","mercato"]},
+  {k:"club",   lib:"Club",         ico:"🏟️", ecrans:["club","finances"]},
+  {k:"compet", lib:"Compétitions", ico:"🏆", ecrans:["classement","coupe","europe"]},
+];
+const LIB_ECRAN={calendrier:"Calendrier", effectif:"Effectif", mercato:"Mercato", club:"Le club", finances:"Finances",
+  classement:"Classement", coupe:"Coupe de France", europe:"Europe"};
+const DERNIER_ECRAN={};
+function barreNav(actif){
+  const g=GROUPES_NAV.find(x=>x.ecrans.includes(actif));
+  if(g) DERNIER_ECRAN[g.k]=actif;
+  const onglets=GROUPES_NAV.map(x=>{
+    const cible=DERNIER_ECRAN[x.k]||x.ecrans[0], on=x===g;
+    return `<button data-s="${cible}" class="${on?"on":""}"${on?' aria-current="page"':""}><span class="navIco" aria-hidden="true">${x.ico}</span>${x.lib}</button>`;
+  }).join("");
+  const sous=(g&&g.ecrans.length>1)
+    ? `<div class="sousNav">${g.ecrans.map(s=>`<button data-s="${s}" class="${s===actif?"on":""}"${s===actif?' aria-current="page"':""}>${LIB_ECRAN[s]}</button>`).join("")}</div>`
+    : "";
+  return `<nav aria-label="Navigation principale">${onglets}</nav>${sous}`;
+}
+
 function chrome(actif, corps){
   const c=clubById(G.monClub);
   app.innerHTML=`
@@ -9440,18 +9485,18 @@ function chrome(actif, corps){
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
      <span class="r">${esc(G.saison)} · <b class="divTag${G.div===2?' d2':''}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
    </div>
-   <nav>${["calendrier","classement","coupe","europe","effectif","mercato","finances","club","apropos"]
-     .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s==="apropos"?"À PROPOS":s.toUpperCase()}</button>`).join("")}
-   </nav>
+   ${barreNav(actif)}
    <div id="corps">${corps}</div>
    <p class="footer">MULTIPLEX 95 · v${VERSION} ·
      <button class="act" id="bSave">💾 Sauvegarder</button>
      <button class="act" id="bMenu">📁 Mes carrières</button>
      <button class="act" id="bExp">Exporter (fichier)</button>
      <label class="act" style="cursor:pointer">Importer (fichier)<input type="file" accept=".json" style="display:none" id="bImp"></label>
+     <button class="act" id="bApropos">À propos</button>
      ${SAVE_KO?`<b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Exportez en fichier, puis supprimez une vieille carrière.</b>`:""}
    </p>`;
-  app.querySelectorAll("nav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
+  app.querySelectorAll("nav button, .sousNav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
+  document.getElementById("bApropos").onclick=()=>montre("apropos");
   document.getElementById("bSave").onclick=()=>{
     if(sauvegardeLocale(false)){ const b=document.getElementById("bSave");
       b.textContent="✓ Partie sauvegardée"; b.disabled=true;
