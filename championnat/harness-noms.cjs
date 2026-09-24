@@ -118,7 +118,7 @@ console.log("F) L'écran d'accueil met le nom en avant, et garde le créneau à 
   ok(opts.length === cles.length, `le menu déroulant propose les ${cles.length} saisons`);
   const manque = cles.filter(k => !opts.some(o => o.includes(SAISONS[k].nom) && o.includes(k)));
   ok(manque.length === 0, `chaque ligne du menu porte le nom ET le créneau${manque.length ? " — sauf " + manque.join(", ") : ""}`);
-  const mis = page.match(/<p class="jaune"[^>]*><b>([^<]*)<\/b><\/p>/);
+  const mis = page.match(/<p class="fort"[^>]*><b>([^<]*)<\/b><\/p>/);
   ok(mis && mis[1] === SAISONS[api.SAISON_DEFAUT].nom,
     `et la saison choisie s'annonce par son nom : « ${mis ? mis[1] : "(absent)"} »`);
   ok(page.includes(SAISONS[api.SAISON_DEFAUT].sous), "le sous-titre déjà écrit reste dessous, il n'a pas été remplacé");

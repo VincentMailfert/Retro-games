@@ -22,7 +22,11 @@
   :root{
     --bg:#0b1626; --panel:#10233f; --panel2:#0e1d35; --line:#27466e;
     --txt:#d9e4f2; --dim:#7e96b5; --jaune:#ffd24a; --vert:#5fd98f;
-    --rouge:#ff6f61; --cyan:#6fd6e8;
+    --rouge:#ff6f61; --clair:#f2f5fa;
+    /* DEUX POLICES (chantier interface, lot 2) : une sans empattement nette pour tout ce qu'on LIT
+       (tableaux, textes, boutons), et le rétro réservé aux MOMENTS — le téléscripteur garde sa machine
+       à écrire (--font-ui), les scores et le flash de but leur police pixel (--font-led). */
+    --font-texte:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
     --font-ui:'VT323','Lucida Console','Courier New',monospace;
     --font-led:'Silkscreen','VT323',monospace;
   }
@@ -30,9 +34,10 @@
   html,body{height:100%;}
   body{
     background:var(--bg); color:var(--txt);
-    font-family:var(--font-ui);
-    font-size:17px; line-height:1.35;
+    font-family:var(--font-texte);
+    font-size:15px; line-height:1.45;
   }
+  table, .num, .tSc, .mpxS{font-variant-numeric:tabular-nums;}
   #app{max-width:980px; margin:0 auto; padding:8px 10px 60px;}
   /* ---- barre de titre façon CM ---- */
   .topbar{
@@ -41,21 +46,45 @@
     justify-content:space-between; gap:4px 16px; margin-bottom:6px;
   }
   .topbar .r{font-weight:normal;}
-  /* La division, sur le bandeau JAUNE : pastille inversée. Un simple .jaune y était invisible
-     (jaune sur jaune) et le .cyan de la D2 y était illisible — fond sombre, texte coloré. */
+  /* La division, sur le bandeau JAUNE : pastille inversée, fond sombre et texte jaune. Un simple .jaune y
+     était invisible (jaune sur jaune). D1 et D2 portent la même pastille : le chiffre suffit (chantier interface, lot 1). */
   .topbar .divTag{background:#16243c; color:var(--jaune); padding:0 5px; letter-spacing:0;}
-  .topbar .divTag.d2{color:var(--cyan);}
-  nav{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;}
+  /* quatre onglets soulignés ; le jaune ne marque que l'onglet où l'on est */
+  nav{display:flex; gap:26px; margin:2px 0 0; padding:0 4px; border-bottom:1px solid var(--line);}
   nav button{
-    background:var(--panel); color:var(--txt); border:1px solid var(--line);
-    font-family:inherit; font-size:16px; padding:6px 12px; cursor:pointer;
+    background:none; color:var(--dim); border:0; border-bottom:2px solid transparent; margin-bottom:-1px;
+    font-family:inherit; font-size:15px; font-weight:500; padding:10px 2px 9px; cursor:pointer;
   }
-  nav button.on{background:var(--jaune); color:#16243c; font-weight:bold; border-color:var(--jaune);}
-  nav button:focus-visible{outline:2px solid var(--cyan);}
-  .panel{background:var(--panel); border:1px solid var(--line); padding:10px 12px; margin-bottom:8px;}
-  h2{color:var(--jaune); font-size:17px; letter-spacing:1px; margin-bottom:8px; text-transform:uppercase;}
-  h3{color:var(--cyan); font-size:15px; margin:10px 0 4px;}
-  table{width:100%; border-collapse:collapse; font-size:16px;}
+  nav button:hover{color:var(--clair);}
+  nav button.on{color:var(--clair); border-bottom-color:var(--jaune);}
+  nav button:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
+  nav .navIco{display:none;}
+  /* sous-onglets de la famille ouverte : des pastilles discrètes, pas une seconde rangée de boutons */
+  .sousNav{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0;}
+  .sousNav button{background:none; color:var(--dim); border:1px solid transparent; border-radius:16px;
+    font-family:inherit; font-size:13px; padding:4px 12px; cursor:pointer;}
+  .sousNav button:hover{color:var(--clair);}
+  .sousNav button.on{background:var(--panel); color:var(--clair); border-color:var(--line);}
+  .sousNav button:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
+  #corps{margin-top:12px;}
+  /* MOINS DE CADRES (chantier interface, lot 3) : un panneau se détache du fond par sa teinte et l'espace
+     autour, plus par un filet. Le bord reste là, transparent, pour que les rares panneaux qui portent une
+     couleur en ligne (le prochain match, le mercato ouvert, les rendez-vous) soient les SEULS encadrés. */
+  .panel{background:var(--panel); border:1px solid transparent; border-radius:6px; padding:16px 18px; margin-bottom:12px;}
+  /* action secondaire posée à côté du bouton plein : un lien, pas un second bouton qui lui dispute l'œil */
+  button.lien{background:none; border:0; color:var(--dim); font-family:inherit; font-size:14px; padding:6px 8px;
+    text-decoration:underline; text-underline-offset:3px; cursor:pointer;}
+  button.lien:hover:not(:disabled){color:var(--clair);}
+  button.lien:disabled{opacity:.4; cursor:default;}
+  button.lien:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
+  /* glossaire des pictos : replié par défaut, il reste à un clic pour qui en a besoin */
+  details.legende{margin-top:12px; color:var(--dim); font-size:13px;}
+  details.legende summary{cursor:pointer; width:max-content; padding:2px 0;}
+  details.legende summary:hover{color:var(--clair);}
+  details.legende p{margin-top:6px;}
+  h2{color:var(--clair); font-size:15px; font-weight:600; letter-spacing:.06em; margin-bottom:10px; text-transform:uppercase;}
+  h3{color:var(--clair); font-size:14px; font-weight:600; margin:12px 0 4px;}
+  table{width:100%; border-collapse:collapse; font-size:14px;}
   th{color:var(--dim); text-align:left; font-weight:normal; border-bottom:1px solid var(--line); padding:2px 6px;}
   td{padding:2px 6px; border-bottom:1px solid rgba(39,70,110,.35);}
   tr.me td{color:var(--jaune);}
@@ -63,15 +92,15 @@
   tr.click:hover td{background:var(--panel2);}
   .num{text-align:right;}
   .ctr{text-align:center;}
-  .pos-G{color:var(--cyan);} .pos-D{color:#9fc1ec;} .pos-M{color:#cfe3a8;} .pos-A{color:#ffb3a0;}
-  .vert{color:var(--vert);} .rouge{color:var(--rouge);} .jaune{color:var(--jaune);} .dim{color:var(--dim);}
+  .pos-G,.pos-D,.pos-M,.pos-A{color:var(--dim);}
+  .vert{color:var(--vert);} .rouge{color:var(--rouge);} .jaune{color:var(--jaune);} .fort{color:var(--clair); font-weight:bold;} .dim{color:var(--dim);}
   button.act{
     background:var(--panel2); border:1px solid var(--line); color:var(--txt);
-    font-family:inherit; font-size:16px; padding:4px 10px; cursor:pointer;
+    font-family:inherit; font-size:14px; padding:4px 10px; cursor:pointer;
   }
   button.act:hover{border-color:var(--jaune); color:var(--jaune);}
   button.act:disabled{opacity:.4; cursor:default;}
-  button.big{font-size:18px; padding:8px 18px; background:var(--jaune); color:#16243c; font-weight:bold; border:2px solid transparent;}
+  button.big{font-size:16px; padding:9px 20px; background:var(--jaune); color:#16243c; font-weight:bold; border:2px solid transparent;}
   /* RÈGLE D'AFFICHAGE DES BOUTONS (v1.02) : le JAUNE PLEIN ne se porte que sur une action ENCORE
      OFFERTE. Dès qu'un bouton s'éteint — indisponible faute d'argent ou de fenêtre, ou choix déjà
      tranché — il s'INVERSE : fond bleu nuit, cadre et typo jaune. On lit toujours ce qu'il dit, on
@@ -86,7 +115,7 @@
   /* ---- téléscripteur ---- */
   #ticker{
     background:#060d18; border:1px solid var(--line); min-height:240px; max-height:340px;
-    overflow-y:auto; padding:10px 12px; font-size:16px;
+    overflow-y:auto; padding:10px 12px; font-size:18px; font-family:var(--font-ui);
     clear:both; /* le téléscripteur passe sous les contrôles de vitesse flottants — sinon il se rétrécit à côté (BFC vs float) */
   }
   #ticker p{margin:0 0 3px; white-space:pre-wrap;}
@@ -96,29 +125,29 @@
   #ticker .ico svg{width:24px; height:17px; display:block;}
   #ticker .min{color:var(--dim);}
   #ticker .but{color:var(--jaune); font-weight:bold;}
-  #ticker .occ{color:var(--cyan);}
+  #ticker .occ{color:var(--clair);}
   #ticker .crd{color:var(--rouge);}
-  #ticker .sys{color:var(--vert);}
+  #ticker .sys{color:var(--dim);}
   .cursor::after{content:"▌"; animation:cl 1s steps(1) infinite; color:var(--vert);}
   @keyframes cl{50%{opacity:0;}}
   @media (prefers-reduced-motion:reduce){.cursor::after{animation:none;}}
   /* ---- célébration de but : panneau d'affichage LED clignotant ---- */
   #butFlash{position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
     background:rgba(4,9,18,.55); pointer-events:none;}
-  #butFlash .led{font-family:'Courier New',monospace; font-weight:bold; text-align:center; padding:24px 34px;
+  #butFlash .led{font-family:var(--font-ui); font-weight:normal; text-align:center; padding:24px 34px;
     min-width:min(560px,92vw); max-width:min(640px,92vw); box-sizing:border-box; cursor:pointer;
     background:#0a0610; background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px); background-size:6px 6px;
     border:4px solid #2a2a2a; border-radius:6px; box-shadow:0 0 60px rgba(0,0,0,.85), inset 0 0 28px rgba(0,0,0,.6);}
   #butFlash .gros{font-family:var(--font-led); font-size:42px; letter-spacing:3px; color:var(--jaune); line-height:1.15;
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6); animation:butflash .4s steps(1) infinite;}
-  #butFlash .det{font-size:21px; color:#fff; margin-top:12px; letter-spacing:1px;}
+  #butFlash .det{font-size:26px; color:#fff; margin-top:12px; letter-spacing:1px;}
   /* nom du buteur en capitales blanches sous la ligne de score, façon tableau d'affichage (CANTONA 56' ⚽) */
   #butFlash .buteur{font-family:var(--font-led); font-size:24px; color:#fff; letter-spacing:2px; margin-top:10px;
     text-transform:uppercase; text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
   /* le texte d'explication du but est aligné à GAUCHE et plus gros : on y lit qui a marqué, plus lisible qu'en pavé centré */
-  #butFlash .dettxt{font-size:18px; color:var(--cyan); margin:12px auto 0; line-height:1.55; text-align:left;
-    max-width:540px; background:rgba(111,214,232,.07); border-left:3px solid var(--cyan); padding:8px 12px; border-radius:3px;}
-  #butFlash .hint{font-size:13px; color:var(--dim); margin-top:12px; letter-spacing:1px;}
+  #butFlash .dettxt{font-size:22px; color:var(--clair); margin:12px auto 0; line-height:1.55; text-align:left;
+    max-width:540px; background:rgba(255,255,255,.05); padding:8px 12px; border-radius:3px;}
+  #butFlash .hint{font-size:16px; color:var(--dim); margin-top:12px; letter-spacing:1px;}
   #butFlash.contre .gros{color:var(--rouge);}
   /* la vignette du but s'affiche EN ENTIER (plus de bandeau texte par-dessus) : titre au-dessus, détail en dessous */
   #butFlash .vignette{line-height:0; border:2px solid #2a2a2a; border-radius:4px; overflow:hidden; margin:14px auto 0; width:fit-content;}
@@ -138,24 +167,24 @@
   @media(max-width:700px){.grid3{grid-template-columns:1fr;}}
   select,input[type=text]{
     background:var(--panel2); border:1px solid var(--line); color:var(--txt);
-    font-family:inherit; font-size:16px; padding:4px 6px;
+    font-family:inherit; font-size:14px; padding:4px 6px;
   }
   .startclub{
     display:block; width:100%; text-align:left; margin-bottom:4px;
     background:var(--panel2); border:1px solid var(--line); color:var(--txt);
-    font-family:inherit; font-size:16px; padding:7px 10px; cursor:pointer;
+    font-family:inherit; font-size:14px; padding:7px 10px; cursor:pointer;
   }
   .startclub:hover{border-color:var(--jaune);}
-  .startclub b{color:var(--jaune);}
+  .startclub b{color:var(--clair);}
   /* ---- accueil : groupes d'ambition (2 colonnes desktop, onglets D1/D2 mobile) ---- */
   .accCols{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;align-items:start;}
-  .accDivHead{border-bottom:2px solid var(--jaune);padding-bottom:4px;margin-bottom:4px;
+  .accDivHead{border-bottom:2px solid var(--dim);padding-bottom:4px;margin-bottom:4px;
     display:flex;justify-content:space-between;align-items:baseline;}
-  .accDivHead.d2{border-color:var(--cyan);}
+  .accDivHead.d2{border-color:var(--dim);}
   .grpHead{display:flex;align-items:baseline;gap:8px;margin:14px 0 2px;}
   .grpHead .trait{flex:1;height:1px;opacity:.35;align-self:center;}
-  .grpAmb{color:var(--dim);font-size:12px;font-style:italic;margin:0 0 6px;}
-  .startclub .sous{color:var(--dim);font-size:11px;}
+  .grpAmb{color:var(--dim);font-size:13px;font-style:italic;margin:0 0 6px;}
+  .startclub .sous{color:var(--dim);font-size:13px;}
   /* ---- accueil : la liste des carrières sauvegardées ---- */
   .carLigne{display:flex;gap:4px;align-items:stretch;margin-bottom:4px;}
   .carLigne .startclub{flex:1;margin-bottom:0;}
@@ -168,18 +197,21 @@
   .mChip{font-family:inherit;font-size:14px;padding:5px 9px;background:var(--panel2);
     color:var(--dim);border:1px solid var(--line);cursor:pointer;font-weight:bold;white-space:nowrap;}
   .mChip.on{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
-  .mChip.onD2{background:var(--cyan);color:#16243c;border-color:var(--cyan);}
+  .mChip.onD2{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
   .mercRap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-  .mercRap .carte{background:var(--panel2);border:1px solid var(--line);padding:8px 10px;
+  .mercRap .carte{background:var(--panel2);border:1px solid transparent;border-radius:6px;padding:10px 12px;
     display:flex;flex-direction:column;gap:4px;cursor:pointer;}
-  .mercRap .carte:hover{border-color:var(--cyan);}
+  .mercRap .carte:hover{border-color:var(--line);}
   #listeM tr.sel td{background:rgba(255,210,74,.09);}
-  .mercWrap{display:grid;grid-template-columns:1fr 360px;gap:0 16px;align-items:start;}
-  .mercFiche{position:sticky;top:12px;background:var(--panel2);border:2px solid var(--jaune);padding:12px 14px;}
+  .mercWrap{display:grid;grid-template-columns:1fr 320px;gap:0 16px;align-items:start;}
+  /* marché des transferts (lot 4) : une ligne par joueur — le club se tronque plutôt que de passer à la ligne */
+  #listeM td, #listeM th{white-space:nowrap;}
+  #listeM td.mClub{max-width:150px; overflow:hidden; text-overflow:ellipsis;}
+  .mercFiche{position:sticky;top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:12px 14px;}
   .mercFiche .noteLed, tr.mercDet .noteLed{font-family:var(--font-led);font-size:26px;color:var(--jaune);
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
-  .mercFiche .avis, tr.mercDet .avis{font-size:14px;border-left:3px solid var(--cyan);background:rgba(111,214,232,.07);
-    padding:6px 10px;color:var(--cyan);margin:10px 0 0;}
+  .mercFiche .avis, tr.mercDet .avis{font-size:14px;background:rgba(255,255,255,.05);border-radius:3px;
+    padding:6px 10px;color:var(--clair);margin:10px 0 0;}
   .mercPag{display:flex;align-items:center;gap:10px;margin-top:8px;}
   .mercPag span{flex:1;text-align:center;color:var(--dim);font-size:13px;}
   tr.mercDet td{background:var(--panel2);padding:9px 10px;}
@@ -196,8 +228,7 @@
   /* ---------- écran Effectif : une ligne par joueur (v1.09) ----------
      Rien ne passe à la ligne sauf l'état exceptionnel (blessé, suspendu, prêt), rangé SOUS le nom en
      petit. Les quatre décisions forment une seule barre de boutons collés : ils partagent leurs
-     bordures (marge −1 px), l'état « en cours » s'allume en cyan — la couleur de ★ et 🛌 dans la
-     colonne d'état — et jamais en jaune plein, réservé à l'action offerte (cf. v1.02). */
+     bordures (marge −1 px), l'état « en cours » s'allume en blanc — et jamais en jaune plein, réservé à l'action offerte (cf. v1.02). */
   .effTab td{vertical-align:middle;}
   .effTab .effNom, .effTab .effEtat, .effTab .effCar, .effTab td.num, .effTab th{white-space:nowrap;}
   .effTab .effSt{display:block; font-size:.8em; line-height:1.15;}
@@ -206,17 +237,17 @@
   .effBtns button.ico{position:relative; display:inline-flex; align-items:center; justify-content:center; margin:0;
     width:36px; height:30px; padding:0; font-size:15px; line-height:1;}
   .effBtns button.ico + button.ico{margin-left:-1px;}
-  .effBtns button.ico.on{background:rgba(111,214,232,.14); border-color:var(--cyan); color:var(--cyan); z-index:1;}
+  .effBtns button.ico.on{background:rgba(255,255,255,.14); border-color:var(--clair); color:var(--clair); z-index:1;}
   .effBtns button.ico:hover:not(:disabled){z-index:2;}
   .effBtns button.ico:active:not(:disabled){background:#081221;}
-  .effBtns button.ico:focus-visible{outline:2px solid var(--cyan); outline-offset:-3px; z-index:3;}
+  .effBtns button.ico:focus-visible{outline:2px solid var(--jaune); outline-offset:-3px; z-index:3;}
   .effBtns button.ico:disabled{opacity:.35;}
   /* LA FORMATION D'AVANT-MATCH (v1.12) : le onze ligne par ligne, attaque en haut comme sur un tableau noir,
      puis les trois duels face à l'adversaire. Les noms passent à la ligne d'eux-mêmes à 390 px. */
   .terrainXI{margin:8px auto 0; max-width:520px; border:1px solid var(--line); padding:6px 8px; font-size:13px; line-height:1.3;}
   .terrainXI .fLigne{display:flex; flex-wrap:wrap; justify-content:center; gap:0 10px; padding:2px 0;}
   .terrainXI .fLigne + .fLigne{border-top:1px dashed var(--line);}
-  .terrainXI .fLib{flex-basis:100%; font-size:11px;}
+  .terrainXI .fLib{flex-basis:100%; font-size:13px;}
   .duelsXI{margin:8px auto 0; max-width:520px; font-size:13px; text-align:left;}
   .duelsXI p{margin:2px 0;}
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:10;}
@@ -226,15 +257,23 @@
      d'un coach, typiquement — sans l'effacer ni toucher au verrou _penEnCours, qui appartient à #fiche. */
   #msgbox{position:fixed; inset:0; background:rgba(4,9,18,.72); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
   #msgbox input[type=text]{display:block; width:100%; margin-top:8px; background:#0b1626; color:#dfe9ff;
-     border:1px solid #38507a; border-radius:4px; font-family:inherit; font-size:16px; padding:9px;}
+     border:1px solid #38507a; border-radius:4px; font-family:inherit; font-size:14px; padding:9px;}
   .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px;}
+  /* la sauvegarde est automatique : les outils de carrière se font discrets en pied de page (lot 3) */
+  .footer .act{background:none; border-color:transparent; color:var(--dim);}
+  .footer .act:hover{border-color:transparent; color:var(--clair);}
 
-/* tableau d'affichage */
-#tabScore{display:flex;align-items:center;justify-content:center;gap:12px}
-.tSc{font-family:var(--font-led);font-size:34px;font-weight:bold;color:var(--jaune);min-width:52px;text-align:center;
-     background:#060d18;border:1px solid var(--line);padding:0 8px;line-height:1.35}
-.tSep{font-family:var(--font-led);color:var(--dim);font-size:22px}
-.tNom{font-size:17px;color:#e8e8e8;max-width:230px}
+/* TABLEAU D'AFFICHAGE (chantier interface) : au match, le rétro reprend la main. Un panneau noir à points
+   comme celui du stade, les noms en capitales pixel, les chiffres qui luisent (halo serré + ombre pixel, jamais
+   de néon flou), et la minute qui tourne sous le score (majMinute, nourrie par chaque ligne du téléscripteur). */
+#tabScore{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 16px;
+  background:#05080d;background-image:radial-gradient(rgba(255,255,255,.045) 1px,transparent 1.2px);background-size:5px 5px;
+  border:1px solid #1d2633;border-radius:6px;padding:16px 14px 12px}
+.tSc{font-family:var(--font-led);font-size:42px;color:var(--jaune);min-width:48px;text-align:center;line-height:1.1;
+  text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6)}
+.tSep{font-family:var(--font-led);color:#4d5b6e;font-size:24px}
+.tNom{font-family:var(--font-led);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#eef2ff;max-width:230px;line-height:1.25}
+.tMin{flex-basis:100%;text-align:center;font-family:var(--font-led);font-size:15px;letter-spacing:.12em;color:var(--jaune);opacity:.8}
 #tabButs{display:flex;gap:18px;margin-top:6px}
 #tabButs .tCol{flex:1;font-size:14px;color:var(--dim)}
 #tabButs .tCol.d{text-align:right}
@@ -244,8 +283,8 @@
 /* LE MULTIPLEX DE FIN DE JOURNÉE (v1.17) : les deux cartes qui suivent la feuille de match dans le
    téléscripteur — tous les stades, puis le classement. Tailles en `em` : le mode direct grossit
    déjà le téléscripteur (19px), la carte doit suivre au lieu de se figer à 15. */
-.mpx{border:1px solid var(--cyan);background:rgba(111,214,232,.05);padding:10px;margin-top:10px}
-.mpx h3{margin:0 0 7px;font-size:.95em;letter-spacing:1px;color:var(--cyan);text-align:center}
+.mpx{border:1px solid var(--line);background:rgba(255,255,255,.03);padding:10px;margin-top:10px}
+.mpx h3{margin:0 0 7px;font-size:.95em;letter-spacing:1px;color:var(--clair);text-align:center}
 .mpxL{display:flex;align-items:baseline;gap:6px;margin:2px 0;max-width:540px;margin-left:auto;margin-right:auto}
 .mpxIc{flex:0 0 22px;text-align:center}
 .mpxD{flex:1 1 0;text-align:right;min-width:0}
@@ -267,7 +306,7 @@
    sauf le tableau de score (figé en haut) et le téléscripteur, qui s'étire pour prendre la hauteur
    restante. Texte agrandi pour la lisibilité au téléphone. Purement cosmétique : aucun effet moteur. */
 body.mode-direct{overflow:hidden}
-body.mode-direct .topbar, body.mode-direct nav, body.mode-direct .footer{display:none}
+body.mode-direct .topbar, body.mode-direct nav, body.mode-direct .sousNav, body.mode-direct .footer{display:none}
 body.mode-direct #app{height:100vh;height:100dvh;padding:6px 8px;display:flex;flex-direction:column}
 body.mode-direct #corps{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 body.mode-direct #corps>.panel{display:none}
@@ -279,26 +318,42 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
 
 /* ---------- mobile ---------- */
 @media(max-width:700px){
-  body{font-size:15px}
+  body{font-size:14px}
   .wrap{padding:4px}
   .topbar{flex-wrap:wrap;gap:2px;padding:6px 8px}
-  .topbar .r{font-size:12px;width:100%}
-  nav{display:flex;flex-wrap:wrap;gap:3px}
-  nav button{flex:1 1 30%;padding:9px 2px;font-size:12px;letter-spacing:0}
+  .topbar .r{font-size:13px;width:100%}
+  /* les quatre onglets descendent sous le pouce, en barre fixe ; la marge basse de #app leur fait place */
+  #app{padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px))}
+  nav{position:fixed; left:0; right:0; bottom:0; z-index:8; margin:0; padding:0 0 env(safe-area-inset-bottom, 0px);
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0; background:#0b1626; border-top:1px solid var(--line); border-bottom:0}
+  nav button{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 2px 9px; min-height:56px;
+    font-size:13px; border-bottom:0; border-top:2px solid transparent; margin:0}
+  nav button.on{border-top-color:var(--jaune)}
+  nav .navIco{display:block; font-size:19px; line-height:1}
+  .sousNav{margin-top:8px}
+  .sousNav button{padding:8px 14px; min-height:36px}
   .panel{padding:8px;overflow-x:auto}
   table{min-width:540px}
   table.fit{min-width:0} /* tables clé/valeur étroites : tiennent dans l'écran, pas de scroll horizontal */
   .panel table{font-size:13px}
-  .tSc{font-size:24px;min-width:36px;padding:0 4px}
-  .tNom{font-size:13px;max-width:90px}
   #tabScore{gap:5px}
-  #ctlVitesse{float:none !important;display:block;margin-top:6px} /* les contrôles de vitesse sur leur propre ligne, plein écran */
-  #ticker{font-size:13px;max-height:280px}
+  #ctlVitesse{float:none !important;display:block;margin-top:0}
+  /* au direct sur téléphone : le titre « Téléscripteur » s'efface (le panneau parle de lui-même), les commandes se tassent */
+  body.mode-direct .panelDirect>h2{font-size:0;margin-bottom:6px}
+  body.mode-direct #ctlVitesse, body.mode-direct #ctlTactique{font-size:13px !important}
+  #ctlVitesse .act, #ctlTactique .act{padding:6px 8px;font-size:13px}
+  #libTacD{display:none}
+  .tSc{font-size:32px;min-width:34px}
+  .tNom{font-size:13px;max-width:100px;letter-spacing:.04em}
+  /* sur téléphone le score doit tenir sur UNE ligne : les blasons s'effacent, les noms passent sur deux lignes */
+  #tabScore{gap:6px 10px;padding:14px 8px 10px}
+  #tabScore>svg{display:none} /* les contrôles de vitesse sur leur propre ligne, plein écran */
+  #ticker{font-size:16px;max-height:280px}
   .fbox{max-width:94vw !important;padding:10px !important}
   .fbox #cage, .fbox div[style*="width:330px"]{width:100% !important}
   .big{display:block;width:100%;margin:6px 0}
   .scoreline{font-size:13px !important;flex-wrap:wrap}
-  .zPen{padding:12px 2px !important;font-size:12px}
+  .zPen{padding:12px 2px !important;font-size:13px}
   .act{padding:7px 8px}
   .accCols{grid-template-columns:1fr;}
   .accTabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;}
@@ -306,10 +361,10 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
     padding:10px 4px;min-height:44px;background:var(--panel2);color:var(--dim);
     border:1px solid var(--line);cursor:pointer;}
   .accTabs button.onD1{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
-  .accTabs button.onD2{background:var(--cyan);color:#16243c;border-color:var(--cyan);}
+  .accTabs button.onD2{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
   .accCols[data-div="1"] .colD2{display:none;}
   .accCols[data-div="2"] .colD1{display:none;}
-  .pips{font-size:12px;letter-spacing:.5px;}
+  .pips{font-size:13px;letter-spacing:.5px;}
   /* Effectif : cibles de 40 px au doigt, et le nom qui reste collé au bord gauche quand on fait défiler
      le tableau jusqu'aux boutons */
   .effBtns button.ico{width:40px; height:38px; padding:0; font-size:17px;}
@@ -323,7 +378,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=VT323&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=VT323&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <div id="app"></div>
@@ -338,7 +393,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.24"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.30"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "—"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -978,7 +1033,7 @@ function logoMultiplex(s, sombre){ // s = largeur px ; sombre=true → tracés #
     <path d="M8 12.3 L8.7 12.8 L8.4 13.6 H7.6 L7.3 12.8 Z" fill="${enc}"/>
     <circle cx="16.8" cy="14.5" r="2.2" fill="none" stroke="${enc}" stroke-width="1.2"/>
     <path d="M16.8 14.5 L18.1 13.2" stroke="${enc}" stroke-width="1"/>
-    <path d="M18 5.5 Q20 7.5 18 9.5 M20 3.5 Q23.5 7.5 20 11.5" fill="none" stroke="#6fd6e8" stroke-width="1.1"/>
+    <path d="M18 5.5 Q20 7.5 18 9.5 M20 3.5 Q23.5 7.5 20 11.5" fill="none" stroke="${sombre?"#16243c":"#ffd24a"}" stroke-width="1.1"/>
   </svg>`;
 }
 
@@ -2074,11 +2129,179 @@ const STARS_D2_9192={
 const D1_9192=["OM","MON","PSG","AUX","CAE","MTP","LEH","LEN","NAN","STE","TOU","MET","LIL","CAN","NCY","NIM","REN","SOC","TON","LYO"];
 const D2_9192=["VAN","ANG","LMN","LOU","LAV","GUI","ROU","BOU","DUN","BEA","BOR","STR","IST","BAS","GFC","ROD","PER","CHA","NIC","ALE"];
 
+const STARS_9293={
+ OM:[["F. Barthez","G",21,78,92],["P. Olmeta","G",31,79,81],
+   ["M. Desailly","D",24,78,88],["B. Boli","D",25,83,89],["J. Angloma","D",27,76,83],["É. Di Meco","D",29,78,80],["B. Casoni","D",31,79,81],["M. Amoros","D",30,82,83],["J.-C. Marquet","D",18,64,82],
+   ["D. Deschamps","M",24,80,89],["A. Pelé","M",28,85,87],["F. Sauzée","M",27,83,85],["J.-J. Eydelie","M",26,71,77],["J.-P. Durand","M",32,76,78],["J.-C. Thomas","M",28,72,74],["J.-M. Ferreri","M",30,77,78],["I. Dobrovolskiy","M",25,78,83],["R. Martín Vázquez","M",27,79,80],
+   ["R. Völler","A",32,83,83],["A. Bokšić","A",22,83,90]],
+ PSG:[["B. Lama","G",29,79,88],
+   ["P. Colleter","D",27,75,77],["R. Gomes","D",28,80,82],["A. Roche","D",25,80,86],["J.-L. Sassus","D",30,78,79],["A. Kombouaré","D",29,73,75],["F. Llacer","D",21,71,78],
+   ["P. Le Guen","M",28,78,81],["L. Fournier","M",28,79,81],["V. Guérin","M",27,79,84],["Valdo","M",28,80,82],["D. Bravo","M",29,78,80],["B. Germain","M",32,76,78],["P. Reynaud","M",24,69,78],
+   ["D. Ginola","A",25,78,86],["G. Weah","A",26,83,92],["F. Calderaro","A",28,71,73],["A. Simba","A",31,77,79],["J. Cloarec","A",26,70,76]],
+ MON:[["J.-L. Ettori","G",37,76,79],["A. Hugues","G",26,70,76],
+   ["L. Thuram","D",20,68,90],["F. Dumas","D",24,78,87],["L. Sonor","D",30,79,80],["P. Valéry","D",23,74,83],["P. Blondeau","D",24,75,84],
+   ["C. Puel","M",31,77,79],["J. Gnako","M",24,73,82],["L. Henrique","M",24,74,80],["C. Perez","M",29,72,74],["Y. Djorkaeff","M",24,79,89],["M. Dib","M",32,76,78],["E. Petit","M",22,79,93],["R. Barros","M",27,81,83],["S. Legwinski","M",19,66,82],
+   ["J. Klinsmann","A",28,85,86],["Y. Fofana","A",26,72,78],["P. Revelles","A",24,69,78],["B. Rodriguez","A",20,71,76]],
+ BOR:[["G. Huard","G",30,78,80],["P. Sence","G",30,66,67],
+   ["M. Santos","D",23,79,85],["B. Lizarazu","D",23,79,88],["L. Croci","D",28,74,76],["D. Sénac","D",34,72,76],["J.-L. Dogon","D",25,72,78],["C. Vecchioni","D",23,74,87],["M. Milojevic","D",28,68,70],["F. Grenet","D",17,66,80],
+   ["E. Guérit","M",28,80,82],["Z. Zidane","M",20,75,95],["P. Lucas","M",29,72,76],["J.-F. Daniel","M",28,75,77],["P. Marquet","M",26,69,75],["S. Plancque","M",31,69,71],["M. Flos","M",28,77,82],
+   ["C. Dugarry","A",20,75,93],["Valdeir","A",25,77,82],["R. Salaün","A",23,67,76]],
+ NAN:[["D. Marraud","G",28,71,73],
+   ["L. Guyot","D",23,66,75],["Z. Vulic","D",31,73,74],["S. Le Dizet","D",28,72,74],["E. Capron","D",21,68,81],["S. Moreau","D",21,66,70],
+   ["C. Karembeu","M",22,68,82],["R. Pedros","M",21,69,84],["J.-M. Ferri","M",23,71,80],["C. Makélélé","M",19,70,91],["S. Ziani","M",21,68,81],["F. Debotté","M",29,70,72],["A. Martins","M",21,66,80],
+   ["N. Ouédec","A",21,69,83],["P. Loko","A",22,73,87],["J. N'Doram","A",26,74,84],["J.-L. Lima","A",25,68,74],["J. Dalmao","A",23,67,80]],
+ AUX:[["B. Martini","G",30,81,82],["L. Charbonnier","G",26,75,82],
+   ["F. Verlaat","D",24,76,84],["W. Prunier","D",25,75,81],["S. Mahé","D",24,73,82],["T. Bonalair","D",26,70,76],["S. Mazzolini","D",26,72,78],["A. Goma","D",20,69,87],["F. Rabarivony","D",22,71,74],["L. Ciechelski","D",21,70,74],
+   ["C. Martins","M",23,76,85],["R. Guerreiro","M",24,73,82],["D. Dutuel","M",25,73,79],["M. Saïb","M",23,76,81],
+   ["C. Cocard","A",25,78,84],["G. Baticle","A",23,71,80],["P. Vahirua","A",26,77,83],["L. Laslandes","A",21,74,83],["D. Otokoré","A",23,68,77],["B. Diomède","A",18,69,84]],
+ STE:[["J.-A. Bell","G",38,76,80],
+   ["S. Kastendeuch","D",29,77,83],["J.-P. Cyprien","D",23,70,79],["C. Deguerville","D",22,69,83],["P. Cuervo","D",23,67,76],["P. Moreau","D",19,65,74],["T. Gros","D",26,69,75],["J.-P. Primard","D",30,67,68],
+   ["G. Passi","M",28,78,80],["L. Moravcik","M",27,82,84],["P. Despeyroux","M",27,68,75],["L. Lambert","M",26,69,75],["J.-C. Pagal","M",28,67,69],["C. Chaintreuil","M",28,75,77],["M. Bouquet","M",29,77,79],
+   ["É. Mendy","A",23,68,77],["T. Camara","A",20,68,86],["M. Luhovy","A",29,71,74],["M. Molnar","A",22,66,77],["D. Tholot","A",28,74,76]],
+ STR:[["S. Sansone","G",25,75,81],["F. Mary","G",28,69,72],
+   ["F. Leboeuf","D",24,77,86],["P. Baills","D",28,76,78],["S. Keshi","D",30,70,71],["J. Cobos","D",24,73,82],["M. Djetou","D",18,66,85],["É. Mura","D",29,74,76],["S. Soppo-Din","D",21,64,77],["Y. Rott","D",18,60,72],["E. Vogel","D",22,65,79],
+   ["M. Hughes","M",21,71,77],["M. Keller","M",24,72,81],["J. Paillard","M",30,65,66],["Y. Pouliquen","M",30,75,76],["J.-J. Etamé","M",26,70,76],["I. Hasek","M",29,75,77],["O. Dacourt","M",18,63,85],
+   ["A. Bouafia","A",28,77,79],["F. Farina","A",28,72,76]],
+ LEN:[["G. Warmuz","G",22,74,88],
+   ["J.-G. Wallemme","D",25,76,82],["J.-M. Adjovi-Boco","D",29,72,74],["E. Sikora","D",24,77,86],["C. Magnier","D",23,71,80],["F. Déhu","D",20,65,86],["D. Dubois","D",25,66,72],["B. Héréson","D",23,70,79],["C. Delmotte","D",23,69,78],["F. Gillot","D",32,70,72],["E. Hutteau","D",24,65,74],
+   ["P. Laigle","M",22,77,91],["M. El Haddaoui","M",31,70,72],["H. Arsène","M",29,75,77],["R. Slater","M",28,76,78],["J.-F. Péron","M",27,73,75],
+   ["F. Omam-Biyik","A",26,78,84],["R. Boli","A",27,75,77],["M. Maufroy","A",22,66,80],["N. Sirakov","A",30,67,70]],
+ MTP:[["C. Barrabé","G",26,71,77],["J. Palatsi","G",23,67,69],
+   ["B. Reuzeau","D",26,73,79],["M. Der Zakarian","D",29,76,78],["B. Carotti","D",20,66,75],["S. Blanc","D",20,66,84],["J. Bonnissel","D",19,68,80],["J.-M. Thétis","D",21,70,83],
+   ["T. Laurey","M",28,72,74],["P. Périlleux","M",29,78,80],["K. Ferhaoui","M",27,72,74],["J. Fréchet","M",27,71,73],["A. Asanovic","M",27,75,77],["W. Suvrijn","M",30,77,78],["F. Rizzetto","M",21,66,79],["F. Lefèvre","M",21,66,79],
+   ["F. Divert","A",25,76,82],["J. Ziober","A",27,72,74],["O. Pickeu","A",22,67,81],["L. D'Jaffo","A",22,70,84]],
+ CAE:[["P. Montanier","G",28,73,79],["F. Petereyns","G",23,66,75],
+   ["H. Dangbeto","D",23,69,78],["J. Germain","D",28,73,75],["C. Point","D",27,73,75],["Y. Lebourgeois","D",30,73,74],["H. Fournier","D",25,73,79],["S. Lièvre","D",20,63,73],["W. Dieng","D",19,59,77],
+   ["B. Cauet","M",23,76,85],["S. Dedebant","M",22,68,70],["E. Rival","M",21,68,81],["P. Avenet","M",25,70,76],["E. Gorter","M",29,76,78],["C. Duboscq","M",25,68,70],
+   ["X. Gravelaine","A",24,76,85],["G. Calderón","A",32,77,78],["S. Paille","A",27,76,78],["F. Rouissi","A",21,69,83],["C. Garcia","A",24,70,79]],
+ MET:[["P. Flucklinger","G",29,71,73],
+   ["P. Pierre","D",24,72,81],["É. Bertrand","D",28,70,72],["A. Cartier","D",32,71,73],["D. Terrier","D",19,64,76],["F. Meyrignac","D",22,64,73],
+   ["L. Kubik","M",28,71,73],["J.-P. Séchet","M",27,68,70],["A. Baffoe","M",27,74,75],["N. Huysman","M",24,72,81],["D. Lang","M",22,66,80],["F. Hantz","M",26,74,80],["C. Serredszum","M",21,64,77],["O. Ichoua","M",22,66,71],["R. Pirès","M",19,66,91],["E. Walter","M",18,58,76],
+   ["D. Zitelli","A",24,72,81],["P. Chanlot","A",25,70,76],["M. Chaouch","A",26,69,75],["C. Pouget","A",20,67,81]],
+ TOU:[["A. Casanova","G",31,71,73],["O. Pédémas","G",24,64,73],
+   ["J.-F. Hernandez","D",23,65,74],["D. Arribagé","D",21,70,82],["J.-C. Debu","D",28,65,67],["O. Frapolli","D",21,60,71],["C. Galtier","D",26,68,74],["A. Fouka","D",25,64,70],["J.-F. Soucasse","D",20,62,80],["V. Candela","D",19,66,87],
+   ["S. Romano","M",28,74,76],["M. Pavon","M",24,68,77],["V. Nemecek","M",25,72,79],["B. Ferrer","M",28,74,76],["J.-P. Delpech","M",25,69,75],["M. Debève","M",22,68,82],["N. Rodor","M",23,67,68],
+   ["A. Bancarel","A",21,64,77],["É. Lada","A",27,73,73],["N. Bastère","A",23,58,67]],
+ LYO:[["G. Rousset","G",29,82,84],["C. Breton","G",26,65,71],
+   ["B. N'Gotty","D",21,79,92],["M. Flachez","D",20,69,80],["É. Péan","D",29,73,75],["P. Fugier","D",24,72,81],["R. Billong","D",22,71,85],["P. Ferri","D",29,80,82],["A. Bès","D",25,68,74],
+   ["F. Gava","M",22,69,83],["R. Garde","M",26,77,83],["S. Deplace","M",20,65,74],["C.-A. Rivenet","M",20,62,72],["L. Debrosse","M",23,67,76],["B. Genesio","M",26,77,83],
+   ["L. Delamontagne","A",27,67,69],["J. Debbah","A",23,72,81],["S. Abou","A",19,64,78],["F. Maurice","A",18,66,86],["G. Masson","A",23,70,79]],
+ LEH:[["F. Piveteau","G",29,78,80],["C. Revault","G",20,66,80],
+   ["J.-P. Delaunay","D",26,72,78],["P. Aubameyang","D",27,71,73],["P. Mahut","D",36,67,71],["T. Uvenard","D",28,73,75],["J.-C. Thouvenel","D",34,65,69],["T. Bertin","D",23,69,78],
+   ["M. Rio","M",29,77,79],["I. Bá","M",19,64,82],["T. Moreau","M",25,69,75],["A. Kana-Biyik","M",27,70,72],["T. Goudet","M",30,67,68],["A. Bénédet","M",32,74,76],["F. Quilan","M",27,77,79],
+   ["J. Tiéhi","A",28,75,77],["G. Guruli","A",28,70,70],["B. Roux","A",29,73,75],["D. Angibeaud","A",18,57,72],["B. Chagnaud","A",20,63,81]],
+ SOC:[["S. Ferrand","G",24,64,73],["S. Cassard","G",20,64,82],
+   ["F. Hadzibegic","D",35,73,77],["N. Weber","D",22,61,75],["F. Silvestre","D",25,72,78],["B. Piton","D",22,67,73],["F. Darras","D",26,71,77],["B. Maraval","D",21,62,70],
+   ["B. Clément","M",26,70,70],["D. Robert","M",23,67,76],["M. Bazdarevic","M",32,76,78],["F. Henry","M",24,67,76],["E. Dewilder","M",28,66,68],["O. Baudry","M",19,60,73],["A. Blanc","M",26,63,69],["P. Yakovenko","M",28,64,68],
+   ["L. Prat","A",21,63,76],["A. Caveglia","A",24,68,77],["P. Garande","A",32,67,69],["J.-M. Frotey","A",23,64,66]],
+ LIL:[["J.-C. Nadon","G",28,77,79],["J.-P. Lauricella","G",27,67,69],
+   ["J. Friis-Hansen","D",25,78,84],["B. Tihy","D",33,61,64],["O. Dieng","D",20,66,84],["H. Rollain","D",24,68,77],["J. Bray","D",28,79,81],["C. Fichaux","D",23,72,81],["F. Leclercq","D",20,67,85],["J.-L. Buisine","D",31,76,78],
+   ["P. Frandsen","M",22,70,84],["T. Oleksiak","M",31,69,71],["E. Borges","M",23,63,71],["A. Fiard","M",34,71,75],["A. Sibierski","M",18,62,83],
+   ["É. Assadourian","A",26,72,78],["P. Nouma","A",20,66,84],["S. N'Diaye","A",20,63,81],["F. Brisson","A",34,69,73],["W. Mota","A",25,65,68]],
+ VAN:[["M. Pageaud","G",26,73,79],["S. Matrisciano","G",29,73,75],
+   ["P. Gaillot","D",27,70,72],["D. Régis","D",24,74,83],["J. Glassmann","D",30,73,74],["J. Foulon","D",21,65,78],["A. Oosterveer","D",29,67,69],["Y. Lalisse","D",20,62,80],["C. Demain","D",24,64,73],
+   ["D. Le Frapper","M",21,66,79],["J. Burruchaga","M",30,76,77],["S. Grosselin","M",25,67,73],["A. Duncker","M",21,68,81],["T. Fernier","M",28,66,68],
+   ["W. Gohel","A",24,68,77],["C. Robert","A",28,73,75],["K. Kovács","A",27,75,77],["D. Corroyer","A",28,69,71],["G. Boskovic","A",26,72,78],["L. Dufresne","A",20,59,71]],
+ TON:[["L. Borrelli","G",27,70,72],["S. Porato","G",19,60,76],
+   ["T. Rabat","D",30,73,74],["P. Thys","D",33,59,62],["F. Martin","D",23,64,69],["J.-L. Bérenguier","D",34,56,60],["S. Soulas","D",20,60,75],
+   ["É. Roy","M",25,75,81],["P. Eyraud","M",25,65,73],["F. Meyrieu","M",24,73,82],["X. Rhinan","M",24,60,69],["L. Croce","M",21,60,76],["P. Collot","M",25,72,76],["F. Passi","M",26,70,76],["O. De Luca","M",19,58,68],["F. Brando","M",19,59,73],
+   ["P. Anziani","A",31,66,68],["M. Pineda","A",28,72,74],["D. Xuereb","A",33,69,72],["A. Arnaud","A",20,60,78]],
+ NIM:[["L. Perez","G",25,74,80],["S. Flory","G",22,57,68],
+   ["L. Blanc","D",27,83,88],["J. Cuciuffo","D",31,74,76],["F. Lucchesi","D",29,77,79],["P. Sirvent","D",27,73,75],["F. Touron","D",22,65,79],["M. Catalano","D",33,72,75],["G. Leclerc","D",25,68,74],["D. Tittel","D",26,66,72],
+   ["P. Vercruysse","M",30,78,79],["B. Pabois","M",23,67,76],["P. Mazzuchetti","M",25,68,74],["É. Garcin","M",27,72,74],["H. Kachloul","M",19,62,78],["A. Espeisse","M",27,69,71],
+   ["D. Monczuk","A",31,75,77],["C. Buffat","A",23,64,73],["D. Martel","A",21,62,68],["A. Maharzi","A",22,69,83]],
+};
+const STARS_D2_9293={
+ MAR:[["E. Durand","G",27,74,74],["F. Limantour","G",22,65,77],
+   ["S. Pounewatchy","D",24,76,76],["H. Canet","D",32,74,79],["G. Petrucci","D",24,74,83],["S. Blondeau","D",24,67,76],["A. Saussé","D",23,66,75],["H.-C. Ferblantier","D",22,66,78],["G. Frechingues","D",21,65,79],
+   ["D. Mazzoncini","M",21,70,73],["S. Roche","M",22,65,79],["A. Benarbia","M",24,76,86],["H. Ralaikera","M",27,77,78],["P. Chavrondier","M",21,68,71],["D. Philippe","M",31,68,70],
+   ["J.-R. Testa","A",28,73,73],["L. Castro","A",23,67,76],["V. Seatelli","A",21,71,89]],
+ CAN:[["F. Lemasson","G",29,77,77],["A. Amitrano","G",35,62,66],
+   ["W. Ayache","D",31,68,69],["A. Koot","D",29,72,74],["P. Raschke","D",25,71,71],["P. Lestage","D",31,64,66],["P. Dréossi","D",33,77,80],["B. Lambourde","D",21,69,81],["L. Charvet","D",19,66,82],
+   ["F. Durix","M",27,73,75],["J. Micoud","M",19,66,87],["D. Bettoni","M",21,60,73],["N. Todorov","M",28,72,74],["F. Khirat","M",26,70,78],
+   ["F. Priou","A",29,68,70],["M. Madar","A",24,68,77],["P. Sauvaget","A",26,70,76],["V. Konwlo","A",17,61,82]],
+ NIC:[["G. Morisseau","G",31,69,71],["L. Létizi","G",19,64,84],
+   ["J.-P. Mattio","D",27,71,73],["M. Elsner","D",32,69,72],["Y. Salimi","D",20,58,76],["T. Crétier","D",20,64,82],["N. Baudoin","D",22,66,71],
+   ["R. Marsiglia","M",33,68,71],["F. Gioria","M",23,69,78],["F. Arpinon","M",23,71,80],["P. Gastien","M",29,74,74],["O. Fugen","M",22,65,79],["S. Collet","M",20,63,72],
+   ["Z. Vujovic","A",34,72,76],["L. Sandjak","A",26,71,77],["A. Cissé","A",23,63,72],["Zoran Vujovic","A",34,72,76],["S. Ipoua","A",19,64,76]],
+ NCY:[["J.-M. Branger","G",25,70,70],
+   ["C. Lécluse","D",20,62,80],["J. Canosi","D",27,66,68],["C. Borbiconi","D",19,62,74],["P. Fischer","D",23,64,73],
+   ["D. Danio","M",30,68,69],["O. Zavarov","M",31,66,68],["M. Hadji","M",21,75,88],["G. Salou","M",29,75,77],["M. Engel","M",22,63,77],["É. Rabésandratana","M",20,66,84],["M. Michel","M",20,67,81],["M. Morgante","M",30,64,65],["A. Schön","M",30,66,67],
+   ["T. Vairelles","A",19,64,83],["L. Sachy","A",24,67,76],["F. Lipka","A",23,70,79],["C. Micciche","A",29,75,77]],
+ VAL:[["E. Pégorer","G",32,70,73],["S. Crémillieux","G",20,60,71],
+   ["D. Valour","D",27,72,72],["F. Pons","D",30,66,67],["M. Terzian","D",29,72,72],["F. Asencio","D",26,64,70],["F. Mira","D",31,64,66],["J. Monnier","D",18,58,71],
+   ["P. Lalanne","M",27,68,70],["J.-M. Authié","M",25,68,69],["A. De Cruz","M",27,70,74],["D. Zanko","M",28,69,75],["I. Lazic","M",25,67,70],["P. Guillemet","M",29,67,68],["O. Ferez","M",22,66,71],["P. Frappa","M",28,65,66],
+   ["P. Weiss","A",31,70,70],["H. Mkhitaryan","A",30,67,72]],
+ SED:[["J.-M. Rodolphe","G",28,72,74],
+   ["P.-Y. David","D",25,69,69],["P. Desseaux","D",25,69,77],["F. Jacquier","D",23,67,77],["J.-S. Auniac","D",27,70,70],["C. Guéry","D",21,61,78],["A. Wellenreiter","D",20,57,70],
+   ["T. De Neef","M",26,72,73],["L. David","M",21,65,71],["R. Falero","M",24,66,70],["L. Maennel","M",24,66,73],["I. Gamiette","M",21,60,78],["V. Cochard","M",22,61,69],["D. Mionnet","M",21,59,75],
+   ["J. Songné","A",24,65,71],["J.-L. Mazzéo","A",27,67,72],["S. Olivera","A",26,66,70],["J. Lebon","A",19,57,79]],
+ BAS:[["B. Valencony","G",24,69,72],["A. Biancarelli","G",22,68,82],
+   ["F. Burnier","D",29,71,73],["M. Soumah","D",21,66,74],["I. Triki","D",25,65,71],["C. Poggi","D",25,67,73],["T. Taberner","D",30,71,72],["P. Maroselli","D",26,68,74],["P. Bianconi","D",30,70,71],
+   ["A. Di Fraya","M",26,69,75],["L. Casanova","M",21,64,77],["M. Faye","M",25,68,71],["P. Camadini","M",20,62,72],["L. Moracchini","M",24,67,76],
+   ["Y. Mangione","A",28,74,76],["H. Bourabaa","A",25,69,75],["O. Soumah","A",19,56,65],["F. Mosali","A",21,57,72]],
+ IST:[["J.-P. Beaufreton","G",29,64,66],["R. Sintès","G",28,67,67],
+   ["J.-M. Chanelet","D",24,72,81],["C. Pignol","D",23,71,80],["L. Francioli","D",33,57,60],["E. Scalia","D",20,58,76],["D. Tréfond","D",29,71,73],["A. Garraud","D",31,75,77],["S. Serraye","D",23,59,71],
+   ["A. Boghossian","M",22,64,76],["B. Bozovic","M",29,67,68],["J.-C. Durand","M",25,65,71],["S. Tolosano","M",22,62,76],["P. Grosbois","M",29,77,79],
+   ["R. Ray","A",24,71,80],["Z. Janovic","A",29,66,71],["M. Libbra","A",20,68,86],["C. Rossetti","A",17,55,75]],
+ CHV:[["G. Wimbée","G",21,67,78],["P. Regnault","G",18,55,71],
+   ["P. Koeberlé","D",23,64,75],["R. Dzieciol","D",27,66,67],["D. Ottato","D",24,66,69],["A. Pfrunner","D",28,65,71],["D. Poulet","D",22,62,69],["F. Fouzari","D",25,64,68],["P. Schaller","D",31,57,58],
+   ["M. Andry","M",29,68,72],["A. Wolff","M",25,66,68],["O. Martinez","M",26,64,68],["R. Szulc","M",24,60,68],["A. Bouzemada","M",30,60,61],
+   ["A. Sogue","A",27,64,70],["Z. Fuckala","A",30,62,63],["R. Njok","A",24,64,70],["B. Abdelhak","A",25,59,66]],
+ ALE:[["G. Ceccarelli","G",30,72,73],["C. Martin","G",23,60,69],
+   ["D. Combe","D",24,67,68],["F. Orsoni","D",26,66,72],["P. Cabanel","D",28,72,74],["F. Moulin","D",19,60,78],["J. Cintas","D",21,60,73],["D. Javegny","D",25,58,65],
+   ["M. Nogueira","M",24,68,71],["S. Lamouchi","M",21,71,84],["L. Chastel","M",26,71,77],["P. Doury","M",26,65,65],["F. Alidra","M",21,60,69],["F. Diaf","M",21,60,73],
+   ["M. Sarr Jr","A",19,67,71],["J.-N. Cabezas","A",26,66,72],["M. Traoré","A",21,59,72],["M. Fourier","A",21,55,71]],
+ ANG:[["J.-M. Aubry","G",23,71,80],["U. Ramé","G",20,66,84],
+   ["D. Guion","D",25,71,77],["P. Rabouan","D",23,62,71],["F. Zago","D",29,76,78],["P. Lévenard","D",27,70,72],["L. Lancz","D",28,72,76],["C. Gehra","D",23,61,63],
+   ["L. Viaud","M",23,69,78],["C. Daury","M",23,70,79],["D. Popovic","M",31,73,75],["S. Mottin","M",26,65,71],["E. Stefanini","M",29,65,67],["G. Rey","M",20,64,77],["R. Garcia","M",20,63,76],
+   ["C. Lagrange","A",26,70,76],["J.-M. Discolle","A",22,64,78],["J.-C. Rodriguez","A",22,63,77]],
+ REN:[["P. Rousseau","G",30,74,75],["F. Cado","G",19,62,81],
+   ["M. Sorin","D",31,69,71],["J. Rico","D",33,61,64],["J.-L. Vasseur","D",23,66,67],["F. Denis","D",28,67,71],["C. L'Helgoualch","D",22,61,75],
+   ["J. Gourvennec","M",20,65,83],["S. Ripoll","M",21,62,75],["J.-L. Ribar","M",27,63,65],["É. Darbelet","M",19,62,71],["L. Huard","M",19,61,79],["U. Le Pen","M",18,63,76],["J. Colin","M",29,79,81],
+   ["M. Musisi","A",25,75,78],["A. Farh","A",20,70,86],["T. Turban","A",27,62,64],["S. Wiltord","A",18,66,88]],
+ ROU:[["C. Lechevallier","G",27,73,75],["T. Kokkinis","G",21,59,61],
+   ["J.-F. Richard","D",25,71,77],["P. Havet","D",28,73,75],["R. Lecomte","D",28,73,75],["F. Haise","D",21,64,77],["P. Lafon","D",24,67,75],["C. Savoye","D",22,64,77],
+   ["R. Hitoto","M",23,67,76],["Y. Soloy","M",22,67,81],["J.-F. Szklarek","M",26,70,76],["J. Bochert","M",28,72,75],["M. Titeca","M",28,69,71],["M. Leduc","M",21,62,75],
+   ["J.-P. Orts","A",32,70,72],["C. Horlaville","A",23,67,76],["D. Giguel","A",22,60,74],["D. Ringot","A",24,63,72]],
+ RST:[["G. Bourges","G",29,74,76],
+   ["D. Fanzel","D",26,70,70],["R. Dostanic","D",33,67,70],["A. Gunia","D",26,68,68],["C. Fiatte","D",25,63,68],["R. Gonzalve","D",20,61,78],["J. Bonnevay","D",31,68,70],
+   ["F. Guimard","M",22,67,68],["J.-L. Girard","M",27,69,69],["F. Ouvret","M",22,65,75],["J.-M. Trinita","M",27,69,69],["A. Polaniok","M",34,59,63],["F. Valeri","M",18,58,70],["R. Vazquez","M",22,64,68],
+   ["S. Michel","A",21,63,71],["S. Marlet","A",18,65,88],["D. Thimothée","A",22,67,81],["S. Rodionov","A",30,61,62]],
+ LMN:[["J. Songo'o","G",28,76,85],["M. Acard","G",29,72,72],
+   ["E. Villa","D",26,70,76],["C. Penaud","D",29,72,74],["A. Falette","D",30,68,69],["J.-M. Bridier","D",29,72,77],
+   ["R. Beunardeau","M",26,69,75],["J.-L. Gautier","M",23,67,76],["D. Caron","M",26,69,75],["O. Ben Salah","M",28,70,72],["N. Vidot","M",30,73,74],["D. Xavier","M",26,65,71],["R. Viot","M",21,62,75],["S. Béasse","M",26,66,72],
+   ["J. Bossis","A",27,70,72],["R. Garrault","A",24,67,76],["C. Bentoumi","A",24,66,75],["M. Lerat","A",28,65,67]],
+ DUN:[["N. Sachy","G",25,70,76],["T. Caby","G",29,65,67],
+   ["J. Hébert","D",20,64,82],["J.-P. Avrillon","D",31,71,73],["C. Gautier","D",23,67,76],["D. Halifa","D",26,63,69],["W. Thooris","D",20,58,76],
+   ["O. Blino","M",28,71,71],["J. Blanchard","M",20,66,84],["F. Rodrigues","M",23,64,73],["L. Devulder","M",22,63,77],["R. Royez","M",20,59,77],["D. Lelong","M",23,64,73],["E. Auffret","M",26,64,69],
+   ["F. Lafond","A",30,62,63],["M. Mouslim","A",27,62,64],["M. Merry","A",34,61,63],["J.-J. Allais","A",23,65,74]],
+ BOU:[["L. Chatrefoux","G",27,69,71],["V. Labarre","G",22,58,69],
+   ["V. Kinier","D",34,63,65],["S. Boyer","D",28,65,67],["R. Elmira","D",30,67,68],["L. Obry","D",27,66,68],["F. Bououden","D",26,62,68],["B. Sutter","D",22,59,73],["P. Vostanic","D",30,62,65],
+   ["P. Souvigné","M",25,68,74],["O. Chavanon","M",24,64,73],["G. Llort","M",22,59,73],["E. Lestrade","M",23,66,75],["R. Brouard","M",25,70,76],["D. Delbarre","M",22,60,72],
+   ["J.-L. Courtet","A",24,68,77],["F. Vokrri","A",32,65,68],["D. Lévy","A",25,64,71]],
+ BEA:[["P. Gomes","G",25,67,73],["J.-M. Sibille","G",24,65,74],
+   ["T. Saxemard","D",25,66,72],["P. Zaremba","D",33,66,69],["B. Pascual","D",25,68,74],["J.-C. Elot","D",23,66,75],["G. Santos","D",22,63,77],
+   ["J. Pinot","M",27,66,69],["A. Rakela","M",34,62,66],["D. Krawczyk","M",31,71,73],["A. Durand","M",25,66,72],["H. Hagard","M",21,60,70],["M. Verschuère","M",20,58,70],["S. Bizasène","M",22,60,69],
+   ["O. Vandevoorde","A",23,65,74],["C. Oudjani","A",28,69,75],["F. Soudani","A",20,62,67],["J.-R. Faucher","A",29,66,68]],
+ LAV:[["S. Osmond","G",30,76,77],
+   ["P. Braud","D",24,66,75],["L. Strzelczak","D",21,65,78],["C. Ferron","D",22,64,78],["R. Bouzaiene","D",22,71,85],["C. Geffroy","D",22,67,81],["G. Thiéblemont","D",24,69,78],["P. Carteron","D",22,64,74],["B. Maurice","D",21,66,79],["E. Loma","D",20,59,71],
+   ["G.-N. Tapoko","M",24,64,73],["M. Martins","M",20,59,77],["A. Sukaj","M",25,60,64],["J. Bellanger","M",21,55,73],
+   ["F. Vandecasteele","A",25,68,74],["F. Bonora","A",25,68,72],["O. Pérès","A",23,66,75],["M. Pagis","A",19,58,79]],
+ NIO:[["C. Jeannet","G",27,63,64],["T. Debenest","G",19,58,68],
+   ["C. Courtin","D",21,63,68],["B. Beaumet","D",25,66,68],["A. Bonnafous","D",23,62,71],["O. Brochard","D",25,65,69],["A. Gauvin","D",19,58,68],["D. Hallou","D",26,58,63],
+   ["K. Fradin","M",20,64,73],["P. Violeau","M",22,68,77],["D. Lollia","M",23,61,71],["F. Azzopardi","M",22,62,68],["P. Galéra","M",25,61,64],
+   ["P. Bollini","A",26,62,62],["T. Alajarin","A",25,61,67],["K. Fiawoo","A",23,64,73],["W. Loko","A",20,63,77],["P. Suywens","A",21,55,71]],
+};
+const D1_9293=["OM","PSG","MON","BOR","NAN","AUX","STE","STR","LEN","MTP","CAE","MET","TOU","LYO","LEH","SOC","LIL","VAN","TON","NIM"];
+const D2_9293=["MAR","CAN","NIC","NCY","VAL","SED","BAS","IST","CHV","ALE","ANG","REN","ROU","RST","LMN","DUN","BOU","BEA","LAV","NIO"];
 const SAISONS={
  "1990-91":{ an:1990, titre:"1990-91", nom:"Le bal des débutants", d1:D1_9091, d2:D2_9091, starsD1:STARS_9091, starsD2:STARS_D2_9091, euroC1:["OM"], euroC2:["MTP"], euroC3:["BOR","MON"],
    sous:"Le plus ancien plateau du jeu. Marseille écrase la France et court l'Europe jusqu'à la finale de Bari ; Papin plante vingt-trois buts et prendra le Ballon d'or, Waddle et Abedi Pelé enchantent le Vélodrome. Monaco finit deuxième et gagnera la Coupe de France. Ailleurs, des gamins débutent : Zidane a dix-huit ans à Cannes, Thuram quinze minutes en tout à Monaco, Weah en plante déjà sur le Rocher. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
  "1991-92":{ an:1991, titre:"1991-92", nom:"Sur tapis vert", d1:D1_9192, d2:D2_9192, starsD1:STARS_9192, starsD2:STARS_D2_9192, euroC1:["OM"], euroC2:["MON"], euroC3:["AUX","CAN","LYO"],
    sous:"Le quatrième titre d'affilée de l'OM, et le Ballon d'or de Papin — vingt-sept buts, meilleur buteur pour la cinquième année de suite. Waddle et Abedi Pelé règnent encore sur le Vélodrome, Weah fait ses adieux au Rocher, Ginola explose au Parc à la trêve et Cantona jette un ballon à un arbitre avant de partir pour Leeds. Bordeaux, Brest et Nice sont rétrogradés administrativement : la D1 garde ses vingt clubs sans repêcher personne, et les Girondins jouent la D2 avec Lizarazu et un Dugarry de dix-neuf ans. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
+ "1992-93":{ an:1992, titre:"1992-93", nom:"Le sacre et le soupçon", d1:D1_9293, d2:D2_9293, starsD1:STARS_9293, starsD2:STARS_D2_9293, euroC1:["OM"], euroC2:["MON"], euroC3:["AUX","PSG","CAE"],
+   sous:"L'année où l'on gagne tout et où l'on ne garde rien. L'OM soulève la Coupe d'Europe à Munich, d'une tête de Boli, puis se voit retirer son titre de champion par la Fédération ; le PSG, deuxième, refuse de le ramasser. Bokšić plante vingt-trois buts et finit meilleur buteur, les champions du monde allemands débarquent — Völler à Marseille, Klinsmann sur le Rocher —, Zidane quitte Cannes pour Bordeaux et Makélélé débute à Nantes. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
  "1995-96":{ an:1995, titre:"1995-96", nom:"Retour à la case départ", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2, euroC1:["NAN"], euroC2:["PSG"], euroC3:["BOR","LEN","MON","LYO"],
    sous:"La saison fondatrice. L'OM purge sa relégation en D2 (affaire VA-OM) — à vous de le ramener dans l'élite." },
  "1996-97":{ an:1996, titre:"1996-97", nom:"Ascenseur pour l'élite", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AUX"], euroC2:["GUI"], euroC3:["MON","MET","LEN"],
@@ -3726,7 +3949,7 @@ function ouvreBlessure(ctx, lg, idx){
      <p class="dim">${entrant?"Le garder sur la pelouse, c'est jouer à dix et demi — et risquer de l'abîmer pour plusieurs journées.":"Le sortir maintenant, c'est finir la rencontre à dix."}</p>
      <p style="margin-top:10px">
        ${entrant?`<button class="big zChoix" id="bVite" style="padding:12px">⚡ Remplacement rapide : ${esc(entrant.nom)}</button>`:""}
-       ${(entrant&&cands.length)?`<br><span class="dim" style="font-size:12px">ou faire entrer&nbsp;:</span><br>${cands.map((x,n)=>`<button class="act zChoix bAutreB" data-n="${n}" style="margin:4px 3px 0">${lib(x)}</button>`).join("")}`:""}
+       ${(entrant&&cands.length)?`<br><span class="dim" style="font-size:13px">ou faire entrer&nbsp;:</span><br>${cands.map((x,n)=>`<button class="act zChoix bAutreB" data-n="${n}" style="margin:4px 3px 0">${lib(x)}</button>`).join("")}`:""}
        <br><button class="act zChoix" id="bDents" style="margin-top:10px;padding:10px">🦵 Il serre les dents et reste sur la pelouse</button>
        ${entrant?"":`<br><button class="act zChoix" id="bDix" style="margin-top:6px;padding:10px">🚑 Le sortir quand même — finir à dix</button>`}
      </p><div id="penRes"></div>`);
@@ -3799,8 +4022,8 @@ function ouvreBanc(ctx){
   const sortants=p.xi.filter(j=>pelouse.includes(j) && j.pos!=="G");
   const entrants=bancDispo(moi, p, m).sort((x,y)=>("DMA".indexOf(y.pos)-"DMA".indexOf(x.pos)) || (noteSel(y)-noteSel(x)));
   const etiq=x=>esc(x.nom)+' <span class="dim">('+x.pos+" "+Math.round(x.note)+" · "+Math.round(fraich(x))+"%)</span>";
-  const entete=`<p class="dim" style="font-size:12px">${m}ᵉ minute · ${reste>0
-      ?"il vous reste <b class=\"jaune\">"+reste+"</b> changement"+(reste>1?"s":"")+(p.min.some(x=>x>m)?" — en décider un fait sauter celui que le banc avait prévu":"")
+  const entete=`<p class="dim" style="font-size:13px">${m}ᵉ minute · ${reste>0
+      ?"il vous reste <b class=\"fort\">"+reste+"</b> changement"+(reste>1?"s":"")+(p.min.some(x=>x>m)?" — en décider un fait sauter celui que le banc avait prévu":"")
       :"vos trois changements sont faits"}</p>`;
   const etape1=()=>{
     if(reste<=0 || !entrants.length || !sortants.length)
@@ -3977,7 +4200,7 @@ const MOMENTS_INTERACTIFS={pen_pour:1,pen_contre:1,coupfranc:1,tacle:1,provoc:1}
 const MOMENTS_BUT={but50:1,geste:1,cagade:1,cadeau:1,gkbut:1}; // moments non interactifs qui changent le score (résolus avant le direct)
 // montée de tension : l'action se développe en deux temps avant un but… ET avant certaines grosses occasions
 // qui ne donnent rien. La « grosse action » en blanc ne garantit donc plus le but — le suspense est rendu :
-// on ne sait qu'à la résolution si ça rentre (ligne jaune) ou si ça fuit (occasion ratée, ligne cyan).
+// on ne sait qu'à la résolution si ça rentre (ligne jaune) ou si ça fuit (occasion ratée, ligne blanche).
 // Étape 1 — l'action s'installe (ambiance, défense qui recule). Étape 2 — un joueur nommé arme le geste décisif.
 const MONTEE_RATEE=0.6; // proba qu'une occasion ratée hérite d'une montée de tension (réglage tunable) — ~1/3 des montées font alors long feu
 // étape 1 — l'action s'installe. Volontairement AGNOSTIQUE au type de finition (pas de centre/corner/contre
@@ -5042,7 +5265,7 @@ function retientAlmanach(){
 const ACTES=[
   {n:1, nom:"L'ÉTÉ INDIEN", de:0,  a:6,  coul:"#ffd24a", sous:"Août-septembre. Soleil rasant, terrain sec — et tout le monde est encore invaincu dans sa tête."},
   {n:2, nom:"L'AUTOMNE",    de:7,  a:14, coul:"#b86a2e", sous:"Octobre-novembre. La pluie s'installe, le terrain se gâte, les organismes aussi."},
-  {n:3, nom:"L'HIVER",      de:15, a:25, coul:"#6fd6e8", sous:"Décembre-février. Froid de canard, trêve, et un mercato qui rebat les cartes."},
+  {n:3, nom:"L'HIVER",      de:15, a:25, coul:"#eef2ff", sous:"Décembre-février. Froid de canard, trêve, et un mercato qui rebat les cartes."},
   {n:4, nom:"LE PRINTEMPS", de:26, a:37, coul:"#5fd98f", sous:"Mars-mai. Les meilleures conditions de l'année — et c'est là que le titre, l'Europe et le maintien se jouent."},
 ];
 const ROMAIN=["","I","II","III","IV"];
@@ -5052,14 +5275,14 @@ function saisonSuivante(){ const a=anneeJeu()+1; return a+"-"+String((a+1)%100).
    cette semaine, et la porte vers le point de situation complet. */
 function panneauActe(){
   const a=acteDe(G.journee), e=enjeuDe(G);
-  return `<div class="panel" style="border-color:${a.coul};padding:8px 10px">
+  return `<div class="panel" style="padding:10px 18px">
     <p style="margin:0;display:flex;flex-wrap:wrap;gap:2px 14px;align-items:baseline">
       <b style="color:${a.coul};letter-spacing:1px">ACTE ${ROMAIN[a.n]} · ${esc(a.nom)}</b>
-      <span class="dim" style="font-size:12px">journée ${Math.min(G.journee+1,38)} sur 38</span>
-      ${e?`<b class="jaune" style="font-size:15px">${esc(e.txt)}</b>`:""}
+      <span class="dim" style="font-size:13px">journée ${Math.min(G.journee+1,38)} sur 38</span>
+      ${e?`<b class="fort" style="font-size:15px">${esc(e.txt)}</b>`:""}
       <button class="act" id="bOuEn" style="margin-left:auto">📖 Où en étions-nous ?</button>
     </p>
-    <p class="dim" style="margin:4px 0 0;font-size:12px">${esc(a.sous)}</p>
+    <p class="dim" style="margin:4px 0 0;font-size:13px">${esc(a.sous)}</p>
   </div>`;
 }
 
@@ -5155,7 +5378,7 @@ function blocProchains(o, rdv){
   const l=prochainsRdv(o, 3, rdv);
   if(!l.length) return "";
   return `<div class="panel" style="padding:8px 10px;margin-top:0">
-     <p class="ctr" style="margin:0;font-size:12px"><span class="dim">APRÈS CE MATCH</span>${
+     <p class="ctr" style="margin:0;font-size:13px"><span class="dim">APRÈS CE MATCH</span>${
        l.map(x=>`<br>${x.ico} <b>J${Math.min(38,x.j+1)}</b>${x.semaine?' <span class="dim">(en semaine)</span>':""} · ${esc(x.txt)}`).join("")}</p>
    </div>`;
 }
@@ -5287,11 +5510,11 @@ function ajouteMoment(j, txt, poids){
 function blocBio(j){
   const b=j&&j.bio; if(!b || !aMoi(j)) return "";
   const c=cumulBio(j);
-  return `<p style="margin-top:8px" class="cyan">Sous nos couleurs :</p>
+  return `<p style="margin-top:8px">Sous nos couleurs :</p>
     <p>Arrivé en <b>${esc(b.s)}</b> — ${esc(BIO_MODES[b.mode]||BIO_MODES.origine)}.<br>
-      <b class="jaune">${c.m}</b> match${c.m>1?"s":""} · <b>${c.b}</b> but${c.b>1?"s":""} · <b>${c.p}</b> passe${c.p>1?"s":""} décisive${c.p>1?"s":""}${c.h?` · <b>${c.h}</b> fois homme du match 🏅`:""}</p>
-    ${(b.mom&&b.mom.length)?b.mom.map(m=>`<p class="dim" style="font-style:italic">› ${esc(m.t)} <span style="font-size:11px">(${esc(m.s)}, J${m.j})</span></p>`).join("")
-      :`<p class="dim" style="font-size:11px">Pas encore de moment qu'on se raconte. Ça se gagne un samedi.</p>`}`;
+      <b class="fort">${c.m}</b> match${c.m>1?"s":""} · <b>${c.b}</b> but${c.b>1?"s":""} · <b>${c.p}</b> passe${c.p>1?"s":""} décisive${c.p>1?"s":""}${c.h?` · <b>${c.h}</b> fois homme du match 🏅`:""}</p>
+    ${(b.mom&&b.mom.length)?b.mom.map(m=>`<p class="dim" style="font-style:italic">› ${esc(m.t)} <span style="font-size:13px">(${esc(m.s)}, J${m.j})</span></p>`).join("")
+      :`<p class="dim" style="font-size:13px">Pas encore de moment qu'on se raconte. Ça se gagne un samedi.</p>`}`;
 }
 function enfantDuClub(j){ // celui qu'on ne vend pas sans entendre le virage
   const b=j&&j.bio; if(!b) return false;
@@ -5433,7 +5656,7 @@ function baroTribunes(){
   const L=G.affJ||[], S=G.affS||[];
   const rec=G.records&&G.records.aff;
   if(!L.length && !S.length) return `<h3 style="margin-top:12px">Le baromètre des tribunes</h3>
-    <p class="dim" style="font-size:11px">Il se remplira dès votre premier match à domicile.</p>`;
+    <p class="dim" style="font-size:13px">Il se remplira dès votre premier match à domicile.</p>`;
   const moy=moyAffSaison(L), der=S.length?S[S.length-1]:null, H=34, W=Math.max(1,L.length);
   const barres=L.map((x,i)=>{
     const ht=Math.max(2, Math.round(x.f*H));
@@ -5443,11 +5666,11 @@ function baroTribunes(){
   const delta=(der&&moy) ? moy-der.moy : 0;
   return `<h3 style="margin-top:12px">Le baromètre des tribunes</h3>
     ${L.length?`<svg viewBox="0 0 100 ${H}" width="100%" height="46" preserveAspectRatio="none" style="display:block;border-bottom:1px solid var(--line)">${barres}</svg>
-      <p class="dim" style="font-size:11px;margin-top:2px">${L.length} match${L.length>1?"s":""} à domicile cette saison — moyenne <b class="jaune">${FMT(Math.round(moy))}</b> spectateurs.</p>`
-     :`<p class="dim" style="font-size:11px">Aucun match à domicile joué cette saison.</p>`}
-    ${der?`<p class="dim" style="font-size:11px">Saison ${esc(der.s)} : ${FMT(der.moy)} de moyenne — <span class="${delta>=0?"vert":"rouge"}">${delta>=0?"▲ +":"▼ "}${FMT(Math.abs(Math.round(delta)))}</span> cette année.</p>`:""}
-    ${rec?`<p class="dim" style="font-size:11px">🎟️ Record du club : ${esc(rec.t)} <span style="font-size:10px">(${esc(rec.s)})</span>.</p>`:""}
-    <p class="dim" style="font-size:11px">${esc(conseilTribunes(L))}</p>`;
+      <p class="dim" style="font-size:13px;margin-top:2px">${L.length} match${L.length>1?"s":""} à domicile cette saison — moyenne <b class="fort">${FMT(Math.round(moy))}</b> spectateurs.</p>`
+     :`<p class="dim" style="font-size:13px">Aucun match à domicile joué cette saison.</p>`}
+    ${der?`<p class="dim" style="font-size:13px">Saison ${esc(der.s)} : ${FMT(der.moy)} de moyenne — <span class="${delta>=0?"vert":"rouge"}">${delta>=0?"▲ +":"▼ "}${FMT(Math.abs(Math.round(delta)))}</span> cette année.</p>`:""}
+    ${rec?`<p class="dim" style="font-size:13px">🎟️ Record du club : ${esc(rec.t)} <span style="font-size:13px">(${esc(rec.s)})</span>.</p>`:""}
+    <p class="dim" style="font-size:13px">${esc(conseilTribunes(L))}</p>`;
 }
 
 /* ---------- « OÙ EN ÉTIONS-NOUS ? » ----------
@@ -5481,28 +5704,28 @@ function ecranReprise(){
   const S=pointDeSituation(), moi=S.moi;
   const pastille=x=>`<b class="${x.iss>0?"vert":(x.iss<0?"rouge":"jaune")}" title="J${x.j}">${x.iss>0?"V":(x.iss<0?"D":"N")}</b>`;
   chrome("calendrier",`
-   <div class="panel" style="border-color:#b388e8">
+   <div class="panel">
      <p class="dim" style="letter-spacing:2px;margin:0">${esc(moi?moi.nom.toUpperCase():"")} · SAISON ${esc(G.saison)} · JOURNÉE ${Math.min(G.journee+1,38)}/38</p>
-     <h2 style="color:#b388e8;font-size:26px;line-height:1.1;margin:6px 0 4px">OÙ EN ÉTIONS-NOUS&nbsp;?</h2>
+     <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">OÙ EN ÉTIONS-NOUS&nbsp;?</h2>
      <p class="dim">Dernière partie ${esc(ilYA(G._maj))}. Reprenons le fil.</p>
    </div>
    <div class="grid2">
      <div class="panel"><h2>📊 LA SITUATION</h2>
-       ${S.e?`<p style="font-size:18px"><b class="jaune">${esc(S.e.txt)}</b></p>
+       ${S.e?`<p style="font-size:18px"><b class="fort">${esc(S.e.txt)}</b></p>
          <p class="dim">${esc(S.e.sens==="chasse"?"Il y a quelque chose à aller chercher.":"Il y a quelque chose à défendre.")} Division ${G.div} · acte ${ROMAIN[S.acte.n]}, ${esc(S.acte.nom.toLowerCase())}.</p>`
         :`<p class="dim">Le classement n'a pas encore de sens : la saison vient de commencer.</p>`}
        ${S.der.length?`<p style="margin-top:8px"><span class="dim">Vos ${S.der.length} derniers matchs :</span> ${S.der.map(pastille).join(" ")}</p>
-         ${S.der.slice(-3).reverse().map(x=>`<p class="dim" style="font-size:12px">J${x.j} — ${x.dom?"":"à "}${esc(x.adv)} ${x.mes}-${x.ses}</p>`).join("")}`
+         ${S.der.slice(-3).reverse().map(x=>`<p class="dim" style="font-size:13px">J${x.j} — ${x.dom?"":"à "}${esc(x.adv)} ${x.mes}-${x.ses}</p>`).join("")}`
         :`<p class="dim" style="margin-top:8px">Pas encore un match joué cette saison.</p>`}
      </div>
      <div class="panel"><h2>🗞️ CE QU'ON DISAIT DE VOUS</h2>
-       ${S.phrase?`<p style="font-size:16px;font-style:italic;color:#6fd6e8">${esc(S.phrase.t)}</p>
+       ${S.phrase?`<p style="font-size:16px;font-style:italic;color:var(--clair)">${esc(S.phrase.t)}</p>
          <p class="dim" style="margin-top:4px">— la presse, journée ${S.phrase.j}. C'est la phrase que l'almanach a retenue de votre saison.</p>`
         :`<p class="dim">La presse n'a encore rien écrit qu'on garderait.</p>`}
      </div>
    </div>
    <div class="panel"><h2>📌 CE QUI ATTEND VOTRE RÉPONSE</h2>
-     ${S.arc?`<p>📖 <b style="color:${esc(S.arc.couleur||"#b388e8")}">${esc(S.arc.titre)}</b> — le feuilleton est en cours : un chapitre vous attend${G.arc.prochaine>G.journee?" à la J"+(G.arc.prochaine+1):" dès cette journée"}.</p>`:""}
+     ${S.arc?`<p>📖 <b style="color:${esc(S.arc.couleur||"#f2f5fa")}">${esc(S.arc.titre)}</b> — le feuilleton est en cours : un chapitre vous attend${G.arc.prochaine>G.journee?" à la J"+(G.arc.prochaine+1):" dès cette journée"}.</p>`:""}
      ${S.pret?`<p>📤 <b>${esc(S.pret.j.nom)}</b> est en prêt à ${esc((clubById(S.pret.j.club)||{}).nom||"l'extérieur")} — il rentre à la J${S.pret.p.fin}${S.pret.p.fin>G.journee?" (dans "+(S.pret.p.fin-G.journee)+" journée"+((S.pret.p.fin-G.journee)>1?"s":"")+")":""}.</p>`:""}
      ${S.chantier?`<p>🏗 Le chantier « ${esc(S.chantier.nom)} » tourne encore — livraison dans ${S.chantier.reste} journée${S.chantier.reste>1?"s":""}.</p>`:""}
      ${G.flash?`<p>⚡ Le coup de la semaine est encore sur la table, et il ne vaut que cette journée.</p>`:""}
@@ -5712,8 +5935,8 @@ function acheter(j){
   const vd=clubById(j.club);
   modalSignature({
     titre:"✍️ Signer "+j.nom+" ?",
-    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="jaune">${j.note}</b>${vd?' · <span class="dim">'+esc(vd.nom)+'</span>':""}</p>
-      <p style="margin-top:6px">Indemnité réclamée : <b class="jaune">${(prix/1e6).toFixed(1)} MF</b>, prélevée sur le budget transferts.</p>
+    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="fort">${j.note}</b>${vd?' · <span class="dim">'+esc(vd.nom)+'</span>':""}</p>
+      <p style="margin-top:6px">Indemnité réclamée : <b class="fort">${(prix/1e6).toFixed(1)} MF</b>, prélevée sur le budget transferts.</p>
       <p class="dim">Il vous resterait ${((G.budget-prix)/1e6).toFixed(1)} MF de budget · salaire ${FMT(salaire(j))} FF/sem.</p>
       ${(venal>=5||j.note>=80)?`<p class="dim" style="margin-top:6px">Son agent n'a pas encore dit son dernier mot.</p>`:""}`,
     ok:"Signer — "+(prix/1e6).toFixed(1)+" MF",
@@ -5727,7 +5950,7 @@ function modalSignature(o){
   if(EN_TEST()) return o.onOk();
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:460px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
-    <h2 class="jaune">${esc(o.titre)}</h2>
+    <h2>${esc(o.titre)}</h2>
     ${o.corps}
     <div style="margin-top:10px">
       <button class="big" id="bSigOk" style="display:block;width:100%;margin:6px 0">${esc(o.ok)}</button>
@@ -5753,9 +5976,9 @@ function demandePrime(j, prix, prime){
   const fiche=document.getElementById("fiche");
   const cash=G.tresorerie;
   fiche.innerHTML=`<div class="fbox" style="max-width:460px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
-    <h2 class="jaune">💼 PRIME À LA SIGNATURE</h2>
+    <h2>💼 PRIME À LA SIGNATURE</h2>
     <p>L'accord avec le club vendeur est trouvé (<b>${(prix/1e6).toFixed(1)} MF</b> sur le budget transferts).</p>
-    <p style="margin-top:6px">Mais l'agent de <b>${esc(j.nom)}</b> réclame une prime à la signature de <b class="jaune">${(prime/1e6).toFixed(2)} MF</b>, payable immédiatement en liquide.</p>
+    <p style="margin-top:6px">Mais l'agent de <b>${esc(j.nom)}</b> réclame une prime à la signature de <b class="fort">${(prime/1e6).toFixed(2)} MF</b>, payable immédiatement en liquide.</p>
     <p class="dim">Trésorerie disponible : ${(cash/1e6).toFixed(1)} MF.</p>
     <div style="margin-top:10px">
       <button class="big" id="bPrimeOk" style="display:block;width:100%;margin:6px 0" ${cash<prime?"disabled":""}>Payer la prime (${(prime/1e6).toFixed(2)} MF cash)${cash<prime?" — trésorerie insuffisante":""}</button>
@@ -5813,8 +6036,8 @@ function venteEclair(j){
   // de confirmation que les signatures, avec la décote et le cadre bradé écrits en rouge
   modalSignature({
     titre:"💰 Brader "+j.nom+" ?",
-    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="jaune">${j.note}</b>${j.capitaine?' · <span class="jaune">©️ capitaine</span>':""}</p>
-      <p style="margin-top:6px">Vous en tirez <b class="jaune">${(prix/1e6).toFixed(1)} MF</b> — soit une <b class="rouge">décote de 40 %</b> sur sa valeur.</p>
+    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="fort">${j.note}</b>${j.capitaine?' · <span class="jaune">©️ capitaine</span>':""}</p>
+      <p style="margin-top:6px">Vous en tirez <b class="fort">${(prix/1e6).toFixed(1)} MF</b> — soit une <b class="rouge">décote de 40 %</b> sur sa valeur.</p>
       <p class="dim">Départ immédiat, même hors mercato, et vous ne choisissez pas son club.</p>
       ${(j.capitaine||j.selA||(j.matchs||0)>=38)?`<p class="rouge" style="margin-top:6px">C'est un cadre de la maison : le brader abîmera l'image du club.</p>`:""}`,
     ok:"Vendre — "+(prix/1e6).toFixed(1)+" MF",
@@ -5862,10 +6085,10 @@ function modalPret(j, sens){ // sens: "in" = emprunter, "out" = prêter
     <p>${sens==="in"
       ?"Le joueur rejoint votre effectif pour la durée choisie, contre une indemnité par journée."
       :"Le joueur part jouer ailleurs — temps de jeu garanti, sa progression s'accélère, et le club hôte paie une indemnité par journée."}</p>
-    ${sens==="out"?`<p style="margin-top:6px">Destination proposée : <b class="jaune">${esc(hote.nom)}</b> <span class="dim">(prestige ${hote.pres}/10 — il y jouera titulaire)</span>. Libre à vous de refuser et de retenter plus tard.</p>`:""}
+    ${sens==="out"?`<p style="margin-top:6px">Destination proposée : <b class="fort">${esc(hote.nom)}</b> <span class="dim">(prestige ${hote.pres}/10 — il y jouera titulaire)</span>. Libre à vous de refuser et de retenter plus tard.</p>`:""}
     <p style="margin-top:8px">Durée :
       <select id="selD">${durees.map(d=>`<option value="${d}">${d} journées</option>`).join("")}</select>
-      · Indemnité : <b class="jaune">${FMT(tarif)} FF / journée</b> ${sens==="in"?"(à payer)":"(encaissée)"}</p>
+      · Indemnité : <b class="fort">${FMT(tarif)} FF / journée</b> ${sens==="in"?"(à payer)":"(encaissée)"}</p>
     <p style="margin-top:12px">
       <button class="act" id="bOkP">Confirmer le prêt</button>
       <button class="act" id="bF">Annuler</button></p>
@@ -5950,9 +6173,9 @@ function rappelPret(uid){
   const d0=debutPret(p), part=Math.max(0, Math.min(1, (G.journee-d0)/Math.max(1, p.fin-d0)));
   modalSignature({
     titre:"📞 Rappeler "+j.nom+" ?",
-    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="jaune">${j.note}</b> · <span class="dim">prêté à ${esc(hote.nom)}</span></p>
+    corps:`<p><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b class="fort">${j.note}</b> · <span class="dim">prêté à ${esc(hote.nom)}</span></p>
       <p style="margin-top:6px">Il devait y rester jusqu'à la <b>J${p.fin}</b> — encore <b>${reste} journées</b> de pige.</p>
-      <p style="margin-top:6px">${esc(hote.nom)} réclame <b class="jaune">${(cout/1e6).toFixed(2)} MF</b> d'indemnité de rupture, payable en liquide.</p>
+      <p style="margin-top:6px">${esc(hote.nom)} réclame <b class="fort">${(cout/1e6).toFixed(2)} MF</b> d'indemnité de rupture, payable en liquide.</p>
       <p class="dim">Trésorerie : ${(G.tresorerie/1e6).toFixed(1)} MF — il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse.</p>
       <p class="rouge" style="margin-top:6px">Une pige écourtée ne vaut pas une pige menée à terme : il ne ramènera qu'environ ${Math.round(part*100)} % du bénéfice espéré${part<0.75?", et il vous en voudra d'avoir coupé court":""}.</p>`,
     ok:"Le faire revenir — "+(cout/1e6).toFixed(2)+" MF",
@@ -6141,7 +6364,7 @@ function ameliorerCentre(){
   modalSignature({
     titre:"🌱 Passer le centre au niveau "+niv+" ?",
     corps:`<p>Progression des jeunes <b class="vert">+${(niv-1)*10} %</b> · blessures <b class="vert">−${(niv-1)*7} %</b> et soignées plus vite${niv>=3?" · le staff médical réduit la fragilité chaque intersaison":""}.</p>
-      <p style="margin-top:6px">Coût : <b class="jaune">${(cout/1e6)} MF</b> pris sur la trésorerie.</p>
+      <p style="margin-top:6px">Coût : <b class="fort">${(cout/1e6)} MF</b> pris sur la trésorerie.</p>
       <p class="dim">Il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse.</p>`,
     ok:"Financer les travaux — "+(cout/1e6)+" MF",
     onOk:()=>{
@@ -6567,8 +6790,8 @@ function acheterJoker(k){
   // même règle que le mercato : un joker se signe en deux temps, pas d'un clic sur une carte
   modalSignature({
     titre:"✍️ Signer "+o.j.nom+" ?",
-    corps:`<p><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b class="jaune">${o.j.note}</b> · <span class="dim">${esc(o.j.lieu||"")}</span></p>
-      <p style="margin-top:6px">Indemnité : <b class="jaune">${(o.prix/1e6).toFixed(1)} MF</b>, prélevée sur le budget transferts.</p>
+    corps:`<p><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b class="fort">${o.j.note}</b> · <span class="dim">${esc(o.j.lieu||"")}</span></p>
+      <p style="margin-top:6px">Indemnité : <b class="fort">${(o.prix/1e6).toFixed(1)} MF</b>, prélevée sur le budget transferts.</p>
       <p class="dim">Il vous resterait ${((G.budget-o.prix)/1e6).toFixed(1)} MF de budget · salaire ${FMT(salaire(o.j))} FF/sem.</p>
       <p class="dim" style="margin-top:6px">Dossier joker : signable même mercato fermé, mais l'offre ne vaut que cette semaine.</p>`,
     ok:"Signer — "+(o.prix/1e6).toFixed(1)+" MF",
@@ -6749,12 +6972,12 @@ function panneauFlash(){
   const cout=solde?(f.prix/1e6).toFixed(1)+" MF":"0 FRANC";
   return `<div class="panel" style="border-color:#ff8a3d">
    <h2 style="color:#ff8a3d">${solde?"🔥 LE COUP À FAIRE — cette journée seulement":"🆓 JOUEUR LIBRE — cette journée seulement"}</h2>
-   <p><b class="jaune">${esc(j.nom)}</b> · <span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b>${j.note}</b>${
+   <p><b class="fort">${esc(j.nom)}</b> · <span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · note <b>${j.note}</b>${
      solde?` · <span class="dim">${esc(vend?vend.nom:"")}</span>`:` · <span class="dim">ex-${esc(j.lieu)}</span>`}</p>
    <p style="margin-top:6px;font-style:italic">« ${esc(f.motif)} »</p>
-   <p style="margin-top:6px">Transfert : <b class="jaune">${cout}</b>${solde?` <span class="dim">(au lieu de ${(f.plein/1e6).toFixed(1)} MF)</span>`:""}
-     · Salaire : <b class="${(j.salMult||1)>1.2?"rouge":"jaune"}">${FMT(salaire(j))} FF/sem</b>${(j.salMult||1)>1.2?' <span class="dim">— il monnaie sa liberté</span>':""}</p>
-   <p class="dim" style="font-size:12px;margin-top:6px">Dossier joker : signable même mercato fermé. Mais l'occasion ne dure qu'une journée — si vous ne la prenez pas, un club du championnat la prendra.</p>
+   <p style="margin-top:6px">Transfert : <b class="fort">${cout}</b>${solde?` <span class="dim">(au lieu de ${(f.plein/1e6).toFixed(1)} MF)</span>`:""}
+     · Salaire : <b class="${(j.salMult||1)>1.2?"rouge":"fort"}">${FMT(salaire(j))} FF/sem</b>${(j.salMult||1)>1.2?' <span class="dim">— il monnaie sa liberté</span>':""}</p>
+   <p class="dim" style="font-size:13px;margin-top:6px">Dossier joker : signable même mercato fermé. Mais l'occasion ne dure qu'une journée — si vous ne la prenez pas, un club du championnat la prendra.</p>
    <p style="margin-top:8px"><button class="big bFlashOui">${solde?"SAISIR L'OCCASION ("+(f.prix/1e6).toFixed(1)+" MF)":"LE FAIRE SIGNER (0 FF de transfert)"}</button>
    <button class="act bFlashNon" style="margin-left:8px">Laisser filer</button></p></div>`;
 }
@@ -6915,9 +7138,9 @@ function lanceProjet(id){
   // un chantier immobilise la caisse ET le seul créneau de travaux disponible : on confirme avant
   modalSignature({
     titre:"🏗️ Lancer les travaux ?",
-    corps:`<p><b class="jaune">${esc(p.label?p.label(c):p.nom)}</b> à ${esc(c.stade)}.</p>
+    corps:`<p><b class="fort">${esc(p.label?p.label(c):p.nom)}</b> à ${esc(c.stade)}.</p>
       <p class="dim" style="margin-top:4px">${esc(EFFET_PROJ[p.id]||"")}</p>
-      <p style="margin-top:6px">Coût : <b class="jaune">${(cout/1e6).toFixed(1)} MF</b> pris sur la trésorerie · livraison dans ${p.duree} journées.</p>
+      <p style="margin-top:6px">Coût : <b class="fort">${(cout/1e6).toFixed(1)} MF</b> pris sur la trésorerie · livraison dans ${p.duree} journées.</p>
       <p class="dim">Il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse, et aucun autre chantier possible d'ici là.</p>`,
     ok:"Lancer le chantier — "+(cout/1e6).toFixed(1)+" MF",
     onOk:()=>{
@@ -6951,7 +7174,7 @@ function projetsHTML(){
     return `<button class="act bProj" data-id="${p.id}" ${G.chantier?"disabled":""} title="${esc(EFFET_PROJ[p.id]||"")}" style="margin:3px 3px 0${pauvre&&!G.chantier?";opacity:.55":""}">${esc(p.label?p.label(c):p.nom)} — ${(cout/1e6).toFixed(1)} MF</button>`;
   }).join("");
   const faits=STADE_PROJETS.filter(p=>p.fait(c));
-  const built=faits.length?`<p class="dim" style="font-size:11px;margin-top:8px">✔ Déjà en place : ${faits.map(p=>esc(p.nom)).join(" · ")}</p>`:"";
+  const built=faits.length?`<p class="dim" style="font-size:13px;margin-top:8px">✔ Déjà en place : ${faits.map(p=>esc(p.nom)).join(" · ")}</p>`:"";
   return btns+built;
 }
 
@@ -7004,15 +7227,15 @@ function ouvreRecrutement(id){
   const poste=STAFF_POSTES.find(p=>p.id===id); if(!poste) return;
   _COACHPOSTE=id; _COACHCANDS=genCandidatsCoach(id);
   const fiche=document.getElementById("fiche");
-  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px;max-height:88vh;overflow-y:auto">
-    <h2 style="color:#6fd6e8">${poste.pic} RECRUTER — ${esc(poste.nom.toUpperCase())}</h2>
-    <p class="dim" style="font-size:12px;margin-bottom:8px">Un as, un confirmé et un espoir se présentent.</p>
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px;max-height:88vh;overflow-y:auto">
+    <h2>${poste.pic} RECRUTER — ${esc(poste.nom.toUpperCase())}</h2>
+    <p class="dim" style="font-size:13px;margin-bottom:8px">Un as, un confirmé et un espoir se présentent.</p>
     ${_COACHCANDS.map((c,i)=>`<div style="border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:6px 0">
        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-         <b>${esc(c.nom)}</b><span class="jaune" style="letter-spacing:1px">${etoiles(c.tier)}</span></div>
-       <p class="dim" style="font-style:italic;font-size:12px;margin:3px 0">${esc(c.phrase)}</p>
-       <p style="font-size:12px">${esc(poste.eff(c.tier))}</p>
-       <p class="dim" style="font-size:12px">Indemnité <b class="jaune">${(c.prime/1e6).toFixed(1)} MF</b> · salaire <b>${FMT(c.salaire)} FF/sem</b></p>
+         <b>${esc(c.nom)}</b><span class="fort" style="letter-spacing:1px">${etoiles(c.tier)}</span></div>
+       <p class="dim" style="font-style:italic;font-size:13px;margin:3px 0">${esc(c.phrase)}</p>
+       <p style="font-size:13px">${esc(poste.eff(c.tier))}</p>
+       <p class="dim" style="font-size:13px">Indemnité <b class="fort">${(c.prime/1e6).toFixed(1)} MF</b> · salaire <b>${FMT(c.salaire)} FF/sem</b></p>
        <p style="margin-top:4px"><button class="act bEngage" data-i="${i}">Engager (${(c.prime/1e6).toFixed(1)} MF)</button></p></div>`).join("")}
     <p style="margin-top:8px"><button class="act" id="bRecrAnnul">Fermer</button></p></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
@@ -7023,14 +7246,14 @@ function staffHTML(){
   return STAFF_POSTES.map(p=>{ const c=G.staff&&G.staff[p.id];
     if(c) return `<div style="border:1px solid var(--line);border-radius:4px;padding:6px 8px;margin:4px 0">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-        <span><b>${p.pic} ${esc(c.nom)}</b> <span class="dim" style="font-size:11px">${esc(p.nom)}</span></span>
-        <span class="jaune" style="font-size:12px;letter-spacing:1px">${etoiles(c.tier)}</span></div>
+        <span><b>${p.pic} ${esc(c.nom)}</b> <span class="dim" style="font-size:13px">${esc(p.nom)}</span></span>
+        <span class="fort" style="font-size:13px;letter-spacing:1px">${etoiles(c.tier)}</span></div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:2px">
-        <span class="dim" style="font-size:11px">${esc(p.eff(c.tier))} · ${FMT(c.salaire)} FF/sem</span>
-        <button class="act bCoachOut" data-id="${p.id}" style="font-size:11px;padding:2px 8px">Remercier</button></div></div>`;
-    return `<div style="border:1px dashed var(--line);border-radius:4px;padding:6px 8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <span class="dim" style="font-size:13px">${esc(p.eff(c.tier))} · ${FMT(c.salaire)} FF/sem</span>
+        <button class="act bCoachOut" data-id="${p.id}" style="font-size:13px;padding:2px 8px">Remercier</button></div></div>`;
+    return `<div style="background:rgba(255,255,255,.03);border-radius:4px;padding:8px 10px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;gap:6px">
       <span class="dim">${p.pic} ${esc(p.nom)} — <i>poste vacant</i></span>
-      <button class="act bCoachIn" data-id="${p.id}" style="font-size:12px">Recruter</button></div>`;
+      <button class="act bCoachIn" data-id="${p.id}" style="font-size:13px">Recruter</button></div>`;
   }).join("");
 }
 
@@ -7547,7 +7770,7 @@ function apercuRotation(rot){
   const moy=Math.round(xi.reduce((s,j)=>s+fraich(j),0)/xi.length);
   const cuits=xi.filter(j=>fraich(j)<80);                       // seuils calés sur les paliers du barème
   const cls=moy>=90?"dim":(moy>=80?"jaune":"rouge");
-  return `<p class="${cls}" style="font-size:12px;margin-top:8px">Fraîcheur du onze envisagé : <b>${moy}/100</b>`
+  return `<p class="${cls}" style="font-size:13px;margin-top:8px">Fraîcheur du onze envisagé : <b>${moy}/100</b>`
     + (cuits.length?` · ${cuits.length} homme${cuits.length>1?"s déjà sous 80":" déjà sous 80"} (${cuits.slice(0,3).map(j=>esc(j.nom)).join(", ")}${cuits.length>3?"…":""})`:"")
     + ` · <span class="dim">chacun rentrera avec ${FRAICH_MATCH} points de moins.</span></p>`;
 }
@@ -7955,31 +8178,31 @@ function rejoueRdv(gen, lignes, from, mNow, r, avant, apres){
 }
 function ecranCoupe(){
   const co=G.coupe;
-  if(!co){ chrome("coupe",`<div class="panel"><h2 class="jaune">🏆 Coupe de France</h2><p class="dim">Le tirage n'est pas encore connu.</p></div>`); return; }
+  if(!co){ chrome("coupe",`<div class="panel"><h2>🏆 Coupe de France</h2><p class="dim">Le tirage n'est pas encore connu.</p></div>`); return; }
   const pId=co.poucetId;
   let statut;
   if(co.vainqueur===G.monClub) statut=`<p class="jaune"><b>Vous avez REMPORTÉ la Coupe de France ${esc(co.saison)} !</b></p>`;
   else if(co.elimine) statut=`<p class="rouge">Éliminé en ${esc(co.tourSortie||"?")}. ${co.vainqueur?"Vainqueur : "+esc(nomCoupe(co.vainqueur))+".":"La coupe continue sans vous."}</p>`;
   else if(co.vainqueur) statut=`<p class="dim">Vainqueur : ${esc(nomCoupe(co.vainqueur))}.</p>`;
   else statut=`<p class="vert">Toujours en lice — ${co.vivants.length} clubs encore en course.</p>`;
-  if(co.gains) statut += `<p class="dim" style="font-size:12px">Billetterie + dotations encaissées cette saison : <span class="jaune">${(co.gains/1e6).toFixed(1)} MF</span></p>`;
+  if(co.gains) statut += `<p class="dim" style="font-size:13px">Billetterie + dotations encaissées cette saison : <span class="fort">${(co.gains/1e6).toFixed(1)} MF</span></p>`;
   const tourLabel = co.vainqueur ? "Épreuve terminée" :
     (co.tourIdx<COUPE_TOURS.length ? "Prochain tour : "+COUPE_TOURS[co.tourIdx].nom+" (en semaine, vers la J"+COUPE_TOURS[co.tourIdx].j+")" : "—");
   const peutRegler = !co.elimine && !co.vainqueur && co.tourIdx<COUPE_TOURS.length;
-  const rota = peutRegler ? `<div class="panel"><h2 class="cyan">Votre approche pour le prochain tour</h2>
-     <p class="dim" style="font-size:12px">Le match se joue en milieu de semaine. Ménagez-vous vos cadres pour le championnat ?</p>
+  const rota = peutRegler ? `<div class="panel"><h2>Votre approche pour le prochain tour</h2>
+     <p class="dim" style="font-size:13px">Le match se joue en milieu de semaine. Ménagez-vous vos cadres pour le championnat ?</p>
      <div class="ctr" style="margin-top:6px">
        ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRot" data-k="${k}" style="margin:4px 3px 0${co.rotation===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
-       <br><span class="dim" style="font-size:11px">${esc(ROTATION_COUPE[co.rotation].desc)}</span>
+       <br><span class="dim" style="font-size:13px">${esc(ROTATION_COUPE[co.rotation].desc)}</span>
      </div>${apercuRotation(co.rotation)}</div>` : "";
   const parc = co.monParcours.length ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Score</th><th></th></tr>
      ${co.monParcours.map(p=>{ const adv=p.hid===G.monClub?p.aid:p.hid, sc=scoreVu(p,G.monClub);
-        return `<tr class="${adv===pId?'':''}"><td>${esc(p.tour)}</td><td>${esc(nomCoupe(adv))}${adv===pId?' <span class="cyan">🐭</span>':''}</td><td class="num">${sc}${p.tab?" <span class=dim>tab</span>":""}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`;}).join("")}
+        return `<tr class="${adv===pId?'':''}"><td>${esc(p.tour)}</td><td>${esc(nomCoupe(adv))}${adv===pId?' <span>🐭</span>':''}</td><td class="num">${sc}${p.tab?" <span class=dim>tab</span>":""}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`;}).join("")}
      </table>` : `<p class="dim">Votre entrée en lice se fera en ${esc(COUPE_TOURS[0].nom)}.</p>`;
-  const pouc = `<div class="panel" style="border-color:#6fd6e8"><h2 class="cyan">🐭 Le Petit Poucet</h2>
+  const pouc = `<div class="panel"><h2>🐭 Le Petit Poucet</h2>
      <p><b>${esc(nomCoupe(pId))}</b> <span class="dim">— ${esc(villeCoupe(pId))}</span></p>
-     ${co.poucetParcours.length ? `<p class="dim" style="font-size:12px">A déjà sorti : ${co.poucetParcours.map(p=>esc(nomCoupe(p.adv))+" ("+p.sh+"-"+p.sa+(p.tab?" tab":"")+")").join(" · ")}</p>` : (co.poucetVivant ? `<p class="dim" style="font-size:12px">L'aventure ne fait que commencer…</p>` : `<p class="dim" style="font-size:12px">Sorti d'entrée, sans faire de vagues.</p>`)}
-     <p class="${co.poucetVivant?"vert":"rouge"}" style="font-size:12px">${co.poucetVivant?(co.vainqueur===pId?"A REMPORTÉ LA COUPE !":"Encore en lice — le rêve continue."):"Éliminé en "+esc(co.poucetSortie||"?")+"."}</p></div>`;
+     ${co.poucetParcours.length ? `<p class="dim" style="font-size:13px">A déjà sorti : ${co.poucetParcours.map(p=>esc(nomCoupe(p.adv))+" ("+p.sh+"-"+p.sa+(p.tab?" tab":"")+")").join(" · ")}</p>` : (co.poucetVivant ? `<p class="dim" style="font-size:13px">L'aventure ne fait que commencer…</p>` : `<p class="dim" style="font-size:13px">Sorti d'entrée, sans faire de vagues.</p>`)}
+     <p class="${co.poucetVivant?"vert":"rouge"}" style="font-size:13px">${co.poucetVivant?(co.vainqueur===pId?"A REMPORTÉ LA COUPE !":"Encore en lice — le rêve continue."):"Éliminé en "+esc(co.poucetSortie||"?")+"."}</p></div>`;
   const dt = co.dernierTour ? `<div class="panel"><h2>${esc(co.dernierTour.nom)} — résultats</h2>
      <table class="fit"><tr><th>Hôte</th><th class="num">Score</th><th>Visiteur</th></tr>
      ${co.dernierTour.faits.map(f=>`<tr class="${(f.hid===G.monClub||f.aid===G.monClub)?"me":""}">
@@ -7988,9 +8211,9 @@ function ecranCoupe(){
        <td>${f.win===f.aid?"<b>":""}${esc(nomCoupe(f.aid))}${f.aid===pId?" 🐭":""}${f.win===f.aid?"</b>":""}</td></tr>`).join("")}
      </table></div>` : "";
   chrome("coupe",`
-    <div class="panel"><h2 class="jaune">🏆 Coupe de France ${esc(co.saison)}</h2>
+    <div class="panel"><h2>🏆 Coupe de France ${esc(co.saison)}</h2>
       ${statut}
-      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Les pros (D1 + D2) entrent en ${esc(COUPE_TOURS[0].court)}. Tirage sans tête de série · le petit reçoit · pas de match nul (tirs au but).</p>
+      <p class="dim" style="font-size:13px">${esc(tourLabel)} · Les pros (D1 + D2) entrent en ${esc(COUPE_TOURS[0].court)}. Tirage sans tête de série · le petit reçoit · pas de match nul (tirs au but).</p>
     </div>
     ${rota}
     <div class="panel"><h2>Votre parcours</h2>${parc}</div>
@@ -8001,11 +8224,11 @@ function ecranCoupe(){
 
 function ecranEurope(){
   const eu=G.euro;
-  if(!eu){ chrome("europe",`<div class="panel"><h2 class="jaune">⭐ Ligue des Champions</h2><p class="dim">Le tirage n'est pas encore connu.</p></div>`); return; }
-  const dr=id=>`<span class="dim" style="font-size:11px">(${esc(paysEuro(id))})</span>`;
+  if(!eu){ chrome("europe",`<div class="panel"><h2>⭐ Ligue des Champions</h2><p class="dim">Le tirage n'est pas encore connu.</p></div>`); return; }
+  const dr=id=>`<span class="dim" style="font-size:13px">(${esc(paysEuro(id))})</span>`;
   let statut;
   if(!eu.enLice){
-    statut=`<p class="dim">Votre club n'est pas qualifié cette saison. <span class="cyan">Champion de D1 (Ligue des Champions), vainqueur de la Coupe de France (Coupe des Coupes) ou 2ᵉ-4ᵉ (Coupe UEFA)</span> : à vous d'accrocher l'Europe.</p>`;
+    statut=`<p class="dim">Votre club n'est pas qualifié cette saison. <span>Champion de D1 (Ligue des Champions), vainqueur de la Coupe de France (Coupe des Coupes) ou 2ᵉ-4ᵉ (Coupe UEFA)</span> : à vous d'accrocher l'Europe.</p>`;
     statut += eu.vainqueur
       ? `<p class="dim">La ${esc(competActif().nom)} ${esc(eu.saison)} a été remportée par <b>${esc(nomEuro(eu.vainqueur))}</b> ${dr(eu.vainqueur)}.</p>`
       : `<p class="dim">La compétition suit son cours sans vous — ${eu.vivants.length} clubs encore en lice.</p>`;
@@ -8016,24 +8239,24 @@ function ecranEurope(){
   } else {
     statut=`<p class="vert">Toujours en lice — ${eu.vivants.length} clubs encore en course pour les grandes oreilles.</p>`;
   }
-  if(eu.gains) statut+=`<p class="dim" style="font-size:12px">Billetterie + primes UEFA encaissées : <span class="jaune">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
+  if(eu.gains) statut+=`<p class="dim" style="font-size:13px">Billetterie + primes UEFA encaissées : <span class="fort">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
   const tc = eu.tourIdx<EURO_TOURS.length ? EURO_TOURS[eu.tourIdx] : null;
   const tourLabel = eu.vainqueur ? "Épreuve terminée" : !tc ? "—" :
      (eu.attente ? "Match RETOUR des "+tc.nom.toLowerCase()+" en milieu de semaine, après la J"+tc.jr
                  : "Prochain tour : "+tc.nom+(tc.jr?" — aller en milieu de semaine après la J"+tc.j+", retour après la J"+tc.jr
                                                      :" (match sec, en milieu de semaine après la J"+tc.j+")"));
-  const enCours = (eu.enLice && eu.attente && eu.attente.mien) ? (m=>`<tr><td>${esc(tc?tc.court:"—")}</td><td>${esc(nomEuro(m.advId))} ${dr(m.advId)}</td><td class="num">${esc(m.sc)}</td><td><span class="cyan">aller</span></td></tr>`)(eu.attente.mien) : "";
+  const enCours = (eu.enLice && eu.attente && eu.attente.mien) ? (m=>`<tr><td>${esc(tc?tc.court:"—")}</td><td>${esc(nomEuro(m.advId))} ${dr(m.advId)}</td><td class="num">${esc(m.sc)}</td><td><span>aller</span></td></tr>`)(eu.attente.mien) : "";
   const parc = (eu.enLice && (eu.monParcours.length||enCours)) ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Résultat</th><th></th></tr>
      ${eu.monParcours.map(p=>`<tr><td>${esc(p.tour)}</td><td>${esc(nomEuro(p.advId))} ${dr(p.advId)}${p.finale?' <span class="dim">(finale)</span>':''}</td><td class="num">${esc(p.sc)}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`).join("")}${enCours}
-     </table>${enCours?'<p class="dim" style="font-size:11px">Le match retour reste à jouer : rien n\'est décidé.</p>':""}` : (eu.enLice?`<p class="dim">Votre entrée en lice se fera en ${esc(EURO_TOURS[0].nom)}.</p>`:`<p class="dim">—</p>`);
+     </table>${enCours?'<p class="dim" style="font-size:13px">Le match retour reste à jouer : rien n\'est décidé.</p>':""}` : (eu.enLice?`<p class="dim">Votre entrée en lice se fera en ${esc(EURO_TOURS[0].nom)}.</p>`:`<p class="dim">—</p>`);
   const dtF = eu.dernierTour && eu.dernierTour.finale;
   const dtA = eu.dernierTour && eu.dernierTour.manche===1; // la dernière soirée était une manche aller
   const dt = eu.dernierTour ? `<div class="panel"><h2>${esc(eu.dernierTour.nom)} — ${dtA?"matchs aller":"résultats"}</h2>
-     <p class="dim" style="font-size:11px">${dtF?"Match sec sur terrain neutre.":(dtA?"Manche aller · les retours se jouent une semaine plus tard.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
+     <p class="dim" style="font-size:13px">${dtF?"Match sec sur terrain neutre.":(dtA?"Manche aller · les retours se jouent une semaine plus tard.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
      <table class="fit"><tr><th>Équipe</th><th class="num">${dtF?"Score":(dtA?"Aller":"Cumul")}</th><th>Équipe</th></tr>
      ${eu.dernierTour.faits.map(f=>{ const a=f.aid,b=f.bid,
         sa=dtA?f.l1[0]:(f.neutre?f.s[0]:f.agg[0]), sb=dtA?f.l1[1]:(f.neutre?f.s[1]:f.agg[1]),
-        legs=(dtA||f.neutre)?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`,
+        legs=(dtA||f.neutre)?"":` <span class="dim" style="font-size:13px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`,
         gras=c=>(!dtA&&f.win===c);
        return `<tr class="${(a===G.monClub||b===G.monClub)?"me":""}">
          <td>${gras(a)?"<b>":""}${esc(nomEuro(a))}${gras(a)?"</b>":""}</td>
@@ -8041,9 +8264,9 @@ function ecranEurope(){
          <td>${gras(b)?"<b>":""}${esc(nomEuro(b))}${gras(b)?"</b>":""}${legs}</td></tr>`;}).join("")}
      </table></div>` : "";
   chrome("europe",`
-    <div class="panel"><h2 class="jaune">${competActif().emoji} ${esc(competActif().nom)} ${esc(eu.saison)}</h2>
+    <div class="panel"><h2>${competActif().emoji} ${esc(competActif().nom)} ${esc(eu.saison)}</h2>
       ${statut}
-      <p class="dim" style="font-size:12px">${esc(tourLabel)} · Élimination directe à 16, en aller-retour · champion → Ligue des Champions ⭐, vainqueur Coupe de France → Coupe des Coupes 🏆, 2ᵉ-4ᵉ → Coupe UEFA 🌍.</p>
+      <p class="dim" style="font-size:13px">${esc(tourLabel)} · Élimination directe à 16, en aller-retour · champion → Ligue des Champions ⭐, vainqueur Coupe de France → Coupe des Coupes 🏆, 2ᵉ-4ᵉ → Coupe UEFA 🌍.</p>
     </div>
     <div class="panel"><h2>Votre parcours</h2>${parc}</div>
     ${dt}`);
@@ -8420,13 +8643,13 @@ function introSaison(){
   const an=+G.intro || anneeJeu();
   const e=INTRO_SAISONS[an] || INTRO_GEN[an%INTRO_GEN.length];
   const moi=clubById(G.monClub), puces=[];
-  puces.push("🏟️ <b>Division "+G.div+"</b> — le président a fixé la barre : <b class=\"jaune\">"+esc(G.objectif.label)+"</b>.");
+  puces.push("🏟️ <b>Division "+G.div+"</b> — le président a fixé la barre : <b class=\"fort\">"+esc(G.objectif.label)+"</b>.");
   if(G.euroCompet && COMPETS[G.euroCompet])
-    puces.push(COMPETS[G.euroCompet].emoji+" Vous êtes engagé en <b class=\"jaune\">"+esc(COMPETS[G.euroCompet].nom)+"</b> : des nuits de semaine, des primes, et de la fatigue le samedi.");
+    puces.push(COMPETS[G.euroCompet].emoji+" Vous êtes engagé en <b class=\"fort\">"+esc(COMPETS[G.euroCompet].nom)+"</b> : des nuits de semaine, des primes, et de la fatigue le samedi.");
   else
     puces.push("🌍 Pas d'Europe cette saison : le championnat, la Coupe de France, et rien pour se cacher derrière.");
   const t=TOURNOIS_ETE[an+1];
-  if(t) puces.push("🗓️ Au bout de la route, en juin, il y a <b class=\"jaune\">"+esc(t)+"</b>. Vos internationaux joueront leur place toute la saison.");
+  if(t) puces.push("🗓️ Au bout de la route, en juin, il y a <b class=\"fort\">"+esc(t)+"</b>. Vos internationaux joueront leur place toute la saison.");
   if(G.nouvelleEre) puces.push("💸 Nouveauté de la saison : "+esc(G.nouvelleEre.ere)+" De nouvelles offres de sponsoring vont frapper à votre porte.");
   if(moi){
     const cracks=moi.joueurs.slice().sort((a,b)=>b.note-a.note);
@@ -8452,9 +8675,9 @@ function introSaison(){
 function ecranIntro(){
   const I=introSaison(), moi=clubById(G.monClub);
   chrome("calendrier",`
-   <div class="panel" style="border-color:#b388e8;text-align:center">
+   <div class="panel" style="text-align:center">
      <p class="dim" style="letter-spacing:2px;margin:0">SAISON ${esc(G.saison)} · ${esc(moi?moi.nom:"")}</p>
-     <h2 style="color:#b388e8;font-size:26px;line-height:1.1;margin:6px 0 10px">${esc(I.titre)}</h2>
+     <h2 style="font-size:26px;line-height:1.1;margin:6px 0 10px">${esc(I.titre)}</h2>
      <div style="margin:0 auto;max-width:640px;text-align:left">
        <p style="font-size:17px;line-height:1.45">${esc(I.txt)}</p>
        <div style="margin-top:14px;border-top:1px solid #27466e;padding-top:10px">
@@ -8528,25 +8751,25 @@ function ecranBilan(){
   chrome("calendrier",`
    <div class="panel" style="border-color:#ffd24a;text-align:center">
      <p class="dim" style="letter-spacing:2px;margin:0">${esc(moi?moi.nom.toUpperCase():"")} · DIVISION ${B.div}</p>
-     <h2 class="jaune" style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
+     <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
      <p style="font-size:17px">Vous terminez à la <b class="jaune">${B.rang}ᵉ place</b>. ${esc(verdict)}</p>
      ${moi?`<p class="dim" style="margin-top:4px">${moi.g} victoires · ${moi.n} nuls · ${moi.p} défaites — ${moi.bp} buts marqués, ${moi.bc} encaissés (${moi.bp-moi.bc>0?"+":""}${moi.bp-moi.bc}).</p>`:""}
      <p class="dim" style="margin-top:2px">Champion de Division ${B.div} : <b>${esc(B.champion?B.champion.nom:"")}</b> avec ${B.champion?B.champion.pts:0} points.</p>
    </div>
    <div class="panel">
      <h2>⚽ L'ÉQUIPE TYPE DE LA SAISON</h2>
-     <p class="dim" style="font-size:12px;margin-bottom:2px">Le onze de la division, poste par poste — note, distinctions, buts et passes décisives confondus.</p>
+     <p class="dim" style="font-size:13px;margin-bottom:2px">Le onze de la division, poste par poste — note, distinctions, buts et passes décisives confondus.</p>
      ${lignesXI||`<p class="dim">Saison trop courte pour désigner un onze.</p>`}
    </div>
    <div class="grid2">
      <div class="panel"><h2>🥇 LE BUTEUR</h2>
-       ${B.buteur?`<p style="font-size:18px"><b class="jaune">${esc(B.buteur.nom)}</b></p>
+       ${B.buteur?`<p style="font-size:18px"><b class="fort">${esc(B.buteur.nom)}</b></p>
          <p class="dim">${esc(nomC(B.buteur.club))} — <b>${B.buteur.buts}</b> but${B.buteur.buts>1?"s":""} dans la saison.</p>`
         :`<p class="dim">Personne n'a marqué cette saison. Du jamais vu.</p>`}
        ${B.passeur?`<p style="margin-top:8px" class="dim">Meilleur passeur : <b>${esc(B.passeur.nom)}</b> (${esc(nomC(B.passeur.club))}), ${B.passeur.passes} passe${B.passeur.passes>1?"s":""} décisive${B.passeur.passes>1?"s":""}.</p>`:""}
      </div>
      <div class="panel"><h2>🏅 L'HOMME DE LA SAISON</h2>
-       ${B.hommeSaison?`<p style="font-size:18px"><b class="jaune">${esc(B.hommeSaison.nom)}</b></p>
+       ${B.hommeSaison?`<p style="font-size:18px"><b class="fort">${esc(B.hommeSaison.nom)}</b></p>
          <p class="dim">${B.hommeSaison.hdm} fois homme du match — ${B.hommeSaison.buts||0} but${(B.hommeSaison.buts||0)>1?"s":""}, ${B.hommeSaison.passes||0} passe${(B.hommeSaison.passes||0)>1?"s":""} décisive${(B.hommeSaison.passes||0)>1?"s":""}, note ${B.hommeSaison.note}.</p>
          <p class="dim" style="margin-top:6px;font-style:italic">Celui que les tribunes ont fini par appeler par son prénom.</p>`
         :`<p class="dim">Aucun de vos joueurs n'a été désigné homme du match cette saison. Ça viendra.</p>`}
@@ -8558,7 +8781,7 @@ function ecranBilan(){
       if(!l.length) return "";
       return `<div class="panel" style="border-color:#5fd98f"><h2 style="color:#5fd98f">🏛️ LES RECORDS TOMBÉS CETTE SAISON</h2>`
         +l.map(d=>`<p style="margin:4px 0">${d.ico} <b>${esc(d.nom)}</b> — ${esc(d.r.t)} <span class="dim">(journée ${d.r.j})</span></p>`).join("")
-        +`<p class="dim" style="font-size:12px;margin-top:6px">Les archives du club ont perdu ${l.length>1?"plusieurs pages":"une page"} cette saison.</p></div>`;
+        +`<p class="dim" style="font-size:13px;margin-top:6px">Les archives du club ont perdu ${l.length>1?"plusieurs pages":"une page"} cette saison.</p></div>`;
     })()}
    <div class="panel"><h2>🔥 LE MATCH DE L'ANNÉE</h2>
      ${M?`<p class="scoreline" style="text-align:center;font-size:18px">${esc(nomC(M.h))} <span class="jaune">${M.sh}</span> — <span class="jaune">${M.sa}</span> ${esc(nomC(M.a))}</p>
@@ -8567,11 +8790,11 @@ function ecranBilan(){
    </div>
    <div class="grid2">
      <div class="panel"><h2>🗞️ LA PHRASE DE LA SAISON</h2>
-       ${B.phrase?`<p style="font-size:17px;font-style:italic;color:#6fd6e8">${esc(B.phrase.t)}</p>
+       ${B.phrase?`<p style="font-size:17px;font-style:italic;color:var(--clair)">${esc(B.phrase.t)}</p>
          <p class="dim" style="margin-top:4px">— la presse, journée ${B.phrase.j}.</p>`
         :`<p class="dim">La presse n'a rien écrit qu'on garderait.</p>`}
      </div>
-     <div class="panel" style="border-color:#b86a2e"><h2 style="color:#ffd24a">🕶️ LA DÉPÊCHE</h2>
+     <div class="panel" style="border-color:#b86a2e"><h2>🕶️ LA DÉPÊCHE</h2>
        ${B.depeche?`<p style="font-size:15px">${esc(B.depeche.t)}</p>
          <p class="dim" style="margin-top:4px">— journée ${B.depeche.j}. Celle dont on parle encore à la buvette.</p>`
         :`<p class="dim">Une saison sans une once de soufre. Étonnant.</p>`}
@@ -9098,9 +9321,9 @@ function saisie(o){ // remplace prompt()
     if(r!=null && o.onOk) o.onOk(r);
     return;
   }
-  const sous=o.sous?`<p class="dim" style="font-size:12px;margin-top:6px">${esc(o.sous)}</p>`:"";
+  const sous=o.sous?`<p class="dim" style="font-size:13px;margin-top:6px">${esc(o.sous)}</p>`:"";
   ouvreMsg(`<div class="fbox" style="max-width:450px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
-    <h2 class="jaune">${esc(o.titre)}</h2>
+    <h2>${esc(o.titre)}</h2>
     ${sous}
     <input type="text" id="bMsgIn" maxlength="${o.max||40}" value="${esc(o.valeur==null?"":o.valeur)}">
     <div style="margin-top:12px">
@@ -9122,15 +9345,15 @@ function majTitre(){
 
 function statutClub(c){
   const o=objectifPour(c.pres);
-  if(c.pres>=8) return {tag:"PRÉTENDANT AU TITRE", coul:"#ffd24a",
+  if(c.pres>=8) return {tag:"PRÉTENDANT AU TITRE", coul:"#c9d5e4",
     amb:"L'élite. Ici, on ne se contente pas de participer — on joue le titre, chaque saison.", obj:o};
-  if(c.pres>=6) return {tag:"OUTSIDER EUROPÉEN", coul:"#62c462",
+  if(c.pres>=6) return {tag:"OUTSIDER EUROPÉEN", coul:"#c9d5e4",
     amb:"Un solide candidat à l'Europe. Une accroche au podium ferait basculer la saison dans le rêve.", obj:o};
-  if(c.pres>=5) return {tag:"VENTRE MOU", coul:"#6fd6e8",
+  if(c.pres>=5) return {tag:"VENTRE MOU", coul:"#c9d5e4",
     amb:"Le purgatoire du milieu de tableau. Sortir enfin de l'anonymat, voilà le vrai défi.", obj:o};
-  if(c.pres>=4) return {tag:"PETIT POUCET", coul:"#b388e8",
+  if(c.pres>=4) return {tag:"PETIT POUCET", coul:"#c9d5e4",
     amb:"Un budget modeste, des ambitions de survie — mais les épopées commencent toujours comme ça.", obj:o};
-  return {tag:"LUTTE POUR LE MAINTIEN", coul:"#e8643c",
+  return {tag:"LUTTE POUR LE MAINTIEN", coul:"#c9d5e4",
     amb:"Chaque point est une bataille. L'objectif tient en un mot : survivre, et déjouer les pronostics.", obj:o};
 }
 function euroSeedDe(id, S){ // compétition européenne à laquelle un club est qualifié pour la 1re saison (accueil)
@@ -9149,12 +9372,12 @@ function ficheClubAccueil(id){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${st.coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:90vh;overflow-y:auto">
     <h2 style="display:flex;align-items:center;gap:10px">${blason(c,40)}${esc(c.nom)}</h2>
-    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag} <span class="dim">·</span> <b class="${enD2?'cyan':'jaune'}">DIVISION ${enD2?2:1}</b></p>
-    ${enD2?'<p class="cyan" style="font-size:12px">Saison en deuxième division — l\'objectif numéro un : la remontée parmi l\'élite.</p>':""}
+    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag} <span class="dim">·</span> <b class="fort">DIVISION ${enD2?2:1}</b></p>
+    ${enD2?'<p style="font-size:13px">Saison en deuxième division — l\'objectif numéro un : la remontée parmi l\'élite.</p>':""}
     <p style="margin-top:8px">${esc(st.amb)}</p>
-    <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="jaune">${esc(st.obj.label)}</b></p>
+    <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="fort">${esc(st.obj.label)}</b></p>
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${(c.budget/1e6).toFixed(0)} MF</p>
-    ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="jaune">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
+    ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="fort">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
     ${riv?`<p><span class="dim">Rival historique :</span> <b class="rouge">${esc(riv.nom)}</b> — ${esc(nomRivalite(c.id,riv.id))}</p>`:""}
     ${MALEDICTIONS[c.id]?`<p style="margin-top:8px;font-style:italic;border-left:2px solid ${st.coul};padding-left:8px">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
     ${(()=>{
@@ -9162,8 +9385,8 @@ function ficheClubAccueil(id){
       const cnt={G:0,D:0,M:0,A:0}; stars.forEach(s=>cnt[s[1]]++);
       const proc=["G","D","M","A"].reduce((n,p)=>n+Math.max(0,CIBLE[p]-cnt[p]),0);
       if(!stars.length) return '<p class="dim" style="margin-top:10px">Effectif entièrement complété à la signature (joueurs générés).</p>';
-      return `<p style="margin-top:10px" class="cyan">Effectif réel — ${stars.length} joueur(s)${proc?' <span class="dim">+ '+proc+' complété(s) à la signature</span>':""} :</p>
-        <table class="fit" style="font-size:12px;margin-top:4px">${stars.map(s=>`<tr><td class="pos-${s[1]}">${s[1]}</td><td>${esc(s[0])}</td><td class="num dim">${s[2]} ans</td><td class="num"><b>${s[3]}</b></td></tr>`).join("")}</table>`;
+      return `<p style="margin-top:10px">Effectif réel — ${stars.length} joueur(s)${proc?' <span class="dim">+ '+proc+' complété(s) à la signature</span>':""} :</p>
+        <table class="fit" style="font-size:13px;margin-top:4px">${stars.map(s=>`<tr><td class="pos-${s[1]}">${s[1]}</td><td>${esc(s[0])}</td><td class="num dim">${s[2]} ans</td><td class="num"><b>${s[3]}</b></td></tr>`).join("")}</table>`;
     })()}
     <p style="margin-top:12px">
       <button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${esc(("DE "+c.nom).toUpperCase())}</button>
@@ -9178,7 +9401,7 @@ function ficheClubAccueil(id){
 }
 let ACCUEIL_DIV = 1; // onglet de division affiché sur mobile (persiste tant qu'on reste sur l'accueil)
 function pipsHTML(pres){
-  return `<span class="pips"><span class="jaune">${"●".repeat(pres)}</span><span class="off">${"○".repeat(10-pres)}</span></span>`;
+  return `<span class="pips"><span class="fort">${"●".repeat(pres)}</span><span class="off">${"○".repeat(10-pres)}</span></span>`;
 }
 function grpAccueil(clubs){ // regroupe une division (déjà triée par prestige) par statut d'ambition
   const out=[];
@@ -9192,7 +9415,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
   const imp=`<label class="act" style="cursor:pointer">📂 Importer un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`;
   if(!parties.length) return `<div class="panel">
      <h2>Reprendre une carrière</h2>
-     <p class="dim" style="font-size:12px;margin-bottom:8px">Aucune carrière sauvegardée dans ce navigateur — choisissez un club plus bas.</p>
+     <p class="dim" style="font-size:13px;margin-bottom:8px">Aucune carrière sauvegardée dans ce navigateur — choisissez un club plus bas.</p>
      <p class="carSous">${imp}</p>
    </div>`;
   const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}`;
@@ -9200,19 +9423,19 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
   return `<div class="panel" style="border-color:var(--vert)">
      <h2 style="color:var(--vert)">Vos carrières (${parties.length})</h2>
      <button class="big" id="bReprendre" data-id="${esc(p0.id)}" style="display:block;width:100%;background:var(--vert);color:#06210f">▶ REPRENDRE — ${esc((p0.nom||p0.club).toUpperCase())} · ${sous(p0)}</button>
-     ${p0.enjeu?`<p class="jaune" style="margin:6px 0 0;font-size:13px;text-align:center">${esc(p0.enjeu)}</p>`:""}
+     ${p0.enjeu?`<p class="fort" style="margin:6px 0 0;font-size:13px;text-align:center">${esc(p0.enjeu)}</p>`:""}
      <p class="carSous"><span class="dim" style="flex:1">${esc(ilYA(p0.maj))}</span>
        <button class="act carRen" data-id="${esc(p0.id)}">✏️ Renommer</button>
        <button class="act carDel" data-id="${esc(p0.id)}">🗑️ Supprimer</button></p>
-     ${reste.length?`<p class="dim" style="font-size:12px;margin:12px 0 4px">Vos autres carrières :</p>`:""}
+     ${reste.length?`<p class="dim" style="font-size:13px;margin:12px 0 4px">Vos autres carrières :</p>`:""}
      ${reste.map(p=>`<div class="carLigne">
        <button class="startclub carGo" data-id="${esc(p.id)}" style="display:flex;align-items:center;gap:9px">
-         ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span>${p.enjeu?`<br><span class="sous jaune">${esc(p.enjeu)}</span>`:""}</span><span class="dim">▶</span>
+         ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span>${p.enjeu?`<br><span class="sous fort">${esc(p.enjeu)}</span>`:""}</span><span class="dim">▶</span>
        </button>
        <button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>
        <button class="act carDel" data-id="${esc(p.id)}" title="Supprimer">🗑️</button>
      </div>`).join("")}
-     <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:11px">${parties.length>=MAX_PARTIES
+     <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:13px">${parties.length>=MAX_PARTIES
        ? "Vous avez atteint le maximum de "+MAX_PARTIES+" carrières : supprimez-en une pour en commencer une autre."
        : "Choisir un club ci-dessous ouvre une <b>nouvelle</b> carrière — celles-ci sont conservées."}</span>${imp}</p>
    </div>`;
@@ -9225,18 +9448,18 @@ function ecranAccueil(){
   const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:9px">
         ${blason(c,22)}<span style="flex:1;line-height:1.1"><b>${esc(c.nom)}</b><br><span class="sous">${esc(c.stade)} · ${FMT(c.cap)} places</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</button>`; };
   const colonne=groupes=>groupes.map(g=>`
-      <div class="grpHead"><span style="color:${g.coul};font-size:12px;letter-spacing:1px"><b>${g.tag}</b></span><span class="dim" style="font-size:11px">${g.clubs.length} club${g.clubs.length>1?"s":""}</span><span class="trait" style="background:${g.coul}"></span></div>
+      <div class="grpHead"><span style="color:${g.coul};font-size:13px;letter-spacing:1px"><b>${g.tag}</b></span><span class="dim" style="font-size:13px">${g.clubs.length} club${g.clubs.length>1?"s":""}</span><span class="trait" style="background:${g.coul}"></span></div>
       <p class="grpAmb">${esc(g.amb)}</p>
       ${g.clubs.map(carte).join("")}`).join("");
   app.innerHTML=`
    <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20,true)}MULTIPLEX 95 · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
    ${panneauCarrieres(parties)}
-   <div class="panel" style="border-color:#6fd6e8">
-     <label style="display:block;font-size:12px" class="cyan"><b>Saison de départ</b>
+   <div class="panel">
+     <label style="display:block;font-size:13px"><b>Saison de départ</b>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
      </label>
-     <p class="jaune" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
-     <p class="dim" style="margin-top:3px;font-size:12px">${esc(S.sous)}</p>
+     <p class="fort" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
+     <p class="dim" style="margin-top:3px;font-size:13px">${esc(S.sous)}</p>
    </div>
    <div class="panel">
      <h2>Choisissez votre club</h2>
@@ -9247,11 +9470,11 @@ function ecranAccueil(){
      </div>
      <div class="accCols" data-div="${ACCUEIL_DIV}">
        <div class="colD1">
-         <div class="accDivHead"><b class="jaune" style="letter-spacing:1px">DIVISION 1</b><span class="dim" style="font-size:12px">20 clubs · l'élite</span></div>
+         <div class="accDivHead"><b class="fort" style="letter-spacing:1px">DIVISION 1</b><span class="dim" style="font-size:13px">20 clubs · l'élite</span></div>
          ${colonne(grpAccueil(cD1.slice().sort((a,b)=>b.pres-a.pres)))}
        </div>
        <div class="colD2">
-         <div class="accDivHead d2"><b class="cyan" style="letter-spacing:1px">DIVISION 2</b><span class="dim" style="font-size:12px">20 clubs · ramenez le vôtre dans l'élite</span></div>
+         <div class="accDivHead d2"><b style="letter-spacing:1px">DIVISION 2</b><span class="dim" style="font-size:13px">20 clubs · ramenez le vôtre dans l'élite</span></div>
          ${colonne(grpAccueil(cD2.slice().sort((a,b)=>b.pres-a.pres)))}
        </div>
      </div>
@@ -9269,6 +9492,32 @@ function ecranAccueil(){
   if(t2) t2.onclick=()=>{ ACCUEIL_DIV=2; ecranAccueil(); };
 }
 
+/* QUATRE ONGLETS (chantier interface, lot 5) : neuf écrans rangés en quatre familles. Un onglet qui en
+   regroupe plusieurs montre ses sous-onglets juste en dessous, et se souvient du dernier écran ouvert
+   (DERNIER_ECRAN, simple confort de session : rien n'entre dans la sauvegarde). « À propos » descend en
+   pied de page. Sur téléphone, les quatre onglets deviennent une barre fixe en bas, sous le pouce. */
+const GROUPES_NAV=[
+  {k:"match",  lib:"Match",        ico:"⚽", ecrans:["calendrier"]},
+  {k:"equipe", lib:"Équipe",       ico:"👕", ecrans:["effectif","mercato"]},
+  {k:"club",   lib:"Club",         ico:"🏟️", ecrans:["club","finances"]},
+  {k:"compet", lib:"Compétitions", ico:"🏆", ecrans:["classement","coupe","europe"]},
+];
+const LIB_ECRAN={calendrier:"Calendrier", effectif:"Effectif", mercato:"Mercato", club:"Le club", finances:"Finances",
+  classement:"Classement", coupe:"Coupe de France", europe:"Europe"};
+const DERNIER_ECRAN={};
+function barreNav(actif){
+  const g=GROUPES_NAV.find(x=>x.ecrans.includes(actif));
+  if(g) DERNIER_ECRAN[g.k]=actif;
+  const onglets=GROUPES_NAV.map(x=>{
+    const cible=DERNIER_ECRAN[x.k]||x.ecrans[0], on=x===g;
+    return `<button data-s="${cible}" class="${on?"on":""}"${on?' aria-current="page"':""}><span class="navIco" aria-hidden="true">${x.ico}</span>${x.lib}</button>`;
+  }).join("");
+  const sous=(g&&g.ecrans.length>1)
+    ? `<div class="sousNav">${g.ecrans.map(s=>`<button data-s="${s}" class="${s===actif?"on":""}"${s===actif?' aria-current="page"':""}>${LIB_ECRAN[s]}</button>`).join("")}</div>`
+    : "";
+  return `<nav aria-label="Navigation principale">${onglets}</nav>${sous}`;
+}
+
 function chrome(actif, corps){
   const c=clubById(G.monClub);
   app.innerHTML=`
@@ -9276,18 +9525,18 @@ function chrome(actif, corps){
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
      <span class="r">${esc(G.saison)} · <b class="divTag${G.div===2?' d2':''}">D${G.div||1}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${(G.budget/1e6).toFixed(1)} MF · Trésorerie ${(G.tresorerie/1e6).toFixed(1)} MF</span>
    </div>
-   <nav>${["calendrier","classement","coupe","europe","effectif","mercato","finances","club","apropos"]
-     .map(s=>`<button data-s="${s}" class="${s===actif?"on":""}">${s==="apropos"?"À PROPOS":s.toUpperCase()}</button>`).join("")}
-   </nav>
+   ${barreNav(actif)}
    <div id="corps">${corps}</div>
    <p class="footer">MULTIPLEX 95 · v${VERSION} ·
      <button class="act" id="bSave">💾 Sauvegarder</button>
      <button class="act" id="bMenu">📁 Mes carrières</button>
      <button class="act" id="bExp">Exporter (fichier)</button>
      <label class="act" style="cursor:pointer">Importer (fichier)<input type="file" accept=".json" style="display:none" id="bImp"></label>
+     <button class="act" id="bApropos">À propos</button>
      ${SAVE_KO?`<b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Exportez en fichier, puis supprimez une vieille carrière.</b>`:""}
    </p>`;
-  app.querySelectorAll("nav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
+  app.querySelectorAll("nav button, .sousNav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
+  document.getElementById("bApropos").onclick=()=>montre("apropos");
   document.getElementById("bSave").onclick=()=>{
     if(sauvegardeLocale(false)){ const b=document.getElementById("bSave");
       b.textContent="✓ Partie sauvegardée"; b.disabled=true;
@@ -9304,20 +9553,20 @@ function ecranApropos(){
   const champ="background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:13px;padding:8px";
   chrome("apropos",`
    <div class="panel">
-     <h2 class="jaune">À propos</h2>
+     <h2>À propos</h2>
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
        et qui est coincé dans l'ascenseur depuis.</p>
-     <p class="dim" style="font-size:12px;line-height:1.5">MULTIPLEX 95 — prototype v${VERSION}</p>
+     <p class="dim" style="font-size:13px;line-height:1.5">MULTIPLEX 95 — prototype v${VERSION}</p>
    </div>
    <div class="panel">
-     <h2 class="cyan">Une remarque ? Un scandale ?</h2>
-     <p class="dim" style="font-size:12px;margin-bottom:10px">Écrivez-moi, je lis tout.</p>
-     <label style="display:block;margin-bottom:8px;font-size:12px">Objet
+     <h2>Une remarque ? Un scandale ?</h2>
+     <p class="dim" style="font-size:13px;margin-bottom:10px">Écrivez-moi, je lis tout.</p>
+     <label style="display:block;margin-bottom:8px;font-size:13px">Objet
        <select id="ctcObjet" style="display:block;width:100%;margin-top:4px;${champ}">
          ${objets.map(o=>`<option>${esc(o)}</option>`).join("")}
        </select>
      </label>
-     <label style="display:block;margin-bottom:10px;font-size:12px">Message
+     <label style="display:block;margin-bottom:10px;font-size:13px">Message
        <textarea id="ctcMsg" rows="5" placeholder="Nom de joueur, effectif, note scandaleuse basse... dites moi tout" style="display:block;width:100%;margin-top:4px;resize:vertical;${champ}"></textarea>
      </label>
      <button class="big" id="ctcEnvoi">✉️ Envoyer</button>
@@ -9408,21 +9657,21 @@ function ecranCalendrier(){
   const offrePret=(G.offrePret&&offrePretJ)?`<div class="panel" style="border-color:#62c462">
      <h2 style="color:#62c462">Offre d'achat sur un prêté</h2>
      <p>${G.offrePret.interlope
-        ?`<b class="jaune">${esc(G.offrePret.club)}</b> a flairé <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) pendant son prêt et veut l'acheter définitivement`
-        :`<b class="jaune">${esc(G.offrePret.club)}</b>, où <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) brille en prêt, veut lever l'option`} pour <b class="jaune">${(G.offrePret.prix/1e6).toFixed(1)} MF</b>.</p>
+        ?`<b class="fort">${esc(G.offrePret.club)}</b> a flairé <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) pendant son prêt et veut l'acheter définitivement`
+        :`<b class="fort">${esc(G.offrePret.club)}</b>, où <b>${esc(offrePretJ.nom)}</b> (${offrePretJ.pos}, ${offrePretJ.age} ans, note ${offrePretJ.note}) brille en prêt, veut lever l'option`} pour <b class="fort">${(G.offrePret.prix/1e6).toFixed(1)} MF</b>.</p>
      <p class="dim">L'offre expire après la prochaine journée.</p>
      <p style="margin-top:8px"><button class="act" id="bPretAcc">Vendre (${(G.offrePret.prix/1e6).toFixed(1)} MF)</button>
      <button class="act" id="bPretRef">Refuser, il reviendra</button></p></div>`:"";
-  const offre=(G.offreExt&&offreJ)?`<div class="panel" style="border-color:#6fd6e8">
-     <h2 style="color:#6fd6e8">Offre venue de l'étranger</h2>
-     <p><b class="jaune">${esc(G.offreExt.club)}</b> propose <b class="jaune">${(G.offreExt.prix/1e6).toFixed(1)} MF</b> pour
+  const offre=(G.offreExt&&offreJ)?`<div class="panel">
+     <h2>Offre venue de l'étranger</h2>
+     <p><b class="fort">${esc(G.offreExt.club)}</b> propose <b class="fort">${(G.offreExt.prix/1e6).toFixed(1)} MF</b> pour
        <b>${esc(offreJ.nom)}</b> (${offreJ.pos}, ${offreJ.age} ans, note ${offreJ.note}) — qui n'est pourtant pas à vendre.</p>
      <p class="dim">Leur recruteur a vu quelque chose. L'offre expire après la prochaine journée.</p>
      ${blocOffre?`<p class="rouge">Vous ne pouvez pas accepter : ${esc(blocOffre)}</p>`:""}
      <p style="margin-top:8px"><button class="act" id="bExtAcc" ${blocOffre?"disabled":""}>Accepter (${(G.offreExt.prix/1e6).toFixed(1)} MF)</button>
      <button class="act" id="bExtRef">Refuser</button></p></div>`:"";
   const affaire=G.affaire?`<div class="panel" style="border-color:#b86a2e">
-     <h2 style="color:#ffd24a">Un intermédiaire vous approche...</h2>
+     <h2>Un intermédiaire vous approche...</h2>
      <p>« Le match de cette semaine ? Considérez-le comme... acquis. ${(G.affaire.prix/1e6).toFixed(0)} MF, en liquide, et personne n'en saura rien. »</p>
      <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Si l'affaire éclate : 6 points de pénalité, 8 MF d'amende, et un président furieux.</p>
      <p style="margin-top:8px"><button class="act" id="bMalAcc">Accepter la mallette (${(G.affaire.prix/1e6).toFixed(0)} MF)</button>
@@ -9446,7 +9695,7 @@ function ecranCalendrier(){
      <p class="ctr"><span class="${fenetreOuverte()?"vert":"dim"}">${esc(msgMercato())}</span></p>
      ${G.declar?`<p class="ctr" style="margin-top:6px;font-style:italic"><span class="rouge">«&nbsp;${esc(G.declar.txt)}&nbsp;»</span><br><span class="dim">— ${esc(G.declar.nom)} (${esc(G.declar.club)}), dans la presse du matin</span></p>`:""}
      ${blocConsignePrime("en cas de victoire", xiMoi, dom?a:h)}
-     <p class="ctr ${feuilleOk?(bancMoi>=5?"dim":"jaune"):"rouge"}" style="margin-top:12px;font-size:12px">
+     <p class="ctr ${feuilleOk?(bancMoi>=5?"dim":"jaune"):"rouge"}" style="margin-top:12px;font-size:13px">
        FEUILLE DE MATCH : <b>${Math.min(11,xiMoi.length)}/11</b> titulaires · <b>${Math.min(5,bancMoi)}/5</b> remplaçants${
          feuilleOk?(bancMoi<5?" — banc incomplet (blessés, suspendus), mais le match peut se jouer":""):" — LA LIGUE REFUSE LA FEUILLE DE MATCH"}
      </p>
@@ -9455,13 +9704,13 @@ function ecranCalendrier(){
        if(!cuits.length) return "";
        const rouges=cuits.filter(j=>fraich(j)<65);  // sous 65, l'impact devient massif, moral compris
        const noms=cuits.slice(0,4).map(j=>esc(j.nom)).join(", ")+(cuits.length>4?"…":"");
-       return `<p class="ctr ${rouges.length?"rouge":"jaune"}" style="margin-top:4px;font-size:12px">
+       return `<p class="ctr ${rouges.length?"rouge":"jaune"}" style="margin-top:4px;font-size:13px">
          ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s sont CUITS":" est CUIT")+" (sous 65) — jambes, blessures ET moral"
                         :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s entamés":" entamé")+" : sous 90, on ne joue plus à plein régime"} : ${noms}.</p>`;
      })()}
      ${feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
-       <button class="act" id="bVite" style="margin-left:8px">Résultat instantané</button>
+       <button class="lien" id="bVite" style="margin-left:8px">Résultat instantané</button>
      </p>`:`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <span class="rouge">Impossible d'aligner onze joueurs : le coup d'envoi ne peut pas être donné.</span><br>
        <button class="big" id="bRenfort" style="margin-top:6px">Piocher en urgence chez les joueurs libres</button>
@@ -9473,7 +9722,7 @@ function ecranCalendrier(){
      <div id="tabButs"></div>
    </div>
    <div class="panel panelDirect"><h2>Téléscripteur
-     <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
+     <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
        Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
      </span></h2>
      ${htmlCtlTactique()}
@@ -9501,8 +9750,8 @@ function ecranCalendrier(){
     if(!(G.notifs && G.notifs.length)) return suite();
     const lst=G.notifs.slice(); G.notifs=[];
     const fiche=document.getElementById("fiche");
-    fiche.innerHTML=`<div class="fbox" style="max-width:460px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
-      <h2 style="color:#6fd6e8">📋 LE DEBRIEF</h2>
+    fiche.innerHTML=`<div class="fbox" style="max-width:460px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+      <h2>📋 LE DEBRIEF</h2>
       <p class="dim">Ce qu'il ne fallait pas rater cette semaine :</p>
       ${lst.map(n=>`<p style="margin-top:6px">${esc(n)}</p>`).join("")}
       <p style="margin-top:12px"><button class="big" id="bDebOk">Compris</button></p></div>`;
@@ -9520,9 +9769,9 @@ function ecranCalendrier(){
     const placesVides=Math.max(0, h.cap-projAff);
     const fiche=document.getElementById("fiche");
     fiche.innerHTML=`<div class="fbox" style="max-width:470px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
-      <h2 class="jaune">🎟️ Tribunes clairsemées</h2>
+      <h2>🎟️ Tribunes clairsemées</h2>
       <p>Le service billetterie tire la sonnette : à ce rythme, <b>${esc(h.stade)}</b> ne sera rempli qu'à <b class="rouge">${Math.round(projFill*100)} %</b> ce week-end. Soit près de <b>${FMT(placesVides)}</b> sièges vides.</p>
-      <p style="margin-top:8px">Le directeur propose une <b>opération « tribunes scolaires »</b> : on ouvre les portes aux écoles et clubs du quartier à <b class="jaune">${PROMO_PRIX} FF</b> la place. La recette sera maigre, mais un stade plein, ça <b>pousse l'équipe</b> — et ça soigne l'image.</p>
+      <p style="margin-top:8px">Le directeur propose une <b>opération « tribunes scolaires »</b> : on ouvre les portes aux écoles et clubs du quartier à <b class="fort">${PROMO_PRIX} FF</b> la place. La recette sera maigre, mais un stade plein, ça <b>pousse l'équipe</b> — et ça soigne l'image.</p>
       <p style="margin-top:12px"><button class="big" id="bPromoOui">On remplit le stade !</button>
         <button class="act" id="bPromoNon" style="margin-left:8px">Non, tarif normal</button></p></div>`;
     fiche.style.display="flex"; window._penEnCours=true;
@@ -9533,12 +9782,12 @@ function ecranCalendrier(){
     if(!G.nouvelleEre){ return suite(); }
     const e=G.nouvelleEre; G.nouvelleEre=null;
     const fiche=document.getElementById("fiche");
-    fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #b388e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
-      <h2 style="color:#b388e8">⏳ LES TEMPS CHANGENT</h2>
+    fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
+      <h2>⏳ LES TEMPS CHANGENT</h2>
       <p class="dim" style="margin-bottom:8px">Saison ${esc(G.saison)} — le football entre dans une nouvelle ère.</p>
       <p>${esc(e.ere)}</p>
       <p style="margin-top:10px">De nouveaux sponsors, très généreux mais à l'odeur de soufre, vont frapper à votre porte. La question est simple, et elle est pour vous :</p>
-      <p style="margin-top:6px;font-style:italic;color:#b388e8">« Que ferez-vous ? Quel est l'ADN de votre club ? »</p>
+      <p style="margin-top:6px;font-style:italic;color:var(--clair)">« Que ferez-vous ? Quel est l'ADN de votre club ? »</p>
       <p style="margin-top:12px"><button class="big" id="bEreOk">J'ai compris l'enjeu</button></p></div>`;
     fiche.style.display="flex";
     fiche.querySelector("#bEreOk").onclick=()=>{ fermeFiche(); suite(); };
@@ -9566,7 +9815,7 @@ function ecranCalendrier(){
 /* Le contrôle « Tactique en direct » : le même bloc pour les trois directs (championnat, Coupe de France, Europe).
    Masqué jusqu'au coup d'envoi, c'est le lanceur du match qui l'allume et le câble. */
 function htmlCtlTactique(){
-  return `<div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:12px">
+  return `<div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:13px">
        <span class="dim" id="libTacD">Tactique en direct :</span>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
        <button class="act" id="bBanc" style="display:none; margin-left:6px">🔁 Banc</button>
@@ -9605,7 +9854,7 @@ function cableTactiqueRdv(o){
 const ICO={
  but:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="1" y="1" width="20" height="14" fill="none" stroke="#27466e" stroke-width="1"/><path d="M5 1v14M9 1v14M13 1v14M17 1v14M1 5h20M1 9h20" stroke="#27466e" stroke-width="1"/><circle cx="11" cy="8" r="3.4" fill="#ffd24a"/></svg>`,
  rate:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="14" y="1" width="2" height="14" fill="#7e96b5"/><rect x="2" y="6" width="3" height="1.6" fill="#7e96b5"/><rect x="6" y="6" width="3" height="1.6" fill="#7e96b5"/><circle cx="19.5" cy="4" r="2.4" fill="#7e96b5"/></svg>`,
- arret:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="6" y="3" width="2" height="5" fill="#eef2ff"/><rect x="9" y="2" width="2" height="6" fill="#eef2ff"/><rect x="12" y="2" width="2" height="6" fill="#eef2ff"/><rect x="15" y="3" width="2" height="5" fill="#eef2ff"/><rect x="5" y="7" width="13" height="6" fill="#eef2ff"/><rect x="3" y="8" width="2" height="3" fill="#eef2ff"/><rect x="5" y="13" width="13" height="2" fill="#6fd6e8"/></svg>`,
+ arret:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="6" y="3" width="2" height="5" fill="#eef2ff"/><rect x="9" y="2" width="2" height="6" fill="#eef2ff"/><rect x="12" y="2" width="2" height="6" fill="#eef2ff"/><rect x="15" y="3" width="2" height="5" fill="#eef2ff"/><rect x="5" y="7" width="13" height="6" fill="#eef2ff"/><rect x="3" y="8" width="2" height="3" fill="#eef2ff"/><rect x="5" y="13" width="13" height="2" fill="#aebdd1"/></svg>`,
  cj:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="7" y="1.6" width="8" height="12.8" fill="#ffd24a" transform="rotate(8 11 8)"/></svg>`,
  cr:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="7" y="1.6" width="8" height="12.8" fill="#ff6f61" transform="rotate(8 11 8)"/></svg>`,
  sub:`<svg viewBox="0 0 22 16" shape-rendering="crispEdges"><rect x="5" y="5" width="2" height="9" fill="#5fd98f"/><path d="M6 1l4 5H2z" fill="#5fd98f"/><rect x="15" y="3" width="2" height="9" fill="#ff6f61"/><path d="M16 15l-4-5h8z" fill="#ff6f61"/></svg>`,
@@ -9663,8 +9912,8 @@ function coupeFenetreResultats(suite){ // 3) tous les résultats du tour
     <td style="text-align:right">${x.win===x.hid?"<b>":""}${esc(nomCoupe(x.hid))}${x.hid===pId?" 🐭":""}${x.win===x.hid?"</b>":""}</td>
     <td class="num" style="white-space:nowrap">${x.sh}-${x.sa}${x.tab?" <span class=dim>tab</span>":""}</td>
     <td>${x.win===x.aid?"<b>":""}${esc(nomCoupe(x.aid))}${x.aid===pId?" 🐭":""}${x.win===x.aid?"</b>":""}</td></tr>`).join("");
-  fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
-    <h2 class="cyan">🏆 ${esc(dt.nom)} — tous les résultats</h2>
+  fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
+    <h2>🏆 ${esc(dt.nom)} — tous les résultats</h2>
     <table class="fit" style="width:100%"><tr><th style="text-align:right">Hôte</th><th class="num">Score</th><th>Visiteur</th></tr>${lignes}</table>
     <p style="margin-top:12px"><button class="big" id="bCFin">Continuer</button></p></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
@@ -9677,17 +9926,17 @@ function coupeFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict d
   let titre, coul, corps;
   if(co.vainqueur===G.monClub){
     titre="🏆🏆 VOUS REMPORTEZ LA COUPE !"; coul="#ffd24a";
-    corps=`Victoire <b>${sc}${tb}</b> en finale ! ${esc(nomCoupe(G.monClub))} soulève la Coupe de France ${esc(co.saison)}. La ville défile.<br>Dotation de vainqueur : <span class="jaune">${(COUPE_DOTATION_VAINQUEUR/1e6).toFixed(0)} MF</span>.`;
+    corps=`Victoire <b>${sc}${tb}</b> en finale ! ${esc(nomCoupe(G.monClub))} soulève la Coupe de France ${esc(co.saison)}. La ville défile.<br>Dotation de vainqueur : <span class="fort">${(COUPE_DOTATION_VAINQUEUR/1e6).toFixed(0)} MF</span>.`;
   } else if(mp.gagne){
     const suiv=COUPE_TOURS[co.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
     titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
-    corps=`Vous éliminez <b>${esc(nomCoupe(advId))}</b> sur le score de <b>${sc}${tb}</b>. Le rêve continue.<br>Recette de billetterie : <span class="jaune">${(COUPE_RECETTE/1e6).toFixed(1)} MF</span>.<br>`+
+    corps=`Vous éliminez <b>${esc(nomCoupe(advId))}</b> sur le score de <b>${sc}${tb}</b>. Le rêve continue.<br>Recette de billetterie : <span class="fort">${(COUPE_RECETTE/1e6).toFixed(1)} MF</span>.<br>`+
       (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b> — l'adversaire sera désigné au tirage.`:`Place à la finale !`);
   } else {
     titre="💔 FIN DU PARCOURS EN COUPE"; coul="#ff6f61";
     const dot=COUPE_DOTATION[ajTourIdx]||0;
     corps=`Vous tombez face à <b>${esc(nomCoupe(advId))}</b> <b>${sc}${tb}</b>${estAmateur(advId)?" — un club amateur, quelle douche froide !":""}. L'aventure s'arrête en ${esc(ajNom)}.`+
-      (dot?`<br>Dotation de la Fédération pour le parcours : <span class="jaune">${(dot/1e6).toFixed(1)} MF</span>.`:"");
+      (dot?`<br>Dotation de la Fédération pour le parcours : <span class="fort">${(dot/1e6).toFixed(1)} MF</span>.`:"");
   }
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
     <h2 style="color:${coul}">${titre}</h2>
@@ -9728,7 +9977,7 @@ function lectureDuels(adv){
   const v=(r,[bas,haut],bon,mauvais,neutre,inverse)=>{ const cls=r>=haut?(inverse?"rouge":"vert"):(r<=bas?(inverse?"vert":"rouge"):"jaune");
     return `<b class="${cls}">${esc(r>=haut?(inverse?mauvais:bon):(r<=bas?(inverse?bon:mauvais):neutre))}</b>`; };
   const pl=(n,mot)=>n+" "+mot+(n>1?"s":"");
-  return `<div class="duelsXI"><p class="dim ctr" style="font-size:12px">Le rapport de forces face à ${esc(adv.nom)} (${cleFormation(adv)})&nbsp;:</p>
+  return `<div class="duelsXI"><p class="dim ctr" style="font-size:13px">Le rapport de forces face à ${esc(adv.nom)} (${cleFormation(adv)})&nbsp;:</p>
     <p>⚙️ Au milieu, vos ${F.M} contre leurs ${Fa.M}&nbsp;: ${v(rM,DUEL_MIL,"vous aurez le ballon","ils auront le ballon","le ballon se partagera")}</p>
     <p>⚽ Devant, ${pl(F.A,"attaquant")} contre ${pl(Fa.D,"défenseur")}&nbsp;: ${v(rA,DUEL_BUT,"vous devriez faire mal","ça risque de buter","à armes égales")}</p>
     <p>🧱 Derrière, ${pl(F.D,"défenseur")} contre ${pl(Fa.A,"attaquant")}&nbsp;: ${v(rD,DUEL_BUT,"ça devrait tenir","vous allez souffrir","à armes égales",true)}</p></div>`;
@@ -9739,9 +9988,9 @@ function blocFormation(xi, adv){
   const ligne=(p,lib)=>{ const js=place.filter(x=>x.z===p);
     return js.length?`<div class="fLigne"><span class="fLib dim">${lib}</span>${js.map(x=>`<span>${esc(x.j.nom)}${x.hors?' <i class="rouge">(dépanne)</i>':""}</span>`).join("")}</div>`:""; };
   return `<div class="ctr" style="margin-top:12px">
-       <span class="dim" style="font-size:12px">Formation :</span><br>
+       <span class="dim" style="font-size:13px">Formation :</span><br>
        ${Object.keys(FORMATIONS).map(f=>`<button class="act bFormation" data-k="${f}" style="margin:4px 3px 0${k===f?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${f}</button>`).join("")}
-       <br><span class="dim" style="font-size:11px">${esc(FORMATIONS[k].desc)}</span>
+       <br><span class="dim" style="font-size:13px">${esc(FORMATIONS[k].desc)}</span>
        ${xi&&xi.length?`<div class="terrainXI">${ligne("A","Attaque")}${ligne("M","Milieu")}${ligne("D","Défense")}${ligne("G","But")}</div>`:""}
        ${lectureDuels(adv)}
      </div>`;
@@ -9753,14 +10002,14 @@ function blocConsignePrime(quand, xi, adv){
   const pm=+G.primeMatch||0;
   return `${blocFormation(xi, adv)}
      <div class="ctr" style="margin-top:12px">
-       <span class="dim" style="font-size:12px">Consigne d'avant-match :</span><br>
+       <span class="dim" style="font-size:13px">Consigne d'avant-match :</span><br>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne" data-k="${k}" style="margin:4px 3px 0${G.consigne===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${CONSIGNES[k].label}</button>`).join("")}
-       <br><span class="dim" style="font-size:11px">${esc((CONSIGNES[G.consigne]||CONSIGNES.equilibre).desc)}</span>
+       <br><span class="dim" style="font-size:13px">${esc((CONSIGNES[G.consigne]||CONSIGNES.equilibre).desc)}</span>
      </div>
      <div class="ctr" style="margin-top:10px">
-       <span class="dim" style="font-size:12px">Prime de match (un coup de fouet à l'attaque — payée seulement ${esc(quand)}) :</span><br>
+       <span class="dim" style="font-size:13px">Prime de match (un coup de fouet à l'attaque — payée seulement ${esc(quand)}) :</span><br>
        ${PRIMES_MATCH.map(p=>`<button class="act bPrime" data-v="${p.v}" style="margin:4px 3px 0${pm===p.v?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${p.label}</button>`).join("")}
-       <br><span class="dim" style="font-size:11px">${pm>0?"Vos joueurs se transcendent (+"+Math.round(pm*100)+" % d'attaque). Facture honorée UNIQUEMENT "+esc(quand)+".":"Aucune prime promise : effectif au régime normal."}</span>
+       <br><span class="dim" style="font-size:13px">${pm>0?"Vos joueurs se transcendent (+"+Math.round(pm*100)+" % d'attaque). Facture honorée UNIQUEMENT "+esc(quand)+".":"Aucune prime promise : effectif au régime normal."}</span>
      </div>`;
 }
 function panneauRdv(rdv, h, a){
@@ -9770,7 +10019,7 @@ function panneauRdv(rdv, h, a){
     H=clubAffiche(f.hid); A=clubAffiche(f.aid);
     titre=`🏆 Coupe de France — ${esc(aj.nom)}`;
     const petit=!dom && niveauCoupe(f.hid)<niveauCoupe(G.monClub); // à niveau égal, c'est le tirage qui a désigné l'hôte
-    lieu=`${H.stade?esc(H.stade)+" · ":""}${dom?"À DOMICILE":"À L'EXTÉRIEUR"+(petit?" — le petit reçoit":"")}${advId===co.poucetId?' · <span class="cyan">🐭 le Petit Poucet en personne !</span>':""}`;
+    lieu=`${H.stade?esc(H.stade)+" · ":""}${dom?"À DOMICILE":"À L'EXTÉRIEUR"+(petit?" — le petit reçoit":"")}${advId===co.poucetId?' · <span>🐭 le Petit Poucet en personne !</span>':""}`;
     contexte="Match sec : en cas d'égalité au coup de sifflet, tirs au but.";
     rot=co.rotation; quand="en cas de qualification";
   } else {
@@ -9791,23 +10040,23 @@ function panneauRdv(rdv, h, a){
   rot=ROTATION_COUPE[rot]?rot:"mixte";
   return `<div class="panel rdvSemaine" style="border-color:var(--jaune)">
      <h2>${titre}</h2>
-     <p class="ctr dim" style="font-size:12px">Rendez-vous de milieu de semaine, avant la J${G.journee+1} de championnat</p>
+     <p class="ctr dim" style="font-size:13px">Rendez-vous de milieu de semaine, avant la J${G.journee+1} de championnat</p>
      <p class="scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blasonAff(H,30)}${esc(H.nom)} — ${esc(A.nom)}${blasonAff(A,30)}</p>
      <p class="ctr dim">${lieu}</p>
-     <p class="ctr" style="font-size:12px;margin-top:4px">${contexte}</p>
-     <p class="ctr vert" style="font-size:12px;margin-top:8px">Rien ne presse : Effectif, Mercato et Finances restent ouverts jusqu'au coup d'envoi.</p>
+     <p class="ctr" style="font-size:13px;margin-top:4px">${contexte}</p>
+     <p class="ctr vert" style="font-size:13px;margin-top:8px">Rien ne presse : Effectif, Mercato et Finances restent ouverts jusqu'au coup d'envoi.</p>
      <div class="ctr" style="margin-top:12px">
-       <span class="dim" style="font-size:12px">Quelle équipe alignez-vous ?</span><br>
+       <span class="dim" style="font-size:13px">Quelle équipe alignez-vous ?</span><br>
        ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRdvRot" data-k="${k}" style="margin:4px 3px 0${rot===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
-       <br><span class="dim" style="font-size:11px">${esc(ROTATION_COUPE[rot].desc)}</span>
+       <br><span class="dim" style="font-size:13px">${esc(ROTATION_COUPE[rot].desc)}</span>
        ${apercuRotation(rot)}
      </div>
      ${blocConsignePrime(quand, onzeRotation(clubById(G.monClub), rot))}
      <p class="ctr" style="margin-top:12px">
        <button class="big" id="bRdvGo">▶ JOUER LE MATCH</button>
-       <button class="act" id="bRdvVite" style="margin-left:8px">Résultat instantané</button>
+       <button class="lien" id="bRdvVite" style="margin-left:8px">Résultat instantané</button>
      </p>
-     <p class="ctr dim" style="font-size:12px;margin-top:8px">Ensuite, samedi : ${esc(h.nom)} — ${esc(a.nom)} (J${G.journee+1})</p>
+     <p class="ctr dim" style="font-size:13px;margin-top:8px">Ensuite, samedi : ${esc(h.nom)} — ${esc(a.nom)} (J${G.journee+1})</p>
    </div>`;
 }
 /* Le coup d'envoi d'un tour de Coupe de France, depuis le panneau : résultat instantané (verdict + résultats du
@@ -9851,15 +10100,15 @@ function euroFenetreResultats(suite){ // 3) tous les résultats de la soirée (m
   const aller=(dt.manche===1); // soir d'aller : on montre les scores de la manche, personne n'est encore qualifié
   const lignes=dt.faits.map(f=>{ const a=f.aid,b=f.bid,
       sa=aller?f.l1[0]:(f.neutre?f.s[0]:f.agg[0]), sb=aller?f.l1[1]:(f.neutre?f.s[1]:f.agg[1]),
-      legs=(aller||f.neutre)?"":` <span class="dim" style="font-size:10px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`,
+      legs=(aller||f.neutre)?"":` <span class="dim" style="font-size:13px">(${f.l1[0]}-${f.l1[1]}, ${f.l2[0]}-${f.l2[1]})</span>`,
       gras=c=>(!aller&&f.win===c);
     return `<tr class="${(a===G.monClub||b===G.monClub)?"me":""}">
       <td style="text-align:right">${gras(a)?"<b>":""}${esc(nomEuro(a))}${gras(a)?"</b>":""}</td>
       <td class="num" style="white-space:nowrap">${sa}-${sb}${f.tab?" <span class=dim>tab</span>":""}</td>
       <td>${gras(b)?"<b>":""}${esc(nomEuro(b))}${gras(b)?"</b>":""}${legs}</td></tr>`;}).join("");
-  fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
-    <h2 class="cyan">⭐ ${esc(dt.nom)} — ${aller?"les matchs aller":"tous les résultats"}</h2>
-    <p class="dim" style="font-size:11px">${dt.finale?"Finale sèche sur terrain neutre.":(aller?"Manche aller · les retours se jouent dans une semaine, en milieu de semaine.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
+  fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
+    <h2>⭐ ${esc(dt.nom)} — ${aller?"les matchs aller":"tous les résultats"}</h2>
+    <p class="dim" style="font-size:13px">${dt.finale?"Finale sèche sur terrain neutre.":(aller?"Manche aller · les retours se jouent dans une semaine, en milieu de semaine.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
     <table class="fit" style="width:100%"><tr><th style="text-align:right">Équipe</th><th class="num">${dt.finale?"Score":(aller?"Aller":"Cumul")}</th><th>Équipe</th></tr>${lignes}</table>
     <p style="margin-top:12px"><button class="big" id="bEFin">Continuer</button></p></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
@@ -9878,7 +10127,7 @@ function euroFenetreAller(advId, suite){ // 2 bis) fin de VOTRE match aller : ri
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
     <h2 style="color:${coul}">${CP.emoji} MATCH ALLER — ${esc(m.sc)}</h2>
     <p style="margin:8px 0">${m.dom?"Vous receviez":"Vous vous déplaciez chez"} <b>${esc(nomEuro(advId))}</b> <span class="dim">(${esc(paysEuro(advId))})</span>. ${esc(humeur)}</p>
-    <p class="dim" style="font-size:12px">Match retour <b>${m.dom?"à l'extérieur":"à domicile"}</b> la semaine prochaine, en milieu de semaine${jr?` — après la J${jr}`:""}. Le cumul des buts décidera, le but marqué à l'extérieur comptant double.</p>
+    <p class="dim" style="font-size:13px">Match retour <b>${m.dom?"à l'extérieur":"à domicile"}</b> la semaine prochaine, en milieu de semaine${jr?` — après la J${jr}`:""}. Le cumul des buts décidera, le but marqué à l'extérieur comptant double.</p>
     <p style="margin-top:10px"><button class="big" id="bERes">Voir les autres matchs aller →</button></p></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
   fiche.querySelector("#bERes").onclick=()=>euroFenetreResultats(suite);
@@ -9890,17 +10139,17 @@ function euroFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de
   if(eu.vainqueur===G.monClub){
     titre="🏆🏆 VOUS REMPORTEZ LA "+CP.nom.toUpperCase()+" !"; coul="#ffd24a";
     const bouquet=(CP.prime[ajTourIdx]||0)+CP.dotV; // prime de la finale + trophée
-    corps=`Victoire <b>${esc(mp.sc)}</b> en finale ! ${esc(nomEuro(G.monClub))} est sur le toit de l'Europe. La ville ne dormira pas.<br>Prime de finale + trophée : <span class="jaune">${(bouquet/1e6).toFixed(0)} MF</span>. <span class="dim">Total du parcours : ${(eu.gains/1e6).toFixed(1)} MF.</span>`;
+    corps=`Victoire <b>${esc(mp.sc)}</b> en finale ! ${esc(nomEuro(G.monClub))} est sur le toit de l'Europe. La ville ne dormira pas.<br>Prime de finale + trophée : <span class="fort">${(bouquet/1e6).toFixed(0)} MF</span>. <span class="dim">Total du parcours : ${(eu.gains/1e6).toFixed(1)} MF.</span>`;
   } else if(mp.gagne){
     const suiv=EURO_TOURS[eu.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
     const prime=CP.prime[ajTourIdx]||0;
     titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
-    corps=`Vous éliminez <b>${esc(nomEuro(advId))}</b> sur le score de <b>${esc(mp.sc)}</b>. La grande nuit continue.<br>Billetterie + <b>prime UEFA</b> : <span class="jaune">${((CP.recette+prime)/1e6).toFixed(1)} MF</span> <span class="dim">(dont prime ${(prime/1e6).toFixed(1)} MF — elle grimpe à chaque tour).</span><br>`+
+    corps=`Vous éliminez <b>${esc(nomEuro(advId))}</b> sur le score de <b>${esc(mp.sc)}</b>. La grande nuit continue.<br>Billetterie + <b>prime UEFA</b> : <span class="fort">${((CP.recette+prime)/1e6).toFixed(1)} MF</span> <span class="dim">(dont prime ${(prime/1e6).toFixed(1)} MF — elle grimpe à chaque tour).</span><br>`+
       (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b> — l'adversaire sera désigné au tirage.`:`Place à la finale !`);
   } else {
     titre="💔 FIN DU PARCOURS EUROPÉEN"; coul="#ff6f61";
     corps=`Vous tombez face à <b>${esc(nomEuro(advId))}</b> <b>${esc(mp.sc)}</b>. L'aventure européenne s'arrête en ${esc(ajNom)}.`+
-      `<br>Total encaissé sur le parcours (billetterie + primes) : <span class="jaune">${(eu.gains/1e6).toFixed(1)} MF</span>.`;
+      `<br>Total encaissé sur le parcours (billetterie + primes) : <span class="fort">${(eu.gains/1e6).toFixed(1)} MF</span>.`;
   }
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
     <h2 style="color:${coul}">${titre}</h2>
@@ -9918,13 +10167,13 @@ function ecranCoupeMatch(){
   if(!ed){ return montre("coupe"); }
   const H=clubAffiche(ed.hid), A=clubAffiche(ed.aid);
   chrome("coupe",`
-    <div class="panel"><h2 class="jaune">🏆 Coupe de France — ${esc(ed.nom)}</h2>
+    <div class="panel"><h2>🏆 Coupe de France — ${esc(ed.nom)}</h2>
       <p class="ctr scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blasonAff(H,30)}${esc(H.nom)} — ${esc(A.nom)}${blasonAff(A,30)}</p>
-      <p class="ctr dim">${esc(H.stade)} · ${ed.hid===G.monClub?"À DOMICILE":"À L'EXTÉRIEUR"}${ed.advId===co.poucetId?' · <span class="cyan">🐭 le Petit Poucet</span>':""}</p>
+      <p class="ctr dim">${esc(H.stade)} · ${ed.hid===G.monClub?"À DOMICILE":"À L'EXTÉRIEUR"}${ed.advId===co.poucetId?' · <span>🐭 le Petit Poucet</span>':""}</p>
     </div>
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
-      <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
+      <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
         Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
       </span></h2>
       ${htmlCtlTactique()}
@@ -10020,13 +10269,13 @@ function ecranEuroMatch(){
     sousTitre="Match RETOUR · une semaine après l'aller : "+clubAffiche(ed.aid).nom+" "+t.l1[0]+"-"+t.l1[1]+" "+clubAffiche(ed.bid).nom; }
   const chezMoi = H.id===G.monClub;
   chrome("europe",`
-    <div class="panel"><h2 class="jaune">${competActif().emoji} ${esc(competActif().nom)} — ${esc(ed.nom)}</h2>
+    <div class="panel"><h2>${competActif().emoji} ${esc(competActif().nom)} — ${esc(ed.nom)}</h2>
       <p class="ctr scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blasonAff(H,30)}${esc(H.nom)} — ${esc(A.nom)}${blasonAff(A,30)}</p>
       <p class="ctr dim">${esc(sousTitre)}${ed.finale?"":(chezMoi?" · à domicile":" · à l'extérieur")}</p>
     </div>
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
-      <span id="ctlVitesse" style="display:none; float:right; font-size:12px">
+      <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
         Vitesse : <button class="act" id="vTL">Très lente</button> <button class="act" id="vL">Lente</button> <button class="act" id="vN">Normale</button> <button class="act" id="vR">Rapide</button>
       </span></h2>
       ${htmlCtlTactique()}
@@ -10135,8 +10384,8 @@ function ouvreConf(suite){
   const cp=G.confPresse;
   if(!cp){ return suite&&suite(); }
   const fiche=document.getElementById("fiche");
-  fiche.innerHTML=`<div class="fbox" style="max-width:470px;background:#0b1626;border:2px solid #6fd6e8;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
-    <h2 style="color:#6fd6e8">🎙️ CONFÉRENCE DE PRESSE</h2>
+  fiche.innerHTML=`<div class="fbox" style="max-width:470px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2>🎙️ CONFÉRENCE DE PRESSE</h2>
     <p style="margin:6px 0">${esc(cp.q)}</p>
     <div id="confChoix">${cp.reps.map((r,i)=>`<button class="big confBtn" data-i="${i}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:10px 12px">${esc(r.lib)}</button>`).join("")}</div>
     <div id="confRes"></div></div>`;
@@ -10146,8 +10395,8 @@ function ouvreConf(suite){
     const r=cp.reps[+b.dataset.i];
     effConf(r.eff, ctxPresse());
     document.getElementById("confChoix").innerHTML=
-      `<div style="display:block;width:100%;margin:6px 0;padding:10px 12px;border:2px solid #6fd6e8;border-radius:4px;background:rgba(255,255,255,.04)">
-         <span style="color:#6fd6e8">✓ Votre réponse :</span> <b>${esc(r.lib)}</b></div>`;
+      `<div style="display:block;width:100%;margin:6px 0;padding:10px 12px;border:2px solid #38507a;border-radius:4px;background:rgba(255,255,255,.04)">
+         <span class="jaune">✓ Votre réponse :</span> <b>${esc(r.lib)}</b></div>`;
     document.getElementById("confRes").innerHTML=`<p class="dim" style="font-style:italic;margin-top:8px">${esc(r.issue)}</p>
       <p style="margin-top:10px"><button class="big" id="bConfOk">Continuer</button></p>`;
     document.getElementById("bConfOk").onclick=()=>{ window._penEnCours=false; G.confPresse=null; fermeFiche(); if(suite) suite(); };
@@ -10266,7 +10515,7 @@ function ouvreArc(suite){
   if(EN_TEST() || !(G.arc && G.arc.beat && G.journee>=G.arc.prochaine)) return suite();
   const A=ARCS[G.arc.id];
   if(!A || !A.beats[G.arc.beat]){ G.arc=null; return suite(); } // sauvegarde d'une version où l'arc n'existe plus
-  const a=G.arc.data, coul=A.couleur||"#b388e8";
+  const a=G.arc.data, coul=A.couleur||"#f2f5fa";
   const bdef=A.beats[G.arc.beat](a);
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
@@ -10294,7 +10543,7 @@ function ouvreArc(suite){
 const ARCS={
  sortilege:{
   titre:"🐈‍⬛ LE SORTILÈGE DE LA BUVETTE",
-  couleur:"#b388e8",
+  couleur:"#f2f5fa",
   // quatre matchs de rang sans la moindre victoire : le club bascule dans la superstition
   cond:()=>{ const f=clubById(G.monClub).forme.slice(-4); return f.length>=4 && !f.includes(1) && G.journee>=8 && G.journee<=26; },
   start:()=>({}),
@@ -10339,7 +10588,7 @@ const ARCS={
  },
  diamant:{
   titre:"💎 LE DIAMANT BRUT",
-  couleur:"#6fd6e8",
+  couleur:"#f2f5fa",
   // une pépite du centre (≤20 ans, gros potentiel, déjà performante) commence à faire tourner les têtes en Europe
   cond:()=>{ const m=clubById(G.monClub); return G.journee>=5 && G.journee<=22 && m.joueurs.some(j=>j.age<=20 && j.pot>=86 && j.note>=72); },
   start:()=>{
@@ -10397,7 +10646,7 @@ const ARCS={
  },
  shopi:{
   titre:"🛍️ LE SAC SHOPI",
-  couleur:"#e8a13a",
+  couleur:"#f2f5fa",
   // une caisse noire à la billetterie, du temps où la confiance n'est ni au zénith ni au plancher
   cond:()=>{ const c=G.confiance==null?65:G.confiance; return G.journee>=10 && G.journee<=24 && c>=35 && c<=65; },
   start:()=>({preuves:false, route:null}),
@@ -10487,7 +10736,7 @@ function mpxStades(M){
    changement de leader passe avant tout le reste — c'est LE fil qu'on veut garder d'une semaine à l'autre. */
 function mpxUne(M){
   const out=[], autres=M.m.filter(x=>!x.mien), chef=M.tab[0];
-  if(chef && chef.av>1) out.push(`👑 <b class="jaune">${esc(chef.nom)}</b> prend la tête du championnat.`);
+  if(chef && chef.av>1) out.push(`👑 <b class="fort">${esc(chef.nom)}</b> prend la tête du championnat.`);
   const claque=autres.slice().sort((a,b)=>Math.abs(b.sh-b.sa)-Math.abs(a.sh-a.sa))[0];
   const fest=autres.slice().sort((a,b)=>(b.sh+b.sa)-(a.sh+a.sa))[0];
   if(claque && Math.abs(claque.sh-claque.sa)>=3){
@@ -10823,12 +11072,25 @@ function lanceMatch(instant){
 function ajouteLigne(tk,l){
   tk.insertAdjacentHTML("afterbegin",
    `<p class="evt"><span class="min">${String(l.m).padStart(2,"0")}'</span> <span class="tx ${l.t}">${esc(l.x)}</span><span class="ico">${l.ic?ICO[l.ic]:""}</span></p>`);
+  majMinute(l.m);
+}
+/* La minute du tableau d'affichage suit la dernière ligne du téléscripteur. Purement cosmétique : sans tableau
+   (harnais sans DOM, écran qui n'en a pas), elle ne fait rien et ne lève jamais. */
+function majMinute(m){
+  if(m==null || typeof document==="undefined") return;
+  try{
+    const ts=document.getElementById("tabScore");
+    if(!ts || typeof ts.insertAdjacentHTML!=="function" || typeof ts.querySelector!=="function") return;
+    let tm=ts.querySelector(".tMin");
+    if(!tm){ ts.insertAdjacentHTML("beforeend",'<span class="tMin" aria-live="off"></span>'); tm=ts.querySelector(".tMin"); }
+    if(tm) tm.textContent=String(m).padStart(2,"0")+"'";
+  }catch(e){}
 }
 const ZONES_PEN=[["hg","Lucarne G"],["hc","Sous la barre"],["hd","Lucarne D"],["bg","Ras de terre G"],["bc","Plein centre"],["bd","Ras de terre D"]];
 function cadreMoment(titre, corps){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:430px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
-    <h2 class="jaune">${titre}</h2>${corps}</div>`;
+    <h2>${titre}</h2>${corps}</div>`;
   fiche.style.display="flex";
   window._penEnCours=true;
   return fiche;
@@ -10911,7 +11173,7 @@ function momentPenPour(mo,moi,adv,resoudre,suite){
   const gk=enJeu(adv,90).find(j=>j.pos==="G")||{note:70,nom:"le gardien"}; // celui qui garde les buts à la 90e (changement, expulsion)
   const fiche=cadreMoment("PENALTY — 90ᵉ MINUTE",
     `<p><b>${esc(t.nom)}</b> (note ${t.note}) face à <b>${esc(gk.nom)}</b> (${gk.note}).</p>
-     ${t.tireurElite?`<p class="cyan">🎯 Votre tireur d'élite s'avance — le sang-froid en plus.</p>`:""}
+     ${t.tireurElite?`<p>🎯 Votre tireur d'élite s'avance — le sang-froid en plus.</p>`:""}
      <p class="dim">Choisissez la zone. La lucarne ne pardonne qu'aux grands joueurs — le ras de terre est plus sûr, mais le gardien le sait aussi.</p>`+grilleZones(""));
   fiche.querySelectorAll(".zPen").forEach(b=>b.onclick=()=>{
     const z=b.dataset.z, s=t.note, g=gk.note;
@@ -10947,7 +11209,7 @@ function momentCoupFranc(mo,moi,adv,resoudre,suite){
   const fiche=cadreMoment("COUP FRANC — "+dist+" MÈTRES",
     `<img class="momImg" src="${PICK(IMG_MOMENT.coupfranc)}" alt="">
      <p><b>${esc(t.nom)}</b> (note ${t.note}) à ${dist} m face au mur, ${esc(gk.nom)} (${gk.note}) dans les buts.</p>
-     ${el?`<p class="cyan">🎯 Votre tireur d'élite est sur le ballon — il peut la mettre où il veut.</p>`
+     ${el?`<p>🎯 Votre tireur d'élite est sur le ballon — il peut la mettre où il veut.</p>`
          :`<p class="dim">Aucun spécialiste des coups francs dans vos rangs : il faudra une réussite insolente.</p>`}
      <p class="dim">Comment la frapper&nbsp;?</p>
      <div style="display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0">
@@ -11159,7 +11421,7 @@ function ecranEffectif(){
      boutons sur deux cellules s'empilaient en trois étages → une seule barre de quatre boutons collés
      (★ 🛌 🏷️ 📤), pictos seuls — nommés par l'infobulle et par la légende sous le tableau : avec leurs
      libellés, le tableau débordait de 130 px même sur ordinateur —, l'état « en cours » allumé en
-     cyan (jamais en jaune plein : le jaune plein est réservé à l'action offerte). Ce qui se lisait en
+     blanc (cyan jusqu'à la v1.24 ; jamais en jaune plein, réservé à l'action offerte). Ce qui se lisait en
      double disparaît du nom : « [au repos] » et « [à vendre] » sont dits par la colonne d'état ET par le
      bouton allumé. En mobile, le nom reste collé à gauche quand on fait défiler vers les boutons : on
      sait toujours sur qui on clique. */
@@ -11174,24 +11436,21 @@ function ecranEffectif(){
       +`</span>`;
   };
   chrome("effectif",`<div class="panel"><h2>Effectif — ${esc(c.nom)}</h2>
-   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th title="Caractère — survolez les pictos">Car.</th><th class="num" title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num">Prog.</th><th class="num" title="Valeur marchande, en millions de francs">Valeur MF</th><th class="num">Buts</th><th class="num" title="Passes décisives">P.déc.</th><th></th></tr>
+   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th class="num" title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20 — moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num" title="Valeur marchande, en millions de francs">Valeur MF</th><th></th></tr>
    ${js.map(j=>{ const i=c.joueurs.indexOf(j), lf=libFraich(j), f=Math.round(fraich(j));
      const etats=[
        j.bless>0?`<span class="rouge">blessé ${j.bless} j.</span>`:"",
        j.susp>0?`<span class="jaune">suspendu ${j.susp} j.</span>`:"",
-       j.pretIn?`<span class="cyan">prêt, retour J${(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin}</span>`:""].filter(Boolean);
+       j.pretIn?`<span>prêt, retour J${(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin}</span>`:""].filter(Boolean);
      return `<tr class="click" data-i="${i}">
-     <td class="effEtat">${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span class="cyan" title="Titularisé de force">★</span>':""}${j.repos?'<span title="Mis au repos — il récupère">🛌</span>':""}${j.avendre?'<span title="Sur la liste des transferts">🏷️</span>':""}</td>
-     <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span class="cyan" title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
+     <td class="effEtat">${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span title="Titularisé de force">★</span>':""}${j.repos?'<span title="Mis au repos — il récupère">🛌</span>':""}${j.avendre?'<span title="Sur la liste des transferts">🏷️</span>':""}</td>
+     <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span title="Tireur d\'élite — coups francs et penaltys">🎯</span>':""}${(p=>p.includes("class=\"dim\"")?"":` <span class="effCar">${p}</span>`)(pictos(j))}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
      <td class="pos-${j.pos}">${j.pos}</td>
      <td class="num">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux" title="Passé 29 ans, sept jours ne suffisent plus à refaire le plein">⏳</span>':""}${j.age}</td>
-     <td class="num"><b>${j.note}</b></td>
-     <td class="effCar">${pictos(j)}</td>
+     <td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
      <td class="num effForme" title="${esc(lf[1])} — ${f}/100"><b class="${lf[2]}">${f}</b> <span aria-label="${esc(lf[1])}">${lf[3]}</span></td>
      <td class="num"><span class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"dim")}">${Math.round(j.moral||65)}</span></td>
-     <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲ +'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
      <td class="num">${(valeur(j)/1e6).toFixed(1)}</td>
-     <td class="num">${j.buts}</td><td class="num">${j.passes||0}</td>
      <td class="effAct">${barre(j,i)}</td></tr>`;}).join("")}
    </table>
    ${(()=>{ // le plancher réglementaire, expliqué là où l'on vend
@@ -11206,15 +11465,17 @@ function ecranEffectif(){
                    : "Vous pouvez céder "+marge+" joueur"+(marge>1?"s":"")+" avant de toucher le plancher.");
      const reste=MONTEES_MAX-(G.montees||0);
      const cf=reste>0
-       ? `<p style="margin-top:4px;font-size:12px">🎓 Le centre de formation (niveau ${G.centre||1}) peut faire monter un jeune en pro — <b>${reste}</b> promotion${reste>1?"s":""} restante${reste>1?"s":""} cette saison, de quoi reprendre de la marge : ${["G","D","M","A"].map(p=>`<button class="act bCF" data-p="${p}">${LIB_POSTE[p][0].toUpperCase()+LIB_POSTE[p].slice(1)}</button>`).join(" ")}</p>`
-       : `<p class="dim" style="margin-top:4px;font-size:12px">🎓 Le centre de formation a donné ses ${MONTEES_MAX} jeunes de la saison — les suivants monteront à l'intersaison.</p>`;
-     return `<p class="${cls}" style="margin-top:8px;font-size:12px">⚖️ Plancher réglementaire : <b>${PLANCHER_TOTAL} joueurs</b> sous contrat (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — 11 titulaires et 5 remplaçants sur la feuille de match. Effectif actuel : <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
+       ? `<p style="margin-top:4px;font-size:13px">🎓 Le centre de formation (niveau ${G.centre||1}) peut faire monter un jeune en pro — <b>${reste}</b> promotion${reste>1?"s":""} restante${reste>1?"s":""} cette saison, de quoi reprendre de la marge : ${["G","D","M","A"].map(p=>`<button class="act bCF" data-p="${p}">${LIB_POSTE[p][0].toUpperCase()+LIB_POSTE[p].slice(1)}</button>`).join(" ")}</p>`
+       : `<p class="dim" style="margin-top:4px;font-size:13px">🎓 Le centre de formation a donné ses ${MONTEES_MAX} jeunes de la saison — les suivants monteront à l'intersaison.</p>`;
+     return `<p class="${cls}" style="margin-top:8px;font-size:13px">⚖️ Plancher réglementaire : <b>${PLANCHER_TOTAL} joueurs</b> sous contrat (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants) — 11 titulaires et 5 remplaçants sur la feuille de match. Effectif actuel : <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
    })()}
-   <p class="dim" style="margin-top:6px">Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême.</p>
-   <p class="dim" style="margin-top:6px"><b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> vendre · <b>📤</b> prêter</p>
-   <p class="dim" style="margin-top:6px">🛌 <b>Forme</b> : 💪 frais · 😐 entamé · 😓 émoussé · 🥵 jambes lourdes · 🥴 sur les rotules. ⏳ = les années pèsent sur la récupération.</p>
+   <details class="legende"><summary>Légende des pictos</summary>
+   <p>Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême.</p>
+   <p><b>★</b> titulariser · <b>🛌</b> repos · <b>🏷️</b> vendre · <b>📤</b> prêter</p>
+   <p>🛌 <b>Forme</b> : 💪 frais · 😐 entamé · 😓 émoussé · 🥵 jambes lourdes · 🥴 sur les rotules. ⏳ = les années pèsent sur la récupération.</p>
+   </details>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
-    <p class="dim" style="font-size:12px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b> — contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>
+    <p class="dim" style="font-size:13px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b> — contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>
     <table><tr><th>Joueur</th><th>P</th><th>Chez</th><th class="num">Note</th><th class="num" title="Ce que le club hôte vous verse par journée de prêt">Encaissé</th><th>Retour</th></tr>
     ${G.prets.filter(p=>p.sens==="out").map(p=>{const j=byUid(p.uid); if(!j) return "";
       return `<tr class="click pret" data-u="${p.uid}">
@@ -11228,7 +11489,7 @@ function ecranEffectif(){
     <p style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">${G.prets.filter(p=>p.sens==="out").map(p=>{
       const j=byUid(p.uid); if(!j) return "";
       const reste=p.fin-G.journee, cout=coutRappel(p,j), cher=G.tresorerie<cout;
-      if(reste<=1) return `<span class="dim" style="font-size:12px">${esc(j.nom)} rentre de toute façon à la J${p.fin}.</span>`;
+      if(reste<=1) return `<span class="dim" style="font-size:13px">${esc(j.nom)} rentre de toute façon à la J${p.fin}.</span>`;
       return `<button class="act bRap" data-u="${p.uid}"${cher
         ? ` disabled title="Trésorerie insuffisante : il faudrait ${(cout/1e6).toFixed(2)} MF en caisse"`
         : ` title="Indemnité de rupture versée à ${esc(clubById(j.club).nom)}"`}>📞 Rappeler ${esc(j.nom)} — ${(cout/1e6).toFixed(2)} MF</button>`;}).join("")}</p>`:""}</div>`);
@@ -11266,10 +11527,10 @@ function nommerCapitaine(j){
   };
   fiche.style.display="flex";
   fiche.innerHTML=`<div class="card">
-    <h2 class="jaune">©️ LE BRASSARD DE CAPITAINE</h2>
+    <h2>©️ LE BRASSARD DE CAPITAINE</h2>
     <p><b>${esc(j.nom)}</b> — ${esc(libLeadership(j))}.</p>
     ${demande>0
-      ?`<p class="dim">Ambitieux, il endosserait volontiers le brassard... mais réclame une prime de <b class="jaune">${(demande/1e6).toFixed(1)} MF</b>. Un capitaine pleinement investi soude le vestiaire ; vexé, il mènera du bout des lèvres.</p>`
+      ?`<p class="dim">Ambitieux, il endosserait volontiers le brassard... mais réclame une prime de <b class="fort">${(demande/1e6).toFixed(1)} MF</b>. Un capitaine pleinement investi soude le vestiaire ; vexé, il mènera du bout des lèvres.</p>`
       :`<p class="dim">Sans calcul : il serait simplement fier de mener les siens. Un meneur respecté tempère les ego et fait monter l'équipe d'un cran.</p>`}
     <p style="margin-top:10px">
       ${demande>0?`<button class="big" id="cPay" ${G.tresorerie>=demande?"":"disabled"} style="display:block;width:100%;margin:6px 0">Payer la prime — ${(demande/1e6).toFixed(1)} MF${G.tresorerie>=demande?"":" (caisse insuffisante)"}</button>`:""}
@@ -11294,7 +11555,7 @@ function ouvreFiche(j){
   fiche.innerHTML=`<div class="card">
     <h2>${esc(j.nom)}</h2>
     <p>Poste : <span class="pos-${j.pos}">${j.pos}</span> · Âge : ${j.age} ans</p>
-    <p>Note : <b class="jaune">${j.note}</b>/100
+    <p>Note : <b class="fort">${j.note}</b>/100
        ${prog>0?`<span class="vert">▲ +${prog} depuis le début de saison (départ ${n0})</span>`:'<span class="dim">(stable depuis le début de saison)</span>'}</p>
     <p>Valeur : ${(v1/1e6).toFixed(1)} MF
        ${v1>v0?`<span class="vert">▲ +${((v1-v0)/1e6).toFixed(1)} MF</span>`:""}
@@ -11302,25 +11563,25 @@ function ouvreFiche(j){
     <p>Saison : ${j.matchs||0} match${(j.matchs||0)>1?"s":""} · ${j.buts||0} but${(j.buts||0)>1?"s":""} · ${j.passes||0} passe${(j.passes||0)>1?"s":""} décisive${(j.passes||0)>1?"s":""}</p>
     ${(j.matchsC||0)||(j.butsC||0)||(j.passesC||0)?`<p class="dim">En coupe : ${j.matchsC||0} match${(j.matchsC||0)>1?"s":""} · ${j.butsC||0} but${(j.butsC||0)>1?"s":""} · ${j.passesC||0} passe${(j.passesC||0)>1?"s":""} décisive${(j.passesC||0)>1?"s":""}</p>`:""}
     ${blocBio(j)}
-    ${pOut?`<p class="cyan">📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin} — il y joue titulaire.</p>`:""}
+    ${pOut?`<p>📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin} — il y joue titulaire.</p>`:""}
     ${j.avendre?`<p class="rouge">🏷️ Sur la liste des transferts — ${fenetreOuverte()?"la fenêtre est ouverte, un club français peut conclure dès cette journée":"mercato fermé : seul un club étranger peut encore le prendre"}. Il continue de jouer en attendant.</p>`:""}
-    <p style="margin-top:8px" class="cyan">Caractère :</p>
+    <p style="margin-top:8px">Caractère :</p>
     <p>Ego ${j.ego||5}/10 — ${esc(egoLib(j.ego||5))}${(j.ego||5)>=8?' <span class="rouge">(pèse sur la cohésion du XI)</span>':""}<br>
        Agressivité ${j.agress||5}/10 — ${esc(agressLib(j.agress||5))}<br>
        Fragilité ${j.fragile||5}/10 — ${esc(fragLib(j.fragile||5))}<br>
        Vénalité ${j.venal||5}/10 — ${esc(venalLib(j.venal||5))}</p>
     <p>Moral : <b class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"jaune")}">${Math.round(j.moral||65)}/100</b>${(j.sansJouer||0)>=3?' <span class="rouge">— ronge son frein sur le banc</span>':""}</p>
-    <p>Forme : ${jaugeFraich(j,80)} ${libFraich(j)[3]} <b class="${libFraich(j)[2]}">${esc(libFraich(j)[1])}</b> <span class="dim">(${Math.round(fraich(j))}/100)</span>${j.repos?' <span class="cyan">🛌 au repos</span>':""}</p>
-    <p class="dim" style="font-size:12px">${recupAge(j.age)>=1
+    <p>Forme : ${jaugeFraich(j,80)} ${libFraich(j)[3]} <b class="${libFraich(j)[2]}">${esc(libFraich(j)[1])}</b> <span class="dim">(${Math.round(fraich(j))}/100)</span>${j.repos?' <span>🛌 au repos</span>':""}</p>
+    <p class="dim" style="font-size:13px">${recupAge(j.age)>=1
       ? "À "+j.age+" ans, une semaine de repos lui rend tout ce qu'un match lui prend."
       : "À "+j.age+" ans, sept jours ne lui rendent plus que "+Math.round(FRAICH_SEM*recupJoueur(j,clubById(j.club)))+" points sur les 20 qu'un match coûte : le déficit s'accumule, il faudra le ménager."}</p>
     ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
       :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
-    ${j.tireurElite?`<p class="cyan">🎯 Tireur d'élite — il tire les penaltys et les coups francs</p>`:""}
+    ${j.tireurElite?`<p>🎯 Tireur d'élite — il tire les penaltys et les coups francs</p>`:""}
     ${j.grace?`<p class="vert">✨ En état de grâce — il vit la saison de sa vie !</p>`:""}
-    ${j.selA?`<p class="cyan">International A${j.butSel?" — a marqué en sélection":""}</p>`:(j.selEsp?`<p class="cyan">International Espoirs</p>`:"")}
-    ${(!j.reel&&j.histoire)?`<p style="margin-top:8px" class="cyan">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}
-    <p style="margin-top:8px" class="cyan">Avis des recruteurs :</p>
+    ${j.selA?`<p>International A${j.butSel?" — a marqué en sélection":""}</p>`:(j.selEsp?`<p>International Espoirs</p>`:"")}
+    ${(!j.reel&&j.histoire)?`<p style="margin-top:8px">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}
+    <p style="margin-top:8px">Avis des recruteurs :</p>
     <p>« ${esc(avisRecruteur(j))} »</p>
     ${j.age<=23&&j.pot>j.note?`<p class="dim" style="margin-top:6px">Un jeune progresse nettement plus vite en jouant${j.age<=18?" ; avant 19 ans, le centre de formation assure aussi une bonne progression sans temps de jeu":""}. Un prêt à l'extérieur garantit du temps de jeu.</p>`:""}
     <p style="margin-top:12px">
@@ -11352,9 +11613,9 @@ function ecranMercato(){
   // fiche joueur (partagée par le panneau latéral desktop ET la ligne dépliée mobile) — boutons câblés par classe
   const ficheMercato=j=>{ const dv=divOf(j); return `
     <h2 style="margin:0 0 2px">${esc(j.nom)}</h2>
-    <p style="margin:0"><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · <span class="dim">${esc(clubById(j.club).nom)}</span> <b class="${dv===1?'jaune':'cyan'}">D${dv}</b></p>
+    <p style="margin:0"><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · <span class="dim">${esc(clubById(j.club).nom)}</span> <b class="fort">D${dv}</b></p>
     <p style="margin:8px 0 4px">Note <span class="noteLed">${j.note}</span>${j.note>(j.note0||j.note)?' <span class="vert">▲+'+(j.note-j.note0)+'</span>':""}</p>
-    <p style="margin:0">Prix demandé : <b class="jaune">${(prixAchat(j)/1e6).toFixed(1)} MF</b></p>
+    <p style="margin:0">Prix demandé : <b class="fort">${(prixAchat(j)/1e6).toFixed(1)} MF</b></p>
     <p style="margin:2px 0 0" class="dim">Salaire : ${FMT(salaire(j))} FF/sem</p>
     <p class="avis">« ${esc(avisRecruteur(j))} »</p>
     <p style="margin:8px 0 0">${pictos(j,true)} <span class="dim">Caractère</span></p>
@@ -11383,23 +11644,16 @@ function ecranMercato(){
         <th>P</th>
         <th class="num click" data-c="age">Âge${fl("age")}</th>
         <th class="num click" data-c="note">Note${fl("note")}</th>
-        <th class="num click" data-c="prog">Prog.${fl("prog")}</th>
-        <th title="Caractère — 🎯 tireur d'élite · 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal">Car.</th>
         <th class="click" data-c="club">Club${fl("club")}</th>
-        <th>Div</th>
         <th class="num click" data-c="prix">Prix${fl("prix")}</th><th></th></tr>
       ${dispo.map((j,i)=>`<tr class="click${j.uid===MERCF.sel?' sel':''}" data-k="${i}">
         <td><button class="act bF" data-k="${i}" title="Suivre ce joueur">${j.fav?'<span class="jaune">★</span>':"☆"}</button></td>
         <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
-        <td class="num">${j.age}</td><td class="num"><b>${j.note}</b></td>
-        <td class="num">${j.note>(j.note0||j.note)?'<span class="vert">▲+'+(j.note-j.note0)+'</span>':'<span class="dim">—</span>'}</td>
-        <td>${pictos(j,true)}</td>
-        <td class="dim">${esc(clubById(j.club).nom)}</td>
-        <td><b class="${divOf(j)===1?'jaune':'cyan'}">D${divOf(j)}</b></td>
-        <td class="num">${(prixAchat(j)/1e6).toFixed(1)} MF</td>
-        <td><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button>
-            <button class="act bP" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Prêt</button></td></tr>${
-        j.uid===MERCF.sel?`<tr class="mercDet"><td colspan="11"><div class="mercDetInner">${ficheMercato(j)}</div></td></tr>`:""}`).join("")}
+        <td class="num">${j.age}</td><td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
+        <td class="mClub dim" title="${esc(clubById(j.club).nom)}">${divOf(j)===2?'<b class="fort">D2</b> · ':""}${esc(clubById(j.club).nom)}</td>
+        <td class="num mPrix">${(prixAchat(j)/1e6).toFixed(1)} MF</td>
+        <td><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button></td></tr>${
+        j.uid===MERCF.sel?`<tr class="mercDet"><td colspan="8"><div class="mercDetInner">${ficheMercato(j)}</div></td></tr>`:""}`).join("")}
       </table>
       <p class="mercPag">
         <button class="act" id="pgPrev" ${page<=1?"disabled":""}>◀ Précédente</button>
@@ -11430,12 +11684,12 @@ function ecranMercato(){
     }
   };
   const carteJoker=(o,k)=>`<div class="carte click rj" data-k="${k}">
-    <span class="cyan" style="font-size:12px">${esc(o.type)}</span>
-    <b class="jaune">${esc(o.j.nom)}</b>
-    <span style="font-size:12px"><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b>${o.j.note}</b></span>
-    <span class="dim" style="font-size:11px">${esc(o.j.lieu)}</span>
+    <span style="font-size:13px">${esc(o.type)}</span>
+    <b class="fort">${esc(o.j.nom)}</b>
+    <span style="font-size:13px"><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b>${o.j.note}</b></span>
+    <span class="dim" style="font-size:13px">${esc(o.j.lieu)}</span>
     <span style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
-      <b class="jaune">${(o.prix/1e6).toFixed(1)} MF</b>
+      <b class="fort">${(o.prix/1e6).toFixed(1)} MF</b>
       <button class="act bJ" data-k="${k}">Signer</button></span>
   </div>`;
   const chip=(f,v,lib,active)=>`<button class="mChip ${active?(f==="div"&&v==="2"?"onD2":"on"):""}" data-f="${f}" data-v="${v}">${lib}</button>`;
@@ -11444,14 +11698,14 @@ function ecranMercato(){
   const chipsDiv=[["*","D1 + D2"],["1","D1"],["2","D2"]].map(([v,l])=>chip("div",v,l,divF===v)).join("");
   chrome("mercato",`
    ${panneauFlash()}
-   <div class="panel" style="border-color:#6fd6e8">
+   <div class="panel">
     <h2>Le rapport du recruteur <span class="dim">— recrues joker, signables hors fenêtre, valables cette semaine seulement</span></h2>
     ${G.rapport.length? `<div class="mercRap">${G.rapport.map(carteJoker).join("")}</div>`
       : '<p class="dim">Le recruteur n\'a rien à proposer cette semaine.</p>'}
    </div>
    <div class="panel" style="border-color:${fenetreOuverte()?'#5fd98f':'#ff6f61'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
     <b class="${fenetreOuverte()?'vert':'rouge'}" style="letter-spacing:.5px">${esc(msgMercato())}</b>
-    <span class="dim">Budget transferts <b class="jaune" style="font-size:18px">${(G.budget/1e6).toFixed(1)} MF</b></span>
+    <span class="dim">Budget transferts <b class="fort" style="font-size:18px">${(G.budget/1e6).toFixed(1)} MF</b></span>
    </div>
    <div class="panel">
     <h2>Le marché des transferts</h2>
@@ -11490,21 +11744,21 @@ function ecranFinances(){
    `<div class="panel"><h2>Offres de sponsoring maillot ${G.sponsorSwitch?'<span class="vert">— renégociation de mi-saison</span>':""}</h2>
     ${G.offresSponsor.map((o,k)=>`<p style="margin:8px 0">
       <button class="act bSp" data-k="${k}">Signer</button>
-      <b class="jaune">${esc(o.nom)}</b> — ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
+      <b class="fort">${esc(o.nom)}</b> — ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
       ${o.rep?`<span class="${o.rep>0?'vert':'rouge'}">[réputation ${o.rep>0?'+':''}${o.rep}${o.repJ?", puis +"+o.repJ+"/journée":""}]</span>`:'<span class="dim">[réputation neutre]</span>'}
-      <br><span class="dim" style="font-size:11px">${esc(o.desc)}${o.ere?" — « "+esc(o.ere)+" »":""}</span></p>`).join("")}
+      <br><span class="dim" style="font-size:13px">${esc(o.desc)}${o.ere?" — « "+esc(o.ere)+" »":""}</span></p>`).join("")}
     <p class="dim" style="margin-top:6px">Un seul contrat à la fois. Choisissez selon votre confiance dans l'équipe.</p></div>`:"";
   const offresEq=(G.offresEquip && !G.equip)?
    `<div class="panel"><h2>Offres d'équipementier</h2>
     ${G.offresEquip.map((o,k)=>`<p style="margin:8px 0">
       <button class="act bEq" data-k="${k}">Signer</button>
-      <b class="jaune">${esc(o.nom)}</b> — ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
+      <b class="fort">${esc(o.nom)}</b> — ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
       ${o.rep?`<span class="vert">[réputation +${o.rep}]</span>`:""}
-      <br><span class="dim" style="font-size:11px">${esc(o.desc)} — « ${esc(o.note)} »</span></p>`).join("")}
+      <br><span class="dim" style="font-size:13px">${esc(o.desc)} — « ${esc(o.note)} »</span></p>`).join("")}
     <p class="dim" style="margin-top:6px">L'équipementier habille le maillot et verse un cachet chaque journée. À re-signer chaque saison.</p></div>`:"";
   chrome("finances",`${offres}${offresEq}<div class="panel"><h2>Finances</h2>
    <table class="fit">
-    <tr><td>Budget transferts</td><td class="num jaune">${(G.budget/1e6).toFixed(1)} MF</td></tr>
+    <tr><td>Budget transferts</td><td class="num">${(G.budget/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Trésorerie (fonctionnement)</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Masse salariale hebdomadaire</td><td class="num rouge">- ${FMT(masse)} FF</td></tr>
     <tr><td>Frais de fonctionnement (stade + personnel)</td><td class="num rouge">- ${FMT(fraisJournee(c))} FF/j</td></tr>
@@ -11516,7 +11770,7 @@ function ecranFinances(){
     <tr><td>Capacité de ${esc(c.stade)}</td><td class="num">${FMT(c.cap)} places</td></tr>
    </table></div>
    <div class="panel"><h2>Vases communicants — budget ↔ caisse</h2>
-    <p class="dim">Deux poches séparées : le <b class="jaune">budget transferts</b> recrute, la <b>trésorerie</b> fait tourner le club. Transvaser coûte <b class="rouge">${Math.round(FRAIS_VIRE*100)} %</b> de frais.</p>
+    <p class="dim">Deux poches séparées : le <b class="fort">budget transferts</b> recrute, la <b>trésorerie</b> fait tourner le club. Transvaser coûte <b class="rouge">${Math.round(FRAIS_VIRE*100)} %</b> de frais.</p>
     <p class="row" style="margin:10px 0">Montant&nbsp;:
       <select id="selVire">${[5,10,25,50,100].map(m=>`<option value="${m}">${m} MF</option>`).join("")}</select>
       <button class="act" id="bVcaisse">Mercato → caisse</button>
@@ -11595,7 +11849,7 @@ function svgStade(cap, chantier, stade, aff, chInfo, tribune){
   }
   if(stade?stade.toit:rangs>=6){ // toiture : liseré clair sur la couronne extérieure
     const o=6+(rangs-1)*7+6;
-    s+=`<rect x="${px-o-2}" y="${py-o-2}" width="${pw+2*o+4}" height="${ph+2*o+4}" fill="none" stroke="#6fd6e8" stroke-width="1.6"/>`;
+    s+=`<rect x="${px-o-2}" y="${py-o-2}" width="${pw+2*o+4}" height="${ph+2*o+4}" fill="none" stroke="#aebdd1" stroke-width="1.6"/>`;
   }
   if(stade?stade.pylones:cap>=18000){ // quatre pylônes de projecteurs
     const o=6+rangs*7+14;
@@ -11610,9 +11864,9 @@ function svgStade(cap, chantier, stade, aff, chInfo, tribune){
     s+=`<rect x="${px-oN-6}" y="${py-oN-16}" width="${pw+2*oN+12}" height="7" fill="#ffd24a" opacity="0.9" stroke="#0b1626" stroke-width="0.6"/>`;
   }
   if(stade&&stade.ecran){ // écran géant, coin haut-droit
-    s+=`<rect x="${W-64}" y="12" width="46" height="28" fill="#0e1d35" stroke="#6fd6e8" stroke-width="1.5"/>
+    s+=`<rect x="${W-64}" y="12" width="46" height="28" fill="#0e1d35" stroke="#aebdd1" stroke-width="1.5"/>
         <rect x="${W-60}" y="16" width="38" height="20" fill="#123a5c"/>
-        <line x1="${W-41}" y1="40" x2="${W-41}" y2="50" stroke="#6fd6e8" stroke-width="1.5"/>`;
+        <line x1="${W-41}" y1="40" x2="${W-41}" y2="50" stroke="#aebdd1" stroke-width="1.5"/>`;
   }
   if(chantier){ // grue
     const gx=px+pw+rangs*7+22, gy=py+ph+rangs*7;
@@ -11647,13 +11901,13 @@ function ecranClub(){
   chrome("club",`<div class="grid2">
    <div class="panel"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
      ${svgStade(c.cap, !!G.chantier, G.stade, affR, chI, tribClk)}
-     <p class="ctr">${esc(c.stade)} — <b class="jaune">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
+     <p class="ctr">${esc(c.stade)} — <b class="fort">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
      <p class="ctr" style="margin-top:4px">Affluence moyenne :
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
          <span style="display:block;height:100%;width:${affPct}%;background:${affCol}"></span>
-       </span> ${affPct}%${affEstim?' <span class="dim" style="font-size:10px">(estim.)</span>':''}</p>
+       </span> ${affPct}%${affEstim?' <span class="dim" style="font-size:13px">(estim.)</span>':''}</p>
      ${baroTribunes()}
-     ${G.chantier?"":`<p class="ctr dim" style="font-size:11px;margin-top:6px">Un projet à la fois — cliquez une tribune.</p>`}
+     ${G.chantier?"":`<p class="ctr dim" style="font-size:13px;margin-top:6px">Un projet à la fois — cliquez une tribune.</p>`}
      <div class="ctr" style="margin-top:8px">${projetsHTML()}</div>
      <h3 style="margin-top:12px">Centre d'entraînement — niveau ${G.centre}/5</h3>
      <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} % et soignées plus vite${G.centre>=3?" · Le staff médical réduit la fragilité chaque intersaison":""}</p>
@@ -11663,7 +11917,7 @@ function ecranClub(){
    </div>
    <div class="panel"><h2>Direction &amp; mémoire</h2>
      <h3>Le président</h3>
-     <p>Objectif ${esc(G.saison)} : <b class="jaune">${esc(G.objectif.label)}</b></p>
+     <p>Objectif ${esc(G.saison)} : <b class="fort">${esc(G.objectif.label)}</b></p>
      <p>Confiance :
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
          <span style="display:block;height:100%;width:${Math.round(G.confiance)}%;background:${G.confiance>50?"var(--vert)":(G.confiance>25?"var(--jaune)":"var(--rouge)")}"></span>
@@ -11677,13 +11931,13 @@ function ecranClub(){
      <p class="dim">${(G.reput||75)>=80?"Un club respecté, fidèle à ses valeurs.":((G.reput||75)>=55?"Une image honorable.":((G.reput||75)>=35?"L'image se ternit — sponsors douteux, cadres bradés...":"Réputation au plus bas. Les puristes vous ont tourné le dos."))}</p>
      <h3 style="margin-top:12px">Mémoire du club</h3>
      ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> — ${esc(nomRivalite(c.id,RIVAL[c.id]))}. La confiance se joue aussi là.</p>`:""}
-     <p>Bête noire : <b class="jaune">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"—")}</b>${c.bnBattue?' <span class="vert">— signe indien brisé cette saison ✓</span>':' <span class="dim">— ils jouent toujours bien contre vous... jusqu'+"'"+'à la première victoire.</span>'}</p>
+     <p>Bête noire : <b class="fort">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"—")}</b>${c.bnBattue?' <span class="vert">— signe indien brisé cette saison ✓</span>':' <span class="dim">— ils jouent toujours bien contre vous... jusqu'+"'"+'à la première victoire.</span>'}</p>
      ${MALEDICTIONS[c.id]?`<p class="dim" style="font-style:italic">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
      <h3 style="margin-top:12px">Les records du club</h3>
      ${(()=>{ const l=recordsTenus();
-        if(!l.length) return `<p class="dim" style="font-size:11px">Rien dans les archives pour l'instant. La première victoire large, la première série, le premier stade plein : tout commence cette saison.</p>`;
-        return l.map(d=>`<p class="dim" style="font-size:12px">${d.ico} <b>${esc(d.nom)}</b> — ${esc(d.r.t)} <span style="font-size:11px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join("")
-          +`<p class="dim" style="font-size:11px;margin-top:4px">Six lignes, six chasses. Un record qui tombe, c'est une soirée dont on reparle.</p>`; })()}
+        if(!l.length) return `<p class="dim" style="font-size:13px">Rien dans les archives pour l'instant. La première victoire large, la première série, le premier stade plein : tout commence cette saison.</p>`;
+        return l.map(d=>`<p class="dim" style="font-size:13px">${d.ico} <b>${esc(d.nom)}</b> — ${esc(d.r.t)} <span style="font-size:13px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join("")
+          +`<p class="dim" style="font-size:13px;margin-top:4px">Six lignes, six chasses. Un record qui tombe, c'est une soirée dont on reparle.</p>`; })()}
    </div></div>`);
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>lanceProjet(b.dataset.id));
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade
