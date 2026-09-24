@@ -127,27 +127,27 @@
   #ticker .but{color:var(--jaune); font-weight:bold;}
   #ticker .occ{color:var(--clair);}
   #ticker .crd{color:var(--rouge);}
-  #ticker .sys{color:var(--vert);}
+  #ticker .sys{color:var(--dim);}
   .cursor::after{content:"▌"; animation:cl 1s steps(1) infinite; color:var(--vert);}
   @keyframes cl{50%{opacity:0;}}
   @media (prefers-reduced-motion:reduce){.cursor::after{animation:none;}}
   /* ---- célébration de but : panneau d'affichage LED clignotant ---- */
   #butFlash{position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
     background:rgba(4,9,18,.55); pointer-events:none;}
-  #butFlash .led{font-family:'Courier New',monospace; font-weight:bold; text-align:center; padding:24px 34px;
+  #butFlash .led{font-family:var(--font-ui); font-weight:normal; text-align:center; padding:24px 34px;
     min-width:min(560px,92vw); max-width:min(640px,92vw); box-sizing:border-box; cursor:pointer;
     background:#0a0610; background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px); background-size:6px 6px;
     border:4px solid #2a2a2a; border-radius:6px; box-shadow:0 0 60px rgba(0,0,0,.85), inset 0 0 28px rgba(0,0,0,.6);}
   #butFlash .gros{font-family:var(--font-led); font-size:42px; letter-spacing:3px; color:var(--jaune); line-height:1.15;
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6); animation:butflash .4s steps(1) infinite;}
-  #butFlash .det{font-size:21px; color:#fff; margin-top:12px; letter-spacing:1px;}
+  #butFlash .det{font-size:26px; color:#fff; margin-top:12px; letter-spacing:1px;}
   /* nom du buteur en capitales blanches sous la ligne de score, façon tableau d'affichage (CANTONA 56' ⚽) */
   #butFlash .buteur{font-family:var(--font-led); font-size:24px; color:#fff; letter-spacing:2px; margin-top:10px;
     text-transform:uppercase; text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
   /* le texte d'explication du but est aligné à GAUCHE et plus gros : on y lit qui a marqué, plus lisible qu'en pavé centré */
-  #butFlash .dettxt{font-size:18px; color:var(--clair); margin:12px auto 0; line-height:1.55; text-align:left;
+  #butFlash .dettxt{font-size:22px; color:var(--clair); margin:12px auto 0; line-height:1.55; text-align:left;
     max-width:540px; background:rgba(255,255,255,.05); padding:8px 12px; border-radius:3px;}
-  #butFlash .hint{font-size:13px; color:var(--dim); margin-top:12px; letter-spacing:1px;}
+  #butFlash .hint{font-size:16px; color:var(--dim); margin-top:12px; letter-spacing:1px;}
   #butFlash.contre .gros{color:var(--rouge);}
   /* la vignette du but s'affiche EN ENTIER (plus de bandeau texte par-dessus) : titre au-dessus, détail en dessous */
   #butFlash .vignette{line-height:0; border:2px solid #2a2a2a; border-radius:4px; overflow:hidden; margin:14px auto 0; width:fit-content;}
@@ -263,12 +263,17 @@
   .footer .act{background:none; border-color:transparent; color:var(--dim);}
   .footer .act:hover{border-color:transparent; color:var(--clair);}
 
-/* tableau d'affichage */
-#tabScore{display:flex;align-items:center;justify-content:center;gap:12px}
-.tSc{font-family:var(--font-led);font-size:34px;font-weight:bold;color:var(--jaune);min-width:52px;text-align:center;
-     background:#060d18;border:1px solid var(--line);padding:0 8px;line-height:1.35}
-.tSep{font-family:var(--font-led);color:var(--dim);font-size:22px}
-.tNom{font-size:17px;color:#e8e8e8;max-width:230px}
+/* TABLEAU D'AFFICHAGE (chantier interface) : au match, le rétro reprend la main. Un panneau noir à points
+   comme celui du stade, les noms en capitales pixel, les chiffres qui luisent (halo serré + ombre pixel, jamais
+   de néon flou), et la minute qui tourne sous le score (majMinute, nourrie par chaque ligne du téléscripteur). */
+#tabScore{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 16px;
+  background:#05080d;background-image:radial-gradient(rgba(255,255,255,.045) 1px,transparent 1.2px);background-size:5px 5px;
+  border:1px solid #1d2633;border-radius:6px;padding:16px 14px 12px}
+.tSc{font-family:var(--font-led);font-size:42px;color:var(--jaune);min-width:48px;text-align:center;line-height:1.1;
+  text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6)}
+.tSep{font-family:var(--font-led);color:#4d5b6e;font-size:24px}
+.tNom{font-family:var(--font-led);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#eef2ff;max-width:230px;line-height:1.25}
+.tMin{flex-basis:100%;text-align:center;font-family:var(--font-led);font-size:15px;letter-spacing:.12em;color:var(--jaune);opacity:.8}
 #tabButs{display:flex;gap:18px;margin-top:6px}
 #tabButs .tCol{flex:1;font-size:14px;color:var(--dim)}
 #tabButs .tCol.d{text-align:right}
@@ -331,10 +336,18 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   table{min-width:540px}
   table.fit{min-width:0} /* tables clé/valeur étroites : tiennent dans l'écran, pas de scroll horizontal */
   .panel table{font-size:13px}
-  .tSc{font-size:24px;min-width:36px;padding:0 4px}
-  .tNom{font-size:13px;max-width:90px}
   #tabScore{gap:5px}
-  #ctlVitesse{float:none !important;display:block;margin-top:6px} /* les contrôles de vitesse sur leur propre ligne, plein écran */
+  #ctlVitesse{float:none !important;display:block;margin-top:0}
+  /* au direct sur téléphone : le titre « Téléscripteur » s'efface (le panneau parle de lui-même), les commandes se tassent */
+  body.mode-direct .panelDirect>h2{font-size:0;margin-bottom:6px}
+  body.mode-direct #ctlVitesse, body.mode-direct #ctlTactique{font-size:13px !important}
+  #ctlVitesse .act, #ctlTactique .act{padding:6px 8px;font-size:13px}
+  #libTacD{display:none}
+  .tSc{font-size:32px;min-width:34px}
+  .tNom{font-size:13px;max-width:100px;letter-spacing:.04em}
+  /* sur téléphone le score doit tenir sur UNE ligne : les blasons s'effacent, les noms passent sur deux lignes */
+  #tabScore{gap:6px 10px;padding:14px 8px 10px}
+  #tabScore>svg{display:none} /* les contrôles de vitesse sur leur propre ligne, plein écran */
   #ticker{font-size:16px;max-height:280px}
   .fbox{max-width:94vw !important;padding:10px !important}
   .fbox #cage, .fbox div[style*="width:330px"]{width:100% !important}
@@ -11032,6 +11045,19 @@ function lanceMatch(instant){
 function ajouteLigne(tk,l){
   tk.insertAdjacentHTML("afterbegin",
    `<p class="evt"><span class="min">${String(l.m).padStart(2,"0")}'</span> <span class="tx ${l.t}">${esc(l.x)}</span><span class="ico">${l.ic?ICO[l.ic]:""}</span></p>`);
+  majMinute(l.m);
+}
+/* La minute du tableau d'affichage suit la dernière ligne du téléscripteur. Purement cosmétique : sans tableau
+   (harnais sans DOM, écran qui n'en a pas), elle ne fait rien et ne lève jamais. */
+function majMinute(m){
+  if(m==null || typeof document==="undefined") return;
+  try{
+    const ts=document.getElementById("tabScore");
+    if(!ts || typeof ts.insertAdjacentHTML!=="function" || typeof ts.querySelector!=="function") return;
+    let tm=ts.querySelector(".tMin");
+    if(!tm){ ts.insertAdjacentHTML("beforeend",'<span class="tMin" aria-live="off"></span>'); tm=ts.querySelector(".tMin"); }
+    if(tm) tm.textContent=String(m).padStart(2,"0")+"'";
+  }catch(e){}
 }
 const ZONES_PEN=[["hg","Lucarne G"],["hc","Sous la barre"],["hd","Lucarne D"],["bg","Ras de terre G"],["bc","Plein centre"],["bd","Ras de terre D"]];
 function cadreMoment(titre, corps){

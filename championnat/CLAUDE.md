@@ -137,7 +137,10 @@ toujours « raconter quelque chose ».
   (14 sur téléphone), tableaux et boutons à 14. **Piège de métrique** : VT323 rend bien plus petit que Plex à
   taille égale — si on le remet quelque part, remonter sa taille d'environ 20 %. Les temps forts LED portent un
   **halo serré + ombre pixel** (`text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6)`), pas un néon flou —
-  ne pas réintroduire le `0 0 9px`.
+  ne pas réintroduire le `0 0 9px`. **Le match en direct est le seul écran où le rétro domine** : `#tabScore` est un
+  panneau noir à points (noms en Silkscreen capitales, chiffres qui luisent, minute `.tMin` tenue par `majMinute`,
+  appelée depuis `ajouteLigne`) ; le flash de but parle VT323 + Silkscreen, **plus de Courier New** ; les lignes de
+  service du téléscripteur (`.sys`) sont grises, le vert restant réservé à la hausse.
 
 ## Systèmes de jeu en place (ne pas casser)
 - **APRÈS CE MATCH — LES PROCHAINS RENDEZ-VOUS (v1.20, idée prise à RFM27)** : sous l'affiche du jour, trois
