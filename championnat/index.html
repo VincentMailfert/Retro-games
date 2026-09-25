@@ -7343,33 +7343,6 @@ function choisirEquip(k){
    G.stade mémorise les superstructures construites (toit, pylônes, écran, loges, boutique, pelouse chauffante).
    inferStade() DÉDUIT l'état de départ de la taille réelle du stade → rien ne change à la migration, on ne
    construit que ce qui manque. Chaque livraison apparaît sur le SVG et applique un effet : nudge + prestige. */
-const COTES=["Nord","Sud","Est","Ouest"];
-const STADE_PROJETS=[
-  {id:"tribune", nom:"Nouvelle tribune", pres:1, duree:3, places:3500,
-   cout:c=>Math.round((9e6+c.cap*280)/1e5)*1e5, // plus le stade est grand, plus la tribune coûte
-   dispo:c=>c.cap<=STADE_MAX-PLACES_TRIB, fait:()=>false,
-   label:c=>"Tribune "+coteTribune(c)+" (+"+FMT(3500)+" places)",
-   applique:c=>{ const cote=coteTribune(c); c.cap+=3500; G.stade.cote=(G.stade.cote||0)+1;
-     return "TRIBUNE "+cote.toUpperCase()+" LIVRÉE ! "+c.stade+" passe à "+FMT(c.cap)+" places."; }},
-  {id:"pylones", nom:"Éclairage nocturne", pres:1, duree:2, cout:()=>6e6,
-   dispo:c=>G.stade.eclairage<2, fait:()=>G.stade.eclairage>=2,
-   applique:c=>{ G.stade.eclairage=2; return "PROJECTEURS ALLUMÉS ! Les soirs de match, "+c.stade+" brille — et le public répond présent."; }},
-  {id:"toit", nom:"Toiture des tribunes", pres:1, duree:4, cout:()=>12e6,
-   dispo:c=>!G.stade.toit && c.cap>=13000, fait:()=>!!G.stade.toit,
-   applique:c=>{ G.stade.toit=1; return "TOITURE POSÉE ! Un stade couvert, ça rugit : l'ambiance à domicile monte d'un cran."; }},
-  {id:"loges", nom:"Loges VIP", pres:1, duree:3, cout:()=>9e6,
-   dispo:c=>!G.stade.loges, fait:()=>G.stade.loges,
-   applique:c=>{ G.stade.loges=true; return "LOGES VIP LIVRÉES ! Sponsors et notables paient cher leur soirée — recette premium à chaque match à domicile."; }},
-  {id:"ecran", nom:"Écran géant", pres:0, duree:2, cout:()=>5e6,
-   dispo:c=>!G.stade.ecran, fait:()=>G.stade.ecran,
-   applique:c=>{ G.stade.ecran=true; return "ÉCRAN GÉANT INSTALLÉ ! Ralentis et animations : le spectacle gagne les tribunes."; }},
-  {id:"boutique", nom:"Boutique & musée", pres:0, duree:2, cout:()=>4e6,
-   dispo:c=>G.stade.boutique<2, fait:()=>G.stade.boutique>=2,
-   applique:c=>{ G.stade.boutique=2; return "BOUTIQUE & MUSÉE OUVERTS ! Écharpes, maillots, souvenirs : une petite rentrée d'argent chaque journée."; }},
-  {id:"chauffante", nom:"Pelouse chauffante", pres:0, duree:2, cout:()=>7e6,
-   dispo:c=>!G.stade.chauffante, fait:()=>G.stade.chauffante,
-   applique:c=>{ G.stade.chauffante=true; return "PELOUSE CHAUFFANTE ! Fini les patinoires de décembre : le beau jeu même en plein hiver."; }},
-];
 /* LE STADE EN NIVEAUX (v1.36, maquette isométrique). G.stade ne garde plus des booléens mais des niveaux :
    0/1 pour les chantiers uniques, 0 à 3 pour les familles (l'éclairage part de 1, les mâts d'origine).
    Le prototype de référence est championnat/docs/prototype-stade.html. */
@@ -7431,58 +7404,159 @@ function stadeRecetteMatch(fill){ // recettes annexes d'un match à domicile (lo
   return (G.stade.loges?150000:0)+Math.round(effStade("buvette","match")*Math.max(0,Math.min(1,fill)))+effStade("restaurant","match");
 }
 function stadeRecetteJour(){ return G.stade?sommeEff("jour")+(G.stade.led?50000:0):0; } // boutique, musée, ruban LED
+const COTES=["Nord","Sud","Est","Ouest"];
+const T_STADE=c=>Math.round((9e6+c.cap*280)/1e5)*1e5; // le prix d'une tribune : l'étalon de tous les grands travaux
+/* Les textes des cartes de livraison, repris du prototype (jamais de tiret cadratin : consigne de l'auteur). */
+const LIVR_MSG={
+  virages:["VIRAGES LIVRÉS !","Les coins se referment en arrondi. 5 000 places de plus, et le kop a enfin sa maison : l'ambiance à domicile grimpe."],
+  toit:["TOITURE POSÉE !","Un stade couvert, ça rugit : l'ambiance à domicile monte d'un cran."],
+  loges:["LOGES VIP LIVRÉES !","Sponsors et notables paient cher leur soirée."],
+  ecran:["ÉCRAN GÉANT INSTALLÉ !","Ralentis et animations : le spectacle gagne les tribunes."],
+  chauffante:["PELOUSE CHAUFFANTE !","Fini les pelouses pelées de décembre : un billard vert toute l'année."],
+  led:["RUBAN LED ALLUMÉ !","Une bande lumineuse fait le tour du stade : les sponsors s'arrachent les créneaux."],
+  retract:["TOIT RÉTRACTABLE LIVRÉ !","Pluie, neige ou grand soir européen : le stade se ferme en quelques minutes. Le chef-d'œuvre du club."]
+};
+const LIVR_NIV={
+  eclairage:{2:["PYLÔNES INSTALLÉS !","Quatre grands mâts dans les angles : le stade se voit de tout le quartier, et les soirs de match changent de visage."],
+             3:["RAMPE DE TOIT ALLUMÉE !","Les pylônes tombent, la lumière court tout autour du toit. Un éclairage de niveau européen."]},
+  boutique:{1:["KIOSQUE OUVERT !","Écharpes et fanions au pied des tribunes : les premières recettes du merchandising."],
+            2:["BOUTIQUE DU CLUB INAUGURÉE !","Maillots, ballons, souvenirs : une vraie vitrine, une vraie rentrée d'argent chaque journée."],
+            3:["MÉGASTORE !","Deux étages de vitrines et des maillots floqués à la demande : les visiteurs viennent même sans match."]},
+  buvette:{1:["BARAQUE À FRITES OUVERTE !","Frites, merguez et bière tiède : le rituel d'avant-match commence."],
+           2:["BUVETTES INSTALLÉES !","Trois comptoirs au pied des tribunes : moins de queue à la mi-temps, plus de recettes."],
+           3:["FAN ZONE INAUGURÉE !","Tentes, guirlandes et grandes tablées : on vient trois heures avant le coup d'envoi."]},
+  restaurant:{1:["BRASSERIE DU CLUB OUVERTE !","Nappes à carreaux et plat du jour : les habitués ont leur table les soirs de match."],
+              2:["RESTAURANT PANORAMIQUE !","Une salle vitrée posée sur la tribune principale, avec vue plongeante sur la pelouse."],
+              3:["TABLE ÉTOILÉE !","Un chef étoilé en haut de la tribune d'honneur : les partenaires se battent pour réserver."]},
+  hotel:{1:["HÔTEL OUVERT !","Quelques chambres face au stade : la mise au vert se fait sur place."],
+         2:["HÔTEL DU CLUB !","Un vrai hôtel aux couleurs du club, complet les veilles de match."],
+         3:["PALACE DU CLUB !","Une tour de luxe qui domine le quartier, suites avec vue sur la pelouse."]},
+  transport:{1:["PARKING OUVERT !","Des centaines de places au pied du stade : les supporters viennent de plus loin."],
+             2:["LIGNE DE TRAM !","Un arrêt Stade : les soirs de match, les rames se remplissent de maillots."],
+             3:["GARE DU STADE !","Des trains spéciaux les jours de match : toute la région peut venir."]},
+  kop:{1:["DRAPEAUX GÉANTS !","Le kop agite des étendards immenses : les virages deviennent une mer de couleurs."],
+       2:["PREMIER TIFO !","Une fresque géante se lève dans les virages à l'entrée des joueurs."],
+       3:["SONO ET BÂCHE DU KOP !","Mégaphones, sono et bâche des ultras : l'enfer pour les visiteurs."]},
+  musee:{1:["SALLE DES TROPHÉES !","Les coupes sortent des cartons et brillent enfin sous verre."],
+         2:["MUSÉE DU CLUB INAUGURÉ !","Maillots d'époque et photos de légende : l'histoire du club s'expose toute l'année."],
+         3:["ALLÉE DES LÉGENDES !","Les statues des plus grands joueurs accueillent les supporters à l'entrée du stade."]}
+};
+/* Les familles à trois niveaux : nom de chaque niveau, coût (FF), durée (journées), prestige gagné à la livraison.
+   L'éclairage part du niveau 1 (les mâts d'origine, acquis) ; la rampe exige un toit, le kop exige des virages. */
+const NIVEAUX_STADE={
+  eclairage:{titre:"Éclairage", famille:"Confort", noms:[null,"Mâts d'origine","Pylônes","Rampe de toit"], cout:[0,0,6e6,14e6], duree:[0,0,2,3], pres:[0,0,1,1],
+    cond:(c,n)=>n<3||!!G.stade.toit},
+  boutique:{titre:"Boutique", famille:"Commerces", noms:[null,"Kiosque","Boutique du club","Mégastore"], cout:[0,2e6,5e6,14e6], duree:[0,1,2,3], pres:[0,0,0,1]},
+  buvette:{titre:"Buvette", famille:"Commerces", noms:[null,"Baraque à frites","Buvettes","Fan zone"], cout:[0,1.5e6,4e6,10e6], duree:[0,1,2,3], pres:[0,0,0,0]},
+  restaurant:{titre:"Restaurant", famille:"Commerces", noms:[null,"Brasserie","Panoramique","Table étoilée"], cout:[0,3e6,9e6,20e6], duree:[0,2,3,4], pres:[0,0,0,1],
+    apres:n=>{ if(n===3) majReput(3,"table étoilée au stade"); }},
+  musee:{titre:"Musée", famille:"Commerces", noms:[null,"Salle des trophées","Musée du club","Allée des légendes"], cout:[0,2e6,7e6,18e6], duree:[0,1,2,4], pres:[0,0,1,1]},
+  hotel:{titre:"Hôtel", famille:"Commerces", noms:[null,"Hôtel","Hôtel du club","Palace"], cout:[0,8e6,20e6,45e6], duree:[0,3,4,6], pres:[0,0,0,0]},
+  transport:{titre:"Accès", famille:"Accès et ambiance", noms:[null,"Parking","Tram","Gare"], cout:[0,4e6,15e6,35e6], duree:[0,2,4,6], pres:[0,0,0,0]},
+  kop:{titre:"Kop", famille:"Accès et ambiance", noms:[null,"Drapeaux géants","Tifos","Sono et bâche"], cout:[0,1e6,3e6,6e6], duree:[0,1,1,2], pres:[0,0,0,0],
+    cond:()=>!!G.stade.virages},
+};
+// un chantier unique (0 → 1) : toit, loges, écran, pelouse chauffante, ruban LED
+const projetUnique=(id,nom,famille,cout,duree,pres,dispo)=>({id, nom, famille, niv:()=>1,
+  cout:typeof cout==="function"?cout:()=>cout, duree:()=>duree, pres:()=>pres, label:()=>nom,
+  dispo:c=>!G.stade[id]&&dispo(c), fait:()=>!!G.stade[id],
+  applique:c=>{ G.stade[id]=1; return {titre:LIVR_MSG[id][0], sous:LIVR_MSG[id][1]}; }});
+// une famille à niveaux : le projet proposé est toujours le niveau suivant
+const projetNiveaux=id=>{ const d=NIVEAUX_STADE[id], nv=()=>(G.stade[id]|0)+1;
+  return {id, nom:d.titre, famille:d.famille, niveaux:true, niv:nv,
+    cout:(c,n)=>d.cout[n||nv()]||0, duree:n=>d.duree[n||nv()]||1, pres:n=>d.pres[n||nv()]||0,
+    label:(c,n)=>d.noms[Math.min(3,n||nv())], // la famille est déjà en intertitre : « Mégastore » suffit
+    dispo:c=>nv()<=3 && (!d.cond||d.cond(c,nv())), fait:()=>nv()>3,
+    applique:(c,n)=>{ n=n||nv(); G.stade[id]=Math.max(G.stade[id]|0,n); if(d.apres) d.apres(n);
+      return {titre:LIVR_NIV[id][n][0], sous:LIVR_NIV[id][n][1]}; }};
+};
+const STADE_PROJETS=[
+  {id:"tribune", nom:"Nouvelle tribune", famille:"Tribunes", niv:()=>1, places:PLACES_TRIB,
+   cout:c=>T_STADE(c), duree:()=>3, pres:()=>1, // plus le stade est grand, plus la tribune coûte
+   dispo:c=>c.cap<=STADE_MAX-PLACES_TRIB, fait:()=>false,
+   label:c=>"Tribune "+coteTribune(c)+" (+"+FMT(PLACES_TRIB)+" places)",
+   applique:c=>{ const cote=coteTribune(c), avant=c.cap, pAvant=etapeStade(avant); c.cap+=PLACES_TRIB; G.stade.cote=(G.stade.cote||0)+1;
+     const pal=etapeStade(c.cap), nouveau=pal!==pAvant;
+     return {titre:"TRIBUNE "+cote.toUpperCase()+" LIVRÉE !",
+       sous:nouveau?"Nouveau palier : "+pal+". Le stade change de dimension.":"La tribune "+cote+" gagne une rangée. Le stade grandit.",
+       chiffres:"De "+FMT(avant)+" à "+FMT(c.cap)+" places"}; }},
+  {id:"virages", nom:"Virages", famille:"Tribunes", niv:()=>1,
+   cout:c=>2*T_STADE(c), duree:()=>6, pres:()=>1,
+   dispo:c=>!G.stade.virages && c.cap>=SEUIL_VIRAGES && c.cap<=STADE_MAX-PLACES_VIRAGES, fait:()=>!!G.stade.virages,
+   label:()=>"Virages (+"+FMT(PLACES_VIRAGES)+" places)",
+   applique:c=>{ const avant=c.cap; G.stade.virages=1; c.cap+=PLACES_VIRAGES;
+     return {titre:LIVR_MSG.virages[0], sous:LIVR_MSG.virages[1], chiffres:"De "+FMT(avant)+" à "+FMT(c.cap)+" places"}; }},
+  projetUnique("toit","Toiture des tribunes","Confort",12e6,4,1,c=>c.cap>=13000),
+  projetUnique("loges","Loges VIP","Confort",9e6,3,1,()=>true),
+  projetUnique("ecran","Écran géant","Confort",5e6,2,0,()=>true),
+  projetUnique("chauffante","Pelouse chauffante","Confort",7e6,2,0,()=>true),
+  projetNiveaux("eclairage"),
+  projetUnique("led","Ruban LED","Commerces",6e6,2,0,()=>true),
+  projetNiveaux("boutique"), projetNiveaux("buvette"), projetNiveaux("restaurant"), projetNiveaux("musee"), projetNiveaux("hotel"),
+  projetNiveaux("transport"), projetNiveaux("kop"),
+];
 // le côté de la prochaine tribune se lit dans la capacité (comme sur la maquette) : Nord, Sud, Est, Ouest, puis on recommence
 function coteTribune(c){ return COTES[STADE3D.coteSuivante(c.cap-PLACES_VIRAGES*((G.stade&&G.stade.virages)|0))]; }
 function projetById(id){ return STADE_PROJETS.find(x=>x.id===id); }
-function nomChantier(){ const p=G.chantier&&projetById(G.chantier.id); return p?(p.label?p.label(clubById(G.monClub)):p.nom):"Tribune"; }
+function nomChantier(){ const p=G.chantier&&projetById(G.chantier.id), c=clubById(G.monClub);
+  return p?p.label(c, G.chantier.niv):"Tribune"; }
 function lanceProjet(id){
   const c=clubById(G.monClub), p=projetById(id);
   if(!p) return;
-  if(G.chantier) return message("Un chantier est déjà en cours — livraison dans "+G.chantier.reste+" journée(s). Les grues ne se dédoublent pas.", {titre:"🏗️ CHANTIER EN COURS"});
+  if(G.chantier) return message("Un chantier est déjà en cours, livraison dans "+G.chantier.reste+" journée(s). Les grues ne se dédoublent pas.", {titre:"🏗️ CHANTIER EN COURS"});
   if(!p.dispo(c)) return;
-  const cout=p.cout(c);
+  const n=p.niv(c), cout=p.cout(c,n), duree=p.duree(n), label=p.label(c,n);
   if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6).toFixed(1)+" MF, la caisse ne suit pas.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   // un chantier immobilise la caisse ET le seul créneau de travaux disponible : on confirme avant
   modalSignature({
     titre:"🏗️ Lancer les travaux ?",
-    corps:`<p><b class="fort">${esc(p.label?p.label(c):p.nom)}</b> à ${esc(c.stade)}.</p>
+    corps:`<p><b class="fort">${esc(label)}</b> à ${esc(c.stade)}.</p>
       <p class="dim" style="margin-top:4px">${esc(EFFET_PROJ[p.id]||"")}</p>
-      <p style="margin-top:6px">Coût : <b class="fort">${(cout/1e6).toFixed(1)} MF</b> pris sur la trésorerie · livraison dans ${p.duree} journées.</p>
+      <p style="margin-top:6px">Coût : <b class="fort">${(cout/1e6).toFixed(1)} MF</b> pris sur la trésorerie · livraison dans ${duree} journées.</p>
       <p class="dim">Il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse, et aucun autre chantier possible d'ici là.</p>`,
-    ok:"Lancer le chantier — "+(cout/1e6).toFixed(1)+" MF",
+    ok:"Lancer le chantier · "+(cout/1e6).toFixed(1)+" MF",
     onOk:()=>{
-      if(G.chantier || G.tresorerie<cout) return; // la situation a pu changer entre-temps
+      if(G.chantier || G.tresorerie<cout || !p.dispo(c)) return; // la situation a pu changer entre-temps
       G.tresorerie-=cout;
-      G.chantier={reste:p.duree, id:id};
-      G.news.unshift("TRAVAUX : "+(p.label?p.label(c):p.nom)+" — chantier lancé à "+c.stade+". Livraison dans "+p.duree+" journées.");
+      G.chantier={reste:duree, id:id, niv:n};
+      G.news.unshift("TRAVAUX : "+label+", chantier lancé à "+c.stade+". Livraison dans "+duree+" journées.");
       montre("club");
     }
   });
 }
+// livre le chantier quand son compte à rebours tombe à zéro ; renvoie la livraison {id,niv,titre,sous,chiffres}
 function avanceChantier(){
-  if(!G.chantier) return;
+  if(!G.chantier) return null;
   G.chantier.reste--;
-  if(G.chantier.reste<=0){
-    const c=clubById(G.monClub), p=projetById(G.chantier.id);
-    let msg;
-    if(p){ msg=p.applique(c); if(p.pres) c.pres=Math.min(10,(c.pres||0)+p.pres); }
-    else { c.cap+=(G.chantier.places||3000); c.pres=Math.min(10,(c.pres||0)+1); msg=c.stade+" passe à "+FMT(c.cap)+" places."; } // ancien chantier « places »
-    G.news.unshift("✅ "+msg);
-    G.chantier=null;
-  }
+  if(G.chantier.reste>0) return null;
+  const c=clubById(G.monClub), ch=G.chantier, p=projetById(ch.id);
+  let l;
+  if(p){ const n=ch.niv||p.niv(c); l=p.applique(c,n,ch)||{}; const pr=p.pres(n); if(pr) c.pres=Math.min(10,(c.pres||0)+pr); l.id=p.id; l.niv=n; }
+  else { const avant=c.cap; c.cap+=(ch.places||3000); c.pres=Math.min(10,(c.pres||0)+1); // ancien chantier « places »
+    l={id:"tribune", niv:1, titre:"TRIBUNE LIVRÉE !", sous:c.stade+" passe à "+FMT(c.cap)+" places.", chiffres:"De "+FMT(avant)+" à "+FMT(c.cap)+" places"}; }
+  G.news.unshift("✅ "+l.titre+" "+l.sous);
+  G.chantier=null;
+  return l;
 }
-const EFFET_PROJ={tribune:"+ de places, + d'affluence et de prestige", pylones:"les soirs de match : + d'affluence, + de prestige",
-  toit:"+ de ferveur à domicile, + de prestige", loges:"recette premium à chaque match à domicile, + prestige",
-  ecran:"ambiance renforcée dans les tribunes", boutique:"une rentrée d'argent chaque journée", chauffante:"plus jamais de match reporté en hiver"};
+const EFFET_PROJ={tribune:"+ de places, + d'affluence et de prestige", virages:"+5 000 places, + de ferveur, et le kop a sa maison",
+  eclairage:"+ d'affluence les soirs de match", toit:"+ de ferveur à domicile, + de prestige", loges:"recette premium à chaque match à domicile, + prestige",
+  ecran:"ambiance renforcée dans les tribunes", chauffante:"un billard vert toute l'année", led:"des créneaux publicitaires vendus chaque journée",
+  boutique:"une rentrée d'argent chaque journée", buvette:"des recettes à chaque match à domicile, selon le remplissage",
+  restaurant:"des recettes à chaque match à domicile", musee:"prestige et recettes, même sans match", hotel:"des nuitées chaque saison, et la mise au vert sur place",
+  transport:"le public vient de plus loin : + d'affluence", kop:"+ de ferveur à domicile"};
+const FAMILLES_STADE=["Tribunes","Confort","Commerces","Accès et ambiance","Grands travaux"];
 function projetsHTML(){
   const c=clubById(G.monClub);
-  const dispo=STADE_PROJETS.filter(p=>!p.fait(c) && p.dispo(c));
-  const btns=dispo.map(p=>{ const cout=p.cout(c), pauvre=G.tresorerie<cout;
-    return `<button class="act bProj" data-id="${p.id}" ${G.chantier?"disabled":""} title="${esc(EFFET_PROJ[p.id]||"")}" style="margin:3px 3px 0${pauvre&&!G.chantier?";opacity:.55":""}">${esc(p.label?p.label(c):p.nom)} — ${(cout/1e6).toFixed(1)} MF</button>`;
-  }).join("");
-  const faits=STADE_PROJETS.filter(p=>p.fait(c));
-  const built=faits.length?`<p class="dim" style="font-size:13px;margin-top:8px">✔ Déjà en place : ${faits.map(p=>esc(p.nom)).join(" · ")}</p>`:"";
-  return btns+built;
+  const bouton=p=>{ const n=p.niv(c), cout=p.cout(c,n), pauvre=G.tresorerie<cout;
+    return `<button class="act bProj" data-id="${p.id}" ${G.chantier?"disabled":""} title="${esc(EFFET_PROJ[p.id]||"")}" style="margin:3px 3px 0${pauvre&&!G.chantier?";opacity:.55":""}">${esc(p.label(c,n))} · ${(cout/1e6).toFixed(1)} MF</button>`; };
+  const blocs=FAMILLES_STADE.map(f=>{ const l=STADE_PROJETS.filter(p=>p.famille===f && !p.fait(c) && p.dispo(c));
+    return l.length?`<p class="dim" style="font-size:13px;margin-top:8px">${esc(f)}</p><div>${l.map(bouton).join("")}</div>`:""; }).join("");
+  // ce qui est déjà debout : les chantiers uniques livrés, et le niveau atteint de chaque famille
+  const faits=STADE_PROJETS.filter(p=>p.id!=="tribune").map(p=>{
+    if(p.niveaux){ const v=G.stade[p.id]|0; return v>=1?NIVEAUX_STADE[p.id].noms[v]:null; }
+    return G.stade[p.id]?p.nom:null; }).filter(Boolean);
+  const built=faits.length?`<p class="dim" style="font-size:13px;margin-top:8px">✔ Déjà en place : ${faits.map(esc).join(" · ")}</p>`:"";
+  return blocs+built;
 }
 
 /* ---------- Staff technique : les coachs spécialisés (organigramme du club) ----------
@@ -13189,7 +13263,7 @@ function ecranClub(){
   chrome("club",`<div class="grid2">
    <div class="panel"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
      <div class="maquette">${maquetteStade(c, affR, chI, tribClk)}</div>
-     <p class="ctr">${esc(c.stade)} — <b class="fort">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
+     <p class="ctr">${esc(c.stade)} · <b class="fort">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
      <p class="ctr" style="margin-top:4px">Affluence moyenne :
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
          <span style="display:block;height:100%;width:${affPct}%;background:${affCol}"></span>
