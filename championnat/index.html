@@ -481,7 +481,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.41"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.42"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -8710,7 +8710,9 @@ function rejoueRdv(gen, lignes, from, mNow, r, avant, apres){
     if(lAp<=lAv){ let k=0; for(let x=0;x<n;x++) if(Math.random()<lAp/lAv) k++; return k; } // chaque but réservé survit au rapport
     return n+poissonR((lAp-lAv)*reste);                                                  // les buts en plus de la nouvelle consigne
   };
-  const nh=Math.min(Math.max(0,8-sh0), ajuste(rh, avant[0], apres[0])), na=Math.min(Math.max(0,8-sa0), ajuste(ra, avant[1], apres[1]));
+  // le plafond de 8 ne borne que les buts AJOUTÉS : depuis le moteur unique (v1.34), un vrai match de coupe peut finir
+  // 9-2, et rogner un but déjà écrit dans le fil changeait le score à consigne inchangée (harnais rdv, section E)
+  const nh=Math.min(Math.max(rh,8-sh0), ajuste(rh, avant[0], apres[0])), na=Math.min(Math.max(ra,8-sa0), ajuste(ra, avant[1], apres[1]));
   lignes.length=from;
   corpsCoupe(ctx, lignes, mNow, sh0, sa0, nh, na, miTemps);
   r.sh=sh0+nh; r.sa=sa0+na;

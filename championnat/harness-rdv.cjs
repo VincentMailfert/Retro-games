@@ -228,6 +228,18 @@ console.log("\nE) Rejouer la fin ne fausse pas le score : neutre à consigne ég
   ok(of.apres > of.base * 1.04, "passer offensif en cours de match ouvre la fin de match");
   ok(pr.apres < pr.base * 0.96, "passer prudent la ferme");
   ok(Math.abs(ar.apres - ar.base) < ar.base * 0.03, "offensif puis retour à Équilibré : la moyenne revient à " + r2(Math.abs(ar.apres - ar.base) / ar.base * 100) + " % près (tolérance 3 %)");
+  // le cas attrapé le 25/09/2026 : un vrai 2-9 (le moteur unique ne plafonne plus à 8) rejoué à la 58e perdait un but
+  { let pris = 0, garde = 0;
+    for (let k = 0; k < 400; k++) {
+      const s = { hid: H.id, aid: A.id, sh: 2, sa: 9, tab: false, win: A.id }, gen = api.genEvCoupe(H, A, s), L = gen.ev;
+      const sif = L.findIndex(l => l.t === "sys" && /^COUP DE SIFFLET FINAL/.test(l.x));
+      const from = 1 + Math.floor(Math.random() * sif), mNow = L[from - 1].m, l0 = lam();
+      if (L.filter(l => l.g).length !== 11) continue; pris++;
+      api.rejoueRdv(gen, L, from, mNow, s, l0, l0);
+      if (s.sh === 2 && s.sa === 9) garde++;
+    }
+    ok(pris > 0 && garde === pris, "un 2-9 rejoué à consigne égale reste un 2-9 (" + garde + "/" + pris + ")");
+  }
 }
 
 /* ===== F) le verdict européen suit le score rejoué ===== */

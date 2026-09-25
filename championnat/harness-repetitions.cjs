@@ -187,10 +187,14 @@ else fail("la mémoire part dans la sauvegarde — interdit (cf. la règle des 2
 /* ===== F) mise en scène : la montée colle à la phase de jeu ===== */
 console.log("F) Mise en scène du premier temps (monteeUn)");
 const h0 = G.clubs[0], a0 = G.clubs[1];
-// toutes les formulations de contre possibles pour ces deux effectifs
-const CONTRES = new Set();
-for (const f of api.MONTEE_CONTRE)
-  for (const r of api.onze(h0)) for (const v of api.onze(a0)) CONTRES.add(f(r.nom, v.nom));
+// toutes les formulations de contre possibles pour ces deux effectifs, AVEC LES ONZE DU MOMENT : les matchs
+// simulés entre-temps (section G) fatiguent et blessent, les titulaires changent, et une liste figée ici
+// déclarait « hors contre » un vrai titulaire entré depuis (rouge une fois sur dix environ, 25/09/2026)
+const contres = () => { const s = new Set();
+  for (const f of api.MONTEE_CONTRE)
+    for (const r of api.onze(h0)) for (const v of api.onze(a0)) s.add(f(r.nom, v.nom));
+  return s; };
+const CONTRES = contres();
 const BUTS = new Set(api.MONTEE_BUT);
 
 let horsContre = 0, horsGenerique = 0;
@@ -323,7 +327,7 @@ for (const ph of ["", "loin", "lob", "bal"]) {
 }
 if (decorKo === 0 && gesteKo === 0) ok("les quatre phases (proche, de loin, lob, sur corner) ne se mélangent jamais, ni au premier ni au second temps");
 else fail(decorKo + " décor(s) et " + gesteKo + " geste(s) pris dans la mauvaise phase");
-if (CONTRES.has(api.monteeUn({ ph: "loin", contre: true, but: nomT, cote: h0.id }, [], h0, a0)))
+if (contres().has(api.monteeUn({ ph: "loin", contre: true, but: nomT, cote: h0.id }, [], h0, a0)))
   ok("un contre conclu de loin garde sa mise en scène de contre (la distance ne joue qu'au second temps)");
 else fail("un contre conclu de loin perd sa mise en scène de contre");
 
