@@ -168,7 +168,7 @@ console.log("A) La fenêtre du banc s'ouvre, se lit, et sait se taire");
   api.ouvreBanc(s.ctx);
   ok(/LE BANC : 40ᵉ MINUTE/.test(FICHE._h), "le titre annonce la minute : « 🔁 LE BANC : 40ᵉ MINUTE »");
   ok(/il vous reste <b class="fort">3<\/b> changements/.test(FICHE._h), "elle annonce les trois changements encore en poche");
-  ok(/en décider un fait sauter celui que le banc avait prévu/.test(FICHE._h), "et prévient que le banc cédera la place à votre décision");
+  ok(!/fait sauter/.test(FICHE._h), "et ne récite plus la règle du changement prévu (épure du 25/09/2026)");
   ok(FICHE.querySelectorAll(".bEntreB").length > 0 && !!FICHE.querySelector("#bFermeBanc"), "on y entre par un nom, on en sort par « Laisser le banc tranquille »");
   const bancAvant = s.p.banc.slice(), filAvant = s.r.ev.length;
   clic("bFermeBanc");
@@ -179,7 +179,7 @@ console.log("A) La fenêtre du banc s'ouvre, se lit, et sait se taire");
   const s2 = scene("REN", 40);
   G._pend = null;
   api.ouvreBanc(s2.ctx);
-  ok(/le banc n'y peut plus rien/.test(FICHE._h), "résultat déjà acté : elle le dit franchement");
+  ok(/Trop tard/.test(FICHE._h), "résultat déjà acté : elle le dit en deux mots");
   reprendreLeMatch();
   ok(s2.etat.repris === 1 && s2.etat.suites === 0, "et le match reprend sans avoir été rejoué");
 }
@@ -281,7 +281,7 @@ console.log("E) Le téléscripteur l'annonce tout de suite, et comme un choix");
     `et elle se lit comme n'importe quel changement : « ${ligne ? ligne.x : "?"} »`);
   ok(ligne && !ligne.urg, "aucune trace d'urgence : ce n'est ni un blessé, ni un gardien à relever");
   ok(/CHANGEMENT/.test(FICHE._h) && FICHE._h.includes(entrant.nom) && FICHE._h.includes(sortant.nom), "la fenêtre confirme les deux noms avant de rendre la main");
-  ok(/plus forts|vous y perdez|forces égales/.test(FICHE._h), "et dit en mots ce que le changement pèse, sans jamais montrer un multiplicateur");
+  ok(!/plus forts|vous y perdez|forces égales|×\s*\d/.test(FICHE._h), "et ne dit plus ce que le changement pèse : on le voit sur la pelouse (épure du 25/09/2026)");
   reprendreLeMatch();
 }
 
@@ -340,7 +340,7 @@ console.log("G) Les trois changements faits : la fenêtre le dit");
   const s = scene("REN", 80, (p) => { p.min = p.min.map(() => 20); });
   api.ouvreBanc(s.ctx);
   ok(/vos trois changements sont faits/.test(FICHE._h), "l'en-tête ne promet plus rien");
-  ok(/il faudra finir avec ces hommes-là/.test(FICHE._h) && FICHE.querySelectorAll(".bEntreB").length === 0,
+  ok(/Plus de changement/.test(FICHE._h) && FICHE.querySelectorAll(".bEntreB").length === 0,
     "et la fenêtre ne propose personne à faire entrer");
   reprendreLeMatch();
   ok(s.etat.suites === 0, "rien n'a été rejoué");

@@ -481,7 +481,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.39"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.40"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4237,13 +4237,12 @@ function ouvreBlessure(ctx, lg, idx){
   const cands=bancBlessure(moi, p, j, m).filter(x=>x!==entrant).slice(0,3);
   const lib=x=>esc(x.nom)+' <span class="dim">('+x.pos+" "+Math.round(x.note)+")</span>";
   const fiche=cadreMoment("🏥 BLESSURE : "+m+"ᵉ MINUTE",
-    `<p><b>${esc(j.nom)}</b> ne peut pas reprendre. ${entrant?"Le banc a déjà fait lever <b>"+esc(entrant.nom)+"</b>.":esc(moi.nom)+" a fait ses trois changements : plus personne ne peut entrer."}</p>
-     <p class="dim">${entrant?"Le garder sur la pelouse, c'est jouer à dix et demi, et risquer de l'abîmer pour plusieurs journées.":"Le sortir maintenant, c'est finir la rencontre à dix."}</p>
+    `<p><b>${esc(j.nom)}</b> ne peut pas reprendre. ${entrant?"Le banc a déjà fait lever <b>"+esc(entrant.nom)+"</b>.":"Plus de changement possible."}</p>
      <p style="margin-top:10px">
        ${entrant?`<button class="big zChoix" id="bVite" style="padding:12px">⚡ Remplacement rapide : ${esc(entrant.nom)}</button>`:""}
        ${(entrant&&cands.length)?`<br><span class="dim" style="font-size:13px">ou faire entrer&nbsp;:</span><br>${cands.map((x,n)=>`<button class="act zChoix bAutreB" data-n="${n}" style="margin:4px 3px 0">${lib(x)}</button>`).join("")}`:""}
-       <br><button class="act zChoix" id="bDents" style="margin-top:10px;padding:10px">🦵 Il serre les dents et reste sur la pelouse</button>
-       ${entrant?"":`<br><button class="act zChoix" id="bDix" style="margin-top:6px;padding:10px">🚑 Le sortir quand même, finir à dix</button>`}
+       <br><button class="act zChoix" id="bDents" style="margin-top:10px;padding:10px">🦵 Il reste</button>
+       ${entrant?"":`<br><button class="act zChoix" id="bDix" style="margin-top:6px;padding:10px">🚑 Le sortir</button>`}
      </p><div id="penRes"></div>`);
   const conclure=(txt, classe, choisi)=>finMoment(fiche, `<p class="${classe}" style="font-size:15px;margin-top:8px">${txt}</p>`, reprendre, choisi);
   const bVite=fiche.querySelector("#bVite"), bDents=fiche.querySelector("#bDents"), bDix=fiche.querySelector("#bDix");
@@ -4308,23 +4307,23 @@ function ouvreBanc(ctx){
   const ferme=(f, corps)=>finMoment(f, corps||"", ()=>ctx.reprendre(), null);
   const cadre=(titre, corps)=>cadreMoment(titre, corps+`<div id="penRes"></div>`);
   if(!p || !G._pend || monMatch._truque || pl.from<0 || pl.from>=lignes.length)
-    return ferme(cadre("🔁 LE BANC", `<p class="dim">Le résultat est acté : le banc n'y peut plus rien.</p>`));
+    return ferme(cadre("🔁 LE BANC", `<p class="dim">Trop tard.</p>`));
   const reste=3-p.min.filter(x=>x<=m).length;
   const pelouse=enJeu(moi, m);
   const sortants=p.xi.filter(j=>pelouse.includes(j) && j.pos!=="G");
   const entrants=bancDispo(moi, p, m).sort((x,y)=>("DMA".indexOf(y.pos)-"DMA".indexOf(x.pos)) || (noteSel(y)-noteSel(x)));
   const etiq=x=>esc(x.nom)+' <span class="dim">('+x.pos+" "+Math.round(x.note)+" · "+Math.round(fraich(x))+"%)</span>";
   const entete=`<p class="dim" style="font-size:13px">${m}ᵉ minute · ${reste>0
-      ?"il vous reste <b class=\"fort\">"+reste+"</b> changement"+(reste>1?"s":"")+(p.min.some(x=>x>m)?", en décider un fait sauter celui que le banc avait prévu":"")
+      ?"il vous reste <b class=\"fort\">"+reste+"</b> changement"+(reste>1?"s":"")
       :"vos trois changements sont faits"}</p>`;
   const etape1=()=>{
     if(reste<=0 || !entrants.length || !sortants.length)
-      return ferme(cadre("🔁 LE BANC : "+m+"ᵉ MINUTE", entete+`<p>${reste<=0?"Vous avez fait vos trois changements : il faudra finir avec ces hommes-là."
+      return ferme(cadre("🔁 LE BANC : "+m+"ᵉ MINUTE", entete+`<p>${reste<=0?"Plus de changement."
         :(!entrants.length?"Plus personne d'alignable sur le banc.":"Plus un seul titulaire à relever sur la pelouse.")}</p>`));
     const f=cadre("🔁 LE BANC : "+m+"ᵉ MINUTE", entete+
       `<p style="margin-top:6px">Qui entre&nbsp;?</p>
        <p>${entrants.slice(0,6).map((x,n)=>`<button class="act bEntreB" data-n="${n}" style="margin:4px 3px 0">${etiq(x)}</button>`).join("")}</p>
-       <p style="margin-top:10px"><button class="act" id="bFermeBanc">Laisser le banc tranquille</button></p>`);
+       <p style="margin-top:10px"><button class="act" id="bFermeBanc">Fermer</button></p>`);
     f.querySelectorAll(".bEntreB").forEach(b=>b.onclick=()=>etape2(entrants[+b.dataset.n]));
     const bF=f.querySelector("#bFermeBanc"); if(bF) bF.onclick=()=>{ window._penEnCours=false; fermeFiche(); ctx.reprendre(); };
   };
@@ -4348,7 +4347,7 @@ function ouvreBanc(ctx){
     lignes.splice(pl.from, 0, ligneChangement(moi, p, p.banc.indexOf(entrant))); // le téléscripteur l'annonce tout de suite
     ctx.suite();
     ferme(cadre("🔁 CHANGEMENT", entete+`<p><b>${esc(entrant.nom)}</b> entre à la place de <b>${esc(sortant.nom)}</b>.</p>
-      <p style="margin-top:6px">${verdictBanc(w)}</p>`));
+      `));
   };
   etape1();
 }
@@ -4681,7 +4680,7 @@ function tireMoment(moi,adv){
     const gk=xiM.find(j=>j.pos==="G");
     if(!tir||!gk) return null;
     return {type:"pen_contre", uid:tir.uid, gk:gk.uid,
-      annonce:"PENALTY CONTRE "+moi.nom.toUpperCase()+" À LA 90ᵉ !!! "+tir.nom+" défie "+gk.nom+". À vous de choisir le plongeon..."};
+      annonce:"PENALTY CONTRE "+moi.nom.toUpperCase()+" À LA 90ᵉ !!! "+tir.nom+" défie "+gk.nom+"..."};
   }
   if(t<0.52){ // coup franc dangereux aux abords de la surface (16-25 m)
     const tir=tireurDuXI(xiM);
@@ -10406,7 +10405,7 @@ function ecranCalendrier(){
    Masqué jusqu'au coup d'envoi, c'est le lanceur du match qui l'allume et le câble. */
 function htmlCtlTactique(){
   return `<div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:13px">
-       <span class="dim" id="libTacD">Tactique en direct :</span>
+       <span class="dim" id="libTacD">Consigne :</span>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
        <button class="act" id="bBanc" style="display:none; margin-left:6px">🔁 Banc</button>
        <button class="act" id="bCompos" style="display:none; margin-left:6px" aria-expanded="false">👥 Compos</button>
@@ -10467,7 +10466,7 @@ function cableTactiqueDirect(o){
     const mNow=from>i ? L[i].m : o.minute();
     o.rejoue(from, mNow);
     o.verdict();
-    ajouteLigne(o.tk,{m:mNow,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
+    ajouteLigne(o.tk,{m:mNow,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" »."});
     o.tk.scrollTop=0; maj();
   });
 }
@@ -10491,7 +10490,7 @@ function cableTactiqueRdv(o){
     o.verdict();
     finCoupe(o.gen.ctx, L, o.r);
     annoteButs(L);
-    ajouteLigne(o.tk,{m:mNow,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
+    ajouteLigne(o.tk,{m:mNow,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" »."});
     o.tk.scrollTop=0; maj();
   });
 }
@@ -10527,14 +10526,12 @@ function celebreFlash(o, onDone){
        <div class="vignette"><img class="vimg" src="${o.img}" alt=""></div>
        ${o.sub?`<div class="det">${o.sub}</div>`:""}
        ${o.buteur?`<div class="buteur">${esc(o.buteur)}</div>`:""}
-       ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}
-       <div class="hint">▸ cliquez pour continuer</div>`
+       ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}`
     : `<div class="gros">${o.gros}</div>
        ${o.art?`<pre style="font-family:monospace;white-space:pre;line-height:1.05;font-size:14px;color:#ffd24a;margin:8px 0;text-shadow:0 0 6px rgba(255,210,74,.5)">${o.art}</pre>`:""}
        ${o.sub?`<div class="det">${o.sub}</div>`:""}
        ${o.buteur?`<div class="buteur">${esc(o.buteur)}</div>`:""}
-       ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}
-       <div class="hint">▸ cliquez pour continuer</div>`;
+       ${o.detail?`<div class="dettxt">${esc(o.detail)}</div>`:""}`;
   d.innerHTML=`<div class="led">${corps}</div>`;
   document.body.appendChild(d);
   d.style.pointerEvents="auto";
@@ -10577,7 +10574,7 @@ function coupeFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict d
     const suiv=COUPE_TOURS[co.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
     titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
     corps=`Vous éliminez <b>${esc(nomCoupe(advId))}</b> sur le score de <b>${sc}${tb}</b>. Le rêve continue.<br>Recette de billetterie : <span class="fort">${(COUPE_RECETTE/1e6).toFixed(1)} MF</span>.<br>`+
-      (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b>, l'adversaire sera désigné au tirage.`:`Place à la finale !`);
+      (suiv?`Prochain tour : <b>${esc(suiv.nom)}</b>.`:`Place à la finale !`);
   } else {
     titre="💔 FIN DU PARCOURS EN COUPE"; coul="#ff6f61";
     const dot=COUPE_DOTATION[ajTourIdx]||0;
@@ -10761,7 +10758,7 @@ function euroFenetreResultats(suite){ // 3) tous les résultats de la soirée (m
       <td>${gras(b)?"<b>":""}${esc(nomEuro(b))}${gras(b)?"</b>":""}${legs}</td></tr>`;}).join("");
   fiche.innerHTML=`<div class="fbox" style="max-width:520px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:82vh;overflow:auto">
     <h2>⭐ ${esc(dt.nom)} · ${aller?"les matchs aller":"tous les résultats"}</h2>
-    <p class="dim" style="font-size:13px">${dt.finale?"Finale sèche sur terrain neutre.":(aller?"Manche aller · les retours se jouent dans une semaine, en milieu de semaine.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
+    ${dt.finale?'<p class="dim" style="font-size:13px">Finale sèche sur terrain neutre.</p>':""}
     <table class="fit" style="width:100%"><tr><th style="text-align:right">Équipe</th><th class="num">${dt.finale?"Score":(aller?"Aller":"Cumul")}</th><th>Équipe</th></tr>${lignes}</table>
     <p style="margin-top:12px"><button class="big" id="bEFin">Continuer</button></p></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
@@ -10780,7 +10777,7 @@ function euroFenetreAller(advId, suite){ // 2 bis) fin de VOTRE match aller : ri
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px">
     <h2 style="color:${coul}">${CP.emoji} MATCH ALLER : ${esc(m.sc)}</h2>
     <p style="margin:8px 0">${m.dom?"Vous receviez":"Vous vous déplaciez chez"} <b>${esc(nomEuro(advId))}</b> <span class="dim">(${esc(paysEuro(advId))})</span>. ${esc(humeur)}</p>
-    <p class="dim" style="font-size:13px">Match retour <b>${m.dom?"à l'extérieur":"à domicile"}</b> la semaine prochaine, en milieu de semaine${jr?`, après la J${jr}`:""}. Le cumul des buts décidera, le but marqué à l'extérieur comptant double.</p>
+    <p class="dim" style="font-size:13px">Match retour <b>${m.dom?"à l'extérieur":"à domicile"}</b> la semaine prochaine, en milieu de semaine${jr?`, après la J${jr}`:""}.</p>
     <p style="margin-top:10px"><button class="big" id="bERes">Voir les autres matchs aller →</button></p></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
   fiche.querySelector("#bERes").onclick=()=>euroFenetreResultats(suite);
@@ -10797,8 +10794,8 @@ function euroFenetreVerdict(advId, ajTourIdx, ajNom, suite){ // 2) le verdict de
     const suiv=EURO_TOURS[eu.tourIdx]; // tourIdx déjà incrémenté → le tour à venir
     const prime=CP.prime[ajTourIdx]||0;
     titre="✅ QUALIFIÉ POUR LE TOUR SUIVANT !"; coul="#62c462";
-    corps=`Vous éliminez <b>${esc(nomEuro(advId))}</b> sur le score de <b>${esc(mp.sc)}</b>. La grande nuit continue.<br>Billetterie + <b>prime UEFA</b> : <span class="fort">${((CP.recette+prime)/1e6).toFixed(1)} MF</span> <span class="dim">(dont prime ${(prime/1e6).toFixed(1)} MF, elle grimpe à chaque tour).</span><br>`+
-      (suiv?`Prochain rendez-vous : <b>${esc(suiv.nom)}</b>, l'adversaire sera désigné au tirage.`:`Place à la finale !`);
+    corps=`Vous éliminez <b>${esc(nomEuro(advId))}</b> sur le score de <b>${esc(mp.sc)}</b>. La grande nuit continue.<br>Billetterie + <b>prime UEFA</b> : <span class="fort">${((CP.recette+prime)/1e6).toFixed(1)} MF</span> <span class="dim">(dont prime ${(prime/1e6).toFixed(1)} MF)</span><br>`+
+      (suiv?`Prochain tour : <b>${esc(suiv.nom)}</b>.`:`Place à la finale !`);
   } else {
     titre="💔 FIN DU PARCOURS EUROPÉEN"; coul="#ff6f61";
     corps=`Vous tombez face à <b>${esc(nomEuro(advId))}</b> <b>${esc(mp.sc)}</b>. L'aventure européenne s'arrête en ${esc(ajNom)}.`+
@@ -11001,7 +10998,7 @@ function lanceEuroLeg(H, A, ed, legScore){
     const pa=document.getElementById("preMatchAct"); if(!pa) return;
     if(aller){ // fin de l'aller : on enregistre la manche, le retour est dans une semaine
       const tour=EURO_TOURS[ed.tourIdx], jr=tour?tour.jr:null;
-      tk.insertAdjacentHTML("afterbegin",`<p class="sys" style="text-align:center;margin-top:4px">Fin de l'aller. Rendez-vous au match retour dans une semaine${jr?`, en milieu de semaine après la J${jr}`:""}.</p>`);
+      tk.insertAdjacentHTML("afterbegin",`<p class="sys" style="text-align:center;margin-top:4px">Fin de l'aller.${jr?` Retour après la J${jr}.`:""}</p>`);
       tk.scrollTop=0;
       const advId=ed.advId;
       euroResoutTour(true, {aid:ed.aid, bid:ed.bid, l1:legScore}); // VOTRE aller réinjecté ; les 7 autres au modèle
@@ -11010,7 +11007,7 @@ function lanceEuroLeg(H, A, ed, legScore){
       document.getElementById("bENext").onclick=()=>euroFenetreAller(advId, ()=>montre("calendrier"));
     } else { // manche décisive : on résout le tour avec le tie déjà joué (les autres au modèle), sans notif perso (le verdict suit)
       if(!ed.finale && ed.tie.tab && !R){ // (le fil du moteur a déjà raconté la séance) cumul ET but à l'extérieur à égalité → tirs au but
-        tk.insertAdjacentHTML("afterbegin",`<p class="sys" style="text-align:center;margin-top:4px">Tout est égal sur les deux matchs (cumul et but à l'extérieur) : TIRS AU BUT. ${esc(clubAffiche(ed.tie.win).nom)} se qualifie !</p>`);
+        tk.insertAdjacentHTML("afterbegin",`<p class="sys" style="text-align:center;margin-top:4px">Égalité parfaite : TIRS AU BUT. ${esc(clubAffiche(ed.tie.win).nom)} se qualifie !</p>`);
         tk.scrollTop=0;
       }
       const forced=ed.tie, advId=ed.advId, tourIdx=ed.tourIdx, nom=ed.nom;
@@ -11584,7 +11581,7 @@ function lanceMatch(instant){
         const c=chaps[i];
         celebreFlash({gros:"🎩 COUP DU CHAPEAU !", buteur:c.nom+" ⚽⚽⚽",
           sub:`<b class="jaune">${esc(c.nom)}</b>`,
-          detail:"Coup du chapeau pour "+c.nom+" qui repart avec le ballon ⚽⚽⚽"+(c.nb>3?", et même "+c.nb+" buts au total !":"")},
+          detail:"Il repart avec le ballon ⚽⚽⚽"+(c.nb>3?", et même "+c.nb+" buts au total !":"")},
           ()=>next(i+1));
       })(0);
     } else afficheFeuille();
@@ -11597,7 +11594,7 @@ function lanceMatch(instant){
   // résolution d'un moment : delta de score, ligne de résultat, sifflet réécrit, phase B
   const resoudMoment=(delta,lx,lic,butCote,butNom,suite)=>{
     finirJournee(delta); // met à jour scores, stats, finances, presse...
-    figeTac("Tactique en direct : le coup de sifflet approche, le résultat est acté.");
+    figeTac("Consigne : trop tard.");
     const e=res.find(r=>r.mien);
     const sifflet=lignes[lignes.length-1];
     sifflet.x="COUP DE SIFFLET FINAL. "+e.h.nom+" "+e.sh+" - "+e.sa+" "+e.a.nom;
@@ -11634,7 +11631,7 @@ function lanceMatch(instant){
     if(monMatch._truque){ // on montre le contrôle et on dit pourquoi il ne sert à rien, plutôt que de le faire disparaître
       document.querySelectorAll(".bTacD").forEach(b=>{ b.disabled=true; b.style.opacity=".45"; });
       const lib=document.getElementById("libTacD");
-      if(lib) lib.textContent="Tactique en direct : sans objet ce soir, le résultat est déjà écrit…";
+      if(lib) lib.textContent="Consigne :";
     }
     majTacBtns();
   }
@@ -11647,7 +11644,7 @@ function lanceMatch(instant){
     rejoueDepuis(monMatch, eM.h, eM.a, from, mNow, liveMul.h, liveMul.a);
     penIdx=idxMoment(); // le moment de la 90e a été recollé plus loin (ou plus près) dans le fil
     eM.sh=monMatch.sh; eM.sa=monMatch.sa; // la feuille et le tableau suivront le nouveau cours
-    ajouteLigne(tk,{m:liveMin,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" ». Le banc fait passer le message, le match peut basculer…"});
+    ajouteLigne(tk,{m:liveMin,t:"amb",x:"⚙️ NOUVELLE CONSIGNE : « "+CONSIGNES[k].label+" »."});
     tk.scrollTop=0; majTacBtns();
   };
   document.querySelectorAll(".bTacD").forEach(b=>b.onclick=()=>changeTactique(b.dataset.k));
@@ -11710,13 +11707,13 @@ function lanceMatch(instant){
     if(lg && lg.bl){ // BLESSURE (v1.18) : la vôtre arrête le match et ouvre la fenêtre du banc, celle d'en face se lit au fil
       if(lg.bl.cote!==G.monClub){ tickerTimer=setTimeout(tic,tickerDelai); return; }
       celebreFlash({classe:"contre", gros:"🏥 BLESSURE",
-        sub:`<b class="jaune">${esc(lg.bl.nom)}</b> · ${lg.m}', il ne peut pas continuer`,
+        sub:`<b class="jaune">${esc(lg.bl.nom)}</b> · ${lg.m}'`,
         detail:lg.x}, ()=>ouvreBlessure(ctxBlessure, lg, courante));
       return;
     }
     if(lg && lg.mo && MOMENTS_BUT[lg.mo]){ // moment-but non interactif : c'est ICI qu'il se résout en direct (v1.04),
       // juste avant le sifflet — le score, le tableau et la feuille suivent, et la re-sim tactique reste possible jusque-là
-      if(G._pend){ finirJournee(autoMoment(monMatch.moment)); majSifflet(); figeTac("Tactique en direct : le coup de sifflet approche, le résultat est acté."); }
+      if(G._pend){ finirJournee(autoMoment(monMatch.moment)); majSifflet(); figeTac("Consigne : trop tard."); }
       const gl=buteurMoment(); extra.push(gl); majTableau(gl);
       const cag=(lg.mo==="cagade"); // ...et tous méritent leur flash LED — un but d'anthologie autant qu'une cagade
       const titre=cag?"🧤 CAGADE !":lg.mo==="cadeau"?"🎁 CADEAU DU GARDIEN !":lg.mo==="gkbut"?"🧤⚽ LE GARDIEN MARQUE !":"🌟 BUT D'ANTHOLOGIE !";
@@ -11833,7 +11830,6 @@ function momentProvoc(mo,moi,adv,resoudre,suite){
   const derby=(RIVAL[moi.id]===adv.id);
   const fiche=cadreMoment("🔥 PROVOCATION AU PUBLIC",
     `<p>${esc(j.nom)} est chauffé à blanc par ${derby?"l'ambiance du derby":"les sifflets adverses"}. Le public d'en face l'insulte copieusement.</p>
-     <p class="dim">Le geste qui chambre fera vibrer vos supporters... mais l'arbitre a la main sur le carton, et la Ligue regarde.</p>
      <p style="margin-top:10px">
        <button class="big zChoix" id="bGeste" style="padding:12px">🤌 Le laisser chambrer le parcage</button>
        <button class="big zChoix" id="bCalme" style="padding:12px">🧊 Lui ordonner de garder son calme</button>
@@ -11847,7 +11843,7 @@ function momentProvoc(mo,moi,adv,resoudre,suite){
       txt="😎 Geste culte ! Les supporters explosent, l'arbitre ferme les yeux."; classe="vert";
       lx=j.nom+" nargue le parcage adverse sous les acclamations des siens. Image culte.";
     } else if(r<0.80){ // jaune
-      txt="🟨 Carton jaune pour provocation. Ça valait peut-être le coup ?"; classe="jaune";
+      txt="🟨 Carton jaune pour provocation."; classe="jaune";
       lx=j.nom+" chambre le public et récolte un jaune. Les tribunes adverses hurlent.";
       eff(j,{moral:+3});
     } else { // rouge
@@ -11872,8 +11868,8 @@ function momentPenPour(mo,moi,adv,resoudre,suite){
   const gk=enJeu(adv,90).find(j=>j.pos==="G")||{note:70,nom:"le gardien"}; // celui qui garde les buts à la 90e (changement, expulsion)
   const fiche=cadreMoment("PENALTY : 90ᵉ MINUTE",
     `<p><b>${esc(t.nom)}</b> (note ${t.note}) face à <b>${esc(gk.nom)}</b> (${gk.note}).</p>
-     ${t.tireurElite?`<p>🎯 Votre tireur d'élite s'avance, le sang-froid en plus.</p>`:""}
-     <p class="dim">Choisissez la zone. La lucarne ne pardonne qu'aux grands joueurs, le ras de terre est plus sûr, mais le gardien le sait aussi.</p>`+grilleZones(""));
+     ${t.tireurElite?`<p>🎯 Votre spécialiste s'avance.</p>`:""}
+     `+grilleZones(""));
   fiche.querySelectorAll(".zPen").forEach(b=>b.onclick=()=>{
     const z=b.dataset.z, s=t.note, g=gk.note;
     const pOff=((z==="hg"||z==="hd")?Math.max(0.05,0.48-0.005*s):(z==="hc")?Math.max(0.03,0.30-0.003*s):(z==="bc")?0.02:0.04)*(t.tireurElite?0.6:1);
@@ -11908,13 +11904,12 @@ function momentCoupFranc(mo,moi,adv,resoudre,suite){
   const fiche=cadreMoment("COUP FRANC : "+dist+" MÈTRES",
     `<img class="momImg" src="${PICK(IMG_MOMENT.coupfranc)}" alt="">
      <p><b>${esc(t.nom)}</b> (note ${t.note}) à ${dist} m face au mur, ${esc(gk.nom)} (${gk.note}) dans les buts.</p>
-     ${el?`<p>🎯 Votre tireur d'élite est sur le ballon, il peut la mettre où il veut.</p>`
-         :`<p class="dim">Aucun spécialiste des coups francs dans vos rangs : il faudra une réussite insolente.</p>`}
-     <p class="dim">Comment la frapper&nbsp;?</p>
+     ${el?`<p>🎯 Votre spécialiste est sur le ballon.</p>`
+         :""}
      <div style="display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0">
-       <button class="act zChoix" data-c="lucarne" style="padding:12px;text-align:left">Par-dessus le mur, plein lucarne <span class="dim">spectaculaire, mais ardu</span></button>
-       <button class="act zChoix" data-c="enroule" style="padding:12px;text-align:left">Enroulé au ras du poteau <span class="dim">le coup franc classique</span></button>
-       <button class="act zChoix" data-c="tendue"  style="padding:12px;text-align:left">Frappe tendue cherchant la déviation <span class="dim">surprendre le gardien</span></button>
+       <button class="act zChoix" data-c="lucarne" style="padding:12px;text-align:left">Par-dessus le mur, plein lucarne</button>
+       <button class="act zChoix" data-c="enroule" style="padding:12px;text-align:left">Enroulé au ras du poteau</button>
+       <button class="act zChoix" data-c="tendue"  style="padding:12px;text-align:left">Frappe tendue cherchant la déviation</button>
      </div><div id="penRes"></div>`);
   fiche.querySelectorAll(".zChoix").forEach(b=>b.onclick=()=>{
     const c=b.dataset.c;
@@ -11943,7 +11938,7 @@ function momentPenContre(mo,moi,adv,resoudre,suite){
   const gk=byUid(mo.gk)||{nom:"votre gardien",note:70};
   const fiche=cadreMoment("PENALTY CONTRE VOUS : 90ᵉ MINUTE",
     `<p><b>${esc(t.nom)}</b> (note ${t.note}) face à <b>${esc(gk.nom)}</b> (${gk.note}).</p>
-     <p class="dim">Vous êtes le gardien, le temps d'un instant : choisissez le plongeon. Les tireurs adorent les coins bas... mais les meilleurs osent la lucarne.</p>`+grilleZones("Plonger : "));
+     `+grilleZones("Plonger : "));
   fiche.querySelectorAll(".zPen").forEach(b=>b.onclick=()=>{
     const z=b.dataset.z, s=t.note, g=gk.note;
     // le tireur adverse choisit : plus il est fort, plus il ose haut
@@ -11981,10 +11976,9 @@ function momentTacle(mo,moi,resoudre,suite){
   const j=byUid(mo.uid);
   const fiche=cadreMoment("L'ARBITRE HÉSITE : 90ᵉ MINUTE",
     `<p><b>${esc(j.nom)}</b> vient de découper son vis-à-vis. ${esc(agressLib(j.agress||5))}, jusqu'au bout.</p>
-     <p class="dim">Le rouge semble inévitable... sauf si votre capitaine plaide la bonne foi. Quitte ou double : l'arbitre peut se raviser, ou sévir davantage.</p>
      <p style="margin-top:10px">
-       <button class="act zChoix" id="bSubir" style="padding:12px">Baisser la tête (rouge assuré, 2 matchs)</button>
-       <button class="act zChoix" id="bContester" style="padding:12px">Envoyer le capitaine contester (quitte ou double)</button>
+       <button class="act zChoix" id="bSubir" style="padding:12px">Baisser la tête</button>
+       <button class="act zChoix" id="bContester" style="padding:12px">Envoyer le capitaine contester</button>
      </p><div id="penRes"></div>`);
   const conclure=(txt, classe, lx, choisi)=>finMoment(fiche,`<p class="${classe}" style="font-size:16px;margin-top:8px">${txt}</p>`,
     ()=>resoudre(0,lx,"cr",null,null,suite), choisi);
