@@ -12,7 +12,7 @@
      F) le vrai moteur (simuleMatch) : le 5-3-2 ferme le match, le 4-3-3 l'ouvre, l'IA n'en sait rien
      G) les soirs de coupe et d'Europe portent le caractère de la formation
      H) sauvegarde : la formation est retenue, une valeur inconnue est réparée
-     I) l'avant-match se rend : boutons, onze ligne par ligne, rapport de forces, annonce au coup d'envoi
+     I) l'avant-match se rend : boutons, onze ligne par ligne, onze et dangers d'en face, annonce au coup d'envoi
      J) deux saisons en changeant de formation chaque semaine : aucune exception, calibrage tenu
    Usage : node harness-formations.cjs                                                               */
 const fs = require("fs"), path = require("path");
@@ -268,6 +268,7 @@ console.log("\nH) Sauvegarde");
 
 /* ===== I) l'avant-match se rend ===== */
 console.log("\nI) L'avant-match se rend");
+const advDe = G => { const p = G.calendrier[G.journee].find(([x, y]) => x === G.monClub || y === G.monClub); return api.clubById(p[0] === G.monClub ? p[1] : p[0]); };
 {
   const G = neuve("NAN"), moi = api.clubById(G.monClub);
   for (const f of FORMS) {
@@ -279,8 +280,25 @@ console.log("\nI) L'avant-match se rend");
     ok(!err && boutons === 3 && actif, f + " : l'écran Calendrier montre les trois formations, la vôtre allumée" + (err ? " — " + err : ""));
     const ligneA = (h.match(/<div class="fLigne"><span class="fLib dim">Attaque<\/span>(.*?)<\/div>/) || [])[1] || "";
     ok((ligneA.match(/<span>/g) || []).length === api.FORMATIONS[f].A, f + " : le petit terrain aligne " + api.FORMATIONS[f].A + " attaquant(s)");
-    ok(new RegExp("Au milieu, vos " + api.FORMATIONS[f].M + " contre leurs 4").test(h) && /Devant, /.test(h) && /Derrière, /.test(h),
-      f + " : le rapport de forces lit les trois duels face au 4-4-2 d'en face");
+    // l'adversaire du samedi (25/09/2026) : son onze tel que le moteur l'alignera, et ses hommes dangereux
+    const brief = h.match(/<div class="briefAdv">([\s\S]*?)<p class="briefDang">([\s\S]*?)<\/p>/) || ["", "", ""];
+    const xiAdv = api.onze(advDe(G));
+    ok(/4-4-2/.test(brief[1]) && (brief[1].match(/<span(?: class="advDanger")?>[^<]+<\/span>/g) || []).length === 11
+       && xiAdv.every(j => brief[1].includes(">" + j.nom + "<")),
+      f + " : l'avant-match montre les onze titulaires d'en face, ceux que le moteur alignera, en 4-4-2");
+    ok((brief[2].match(/<span><b>/g) || []).length === 3 && (brief[1].match(/advDanger/g) || []).length === 3,
+      f + " : trois dangers, nommés sous leur terrain et mis en relief dessus");
+    ok(!/Au milieu, vos|rapport de forces/.test(h) && !/pts<\/span>/.test(brief[1]), f + " : plus de lecture des duels, et pas de classement à la 1re journée");
+  }
+  { // la saison lancée : le rang et les points d'en face, et les dangers qui suivent les buts
+    G.journee = 1;
+    const adv = advDe(G), cobaye = api.onze(adv).filter(j => j.pos === "D").sort((a, b) => a.note - b.note)[0];
+    cobaye.buts = 99; adv.pts = 7;
+    api.ecranCalendrier();
+    const b2 = (APP.innerHTML.match(/<div class="briefAdv">[\s\S]*?<\/p>/) || [""])[0];
+    ok(/(1er|\dᵉ|\d\dᵉ) · 7 pts/.test(b2), "la saison lancée, le rang et les points d'en face s'affichent");
+    ok(b2.includes('<span class="advDanger">' + cobaye.nom + "<") && /99 buts/.test(b2), "un défenseur à 99 buts devient un danger, chiffre à l'appui");
+    cobaye.buts = 0; adv.pts = 0; G.journee = 0;
   }
   // les trois verdicts de chaque duel existent bien (vocabulaire)
   const bloc = api.blocConsignePrime("en cas de qualification", api.onze(moi));

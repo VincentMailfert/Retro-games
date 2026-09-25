@@ -530,7 +530,7 @@ console.log("K) La fenêtre du banc : quatre boutons, quatre conséquences");
   // 1) ce que la fenêtre écrit
   let s1 = scene("LIL");
   let f = ouvre(s1);
-  ok(/BLESSURE — 30ᵉ MINUTE/.test(f._h), "le titre annonce la minute : « 🏥 BLESSURE — 30ᵉ MINUTE »");
+  ok(/BLESSURE : 30ᵉ MINUTE/.test(f._h), "le titre annonce la minute : « 🏥 BLESSURE : 30ᵉ MINUTE »");
   ok(f._h.includes(s1.j.nom) && f._h.includes(s1.rel.entre.nom), `la fenêtre nomme le blessé (${s1.j.nom}) et celui que le banc a fait lever (${s1.rel.entre.nom})`);
   ok(!!f.querySelector("#bVite") && !!f.querySelector("#bDents") && !f.querySelector("#bDix"),
     "trois portes de sortie : le remplacement rapide, un autre homme du banc, ou serrer les dents — pas « finir à dix » tant qu'un remplaçant est offert");

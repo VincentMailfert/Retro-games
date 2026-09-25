@@ -55,6 +55,16 @@ toujours « raconter quelque chose ».
   ce qui décrit une **affordance** (« cliquez sur un club », « survolez pour le détail ») et ce qui **répète
   un tableau** placé juste au-dessus. **À tenir pour tout nouvel écran** : si un paragraphe commence par
   décrire comment le jeu marche, il n'a rien à y faire.
+- **ÉPURER, ENCORE (consigne auteur, 25/09/2026)** : « c'est un des écueils de l'IA : on remplit de beaucoup de
+  contenu, et l'utilisateur est écrasé par l'info, ce qui le fait partir. Aussi, trop de texte brise le mystère. »
+  Retirés ce jour-là : les sous-titres d'ambition de l'accueil (« L'élite. Ici, on ne se contente pas… »), la phrase
+  sous chaque formation, consigne, prime et rotation, la lecture des trois duels (remplacée par l'adversaire du samedi :
+  rang, onze, trois dangers, cf. `briefAdverse`), le mode d'emploi du rendez-vous de semaine. Préférer une information
+  concrète à une explication.
+- **AUCUN TIRET LONG « — » DANS LE TEXTE DU JEU (consigne auteur, 25/09/2026)** : 400 retirés d'un coup. Virgule dans
+  la prose, « : » après une étiquette en capitales (« 🏥 BLESSURE : »), « · » comme séparateur (titres, jointures),
+  « - » pour une case vide ou le tiret du score. Les commentaires du code peuvent le garder. Vaut aussi pour tout
+  contenu écrit en atelier (saisons, incidents, commentaires du direct).
 
 ## Architecture (un seul fichier)
 - `index.html` : tout est dedans — `<style>`, `<body>` minimal, gros `<script>` vanilla.

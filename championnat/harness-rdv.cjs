@@ -267,7 +267,7 @@ console.log("\nG) Le Calendrier montre le rendez-vous à préparer, sans rien ve
   ok(/Coupe de France/.test(h1) && /bRdvGo/.test(h1) && /bRdvVite/.test(h1), "il affiche l'affiche de coupe et ses deux coups d'envoi");
   ok(!/id="bJouer"/.test(h1), "…et PAS le coup d'envoi du samedi : la coupe se joue d'abord");
   ok(/bRdvRot/.test(h1) && /bConsigne/.test(h1) && /bPrime/.test(h1), "rotation, consigne et prime se règlent sur le même écran");
-  ok(/Effectif, Mercato et Finances restent ouverts/.test(h1), "…qui dit qu'on peut aller préparer l'équipe ailleurs");
+  ok(!/restent ouverts/.test(h1), "…sans mode d'emploi : que les onglets restent ouverts, le joueur le découvre (épure du 25/09/2026)");
   ok(/en cas de qualification/.test(h1), "la prime dit ce qui la déclenche un soir de coupe : la qualification");
   api.coupeResoutTour(false);
   api.ecranCalendrier();

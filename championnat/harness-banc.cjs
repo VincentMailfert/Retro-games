@@ -166,7 +166,7 @@ console.log("A) La fenêtre du banc s'ouvre, se lit, et sait se taire");
 {
   const s = scene("LIL", 40);
   api.ouvreBanc(s.ctx);
-  ok(/LE BANC — 40ᵉ MINUTE/.test(FICHE._h), "le titre annonce la minute : « 🔁 LE BANC — 40ᵉ MINUTE »");
+  ok(/LE BANC : 40ᵉ MINUTE/.test(FICHE._h), "le titre annonce la minute : « 🔁 LE BANC : 40ᵉ MINUTE »");
   ok(/il vous reste <b class="fort">3<\/b> changements/.test(FICHE._h), "elle annonce les trois changements encore en poche");
   ok(/en décider un fait sauter celui que le banc avait prévu/.test(FICHE._h), "et prévient que le banc cédera la place à votre décision");
   ok(FICHE.querySelectorAll(".bEntreB").length > 0 && !!FICHE.querySelector("#bFermeBanc"), "on y entre par un nom, on en sort par « Laisser le banc tranquille »");
