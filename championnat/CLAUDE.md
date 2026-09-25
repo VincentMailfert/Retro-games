@@ -636,6 +636,64 @@ toujours « raconter quelque chose ».
   restent écartés.
   Vingt-trois joueurs procéduraux au total, dont **douze deuxièmes gardiens**, même marge qu'en 91/92. Le PSG n'a que
   dix-neuf hommes ayant joué — la source fait foi. Validation dédiée : **`harness9293.cjs`**.
+  **1993-94 (v1.33)** : `STARS_9394`/`STARS_D2_9394`, `D1_9394`/`D2_9394`, `an:1993`, `saison_id/1993` — la
+  saison où la sanction tombe pour de bon. L'OM finit deuxième du championnat et descend quand même :
+  rétrogradé en D2 le 22 avril 1994 par la Fédération, exclu d'Europe par l'UEFA, il joue là son dernier
+  printemps dans l'élite avant le purgatoire que la saison fondatrice 95-96 raconte. Le PSG prend le titre
+  avec cinquante-neuf points, Ginola est élu meilleur joueur de l'année et Zidane meilleur espoir.
+  **Le plateau tombe juste tout seul pour la troisième fois de suite** : la D1 réelle avait ses vingt clubs
+  et n'a repêché personne — Cannes, Martigues et Angers montent, Valenciennes et Nîmes descendent, et
+  **Toulon, dix-neuvième, n'est nulle part** : la DNCG l'a rétrogradé directement en National pour dettes,
+  ce qui a **sauvé Mulhouse**, repêché en D2 à sa place. Vérifier ce genre de chose plutôt que de lire un
+  classement, une fois de plus.
+  **La D2 change de forme cette année-là, et c'est la nouveauté de structure de la saison** : finis les
+  deux groupes de dix-huit des trois saisons précédentes, elle devient un **groupe unique de vingt-deux
+  clubs**, la « Super D2 ». La règle des dix premiers de chaque groupe n'a donc plus d'objet : on prend
+  simplement **les vingt premiers du classement réel** et on **écarte les deux derniers**, Bourges (21e) et
+  Istres (22e). Aucun club n'a eu à être repêché faute de source.
+  **Aucun club neuf, pour la deuxième fois** : les quarante clubs du plateau étaient déjà au registre, et la
+  journée est allée entièrement aux hommes.
+  Sièges européens réels, et ils racontent l'année à eux seuls : **Monaco en C1** — l'OM, tenant du titre,
+  est exclu par l'UEFA, et le PSG, deuxième, **refuse la place** comme il avait refusé le titre de 92/93, si
+  bien qu'elle revient au troisième —, **le PSG en C2** (vainqueur de la Coupe de France 1993 contre Nantes),
+  **Bordeaux, Auxerre et Nantes en C3**, vérifié sur le tableau de la Coupe UEFA 1993-94.
+  `HONNEURS` n'a rien eu à apprendre, mais **partir de 93/94 fait tomber le Mondial 94 dès la PREMIÈRE
+  intersaison** — et les Bleus n'y étaient pas, éliminés par la Bulgarie au Parc le 17 novembre 1993, ce que
+  la dépêche déjà écrite dit exactement (« La France, elle, regardait à la télévision »). Le harnais vérifie
+  nommément qu'elle **ne contient pas « LA FRANCE » en capitales**, que `finDeSaison` lirait comme un triomphe.
+  **Le sens du temps reste normal, et l'héritage n'a jamais fait autant de travail** : 92/93 est à un an de
+  distance, **559 des 759 noms reprennent leur note 92/93 vieillie d'un an** par la règle éprouvée, 38 de plus
+  viennent de 91/92 et 12 de 90/91 ; il ne reste que 93 noms à passer par la moyenne rajeunie/calculée (ancres
+  postérieures, de 95/96 à 98/99) et 57 à calculer entièrement. Distribution finale collée à celle de 92/93
+  (D1 : moyenne 70,9 et médiane 71, contre 70,8 et 71 ; D2 : 66,4 et 66, contre 66,0 et 66) — c'est le meilleur
+  contrôle qu'on ait qu'une saison ne dérive pas.
+  Table d'ajustements à la main de **sept entrées**, la plus courte du chantier : **Ginola 84** (meilleur
+  joueur de l'année, 4 226 minutes), **Djorkaeff 83**, **Roger Boli 79** et **Ouédec 78** (vingt buts chacun,
+  co-meilleurs buteurs), **Desailly 82** (champion d'Europe 93, parti à Milan en janvier pour y gagner la C1 94),
+  **Sonny Anderson 81** (seize buts en vingt matchs, arrivé fin novembre) et **Thuram 73** (titulaire à
+  vingt et un ans, international dès l'été suivant).
+  **Forçage de huit pépites** que le tri aux minutes écartait : **Patrick Vieira** (dix-sept ans, 562 minutes
+  à Cannes), **Grégory Coupet** (Saint-Étienne), **Vikash Dhorasoo** (Le Havre), **Laurent Batlles** (Toulouse),
+  **Olivier Tébily** (Niort), **Taribo West** (Auxerre), **David Sommeil** (Caen) et **Vincent Hognon** (Nancy).
+  Méthode pour les trouver, à reprendre telle quelle : **comparer les écartés aux ancres des saisons
+  POSTÉRIEURES du jeu** — un homme que 95/96 ou 97/98 connaît déjà et que 93/94 laisse dehors est une pépite
+  par construction. Zidane, Makélélé, Thuram, Pirès, Micoud et Wiltord passent tous tout seuls au temps de jeu.
+  **Quatre points de relevé à garder.** (1) Transfermarkt a servi les quarante clubs **en français**, sans le
+  panachage de langues de 90/91 ; un seul libellé de poste neuf (« Deuxième attaquant »). L'anti-robot AWS
+  reste là : vingt-deux pages sur quatre-vingts ont dû passer par `.com`, `.de` ou `.co.uk`, zéro échec au bout
+  du compte. (2) **Bokšić est parti à la Lazio fin novembre** mais a disputé douze matchs sous le maillot de
+  l'OM : la source le crédite de 1 078 minutes marseillaises et il reste au plateau, noté à sa valeur (84) et
+  non à son temps de jeu — jurisprudence Stojković. (3) **Trois joueurs que la source ne sait pas dater sont
+  écartés** plutôt que devinés (Saouchi et Grail à Valence, Belvalette à Valenciennes) : vingt-trois, quarante-cinq
+  et quatre-vingt-cinq minutes, aucune conséquence. (4) **Quatre mononymes** chez TM — Valdo et Raí au PSG,
+  **Futre** à l'OM (le hauptlink ne dit pas « Paulo Futre ») et **Oliveira** à Lens — restent tels quels, comme
+  Bebeto ou Aldair. Un seul homonyme à régler, **deux Martins sans lien** : Afonso (Nancy, 2 009 minutes) garde
+  l'initiale, Anthony (Nantes, 121 minutes) passe en toutes lettres.
+  **La borne d'âge du harnais monte à 39** : **Joseph-Antoine Bell tient les buts de Saint-Étienne à
+  trente-neuf ans** (2 460 minutes) et Ettori ceux de Monaco à trente-huit (4 530 minutes, le plus utilisé du
+  championnat). Tous deux raccrochent à la première intersaison, comme l'histoire.
+  Le Red Star n'a que dix-sept hommes ayant joué et Valence que deux attaquants — la source fait foi, `genJoueur`
+  complète à la marge. Validation dédiée : **`harness9394.cjs`**.
   Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
   `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
   ajoute une par une — sont dans `chantier-saisons.md`.**
