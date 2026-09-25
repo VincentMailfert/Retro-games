@@ -4,6 +4,7 @@
    C) le chemin jusqu'à 100 000 places : tribunes, virages, toutes les familles jusqu'au niveau 3
    D) les effets restent des nudges bornés (affluence, ferveur, recettes)
    E) le rendu : maquette et cartes de livraison sans NaN ni undefined, dans tous les états
+   F) entrer dans l'histoire, dans chacun des six styles (palmarès, prestige, affluence, rendu)
    Usage : node harness-stade.cjs                                                            */
 const fs = require("fs");
 const path = require("path");
@@ -34,7 +35,7 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,migre,clubById,CLUBS,CLUBS_D2,MSG_JOURNAL," +
   "STADE_PROJETS,projetById,lanceProjet,avanceChantier,migreStade,inferStade,maquetteStade,etatStade3D,STADE3D," +
-  "stadeBonusAff,stadeFerveur,stadeRecetteMatch,stadeRecetteJour,etapeStade,STADE_MAX,PLACES_TRIB," +
+  "stadeBonusAff,stadeFerveur,STYLES_STADE,affluence,palierBillet,stadeRecetteMatch,stadeRecetteJour,etapeStade,STADE_MAX,PLACES_TRIB," +
   "getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 
@@ -99,9 +100,10 @@ console.log("\nC) Le chemin jusqu'à 100 000 places");
   // toutes les familles jusqu'au niveau 3, et tous les chantiers uniques
   let n = 0;
   for (let tour = 0; tour < 6; tour++)
-    api.STADE_PROJETS.forEach(p => { if (p.id !== "tribune" && !p.fait(c) && p.dispo(c)) { textes.push(lancer(p.id)); n++; } });
+    api.STADE_PROJETS.forEach(p => { if (p.id !== "tribune" && p.id !== "legende" && !p.fait(c) && p.dispo(c)) { textes.push(lancer(p.id)); n++; } });
   const reste = api.STADE_PROJETS.filter(p => p.id !== "tribune" && !p.fait(c)).map(p => p.id);
-  ok(reste.every(id => ["retract", "legende"].includes(id)), `${n} chantiers livrés, il ne reste que les grands travaux (${reste.join(", ") || "rien"})`);
+  ok(reste.length === 1 && reste[0] === "legende", `${n} chantiers livrés, toit rétractable compris ; il ne reste que l'histoire (${reste.join(", ")})`);
+  ok(G.stade.retract === 1 && G.stade.ferme === 1, "le toit rétractable est livré fermé");
   ["boutique", "buvette", "restaurant", "musee", "hotel", "transport", "kop", "eclairage"].forEach(k => {
     if (G.stade[k] !== 3) fail(k + " n'est pas au niveau 3 (" + G.stade[k] + ")"); });
   ok(["boutique", "buvette", "restaurant", "musee", "hotel", "transport", "kop", "eclairage"].every(k => G.stade[k] === 3), "toutes les familles au niveau 3");
@@ -136,6 +138,29 @@ console.log("\nE) Le rendu, dans tous les états");
     const r = { ...R, cap, virages: vir, chantier: 1, cible: "Lancer" };
     if (propre(api.STADE3D.vueMaquette(r)) && propre(api.STADE3D.vueVille(r, "n", "tribune"))) bons++; }
   ok(bons === 20, `20 états de 3 000 à 99 500 places, avec et sans virages, chantier en cours : ${bons}/20 propres`);
+}
+
+
+/* ===== F) entrer dans l'histoire, six fois ===== */
+console.log("\nF) Entrer dans l'histoire, dans chacun des six styles");
+{ const G = api.getG(), c = api.clubById(G.monClub), p = api.projetById("legende");
+  ok(p.dispo(c), "au sommet, avec toit et virages, le chantier est ouvert");
+  const base = JSON.stringify(G.stade), pres0 = c.pres, pal0 = G.palmares.length;
+  const cout = p.cout(c, 1); ok(cout >= 150e6, `très cher : ${(cout / 1e6).toFixed(0)} MF, ${p.duree(1)} journées`);
+  for (const st of Object.keys(api.STYLES_STADE)) {
+    G.stade = JSON.parse(base); c.pres = pres0; G.palmares.length = pal0; G.tresorerie = 1e13;
+    api.lanceProjet("legende", st); const liv = livrer();
+    const ligne = G.palmares[G.palmares.length - 1] || "";
+    const bons = G.stade.legende === 1 && G.stade.style === st && c.pres === 10 && api.etapeStade(c.cap) === "Temple du football"
+      && ligne.indexOf("entre dans l'histoire (" + api.STYLES_STADE[st].nom + ")") > 0 && liv && liv.titre === api.STYLES_STADE[st].titre
+      && !p.dispo(c) && propre(api.maquetteStade(c, 0.95, null, null)) && propre(api.STADE3D.vueVille(api.etatStade3D(c, 0.95), "n", "legende"));
+    ok(bons, `${api.STYLES_STADE[st].nom} : ${liv && liv.titre} · « ${ligne} »`);
+  }
+  // l'affluence : jamais sous 95 % au tarif normal, contre n'importe quel visiteur
+  const home = c, away = G.clubs.find(x => x.id !== c.id && x.pres <= 3) || G.clubs.find(x => x.id !== c.id);
+  home.forme = [-1, -1, -1, -1, -1];
+  const tx = api.affluence(home, away, true) / home.cap / api.palierBillet().aff;
+  ok(tx >= 0.949, `un temple du football, même en crise, contre ${away.nom} : ${(tx * 100).toFixed(0)} % avant l'effet du tarif`);
 }
 
 console.log(FAILS ? `\n❌ HARNAIS STADE : ${FAILS} ÉCHEC(S)` : "\n✅ HARNAIS STADE : TOUT EST VERT");

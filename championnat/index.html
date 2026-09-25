@@ -273,6 +273,11 @@
   .eclat{animation:eclat 2.4s ease-out infinite;} @keyframes eclat{0%{transform:scale(.2);opacity:0;} 15%{opacity:1;} 70%{opacity:.9;} 100%{transform:scale(1.15);opacity:0;}}
   .defile{animation:defile 14s linear infinite;} @keyframes defile{from{transform:translateX(0);} to{transform:translateX(-360px);}}
   @media (prefers-reduced-motion:reduce){.clign,.feu,.eclat,.defile{animation:none;}}
+  .choixStyle .apStyle{border-radius:4px; overflow:hidden; margin:8px 0 6px; background:#081221;}
+  .choixStyle .apStyle svg{display:block; width:100%; height:auto;}
+  .rangStyles{display:grid; grid-template-columns:repeat(3,1fr); gap:4px;}
+  .rangStyles .bStyle{margin:0; padding:6px 4px; font-size:13px;}
+  .rangStyles .bStyle[aria-checked="true"]{border-color:var(--jaune); color:#f2f5fa; background:#1b3354;}
   #fiche .livr{width:min(760px,100%); max-width:760px !important; background:#0e1d35; border:2px solid var(--jaune); border-radius:6px;
     overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.6); padding:0 !important; animation:livrEntre .35s ease-out;}
   @keyframes livrEntre{from{transform:translateY(18px) scale(.97); opacity:0;}}
@@ -7453,6 +7458,15 @@ const LIVR_NIV={
          2:["MUSÉE DU CLUB INAUGURÉ !","Maillots d'époque et photos de légende : l'histoire du club s'expose toute l'année."],
          3:["ALLÉE DES LÉGENDES !","Les statues des plus grands joueurs accueillent les supporters à l'entrée du stade."]}
 };
+/* ENTRER DANS L'HISTOIRE : six enveloppes au choix (textes du prototype). */
+const STYLES_STADE={
+  lumiere:{nom:"Robe de lumière", titre:"LA ROBE DE LUMIÈRE !", sous:"Des milliers de coussins en losange s'allument aux couleurs du club : on reconnaît le stade de l'autre bout de la ville."},
+  nid:{nom:"Nid d'acier", titre:"LE NID D'ACIER !", sous:"Des kilomètres de poutres tressées enlacent le stade, comme un nid géant posé sur la ville, rougeoyant de l'intérieur."},
+  foret:{nom:"Forêt blanche", titre:"LA FORÊT BLANCHE !", sous:"Des centaines de colonnes blanches, fines comme des troncs de bouleau, montent la garde autour de la cuvette."},
+  brutal:{nom:"Brutaliste", titre:"LE BLOC !", sous:"Béton brut, porte-à-faux vertigineux, lames massives : une forteresse qui fait trembler les visiteurs avant même le coup d'envoi."},
+  deco:{nom:"Art déco", titre:"LE PALAIS ART DÉCO !", sous:"Piliers ivoire cannelés, frises dorées et gradins en redans : un palais des années folles pour les soirs de gala."},
+  cathedrale:{nom:"Cathédrale", titre:"LA CATHÉDRALE !", sous:"Arcs-boutants, flèches de pierre et vitraux géants qui s'illuminent les soirs de match : le football a enfin sa cathédrale."}
+};
 /* Les familles à trois niveaux : nom de chaque niveau, coût (FF), durée (journées), prestige gagné à la livraison.
    L'éclairage part du niveau 1 (les mâts d'origine, acquis) ; la rampe exige un toit, le kop exige des virages. */
 const NIVEAUX_STADE={
@@ -7506,13 +7520,25 @@ const STADE_PROJETS=[
   projetUnique("led","Ruban LED","Commerces",6e6,2,0,()=>true),
   projetNiveaux("boutique"), projetNiveaux("buvette"), projetNiveaux("restaurant"), projetNiveaux("musee"), projetNiveaux("hotel"),
   projetNiveaux("transport"), projetNiveaux("kop"),
+  {id:"retract", nom:"Toit rétractable", famille:"Grands travaux", niv:()=>1,
+   cout:c=>2*T_STADE(c), duree:()=>8, pres:()=>1, label:()=>"Toit rétractable",
+   dispo:c=>!G.stade.retract && !!G.stade.toit && c.cap>=SEUIL_RETRACT, fait:()=>!!G.stade.retract,
+   applique:c=>{ G.stade.retract=1; G.stade.ferme=1; return {titre:LIVR_MSG.retract[0], sous:LIVR_MSG.retract[1]}; }},
+  // unique et définitif : à capacité maximale (plus aucune tribune possible), avec toit et virages
+  {id:"legende", nom:"Entrer dans l'histoire", famille:"Grands travaux", niv:()=>1,
+   cout:c=>5*T_STADE(c), duree:()=>12, pres:()=>0, label:()=>"Entrer dans l'histoire",
+   dispo:c=>!G.stade.legende && !!G.stade.toit && !!G.stade.virages && c.cap>STADE_MAX-PLACES_TRIB, fait:()=>!!G.stade.legende,
+   applique:(c,n,ch)=>{ const st=(ch&&STYLES_STADE[ch.style])?ch.style:"lumiere", S=STYLES_STADE[st];
+     G.stade.legende=1; G.stade.style=st; c.pres=10; majReput(5, "le stade entre dans l'histoire");
+     G.palmares.push("Saison "+G.saison+" : "+c.stade+" entre dans l'histoire ("+S.nom+")");
+     return {titre:S.titre, sous:S.sous, chiffres:"Temple du football"}; }},
 ];
 // le côté de la prochaine tribune se lit dans la capacité (comme sur la maquette) : Nord, Sud, Est, Ouest, puis on recommence
 function coteTribune(c){ return COTES[STADE3D.coteSuivante(c.cap-PLACES_VIRAGES*((G.stade&&G.stade.virages)|0))]; }
 function projetById(id){ return STADE_PROJETS.find(x=>x.id===id); }
 function nomChantier(){ const p=G.chantier&&projetById(G.chantier.id), c=clubById(G.monClub);
   return p?p.label(c, G.chantier.niv):"Tribune"; }
-function lanceProjet(id){
+function lanceProjet(id, style){
   const c=clubById(G.monClub), p=projetById(id);
   if(!p) return;
   if(G.chantier) return message("Un chantier est déjà en cours, livraison dans "+G.chantier.reste+" journée(s). Les grues ne se dédoublent pas.", {titre:"🏗️ CHANTIER EN COURS"});
@@ -7524,6 +7550,7 @@ function lanceProjet(id){
     titre:"🏗️ Lancer les travaux ?",
     corps:`<p><b class="fort">${esc(label)}</b> à ${esc(c.stade)}.</p>
       <p class="dim" style="margin-top:4px">${esc(EFFET_PROJ[p.id]||"")}</p>
+      ${p.id==="legende"?choixStyleHTML(style):""}
       <p style="margin-top:6px">Coût : <b class="fort">${(cout/1e6).toFixed(1)} MF</b> pris sur la trésorerie · livraison dans ${duree} journées.</p>
       <p class="dim">Il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse, et aucun autre chantier possible d'ici là.</p>`,
     ok:"Lancer le chantier · "+(cout/1e6).toFixed(1)+" MF",
@@ -7531,6 +7558,7 @@ function lanceProjet(id){
       if(G.chantier || G.tresorerie<cout || !p.dispo(c)) return; // la situation a pu changer entre-temps
       G.tresorerie-=cout;
       G.chantier={reste:duree, id:id, niv:n};
+      if(id==="legende") G.chantier.style=STYLES_STADE[style]?style:lireStyleChoisi();
       G.news.unshift("TRAVAUX : "+label+", chantier lancé à "+c.stade+". Livraison dans "+duree+" journées.");
       montre("club");
     }
@@ -7552,12 +7580,32 @@ function avanceChantier(){
   l.avant=avant; l.apres=etatStade3D(c, aff);
   return l;
 }
+// la rangée des six styles et l'aperçu du stade dans sa ville ; câblée par cableChoixStyle une fois la fenêtre ouverte
+function choixStyleHTML(style){
+  const st=STYLES_STADE[style]?style:(G.stade.style||"lumiere");
+  return `<div class="choixStyle" data-style="${st}"><div class="apStyle" id="apStyle"></div>
+    <div class="rangStyles" role="radiogroup" aria-label="Style de l'enveloppe">${Object.keys(STYLES_STADE).map(k=>
+      `<button type="button" class="act bStyle" role="radio" data-k="${k}" aria-checked="${k===st}">${esc(STYLES_STADE[k].nom)}</button>`).join("")}</div>
+    <p class="dim" id="txtStyle" style="font-size:13px;margin-top:4px">${esc(STYLES_STADE[st].sous)}</p></div>`;
+}
+function lireStyleChoisi(){ const d=typeof document!=="undefined"&&document.querySelector&&document.querySelector(".choixStyle");
+  const k=d&&d.dataset?d.dataset.style:null; return STYLES_STADE[k]?k:"lumiere"; }
+function cableChoixStyle(){
+  const d=document.querySelector(".choixStyle"); if(!d) return;
+  const c=clubById(G.monClub), ap=document.getElementById("apStyle"), tx=document.getElementById("txtStyle");
+  const peint=k=>{ d.dataset.style=k; const R=etatStade3D(c, 0.9); R.legende=1; R.style=k; R.ferme=G.stade.ferme|0;
+    ap.innerHTML=STADE3D.vueVille(R,"s","legende"); tx.textContent=STYLES_STADE[k].sous;
+    d.querySelectorAll(".bStyle").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.k===k))); };
+  d.querySelectorAll(".bStyle").forEach(b=>b.onclick=()=>peint(b.dataset.k));
+  peint(d.dataset.style);
+}
 const EFFET_PROJ={tribune:"+ de places, + d'affluence et de prestige", virages:"+5 000 places, + de ferveur, et le kop a sa maison",
   eclairage:"+ d'affluence les soirs de match", toit:"+ de ferveur à domicile, + de prestige", loges:"recette premium à chaque match à domicile, + prestige",
   ecran:"ambiance renforcée dans les tribunes", chauffante:"un billard vert toute l'année", led:"des créneaux publicitaires vendus chaque journée",
   boutique:"une rentrée d'argent chaque journée", buvette:"des recettes à chaque match à domicile, selon le remplissage",
   restaurant:"des recettes à chaque match à domicile", musee:"prestige et recettes, même sans match", hotel:"des nuitées chaque saison, et la mise au vert sur place",
-  transport:"le public vient de plus loin : + d'affluence", kop:"+ de ferveur à domicile"};
+  transport:"le public vient de plus loin : + d'affluence", kop:"+ de ferveur à domicile",
+  retract:"+ d'affluence de l'automne à la fin de l'hiver", legende:"affluence et prestige au sommet, pour toujours"};
 /* LA CARTE DE LIVRAISON (v1.36) : la modale du prototype. Le stade seul, dans sa ville un soir de match (vueVille en
    mode focus : on ne montre que le stade et ce qui vient d'être livré). La scène part de l'état d'avant, grue dressée,
    glisse vers l'état d'après en 1,9 s, puis la grue repart. Sous prefers-reduced-motion, on montre directement la fin. */
@@ -13307,6 +13355,7 @@ function ecranClub(){
   chrome("club",`<div class="grid2">
    <div class="panel"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
      <div class="maquette">${maquetteStade(c, affR, chI, tribClk)}</div>
+     ${G.stade&&G.stade.retract?`<p class="ctr" style="margin:2px 0 6px"><button class="act" id="bToitRet">${G.stade.ferme?"Ouvrir le toit":"Fermer le toit"}</button></p>`:""}
      <p class="ctr">${esc(c.stade)} · <b class="fort">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
      <p class="ctr" style="margin-top:4px">Affluence moyenne :
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
@@ -13344,7 +13393,8 @@ function ecranClub(){
         return l.map(d=>`<p class="dim" style="font-size:13px">${d.ico} <b>${esc(d.nom)}</b> — ${esc(d.r.t)} <span style="font-size:13px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join("")
           +`<p class="dim" style="font-size:13px;margin-top:4px">Six lignes, six chasses. Un record qui tombe, c'est une soirée dont on reparle.</p>`; })()}
    </div></div>`);
-  document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>lanceProjet(b.dataset.id));
+  document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>{ lanceProjet(b.dataset.id); cableChoixStyle(); });
+  { const bT=document.getElementById("bToitRet"); if(bT) bT.onclick=()=>{ G.stade.ferme=G.stade.ferme?0:1; montre("club"); }; }
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade
   document.querySelectorAll(".bCoachIn").forEach(b=>b.onclick=()=>ouvreRecrutement(b.dataset.id));
   document.querySelectorAll(".bCoachOut").forEach(b=>b.onclick=()=>remercierCoach(b.dataset.id));
