@@ -973,34 +973,67 @@ toujours « raconter quelque chose ».
   + `away.pres*0.016`, base 0,46) et le **classement** compte fort (top 3 : +0,13 ; 4-6 : +0,06 ; ≥16 : −0,06) — retour de
   playtest « 2e avec le PSG et le stade pas plein, illogique ». Plus derby (+0,15), buzz/réputation/tarif (votre club). Le
   paramètre `sansPromo` calcule la jauge **hors** opé scolaires (cf. promo billets). Plafonné à 1 (`min(1,taux)`).
-- **Stade brique par brique (v0.68)** : « je construis mon club ». On bâtit **un projet à la fois** (la grue tourne
-  sur le SVG) depuis l'écran Club. Catalogue **`STADE_PROJETS`** (`{id,nom,pres,duree,cout(c),dispo(c),fait(c),applique(c)}`) :
-  **tribune** (répétable, +3 500 places, coût qui grimpe avec `cap`), **pylônes**, **toit**, **loges VIP**, **écran géant**,
-  **boutique/musée**, **pelouse chauffante**. `c.cap` reste le **socle** (affluence/finances inchangées) ; **`G.stade`**
-  (objet, migré) mémorise les superstructures + `cote` (côté de la prochaine tribune). **`inferStade(c)` DÉDUIT l'état de
-  départ de la taille réelle** (`toit` si cap≥30k, `pylônes` si cap≥18k — mêmes seuils que le dessin d'avant → **rien ne
-  change à la migration** ; conforts à bâtir pour tous). Flux : `lanceProjet(id)` (débite `G.tresorerie`, pose `G.chantier=
-  {reste,id}`) → `avanceChantier()` (dans `finirJournee`) applique `p.applique(c)` + `p.pres` à la livraison ; ancien
-  `G.chantier={reste,places}` toujours honoré (rétro-compat). `svgStade(cap,chantier,G.stade)` fait **apparaître** toit/
-  pylônes/écran/loges selon `G.stade` ; `projetsHTML()` liste les projets dispo (boutons `.bProj`→`lanceProjet`).
-  **Effets = nudge + prestige, réservés à MON club** (calibrage intact, mesuré 2,408) : chaque brique monte `c.pres`
-  (→ affluence + mercato) ; **toit** = +0,025 de ferveur à domicile (`simuleMatch`, votre match seul) ; **écran/pylônes**
-  = +affluence ; **loges** = +0,15 MF/match à domicile ; **boutique** = +0,08 MF/journée. Test dédié `test-stade.cjs`.
-  **Stade vivant (v0.71)** : `svgStade(cap, chantier, stade, aff, chInfo, tribune)` a gagné trois arguments. (1) **`aff`** =
-  ratio de remplissage 0..1 : les rangées **basses (près de la pelouse) se garnissent d'abord** (bleu vif + sièges plus clairs),
-  la couronne extérieure reste **éteinte et estompée** tant que le stade n'est pas plein (`rempli=round(aff*rangs)`, teinte/opacité
-  par rangée au lieu de l'ancienne alternance fixe sur l'index). (2) **`chInfo={label,reste}`** = **badge de travaux dessiné DANS
-  le SVG** (encadré jaune coin haut-gauche, « 🏗 <label> — J-<reste> ») qui **remplace** l'ancienne ligne `<p>` « en travaux »
-  sous le stade — placé en haut-gauche et non collé à la grue (bas-droite) car un libellé long y déborderait. (3) **`tribune=
-  {id,label}`** = si le projet « tribune » est **dispo** (pas de chantier, `cap<62000`), chaque `<rect>` de gradin devient
-  **cliquable** (`class="stTrib"` + `data-id="tribune"` + `cursor:pointer` + `<title>` d'info-bulle) → `ecranClub` câble
-  `.stTrib`→`lanceProjet(id)`, **même pattern que `.bProj`**. **Donnée d'affluence** : il n'existait aucune mémoire persistante
-  du remplissage par match ; **`G.affHist`** (migré `||[]`) est une **file glissante des 8 derniers taux à domicile**, poussée
-  dans `finirJournee` là où `fill` est déjà calculé (bloc domicile), court-circuitée hors UI comme le reste. **`affMoyenne(c)`**
-  renvoie la moyenne de `G.affHist`, sinon (début de carrière) une **estimation d'attente** `0.42 + pres*0.03 + (reput−60)*0.002
-  + (confiance−50)*0.0015` (bornée) — signalée « (estim.) » à l'écran jusqu'au 1er match réel. Sous le stade, une **jauge
-  d'affluence moyenne** calquée sur la barre de confiance (vert>75 %, jaune>50 %, rouge sinon). **Purement cosmétique →
-  calibrage intact** (harnais inchangés : 2,396 / 2,343 buts/match ; `G.affHist` n'est qu'une lecture de `fill`).
+- **LE STADE EN MAQUETTE (v1.36, refonte de « brique par brique » v0.68)** : « je construis mon club ». On bâtit **un
+  projet à la fois** depuis l'écran Club. **Référence visuelle et fonctionnelle : `docs/prototype-stade.html`**, conçu avec
+  l'auteur ; on ne réinvente rien, on reprend son code.
+  **Le rendu** : le moteur du prototype (`vueMaquette`, la maquette isométrique ; `vueVille`, le stade dans sa ville un soir
+  de match) est **greffé tel quel** dans le bloc `STADE3D` par **`node docs/greffe-stade.cjs .`** (depuis `championnat/`,
+  rejouable : il remplace le bloc entre ses deux marqueurs). Enfermé dans une fermeture pour que ses noms courts (`L`, `W`,
+  `P`, `D`, `COTES`, `FMT`, `G` local…) ne croisent pas ceux du jeu. **Quatre retouches seulement**, faites par le script :
+  le cyan du ruban LED devient blanc (cyan banni), le gabarit de la prochaine tribune peut s'afficher **seul et cliquable**
+  (`R.cible` → `<g class="stTrib">`, câblé comme `.bProj`), la grue n'apparaît que pendant un chantier, et le côté suivant
+  reste positif sous 5 000 places. **Si le prototype évolue, on le modifie, puis on relance le script** : ne jamais retoucher
+  le bloc `STADE3D` à la main. `etatStade3D(c, aff, o)` traduit `G.stade` + capacité + remplissage au format du prototype ;
+  **`maquetteStade(c, aff, chInfo, cible)`** met le SVG en **cache** (`CACHE_STADE`, clé = l'état sérialisé, remplissage
+  arrondi à 5 %) : la maquette pèse jusqu'à ~700 Ko à 100 000 places, elle ne se redessine que si quelque chose change.
+  Le badge « 🏗 <label> · J-<reste> » est ajouté par-dessus. Animations (`.clign`, `.feu`, `.eclat`, `.defile`) coupées
+  sous `prefers-reduced-motion`. L'ancien `svgStade` a disparu.
+  **Le modèle, `G.stade` en niveaux** : 0/1 pour les chantiers uniques (`virages`, `toit`, `loges`, `ecran`, `chauffante`,
+  `led`, `retract`, `legende`), 0 à 3 pour les familles (`boutique`, `buvette`, `restaurant`, `musee`, `hotel`, `transport`,
+  `kop`), **1 à 3 pour `eclairage`** (les mâts d'origine sont acquis), plus `ferme` (toit rétractable, décoratif), `style`
+  et `cote`. `c.cap` reste le socle. **Une tribune = +3 500 places**, côté **lu dans la capacité** (`coteTribune(c)` =
+  `COTES[STADE3D.coteSuivante(cap − 5 000 × virages)]`, exactement comme le dessin) ; `G.stade.cote` n'est plus qu'un
+  compteur gardé pour la compatibilité. **Plafond `STADE_MAX` = 100 000** (tribune possible tant que cap ≤ 96 500).
+  Après les virages, la cuvette s'uniformise en grandissant (`profondeurs`, dans le prototype). Paliers de nom
+  (`PALIERS_STADE`/`etapeStade(cap, stade)`) : municipal, D1 (12k), Grande enceinte (20k), Enceinte internationale (30k),
+  Arène européenne (50k), Cathédrale du football (75k), puis **Temple du football** une fois dans l'histoire.
+  **Départ et migration** : `inferStade(c)` déduit le stade de la taille réelle (pylônes ≥18k et toit ≥30k, les seuils
+  d'avant ; virages ≥35k ; parking ≥20k ; kiosque et baraque à frites partout ; drapeaux au kop s'il y a des virages).
+  **`migreStade`** (appelé par `migre()`) convertit les vieilles parties : `pylones` → éclairage 2, « boutique & musée »
+  (`boutique:true`) → boutique 2 + musée 1, buvette 1 si absente, booléens → 0/1 ; **`migreChantier`** reprend un chantier
+  `pylones`/`boutique` en cours sous son nouveau nom ; l'ancien `G.chantier={reste,places}` reste honoré.
+  **Le catalogue `STADE_PROJETS`** repose sur deux gabarits, **`projetUnique`** et **`projetNiveaux`** (le niveau
+  proposé est toujours le suivant ; tables dans `NIVEAUX_STADE`), plus tribune, virages, toit rétractable et histoire.
+  Interface commune : `niv(c)`, `cout(c,n)`, `duree(n)`, `pres(n)`, `label(c,n)`, `dispo(c)`, `fait(c)`, `applique(c,n,ch)`
+  qui renvoie la livraison `{titre, sous, chiffres}`. Le chantier retient son niveau (`G.chantier.niv`) et, pour l'histoire,
+  son style. `projetsHTML` range les boutons par famille (Tribunes, Confort, Commerces, Accès et ambiance, Grands travaux).
+  **Équilibrage (validé par l'auteur le 25/09/2026)**, T = prix d'une tribune (`T_STADE` = 9 MF + 280 FF/place) :
+  virages 2T/6 j (dès 20k, +5 000 places, ferveur +0,015) ; éclairage pylônes 6 MF/2 j puis rampe 14 MF/3 j (exige le
+  toit), +1,5 pt d'affluence chacun ; toit 12 MF/4 j (+0,025 ferveur), loges 9 MF/3 j (+0,15 MF/match), écran 5 MF/2 j
+  (+2 pts), pelouse chauffante 7 MF/2 j ; ruban LED 6 MF/2 j (+50 kF/journée) ; boutique 2/5/14 MF (+40/100/250 kF par
+  journée) ; buvette 1,5/4/10 MF (+30/80/180 kF par match à domicile × remplissage, fan zone +1 pt) ; restaurant 3/9/20 MF
+  (+60/150/300 kF par match, étoilé : réputation +3) ; musée 2/7/18 MF (+20/60/150 kF par journée) ; hôtel 8/20/45 MF
+  (+1,5/4/9 MF à l'intersaison, moral +1/+2/+3 après chaque match à domicile) ; accès 4/15/35 MF (+1/2,5/4 pts) ; kop
+  1/3/6 MF, exige les virages (ferveur +0,005/0,01/0,02) ; **toit rétractable** 2T/8 j (dès 75k, avec toit) : +4 pts
+  d'affluence **de J8 à J26**, la saison froide (la météo est tirée APRÈS l'affluence, on ne s'y branche donc pas ; le bouton
+  Ouvrir/Fermer est **décoratif**, choix de l'auteur) ; **Entrer dans l'histoire** 5T/12 j (~180 MF), à capacité maximale
+  avec toit et virages, unique et définitif : **prestige 10**, réputation +5, **affluence jamais sous 95 % AVANT l'effet du
+  tarif** (un tarif prohibitif peut encore vider un peu : le prix des billets reste un choix), et une ligne au palmarès
+  (« Saison 1995-96 : <stade> entre dans l'histoire (<style>) »). Les six styles (`STYLES_STADE`) : Robe de lumière, Nid
+  d'acier, Forêt blanche, Brutaliste, Art déco, Cathédrale ; le choix se fait dans la fenêtre de lancement, avec un
+  aperçu du stade dans sa ville (`choixStyleHTML`/`cableChoixStyle`). **Tous les effets sont lus dans `STADE_EFFETS`** par
+  `stadeBonusAff`, `stadeFerveur`, `stadeRecetteMatch`, `stadeRecetteJour`, et restent **réservés à MON club** (calibrage
+  intact, mesuré 2,402). Au sommet : +10 pts d'affluence (hors hiver), +0,06 de ferveur, 0,63 MF par soir de match plein.
+  **La carte de livraison** : `avanceChantier()` photographie l'état du dessin avant et après, `finirJournee` range la
+  livraison dans `G.livraison`, et **`ouvreLivraison`** l'ouvre **en tête de la semaine suivante** (avant la nouvelle ère et
+  l'incident, dans la chaîne d'`ecranCalendrier`). C'est la modale du prototype : `vueVille` en mode focus (le stade et
+  l'élément livré, rien d'autre), 1,9 s de l'état d'avant à l'état d'après, grue qui repart ; sous prefers-reduced-motion,
+  la scène finale directement. **Aucun tiret cadratin** dans les textes de livraison (consigne auteur, vérifiée par le harnais).
+  **Donnée d'affluence** (v0.71, inchangée) : **`G.affHist`** est une file glissante des 8 derniers taux à domicile, poussée
+  dans `finirJournee` là où `fill` est déjà calculé ; **`affMoyenne(c)`** en fait la moyenne, sinon une estimation d'attente
+  `0.42 + pres*0.03 + (reput−60)*0.002 + (confiance−50)*0.0015` (bornée), signalée « (estim.) » jusqu'au 1er match réel.
+  Elle colore les gradins de la maquette et nourrit la jauge d'affluence moyenne sous le stade. Validation :
+  **`harness-stade.cjs`**.
 - **Staff technique — coachs spécialisés (v0.69)** : le 2e pilier « je construis mon club ». Six **postes fonctionnels**
   (`STAFF_POSTES` : attaque, defense, gardien, cpa, physique, mental) qu'on POURVOIT en recrutant un coach — modèle
   **hybride** : chaque recrue a un **nom généré** (`COACH_PRENOMS`+`NOMS`) et une **petite phrase** de caractère
@@ -1968,6 +2001,8 @@ par `simuleMatch`.
    créneau daté laissé intact dans `titre` et `G.saison`),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
    rappel d'un prêt avant terme),
+   `harness-stade.cjs` (le stade en maquette, v1.36 : nouvelle partie à la taille du club, vieille sauvegarde convertie,
+   chemin jusqu'à 100 000 places, effets bornés, rendu dans vingt états, Entrer dans l'histoire dans les six styles),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
