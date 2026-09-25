@@ -2019,8 +2019,16 @@ curées. `""` = prénom introuvable, douteux, ou même nom court porté par deux
 **on garde l'initiale, jamais de prénom deviné** (consigne auteur). Constituée en atelier le 25/09/2026 : moitié
 par recherche vérifiée saison par saison (Transfermarkt, footballdatabase, archives de clubs), moitié par
 **Wikidata** (requête SPARQL par nom de famille, footballeur né à deux ans près de l'âge du jeu, un seul candidat
-dont le prénom colle à l'initiale ; 75 accords sur 77 recoupements, les deux écarts de pure graphie). Wikidata ne
-coûte aucun jeton : c'est la voie à privilégier pour compléter la table.
+dont le prénom colle à l'initiale ; 842 accords sur 859 recoupements). **Seconde passe (v1.47)** : recherche
+plein texte Wikidata (`list=search` `"Nom" haswbstatement:P106=Q937857`, puis `wbgetentities`), qui retrouve les fiches
+sans nom de famille renseigné et tolère les accents ; jokers et vivier datés 1995 (2000 pour `JOKERS_RESERVE_2000`).
+Contrôle à l'aveugle sur 255 joueurs vérifiés : **zéro erreur d'identité**, 5 % de graphies discutables (Johann/Johan,
+Michaël/Mickaël). Bilan : **2 836 / 3 083 (92 %)**. Wikidata ne coûte aucun jeton : c'est la voie à privilégier
+(l'auteur a jugé la recherche par agents trop chère).
+**v1.47, quatre doublons de jokers corrigés** : « G. Ferrara », « G. Casiraghi », « J. Alkorta », « C. Lombardo » de
+`JOKERS_RESERVE` étaient Ciro Ferrara, Pierluigi Casiraghi, Rafael Alkorta et Attilio Lombardo, déjà présents sous
+leur bonne initiale dans les clubs européens : ils portent désormais le même nom, ce qui permet aussi à
+`retireDEurope` de les reconnaître (un seul homme sur un seul terrain). « R. Vidaković » (Betis) est juste : Risto.
 **Joueurs générés** (`genJoueur`, amateurs de coupe, vivier procédural) : un prénom d'époque tiré de
 `PRENOMS_GEN` selon l'origine du nom de famille (`origineDuNom`), qui commence par l'initiale, **haché sur le nom**
 pour rester le même d'une ouverture à l'autre.
