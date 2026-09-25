@@ -140,12 +140,16 @@ console.log("F) Là où l'on veut un joueur, il a son prénom");
     ["le joueur raflé sous votre nez", '" rafle "+nomLong(entree[0])'],
     ["la fiche joueur", '<h2>${esc(nomLong(j.nom))}</h2>'],
     ["la feuille de match", "${esc(nomLong(l.g.but))}"],
+    ["l'effectif réel de la carte du club, à l'accueil", '<td>${esc(nomLong(s[0]))}</td>'],
+    ["l'homme sur qui on compte, à l'ouverture de saison", 'sur qui on compte : <b>"+esc(nomLong(vedette.nom))'],
   ];
   const absentes = VITRINES.filter(([, motif]) => !script.includes(motif)).map(([lib]) => lib);
   ok(absentes.length === 0, `les ${VITRINES.length} vitrines affichent le prénom${absentes.length ? " — sauf : " + absentes.join(", ") : ""}`);
   // …et les listes serrées gardent l'initiale : le terrain de l'adversaire, le marché en tableau
   ok(script.includes('<span class="advDanger">${esc(x.j.nom)}</span>'), "le terrain de l'adversaire garde les noms courts");
   ok(script.includes('<td>${esc(j.nom)}</td><td class="pos-${j.pos}">'), "le tableau du marché garde les noms courts");
+  // carte du club (v1.49) : avec vingt noms complets, « Prendre les rênes » ne doit jamais tomber sous l'écran
+  ok(script.includes('<p class="ficheActions">') && html.includes(".ficheActions{position:sticky"), "le bouton de la carte du club reste collé en bas");
 }
 
 console.log(FAILS ? `\n✗ ${FAILS} échec(s)` : "\n✓ Tout est vert");

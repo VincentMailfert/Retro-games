@@ -322,6 +322,8 @@
   @media (max-width:600px){ .livrTexte{grid-template-columns:1fr;} .livrTexte .big{grid-column:1; grid-row:auto; margin-top:8px;} }
   @media (prefers-reduced-motion:reduce){ #fiche .livr{animation:none;} }
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:10;}
+  /* carte d'un club à l'accueil : « Prendre les rênes » reste en vue, quelle que soit la longueur de l'effectif */
+  .ficheActions{position:sticky; bottom:-16px; margin:12px -16px -16px; padding:10px 16px 16px; background:#0b1626; box-shadow:0 -10px 14px rgba(11,22,38,.9);}
   #fiche .card{background:var(--panel); border:2px solid var(--jaune); max-width:460px; width:100%; padding:14px 16px;}
   /* Le calque des MESSAGES (message/confirme/saisie) : il vit AU-DESSUS de #fiche pour qu'un refus
      ("trésorerie insuffisante") puisse s'afficher par-dessus la fenêtre d'où part le clic — l'embauche
@@ -457,6 +459,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   #tabScore>svg{display:none} /* les contrôles de vitesse sur leur propre ligne, plein écran */
   #ticker{font-size:16px;max-height:280px}
   .fbox{max-width:94vw !important;padding:10px !important}
+  .ficheActions{bottom:-10px; margin:12px -10px -10px; padding:10px}
   .fbox #cage, .fbox div[style*="width:330px"]{width:100% !important}
   .big{display:block;width:100%;margin:6px 0}
   .scoreline{font-size:13px !important;flex-wrap:wrap}
@@ -500,7 +503,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.48"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.49"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -9801,7 +9804,7 @@ function introSaison(){
       const socle=cracks.slice(0,5).map(x=>({j:x, c:cumulBio(x)})).sort((x,y)=>y.c.m-x.c.m)[0];
       const vedette=(socle && socle.c.m>=25) ? socle.j : cracks[0];
       const cb=cumulBio(vedette), bi=vedette.bio;
-      puces.push("⭐ L'homme sur qui on compte : <b>"+esc(vedette.nom)+"</b> ("+vedette.pos+", "+vedette.age+" ans, note "+vedette.note+")"
+      puces.push("⭐ L'homme sur qui on compte : <b>"+esc(nomLong(vedette.nom))+"</b> ("+vedette.pos+", "+vedette.age+" ans, note "+vedette.note+")"
         +((cb.m>=25&&bi) ? " · "+cb.m+" matchs et "+cb.b+" but"+(cb.b>1?"s":"")+" sous ce maillot depuis "+esc(bi.s)+"."
              +((bi.mom&&bi.mom.length)?" On n'a pas oublié : « "+esc(bi.mom[0].t)+" ».":"")
            : "."));
@@ -10525,9 +10528,9 @@ function ficheClubAccueil(id){
       const stars=((enD2?S.starsD2:S.starsD1)[c.id]||[]).slice().sort((a,b)=>"GDMA".indexOf(a[1])-"GDMA".indexOf(b[1])||b[3]-a[3]);
       if(!stars.length) return "";
       return `<p style="margin-top:10px">Effectif réel</p>
-        <table class="fit" style="font-size:13px;margin-top:4px">${stars.map(s=>`<tr><td class="pos-${s[1]}">${s[1]}</td><td>${esc(s[0])}</td><td class="num dim">${s[2]} ans</td><td class="num"><b>${s[3]}</b></td></tr>`).join("")}</table>`;
+        <table class="fit" style="font-size:13px;margin-top:4px">${stars.map(s=>`<tr><td class="pos-${s[1]}">${s[1]}</td><td>${esc(nomLong(s[0]))}</td><td class="num dim">${s[2]} ans</td><td class="num"><b>${s[3]}</b></td></tr>`).join("")}</table>`;
     })()}
-    <p style="margin-top:12px">
+    <p class="ficheActions">
       <button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${esc(("DE "+c.nom).toUpperCase())}</button>
       <button class="act" id="bRetour" style="display:block;width:100%">← Choisir un autre club</button>
     </p></div>`;

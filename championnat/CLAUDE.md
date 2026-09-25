@@ -2019,7 +2019,10 @@ et là où on le célèbre : les cartes du **rapport du recruteur** (« Carlos V
 dépliée du **marché** (la recherche y trouve aussi un joueur par son prénom), les **trois dangers** de l'adversaire du
 samedi (le terrain garde les noms courts), l'**almanach** (buteur, passeur, homme de la saison, dont la phrase « celui
 que les tribunes ont fini par appeler par son prénom » prend enfin son sens), et les dépêches **TRANSFERT**, **RECRUE
-JOKER** et le joueur **raflé sous votre nez**. Section F de `harness-prenoms.cjs`. Rien n'entre dans la sauvegarde :
+JOKER** et le joueur **raflé sous votre nez**. **v1.49** : l'effectif réel de la **carte du club à l'accueil**
+(« Patrick Vieira, 17 ans » à Cannes en 93-94) et **l'homme sur qui on compte** de l'ouverture de saison ; le bouton
+« Prendre les rênes » est collé au bas de la carte (`.ficheActions`, sticky) : avec vingt joueurs il tombait sous l'écran
+du téléphone. Section F de `harness-prenoms.cjs`. Rien n'entre dans la sauvegarde :
 une vieille carrière a ses prénoms sans migration.
 **Vrais joueurs** : table `PRENOMS_VRAIS` (au-dessus de `PRENOMS_GEN`), une entrée par nom à initiale des tables
 curées. `""` = prénom introuvable, douteux, ou même nom court porté par deux hommes aux prénoms différents :
