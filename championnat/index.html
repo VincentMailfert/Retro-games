@@ -352,6 +352,15 @@
   button.porte2{font-size:16px; padding:9px 20px; background:var(--panel2); color:var(--clair); border:2px solid var(--line); font-weight:bold; cursor:pointer; font-family:inherit; box-shadow:0 4px 0 #0b1626;}
   button.porte2:hover{border-color:var(--clair);}
   button.porte2:active{box-shadow:0 1px 0 #0b1626;}
+  /* le tirage de la magie : la saison en chiffres de tableau d'affichage, puis le club, qui se figent tour à tour */
+  #fiche .magie{background:#060d18; border:2px solid var(--jaune); box-shadow:0 0 40px rgba(0,0,0,.85); padding:26px 22px;
+    width:min(420px,92vw); box-sizing:border-box; text-align:center; cursor:pointer;}
+  .magie .magSaison{font-family:var(--font-led); font-size:44px; letter-spacing:.08em; color:var(--dim); line-height:1.1; min-height:1.1em;}
+  .magie .magClub{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:18px; min-height:48px;
+    font-size:20px; color:var(--dim);}
+  .magie .fige{color:var(--jaune); animation:magFige .35s ease-out;}
+  .magie .magClub.fige{color:var(--clair);}
+  @keyframes magFige{0%{transform:scale(1.18);} 100%{transform:scale(1);}}
   @media(max-width:700px){ .accHero .accTitre{font-size:24px;} .accHero .accPitch{font-size:16px;} .accHero .accPortes button{width:100%; min-width:0;} .accHero .accPortes .ou{width:100%;} }
   /* le premier match d'une carrière : on joue d'abord, on règle ensuite (les réglages restent à un clic) */
   details.avantMatch{margin-top:12px; text-align:center;}
@@ -491,7 +500,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.44"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.45"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -9979,6 +9988,36 @@ function ficheClubAccueil(id){
   };
   document.getElementById("bRetour").onclick=fermeFiche;
 }
+/* LA MAGIE (v1.45) : le hasard tire une saison, puis un club de cette saison, et les montre défiler comme une
+   roue de loterie qui ralentit avant de s'arrêter. Un clic ou le mouvement réduit sautent droit à la fiche ;
+   Échap (fermeFiche) annule le tirage. */
+function tirageMagie(){
+  const saisons=Object.keys(SAISONS), sk=PICK(saisons), T=SAISONS[sk], clubs=T.d1.concat(T.d2), id=PICK(clubs);
+  const conclut=()=>{ SAISON_ACCUEIL=sk; ecranAccueil(); ficheClubAccueil(id); };
+  if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return conclut();
+  const fiche=document.getElementById("fiche");
+  fiche.innerHTML=`<div class="fbox magie" id="magieBox">
+    <div class="magSaison" id="magS"></div>
+    <div class="magClub" id="magC"></div></div>`;
+  fiche.style.display="flex";
+  const eS=document.getElementById("magS"), eC=document.getElementById("magC");
+  const box=document.getElementById("magieBox"); // un tirage fermé (Échap) ou remplacé par une autre fenêtre s'éteint
+  const vivant=()=>fiche.style.display!=="none" && document.getElementById("magieBox")===box;
+  let fini=false;
+  const fin=()=>{ if(fini) return; fini=true; conclut(); };
+  box.onclick=fin;
+  const montreC=cid=>{ const c=metaClub(cid); eC.innerHTML=`${blason(c,40)}<b>${esc(c.nom)}</b>`; };
+  const roue=(n, pioche, montre, cible, suite)=>{ let i=0;
+    const pas=()=>{ if(fini || !vivant()) return;
+      if(i<n){ montre(pioche()); i++; setTimeout(pas, 40+Math.pow(i/n,2)*150); }
+      else { montre(cible); suite(); } };
+    pas(); };
+  eC.innerHTML=`<span class="dim">…</span>`;
+  roue(10, ()=>PICK(saisons), k=>{ eS.textContent=SAISONS[k].titre; }, sk, ()=>{
+    eS.classList.add("fige");
+    setTimeout(()=>roue(12, ()=>PICK(clubs), montreC, id, ()=>{ eC.classList.add("fige"); setTimeout(()=>{ if(vivant()) fin(); }, 550); }), 250);
+  });
+}
 let ACCUEIL_DIV = 1; // onglet de division affiché sur mobile (persiste tant qu'on reste sur l'accueil)
 function pipsHTML(pres){
   return `<span class="pips"><span class="fort">${"●".repeat(pres)}</span><span class="off">${"○".repeat(10-pres)}</span></span>`;
@@ -10026,7 +10065,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
      </div>`).join("")}
      <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:13px">${parties.length>=MAX_PARTIES
        ? "Maximum de "+MAX_PARTIES+" carrières atteint : supprimez-en une pour en commencer une autre."
-       : ""}</span>${imp}</p>
+       : `<button class="lien" id="bMagie" style="padding-left:0">✨ Nouvelle carrière au hasard</button>`}</span>${imp}</p>
    </div>`;
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
@@ -10082,9 +10121,7 @@ function ecranAccueil(){
    </div>
    <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives.${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
-  { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=()=>{
-      SAISON_ACCUEIL=PICK(Object.keys(SAISONS)); ecranAccueil(); // l'écran suit la saison tirée (sélecteur, listes)
-      const T=SAISONS[SAISON_ACCUEIL]; ficheClubAccueil(PICK(T.d1.concat(T.d2))); };
+  { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
   app.querySelectorAll(".startclub:not(.carGo)").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id)); // .carGo = une carrière, pas un club : son data-id n'est pas un club
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
