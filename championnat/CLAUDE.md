@@ -60,7 +60,10 @@ toujours « raconter quelque chose ».
   Retirés ce jour-là : les sous-titres d'ambition de l'accueil (« L'élite. Ici, on ne se contente pas… »), la phrase
   sous chaque formation, consigne, prime et rotation, la lecture des trois duels (remplacée par l'adversaire du samedi :
   rang, onze, trois dangers, cf. `briefAdverse`), le mode d'emploi du rendez-vous de semaine. Préférer une information
-  concrète à une explication.
+  concrète à une explication. Dans les trois directs, le bouton **« 👥 Compos »** (`composDirect`/`rendCompos`, état
+  `COMPOS`) ouvre les deux onze tels qu'ils sont sur la pelouse à la minute affichée (`enJeu`, relu sous la feuille de
+  rotation les soirs de coupe) ; `majMinute` le tient à jour. Gardé par la section I de `harness-formations.cjs`.
+  **Piège** : le score s'écrit « 2 - 1 », jamais « 2 · 1 » (le point sépare, il ne marque pas un score).
 - **AUCUN TIRET LONG « — » DANS LE TEXTE DU JEU (consigne auteur, 25/09/2026)** : 400 retirés d'un coup. Virgule dans
   la prose, « : » après une étiquette en capitales (« 🏥 BLESSURE : »), « · » comme séparateur (titres, jointures),
   « - » pour une case vide ou le tiret du score. Les commentaires du code peuvent le garder. Vaut aussi pour tout

@@ -289,6 +289,12 @@
   .briefAdv .advDanger{color:var(--clair); font-weight:700;}
   .briefDang{display:flex; flex-wrap:wrap; justify-content:center; gap:2px 14px; margin:6px 0 0; font-size:13px;}
   .briefDang>span::before{content:"⚠ "; color:var(--rouge);}
+  /* les compos en direct (bouton « Compos ») : les deux onze côte à côte, l'un sous l'autre sur téléphone */
+  #bCompos[aria-expanded="true"]{background:var(--jaune); color:#0b1626; font-weight:bold;}
+  #composDirect{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;}
+  #composDirect .terrainXI{margin-top:4px; max-width:none;}
+  .compoTete{display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;}
+  @media (max-width:600px){ #composDirect{grid-template-columns:1fr;} }
   .maquette{margin:4px 0 6px; border-radius:4px; overflow:hidden; background:#081221;}
   .maquette svg{display:block; width:100%; height:auto;}
   .maquette .stTrib:hover polygon{fill-opacity:.3;}
@@ -475,7 +481,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.37"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.38"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -6021,7 +6027,7 @@ function ecranReprise(){
      ${(!S.arc&&!S.pret&&!S.chantier&&!G.flash&&!G.offreExt&&!G.offrePret&&!G.affaire)?`<p class="dim">Rien en suspens : le terrain, et rien d'autre.</p>`:""}
    </div>
    <div class="panel" style="border-color:#ffd24a"><h2 class="jaune">⚽ LE PROCHAIN MATCH</h2>
-     ${S.pm?`<p class="scoreline ctr" style="font-size:18px">${esc(S.pm.dom?(moi?moi.nom:""):S.pm.nom)} · ${esc(S.pm.dom?S.pm.nom:(moi?moi.nom:""))}</p>
+     ${S.pm?`<p class="scoreline ctr" style="font-size:18px">${esc(S.pm.dom?(moi?moi.nom:""):S.pm.nom)} - ${esc(S.pm.dom?S.pm.nom:(moi?moi.nom:""))}</p>
        <p class="ctr dim">Journée ${Math.min(G.journee+1,38)} · ${S.pm.dom?"à domicile":"à l'extérieur"}</p>
        ${S.raisons.length?`<p style="margin-top:8px"><span class="dim">Ce match compte parce que…</span></p>
          ${S.raisons.slice(0,3).map(x=>`<p style="margin:3px 0">${x.ico} ${esc(x.txt)}</p>`).join("")}`
@@ -9340,7 +9346,7 @@ function ecranBilan(){
         +`<p class="dim" style="font-size:13px;margin-top:6px">Les archives du club ont perdu ${l.length>1?"plusieurs pages":"une page"} cette saison.</p></div>`;
     })()}
    <div class="panel"><h2>🔥 LE MATCH DE L'ANNÉE</h2>
-     ${M?`<p class="scoreline" style="text-align:center;font-size:18px">${esc(nomC(M.h))} <span class="jaune">${M.sh}</span> · <span class="jaune">${M.sa}</span> ${esc(nomC(M.a))}</p>
+     ${M?`<p class="scoreline" style="text-align:center;font-size:18px">${esc(nomC(M.h))} <span class="jaune">${M.sh}</span> - <span class="jaune">${M.sa}</span> ${esc(nomC(M.a))}</p>
        <p class="ctr dim">Journée ${M.j}${M.mien?", et vous y étiez.":""}</p>`
       :`<p class="dim">Pas un match ne s'est détaché du lot.</p>`}
    </div>
@@ -10408,7 +10414,39 @@ function htmlCtlTactique(){
        <span class="dim" id="libTacD">Tactique en direct :</span>
        ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
        <button class="act" id="bBanc" style="display:none; margin-left:6px">🔁 Banc</button>
+       <button class="act" id="bCompos" style="display:none; margin-left:6px" aria-expanded="false">👥 Compos</button>
+       <div id="composDirect" style="display:none"></div>
      </div>`;
+}
+/* LES COMPOS EN DIRECT (25/09/2026, demande de l'auteur : « je ne peux jamais voir le onze adverse, je ne peux que le
+   deviner en lisant les commentaires »). Le bouton « Compos » ouvre les deux onze tels qu'ils sont sur la pelouse à
+   la minute affichée : entrants, sortants et expulsés compris (`enJeu`). Les soirs de coupe et d'Europe, VOTRE onze
+   est celui de la rotation : on relit la feuille posée pour le moteur (`feuilles`). Chaque camp est une paire
+   [objet d'affichage (blason, nom), club qui porte l'effectif] : un village de la Coupe de France n'a pas les deux. */
+let COMPOS={h:null, a:null, feuilles:null, min:0, ouvert:false};
+function composDirect(h, a, feuilles){
+  COMPOS={h, a, feuilles:feuilles||null, min:0, ouvert:false};
+  const b=document.getElementById("bCompos");
+  if(b){ b.style.display=""; b.onclick=()=>{ COMPOS.ouvert=!COMPOS.ouvert; rendCompos(); }; }
+  rendCompos();
+}
+function surPelouse(c, m){ return COMPOS.feuilles ? sousFeuilles(COMPOS.feuilles, ()=>enJeu(c, m)) : enJeu(c, m); }
+function htmlCompos(){
+  const col=([aff, c])=>{
+    const xi=surPelouse(c, COMPOS.min), place=placeXI(xi, formationDe(c));
+    const ligne=p=>{ const js=place.filter(x=>x.z===p);
+      return js.length?`<div class="fLigne">${js.map(x=>`<span>${esc(x.j.nom)}</span>`).join("")}</div>`:""; };
+    return `<div class="compoCol"><div class="compoTete">${blasonAff(aff,18)}<b class="${c.id===G.monClub?"jaune":"fort"}">${esc(aff.nom)}</b>${xi.length<11?`<span class="rouge">${xi.length} hommes</span>`:""}</div>
+      <div class="terrainXI">${ligne("A")}${ligne("M")}${ligne("D")}${ligne("G")}</div></div>`;
+  };
+  return col(COMPOS.h)+col(COMPOS.a);
+}
+function rendCompos(){
+  const d=document.getElementById("composDirect"), b=document.getElementById("bCompos");
+  if(b && b.setAttribute) b.setAttribute("aria-expanded", COMPOS.ouvert?"true":"false");
+  if(!d) return;
+  if(!COMPOS.ouvert || !COMPOS.h || !COMPOS.a){ d.style.display="none"; return; }
+  d.innerHTML=htmlCompos(); d.style.display="";
 }
 /* Le même contrôle, branché sur un soir de coupe ou d'Europe (v1.10) : il n'existait qu'en championnat, d'où le
    retour de playtest « certains matchs, je ne peux pas changer la stratégie en cours de match » — c'étaient les
@@ -10809,6 +10847,7 @@ function lanceCoupe(H, A, ed){
   const S=ed._sim, R=S&&S.r&&S.r.ev ? S.r : null;
   const gen=R ? null : genEvCoupe(H, A, r);
   const lignes=R ? R.ev : gen.ev, affSoir=R ? R.aff : gen.aff;
+  composDirect([H, coupeClub(ed.hid)||H], [A, coupeClub(ed.aid)||A], S&&S.o&&S.o.feuilles);
   let liveMin=0; const liveMul={h:1, a:1}; // la minute jouée et l'infériorité numérique, pour un recollage
   const tk=document.getElementById("ticker"); tk.innerHTML="";
   const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=1600; surligneVitesse(); }
@@ -10832,7 +10871,7 @@ function lanceCoupe(H, A, ed){
     const colBut=cote=>buts.filter(l=>l.g.cote===cote).map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}</p>`).join("")||'<p class="dim">-</p>';
     tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
       <p class="sys" style="margin-bottom:4px">FEUILLE DE MATCH</p>
-      <p style="text-align:center;font-size:16px"><b>${esc(H.nom)} <span class="jaune">${r.sh}</span> · <span class="jaune">${r.sa}</span> ${esc(A.nom)}</b>${r.tab?' <span class="dim">(t.a.b.)</span>':""}</p>
+      <p style="text-align:center;font-size:16px"><b>${esc(H.nom)} <span class="jaune">${r.sh}</span> - <span class="jaune">${r.sa}</span> ${esc(A.nom)}</b>${r.tab?' <span class="dim">(t.a.b.)</span>':""}</p>
       <div style="display:flex;gap:18px;margin-top:4px">
         <div style="flex:1;text-align:right">${colBut(H.id)}</div>
         <div style="flex:1">${colBut(A.id)}</div></div>
@@ -10876,7 +10915,7 @@ function lanceCoupe(H, A, ed){
     tk.scrollTop=0;
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
-        sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} · ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
+        sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
@@ -10935,6 +10974,7 @@ function lanceEuroLeg(H, A, ed, legScore){
   const S=ed._sim, R=S&&S.r&&S.r.ev ? S.r : null;
   const gen=R ? null : genEvCoupe(H, A, r, onzeEuro);
   const lignes=R ? R.ev : gen.ev, affSoir=R ? R.aff : gen.aff;
+  composDirect([H, euroClub(H.id)||H], [A, euroClub(A.id)||A], S&&S.o&&S.o.feuilles);
   let liveMin=0; const liveMul={h:1, a:1}; // la minute jouée et l'infériorité numérique, pour un recollage
   const tk=document.getElementById("ticker"); tk.innerHTML="";
   const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=1600; surligneVitesse(); }
@@ -10956,7 +10996,7 @@ function lanceEuroLeg(H, A, ed, legScore){
     const colBut=cote=>buts.filter(l=>l.g.cote===cote).map(l=>`<p>⚽ ${l.m}' ${esc(l.g.but)}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}</p>`).join("")||'<p class="dim">-</p>';
     tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
       <p class="sys" style="margin-bottom:4px">FEUILLE DE MATCH</p>
-      <p style="text-align:center;font-size:16px"><b>${esc(H.nom)} <span class="jaune">${r.sh}</span> · <span class="jaune">${r.sa}</span> ${esc(A.nom)}</b>${r.tab?' <span class="dim">(t.a.b.)</span>':""}</p>
+      <p style="text-align:center;font-size:16px"><b>${esc(H.nom)} <span class="jaune">${r.sh}</span> - <span class="jaune">${r.sa}</span> ${esc(A.nom)}</b>${r.tab?' <span class="dim">(t.a.b.)</span>':""}</p>
       <div style="display:flex;gap:18px;margin-top:4px">
         <div style="flex:1;text-align:right">${colBut(H.id)}</div>
         <div style="flex:1">${colBut(A.id)}</div></div>
@@ -11026,7 +11066,7 @@ function lanceEuroLeg(H, A, ed, legScore){
     tk.scrollTop=0;
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
-        sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} · ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
+        sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
@@ -11484,6 +11524,7 @@ function lanceMatch(instant){
       `<span class="tNom">${esc(eM.a.nom)}</span>`+blason(eM.a,34);
     document.getElementById("tabButs").innerHTML=`<div class="tCol d" id="tBuH"></div><div class="tCol" id="tBuA"></div>`;
   }
+  if(eM && !instant) composDirect([eM.h, eM.h], [eM.a, eM.a]);
   const majTableau=l=>{
     if(!l||!l.g||!pT||!eM) return;
     document.getElementById("tScH").textContent=l.g.sh;
@@ -11523,7 +11564,7 @@ function lanceMatch(instant){
       tk.insertAdjacentHTML("afterbegin",`<div id="mpxHote"></div>`);
       tk.insertAdjacentHTML("afterbegin",`<div class="fmatch">
         <p class="sys" style="margin-bottom:4px">FEUILLE DE MATCH</p>
-        <p style="text-align:center;font-size:16px"><b>${esc(eM.h.nom)} <span class="jaune">${eM.sh}</span> · <span class="jaune">${eM.sa}</span> ${esc(eM.a.nom)}</b></p>
+        <p style="text-align:center;font-size:16px"><b>${esc(eM.h.nom)} <span class="jaune">${eM.sh}</span> - <span class="jaune">${eM.sa}</span> ${esc(eM.a.nom)}</b></p>
         <div style="display:flex;gap:18px;margin-top:4px">
           <div style="flex:1;text-align:right">${colBut(eM.h.id)}</div>
           <div style="flex:1">${colBut(eM.a.id)}</div>
@@ -11659,7 +11700,7 @@ function lanceMatch(instant){
     if(lg && lg.g){ // BUT
       const contre=lg.g.cote!==G.monClub;
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
-        sub:`<b class="jaune">${esc(eM.h.nom)} ${lg.g.sh} · ${lg.g.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
+        sub:`<b class="jaune">${esc(eM.h.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
@@ -11685,7 +11726,7 @@ function lanceMatch(instant){
       const cag=(lg.mo==="cagade"); // ...et tous méritent leur flash LED — un but d'anthologie autant qu'une cagade
       const titre=cag?"🧤 CAGADE !":lg.mo==="cadeau"?"🎁 CADEAU DU GARDIEN !":lg.mo==="gkbut"?"🧤⚽ LE GARDIEN MARQUE !":"🌟 BUT D'ANTHOLOGIE !";
       celebreFlash({classe:cag?"contre":"", gros:titre, img:IMG_MOMENT[lg.mo]?PICK(IMG_MOMENT[lg.mo]):null,
-        sub:`<b class="jaune">${esc(eM.h.nom)} ${eM.sh} · ${eM.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
+        sub:`<b class="jaune">${esc(eM.h.nom)} ${eM.sh} - ${eM.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
@@ -11740,6 +11781,7 @@ function ajouteLigne(tk,l){
    (harnais sans DOM, écran qui n'en a pas), elle ne fait rien et ne lève jamais. */
 function majMinute(m){
   if(m==null || typeof document==="undefined") return;
+  COMPOS.min=m; if(COMPOS.ouvert) try{ rendCompos(); }catch(e){} // les compos ouvertes suivent la pelouse, minute par minute
   try{
     const ts=document.getElementById("tabScore");
     if(!ts || typeof ts.insertAdjacentHTML!=="function" || typeof ts.querySelector!=="function") return;

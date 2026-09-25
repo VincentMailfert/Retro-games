@@ -47,7 +47,8 @@ global.requestAnimationFrame = cb => setTimeout(cb, 0); global.cancelAnimationFr
 
 const api = new Function(script + "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,onze,onzeRotation,forces,simuleMatch," +
   "lambdasZones,styleFormation,multTactique,titulariser,migre,blocConsignePrime,ecranCalendrier,placeXI,HORS_POSTE," +
-  "FORMATIONS,ZONES,K_ZONES,CLUBS,CLUBS_D2,getG:function(){return G;}};")();
+  "FORMATIONS,ZONES,K_ZONES,CLUBS,CLUBS_D2,composDirect,htmlCompos,enJeu,feuilleDe,finirJournee,autoMoment," +
+  "getChg:function(){return CHANGEMENTS;},compos:function(){return COMPOS;},getG:function(){return G;}};")();
 
 let F = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) F++; };
@@ -299,6 +300,34 @@ const advDe = G => { const p = G.calendrier[G.journee].find(([x, y]) => x === G.
     ok(/(1er|\dᵉ|\d\dᵉ) · 7 pts/.test(b2), "la saison lancée, le rang et les points d'en face s'affichent");
     ok(b2.includes('<span class="advDanger">' + cobaye.nom + "<") && /99 buts/.test(b2), "un défenseur à 99 buts devient un danger, chiffre à l'appui");
     cobaye.buts = 0; adv.pts = 0; G.journee = 0;
+  }
+  { // LES COMPOS EN DIRECT (25/09/2026) : les deux onze tels qu'ils sont sur la pelouse à la minute affichée
+    const noms = h => (h.match(/<span>([^<]*)<\/span>/g) || []).map(s => s.slice(6, -7));
+    let vu = 0, faux = [];
+    for (let essai = 0; essai < 12 && vu < 3; essai++) {
+      global.window.__TEST__ = false; global.window._diffEnDirect = true; // comme le direct : la journée reste ouverte jusqu au sifflet
+      const { res: rj, monMatch: mm } = api.jouerJournee(), eM = rj.find(r => r.mien);
+      global.window._diffEnDirect = false; global.window.__TEST__ = true;
+      const [H, A] = [eM.h, eM.a];
+      api.composDirect([H, H], [A, A]);
+      for (const m of [0, 46, 90]) {
+        api.compos().min = m;
+        const h = api.htmlCompos(), attendu = api.enJeu(H, m).concat(api.enJeu(A, m)).map(j => j.nom);
+        const lus = noms(h);
+        if (lus.length !== attendu.length || attendu.some(n => !lus.includes(n))) faux.push("J" + G.journee + " " + m + "'");
+      }
+      const chg = [H, A].map(c => api.getChg()[c.id]).find(p => p && p.sort && p.sort.length);
+      if (chg && chg.sort.length) vu++;
+      api.finirJournee(mm && mm.moment ? api.autoMoment(mm.moment) : null); // le sifflet, comme au bout du direct
+    }
+    ok(!faux.length, "les compos du direct montrent, à 0', 46' et 90', exactement les hommes que le moteur a sur la pelouse" + (faux.length ? " (écarts : " + faux.join(", ") + ")" : ""));
+    ok(vu >= 1, "…et au moins un match avec des changements a été contrôlé (" + vu + ")");
+    // un soir de coupe : la feuille de la rotation fait foi, pas le meilleur onze
+    const adv = G.clubs.find(c => c.id !== G.monClub), res = api.onzeRotation(moi, "reserve");
+    api.composDirect([moi, moi], [adv, adv], { [moi.id]: api.feuilleDe(res), [adv.id]: api.feuilleDe(api.onze(adv)) });
+    api.compos().min = 30;
+    const hc = api.htmlCompos();
+    ok(res.every(j => noms(hc).includes(j.nom)) && /class="jaune">/.test(hc), "un soir de coupe, votre colonne montre la réserve envoyée, et votre club en jaune");
   }
   // les trois verdicts de chaque duel existent bien (vocabulaire)
   const bloc = api.blocConsignePrime("en cas de qualification", api.onze(moi));
