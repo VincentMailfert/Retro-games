@@ -481,7 +481,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.38"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.39"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -5923,7 +5923,7 @@ function veilleAffluence(c){
   const m3=L.slice(-3).reduce((s,x)=>s+x.f,0)/3;
   if(m3>=0.93 && G._affCri!=="plein"){
     G._affCri="plein";
-    notif("🎟️ Trois matchs de suite à guichets quasi fermés ("+Math.round(m3*100)+" % de remplissage). "+(c?c.stade:"Le stade")+" est devenu trop petit : une tribune de plus, et ce sont des recettes en plus tous les quinze jours.");
+    notif("🎟️ Trois matchs de suite à guichets quasi fermés ("+Math.round(m3*100)+" % de remplissage).");
     return;
   }
   if(L.length<6) return;
@@ -5934,7 +5934,7 @@ function veilleAffluence(c){
   } else if(m3>av+0.10 && G._affCri!=="hausse"){
     G._affCri="hausse";
     // 🏟️ et pas 📈 (v1.14) : 📈 est réservé aux notes gagnées, que harness-progression.cjs compte à ce préfixe
-    notif("🏟️ Le public revient : "+Math.round(av*100)+" % de remplissage il y a un mois, "+Math.round(m3*100)+" % aujourd'hui. Ce n'est pas le moment de faire une bêtise sur le prix des places.");
+    notif("🏟️ Le public revient : "+Math.round(av*100)+" % de remplissage il y a un mois, "+Math.round(m3*100)+" % aujourd'hui.");
   }
 }
 function moyAffSaison(l){ return (l&&l.length) ? l.reduce((s,x)=>s+x.n,0)/l.length : 0; }
@@ -5950,7 +5950,7 @@ function baroTribunes(){
   const L=G.affJ||[], S=G.affS||[];
   const rec=G.records&&G.records.aff;
   if(!L.length && !S.length) return `<h3 style="margin-top:12px">Le baromètre des tribunes</h3>
-    <p class="dim" style="font-size:13px">Il se remplira dès votre premier match à domicile.</p>`;
+    <p class="dim" style="font-size:13px">Aucun match à domicile.</p>`;
   const moy=moyAffSaison(L), der=S.length?S[S.length-1]:null, H=34, W=Math.max(1,L.length);
   const barres=L.map((x,i)=>{
     const ht=Math.max(2, Math.round(x.f*H));
@@ -5963,8 +5963,7 @@ function baroTribunes(){
       <p class="dim" style="font-size:13px;margin-top:2px">${L.length} match${L.length>1?"s":""} à domicile cette saison, moyenne <b class="fort">${FMT(Math.round(moy))}</b> spectateurs.</p>`
      :`<p class="dim" style="font-size:13px">Aucun match à domicile joué cette saison.</p>`}
     ${der?`<p class="dim" style="font-size:13px">Saison ${esc(der.s)} : ${FMT(der.moy)} de moyenne · <span class="${delta>=0?"vert":"rouge"}">${delta>=0?"▲ +":"▼ "}${FMT(Math.abs(Math.round(delta)))}</span> cette année.</p>`:""}
-    ${rec?`<p class="dim" style="font-size:13px">🎟️ Record du club : ${esc(rec.t)} <span style="font-size:13px">(${esc(rec.s)})</span>.</p>`:""}
-    <p class="dim" style="font-size:13px">${esc(conseilTribunes(L))}</p>`;
+    ${rec?`<p class="dim" style="font-size:13px">🎟️ Record du club : ${esc(rec.t)} <span style="font-size:13px">(${esc(rec.s)})</span>.</p>`:""}`;
 }
 
 /* ---------- « OÙ EN ÉTIONS-NOUS ? » ----------
@@ -6276,7 +6275,7 @@ function demandePrime(j, prix, prime){
     <p class="dim">Trésorerie disponible : ${(cash/1e6).toFixed(1)} MF.</p>
     <div style="margin-top:10px">
       <button class="big" id="bPrimeOk" style="display:block;width:100%;margin:6px 0" ${cash<prime?"disabled":""}>Payer la prime (${(prime/1e6).toFixed(2)} MF cash)${cash<prime?", trésorerie insuffisante":""}</button>
-      <button class="big" id="bPrimeNeg" style="display:block;width:100%;margin:6px 0">Négocier (l'agent peut se braquer)</button>
+      <button class="big" id="bPrimeNeg" style="display:block;width:100%;margin:6px 0">Négocier</button>
       <button class="big" id="bPrimeNon" style="display:block;width:100%;margin:6px 0">Renoncer au transfert</button>
     </div><div id="primeRes"></div></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
@@ -6376,10 +6375,7 @@ function modalPret(j, sens){ // sens: "in" = emprunter, "out" = prêter
   fiche.style.display="flex";
   fiche.innerHTML=`<div class="card">
     <h2>${sens==="in"?"Emprunter":"Prêter"} ${esc(j.nom)}</h2>
-    <p>${sens==="in"
-      ?"Le joueur rejoint votre effectif pour la durée choisie, contre une indemnité par journée."
-      :"Le joueur part jouer ailleurs, temps de jeu garanti, sa progression s'accélère, et le club hôte paie une indemnité par journée."}</p>
-    ${sens==="out"?`<p style="margin-top:6px">Destination proposée : <b class="fort">${esc(hote.nom)}</b> <span class="dim">(prestige ${hote.pres}/10 · il y jouera titulaire)</span>. Libre à vous de refuser et de retenter plus tard.</p>`:""}
+    ${sens==="out"?`<p style="margin-top:6px">Destination proposée : <b class="fort">${esc(hote.nom)}</b> <span class="dim">(prestige ${hote.pres}/10 · il y jouera titulaire)</span>.</p>`:""}
     <p style="margin-top:8px">Durée :
       <select id="selD">${durees.map(d=>`<option value="${d}">${d} journées</option>`).join("")}</select>
       · Indemnité : <b class="fort">${FMT(tarif)} FF / journée</b> ${sens==="in"?"(à payer)":"(encaissée)"}</p>
@@ -6463,7 +6459,7 @@ function rappelPret(uid){
   const reste=p.fin-G.journee;
   if(reste<=1) return message(j.nom+" rentre de toute façon à la J"+p.fin+". Inutile de payer une indemnité pour une seule journée.", {titre:"📞 RAPPEL INUTILE"});
   const cout=coutRappel(p, j);
-  if(G.tresorerie<cout) return message(hote.nom+" réclame "+(cout/1e6).toFixed(2)+" MF d'indemnité de rupture, et votre caisse n'en contient que "+(G.tresorerie/1e6).toFixed(1)+" MF.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
+  if(G.tresorerie<cout) return message(hote.nom+" réclame "+(cout/1e6).toFixed(2)+" MF d'indemnité de rupture, et votre caisse n'en contient que "+(G.tresorerie/1e6).toFixed(1)+" MF.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   const d0=debutPret(p), part=Math.max(0, Math.min(1, (G.journee-d0)/Math.max(1, p.fin-d0)));
   modalSignature({
     titre:"📞 Rappeler "+j.nom+" ?",
@@ -6653,7 +6649,7 @@ function transfertIA(){
 function ameliorerCentre(){
   if(G.centre>=5) return message("Le centre d'entraînement est déjà au niveau maximal. On ne fait pas mieux en 1995.", {titre:"🏟️ DÉJÀ AU SOMMET"});
   const cout=8e6*G.centre;
-  if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6)+" MF, la caisse ne suit pas.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
+  if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6)+" MF, la caisse ne suit pas.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   const niv=G.centre+1;
   modalSignature({
     titre:"🌱 Passer le centre au niveau "+niv+" ?",
@@ -7271,7 +7267,7 @@ function panneauFlash(){
    <p style="margin-top:6px;font-style:italic">« ${esc(f.motif)} »</p>
    <p style="margin-top:6px">Transfert : <b class="fort">${cout}</b>${solde?` <span class="dim">(au lieu de ${(f.plein/1e6).toFixed(1)} MF)</span>`:""}
      · Salaire : <b class="${(j.salMult||1)>1.2?"rouge":"fort"}">${FMT(salaire(j))} FF/sem</b>${(j.salMult||1)>1.2?' <span class="dim">il monnaie sa liberté</span>':""}</p>
-   <p class="dim" style="font-size:13px;margin-top:6px">Dossier joker : signable même mercato fermé. Mais l'occasion ne dure qu'une journée, si vous ne la prenez pas, un club du championnat la prendra.</p>
+   <p class="dim" style="font-size:13px;margin-top:6px">Signable mercato fermé.</p>
    <p style="margin-top:8px"><button class="big bFlashOui">${solde?"SAISIR L'OCCASION ("+(f.prix/1e6).toFixed(1)+" MF)":"LE FAIRE SIGNER (0 FF de transfert)"}</button>
    <button class="act bFlashNon" style="margin-left:8px">Laisser filer</button></p></div>`;
 }
@@ -7574,7 +7570,7 @@ function lanceProjet(id, style){
   if(G.chantier) return message("Un chantier est déjà en cours, livraison dans "+G.chantier.reste+" journée(s). Les grues ne se dédoublent pas.", {titre:"🏗️ CHANTIER EN COURS"});
   if(!p.dispo(c)) return;
   const n=p.niv(c), cout=p.cout(c,n), duree=p.duree(n), label=p.label(c,n);
-  if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6).toFixed(1)+" MF, la caisse ne suit pas.\n\nAstuce : transvasez du budget transferts vers la trésorerie depuis l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
+  if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6).toFixed(1)+" MF, la caisse ne suit pas.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   // un chantier immobilise la caisse ET le seul créneau de travaux disponible : on confirme avant
   modalSignature({
     titre:"🏗️ Lancer les travaux ?",
@@ -7717,7 +7713,7 @@ let _COACHCANDS=null, _COACHPOSTE=null;
 function embaucherCoach(idx){
   const c=_COACHCANDS&&_COACHCANDS[idx], id=_COACHPOSTE, poste=STAFF_POSTES.find(p=>p.id===id);
   if(!c||!poste) return;
-  if(G.tresorerie<c.prime){ message("Son indemnité d'embauche est de "+(c.prime/1e6).toFixed(1)+" MF, et la caisse ne suit pas.\n\nAstuce : transvasez depuis le budget transferts, à l'écran Finances.", {titre:"💰 TRÉSORERIE INSUFFISANTE"}); return; }
+  if(G.tresorerie<c.prime){ message("Son indemnité d'embauche est de "+(c.prime/1e6).toFixed(1)+" MF, et la caisse ne suit pas.", {titre:"💰 TRÉSORERIE INSUFFISANTE"}); return; }
   G.tresorerie-=c.prime;
   G.staff[id]={nom:c.nom, tier:c.tier, phrase:c.phrase, salaire:c.salaire};
   G.news.unshift("STAFF : "+c.nom+" ("+TIER_NOM[c.tier]+") prend en main "+poste.nom.toLowerCase()+".");
@@ -7731,7 +7727,7 @@ function ouvreRecrutement(id){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px;max-height:88vh;overflow-y:auto">
     <h2>${poste.pic} RECRUTER : ${esc(poste.nom.toUpperCase())}</h2>
-    <p class="dim" style="font-size:13px;margin-bottom:8px">Un as, un confirmé et un espoir se présentent.</p>
+    
     ${_COACHCANDS.map((c,i)=>`<div style="border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:6px 0">
        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
          <b>${esc(c.nom)}</b><span class="fort" style="letter-spacing:1px">${etoiles(c.tier)}</span></div>
@@ -8274,7 +8270,7 @@ function apercuRotation(rot){
   const cls=moy>=90?"dim":(moy>=80?"jaune":"rouge");
   return `<p class="${cls}" style="font-size:13px;margin-top:8px">Fraîcheur du onze envisagé : <b>${moy}/100</b>`
     + (cuits.length?` · ${cuits.length} homme${cuits.length>1?"s déjà sous 80":" déjà sous 80"} (${cuits.slice(0,3).map(j=>esc(j.nom)).join(", ")}${cuits.length>3?"…":""})`:"")
-    + ` · <span class="dim">chacun rentrera avec ${FRAICH_MATCH} points de moins.</span></p>`;
+    + "</p>";
 }
 /* Votre gestion de l'effectif pour le tour de semaine — un vrai arbitrage, et depuis v1.00 un arbitrage
    qui se PAIE en vrai : ce ne sont plus trois adjectifs, ce sont onze hommes précis qui rentrent avec
@@ -8721,7 +8717,7 @@ function ecranCoupe(){
   else if(co.elimine) statut=`<p class="rouge">Éliminé en ${esc(co.tourSortie||"?")}. ${co.vainqueur?"Vainqueur : "+esc(nomCoupe(co.vainqueur))+".":"La coupe continue sans vous."}</p>`;
   else if(co.vainqueur) statut=`<p class="dim">Vainqueur : ${esc(nomCoupe(co.vainqueur))}.</p>`;
   else statut=`<p class="vert">Toujours en lice : ${co.vivants.length} clubs encore en course.</p>`;
-  if(co.gains) statut += `<p class="dim" style="font-size:13px">Billetterie + dotations encaissées cette saison : <span class="fort">${(co.gains/1e6).toFixed(1)} MF</span></p>`;
+  if(co.gains) statut += `<p class="dim" style="font-size:13px">Recettes de coupe : <span class="fort">${(co.gains/1e6).toFixed(1)} MF</span></p>`;
   const tourLabel = co.vainqueur ? "Épreuve terminée" :
     (co.tourIdx<COUPE_TOURS.length ? "Prochain tour : "+COUPE_TOURS[co.tourIdx].nom+" (en semaine, vers la J"+COUPE_TOURS[co.tourIdx].j+")" : "-");
   const peutRegler = !co.elimine && !co.vainqueur && co.tourIdx<COUPE_TOURS.length;
@@ -8747,7 +8743,7 @@ function ecranCoupe(){
   chrome("coupe",`
     <div class="panel"><h2>🏆 Coupe de France ${esc(co.saison)}</h2>
       ${statut}
-      <p class="dim" style="font-size:13px">${esc(tourLabel)} · Les pros (D1 + D2) entrent en ${esc(COUPE_TOURS[0].court)}. Tirage sans tête de série · le petit reçoit · pas de match nul (tirs au but).</p>
+      <p class="dim" style="font-size:13px">${esc(tourLabel)}</p>
     </div>
     ${rota}
     <div class="panel"><h2>Votre parcours</h2>${parc}</div>
@@ -8762,7 +8758,7 @@ function ecranEurope(){
   const dr=id=>`<span class="dim" style="font-size:13px">(${esc(paysEuro(id))})</span>`;
   let statut;
   if(!eu.enLice){
-    statut=`<p class="dim">Votre club n'est pas qualifié cette saison. <span>Champion de D1 (Ligue des Champions), vainqueur de la Coupe de France (Coupe des Coupes) ou 2ᵉ-4ᵉ (Coupe UEFA)</span> : à vous d'accrocher l'Europe.</p>`;
+    statut=`<p class="dim">Pas qualifié cette saison. Champion → C1 · Coupe de France → C2 · 2ᵉ-4ᵉ → C3.</p>`;
     statut += eu.vainqueur
       ? `<p class="dim">La ${esc(competActif().nom)} ${esc(eu.saison)} a été remportée par <b>${esc(nomEuro(eu.vainqueur))}</b> ${dr(eu.vainqueur)}.</p>`
       : `<p class="dim">La compétition suit son cours sans vous, ${eu.vivants.length} clubs encore en lice.</p>`;
@@ -8773,7 +8769,7 @@ function ecranEurope(){
   } else {
     statut=`<p class="vert">Toujours en lice : ${eu.vivants.length} clubs encore en course pour les grandes oreilles.</p>`;
   }
-  if(eu.gains) statut+=`<p class="dim" style="font-size:13px">Billetterie + primes UEFA encaissées : <span class="fort">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
+  if(eu.gains) statut+=`<p class="dim" style="font-size:13px">Recettes européennes : <span class="fort">${(eu.gains/1e6).toFixed(1)} MF</span></p>`;
   const tc = eu.tourIdx<EURO_TOURS.length ? EURO_TOURS[eu.tourIdx] : null;
   const tourLabel = eu.vainqueur ? "Épreuve terminée" : !tc ? "-" :
      (eu.attente ? "Match RETOUR des "+tc.nom.toLowerCase()+" en milieu de semaine, après la J"+tc.jr
@@ -8782,11 +8778,11 @@ function ecranEurope(){
   const enCours = (eu.enLice && eu.attente && eu.attente.mien) ? (m=>`<tr><td>${esc(tc?tc.court:"-")}</td><td>${esc(nomEuro(m.advId))} ${dr(m.advId)}</td><td class="num">${esc(m.sc)}</td><td><span>aller</span></td></tr>`)(eu.attente.mien) : "";
   const parc = (eu.enLice && (eu.monParcours.length||enCours)) ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Résultat</th><th></th></tr>
      ${eu.monParcours.map(p=>`<tr><td>${esc(p.tour)}</td><td>${esc(nomEuro(p.advId))} ${dr(p.advId)}${p.finale?' <span class="dim">(finale)</span>':''}</td><td class="num">${esc(p.sc)}</td><td>${p.gagne?'<span class="vert">✓</span>':'<span class="rouge">✗</span>'}</td></tr>`).join("")}${enCours}
-     </table>${enCours?'<p class="dim" style="font-size:13px">Le match retour reste à jouer : rien n\'est décidé.</p>':""}` : (eu.enLice?`<p class="dim">Votre entrée en lice se fera en ${esc(EURO_TOURS[0].nom)}.</p>`:`<p class="dim">-</p>`);
+     </table>` : (eu.enLice?`<p class="dim">Votre entrée en lice se fera en ${esc(EURO_TOURS[0].nom)}.</p>`:`<p class="dim">-</p>`);
   const dtF = eu.dernierTour && eu.dernierTour.finale;
   const dtA = eu.dernierTour && eu.dernierTour.manche===1; // la dernière soirée était une manche aller
   const dt = eu.dernierTour ? `<div class="panel"><h2>${esc(eu.dernierTour.nom)} · ${dtA?"matchs aller":"résultats"}</h2>
-     <p class="dim" style="font-size:13px">${dtF?"Match sec sur terrain neutre.":(dtA?"Manche aller · les retours se jouent une semaine plus tard.":"Aller-retour · cumul des buts (but à l'extérieur double).")}</p>
+     ${dtF?'<p class="dim" style="font-size:13px">Match sec sur terrain neutre.</p>':""}
      <table class="fit"><tr><th>Équipe</th><th class="num">${dtF?"Score":(dtA?"Aller":"Cumul")}</th><th>Équipe</th></tr>
      ${eu.dernierTour.faits.map(f=>{ const a=f.aid,b=f.bid,
         sa=dtA?f.l1[0]:(f.neutre?f.s[0]:f.agg[0]), sb=dtA?f.l1[1]:(f.neutre?f.s[1]:f.agg[1]),
@@ -8800,7 +8796,7 @@ function ecranEurope(){
   chrome("europe",`
     <div class="panel"><h2>${competActif().emoji} ${esc(competActif().nom)} ${esc(eu.saison)}</h2>
       ${statut}
-      <p class="dim" style="font-size:13px">${esc(tourLabel)} · Élimination directe à 16, en aller-retour · champion → Ligue des Champions ⭐, vainqueur Coupe de France → Coupe des Coupes 🏆, 2ᵉ-4ᵉ → Coupe UEFA 🌍.</p>
+      <p class="dim" style="font-size:13px">${esc(tourLabel)}</p>
     </div>
     <div class="panel"><h2>Votre parcours</h2>${parc}</div>
     ${dt}`);
@@ -9320,7 +9316,7 @@ function ecranBilan(){
    </div>
    <div class="panel">
      <h2>⚽ L'ÉQUIPE TYPE DE LA SAISON</h2>
-     <p class="dim" style="font-size:13px;margin-bottom:2px">Le onze de la division, poste par poste, note, distinctions, buts et passes décisives confondus.</p>
+     
      ${lignesXI||`<p class="dim">Saison trop courte pour désigner un onze.</p>`}
    </div>
    <div class="grid2">
@@ -9366,8 +9362,7 @@ function ecranBilan(){
      ${G.vire
        ? `<p><button class="big" id="bInter">← Revenir</button></p>
           <p class="dim" style="margin-top:6px">Le président a tranché : il n'y aura pas d'intersaison pour vous. Il reste la page.</p>`
-       : `<p><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>
-          <p class="dim" style="margin-top:6px">Vieillissement, retraites, nouvelle génération, promus et relégués... puis la saison suivante commence.</p>`}
+       : `<p><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>`}
    </div>`);
   document.getElementById("bInter").onclick=()=>{ if(!G.vire) intersaison(); montre("calendrier"); };
 }
@@ -12048,7 +12043,7 @@ function ecranClubVue(id){
   const c=clubById(id);
   const js=c.joueurs.slice().sort((a,b)=>"GDMA".indexOf(a.pos)-"GDMA".indexOf(b.pos)||b.note-a.note);
   chrome("classement",`<div class="panel">
-   <h2>${esc(c.nom)} <span class="dim"> · effectif adverse</span></h2>
+   <h2>${esc(c.nom)}</h2>
    <p class="dim">${esc(c.stade)} (${FMT(c.cap)} places) · prestige ${c.pres}/10 ·
      <span class="${fenetreOuverte()?"vert":"rouge"}">${esc(msgMercato())}</span></p>
    <table style="margin-top:6px"><tr><th>Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th class="num">Prog.</th><th class="num">Buts</th><th class="num">P.déc.</th><th class="num">Prix</th><th></th></tr>
@@ -12130,17 +12125,17 @@ function ecranEffectif(){
      bouton allumé. En mobile, le nom reste collé à gauche quand on fait défiler vers les boutons : on
      sait toujours sur qui on clique. */
   const barre=(j,i)=>{
-    const b=(cls,on,ico,lib,titre,off)=>`<button class="act ico ${cls}${on?" on":""}" data-i="${i}" aria-pressed="${!!on}" aria-label="${lib}"${off?` disabled`:""} title="${esc(lib+" · "+titre)}"><span aria-hidden="true">${ico}</span></button>`;
+    const b=(cls,on,ico,lib,titre,off)=>`<button class="act ico ${cls}${on?" on":""}" data-i="${i}" aria-pressed="${!!on}" aria-label="${lib}"${off?` disabled`:""} title="${esc(titre?lib+" · "+titre:lib)}"><span aria-hidden="true">${ico}</span></button>`;
     const refusV=!j.avendre&&blocVente[j.pos], refusP=j.pretIn?"Prêté par un autre club : il ne vous appartient pas":blocVente[j.pos];
     return `<span class="effBtns">`
-      +b("bT",j.titu,"★",j.titu?"Libérer":"Titulariser",j.titu?"Le libérer : le onze se choisit de nouveau à la note et à la forme":"Titulariser de force : prioritaire dans le onze, même moins bien noté")
-      +b("bR",j.repos,"🛌",j.repos?"Réintégrer":"Repos",j.repos?"Le remettre à disposition du onze":"L'écarter du onze et du banc pour qu'il récupère")
-      +b("bV",j.avendre,"🏷️",j.avendre?"Retirer":"Vendre",refusV||(j.avendre?"Le retirer de la liste des transferts":"Le mettre sur la liste des transferts"),refusV)
-      +b("bL",false,"📤","Prêter",refusP||"Prêter à un club où il jouera titulaire",refusP)
+      +b("bT",j.titu,"★",j.titu?"Libérer":"Titulariser","")
+      +b("bR",j.repos,"🛌",j.repos?"Réintégrer":"Repos","")
+      +b("bV",j.avendre,"🏷️",j.avendre?"Retirer":"Vendre",refusV||"",refusV)
+      +b("bL",false,"📤","Prêter",refusP||"",refusP)
       +`</span>`;
   };
   chrome("effectif",`<div class="panel"><h2>Effectif · ${esc(c.nom)}</h2>
-   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th class="num" title="Fraîcheur : un match coûte 20 points, une semaine de repos en rend 20, moins après 29 ans. Aucun effet au-dessus de 90 ; de 80 à 90 on rend son pourcentage de forme ; de 65 à 80 note et blessures s'aggravent ; sous 65 l'impact est massif et le moral fuit.">Forme</th><th class="num" title="Moral : temps de jeu + résultats. Pèse ±5 % sur la performance">Moral</th><th class="num" title="Valeur marchande, en millions de francs">Valeur MF</th><th></th></tr>
+   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th class="num">Forme</th><th class="num">Moral</th><th class="num" title="Valeur marchande, en millions de francs">Valeur MF</th><th></th></tr>
    ${js.map(j=>{ const i=c.joueurs.indexOf(j), lf=libFraich(j), f=Math.round(fraich(j));
      const etats=[
        j.bless>0?`<span class="rouge">blessé ${j.bless} j.</span>`:"",
@@ -12150,7 +12145,7 @@ function ecranEffectif(){
      <td class="effEtat">${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span title="Titularisé de force">★</span>':""}${j.repos?'<span title="Mis au repos, il récupère">🛌</span>':""}${j.avendre?'<span title="Sur la liste des transferts">🏷️</span>':""}</td>
      <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span title="Tireur d\'élite, coups francs et penaltys">🎯</span>':""}${(p=>p.includes("class=\"dim\"")?"":` <span class="effCar">${p}</span>`)(pictos(j))}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
      <td class="pos-${j.pos}">${j.pos}</td>
-     <td class="num">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux" title="Passé 29 ans, sept jours ne suffisent plus à refaire le plein">⏳</span>':""}${j.age}</td>
+     <td class="num">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux">⏳</span>':""}${j.age}</td>
      <td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
      <td class="num effForme" title="${esc(lf[1])} · ${f}/100"><b class="${lf[2]}">${f}</b> <span aria-label="${esc(lf[1])}">${lf[3]}</span></td>
      <td class="num"><span class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"dim")}">${Math.round(j.moral||65)}</span></td>
@@ -12166,12 +12161,12 @@ function ecranEffectif(){
      const etat=hors.length
        ? "EFFECTIF HORS DES CLOUS : il manque "+liste(hors.map(p=>mq[p]+" "+(mq[p]>1?LIB_POSTES[p]:LIB_POSTE[p])))+"."
        : (marge<=0 ? "Effectif AU PLANCHER : aucun départ possible tant que vous n'avez pas recruté."
-                   : "Vous pouvez céder "+marge+" joueur"+(marge>1?"s":"")+" avant de toucher le plancher.");
+                   : "Marge : "+marge+" départ"+(marge>1?"s":"")+".");
      const reste=MONTEES_MAX-(G.montees||0);
      const cf=reste>0
-       ? `<p style="margin-top:4px;font-size:13px">🎓 Le centre de formation (niveau ${G.centre||1}) peut faire monter un jeune en pro · <b>${reste}</b> promotion${reste>1?"s":""} restante${reste>1?"s":""} cette saison, de quoi reprendre de la marge : ${["G","D","M","A"].map(p=>`<button class="act bCF" data-p="${p}">${LIB_POSTE[p][0].toUpperCase()+LIB_POSTE[p].slice(1)}</button>`).join(" ")}</p>`
-       : `<p class="dim" style="margin-top:4px;font-size:13px">🎓 Le centre de formation a donné ses ${MONTEES_MAX} jeunes de la saison, les suivants monteront à l'intersaison.</p>`;
-     return `<p class="${cls}" style="margin-top:8px;font-size:13px">⚖️ Plancher réglementaire : <b>${PLANCHER_TOTAL} joueurs</b> sous contrat (2 gardiens, 4 défenseurs, 4 milieux, 2 attaquants), 11 titulaires et 5 remplaçants sur la feuille de match. Effectif actuel : <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
+       ? `<p style="margin-top:4px;font-size:13px">🎓 Centre de formation · <b>${reste}</b> promotion${reste>1?"s":""} restante${reste>1?"s":""} : ${["G","D","M","A"].map(p=>`<button class="act bCF" data-p="${p}">${LIB_POSTE[p][0].toUpperCase()+LIB_POSTE[p].slice(1)}</button>`).join(" ")}</p>`
+       : `<p class="dim" style="margin-top:4px;font-size:13px">🎓 Plus de promotion avant l'intersaison.</p>`;
+     return `<p class="${cls}" style="margin-top:8px;font-size:13px">⚖️ Plancher : ${PLANCHER_TOTAL} sous contrat (2 G, 4 D, 4 M, 2 A) · effectif <b>${n}</b>. ${etat}${bloques.length?" Postes au plancher, donc intransférables : "+liste(bloques.map(p=>LIB_POSTES[p]))+".":""}</p>`+cf;
    })()}
    <details class="legende"><summary>Légende des pictos</summary>
    <p>Caractère : 👑 diva · 🤝 team player · 🪝 boucher · 🤕 en sucre · 🤑 vénal · 🔥/😞 moral extrême.</p>
@@ -12179,8 +12174,7 @@ function ecranEffectif(){
    <p>🛌 <b>Forme</b> : 💪 frais · 😐 entamé · 😓 émoussé · 🥵 jambes lourdes · 🥴 sur les rotules. ⏳ = les années pèsent sur la récupération.</p>
    </details>
    ${G.prets.filter(p=>p.sens==="out").length?`<h3>En prêt à l'extérieur</h3>
-    <p class="dim" style="font-size:13px;margin-bottom:4px">📞 Un prêté peut être <b>rappelé avant terme</b>, contre une indemnité de rupture payée en liquide au club hôte. Il rentre aussitôt, même hors mercato, mais une pige écourtée ne lui rapporte qu'une part du bénéfice.</p>
-    <table><tr><th>Joueur</th><th>P</th><th>Chez</th><th class="num">Note</th><th class="num" title="Ce que le club hôte vous verse par journée de prêt">Encaissé</th><th>Retour</th></tr>
+    <table><tr><th>Joueur</th><th>P</th><th>Chez</th><th class="num">Note</th><th class="num">Encaissé</th><th>Retour</th></tr>
     ${G.prets.filter(p=>p.sens==="out").map(p=>{const j=byUid(p.uid); if(!j) return "";
       return `<tr class="click pret" data-u="${p.uid}">
       <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
@@ -12234,11 +12228,11 @@ function nommerCapitaine(j){
     <h2>©️ LE BRASSARD DE CAPITAINE</h2>
     <p><b>${esc(j.nom)}</b> · ${esc(libLeadership(j))}.</p>
     ${demande>0
-      ?`<p class="dim">Ambitieux, il endosserait volontiers le brassard... mais réclame une prime de <b class="fort">${(demande/1e6).toFixed(1)} MF</b>. Un capitaine pleinement investi soude le vestiaire ; vexé, il mènera du bout des lèvres.</p>`
-      :`<p class="dim">Sans calcul : il serait simplement fier de mener les siens. Un meneur respecté tempère les ego et fait monter l'équipe d'un cran.</p>`}
+      ?`<p class="dim">Ambitieux, il endosserait volontiers le brassard... mais réclame une prime de <b class="fort">${(demande/1e6).toFixed(1)} MF</b>.</p>`
+      :`<p class="dim">Sans calcul : il serait simplement fier de mener les siens.</p>`}
     <p style="margin-top:10px">
       ${demande>0?`<button class="big" id="cPay" ${G.tresorerie>=demande?"":"disabled"} style="display:block;width:100%;margin:6px 0">Payer la prime : ${(demande/1e6).toFixed(1)} MF${G.tresorerie>=demande?"":" (caisse insuffisante)"}</button>`:""}
-      <button class="big" id="cFree" style="display:block;width:100%;margin:6px 0">${demande>0?"Le nommer sans prime (il fera la moue)":"Lui confier le brassard"}</button>
+      <button class="big" id="cFree" style="display:block;width:100%;margin:6px 0">${demande>0?"Le nommer sans prime":"Lui confier le brassard"}</button>
       <button class="big" id="cNo" style="display:block;width:100%;margin:6px 0">Renoncer</button>
     </p></div>`;
   const bp=document.getElementById("cPay"); if(bp) bp.onclick=()=>poser(demande);
@@ -12260,7 +12254,7 @@ function ouvreFiche(j){
     <h2>${esc(j.nom)}</h2>
     <p>Poste : <span class="pos-${j.pos}">${j.pos}</span> · Âge : ${j.age} ans</p>
     <p>Note : <b class="fort">${j.note}</b>/100
-       ${prog>0?`<span class="vert">▲ +${prog} depuis le début de saison (départ ${n0})</span>`:'<span class="dim">(stable depuis le début de saison)</span>'}</p>
+       ${prog>0?`<span class="vert">▲ +${prog}</span>`:""}</p>
     <p>Valeur : ${(v1/1e6).toFixed(1)} MF
        ${v1>v0?`<span class="vert">▲ +${((v1-v0)/1e6).toFixed(1)} MF</span>`:""}
        · Salaire : ${FMT(salaire(j))} FF/sem</p>
@@ -12268,17 +12262,14 @@ function ouvreFiche(j){
     ${(j.matchsC||0)||(j.butsC||0)||(j.passesC||0)?`<p class="dim">En coupe : ${j.matchsC||0} match${(j.matchsC||0)>1?"s":""} · ${j.butsC||0} but${(j.butsC||0)>1?"s":""} · ${j.passesC||0} passe${(j.passesC||0)>1?"s":""} décisive${(j.passesC||0)>1?"s":""}</p>`:""}
     ${blocBio(j)}
     ${pOut?`<p>📤 Prêté à ${esc(clubById(j.club)?clubById(j.club).nom:"")} jusqu'à la J${pOut.fin}, il y joue titulaire.</p>`:""}
-    ${j.avendre?`<p class="rouge">🏷️ Sur la liste des transferts, ${fenetreOuverte()?"la fenêtre est ouverte, un club français peut conclure dès cette journée":"mercato fermé : seul un club étranger peut encore le prendre"}. Il continue de jouer en attendant.</p>`:""}
+    ${j.avendre?`<p class="rouge">🏷️ Sur la liste des transferts${fenetreOuverte()?"":" · mercato fermé"}</p>`:""}
     <p style="margin-top:8px">Caractère :</p>
-    <p>Ego ${j.ego||5}/10 · ${esc(egoLib(j.ego||5))}${(j.ego||5)>=8?' <span class="rouge">(pèse sur la cohésion du XI)</span>':""}<br>
+    <p>Ego ${j.ego||5}/10 · ${esc(egoLib(j.ego||5))}<br>
        Agressivité ${j.agress||5}/10 · ${esc(agressLib(j.agress||5))}<br>
        Fragilité ${j.fragile||5}/10 · ${esc(fragLib(j.fragile||5))}<br>
        Vénalité ${j.venal||5}/10 · ${esc(venalLib(j.venal||5))}</p>
     <p>Moral : <b class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"jaune")}">${Math.round(j.moral||65)}/100</b>${(j.sansJouer||0)>=3?' <span class="rouge">ronge son frein sur le banc</span>':""}</p>
     <p>Forme : ${jaugeFraich(j,80)} ${libFraich(j)[3]} <b class="${libFraich(j)[2]}">${esc(libFraich(j)[1])}</b> <span class="dim">(${Math.round(fraich(j))}/100)</span>${j.repos?' <span>🛌 au repos</span>':""}</p>
-    <p class="dim" style="font-size:13px">${recupAge(j.age)>=1
-      ? "À "+j.age+" ans, une semaine de repos lui rend tout ce qu'un match lui prend."
-      : "À "+j.age+" ans, sept jours ne lui rendent plus que "+Math.round(FRAICH_SEM*recupJoueur(j,clubById(j.club)))+" points sur les 20 qu'un match coûte : le déficit s'accumule, il faudra le ménager."}</p>
     ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
       :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
     ${j.tireurElite?`<p>🎯 Tireur d'élite, il tire les penaltys et les coups francs</p>`:""}
@@ -12287,9 +12278,8 @@ function ouvreFiche(j){
     ${(!j.reel&&j.histoire)?`<p style="margin-top:8px">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}
     <p style="margin-top:8px">Avis des recruteurs :</p>
     <p>« ${esc(avisRecruteur(j))} »</p>
-    ${j.age<=23&&j.pot>j.note?`<p class="dim" style="margin-top:6px">Un jeune progresse nettement plus vite en jouant${j.age<=18?" ; avant 19 ans, le centre de formation assure aussi une bonne progression sans temps de jeu":""}. Un prêt à l'extérieur garantit du temps de jeu.</p>`:""}
     <p style="margin-top:12px">
-      ${j.club===G.monClub&&!j.pretIn?`<button class="act" id="bListe"${blocL?` disabled title="${esc(blocL)}"`:` title="Il reste dans l'effectif et joue, en attendant qu'un club se manifeste"`}>${j.avendre?"Retirer de la liste":"Vendre, liste des transferts"}</button>
+      ${j.club===G.monClub&&!j.pretIn?`<button class="act" id="bListe"${blocL?` disabled title="${esc(blocL)}"`:""}>${j.avendre?"Retirer de la liste":"Vendre, liste des transferts"}</button>
         <button class="act" id="bEclair" title="Départ immédiat, 40 % de décote">Vente éclair ${(valeur(j)*0.6/1e6).toFixed(1)} MF</button>
         <button class="act" id="bPretOut">Prêter</button>`:""}
       ${j.club!==G.monClub&&j.club!=="EXT"&&!j.pretOut&&!j.pretIn?`<button class="act" id="bPretIn" ${fenetreOuverte()?"":"disabled"}>Emprunter (${FMT(tarifPret(j))} FF/j)</button>`:""}
@@ -12365,7 +12355,7 @@ function ecranMercato(){
         <button class="act" id="pgNext" ${page>=totalP?"disabled":""}>Suivante ▶</button>
       </p>`;
     document.getElementById("ficheM").innerHTML = selJ ? ficheMercato(selJ)
-      : '<p class="dim" style="margin:0">Cliquez sur un joueur pour afficher sa fiche, l\'avis du recruteur et les options.</p>';
+      : "";
     document.querySelectorAll("#listeM th.click").forEach(th=>th.onclick=()=>{
       const c=th.dataset.c;
       if(triCle===c) triDir*=-1; else {triCle=c; triDir=(c==="nom"||c==="club")?1:-1;}
@@ -12403,7 +12393,7 @@ function ecranMercato(){
   chrome("mercato",`
    ${panneauFlash()}
    <div class="panel">
-    <h2>Le rapport du recruteur <span class="dim"> · recrues joker, signables hors fenêtre, valables cette semaine seulement</span></h2>
+    <h2>Le rapport du recruteur <span class="dim"> · cette semaine seulement</span></h2>
     ${G.rapport.length? `<div class="mercRap">${G.rapport.map(carteJoker).join("")}</div>`
       : '<p class="dim">Le recruteur n\'a rien à proposer cette semaine.</p>'}
    </div>
@@ -12413,7 +12403,6 @@ function ecranMercato(){
    </div>
    <div class="panel">
     <h2>Le marché des transferts</h2>
-    <p class="dim" style="margin-bottom:6px">⚖️ <b>${QUOTA_CESSIONS} joueurs par saison</b> au plus chez un même club · <b>${PLANCHER_TOTAL} sous contrat</b> au minimum chez vous.</p>
     <div class="row" style="margin:8px 0;flex-wrap:wrap;gap:8px;align-items:center">
       <input type="text" id="inpN" placeholder="Rechercher un nom..." style="min-width:150px" value="${esc(txtF)}">
       <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsPos}</span>
@@ -12451,21 +12440,20 @@ function ecranFinances(){
       <b class="fort">${esc(o.nom)}</b> · ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
       ${o.rep?`<span class="${o.rep>0?'vert':'rouge'}">[réputation ${o.rep>0?'+':''}${o.rep}${o.repJ?", puis +"+o.repJ+"/journée":""}]</span>`:'<span class="dim">[réputation neutre]</span>'}
       <br><span class="dim" style="font-size:13px">${esc(o.desc)}${o.ere?", « "+esc(o.ere)+" »":""}</span></p>`).join("")}
-    <p class="dim" style="margin-top:6px">Un seul contrat à la fois. Choisissez selon votre confiance dans l'équipe.</p></div>`:"";
+    <p class="dim" style="margin-top:6px">Un seul contrat à la fois.</p></div>`:"";
   const offresEq=(G.offresEquip && !G.equip)?
    `<div class="panel"><h2>Offres d'équipementier</h2>
     ${G.offresEquip.map((o,k)=>`<p style="margin:8px 0">
       <button class="act bEq" data-k="${k}">Signer</button>
       <b class="fort">${esc(o.nom)}</b> · ${FMT(o.fixe)} FF/journée${o.prime?" + "+FMT(o.prime)+" FF par victoire":""}
       ${o.rep?`<span class="vert">[réputation +${o.rep}]</span>`:""}
-      <br><span class="dim" style="font-size:13px">${esc(o.desc)}, « ${esc(o.note)} »</span></p>`).join("")}
-    <p class="dim" style="margin-top:6px">L'équipementier habille le maillot et verse un cachet chaque journée. À re-signer chaque saison.</p></div>`:"";
+      <br><span class="dim" style="font-size:13px">${esc(o.desc)}, « ${esc(o.note)} »</span></p>`).join("")}</div>`:"";
   chrome("finances",`${offres}${offresEq}<div class="panel"><h2>Finances</h2>
    <table class="fit">
     <tr><td>Budget transferts</td><td class="num">${(G.budget/1e6).toFixed(1)} MF</td></tr>
-    <tr><td>Trésorerie (fonctionnement)</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
+    <tr><td>Trésorerie</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Masse salariale hebdomadaire</td><td class="num rouge">- ${FMT(masse)} FF</td></tr>
-    <tr><td>Frais de fonctionnement (stade + personnel)</td><td class="num rouge">- ${FMT(fraisJournee(c))} FF/j</td></tr>
+    <tr><td>Frais de fonctionnement</td><td class="num rouge">- ${FMT(fraisJournee(c))} FF/j</td></tr>
     <tr><td>Staff technique</td><td class="num ${staffCoutJournee()>0?'rouge':'dim'}">${staffCoutJournee()>0?"- "+FMT(staffCoutJournee())+" FF/j":"-"}</td></tr>
     <tr><td>Droits TV par journée</td><td class="num vert">+ ${G.div===1?"0,45":"0,20"} MF</td></tr>
     <tr><td>Équipementier</td><td class="num">${G.equip?'<span class="vert">'+esc(G.equip.nom)+" : +"+FMT(G.equip.fixe)+" FF/j</span>":'<span class="dim">-</span>'}</td></tr>
@@ -12474,7 +12462,7 @@ function ecranFinances(){
     <tr><td>Capacité de ${esc(c.stade)}</td><td class="num">${FMT(c.cap)} places</td></tr>
    </table></div>
    <div class="panel"><h2>Vases communicants · budget ↔ caisse</h2>
-    <p class="dim">Deux poches séparées : le <b class="fort">budget transferts</b> recrute, la <b>trésorerie</b> fait tourner le club. Transvaser coûte <b class="rouge">${Math.round(FRAIS_VIRE*100)} %</b> de frais.</p>
+    <p class="dim">Frais de transvasement : <b class="rouge">${Math.round(FRAIS_VIRE*100)} %</b>.</p>
     <p class="row" style="margin:10px 0">Montant&nbsp;:
       <select id="selVire">${[5,10,25,50,100].map(m=>`<option value="${m}">${m} MF</option>`).join("")}</select>
       <button class="act" id="bVcaisse">Mercato → caisse</button>
@@ -12491,7 +12479,7 @@ function ecranFinances(){
       <tr><td>Moral du vestiaire</td><td class="num">${pb.moral>0?'<span class="vert">↑</span>':(pb.moral<0?'<span class="rouge">↓</span>':'<span class="dim">neutre</span>')}</td></tr>
     </table></div>
    <div class="panel"><h2>Dépêches financières</h2>
-   ${G.news.slice(0,10).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
+   ${(l=>l.length?l.map(n=>`<p class="dim">› ${esc(n)}</p>`).join(""):'<p class="dim">-</p>')(G.news.filter(n=>/MF|FF|sponsor|SPONSOR|MERCATO|transfert|prime|PRIME|amende|recette|TRAVAUX|équipementier|trésorerie|prêt|PRÊT/.test(n)).slice(0,5))}</div>`);
   document.querySelectorAll(".bSp").forEach(b=>b.onclick=()=>choisirSponsor(+b.dataset.k));
   document.querySelectorAll(".bEq").forEach(b=>b.onclick=()=>choisirEquip(+b.dataset.k));
   const sP=document.getElementById("selPrix"); if(sP) sP.onchange=e=>{ G.prixBillet=+e.target.value; montre("finances"); };
@@ -13432,7 +13420,7 @@ function ecranClub(){
      ${baroTribunes()}
      <div class="ctr" style="margin-top:8px">${projetsHTML()}</div>
      <h3 style="margin-top:12px">Centre d'entraînement · niveau ${G.centre}/5</h3>
-     <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} % et soignées plus vite${G.centre>=3?" · Le staff médical réduit la fragilité chaque intersaison":""}</p>
+     <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} %</p>
      <p style="margin-top:4px"><button class="act" id="bCe" ${G.centre>=5?"disabled":""}>Améliorer le centre (niveau ${G.centre+1} · ${8*G.centre} MF)</button></p>
      <h3 style="margin-top:12px">Staff technique</h3>
      <div>${staffHTML()}</div>
@@ -13450,16 +13438,15 @@ function ecranClub(){
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
          <span style="display:block;height:100%;width:${Math.round(G.reput==null?75:G.reput)}%;background:${(G.reput||75)>65?"var(--vert)":((G.reput||75)>40?"var(--jaune)":"var(--rouge)")}"></span>
        </span> ${Math.round(G.reput==null?75:G.reput)}/100</p>
-     <p class="dim">${(G.reput||75)>=80?"Un club respecté, fidèle à ses valeurs.":((G.reput||75)>=55?"Une image honorable.":((G.reput||75)>=35?"L'image se ternit, sponsors douteux, cadres bradés...":"Réputation au plus bas. Les puristes vous ont tourné le dos."))}</p>
+     <p class="dim">${(G.reput||75)>=80?"Un club respecté, fidèle à ses valeurs.":((G.reput||75)>=55?"Une image honorable.":((G.reput||75)>=35?"L'image se ternit.":"Réputation au plus bas. Les puristes vous ont tourné le dos."))}</p>
      <h3 style="margin-top:12px">Mémoire du club</h3>
-     ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> · ${esc(nomRivalite(c.id,RIVAL[c.id]))}. La confiance se joue aussi là.</p>`:""}
-     <p>Bête noire : <b class="fort">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"-")}</b>${c.bnBattue?' <span class="vert">signe indien brisé cette saison ✓</span>':' <span class="dim">ils jouent toujours bien contre vous... jusqu'+"'"+'à la première victoire.</span>'}</p>
+     ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> · ${esc(nomRivalite(c.id,RIVAL[c.id]))}.</p>`:""}
+     <p>Bête noire : <b class="fort">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"-")}</b>${c.bnBattue?' <span class="vert">signe indien brisé cette saison ✓</span>':' <span class="dim">signe indien à briser</span>'}</p>
      ${MALEDICTIONS[c.id]?`<p class="dim" style="font-style:italic">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
      <h3 style="margin-top:12px">Les records du club</h3>
      ${(()=>{ const l=recordsTenus();
-        if(!l.length) return `<p class="dim" style="font-size:13px">Rien dans les archives pour l'instant. La première victoire large, la première série, le premier stade plein : tout commence cette saison.</p>`;
-        return l.map(d=>`<p class="dim" style="font-size:13px">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)} <span style="font-size:13px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join("")
-          +`<p class="dim" style="font-size:13px;margin-top:4px">Six lignes, six chasses. Un record qui tombe, c'est une soirée dont on reparle.</p>`; })()}
+        if(!l.length) return `<p class="dim" style="font-size:13px">Rien dans les archives pour l'instant.</p>`;
+        return l.map(d=>`<p class="dim" style="font-size:13px">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)} <span style="font-size:13px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join(""); })()}
    </div></div>`);
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>{ lanceProjet(b.dataset.id); cableChoixStyle(); });
   { const bT=document.getElementById("bToitRet"); if(bT) bT.onclick=()=>{ G.stade.ferme=G.stade.ferme?0:1; montre("club"); }; }

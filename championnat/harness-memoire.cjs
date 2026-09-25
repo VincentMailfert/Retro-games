@@ -290,7 +290,7 @@ console.log("\nF) Le baromètre des tribunes : l'affluence enfin vue dans le tem
   const G2 = neuve("LEN");
   G2.notifs = []; G2.affJ = [{ j: 1, n: 30000, f: 0.95 }, { j: 3, n: 30000, f: 0.96 }, { j: 5, n: 30000, f: 0.97 }];
   api.veilleAffluence(api.clubById(G2.monClub));
-  ok((G2.notifs || []).some(t => /trop petit/.test(t)), "trois guichets fermés de suite : on vous dit que le stade est le plafond");
+  ok((G2.notifs || []).some(t => /guichets quasi fermés/.test(t)), "trois guichets fermés de suite : l’alerte tombe (sans conseil, épure du 25/09/2026)");
   G2.notifs = []; G2._affCri = null;
   G2.affJ = [{ f: 0.85, n: 1, j: 1 }, { f: 0.84, n: 1, j: 3 }, { f: 0.86, n: 1, j: 5 },
              { f: 0.60, n: 1, j: 7 }, { f: 0.58, n: 1, j: 9 }, { f: 0.57, n: 1, j: 11 }];
