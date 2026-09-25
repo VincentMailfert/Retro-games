@@ -1056,8 +1056,11 @@ toujours « raconter quelque chose ».
   D'où **`G.stade.capBase`** (taille d'origine, posée par `inferStade`, déduite par `migreStade` pour une vieille partie :
   cap − tribunes bâties × 3 500) et le rabais d'entretien à 6 FF sur les places ajoutées : environ 4 à 7 saisons sans le
   prestige, 3 à 5 avec. Les commerces (kiosque remboursé en 1,3 saison) restent **volontairement** généreux : c'est la
-  récompense (choix de l'auteur). **Piège connu, laissé tel quel** : le prestige gagné relève `objectifPour` à
-  l'intersaison (une tribune au Havre, prestige 4 → 5, fait passer l'objectif de top 16 à top 10).
+  récompense (choix de l'auteur). **Prestige découplé de l'objectif (v1.43, choix de l'auteur)** : avant, une tribune
+  au Havre (prestige 4 → 5) faisait passer l'objectif de top 16 à top 10 à l'intersaison. `avanceChantier` note le
+  prestige gagné au stade dans **`G.stade.presStade`** ; **`presObjectif(c)`** le retire avant `objectifPour`
+  (intersaison et `migre`). Le prestige garde tous ses autres effets (affluence, sponsors, équipementier, jeunes).
+  Seul le stade fait monter `c.pres` dans le jeu. Vieille partie : `presStade` absent = 0 (comportement d'avant).
 - **Staff technique — coachs spécialisés (v0.69)** : le 2e pilier « je construis mon club ». Six **postes fonctionnels**
   (`STAFF_POSTES` : attaque, defense, gardien, cpa, physique, mental) qu'on POURVOIT en recrutant un coach — modèle
   **hybride** : chaque recrue a un **nom généré** (`COACH_PRENOMS`+`NOMS`) et une **petite phrase** de caractère

@@ -481,7 +481,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.42"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.43"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1163,6 +1163,9 @@ function avisRecruteur(j){
   return "Progression attendue : modeste.";
 }
 
+// Le prestige gagné en bâtissant le stade (G.stade.presStade) ne relève PAS l'objectif du président (v1.43, choix de
+// l'auteur) : il attire le public et les sponsors, mais on ne se fait pas exiger le top 5 pour avoir posé une tribune.
+function presObjectif(c){ const g=(c&&c.id===G.monClub&&G.stade)?(+G.stade.presStade||0):0; return Math.max(0,((c&&c.pres)||0)-g); }
 function objectifPour(pres){
   if(pres>=9) return {place:2, label:"Jouer le titre (top 2)"};
   if(pres>=7) return {place:5, label:"Accrocher l'Europe (top 5)"};
@@ -7606,9 +7609,11 @@ function avanceChantier(){
   const c=clubById(G.monClub), ch=G.chantier, p=projetById(ch.id), aff=affMoyenne(c);
   const avant=etatStade3D(c, aff);
   let l;
+  const pres0=c.pres||0; // le prestige gagné par le chantier est noté à part : il ne pèse pas sur l'objectif (presObjectif)
   if(p){ const n=ch.niv||p.niv(c); l=p.applique(c,n,ch)||{}; const pr=p.pres(n); if(pr) c.pres=Math.min(10,(c.pres||0)+pr); l.id=p.id; l.niv=n; }
   else { const avant=c.cap; c.cap+=(ch.places||3000); c.pres=Math.min(10,(c.pres||0)+1); // ancien chantier « places »
     l={id:"tribune", niv:1, titre:"TRIBUNE LIVRÉE !", sous:c.stade+" passe à "+FMT(c.cap)+" places.", chiffres:"De "+FMT(avant)+" à "+FMT(c.cap)+" places"}; }
+  if(c.pres>pres0) G.stade.presStade=(+G.stade.presStade||0)+(c.pres-pres0);
   G.news.unshift("✅ "+l.titre+" "+l.sous);
   G.chantier=null;
   l.avant=avant; l.apres=etatStade3D(c, aff);
@@ -9480,7 +9485,7 @@ function intersaison(){
   const modernesActifs=SPONSORS_SULFUREUX.filter(s=>s.moderne && s.de===an);
   if(modernesActifs.length) G.nouvelleEre=modernesActifs[0];
   G.confiance=65;
-  G.objectif=objectifPour(clubById(G.monClub).pres);
+  G.objectif=objectifPour(presObjectif(clubById(G.monClub)));
   G.intro=anneeJeu(); // le mot d'ouverture de la nouvelle saison, affiché après le bilan d'intersaison
   // état de grâce : chaque saison, ~40 % de chance qu'un joueur du club vive la saison de sa vie
   const moi=clubById(G.monClub);
@@ -9567,7 +9572,7 @@ function migre(){
   }
   G.clubs.forEach(c=>{ if(c._coupTordu==null) c._coupTordu=false; });
   G.incidentsRecents=G.incidentsRecents||[]; G.eresVues=G.eresVues||[]; G.nouvelleEre=G.nouvelleEre||null;
-  G.objectif=G.objectif||objectifPour(clubById(G.monClub).pres);
+  G.objectif=G.objectif||objectifPour(presObjectif(clubById(G.monClub)));
   for(const c of G.clubs){
     if(!c.beteNoire){ const autres=G.clubs.filter(x=>x.id!==c.id); c.beteNoire=PICK(autres).id; c.bnBattue=false; }
     for(const j of c.joueurs){

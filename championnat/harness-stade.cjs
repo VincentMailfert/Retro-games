@@ -37,7 +37,7 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 const epilogue = "\n;return {nouvellePartie,jouerJournee,migre,clubById,CLUBS,CLUBS_D2,MSG_JOURNAL," +
   "STADE_PROJETS,projetById,lanceProjet,avanceChantier,migreStade,inferStade,maquetteStade,etatStade3D,STADE3D," +
   "stadeBonusAff,stadeFerveur,STYLES_STADE,affluence,palierBillet,stadeRecetteMatch,stadeRecetteJour,etapeStade,STADE_MAX,PLACES_TRIB," +
-  "fraisJournee,tirageBlessure,pelouseChauffee," +
+  "fraisJournee,tirageBlessure,pelouseChauffee,presObjectif,objectifPour," +
   "getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 
@@ -189,6 +189,13 @@ console.log("\nG) Investir dans le stade rapporte");
   ok(api.pelouseChauffee() && avec > 0 && Math.abs(avec / sans - 0.5) < 0.02, `en hiver chez vous : ${avec} pépins au lieu de ${sans} (moitié moins)`);
   G.journee = 32; ok(!api.pelouseChauffee() && tire(true) === sans, "au printemps, la pelouse chauffante ne change rien");
   G.stade.chauffante = 0; G.journee = 15; ok(!api.pelouseChauffee(), "sans pelouse chauffante, rien ne change");
+}
+// le prestige du stade ne relève pas l'objectif du président (v1.43)
+{ const club = api.CLUBS.find(c => c.pres === 4) || api.CLUBS.find(c => c.pres < 9);
+  api.nouvellePartie(club.id); const G = api.getG(), c = api.clubById(G.monClub), p0 = c.pres, o0 = api.objectifPour(p0).place;
+  G.tresorerie = 1e9; lancer("tribune"); lancer("tribune");
+  ok(c.pres === Math.min(10, p0 + 2) && G.stade.presStade === c.pres - p0, `deux tribunes : prestige ${p0} → ${c.pres}, dont ${G.stade.presStade} gagné au stade`);
+  ok(api.presObjectif(c) === p0 && api.objectifPour(api.presObjectif(c)).place === o0, `l'objectif du président ne bouge pas (top ${o0})`);
 }
 
 console.log(FAILS ? `\n❌ HARNAIS STADE : ${FAILS} ÉCHEC(S)` : "\n✅ HARNAIS STADE : TOUT EST VERT");
