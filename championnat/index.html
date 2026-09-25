@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MULTIPLEX 95 — Saison 1995-96</title>
+<!-- APERÇU DU LIEN (chantier accueil, 25/09/2026) : sans ces balises, un lien envoyé par messagerie ne montrait
+     qu'un titre nu. L'image vit dans le dépôt (img/partage.png) ; les réseaux exigent une adresse ABSOLUE. -->
+<meta name="description" content="Prenez un club de 1995. Vivez la saison l'oreille collée au transistor. Jeu de gestion de football rétro : 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
+<meta name="theme-color" content="#0b1626">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Multiplex 95">
+<meta property="og:title" content="MULTIPLEX 95 — le foot français de 1995, en direct">
+<meta property="og:description" content="Prenez un club de 1995. Vivez la saison l'oreille collée au transistor. 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
+<meta property="og:url" content="https://vincentmailfert.github.io/Retro-games/championnat/">
+<meta property="og:image" content="https://vincentmailfert.github.io/Retro-games/championnat/img/partage.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Le tableau d'affichage de Multiplex 95">
+<meta name="twitter:card" content="summary_large_image">
 <!-- Favicon embarqué (data URI, aucune dépendance réseau) : le transistor Multiplex 95 (bloc jaune, ballon blanc, molette) sur bleu nuit. Évite le 404 /favicon.ico. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230b1626'/%3E%3Cpath d='M7 9 L3.5 3.5' stroke='%23ffd24a' stroke-width='1.6'/%3E%3Crect x='4' y='9' width='16' height='11' fill='%23ffd24a'/%3E%3Crect x='5.5' y='10.5' width='8' height='8' fill='%230b1626'/%3E%3Ccircle cx='8' cy='13' r='1.8' fill='%23ffffff'/%3E%3Ccircle cx='16.8' cy='14.5' r='2.2' fill='none' stroke='%230b1626' stroke-width='1.4'/%3E%3C/svg%3E">
 <!-- Statistiques de fréquentation (GoatCounter) : ne compte QUE sur l'URL publique HTTPS,
@@ -259,6 +274,24 @@
   #msgbox input[type=text]{display:block; width:100%; margin-top:8px; background:#0b1626; color:#dfe9ff;
      border:1px solid #38507a; border-radius:4px; font-family:inherit; font-size:14px; padding:9px;}
   .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px;}
+  /* LE BANDEAU D'ACCUEIL (chantier accueil) : pour qui arrive sans carrière, ce qu'est le jeu en une phrase, et deux
+     portes — choisir son club, ou laisser le hasard en désigner un. Le rétro s'y montre : le transistor, le titre en
+     pixels. Avec des carrières en cours, il s'efface devant « Reprendre ». */
+  .accHero{text-align:center; padding:28px 18px 24px;}
+  .accHero .accLogo{display:flex; justify-content:center; margin-bottom:10px;}
+  .accHero .accTitre{font-family:var(--font-led); font-size:30px; letter-spacing:.08em; color:var(--jaune);
+    text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6); line-height:1.1;}
+  .accHero .accPitch{font-size:18px; color:var(--clair); max-width:34ch; margin:12px auto 0; line-height:1.4; text-wrap:balance;}
+  .accHero .accSous{font-size:14px; color:var(--dim); margin-top:8px;}
+  .accHero .accPortes{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px;}
+  .accHero .accPortes button{min-width:220px;}
+  button.porte2{font-size:16px; padding:9px 20px; background:none; color:var(--clair); border:2px solid var(--line); font-weight:bold; cursor:pointer; font-family:inherit;}
+  button.porte2:hover{border-color:var(--clair);}
+  @media(max-width:700px){ .accHero .accTitre{font-size:24px;} .accHero .accPitch{font-size:16px;} .accHero .accPortes button{width:100%; min-width:0;} }
+  /* le premier match d'une carrière : on joue d'abord, on règle ensuite (les réglages restent à un clic) */
+  details.avantMatch{margin-top:12px; text-align:center;}
+  details.avantMatch > summary{cursor:pointer; color:var(--dim); font-size:14px; width:max-content; margin:0 auto; padding:4px 0;}
+  details.avantMatch > summary:hover{color:var(--clair);}
   /* la sauvegarde est automatique : les outils de carrière se font discrets en pied de page (lot 3) */
   .footer .act{background:none; border-color:transparent; color:var(--dim);}
   .footer .act:hover{border-color:transparent; color:var(--clair);}
@@ -9705,6 +9738,9 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
        : "Choisir un club ci-dessous ouvre une <b>nouvelle</b> carrière — celles-ci sont conservées."}</span>${imp}</p>
    </div>`;
 }
+/* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
+let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
+const ACCROCHE_ACCUEIL="Prenez un club de 1995. Vivez la saison l'oreille collée au transistor.";
 function ecranAccueil(){
   const parties=partiesListe();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
@@ -9716,9 +9752,19 @@ function ecranAccueil(){
       <div class="grpHead"><span style="color:${g.coul};font-size:13px;letter-spacing:1px"><b>${g.tag}</b></span><span class="dim" style="font-size:13px">${g.clubs.length} club${g.clubs.length>1?"s":""}</span><span class="trait" style="background:${g.coul}"></span></div>
       <p class="grpAmb">${esc(g.amb)}</p>
       ${g.clubs.map(carte).join("")}`).join("");
+  const tous=cD1.concat(cD2);
   app.innerHTML=`
    <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20,true)}MULTIPLEX 95 · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
-   ${panneauCarrieres(parties)}
+   ${parties.length ? panneauCarrieres(parties) : `<div class="panel accHero">
+     <div class="accLogo">${logoMultiplex(56)}</div>
+     <div class="accTitre">MULTIPLEX 95</div>
+     <p class="accPitch">${esc(ACCROCHE_ACCUEIL)}</p>
+     <p class="accSous">${tous.length} vrais clubs · vrais effectifs d'époque · tous les stades en direct</p>
+     <div class="accPortes">
+       <button class="big" id="bMagie">✨ Laisser la magie opérer</button>
+       <button class="porte2" id="bChoisir">Choisir mon club</button>
+     </div>
+   </div>`}
    <div class="panel">
      <label style="display:block;font-size:13px"><b>Saison de départ</b>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
@@ -9726,7 +9772,7 @@ function ecranAccueil(){
      <p class="fort" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
      <p class="dim" style="margin-top:3px;font-size:13px">${esc(S.sous)}</p>
    </div>
-   <div class="panel">
+   <div class="panel" id="choixClub">
      <h2>Choisissez votre club</h2>
      <p class="dim" style="margin-bottom:8px">Quarante clubs, classés par ambition.</p>
      <div class="accTabs">
@@ -9744,7 +9790,10 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex 95 — prototype v${VERSION} · données d'époque approximatives.</p>`;
+   <p class="footer">Multiplex 95 — prototype v${VERSION} · données d'époque approximatives.${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
+  // les deux portes du bandeau : le hasard tire un club parmi tous ceux de la saison, et l'on découvre sa fiche
+  { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=()=>ficheClubAccueil(PICK(tous).id);
+    const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
   app.querySelectorAll(".startclub:not(.carGo)").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id)); // .carGo = une carrière, pas un club : son data-id n'est pas un club
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
   const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale(br.dataset.id);
@@ -9916,6 +9965,9 @@ function ecranCalendrier(){
   // la feuille de match : 11 titulaires + 5 remplaçants. Sans onze complet, il n'y a pas de match.
   const moiC=clubById(G.monClub), xiMoi=onze(moiC), dispoMoi=moiC.joueurs.filter(dispo).length;
   const bancMoi=Math.max(0, dispoMoi-11), feuilleOk=xiMoi.length>=11;
+  /* LE TOUT PREMIER MATCH D'UNE CARRIÈRE (chantier accueil) : qui arrive veut voir le direct, pas régler une
+     formation dont il ne sait rien encore. Le bouton monte sous l'affiche, les réglages se replient juste dessous. */
+  const premierMatch=(G.saisonIdx||1)===1 && G.journee===0;
   const offreJ=G.offreExt?byUid(G.offreExt.uid):null;
   const blocOffre=offreJ?refusDepart(moiC, offreJ):null;
   const offrePretJ=G.offrePret?byUid(G.offrePret.uid):null;
@@ -9959,7 +10011,13 @@ function ecranCalendrier(){
      })()}
      <p class="ctr"><span class="${fenetreOuverte()?"vert":"dim"}">${esc(msgMercato())}</span></p>
      ${G.declar?`<p class="ctr" style="margin-top:6px;font-style:italic"><span class="rouge">«&nbsp;${esc(G.declar.txt)}&nbsp;»</span><br><span class="dim">— ${esc(G.declar.nom)} (${esc(G.declar.club)}), dans la presse du matin</span></p>`:""}
-     ${blocConsignePrime("en cas de victoire", xiMoi, dom?a:h)}
+     ${premierMatch && feuilleOk ? `<p class="ctr" id="preMatchAct" style="margin-top:12px">
+       <button class="big" id="bJouer">JOUER LE MATCH</button>
+       <button class="lien" id="bVite" style="margin-left:8px">Résultat instantané</button>
+     </p>
+     <details class="avantMatch"${AVANT_MATCH_OUVERT?" open":""}><summary>Régler l'avant-match — formation, consigne, prime</summary>
+       ${blocConsignePrime("en cas de victoire", xiMoi, dom?a:h)}
+     </details>` : blocConsignePrime("en cas de victoire", xiMoi, dom?a:h)}
      <p class="ctr ${feuilleOk?(bancMoi>=5?"dim":"jaune"):"rouge"}" style="margin-top:12px;font-size:13px">
        FEUILLE DE MATCH : <b>${Math.min(11,xiMoi.length)}/11</b> titulaires · <b>${Math.min(5,bancMoi)}/5</b> remplaçants${
          feuilleOk?(bancMoi<5?" — banc incomplet (blessés, suspendus), mais le match peut se jouer":""):" — LA LIGUE REFUSE LA FEUILLE DE MATCH"}
@@ -9973,7 +10031,7 @@ function ecranCalendrier(){
          ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s sont CUITS":" est CUIT")+" (sous 65) — jambes, blessures ET moral"
                         :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s entamés":" entamé")+" : sous 90, on ne joue plus à plein régime"} : ${noms}.</p>`;
      })()}
-     ${feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
+     ${premierMatch && feuilleOk ? "" : feuilleOk?`<p class="ctr" id="preMatchAct" style="margin-top:10px">
        <button class="big" id="bJouer">JOUER LE MATCH</button>
        <button class="lien" id="bVite" style="margin-left:8px">Résultat instantané</button>
      </p>`:`<p class="ctr" id="preMatchAct" style="margin-top:10px">
@@ -9995,6 +10053,7 @@ function ecranCalendrier(){
    ${G.presse.length?`<div class="panel"><h2>Revue de presse</h2>
      ${G.presse.slice(0,4).map(p=>`<p class="dim" style="font-style:italic">${esc(p)}</p>`).join("")}</div>`:""}
    <div class="panel"><h2>Dépêches</h2>${G.news.slice(0,6).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
+  { const dA=document.querySelector("details.avantMatch"); if(dA) dA.ontoggle=()=>{ AVANT_MATCH_OUVERT=dA.open; }; } // un réglage redessine l'écran : le panneau reste ouvert
   { const bJ=document.getElementById("bJouer"); if(bJ) bJ.onclick=()=>lanceMatch(false);
     const bV=document.getElementById("bVite");  if(bV) bV.onclick=()=>lanceMatch(true);
     const bR=document.getElementById("bRenfort"); if(bR) bR.onclick=()=>{ veilleEffectif(); montre("calendrier"); }; }
