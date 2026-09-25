@@ -273,6 +273,18 @@
   .eclat{animation:eclat 2.4s ease-out infinite;} @keyframes eclat{0%{transform:scale(.2);opacity:0;} 15%{opacity:1;} 70%{opacity:.9;} 100%{transform:scale(1.15);opacity:0;}}
   .defile{animation:defile 14s linear infinite;} @keyframes defile{from{transform:translateX(0);} to{transform:translateX(-360px);}}
   @media (prefers-reduced-motion:reduce){.clign,.feu,.eclat,.defile{animation:none;}}
+  #fiche .livr{width:min(760px,100%); max-width:760px !important; background:#0e1d35; border:2px solid var(--jaune); border-radius:6px;
+    overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.6); padding:0 !important; animation:livrEntre .35s ease-out;}
+  @keyframes livrEntre{from{transform:translateY(18px) scale(.97); opacity:0;}}
+  .livrScene svg{display:block; width:100%; height:auto;}
+  .livrTexte{padding:16px 20px 18px; display:grid; grid-template-columns:1fr auto; gap:4px 18px; align-items:end;}
+  .livrSur{font-family:'Silkscreen','VT323',monospace; font-size:12px; color:#c9a63a; grid-column:1 / -1; margin:0;}
+  .livrTexte h3{font-family:'VT323',monospace; font-weight:normal; font-size:34px; line-height:1; color:var(--jaune); margin:0;}
+  .livrSous{color:var(--dim); font-size:14px; grid-column:1; margin:0;}
+  .livrChiffres{font-family:'VT323',monospace; font-size:22px; color:#f2f5fa; grid-column:1; margin:0;}
+  .livrTexte .big{grid-column:2; grid-row:2 / span 3; align-self:end; width:auto;}
+  @media (max-width:600px){ .livrTexte{grid-template-columns:1fr;} .livrTexte .big{grid-column:1; grid-row:auto; margin-top:8px;} }
+  @media (prefers-reduced-motion:reduce){ #fiche .livr{animation:none;} }
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:10;}
   #fiche .card{background:var(--panel); border:2px solid var(--jaune); max-width:460px; width:100%; padding:14px 16px;}
   /* Le calque des MESSAGES (message/confirme/saisie) : il vit AU-DESSUS de #fiche pour qu'un refus
@@ -4846,7 +4858,7 @@ function finirJournee(delta){
   progression();
   ventesEnCours();
   veilleEffectif(); // après les départs de la semaine : on repasse tous les effectifs au contrôle réglementaire
-  avanceChantier();
+  { const l=avanceChantier(); if(l) G.livraison=l; } // la carte de livraison s'ouvrira en tête de la semaine suivante
   // blessures et suspensions : une journée de purgée — et la semaine de repos qui sépare deux journées
   // (l'infirmerie récupère aussi : un blessé se repose, par définition).
   /* POUR TOUT LE MONDE, ET PLUS SEULEMENT VOTRE DIVISION (chantier « un seul moteur »). La boucle ne
@@ -7529,13 +7541,15 @@ function avanceChantier(){
   if(!G.chantier) return null;
   G.chantier.reste--;
   if(G.chantier.reste>0) return null;
-  const c=clubById(G.monClub), ch=G.chantier, p=projetById(ch.id);
+  const c=clubById(G.monClub), ch=G.chantier, p=projetById(ch.id), aff=affMoyenne(c);
+  const avant=etatStade3D(c, aff);
   let l;
   if(p){ const n=ch.niv||p.niv(c); l=p.applique(c,n,ch)||{}; const pr=p.pres(n); if(pr) c.pres=Math.min(10,(c.pres||0)+pr); l.id=p.id; l.niv=n; }
   else { const avant=c.cap; c.cap+=(ch.places||3000); c.pres=Math.min(10,(c.pres||0)+1); // ancien chantier « places »
     l={id:"tribune", niv:1, titre:"TRIBUNE LIVRÉE !", sous:c.stade+" passe à "+FMT(c.cap)+" places.", chiffres:"De "+FMT(avant)+" à "+FMT(c.cap)+" places"}; }
   G.news.unshift("✅ "+l.titre+" "+l.sous);
   G.chantier=null;
+  l.avant=avant; l.apres=etatStade3D(c, aff);
   return l;
 }
 const EFFET_PROJ={tribune:"+ de places, + d'affluence et de prestige", virages:"+5 000 places, + de ferveur, et le kop a sa maison",
@@ -7544,6 +7558,35 @@ const EFFET_PROJ={tribune:"+ de places, + d'affluence et de prestige", virages:"
   boutique:"une rentrée d'argent chaque journée", buvette:"des recettes à chaque match à domicile, selon le remplissage",
   restaurant:"des recettes à chaque match à domicile", musee:"prestige et recettes, même sans match", hotel:"des nuitées chaque saison, et la mise au vert sur place",
   transport:"le public vient de plus loin : + d'affluence", kop:"+ de ferveur à domicile"};
+/* LA CARTE DE LIVRAISON (v1.36) : la modale du prototype. Le stade seul, dans sa ville un soir de match (vueVille en
+   mode focus : on ne montre que le stade et ce qui vient d'être livré). La scène part de l'état d'avant, grue dressée,
+   glisse vers l'état d'après en 1,9 s, puis la grue repart. Sous prefers-reduced-motion, on montre directement la fin. */
+function ouvreLivraison(suite){
+  const l=G.livraison; G.livraison=null;
+  if(!l || !l.apres || EN_TEST() || typeof document==="undefined") return suite();
+  const fiche=document.getElementById("fiche");
+  if(!fiche || !fiche.style) return suite();
+  fiche.innerHTML=`<div class="fbox livr" role="dialog" aria-modal="true" aria-labelledby="livrTitre">
+    <div class="livrScene" id="livrScene"></div>
+    <div class="livrTexte"><p class="livrSur">CHANTIER LIVRÉ</p><h3 id="livrTitre">${esc(l.titre)}</h3>
+      <p class="livrSous">${esc(l.sous)}</p>${l.chiffres?`<p class="livrChiffres">${esc(l.chiffres)}</p>`:""}
+      <button class="big" id="bLivrOk">Continuer</button></div></div>`;
+  fiche.style.display="flex"; window._penEnCours=true;
+  const sc=document.getElementById("livrScene"), avant=l.avant||l.apres, apres=l.apres;
+  const calme=typeof matchMedia==="function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const t0=performance.now()+350, dur=calme?0:1900, ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+  let fini=false;
+  const pas=now=>{ if(fini) return;
+    const u=dur?Math.max(0,Math.min(1,(now-t0)/dur)):1, e=ease(u), E={};
+    for(const k in apres) E[k]=typeof apres[k]==="number"&&typeof avant[k]==="number"?avant[k]+(apres[k]-avant[k])*e:apres[k];
+    E.chantier=calme?0:(u<.75?1:Math.max(0,1-(u-.75)/.2)); E.cible=null;
+    sc.innerHTML=STADE3D.vueVille(E,"n",l.id||"_");
+    if(u<1||E.chantier>0) requestAnimationFrame(pas); };
+  pas(performance.now());
+  const b=document.getElementById("bLivrOk");
+  b.onclick=()=>{ fini=true; window._penEnCours=false; fermeFiche(); suite(); };
+  if(b.focus) b.focus({preventScroll:true});
+}
 const FAMILLES_STADE=["Tribunes","Confort","Commerces","Accès et ambiance","Grands travaux"];
 function projetsHTML(){
   const c=clubById(G.monClub);
@@ -10269,8 +10312,9 @@ function ecranCalendrier(){
   // sachant qui est blessé. Seule la promo billets attend : elle concerne le samedi, pas le mercredi.
   // Chaque étape se consume (G.incident, G.confPresse, G.notifs… remis à zéro) : revenir sur l'écran ne rejoue rien.
   const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDebrief(rdv?null:ouvrePromo)));
-  if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
-  else { ouvreEre(finChaine); }
+  ouvreLivraison(()=>{
+    if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
+    else { ouvreEre(finChaine); } });
   // toute l'échelle reculée d'un cran (le défilement par défaut respire davantage) ; « Très lente » est le nouveau plancher
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
   surligneVitesse(); // état initial : « Normale » mise en valeur
