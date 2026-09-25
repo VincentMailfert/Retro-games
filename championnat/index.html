@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MULTIPLEX 95 · Saison 1995-96</title>
+<title>MULTIPLEX · le foot français des années 90</title>
 <!-- APERÇU DU LIEN (chantier accueil, 25/09/2026) : sans ces balises, un lien envoyé par messagerie ne montrait
      qu'un titre nu. L'image vit dans le dépôt (img/partage.png) ; les réseaux exigent une adresse ABSOLUE. -->
-<meta name="description" content="Revivez le foot français de 1995, de Bollaert au Vélodrome, en entraîneur de votre club. Jeu de gestion de football rétro : 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
+<meta name="description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur de votre club. Jeu de gestion de football rétro : 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
 <meta name="theme-color" content="#0b1626">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:site_name" content="Multiplex 95">
-<meta property="og:title" content="MULTIPLEX 95 · le foot français de 1995, en direct">
-<meta property="og:description" content="Revivez le foot français de 1995, de Bollaert au Vélodrome, en entraîneur de votre club. 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
+<meta property="og:site_name" content="Multiplex">
+<meta property="og:title" content="MULTIPLEX · le foot français des années 90, en direct">
+<meta property="og:description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur de votre club. 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
 <meta property="og:url" content="https://vincentmailfert.github.io/Retro-games/championnat/">
 <meta property="og:image" content="https://vincentmailfert.github.io/Retro-games/championnat/img/partage.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Le tableau d'affichage de Multiplex 95">
+<meta property="og:image:alt" content="Le tableau d'affichage de Multiplex">
 <meta name="twitter:card" content="summary_large_image">
-<!-- Favicon embarqué (data URI, aucune dépendance réseau) : le transistor Multiplex 95 (bloc jaune, ballon blanc, molette) sur bleu nuit. Évite le 404 /favicon.ico. -->
+<!-- Favicon embarqué (data URI, aucune dépendance réseau) : le transistor Multiplex (bloc jaune, ballon blanc, molette) sur bleu nuit. Évite le 404 /favicon.ico. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230b1626'/%3E%3Cpath d='M7 9 L3.5 3.5' stroke='%23ffd24a' stroke-width='1.6'/%3E%3Crect x='4' y='9' width='16' height='11' fill='%23ffd24a'/%3E%3Crect x='5.5' y='10.5' width='8' height='8' fill='%230b1626'/%3E%3Ccircle cx='8' cy='13' r='1.8' fill='%23ffffff'/%3E%3Ccircle cx='16.8' cy='14.5' r='2.2' fill='none' stroke='%230b1626' stroke-width='1.4'/%3E%3C/svg%3E">
 <!-- Statistiques de fréquentation (GoatCounter) : ne compte QUE sur l'URL publique HTTPS,
      jamais en local (file://, localhost) ni dans le harnais Node sans DOM. -->
@@ -115,7 +115,8 @@
   }
   button.act:hover{border-color:var(--jaune); color:var(--jaune);}
   button.act:disabled{opacity:.4; cursor:default;}
-  button.big{font-size:16px; padding:9px 20px; background:var(--jaune); color:#16243c; font-weight:bold; border:2px solid transparent;}
+  button.big{font-size:16px; padding:9px 20px; background:var(--jaune); color:#16243c; font-weight:bold; border:2px solid transparent; cursor:pointer;}
+  button.big:not(:disabled):hover{filter:brightness(1.08);}
   /* RÈGLE D'AFFICHAGE DES BOUTONS (v1.02) : le JAUNE PLEIN ne se porte que sur une action ENCORE
      OFFERTE. Dès qu'un bouton s'éteint — indisponible faute d'argent ou de fenêtre, ou choix déjà
      tranché — il s'INVERSE : fond bleu nuit, cadre et typo jaune. On lit toujours ce qu'il dit, on
@@ -338,11 +339,20 @@
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6); line-height:1.1;}
   .accHero .accPitch{font-size:18px; color:var(--clair); max-width:34ch; margin:12px auto 0; line-height:1.4; text-wrap:balance;}
   .accHero .accSous{font-size:14px; color:var(--dim); margin-top:8px;}
-  .accHero .accPortes{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px;}
-  .accHero .accPortes button{min-width:220px;}
-  button.porte2{font-size:16px; padding:9px 20px; background:none; color:var(--clair); border:2px solid var(--line); font-weight:bold; cursor:pointer; font-family:inherit;}
+  .accHero .accPortes{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; margin-top:18px;}
+  /* les deux portes ont un relief de touche (ombre dure dessous, qui s'écrase au clic) : côte à côte, jaune plein
+     contre contour, elles se lisaient comme un interrupteur dont la première option serait déjà cochée */
+  .accHero .accPortes button{min-width:220px; transition:transform .08s, box-shadow .08s, filter .08s;}
+  .accHero .accPortes button.big{box-shadow:0 4px 0 #9c7c1c;}
+  .accHero .accPortes button:hover{transform:translateY(-1px);}
+  .accHero .accPortes button.big:hover{box-shadow:0 5px 0 #9c7c1c;}
+  .accHero .accPortes button:active{transform:translateY(3px);}
+  .accHero .accPortes button.big:active{box-shadow:0 1px 0 #9c7c1c;}
+  .accHero .accPortes .ou{color:var(--dim); font-size:14px;}
+  button.porte2{font-size:16px; padding:9px 20px; background:var(--panel2); color:var(--clair); border:2px solid var(--line); font-weight:bold; cursor:pointer; font-family:inherit; box-shadow:0 4px 0 #0b1626;}
   button.porte2:hover{border-color:var(--clair);}
-  @media(max-width:700px){ .accHero .accTitre{font-size:24px;} .accHero .accPitch{font-size:16px;} .accHero .accPortes button{width:100%; min-width:0;} }
+  button.porte2:active{box-shadow:0 1px 0 #0b1626;}
+  @media(max-width:700px){ .accHero .accTitre{font-size:24px;} .accHero .accPitch{font-size:16px;} .accHero .accPortes button{width:100%; min-width:0;} .accHero .accPortes .ou{width:100%;} }
   /* le premier match d'une carrière : on joue d'abord, on règle ensuite (les réglages restent à un clic) */
   details.avantMatch{margin-top:12px; text-align:center;}
   details.avantMatch > summary{cursor:pointer; color:var(--dim); font-size:14px; width:max-content; margin:0 auto; padding:4px 0;}
@@ -476,12 +486,12 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
 <script>
 "use strict";
 /* =====================================================================
-   MULTIPLEX 95 — prototype monofichier
+   MULTIPLEX — prototype monofichier
    Données : clubs et joueurs réels de la D1 1995-96 (effectifs curés à la main,
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.43"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.44"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1107,7 +1117,7 @@ function blason(c,s){
     <path d="${ecu}" fill="none" stroke="#e8e8e8" stroke-width="1" opacity=".75"/></svg>`;
 }
 
-/* ---- Logo MULTIPLEX 95 : transistor au filet de but en haut-parleur ---- */
+/* ---- Logo MULTIPLEX : transistor au filet de but en haut-parleur ---- */
 function logoMultiplex(s, sombre){ // s = largeur px ; sombre=true → tracés #16243c (pour fond jaune)
   const enc=sombre?"#16243c":"#0b1626", clair=sombre?"#16243c":"#d9e4f2";
   return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" style="vertical-align:middle;flex:none;image-rendering:pixelated">
@@ -2998,7 +3008,7 @@ const COMM={
   "Fumigène dans le virage, la fumée traverse la pelouse. On ne voit plus grand-chose pendant une minute.",
   "Un entraîneur sort de sa zone technique une fois de trop : l'arbitre le renvoie en tribune, et il n'y monte pas de bon cœur !",
   "Le speaker annonce l'affluence du soir. Le chiffre est accueilli par un mélange d'applaudissements polis et de ricanements francs.",
-  "Un joueur remet ses protège-tibias en marchant, chaussettes à mi-mollet et short au ras du nombril. On est en 1995, et ça se voit.",
+  "Un joueur remet ses protège-tibias en marchant, chaussettes à mi-mollet et short au ras du nombril. On est dans les années 90, et ça se voit.",
   "Passe en retrait au gardien, qui la prend au pied en soupirant. Trois ans que c'est interdit à la main, et certains cherchent encore.",
   "Le quatrième arbitre tente de calmer les deux bancs, qui se répondent par-dessus lui. Il note quelque chose sur sa feuille, et personne ne saura jamais quoi.",
  ],
@@ -6656,7 +6666,7 @@ function transfertIA(){
 
 /* ---------- Centre d'entraînement ---------- */
 function ameliorerCentre(){
-  if(G.centre>=5) return message("Le centre d'entraînement est déjà au niveau maximal. On ne fait pas mieux en 1995.", {titre:"🏟️ DÉJÀ AU SOMMET"});
+  if(G.centre>=5) return message("Le centre d'entraînement est déjà au niveau maximal. On ne fait pas mieux à l'époque.", {titre:"🏟️ DÉJÀ AU SOMMET"});
   const cout=8e6*G.centre;
   if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6)+" MF, la caisse ne suit pas.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
   const niv=G.centre+1;
@@ -9660,7 +9670,7 @@ function importer(ev){
   r.onload=()=>{
     let o=null;
     try{ o=JSON.parse(r.result); }catch(e){ o=null; }
-    if(!o || !o.monClub || !o.clubs) return message("Ce fichier n'est pas une sauvegarde MULTIPLEX 95.", {titre:"📂 FICHIER ILLISIBLE", coul:"#ff6f61"});
+    if(!o || !o.monClub || !o.clubs) return message("Ce fichier n'est pas une sauvegarde MULTIPLEX.", {titre:"📂 FICHIER ILLISIBLE", coul:"#ff6f61"});
     G=assainit(o);
     PARTIE=partieNeuve(); G.pid=PARTIE.id; // un fichier importé ouvre une carrière DE PLUS : il n'écrase jamais celles du navigateur
     migre(); sauvegardeLocale(true); majTitre(); montre("calendrier");
@@ -9914,7 +9924,7 @@ function saisie(o){ // remplace prompt()
 
 
 function majTitre(){
-  document.title="MULTIPLEX 95 · "+(G?clubById(G.monClub).nom:"Saison 1995-96");
+  document.title="MULTIPLEX · "+(G?clubById(G.monClub).nom:"le foot français des années 90");
 }
 
 function statutClub(c){
@@ -9946,7 +9956,7 @@ function ficheClubAccueil(id){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${st.coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:90vh;overflow-y:auto">
     <h2 style="display:flex;align-items:center;gap:10px">${blason(c,40)}${esc(c.nom)}</h2>
-    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag} <span class="dim">·</span> <b class="fort">DIVISION ${enD2?2:1}</b></p>
+    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag} <span class="dim">·</span> <b class="fort">DIVISION ${enD2?2:1}</b> <span class="dim">·</span> <b class="fort">${esc(S.titre)}</b></p>
     <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="fort">${esc(st.obj.label)}</b></p>
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${(c.budget/1e6).toFixed(0)} MF</p>
     ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="fort">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
@@ -10021,7 +10031,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
 let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
-const ACCROCHE_ACCUEIL="Revivez le foot français de 1995, de Bollaert au Vélodrome, en entraîneur de votre club.";
+const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur de votre club.";
 function ecranAccueil(){
   const parties=partiesListe();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
@@ -10034,14 +10044,15 @@ function ecranAccueil(){
       ${g.clubs.map(carte).join("")}`).join("");
   const tous=cD1.concat(cD2);
   app.innerHTML=`
-   <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20,true)}MULTIPLEX 95 · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
+   <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20,true)}MULTIPLEX · SAISON ${esc(S.titre)}</span><span class="r">Division 1 française</span></div>
    ${parties.length ? panneauCarrieres(parties) : `<div class="panel accHero">
      <div class="accLogo">${logoMultiplex(56)}</div>
-     <div class="accTitre">MULTIPLEX 95</div>
+     <div class="accTitre">MULTIPLEX</div>
      <p class="accPitch">${esc(ACCROCHE_ACCUEIL)}</p>
      <p class="accSous">${tous.length} vrais clubs · vrais effectifs d'époque · tous les stades en direct</p>
      <div class="accPortes">
        <button class="big" id="bMagie">✨ Laisser la magie opérer</button>
+       <span class="ou">ou</span>
        <button class="porte2" id="bChoisir">Choisir mon club</button>
      </div>
    </div>`}
@@ -10069,9 +10080,11 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex 95 · prototype v${VERSION} · données d'époque approximatives.${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
-  // les deux portes du bandeau : le hasard tire un club parmi tous ceux de la saison, et l'on découvre sa fiche
-  { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=()=>ficheClubAccueil(PICK(tous).id);
+   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives.${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
+  // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
+  { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=()=>{
+      SAISON_ACCUEIL=PICK(Object.keys(SAISONS)); ecranAccueil(); // l'écran suit la saison tirée (sélecteur, listes)
+      const T=SAISONS[SAISON_ACCUEIL]; ficheClubAccueil(PICK(T.d1.concat(T.d2))); };
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
   app.querySelectorAll(".startclub:not(.carGo)").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id)); // .carGo = une carrière, pas un club : son data-id n'est pas un club
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
@@ -10120,7 +10133,7 @@ function chrome(actif, corps){
    </div>
    ${barreNav(actif)}
    <div id="corps">${corps}</div>
-   <p class="footer">MULTIPLEX 95 · v${VERSION} ·
+   <p class="footer">MULTIPLEX · v${VERSION} ·
      <button class="act" id="bSave">💾 Sauvegarder</button>
      <button class="act" id="bMenu">📁 Mes carrières</button>
      <button class="act" id="bExp">Exporter (fichier)</button>
@@ -10149,7 +10162,7 @@ function ecranApropos(){
      <h2>À propos</h2>
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
        et qui est coincé dans l'ascenseur depuis.</p>
-     <p class="dim" style="font-size:13px;line-height:1.5">MULTIPLEX 95 · prototype v${VERSION}</p>
+     <p class="dim" style="font-size:13px;line-height:1.5">MULTIPLEX · prototype v${VERSION}</p>
    </div>
    <div class="panel">
      <h2>Une remarque ? Un scandale ?</h2>
@@ -10168,7 +10181,7 @@ function ecranApropos(){
     const obj=document.getElementById("ctcObjet").value;
     const msg=document.getElementById("ctcMsg").value;
     const c=clubById(G.monClub)||{};
-    const sujet="[Multiplex 95 v"+VERSION+"] "+obj;
+    const sujet="[Multiplex v"+VERSION+"] "+obj;
     const corps=msg+"\n\n"+(c.nom||"")+" · "+(G.saison||"")+" · J"+Math.min((G.journee||0)+1,38)+"/38";
     window.location.href="mailto:"+CONTACT_MAIL+"?subject="+encodeURIComponent(sujet)+"&body="+encodeURIComponent(corps);
   };
@@ -12547,7 +12560,7 @@ const STADE3D=(()=>{
     <rect x="-2" y="-2" width="100" height="48" rx="3" fill="#ffd98a" opacity=".16"/>
     <rect width="96" height="44" rx="2.5" fill="url(#${id}Cadre)" stroke="#c9d6e8" stroke-width="1"/>
     <rect x="3" y="3" width="90" height="38" fill="url(#${id}Px)"/>
-    <rect x="3" y="3" width="90" height="8" fill="#ffd24a"/><text x="48" y="9.3" text-anchor="middle" font-family="Silkscreen,monospace" font-size="6" fill="#16243c">MULTIPLEX 95</text>
+    <rect x="3" y="3" width="90" height="8" fill="#ffd24a"/><text x="48" y="9.3" text-anchor="middle" font-family="Silkscreen,monospace" font-size="6" fill="#16243c">MULTIPLEX</text>
     <rect x="7" y="15" width="18" height="13" fill="#b3302a"/><rect x="7" y="15" width="6" height="13" fill="#f7f1ea"/>
     <rect x="71" y="15" width="18" height="13" fill="#2b5687"/><rect x="83" y="15" width="6" height="13" fill="#f7f1ea"/>
     <text x="48" y="27.5" text-anchor="middle" font-family="Silkscreen,monospace" font-size="13" fill="#ffd24a">1-0</text>
@@ -13153,7 +13166,7 @@ const STADE3D=(()=>{
     for(let x=x0+10;x<x1-18;x+=34) s+=`<path d="M${f1(x)} ${GY} v-12 a8 8 0 0 1 16 0 v12 z" fill="#ffd24a" opacity="${f1(.35+.4*aff)}"/>`;
     if(R.loges>0.01&&montre('loges')) s+=`<rect x="${f1(x0)}" y="${f1(GY-h*.6-4)}" width="${f1(w)}" height="9" fill="url(#${id}Loges)" opacity="${f1(R.loges)}"/>`;
     if(ledV>0.01){ const yl=GY-h*.47; s+=`<g opacity="${f1(ledV)}"><rect x="${f1(x0)}" y="${f1(yl-5)}" width="${f1(w)}" height="10" fill="#05080f"/><rect x="${f1(x0)}" y="${f1(yl-9)}" width="${f1(w)}" height="18" fill="#f2f5fa" opacity=".08"/>
-      <g class="defile"><text x="${f1(x0+6)}" y="${f1(yl+3.2)}" font-family="Silkscreen,monospace" font-size="8" fill="#f2f5fa">MULTIPLEX 95 <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan> MULTIPLEX 95 <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan></text></g></g>`; }
+      <g class="defile"><text x="${f1(x0+6)}" y="${f1(yl+3.2)}" font-family="Silkscreen,monospace" font-size="8" fill="#f2f5fa">MULTIPLEX <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan> MULTIPLEX <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan></text></g></g>`; }
     if(vir>0.01) s+=`<rect x="${f1(x0)}" y="${f1(GY-h-4)}" width="${f1(w)}" height="${f1(h+4)}" fill="url(#${id}Rond)" opacity="${f1(vir)}"/>`;
     if(R.chantier>0.01){ for(let x=x0; x<x0+w*.3; x+=10) s+=`<line x1="${f1(x)}" y1="${GY}" x2="${f1(x)}" y2="${f1(GY-h)}" stroke="#ffd24a" stroke-width=".8" stroke-dasharray="3 2" opacity="${f1(.7*R.chantier)}"/>`;
       for(let y=GY-8; y>GY-h; y-=10) s+=`<line x1="${f1(x0)}" y1="${f1(y)}" x2="${f1(x0+w*.3)}" y2="${f1(y)}" stroke="#ffd24a" stroke-width=".8" opacity="${f1(.6*R.chantier)}"/>`; }

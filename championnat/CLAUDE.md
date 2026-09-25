@@ -1,4 +1,4 @@
-# MULTIPLEX 95 — mémoire projet
+# MULTIPLEX — mémoire projet
 
 ## Ce que c'est
 Jeu de management de football rétro, **fichier HTML unique autonome** (`index.html`).
@@ -9,7 +9,7 @@ Hébergé sur GitHub Pages dans le repo `retro-games`, servi à l'URL `…/champ
 pas de testeurs : les « retours de playtest » cités dans ce fichier sont les siens, et son ressenti en jouant est le
 seul retour qui existe. Ne pas justifier une décision par « les testeurs » ni proposer de « faire tester » à
 d'autres ; une livraison sur `main` n'expose que sa propre partie (dont la sauvegarde doit rester compatible).
-**Nom & identité (v0.82)** : le jeu s'appelle **MULTIPLEX 95** (le multiplex radio — « tous les stades en
+**Nom & identité (v0.82)** : le jeu s'appelle **MULTIPLEX** (sans « 95 » depuis v1.44 : le jeu couvre 1990 à 2000 ; le multiplex radio — « tous les stades en
 direct », l'oreille collée au transistor, très 1995). Le logo (`logoMultiplex(s, sombre)`, à côté de `blason`)
 est un **SVG géométrique embarqué** — un transistor dont le haut-parleur est un filet de but avec un ballon logé
 dedans, molette, antenne, ondes cyan (zéro requête réseau, comme le favicon et les blasons ; `sombre=true` trace
@@ -119,7 +119,7 @@ toujours « raconter quelque chose ».
   jeu — juste la sérialisation de `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne
   pas peser sur le harnais (`harness-sauvegardes.cjs` lève le drapeau le temps de l'appel pour les tester).
 - Numéro de version centralisé dans la constante `const VERSION` (en tête de script) et recopié aux **deux**
-  pieds de page — l'accueil (`Multiplex 95 — prototype vX.Y ·`) et le jeu (`MULTIPLEX 95 · vX.Y ·`). L'incrémenter à
+  pieds de page — l'accueil (`Multiplex · prototype vX.Y ·`) et le jeu (`MULTIPLEX · vX.Y ·`). L'incrémenter à
   chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils
   jouent, et pour éviter que les deux pieds de page se désynchronisent.
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
