@@ -500,7 +500,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.47"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.48"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -5577,8 +5577,8 @@ function finirJournee(delta){
         nj.note0=nj.note; initTraits(nj);
         ach.joueurs.push(nj);
         retireDEurope(nj.nom); // réconciliation : s'il jouait dans un club européen, il le quitte (pas de doublon sur deux terrains)
-        G.news.unshift("MERCATO : "+ach.nom+" rafle "+entree[0]+" ("+t+") sous votre nez. Le recruteur vous avait prévenu.");
-        notif("🚨 "+ach.nom+" a raflé "+entree[0]+", il figurait dans votre rapport de recruteur.");
+        G.news.unshift("MERCATO : "+ach.nom+" rafle "+nomLong(entree[0])+" ("+t+") sous votre nez. Le recruteur vous avait prévenu.");
+        notif("🚨 "+ach.nom+" a raflé "+nomLong(entree[0])+", il figurait dans votre rapport de recruteur.");
       }
     }
   }
@@ -6890,7 +6890,7 @@ function finaliseAchat(j, prix, prime){
   // une star mercenaire (gros ego + vénalité) heurte les puristes ; un joueur de devoir séduit
   if((j.ego||5)>=8 && (j.venal||5)>=7) majReput(-4, "recrue mercenaire");
   else if((j.ego||5)<=3 && (j.venal||5)<=3) majReput(+2, "recrue exemplaire");
-  G.news.unshift("TRANSFERT : "+j.nom+" rejoint le club pour "+(prix/1e6).toFixed(1)+" MF"+(prime?" (+ "+(prime/1e6).toFixed(2)+" MF de prime à la signature)":"")+".");
+  G.news.unshift("TRANSFERT : "+nomLong(j.nom)+" rejoint le club pour "+(prix/1e6).toFixed(1)+" MF"+(prime?" (+ "+(prime/1e6).toFixed(2)+" MF de prime à la signature)":"")+".");
   veilleEffectif(); // si le vendeur passe sous le plancher, il se dépanne aussitôt sur le marché des libres
   rafraichir();
 }
@@ -7676,7 +7676,7 @@ function signeJoker(k){
   G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle de la recrue
   G.vivier[o.type]=G.vivier[o.type].filter(e=>e[0]!==o.j.nom); // signé : ne reviendra plus
   const exEuro=retireDEurope(o.j.nom); // réconciliation : s'il jouait dans un club européen, il le quitte
-  G.news.unshift("RECRUE JOKER : "+o.j.nom+" ("+o.j.lieu+") signe pour "+(o.prix/1e6).toFixed(1)+" MF."+(exEuro?" Il quitte "+exEuro.nom+".":""));
+  G.news.unshift("RECRUE JOKER : "+nomLong(o.j.nom)+" ("+o.j.lieu+") signe pour "+(o.prix/1e6).toFixed(1)+" MF."+(exEuro?" Il quitte "+exEuro.nom+".":""));
   G.rapport.splice(k,1);
   rafraichir();
 }
@@ -9905,13 +9905,13 @@ function ecranBilan(){
    </div>
    <div class="grid2">
      <div class="panel"><h2>🥇 LE BUTEUR</h2>
-       ${B.buteur?`<p style="font-size:18px"><b class="fort">${esc(B.buteur.nom)}</b></p>
+       ${B.buteur?`<p style="font-size:18px"><b class="fort">${esc(nomLong(B.buteur.nom))}</b></p>
          <p class="dim">${esc(nomC(B.buteur.club))} · <b>${B.buteur.buts}</b> but${B.buteur.buts>1?"s":""} dans la saison.</p>`
         :`<p class="dim">Personne n'a marqué cette saison. Du jamais vu.</p>`}
-       ${B.passeur?`<p style="margin-top:8px" class="dim">Meilleur passeur : <b>${esc(B.passeur.nom)}</b> (${esc(nomC(B.passeur.club))}), ${B.passeur.passes} passe${B.passeur.passes>1?"s":""} décisive${B.passeur.passes>1?"s":""}.</p>`:""}
+       ${B.passeur?`<p style="margin-top:8px" class="dim">Meilleur passeur : <b>${esc(nomLong(B.passeur.nom))}</b> (${esc(nomC(B.passeur.club))}), ${B.passeur.passes} passe${B.passeur.passes>1?"s":""} décisive${B.passeur.passes>1?"s":""}.</p>`:""}
      </div>
      <div class="panel"><h2>🏅 L'HOMME DE LA SAISON</h2>
-       ${B.hommeSaison?`<p style="font-size:18px"><b class="fort">${esc(B.hommeSaison.nom)}</b></p>
+       ${B.hommeSaison?`<p style="font-size:18px"><b class="fort">${esc(nomLong(B.hommeSaison.nom))}</b></p>
          <p class="dim">${B.hommeSaison.hdm} fois homme du match, ${B.hommeSaison.buts||0} but${(B.hommeSaison.buts||0)>1?"s":""}, ${B.hommeSaison.passes||0} passe${(B.hommeSaison.passes||0)>1?"s":""} décisive${(B.hommeSaison.passes||0)>1?"s":""}, note ${B.hommeSaison.note}.</p>
          <p class="dim" style="margin-top:6px;font-style:italic">Celui que les tribunes ont fini par appeler par son prénom.</p>`
         :`<p class="dim">Aucun de vos joueurs n'a été désigné homme du match cette saison. Ça viendra.</p>`}
@@ -11244,7 +11244,7 @@ function briefAdverse(adv){
   return `<div class="briefAdv">
        <div class="briefTete">${blason(adv,24)}<b class="fort">${esc(adv.nom)}</b>${rang?`<span class="dim">${rang}</span>`:""}<span class="dim">${cleFormation(adv)}</span></div>
        <div class="terrainXI">${ligne("A")}${ligne("M")}${ligne("D")}${ligne("G")}</div>
-       <p class="briefDang">${dang.map(j=>`<span><b>${esc(j.nom)}</b> <span class="dim">${pourquoi(j)}</span></span>`).join("")}</p>
+       <p class="briefDang">${dang.map(j=>`<span><b>${esc(nomLong(j.nom))}</b> <span class="dim">${pourquoi(j)}</span></span>`).join("")}</p>
      </div>`;
 }
 function blocFormation(xi, adv){
@@ -12916,7 +12916,7 @@ function ecranMercato(){
   const valTri=(j,k)=>k==="prix"?prixAchat(j):(k==="club"?clubById(j.club).nom:(k==="nom"?j.nom:(k==="prog"?j.note-(j.note0||j.note):j[k])));
   // fiche joueur (partagée par le panneau latéral desktop ET la ligne dépliée mobile) — boutons câblés par classe
   const ficheMercato=j=>{ const dv=divOf(j); return `
-    <h2 style="margin:0 0 2px">${esc(j.nom)}</h2>
+    <h2 style="margin:0 0 2px">${esc(nomLong(j.nom))}</h2>
     <p style="margin:0"><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · <span class="dim">${esc(clubById(j.club).nom)}</span> <b class="fort">D${dv}</b></p>
     <p style="margin:8px 0 4px">Note <span class="noteLed">${j.note}</span>${j.note>(j.note0||j.note)?' <span class="vert">▲+'+(j.note-j.note0)+'</span>':""}</p>
     <p style="margin:0">Prix demandé : <b class="fort">${(prixAchat(j)/1e6).toFixed(1)} MF</b></p>
@@ -12932,7 +12932,7 @@ function ecranMercato(){
     MERCF={posF,txtF,ageF,favSeul,triCle,triDir,divF,page,sel:MERCF.sel}; // mémorise l'état pour le prochain rendu
     const tous=G.clubs.concat(G.autre||[]).filter(c=>c.id!==G.monClub).flatMap(c=>c.joueurs)
       .filter(j=>!j.pretIn&&!j.pretOut)
-      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (divF==="*"||divOf(j)===+divF) && j.nom.toLowerCase().includes(txtF.toLowerCase()))
+      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (divF==="*"||divOf(j)===+divF) && nomLong(j.nom).toLowerCase().includes(txtF.toLowerCase()))
       .sort((a,b)=>{const va=valTri(a,triCle),vb=valTri(b,triCle);
         return (typeof va==="string"? va.localeCompare(vb) : va-vb)*triDir;});
     const PAR_PAGE=20;
@@ -12989,7 +12989,7 @@ function ecranMercato(){
   };
   const carteJoker=(o,k)=>`<div class="carte click rj" data-k="${k}">
     <span style="font-size:13px">${esc(o.type)}</span>
-    <b class="fort">${esc(o.j.nom)}</b>
+    <b class="fort">${esc(nomLong(o.j.nom))}</b>
     <span style="font-size:13px"><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b>${o.j.note}</b></span>
     <span class="dim" style="font-size:13px">${esc(o.j.lieu)}</span>
     <span style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">

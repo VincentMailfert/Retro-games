@@ -5,6 +5,7 @@
    C) un joueur généré a toujours un prénom, qui commence par son initiale, et toujours le même
    D) nomLong ne touche pas à ce qu'il ne connaît pas (mononymes, prénoms "" , noms hors tables)
    E) le prénom ne remplace jamais le nom court dans le moteur : genJoueur garde « X. Nom »
+   F) les vitrines du désir (v1.48) affichent le prénom : là où l'on VEUT un joueur, et là où on le célèbre
    Usage : node harness-prenoms.cjs                                                                    */
 const fs = require("fs");
 const path = require("path");
@@ -121,6 +122,30 @@ console.log("E) Le moteur garde le nom court");
   }
   ok(courts === 400, "genJoueur fabrique toujours « X. Nom »");
   ok(sansPrenom === 0, "et chacun a son prénom à l'affichage");
+}
+
+/* ===== F) les vitrines du désir ===== */
+console.log("F) Là où l'on veut un joueur, il a son prénom");
+{
+  const VITRINES = [
+    ["le rapport du recruteur", '<b class="fort">${esc(nomLong(o.j.nom))}</b>'],
+    ["la fiche dépliée du marché", '<h2 style="margin:0 0 2px">${esc(nomLong(j.nom))}</h2>'],
+    ["la recherche du marché, par prénom aussi", 'nomLong(j.nom).toLowerCase().includes(txtF.toLowerCase())'],
+    ["les trois dangers de l'adversaire", '${dang.map(j=>`<span><b>${esc(nomLong(j.nom))}</b>'],
+    ["le buteur de l'almanach", '${esc(nomLong(B.buteur.nom))}'],
+    ["le passeur de l'almanach", '${esc(nomLong(B.passeur.nom))}'],
+    ["l'homme de la saison", '${esc(nomLong(B.hommeSaison.nom))}'],
+    ["la signature d'un transfert", '"TRANSFERT : "+nomLong(j.nom)'],
+    ["la signature d'un joker", '"RECRUE JOKER : "+nomLong(o.j.nom)'],
+    ["le joueur raflé sous votre nez", '" rafle "+nomLong(entree[0])'],
+    ["la fiche joueur", '<h2>${esc(nomLong(j.nom))}</h2>'],
+    ["la feuille de match", "${esc(nomLong(l.g.but))}"],
+  ];
+  const absentes = VITRINES.filter(([, motif]) => !script.includes(motif)).map(([lib]) => lib);
+  ok(absentes.length === 0, `les ${VITRINES.length} vitrines affichent le prénom${absentes.length ? " — sauf : " + absentes.join(", ") : ""}`);
+  // …et les listes serrées gardent l'initiale : le terrain de l'adversaire, le marché en tableau
+  ok(script.includes('<span class="advDanger">${esc(x.j.nom)}</span>'), "le terrain de l'adversaire garde les noms courts");
+  ok(script.includes('<td>${esc(j.nom)}</td><td class="pos-${j.pos}">'), "le tableau du marché garde les noms courts");
 }
 
 console.log(FAILS ? `\n✗ ${FAILS} échec(s)` : "\n✓ Tout est vert");

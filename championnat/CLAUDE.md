@@ -2012,7 +2012,14 @@ Le nom court (« B. Lama ») reste **la clé du moteur** : traits (`TRAITS`), do
 harnais s'appuient dessus, on n'y touche pas. Le prénom se **déduit** de ce nom au moment d'afficher, par
 `prenomDe(nom)` / `nomLong(nom)`, et seulement là où il y a de la place (choix de l'auteur) : titre de la fiche
 joueur, fenêtres Signer / Brader / Rappeler, buteurs et homme du match de la feuille de match. Les listes serrées
-(effectif, classement des buteurs, compositions, téléscripteur) gardent l'initiale. Rien n'entre dans la sauvegarde :
+(effectif, classement des buteurs, compositions, téléscripteur) gardent l'initiale.
+**LES VITRINES DU DÉSIR (v1.48, consigne auteur)** : « c'est l'association d'un prénom et d'un nom qui peut faire rêver,
+et se dire qu'on VEUT ce joueur chez nous ». Le prénom sort donc aussi, sans aller partout, là où l'on convoite un joueur
+et là où on le célèbre : les cartes du **rapport du recruteur** (« Carlos Valderrama », « Éric Cantona »), la fiche
+dépliée du **marché** (la recherche y trouve aussi un joueur par son prénom), les **trois dangers** de l'adversaire du
+samedi (le terrain garde les noms courts), l'**almanach** (buteur, passeur, homme de la saison, dont la phrase « celui
+que les tribunes ont fini par appeler par son prénom » prend enfin son sens), et les dépêches **TRANSFERT**, **RECRUE
+JOKER** et le joueur **raflé sous votre nez**. Section F de `harness-prenoms.cjs`. Rien n'entre dans la sauvegarde :
 une vieille carrière a ses prénoms sans migration.
 **Vrais joueurs** : table `PRENOMS_VRAIS` (au-dessus de `PRENOMS_GEN`), une entrée par nom à initiale des tables
 curées. `""` = prénom introuvable, douteux, ou même nom court porté par deux hommes aux prénoms différents :
