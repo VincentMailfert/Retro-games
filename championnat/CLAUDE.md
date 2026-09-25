@@ -1509,9 +1509,10 @@ toujours « raconter quelque chose ».
   reçoit** (`niveauCoupe` : amateur 0 < D2 1 < D1 2), **pas de match nul** (tirs au but). Un **Petit Poucet**
   est désigné chaque saison (`poucetId`, dopé de `COUPE_POUCET_BONUS`) et joue très au-dessus de son rang →
   parcours marquant, et il peut vous tomber dessus (le petit reçoit, vous jouez chez lui). **La coupe ne
-  touche JAMAIS les stats de championnat ni le calibrage des buts** : tout y est résolu par un modèle de
-  force autonome (`forceCoupe`/`scoreCoupe`, exposant ~2,6, Poisson `poissonC`, calibrage doux), jamais par
-  `appliqueResultat`. **Dilemme du mercredi** : `G.coupe.rotation` (cadres/mixte/réserve, réglé soit sur
+  touche JAMAIS les stats de championnat** : depuis la bascule (v1.33) elle se joue par `simuleMatch` sous le
+  maillot « CF » (`resoudreCoupe` → `coupeMatchReel`), ses buts vont dans `butsC`, jamais par
+  `appliqueResultat` ; le vieux modèle de force (`forceCoupe`/`scoreCoupe`) ne reste qu'en repli pour un club
+  sans effectif. Les villages sont rehaussés de `AMA_REHAUSSE` (5 points) pour garder ~16 % d'exploits. **Dilemme du mercredi** : `G.coupe.rotation` (cadres/mixte/réserve, réglé soit sur
   l'écran COUPE, soit dans la **fenêtre d'avant-match** — voir flux événementiel plus bas) module votre force
   en coupe ET appelle **`fatigueSemaine(rot)`** : les onze qui ont RÉELLEMENT disputé le tour (`onzeRotation`)
   encaissent chacun `FRAICH_MATCH` points de fraîcheur — voir la section **FRAÎCHEUR** plus bas. *(Avant v1.00,
@@ -1871,8 +1872,19 @@ fiche. `rejoueDepuis` cherche désormais d'abord dans les deux vestiaires du mat
 après) : fil = fiches, recollage = fiches, score = fil, championnat intact, sifflet à la bonne minute, séance
 exactement quand il le faut. Au passage, `aStade` contracte « à le Stadio » en « au Stadio ».
 
-**Ce qui reste** : la Coupe de France pose exactement la même question (`lanceCoupe` met encore en scène un fil
-inventé par `genEvCoupe`) — elle se branchera sur `cableTactiqueDirect` le jour de sa bascule.
+**LA COUPE DE FRANCE A SUIVI (v1.33, 24/09/2026).** Même câblage : `coupeJoue` passe un `sortie` à
+`resoudreCoupe`, `lanceCoupe` met en scène le fil du moteur, la consigne passe par `cableTactiqueDirect` →
+`coupeRejoue` (maillot « CF » + feuille). Un village joue avec son vestiaire (`coupeClub` → `clubAmateur`),
+votre onze suit la rotation (`onzeCoupe`, feuille posée comme en Europe depuis la v1.32), pas de nul :
+prolongations puis tirs au but du moteur. **Calage arbitré par l'auteur** : sur le vrai moteur, les villages
+bâtis à leur note brute ne sortaient plus un pro que 9 % du temps ; `AMA_REHAUSSE`=5 les ramène à ~16,5 %
+(3,1 buts contre les pros, comme avant) et `COUPE_POUCET_BONUS` passe de 14 à 11 pour garder le Poucet vers
+12 % de quarts. Votre sortie dès les 32es : ~38 % en équipe mixte, ~25 % avec vos cadres — la rotation
+décide, et la cible de 15-20 % du lancement du chantier est abandonnée (elle tuait les exploits). Étalon
+réécrit valeur par valeur dans `harness-coupes.cjs` ; sa section F exige désormais que chaque but de coupe
+atterrisse un pour un au compteur de son buteur, villages compris, et sa section K garde le direct.
+**Le chantier « un seul moteur » est terminé** : championnat, Coupe de France et Coupe d'Europe passent tous
+par `simuleMatch`.
 
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :

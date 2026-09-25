@@ -60,7 +60,7 @@ const GRAINE = Number(process.env.GRAINE || 20250922);
   };
 })(GRAINE);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,estAmateur,niveauCoupe,forceCoupe,forceEuro,nomCoupe,resoudreCoupe,euroManche,simuleMatch,enCompet,clubById,clubAmateur,amaById,forceClub,COUPE_POUCET_BONUS,tirsAuBut,affluenceCoupe,usureProlong,onze,CLUBS,CLUBS_D2,CLUBS_AMATEURS,COUPE_TOURS,EURO_TOURS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,estAmateur,niveauCoupe,forceCoupe,forceEuro,nomCoupe,resoudreCoupe,euroManche,simuleMatch,enCompet,clubById,clubAmateur,amaById,forceClub,COUPE_POUCET_BONUS,AMA_REHAUSSE,coupeRejoue,coupeClub,onzeRotation,tirsAuBut,affluenceCoupe,usureProlong,onze,CLUBS,CLUBS_D2,CLUBS_AMATEURS,COUPE_TOURS,EURO_TOURS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -79,13 +79,29 @@ const moy = (s, n) => (n ? s / n : 0).toFixed(3);
    sciemment. Ce qu'on ne veut surtout pas, c'est qu'ils bougent sans que personne le voie.
    ============================================================================ */
 const ETALON = {
-  butsParMatch: [2.629, 0.09],
-  butsProPro: [2.373, 0.09],
-  butsProAma: [3.062, 0.15],
-  tabCoupe: [0.215, 0.030],
+  /* COUPE DE FRANCE — RÉÉCRIT SCIEMMENT LE 24/09/2026, à la bascule vers `simuleMatch`. Mesuré sur quatre graines
+     (défaut, 1234, 7, 99), 150 saisons chacune, après le calage arbitré par l'auteur (villages rehaussés de 5 points,
+     `AMA_REHAUSSE` ; bonus du Petit Poucet 14 → 11).
+     · `butsParMatch` 2,629 → 2,844 (2,821-2,862) et `butsProPro` 2,373 → 2,705 (2,686-2,728) : on joue les
+       prolongations pour de vrai, trente minutes de plus font des buts en plus — la même raison qu'en Europe.
+     · `tabCoupe` 0,215 → 0,108 (0,106-0,110) : moitié moins de séances, parce qu'une prolongation sur deux se
+       décide sur le terrain. L'effet recherché, là encore.
+     · `butsProAma` 3,062 → 3,131 (3,099-3,148) : RETROUVÉ, pas subi. Sans le rehaussement, le vrai moteur
+       donnait 3,7 buts par match et des villages écrasés.
+     · `exploit` 0,161 GARDÉ (mesuré 0,164-0,173) : c'est le chiffre à protéger, et c'est lui qui a fixé le
+       rehaussement — sans lui, le vrai moteur ne laissait que 9 % d'exploits.
+     · `poucetLoin` 0,122 GARDÉ (mesuré 0,102-0,124) : le bonus du Poucet a été réglé pour ça.
+     · `monPremierTour` 0,350 → 0,385 (0,340-0,411) : votre sortie dès les 32es, en équipe MIXTE (le défaut, celui
+       du harnais). Arbitrage de l'auteur : la rotation décide — avec vos cadres, on descend vers 25 %, et c'est
+       le prix du samedi qui suit. La cible de 15-20 % écrite au lancement du chantier est abandonnée : elle
+       n'était atteignable qu'en affaiblissant vos adversaires, donc en tuant les exploits des villages. */
+  butsParMatch: [2.844, 0.09],
+  butsProPro: [2.705, 0.09],
+  butsProAma: [3.131, 0.15],
+  tabCoupe: [0.108, 0.025],
   exploit: [0.161, 0.028],
   poucetLoin: [0.122, 0.060],
-  monPremierTour: [0.350, 0.080],
+  monPremierTour: [0.385, 0.080],
   /* EUROPE — RÉÉCRIT SCIEMMENT LE 23/09/2026, à la bascule vers `simuleMatch` (v1.25). Les trois
      valeurs ci-dessous sont les seules de ce fichier qui aient bougé, et elles bougent toutes pour la
      MÊME raison, voulue : on joue désormais les prolongations pour de vrai au lieu de sauter aux tirs
@@ -311,11 +327,18 @@ try {
     butsCoupe += r.sh + r.sa;
   }
   const apresC = releve();
-  if (apresC !== avantC) fail("Coupe de France : " + (apresC - avantC) + " point(s) de statistique crédité(s) par " + butsCoupe + " buts de coupe");
-  else ok("Coupe de France : " + butsCoupe + " buts résolus, zéro statistique touchée");
+  if (apresC !== avantC) fail("Coupe de France : " + (apresC - avantC) + " point(s) de statistique de CHAMPIONNAT crédité(s) par " + butsCoupe + " buts de coupe");
+  else ok("Coupe de France : " + butsCoupe + " buts résolus, zéro compteur de CHAMPIONNAT touché");
+  /* L'autre moitié, depuis la bascule de la Coupe de France : chaque but est marqué par un vrai homme, pro ou
+     villageois, et doit ATTERRIR dans son compteur de coupe — un pour un, sans en perdre ni en inventer. */
+  const avecVillages = () => tousLesJoueurs().concat(Object.values((G.coupe && G.coupe.effectifs) || {}).flatMap(c => c.joueurs || []));
+  const butsDeCoupeSurFiches = avecVillages().reduce((s, j) => s + (j.butsC || 0), 0);
+  if (butsDeCoupeSurFiches !== butsCoupe) fail("Coupe de France : " + butsCoupe + " buts marqués, " + butsDeCoupeSurFiches + " inscrits aux compteurs de coupe (villages compris)");
+  else ok("et chacun d'eux est inscrit au compteur de coupe de son buteur, villages compris (" + butsDeCoupeSurFiches + ")");
 
   const eur = (G.europe || []).map(c => c.id);
   const avantE = releve();
+  const coupeAvantEurope = tousLesJoueurs().reduce((s, j) => s + (j.butsC || 0) + (j.passesC || 0), 0); // la Coupe de France y a déjà écrit
   let butsEuro = 0;
   for (let i = 0; i < 2000; i++) {
     const h = eur[Math.floor(Math.random() * eur.length)];
@@ -332,7 +355,7 @@ try {
      quelque part. S'ils ne comptaient nulle part, la ligne ci-dessus resterait verte et le but de coupe
      serait purement et simplement perdu — l'invariant dirait alors le contraire de ce qu'il croit dire. */
   const releveC = () => tousLesJoueurs().reduce((s, j) => s + (j.butsC || 0) + (j.passesC || 0), 0);
-  const apresCoupeC = releveC();
+  const apresCoupeC = releveC() - coupeAvantEurope;
   if (butsEuro > 0 && apresCoupeC === 0)
     fail("Coupe d'Europe : " + butsEuro + " buts marqués et pas un seul crédité au compteur de coupe — ils se perdent");
   else ok("et ils atterrissent bien au compteur de coupe : " + apresCoupeC + " buts et passes européens inscrits sur les fiches");
@@ -462,7 +485,7 @@ try {
   let pire = 0, pireNom = "";
   for (const id of auTableau) {
     const c = api.clubAmateur(id);
-    const cible = api.amaById(id).force + (id === co.poucetId ? api.COUPE_POUCET_BONUS : 0);
+    const cible = api.amaById(id).force + api.AMA_REHAUSSE + (id === co.poucetId ? api.COUPE_POUCET_BONUS : 0); // le rehaussement du vrai moteur compris
     const d = Math.abs(api.forceClub(c) - cible);
     if (d > pire) { pire = d; pireNom = c.nom + " (visé " + cible + ", obtenu " + api.forceClub(c).toFixed(2) + ")"; }
   }
@@ -472,7 +495,7 @@ try {
   /* le Petit Poucet joue bien au-dessus de son rang */
   const p = api.clubAmateur(co.poucetId);
   if (!p) fail("le Petit Poucet n'a pas d'effectif");
-  else if (api.forceClub(p) < api.amaById(co.poucetId).force + api.COUPE_POUCET_BONUS - 1)
+  else if (api.forceClub(p) < api.amaById(co.poucetId).force + api.AMA_REHAUSSE + api.COUPE_POUCET_BONUS - 1)
     fail("le Petit Poucet n'a pas reçu son bonus : " + api.forceClub(p).toFixed(1));
   else ok("le Petit Poucet (" + p.nom + ") est bâti à " + api.forceClub(p).toFixed(1) + ", loin au-dessus de son rang");
 
@@ -637,6 +660,62 @@ try {
     else ok("le village est plein pour recevoir " + gros.nom + " (" + pct(remplissageVillage) + "), le grand stade sonne creux pour l'inverse (" + pct(remplissageGros) + ")");
   }
 } catch (e) { fail("exception dans les soirs de semaine : " + e.stack); }
+
+/* ============================================================================
+   K) LE DIRECT DE LA COUPE DE FRANCE (bascule du 24/09/2026)
+   Votre soirée montre le fil même du moteur ; une consigne changée le recolle (coupeRejoue) ; les fiches suivent
+   un pour un ; la feuille suit votre rotation ; le verdict (prolongations, t.a.b.) suit le fil recollé.
+   ============================================================================ */
+console.log("\nK) Le direct de la Coupe de France");
+try {
+  api.nouvellePartie(api.CLUBS[5].id);
+  const G = api.getG(), moi = G.monClub;
+  const amateurs = api.CLUBS_AMATEURS.map(a => a.id), pros = (G.clubs || []).concat(G.autre || []).map(c => c.id).filter(id => id !== moi);
+  const clubs = (x, y) => [api.coupeClub(x), api.coupeClub(y)];
+  const photo = (cs) => { const m = new Map(); for (const c of cs) for (const j of c.joueurs) m.set(j.uid, {b: j.buts || 0, bc: j.butsC || 0}); return m; };
+  const recu = (cs, av) => { const d = new Map(); let ligue = 0;
+    for (const c of cs) for (const j of c.joueurs) { const a = av.get(j.uid); const x = (j.butsC || 0) - a.bc; if (x) d.set(j.uid, x); if ((j.buts || 0) !== a.b) ligue++; }
+    return {d, ligue}; };
+  const auFil = (ev) => { const d = new Map(); for (const l of ev) if (l.g && l.g.uid) d.set(l.g.uid, (d.get(l.g.uid) || 0) + 1); return d; };
+  const memes = (a, b) => a.size === b.size && [...a].every(([k, v]) => b.get(k) === v);
+  const sifflet = (ev) => ev.find(l => l.t === "sys" && /^COUP DE SIFFLET FINAL/.test(l.x || ""));
+  let n = 0, filOk = 0, recolleOk = 0, ligue = 0, verdictOk = 0, feuilleOk = 0, sifOk = 0;
+  const rots = ["cadres", "mixte", "reserve"], consignes = ["prudent", "offensif", "equilibre"];
+  for (let k = 0; k < 90; k++) {
+    G.coupe.rotation = rots[k % 3];
+    const adv = k % 2 ? amateurs[k % amateurs.length] : pros[k % pros.length];
+    const [hid, aid] = k % 2 ? [adv, moi] : [moi, adv];            // le petit reçoit : un village vous accueille
+    const cs = clubs(hid, aid); for (const c of cs) for (const j of c.joueurs) j.susp = 0;
+    const attendu = api.onzeRotation(api.coupeClub(moi), G.coupe.rotation).map(j => j.uid).sort().join();
+    const av = photo(cs), sortie = {hid, aid};
+    api.resoudreCoupe(hid, aid, sortie);
+    const R = sortie.r; if (!R || !R.ev) continue; n++;
+    const xiMoi = (hid === moi ? sortie.o.xiH : sortie.o.xiA).map(j => j.uid).sort().join();
+    if (xiMoi === attendu) feuilleOk++;
+    const r1 = recu(cs, av); if (memes(auFil(R.ev), r1.d)) filOk++; ligue += r1.ligue;
+    const sif = R.ev.indexOf(sifflet(R.ev)), from = 1 + Math.floor(Math.random() * Math.max(1, sif - 1)), mNow = R.ev[from - 1].m;
+    G.consigne = consignes[k % 3];
+    api.coupeRejoue(sortie, from, mNow, 1, 1);
+    G.consigne = "equilibre";
+    const r2 = recu(cs, av); if (memes(auFil(R.ev), r2.d)) recolleOk++; ligue += r2.ligue;
+    const s = sifflet(R.ev); if (s && s.m === (R.prolong ? 120 : 90)) sifOk++;
+    // une coupe ne connaît pas le nul : à égalité, la séance a TOUJOURS été rejouée
+    if (R.sh !== R.sa ? !R.tab : (R.tab && (R.tab.win === hid || R.tab.win === aid))) verdictOk++;
+  }
+  if (!n) fail("aucun match de coupe n'a rendu le fil du moteur");
+  if (feuilleOk !== n) fail("feuille : " + (n - feuilleOk) + "/" + n + " soirs où votre onze ne suit pas la rotation");
+  else ok("votre onze de coupe est celui de la rotation (cadres, mixte, réserve — " + n + " soirs)");
+  if (filOk !== n) fail("fil : " + (n - filOk) + "/" + n + " matchs dont les buteurs racontés ≠ buteurs crédités");
+  else ok("le fil du moteur crédite exactement les buteurs qu'il raconte, villages compris");
+  if (recolleOk !== n) fail("recollage : " + (n - recolleOk) + "/" + n + " matchs où les fiches ne suivent pas le nouveau fil");
+  else ok("consigne changée en direct : les fiches suivent le nouveau fil (" + n + " recollages)");
+  if (ligue) fail(ligue + " buts de Coupe de France tombés dans le classement des buteurs du CHAMPIONNAT");
+  else ok("aucun but de coupe ne touche le classement des buteurs du championnat");
+  if (sifOk !== n) fail("sifflet : " + (n - sifOk) + " fils recollés sifflent à la mauvaise minute");
+  else ok("le sifflet recollé tombe à 90 ou à 120");
+  if (verdictOk !== n) fail("verdict : " + (n - verdictOk) + "/" + n + " matchs recollés sans vainqueur, ou avec une séance de trop");
+  else ok("pas de nul en coupe : à égalité la séance se rejoue, sinon aucune");
+} catch (e) { fail("exception K : " + e.stack); }
 
 console.log("\n" + (FAILS ? "✗ " + FAILS + " ÉCHEC(S)" : "TOUT EST VERT"));
 process.exit(FAILS ? 1 : 0);

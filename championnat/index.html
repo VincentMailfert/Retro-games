@@ -7828,7 +7828,13 @@ function fatigueSemaine(rot){
   if(cuits>=3) notif("😮‍💨 "+cuits+" joueurs rentrent sur les rotules du rendez-vous de semaine — le banc va devoir servir.");
 }
 const COUPE_TERRAIN=5;        // avantage du terrain (le petit reçoit, et il y croit)
-const COUPE_POUCET_BONUS=14;  // le Petit Poucet joue très au-dessus de son rang réel
+/* CALAGE DU VRAI MOTEUR (bascule de la Coupe de France, 24/09/2026, arbitrage de l'auteur) : sur simuleMatch, les
+   villages bâtis à leur note de force ne sortaient plus un pro que 9 % du temps (16,1 % à l'ancien modèle), et
+   perdaient 3,7 buts à 0 en moyenne. Rehaussés de 5 points, ils retrouvent ~16,5 % d'exploits et 3,1 buts contre
+   les pros — la Coupe de France d'avant, jouée cette fois par de vrais hommes. Le Petit Poucet, qui profite du
+   même rehaussement, voit son bonus passer de 14 à 11 pour rester à ~12 % de quarts de finale. */
+const AMA_REHAUSSE=5;         // ce qu'un village de coupe vaut de plus que sa note de force brute, sur le vrai moteur
+const COUPE_POUCET_BONUS=11;  // le Petit Poucet joue très au-dessus de son rang réel (14 à l'ancien modèle)
 const COUPE_RECETTE=600000;   // recette de billetterie (votre club) à chaque tour franchi
 // Dotation de la Fédération : barème PROGRESSIF selon le tour ATTEINT, versé à la fin de votre
 // parcours (à l'élimination ou au sacre). Index = tour de COUPE_TOURS où vous sortez.
@@ -7984,7 +7990,7 @@ function batitAmateur(a, force, pris){
     j.butsC=0; j.passesC=0; j.matchsC=0; j.note0=j.note; j.fav=false; j.titu=false; j.uid=uidGen(); j.reel=false; });
   return c;
 }
-function forceAmateur(id, poucetId){ return amaById(id).force + (id===poucetId?COUPE_POUCET_BONUS:0); }
+function forceAmateur(id, poucetId){ return amaById(id).force + AMA_REHAUSSE + (id===poucetId?COUPE_POUCET_BONUS:0); }
 /* ON NE BÂTIT QUE CE QUI JOUE, ET ON RANGE CE QUI SORT. Construire les vingt-quatre effectifs d'un
    bloc au tirage ajoutait près de 100 Ko à chaque sauvegarde — quatre carrières passaient alors au-dessus
    des ~5 Mo du navigateur (attrapé par harness-sauvegardes). Un village naît donc à sa première affiche
