@@ -26,6 +26,15 @@ livre pas, on écrit le blocage au journal, et on laisse la saison à demain.
    diamant, le sac, le sortilège, la buvette sont pris). `harness-noms.cjs` refuse tout le reste, et il
    refuse aussi qu'on touche à `titre`, qui reste le créneau daté. Voir « LES SAISONS NOMMÉES » dans
    `CLAUDE.md`.
+   **Enregistrer aussi le prénom de chaque vrai joueur** (depuis la v1.46, consigne auteur) : le jeu garde
+   le nom court « B. Lama » dans les effectifs, et affiche « Bernard Lama » sur la fiche, la signature et la
+   feuille de match grâce à la table `PRENOMS_VRAIS` (juste au-dessus de `PRENOMS_GEN`). Pour **chaque nom à
+   initiale nouveau** de la saison, ajouter une entrée `"B. Lama":"Bernard"`, prise sur la page d'effectif
+   Transfermarkt déjà relevée (elle donne le nom complet). Prénom d'usage, avec ses accents ; prénom composé
+   pour « J.-P. ». **Si le prénom est douteux ou introuvable, écrire `""`** : le jeu garde alors l'initiale,
+   jamais de prénom deviné. Même nom court, deux hommes différents d'une saison à l'autre : `""` aussi, sauf
+   s'ils ont le même prénom. `harness-prenoms.cjs` refuse la livraison si un vrai joueur n'a pas d'entrée,
+   ou si un prénom ne commence pas par l'initiale affichée.
 4. **Valider**, sans exception : extraction du JS + `node --check`, le nouveau harnais de la saison, puis
    **tous les autres harnais du dossier** en non-régression. Tout doit finir « TOUT EST VERT ».
 5. **Cocher la ligne** dans ce fichier, ajouter une ligne au journal en bas, écrire le paragraphe de la

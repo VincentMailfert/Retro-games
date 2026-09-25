@@ -2007,6 +2007,27 @@ atterrisse un pour un au compteur de son buteur, villages compris, et sa section
 **Le chantier « un seul moteur » est terminé** : championnat, Coupe de France et Coupe d'Europe passent tous
 par `simuleMatch`.
 
+### LES PRÉNOMS (v1.46)
+Le nom court (« B. Lama ») reste **la clé du moteur** : traits (`TRAITS`), doublons, téléscripteur, sauvegardes et
+harnais s'appuient dessus, on n'y touche pas. Le prénom se **déduit** de ce nom au moment d'afficher, par
+`prenomDe(nom)` / `nomLong(nom)`, et seulement là où il y a de la place (choix de l'auteur) : titre de la fiche
+joueur, fenêtres Signer / Brader / Rappeler, buteurs et homme du match de la feuille de match. Les listes serrées
+(effectif, classement des buteurs, compositions, téléscripteur) gardent l'initiale. Rien n'entre dans la sauvegarde :
+une vieille carrière a ses prénoms sans migration.
+**Vrais joueurs** : table `PRENOMS_VRAIS` (au-dessus de `PRENOMS_GEN`), une entrée par nom à initiale des tables
+curées. `""` = prénom introuvable, douteux, ou même nom court porté par deux hommes aux prénoms différents :
+**on garde l'initiale, jamais de prénom deviné** (consigne auteur). Constituée en atelier le 25/09/2026 : moitié
+par recherche vérifiée saison par saison (Transfermarkt, footballdatabase, archives de clubs), moitié par
+**Wikidata** (requête SPARQL par nom de famille, footballeur né à deux ans près de l'âge du jeu, un seul candidat
+dont le prénom colle à l'initiale ; 75 accords sur 77 recoupements, les deux écarts de pure graphie). Wikidata ne
+coûte aucun jeton : c'est la voie à privilégier pour compléter la table.
+**Joueurs générés** (`genJoueur`, amateurs de coupe, vivier procédural) : un prénom d'époque tiré de
+`PRENOMS_GEN` selon l'origine du nom de famille (`origineDuNom`), qui commence par l'initiale, **haché sur le nom**
+pour rester le même d'une ouverture à l'autre.
+**La routine de nuit** doit remplir la table pour chaque saison ajoutée (étape 3 de `chantier-saisons.md`).
+Gardé par `harness-prenoms.cjs` (couverture de tous les vrais joueurs, prénom collé à l'initiale, prénom composé,
+générés toujours prénommés, noms sans initiale laissés tels quels).
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
@@ -2024,6 +2045,7 @@ par `simuleMatch`.
    vainqueur de la Coupe 92, été 93 muet, jumeaux Vujović),
    `harness9192.cjs` (saison de départ 91/92 : aucun repêchage en D1, Tours écarté et Beauvais repêché,
    Bourges et le Gazélec, Euro 92 dès la 1re intersaison, homonymes Ferri/Vujovic), `harness-euro.cjs` (les trois coupes d'Europe),
+   `harness-prenoms.cjs` (les prénoms, v1.46 : chaque vrai joueur a son entrée, le prénom colle à l'initiale),
    `harness-noms.cjs` (les saisons nommées : un nom par saison, la collection sans doublon, et surtout le
    créneau daté laissé intact dans `titre` et `G.saison`),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
