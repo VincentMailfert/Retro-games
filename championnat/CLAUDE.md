@@ -5,7 +5,10 @@ Jeu de management de football rétro, **fichier HTML unique autonome** (`index.h
 Saison de départ : France 1995-96, deux divisions jouables (D1 et **D2 — où l'OM purge sa relégation
 post-affaire VA-OM**), vrais clubs et joueurs, puis carrière multi-saisons avec montées/descentes.
 Hébergé sur GitHub Pages dans le repo `retro-games`, servi à l'URL `…/championnat/`.
-Joué par la famille et les amis de l'auteur, qui remontent des retours de playtest.
+**Joué par l'auteur SEUL (constat du 25/09/2026 : « personne ne joue au jeu, sauf moi pour l'instant »).** Il n'y a
+pas de testeurs : les « retours de playtest » cités dans ce fichier sont les siens, et son ressenti en jouant est le
+seul retour qui existe. Ne pas justifier une décision par « les testeurs » ni proposer de « faire tester » à
+d'autres ; une livraison sur `main` n'expose que sa propre partie (dont la sauvegarde doit rester compatible).
 **Nom & identité (v0.82)** : le jeu s'appelle **MULTIPLEX 95** (le multiplex radio — « tous les stades en
 direct », l'oreille collée au transistor, très 1995). Le logo (`logoMultiplex(s, sombre)`, à côté de `blason`)
 est un **SVG géométrique embarqué** — un transistor dont le haut-parleur est un filet de but avec un ballon logé
