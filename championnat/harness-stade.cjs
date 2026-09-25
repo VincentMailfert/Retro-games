@@ -5,6 +5,7 @@
    D) les effets restent des nudges bornés (affluence, ferveur, recettes)
    E) le rendu : maquette et cartes de livraison sans NaN ni undefined, dans tous les états
    F) entrer dans l'histoire, dans chacun des six styles (palmarès, prestige, affluence, rendu)
+   G) ça rapporte : vos places s'entretiennent à 6 FF, les accès pèsent, la pelouse chauffante protège l'hiver
    Usage : node harness-stade.cjs                                                            */
 const fs = require("fs");
 const path = require("path");
@@ -36,6 +37,7 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 const epilogue = "\n;return {nouvellePartie,jouerJournee,migre,clubById,CLUBS,CLUBS_D2,MSG_JOURNAL," +
   "STADE_PROJETS,projetById,lanceProjet,avanceChantier,migreStade,inferStade,maquetteStade,etatStade3D,STADE3D," +
   "stadeBonusAff,stadeFerveur,STYLES_STADE,affluence,palierBillet,stadeRecetteMatch,stadeRecetteJour,etapeStade,STADE_MAX,PLACES_TRIB," +
+  "fraisJournee,tirageBlessure,pelouseChauffee," +
   "getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 
@@ -161,6 +163,32 @@ console.log("\nF) Entrer dans l'histoire, dans chacun des six styles");
   home.forme = [-1, -1, -1, -1, -1];
   const tx = api.affluence(home, away, true) / home.cap / api.palierBillet().aff;
   ok(tx >= 0.949, `un temple du football, même en crise, contre ${away.nom} : ${(tx * 100).toFixed(0)} % avant l'effet du tarif`);
+}
+
+/* ===== G) le retour sur investissement (v1.41) ===== */
+console.log("\nG) Investir dans le stade rapporte");
+{ const moyen = parTaille().find(c => c.cap >= 30000 && c.cap <= 40000) || parTaille()[20];
+  api.nouvellePartie(moyen.id); const G = api.getG(), c = api.clubById(G.monClub), cap0 = c.cap;
+  ok(G.stade.capBase === cap0, `la taille d'origine est retenue (${cap0} places)`);
+  ok(api.fraisJournee(c) === Math.round(cap0 * 18), "au départ, les frais sont ceux d'avant (calibrage intact)");
+  G.tresorerie = 1e9; lancer("tribune");
+  ok(c.cap === cap0 + api.PLACES_TRIB && api.fraisJournee(c) === Math.round(cap0 * 18 + api.PLACES_TRIB * 6), "une tribune bâtie : ses places ne coûtent que 6 FF par journée");
+  // remboursement d'une tribune à 75 % de remplissage, tarif normal, sans compter le prestige
+  const T = api.projetById("tribune").cout(c), net = api.PLACES_TRIB * (0.75 * 70 * 19 - 6 * 38);
+  ok(T / net <= 7.5, `une tribune se rembourse en ${(T / net).toFixed(1)} saisons à 75 % (prestige en plus)`);
+  // vieille sauvegarde sans taille d'origine : on retire les tribunes bâties
+  const st = Object.assign({}, G.stade); delete st.capBase; st.cote = 2;
+  ok(api.migreStade(st, c).capBase === c.cap - 2 * api.PLACES_TRIB, "vieille partie : la taille d'origine se déduit des tribunes bâties");
+  // les accès : le parking vaut deux points, la gare huit
+  G.stade.transport = 1; const a1 = api.stadeBonusAff(); G.stade.transport = 3; const a3 = api.stadeBonusAff(); G.stade.transport = 0; const a0 = api.stadeBonusAff();
+  ok(Math.abs(a1 - a0 - 0.02) < 1e-9 && Math.abs(a3 - a0 - 0.08) < 1e-9, `accès : parking +${((a1 - a0) * 100).toFixed(1)} pts, gare +${((a3 - a0) * 100).toFixed(1)} pts`);
+  // la pelouse chauffante : l'hiver seulement, et sur votre pelouse seulement
+  const j = c.joueurs[0], R = Math.random; const tire = (p) => { let n = 0; for (let i = 0; i < 4000; i++) { Math.random = () => (i + 0.5) / 4000; if (api.tirageBlessure(c, j, p)) n++; } Math.random = R; return n; };
+  G.stade.chauffante = 1; G.journee = 15;
+  const sans = tire(false), avec = tire(true);
+  ok(api.pelouseChauffee() && avec > 0 && Math.abs(avec / sans - 0.5) < 0.02, `en hiver chez vous : ${avec} pépins au lieu de ${sans} (moitié moins)`);
+  G.journee = 32; ok(!api.pelouseChauffee() && tire(true) === sans, "au printemps, la pelouse chauffante ne change rien");
+  G.stade.chauffante = 0; G.journee = 15; ok(!api.pelouseChauffee(), "sans pelouse chauffante, rien ne change");
 }
 
 console.log(FAILS ? `\n❌ HARNAIS STADE : ${FAILS} ÉCHEC(S)` : "\n✅ HARNAIS STADE : TOUT EST VERT");

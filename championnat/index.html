@@ -481,7 +481,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.40"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.41"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1135,7 +1135,12 @@ function valeur(j){ // valeur de marché en francs — indexée sur la note VISI
 // `salMult` (défaut 1) majore le salaire d'un joueur en particulier : c'est le prix d'un transfert à zéro franc
 // (le joueur libre ne coûte rien au vendeur, donc il se rattrape sur la fiche de paie — grand classique).
 function salaire(j){ return Math.round(j.note*j.note*10*(j.salMult||1)); }
-function fraisJournee(c){ return Math.round((c?c.cap:0)*18); } // FF / journée — entretien du stade + personnel : croît avec la taille du club et contrebalance la manne de la billetterie
+// FF / journée — entretien du stade + personnel : croît avec la taille du club et contrebalance la manne de la billetterie.
+// Les places que VOUS avez ajoutées (tribunes, virages) ne coûtent que 6 FF : une tribune neuve s'entretient mieux qu'un
+// vieux béton, et sans ce rabais elle ne se remboursait jamais (18 FF × 38 journées mangeaient la recette d'un stade à 60 %).
+function fraisJournee(c){ if(!c) return 0;
+  const base=(c.id===G.monClub&&G.stade&&G.stade.capBase)?Math.min(c.cap,G.stade.capBase):c.cap;
+  return Math.round(base*18+(c.cap-base)*6); }
 // Politique tarifaire de la billetterie : recette à l'unité contre ferveur populaire. Brader remplit le stade,
 // soigne l'image et le moral ; faire payer cher gonfle la caisse mais vide les gradins et écorne la réputation.
 // `prix` = recette par spectateur (FF), `aff` = modulateur d'affluence, `rep` = dérive réputation / match à domicile,
@@ -4067,9 +4072,10 @@ const BLESS_BOITE=0.55;   // ce que vaut encore un homme qui finit le match en b
 const BLESS_AGGRAVE=0.45; // et la part de ceux à qui cet entêtement coûte des journées de plus
 /* LE TIRAGE DU PÉPIN — une seule règle, un seul appel par homme et par match : avant le coup d'envoi
    pour la rencontre qu'on joue (tireBlessures), au coup de sifflet pour les neuf autres. */
-function tirageBlessure(c, j){
+function tirageBlessure(c, j, pelouse){
   const niv=(c.id===G.monClub)?G.centre:1;
   let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
+  if(pelouse && pelouseChauffee()) proba*=0.5; // pelouse chauffante : l'hiver, un terrain souple ne claque plus les cuisses (les deux camps)
   if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
   // un homme qui n'a pas récupéré se claque : neutre au-dessus de 80, ×2 à 65, jusqu'à ×4 au fond.
   // Le tirage se fait sur la fraîcheur D'AVANT le coup d'envoi, avant d'en retirer le prix du match.
@@ -4088,10 +4094,11 @@ function declareBlessure(c, j, d){
    minute tombe dans le TEMPS DE JEU de l'homme : un titulaire qu'un changement doit sortir à la 57e ne
    se blesse pas à la 70e depuis le banc. `m:0` = pas de scène (il sortait trop tôt) : la blessure existe
    quand même, elle se découvrira aux dépêches, comme avant. */
-function tireBlessures(c, sel){
+function pelouseChauffee(){ const J=(G.journee||0)+1; return !!(G.stade&&G.stade.chauffante)&&J>=8&&J<=26; }
+function tireBlessures(c, sel, chezMoi){
   const out=[];
   for(const j of sel.xi){
-    const d=tirageBlessure(c, j);
+    const d=tirageBlessure(c, j, chezMoi);
     if(!d) continue;
     const k=sel.sort.indexOf(j), fin=(k>=0?sel.min[k]:90), haut=Math.min(BLESS_MAX, fin-1);
     out.push({uid:j.uid, d, m:(haut>=BLESS_MIN?RNDI(BLESS_MIN, haut):0)});
@@ -4411,7 +4418,7 @@ function jouerJournee(evCb){
        neuf autres rencontres gardent l'ancien chemin : tirage au coup de sifflet (cf. appliqueResultat). */
     const pepins=[];
     if(mien) for(const [c,s] of [[h,pre.h],[a,pre.a]]){
-      s.bless=tireBlessures(c, s);
+      s.bless=tireBlessures(c, s, hid===G.monClub);
       for(const b of s.bless){ const j=byUid(b.uid);
         if(j && b.m) pepins.push({c, s, j, b, rel:remplaceBlesse(c, b.m, j)}); }
     }
@@ -7396,6 +7403,7 @@ function stadeDefaut(){ return {cote:0, virages:0, eclairage:1, toit:0, loges:0,
 function inferStade(c){ const cap=c?c.cap:0, s=stadeDefaut();
   s.eclairage=cap>=18000?2:1; s.toit=cap>=30000?1:0; s.virages=cap>=35000?1:0;
   s.boutique=1; s.buvette=1; s.transport=cap>=20000?1:0; s.kop=s.virages?1:0;
+  s.capBase=cap; // la taille d'origine : au-delà, ce sont vos places (entretien réduit, cf. fraisJournee)
   return s; }
 // vieilles sauvegardes : les booléens deviennent des niveaux (pylônes → éclairage 2 ; « boutique & musée » → boutique 2 + musée 1)
 function migreStade(st, c){
@@ -7407,6 +7415,7 @@ function migreStade(st, c){
   ["toit","loges","ecran","chauffante","virages","led","retract","ferme","legende"].forEach(k=>s[k]=s[k]?1:0);
   ["eclairage","boutique","buvette","restaurant","musee","hotel","transport","kop"].forEach(k=>s[k]=Math.max(k==="eclairage"?1:0,Math.min(3,Math.round(+s[k]||0))));
   s.cote=+s.cote||0;
+  if(!(+s.capBase>0)) s.capBase=Math.max(0,(c?c.cap:0)-s.cote*PLACES_TRIB); // vieille partie : on retire les tribunes bâties
   return s;
 }
 // l'ancien chantier {reste,id:"pylones"|"boutique"} reprend sous son nouveau nom, au bon niveau
@@ -7426,7 +7435,7 @@ const STADE_EFFETS={
   restaurant:{match:[0,60e3,150e3,300e3]},
   musee:{jour:[0,20e3,60e3,150e3]},
   hotel:{saison:[0,1.5e6,4e6,9e6], moral:[0,1,2,3]},
-  transport:{aff:[0,0.01,0.025,0.04]},
+  transport:{aff:[0,0.02,0.045,0.08]},
   kop:{ferveur:[0,0.005,0.01,0.02]},
 };
 const effStade=(k,champ)=>{ const t=STADE_EFFETS[k]; return (t&&t[champ]&&G.stade)?(t[champ][G.stade[k]|0]||0):0; };
@@ -7503,7 +7512,7 @@ const NIVEAUX_STADE={
     apres:n=>{ if(n===3) majReput(3,"table étoilée au stade"); }},
   musee:{titre:"Musée", famille:"Commerces", noms:[null,"Salle des trophées","Musée du club","Allée des légendes"], cout:[0,2e6,7e6,18e6], duree:[0,1,2,4], pres:[0,0,1,1]},
   hotel:{titre:"Hôtel", famille:"Commerces", noms:[null,"Hôtel","Hôtel du club","Palace"], cout:[0,8e6,20e6,45e6], duree:[0,3,4,6], pres:[0,0,0,0]},
-  transport:{titre:"Accès", famille:"Accès et ambiance", noms:[null,"Parking","Tram","Gare"], cout:[0,4e6,15e6,35e6], duree:[0,2,4,6], pres:[0,0,0,0]},
+  transport:{titre:"Accès", famille:"Accès et ambiance", noms:[null,"Parking","Tram","Gare"], cout:[0,3e6,9e6,18e6], duree:[0,2,4,6], pres:[0,0,0,0]},
   kop:{titre:"Kop", famille:"Accès et ambiance", noms:[null,"Drapeaux géants","Tifos","Sono et bâche"], cout:[0,1e6,3e6,6e6], duree:[0,1,1,2], pres:[0,0,0,0],
     cond:()=>!!G.stade.virages},
 };
@@ -7626,7 +7635,7 @@ function cableChoixStyle(){
 }
 const EFFET_PROJ={tribune:"+ de places, + d'affluence et de prestige", virages:"+5 000 places, + de ferveur, et le kop a sa maison",
   eclairage:"+ d'affluence les soirs de match", toit:"+ de ferveur à domicile, + de prestige", loges:"recette premium à chaque match à domicile, + prestige",
-  ecran:"ambiance renforcée dans les tribunes", chauffante:"un billard vert toute l'année", led:"des créneaux publicitaires vendus chaque journée",
+  ecran:"ambiance renforcée dans les tribunes", chauffante:"un billard vert tout l'hiver : moins de blessures à domicile", led:"des créneaux publicitaires vendus chaque journée",
   boutique:"une rentrée d'argent chaque journée", buvette:"des recettes à chaque match à domicile, selon le remplissage",
   restaurant:"des recettes à chaque match à domicile", musee:"prestige et recettes, même sans match", hotel:"des nuitées chaque saison, et la mise au vert sur place",
   transport:"le public vient de plus loin : + d'affluence", kop:"+ de ferveur à domicile",

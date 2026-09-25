@@ -957,7 +957,7 @@ toujours « raconter quelque chose ».
   jackpot télé), sponsor et équipementier, puis prélève **deux charges** : la **masse salariale**
   (`salaire(j)=note²×10`, grimpe vite avec la qualité — empiler des cracks coûte cher) et les **frais de
   fonctionnement** (`fraisJournee(c)=cap×18`, entretien stade + personnel : un grand stade vide devient un
-  fardeau). Trésorerie négative = `G.confiance−1`/journée + alerte (flag `G._deficit`). Plancher mesuré dans
+  fardeau ; depuis v1.41, les places que VOUS avez ajoutées au-delà de `G.stade.capBase` ne coûtent que 6 FF, cf. stade). Trésorerie négative = `G.confiance−1`/journée + alerte (flag `G._deficit`). Plancher mesuré dans
   le moteur : club moyen ~+6 MF/saison sans sponsor, **D2 en déficit** (survie). Le **budget mercato `G.budget`**
   reste un pot séparé (réalimenté à 70 % par la prime de classement à l'intersaison). Les **prêts** sont un
   appoint, pas une rente (`tarifPret` abaissé) : prêter libère surtout le salaire. **Le prêt fait progresser (v0.61)** :
@@ -1023,10 +1023,12 @@ toujours « raconter quelque chose ».
   **Équilibrage (validé par l'auteur le 25/09/2026)**, T = prix d'une tribune (`T_STADE` = 9 MF + 280 FF/place) :
   virages 2T/6 j (dès 20k, +5 000 places, ferveur +0,015) ; éclairage pylônes 6 MF/2 j puis rampe 14 MF/3 j (exige le
   toit), +1,5 pt d'affluence chacun ; toit 12 MF/4 j (+0,025 ferveur), loges 9 MF/3 j (+0,15 MF/match), écran 5 MF/2 j
-  (+2 pts), pelouse chauffante 7 MF/2 j ; ruban LED 6 MF/2 j (+50 kF/journée) ; boutique 2/5/14 MF (+40/100/250 kF par
+  (+2 pts), pelouse chauffante 7 MF/2 j (v1.41 : de J8 à J26, blessures ×0,5 pour les deux camps sur VOTRE pelouse,
+  `pelouseChauffee`, via le 3e paramètre de `tireBlessures`/`tirageBlessure`) ; ruban LED 6 MF/2 j (+50 kF/journée) ; boutique 2/5/14 MF (+40/100/250 kF par
   journée) ; buvette 1,5/4/10 MF (+30/80/180 kF par match à domicile × remplissage, fan zone +1 pt) ; restaurant 3/9/20 MF
   (+60/150/300 kF par match, étoilé : réputation +3) ; musée 2/7/18 MF (+20/60/150 kF par journée) ; hôtel 8/20/45 MF
-  (+1,5/4/9 MF à l'intersaison, moral +1/+2/+3 après chaque match à domicile) ; accès 4/15/35 MF (+1/2,5/4 pts) ; kop
+  (+1,5/4/9 MF à l'intersaison, moral +1/+2/+3 après chaque match à domicile) ; accès 3/9/18 MF (+2/4,5/8 pts, v1.41 : avant 4/15/35 MF pour
+  +1/2,5/4, la gare demandait 50 à 200 saisons pour se rembourser) ; kop
   1/3/6 MF, exige les virages (ferveur +0,005/0,01/0,02) ; **toit rétractable** 2T/8 j (dès 75k, avec toit) : +4 pts
   d'affluence **de J8 à J26**, la saison froide (la météo est tirée APRÈS l'affluence, on ne s'y branche donc pas ; le bouton
   Ouvrir/Fermer est **décoratif**, choix de l'auteur) ; **Entrer dans l'histoire** 5T/12 j (~180 MF), à capacité maximale
@@ -1036,7 +1038,7 @@ toujours « raconter quelque chose ».
   d'acier, Forêt blanche, Brutaliste, Art déco, Cathédrale ; le choix se fait dans la fenêtre de lancement, avec un
   aperçu du stade dans sa ville (`choixStyleHTML`/`cableChoixStyle`). **Tous les effets sont lus dans `STADE_EFFETS`** par
   `stadeBonusAff`, `stadeFerveur`, `stadeRecetteMatch`, `stadeRecetteJour`, et restent **réservés à MON club** (calibrage
-  intact, mesuré 2,402). Au sommet : +10 pts d'affluence (hors hiver), +0,06 de ferveur, 0,63 MF par soir de match plein.
+  intact, mesuré 2,402). Au sommet : +14 pts d'affluence (hors hiver ; +10 avant la v1.41), +0,06 de ferveur, 0,63 MF par soir de match plein.
   **La carte de livraison** : `avanceChantier()` photographie l'état du dessin avant et après, `finirJournee` range la
   livraison dans `G.livraison`, et **`ouvreLivraison`** l'ouvre **en tête de la semaine suivante** (avant la nouvelle ère et
   l'incident, dans la chaîne d'`ecranCalendrier`). C'est la modale du prototype : `vueVille` en mode focus (le stade et
@@ -1047,6 +1049,15 @@ toujours « raconter quelque chose ».
   `0.42 + pres*0.03 + (reput−60)*0.002 + (confiance−50)*0.0015` (bornée), signalée « (estim.) » jusqu'au 1er match réel.
   Elle colore les gradins de la maquette et nourrit la jauge d'affluence moyenne sous le stade. Validation :
   **`harness-stade.cjs`**.
+  **Retour sur investissement (audit du 25/09/2026, v1.41)** : mesuré sur 4 saisons simulées, un club remplit de 58 %
+  (Martigues) à 94 % (PSG). À 18 FF la place sur 38 journées contre 70 FF sur 19 matchs, une place neuve ne couvrait ses
+  frais qu'au-delà de 51 % de remplissage : la tribune, geste central, se remboursait en 11 à 37 saisons. Demande de
+  l'auteur : « que ça rapporte plus vite, on investit dans une tribune pour gonfler la tréso et faire des transferts ».
+  D'où **`G.stade.capBase`** (taille d'origine, posée par `inferStade`, déduite par `migreStade` pour une vieille partie :
+  cap − tribunes bâties × 3 500) et le rabais d'entretien à 6 FF sur les places ajoutées : environ 4 à 7 saisons sans le
+  prestige, 3 à 5 avec. Les commerces (kiosque remboursé en 1,3 saison) restent **volontairement** généreux : c'est la
+  récompense (choix de l'auteur). **Piège connu, laissé tel quel** : le prestige gagné relève `objectifPour` à
+  l'intersaison (une tribune au Havre, prestige 4 → 5, fait passer l'objectif de top 16 à top 10).
 - **Staff technique — coachs spécialisés (v0.69)** : le 2e pilier « je construis mon club ». Six **postes fonctionnels**
   (`STAFF_POSTES` : attaque, defense, gardien, cpa, physique, mental) qu'on POURVOIT en recrutant un coach — modèle
   **hybride** : chaque recrue a un **nom généré** (`COACH_PRENOMS`+`NOMS`) et une **petite phrase** de caractère
@@ -2015,7 +2026,8 @@ par `simuleMatch`.
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
    rappel d'un prêt avant terme),
    `harness-stade.cjs` (le stade en maquette, v1.36 : nouvelle partie à la taille du club, vieille sauvegarde convertie,
-   chemin jusqu'à 100 000 places, effets bornés, rendu dans vingt états, Entrer dans l'histoire dans les six styles),
+   chemin jusqu'à 100 000 places, effets bornés, rendu dans vingt états, Entrer dans l'histoire dans les six styles ;
+   section G v1.41 : entretien réduit des places ajoutées, remboursement d'une tribune, accès, pelouse chauffante),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
