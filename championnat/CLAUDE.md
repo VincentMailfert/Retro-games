@@ -710,6 +710,86 @@ toujours « raconter quelque chose ».
   championnat). Tous deux raccrochent à la première intersaison, comme l'histoire.
   Le Red Star n'a que dix-sept hommes ayant joué et Valence que deux attaquants — la source fait foi, `genJoueur`
   complète à la marge. Validation dédiée : **`harness9394.cjs`**.
+  **1994-95 (v1.50)** : `STARS_9495`/`STARS_D2_9495`, `D1_9495`/`D2_9495`, `an:1994`, `saison_id/1994` — la
+  saison où le football français se range enfin par le jeu plutôt que par le bureau. Le **FC Nantes de
+  Suaudeau ne perd qu'un seul match en trente-huit journées**, un record que personne n'a égalé depuis ;
+  Loko plante vingt-deux buts et finit meilleur buteur, Karembeu, Makélélé et Pedros font le jeu à la
+  nantaise. Le PSG de Weah et Ginola prend la Coupe de France et va en demi-finale de Ligue des champions.
+  Et la **victoire vaut trois points pour la première fois** — un changement de règle qui ne touche pas le
+  moteur, qui compte déjà ainsi, mais qui appartient au récit de l'année. Le nom de la saison, **« Une
+  seule défaite »**, dit tout cela d'un trait.
+  **Le plateau tombe juste tout seul pour la quatrième fois de suite** : la D1 réelle avait ses vingt
+  clubs et n'a repêché personne — Nice, Rennes et Bastia montent, Toulouse et Angers descendent, et
+  **l'OM purge en D2 la rétrogradation prononcée en avril 94**.
+  La D2 reste le **groupe unique de vingt-deux clubs** inauguré en 93/94 : on reprend la règle, **les
+  vingt premiers du classement réel**, et on écarte **Sedan (21e) et Nîmes (22e)**. Aucun club n'a eu à
+  être repêché faute de source.
+  **Aucun club neuf, pour la troisième fois** : les quarante étaient déjà au registre, et la journée est
+  allée entièrement aux hommes.
+  Sièges européens réels, vérifiés sur les tableaux de 1994-95 : **le PSG en C1** (champion 93/94, il ira
+  en demi-finale), **Auxerre en C2** (vainqueur de la Coupe de France 1994 contre Montpellier, 3-0), et
+  en C3 **Bordeaux, Nantes, Cannes — et l'OM, qui joue la Coupe UEFA DEPUIS LA DEUXIÈME DIVISION** au
+  titre de sa deuxième place de 93/94 : il sort l'Olympiakos avant de tomber à Sion. C'est le second cas
+  du jeu après Nice en C2 depuis la D2 en 97/98, et il faut le vérifier plutôt que de le supposer — la
+  tentation était de croire qu'un club rétrogradé perdait sa place, ce qui était vrai en 93/94 (exclusion
+  UEFA) et faux ici.
+  `HONNEURS` n'a rien eu à apprendre, mais **partir de 94/95 est le troisième cas du jeu où la PREMIÈRE
+  intersaison ne porte aucun tournoi** (après 90/91 et 92/93) : l'été 95 est muet, l'Euro 96 tombe à la
+  deuxième.
+  **Le sens du temps reste normal, et l'héritage fait presque tout** : 93/94 est à un an de distance,
+  **536 des 759 noms reprennent leur note 93/94 vieillie d'un an**, 68 de plus viennent de 92/93, 91/92 et
+  90/91 ; il ne reste que 96 noms à passer par la moyenne rajeunie/calculée (ancres postérieures, de 95/96
+  à 99/00) et 49 à calculer entièrement. **Règle neuve, et à garder : quand un homme est ancré des DEUX
+  côtés à égale distance** — 93/94 derrière, 95/96 devant —, **on prend toujours l'ancre du passé**. Sans
+  cela, 403 noms passaient par la moyenne rajeunie au lieu de la règle éprouvée, et la distribution
+  dérivait. Résultat final collé à celle de 93/94 (D1 : moyenne 70,8 et médiane 71, contre 70,9 et 71 ;
+  D2 : 66,8 et 67, contre 66,4 et 66).
+  Table d'ajustements à la main de **dix entrées** : **Weah 86** (Ballon d'or 1995, meilleur buteur de la
+  Ligue des champions), **Guérin 82** (élu meilleur joueur du championnat 1994-95), **Lama 82** (gardien
+  n°1 des Bleus), **Loko 81** et **Pedros 77** (les deux Nantais du titre), **Karembeu 72**, **Zidane 82**
+  (première sélection le 17 août 1994, deux buts en vingt minutes contre la Tchéquie), **Thuram 79**,
+  **Maurice 74** et **Cascarino 82** — trente et un buts en D2, meilleur buteur de France toutes divisions
+  confondues, et le jeu le connaissait déjà à 83 l'année suivante.
+  **Forçage de dix pépites** que le tri aux minutes écartait, trouvées par la méthode de 93/94 (comparer
+  les écartés aux ancres des saisons postérieures) : **Ludovic Giuly** (18 ans, 208 minutes à Lyon),
+  **Didier Domi** — **seize ans, UNE minute**, entré le 24 janvier 1995 contre Lyon, c'est le plus jeune
+  vrai joueur du jeu et la borne basse du harnais —, Ducrocq, **François Grenet**, **Matthieu
+  Louis-Jean**, **Philippe Delaye**, **David Jemmali**, **Olivier Echouafni**, **Ulrich Ramé** (900
+  minutes à Angers) et **Vincent Hognon**, déjà forcé en 93/94. Zidane, Makélélé, Thuram, Vieira,
+  Dhorasoo, Candela, Marlet et **Thierry Henry** (17 ans, 279 minutes sur le Rocher) passent tous tout
+  seuls au temps de jeu.
+  **Trois points de relevé à garder.** (1) Transfermarkt a servi les quarante clubs **en français**,
+  tous les libellés de poste reconnus, **un seul joueur non daté** (Descamps, Dunkerque, 253 minutes) et
+  aucun club sous dix hommes documentés — la source est la plus généreuse du chantier, Dunkerque et ses
+  dix-sept hommes exceptés. L'anti-robot AWS reste là : six pages sur quatre-vingts ont dû passer par
+  `.com`, `.de` ou `.co.uk`. **Et le piège du jour n'était pas chez Transfermarkt mais dans le script
+  d'aspiration : une liste d'arguments `curl` à laquelle on avait oublié d'ajouter l'URL renvoie un
+  échec muet qu'on prend pour un blocage.** Vérifier qu'une requête isolée passe avant de conclure que
+  la source ferme. (2) Un seul homonyme à régler, **deux Cissé sans lien** : Aboubacar (Niort, 1 420
+  minutes) garde l'initiale, qui est celle que le jeu suit depuis 90/91 ; **Aliou Cissé**, 18 ans à
+  Lille, passe en toutes lettres. (3) Le relevé a démasqué **trois prénoms faux dans `PRENOMS_VRAIS`**,
+  corrigés sur pièces : « R. Gomes » est **Ricardo** et non Raymundo (le Brésilien du PSG, parti à
+  Benfica en 1995), « C. Garcia » est **Clément** et non Carlos (né en 1968, Grenoble-Montpellier-Caen-
+  Lille-Gueugnon), « A. Ferreira » est **Armindo** et non Abel (né à Niort en 1976, Niort puis
+  Châteauroux, ce que la chaîne du jeu confirme).
+  Quinze joueurs procéduraux au total, dont **huit deuxièmes gardiens** : c'est la plus petite marge du
+  chantier. Le Mans n'a que trois défenseurs répertoriés et Gueugnon deux attaquants — la source fait
+  foi, `genJoueur` complète. Validation dédiée : **`harness9495.cjs`**.
+  **DEUX HARNAIS QUI ROUGISSENT PAR HASARD, découverts au passage et laissés tels quels.** Aucun des deux
+  n'est une régression, et les deux sont **prouvés** : en forçant le même flux d'aléa (`Math.random`
+  remplacé par un générateur à graine fixe) des deux côtés, ils rendent **exactement le même résultat
+  avant et après l'ajout de 94/95**.
+  (1) **`harness-formations.cjs`** borne son calibrage à [2,2 ; 2,6] but par match sur **760 matchs
+  seulement** et déborde environ une fois sur douze (2,722 des deux côtés avec la même graine).
+  (2) **`harness-hdm.cjs`** vérifie que « le buteur et le gardien de l'équipe type sont nommés » en
+  cherchant leur **nom court** dans la page — or depuis la v1.48 l'almanach écrit le **prénom** de son
+  meilleur buteur (« celui que les tribunes ont fini par appeler par son prénom »). L'assertion ne tient
+  donc que lorsque ce buteur est, par chance, aussi à l'équipe type, dont les listes serrées gardent
+  l'initiale : elle échoue environ deux fois sur cinq, avant comme après. **C'est l'assertion qui a
+  vieilli, pas le jeu** — la corriger est un travail de moteur, pas de saison, et on ne le fait pas un
+  jour de livraison de données.
+  On ne touche à ni l'une ni l'autre : assouplir un harnais pour le faire passer est précisément le geste
+  interdit. Mais qui verra ces deux rouges un jour doit savoir d'où ils viennent.
   Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
   `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
   ajoute une par une — sont dans `chantier-saisons.md`.**
