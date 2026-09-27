@@ -790,7 +790,98 @@ toujours « raconter quelque chose ».
   jour de livraison de données.
   On ne touche à ni l'une ni l'autre : assouplir un harnais pour le faire passer est précisément le geste
   interdit. Mais qui verra ces deux rouges un jour doit savoir d'où ils viennent.
-  Pour ajouter 00/01 : même méthode avec `saison_id/2000`, entrée `"2000-01"` dans `SAISONS`, harnais calqué sur
+  **2000-01 (v1.51)** : `STARS_0001`/`STARS_D2_0001`, `D1_0001`/`D2_0001`, `an:2000`, `saison_id/2000` —
+  sous le nom **« Le jeu à la nantaise »**, et c'est la **saison la plus RÉCENTE du jeu**, la première
+  qu'on ajoute après la base au lieu d'avant. Le FC Nantes de Denoueix prend son huitième titre avec
+  soixante-huit points ; **Éric Carrière est élu meilleur joueur ET meilleur passeur** du championnat,
+  Mickaël Landreau garde les buts à vingt et un ans et joue 4 590 minutes, le plus utilisé de la division.
+  Sonny Anderson plante vingt-deux buts pour Lyon et finit meilleur buteur, Nicolas Anelka rentre du Real
+  Madrid en janvier, et **José Luis Chilavert**, deux fois meilleur gardien du monde, débarque à
+  Strasbourg. Toute la seconde moitié de la saison est empoisonnée par **l'affaire des faux passeports**,
+  qui emporte Saint-Étienne.
+  **La D1 réelle n'avait que dix-huit clubs**, comme en 97/98, 98/99 et 99/00, et la D2 exactement vingt :
+  même configuration qu'en 98/99, donc le même **double repêchage dans les deux sens**. **Nancy (42 pts) et
+  Le Havre (34)**, meilleurs relégués de D1 99/00, montent en D1 — **Montpellier, dix-huitième avec 31
+  points, reste en D2**, où il finira troisième et remontera pour de bon. La D2 retombant à dix-huit,
+  **Amiens (37 pts) et Valence (33)**, meilleurs relégués de D2 99/00, y sont repêchés à leur tour ;
+  **Louhans-Cuiseaux, vingtième avec 24 points, reste dehors**. Les deux repêchés de D2 jouaient le
+  National en 2000-01 mais Transfermarkt les documente (18 et 19 joueurs), comme Red Star et Beauvais
+  en 99/00 et contrairement au cas Toulon de 98/99.
+  **Aucun club neuf, pour la quatrième fois** : les quarante clubs du plateau étaient déjà au registre,
+  Martigues et Angers compris, et la journée est allée entièrement aux hommes.
+  **Sièges européens, et c'est là que la saison change d'époque : la Coupe des Coupes n'existe plus.**
+  `euroC2` est **vide pour la première fois du jeu** (`nouvellePartie` lit `(S.euroC2||[]).includes(...)`,
+  donc un tableau vide ne demande aucun mécanisme neuf). **Monaco (champion) et le PSG (2e) en phase de
+  groupes de Ligue des champions, Lyon (3e) au tour préliminaire** ; en Coupe UEFA **Bordeaux (4e), Nantes
+  (vainqueur de la Coupe de France 2000) — et GUEUGNON, vainqueur de la Coupe de la Ligue 2000, QUI JOUAIT
+  LA DEUXIÈME DIVISION**. C'est le **troisième cas du jeu** après Nice en C2 depuis la D2 en 97/98 et l'OM
+  en C3 depuis la D2 en 94/95, vérifié sur le tableau de la Coupe UEFA 2000-01 : Gueugnon y tombe au
+  premier tour contre l'Iraklis Thessalonique.
+  `HONNEURS` n'a rien eu à apprendre — il connaît 1992 → 2006 — mais **partir de 00/01 est le quatrième cas
+  du jeu où la PREMIÈRE intersaison ne porte aucun tournoi** (après 90/91, 92/93 et 94/95) : l'été 2001 est
+  muet, le Mondial 2002 tombe à la deuxième intersaison et l'Euro 2004 à la quatrième.
+  **Le sens du temps est normal, et l'héritage n'a jamais été aussi propre** : 99/00 est à un an de
+  distance et **528 des 760 noms reprennent leur note 99/00 vieillie d'un an**, 70 de plus viennent de
+  98/99 et plus loin, et **162 seulement sont calculés**. Surtout, **c'est la première saison où TOUTES les
+  ancres sont derrière** : il n'y a plus de saison postérieure, donc plus de moyenne rajeunie, plus de piège
+  d'inversion, et la règle éprouvée s'applique seule. Distribution collée à celle de 99/00 au dixième près
+  (D1 : moyenne 70,5 et médiane 70, contre 70,5 et 70 ; D2 : 66,5 et 67, contre 66,5 et 67) — le meilleur
+  contrôle qu'on ait qu'une saison ne dérive pas.
+  **Conséquence à garder pour 01/02 : la méthode de 93/94 pour trouver les pépites ne marche plus.**
+  Comparer les écartés aux ancres des saisons POSTÉRIEURES n'a plus d'objet quand on est la dernière saison.
+  La parade retenue, et elle est meilleure que la mémoire : **lister les écartés que le jeu connaît DÉJÀ**
+  (ancre passée, âge concordant) — c'est ainsi qu'on a retrouvé **Didier Drogba, vingt-deux ans, 419 minutes
+  au Mans, que le jeu note 59 de note et 90 de potentiel depuis 98/99** et que le tri aux minutes jetait.
+  **Forçage de dix pépites** : **Drogba**, **John Arne Riise** et **Éric Abidal** (Monaco), **Patrice Evra**
+  (19 ans, 205 minutes à Nice), **Mikel Arteta** (18 ans) et **Didier Domi** (PSG), **Teemu Tainio**
+  (Auxerre), **Mamadou Niang** (254 minutes à Troyes), **Abdoulaye Méïté** (OM) et **Benoît Cheyrou**
+  (Lille). Mexès (18 ans, 3 495 minutes), Djibril Cissé, Boumsong, Kapo, Landreau, Malbranque, Govou,
+  Armand, Bodmer, M'Bami, **Michael Essien** (18 ans à Bastia) et **Seydou Keita** (20 ans, 3 534 minutes
+  à Lorient) passent tous tout seuls au temps de jeu. **Le prix du forçage, assumé** : deux forcés dans un
+  même club coûtent deux vrais joueurs, et à Monaco ce sont **Christian Panucci et Pablo Contreras**, deux
+  internationaux, qui sortent pour Riise et Abidal. On le préfère à perdre les deux carrières qui suivent.
+  Table d'ajustements à la main de **vingt-deux notes et dix-neuf potentiels** : **Sonny Anderson 84**
+  (meilleur buteur), **Éric Carrière 82** (meilleur joueur et meilleur passeur — l'héritage seul le laissait
+  à 71), **Chilavert 82**, **Landreau 80**, **Anelka 80**, **Laurent Robert 78** (vendu à Newcastle),
+  **Pauleta 78** (deuxième buteur), **Edmílson 79**, **Wilmots 78**, **Moldovan 77**, **Smertin 76**,
+  **Fadiga 75**, **Mondragón 75**, **Rothen 75**, **Bejbl 74**, **Francileudo Santos 74** (meilleur buteur
+  de D2, vingt et un buts), **Keita 72**, **Fuertes 72**, **Djibril Cissé 68**, **Essien 66** — et les
+  potentiels des gamins que le calcul ne pouvait pas connaître (Essien et Drogba 90, Cissé 90, Keita 88,
+  Evra et Abidal 86, Arteta 85, Niang 84).
+  **Un défaut de méthode corrigé, à ne pas rouvrir** : remplir les **minimums de poste AVANT** de remplir au
+  temps de jeu écarte des titulaires — un remplaçant de complément passait devant un homme à 1 500 minutes.
+  Le bon ordre est **d'abord le temps de jeu, puis la réparation des minimums**, en ne sacrifiant que le
+  **moins utilisé d'un poste excédentaire**. Ce qui reste, et qu'il faut assumer, c'est le compromis quand la
+  source est pauvre à un poste : Wasquehal n'a que trois attaquants dans ses dix-huit premiers au temps de
+  jeu, si bien qu'**Oumar Bakari (1 583 minutes, milieu) sort quand même** pour faire entrer un quatrième
+  attaquant réel à 647 minutes. On le préfère à laisser `genJoueur` inventer cet attaquant — **aucun joueur
+  inventé sur une saison réelle** passe avant le classement aux minutes.
+  **Une règle neuve sur les homonymes, et elle prime sur celle de 99/00** : quand deux hommes portent le même
+  nom court, **celui qui le portait DÉJÀ dans le jeu le garde** (appariement exact à une ancre), l'autre passe
+  en toutes lettres — la convention « le plus utilisé garde l'initiale » ne tranche qu'à défaut. Sans cela
+  **« F. Lemasson » changeait d'homme** d'une saison à l'autre (François, le gardien né en 1963, contre
+  Frédéric, le défenseur né en 1974, qui a joué deux fois plus en 2000-01) et il aurait fallu **vider son
+  prénom**. Quatre cas cette année : les frères **Bruno et Benoît Cheyrou**, tous deux à Lille ; les deux
+  **Lemasson** ; **Laurent et Ludovic Leroy** ; et de nouveau **TROIS N'Diaye** — Sylvain (Lille) garde
+  l'initiale qu'il portait en 99/00, Samba (Niort) et Sada (Gueugnon) passent en toutes lettres.
+  **Un prénom faux corrigé sur pièces** dans `PRENOMS_VRAIS` : « M. dos Santos » est **Manuel** et non
+  Márcio — Manuel dos Santos Fernandes, né le 28 mars 1974, Montpellier de 1997 à 2000 puis l'OM jusqu'en
+  2004, confondu avec le Brésilien Márcio Santos que le jeu écrit « M. Santos ». En revanche « J.-L. Montero »
+  reste **Juan-Luis** : Transfermarkt et les sources françaises écrivent Jean-Louis, Wikidata écrit Juan-Luis,
+  et **on ne remplace pas une graphie discutable par une autre**. 152 entrées neuves, dont aucune vide.
+  **Trois points de relevé à garder.** (1) Transfermarkt a servi les quarante clubs **sans un seul trou** :
+  tous les postes reconnus, **aucun joueur non daté**, et aucun club sous dix hommes documentés — c'est la
+  source la plus généreuse du chantier, Amiens (18 hommes) et Valence (19) exceptés, et tous deux jouaient
+  le National. L'anti-robot AWS reste là : **42 pages sur 80** ont dû passer par `.com`, `.de` ou `.co.uk`,
+  zéro échec au bout du compte. (2) Les identifiants de club se prennent en deux requêtes sur les **pages de
+  compétition** (`…/startseite/wettbewerb/FR1/plus/?saison_id=2000` et `FR2`), ce qui évite de chercher
+  quarante clubs un par un ; les deux repêchés du National se prennent sur la page **FR2 de 1999**.
+  (3) **« Aït » est une particule de patronyme** et doit être blanchie dans le contrôle « prénom composé
+  avalé » (Ahmed Aït Ouarab, Martigues), comme « Mio » et « Sarr » l'ont été en 90/91.
+  Dix joueurs procéduraux au total, dont **six deuxièmes gardiens** : c'est la plus petite marge du chantier
+  avec 94/95. Lorient n'a qu'un gardien et quatre défenseurs répertoriés, Auxerre, Châteauroux et Valence
+  trois attaquants — la source fait foi, `genJoueur` complète. Validation dédiée : **`harness0001.cjs`**.
+  Pour ajouter 01/02 : même méthode avec `saison_id/2001`, entrée `"2001-02"` dans `SAISONS`, harnais calqué sur
   `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
   ajoute une par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
@@ -2139,6 +2230,10 @@ générés toujours prénommés, noms sans initiale laissés tels quels).
    réconciliation France ↔ Europe), `harness9899.cjs` (saison de départ 98/99 : double repêchage, clubs neufs
    Sedan/Ajaccio, Euro 2000 à la 2e intersaison), `harness9900.cjs` (saison de départ 99/00 : double repêchage,
    Créteil, Euro 2000 dès la 1re intersaison, homonymes et prénoms composés),
+   `harness0001.cjs` (saison de départ 00/01, **la plus récente du jeu** : double repêchage dans les deux
+   sens, aucun club neuf, `euroC2` VIDE puisque la Coupe des Coupes a disparu, Gueugnon en Coupe UEFA
+   depuis la D2, été 2001 muet et Mondial 2002 à la 2e intersaison, les trois N'Diaye et les deux frères
+   Cheyrou, les dix pépites forcées dont Drogba),
    `harness9293.cjs` (saison de départ 92/93 : aucun repêchage, aucun club neuf, Monaco en C2 faute de
    vainqueur de la Coupe 92, été 93 muet, jumeaux Vujović),
    `harness9192.cjs` (saison de départ 91/92 : aucun repêchage en D1, Tours écarté et Beauvais repêché,
