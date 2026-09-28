@@ -881,9 +881,108 @@ toujours « raconter quelque chose ».
   Dix joueurs procéduraux au total, dont **six deuxièmes gardiens** : c'est la plus petite marge du chantier
   avec 94/95. Lorient n'a qu'un gardien et quatre défenseurs répertoriés, Auxerre, Châteauroux et Valence
   trois attaquants — la source fait foi, `genJoueur` complète. Validation dédiée : **`harness0001.cjs`**.
-  Pour ajouter 01/02 : même méthode avec `saison_id/2001`, entrée `"2001-02"` dans `SAISONS`, harnais calqué sur
-  `harness9900.cjs`. **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les
-  ajoute une par une — sont dans `chantier-saisons.md`.**
+  **2001-02 (v1.52)** : `STARS_0102`/`STARS_D2_0102`, `D1_0102`/`D2_0102`, `an:2001`, `saison_id/2001` —
+  sous le nom **« Le premier des sept »**, et c'est désormais la saison la plus RÉCENTE du jeu. Le
+  **dernier championnat qui s'appelle Division 1** (elle devient la Ligue 1 l'année suivante, la D2 la
+  Ligue 2) se décide **le 4 mai 2002 à Gerland** : Lyon reçoit Lens, son dauphin d'un point, et gagne
+  3-1 — Govou à la 8e, un second but à la 14e, Laigle à la 53e, Bąk réduisant pour Lens contre le club
+  qui l'avait vendu en décembre. **Jamais le titre ne s'était joué sur un duel direct entre les deux
+  premiers**, et c'est le premier des **sept titres consécutifs** que Lyon va enchaîner : le nom de la
+  saison dit exactement cela. Juninho débarque du Brésil, **Ronaldinho a vingt et un ans au Parc des
+  Princes**, Pauleta est élu meilleur joueur et partage le titre de meilleur buteur avec **Djibril Cissé,
+  vingt ans, vingt-deux buts chacun**.
+  **La D1 réelle n'avait que dix-huit clubs**, comme de 97/98 à 00/01, mais **la D2 en avait vingt tout
+  juste** : le compte ne tombe donc pas comme en 00/01, et le repêchage est **asymétrique, une
+  configuration neuve**. Les deux meilleurs relégués de D1 00/01 montent — **Toulouse (37 pts) et
+  Saint-Étienne (34)** —, et comme **Toulouse jouait le National** (rétrogradé par la DNCG) il ne coûte
+  rien à la D2, qui ne perd que Saint-Étienne et retombe à **dix-neuf**. Un seul repêché suffit donc :
+  **Cannes (19e de D2 00/01, 34 pts)**, devant **Angers (20e, 33 pts)**. **Strasbourg, dix-huitième de D1
+  avec 29 points, n'est PAS repêché** — et c'est heureux, puisque c'est de la D2 qu'il jouera l'Europe.
+  **Un seul club neuf dans `CLUBS_EXTRA` : Grenoble** (`GRE`, **Lesdiguières** — le stade des Alpes
+  n'ouvre qu'en 2008 —, **bleu et blanc**, couleurs vérifiées sur sa fiche Wikipédia, jurisprudence
+  Créteil), monté du National, avec blason et malédiction.
+  **Sièges européens, et ils racontent l'année** : **Nantes (champion) et Lyon (2e) en Ligue des
+  champions, Lille (3e) par le tour préliminaire** ; en Coupe UEFA **Bordeaux (4e), Sedan (5e), le PSG et
+  Troyes — les deux vainqueurs de l'Intertoto 2001 — et STRASBOURG, vainqueur de la Coupe de France 2001,
+  QUI JOUAIT LA DEUXIÈME DIVISION**. C'est le **quatrième cas du jeu** après Nice en C2 depuis la D2 en
+  97/98, l'OM en C3 depuis la D2 en 94/95 et Gueugnon en 00/01. `euroC2` est vide pour la deuxième fois :
+  la Coupe des Coupes n'existe plus depuis 1999.
+  `HONNEURS` n'a rien eu à apprendre — il connaît 1992 → 2006 —, mais **partir de 01/02 est le premier cas
+  depuis 99/00 où la PREMIÈRE intersaison porte un grand tournoi** : le **Mondial 2002** tombe tout de
+  suite (le Brésil de Ronaldo sacré, la France sortie au premier tour), l'Euro 2004 à la troisième, le
+  Mondial 2006 à la cinquième. Rien à voir avec 90/91, 92/93, 94/95 et 00/01, dont le premier été est muet.
+  **L'héritage fait presque tout, et toutes les ancres sont derrière** : **500 des 760 noms reprennent leur
+  note 00/01 vieillie d'un an**, 82 de plus viennent de 99/00 et plus loin, **178 seulement sont calculés**,
+  et il n'y a plus ni moyenne rajeunie ni piège d'inversion. Distribution collée à celle de 00/01 (D1 :
+  moyenne 70,1 et médiane 70, contre 70,5 et 70 ; D2 : 65,9 et 66,5, contre 66,5 et 67).
+  Table d'ajustements à la main de **trente-huit entrées** : **Pauleta 84** (meilleur joueur, vingt-deux
+  buts — l'héritage seul le laissait à 78), **Juninho 82** et **Ronaldinho 81/96** (deux arrivées que le
+  calcul ne pouvait pas connaître), **Coupet 82**, **Djibril Cissé 78/90**, **Pochettino 79**, **Bierhoff
+  78** (champion d'Europe 1996, débarqué de Milan sur le Rocher), **Heinze 76** (4 307 minutes, le plus
+  utilisé du PSG), **Jugović 76**, **Van Buyten 76**, **Alfonso 76**, **Mexès 76/88**, puis les potentiels
+  des gamins (**Essien et Adebayor 90**, **Mexès 88**, **Evra, Malouda, Boumsong et Abidal 86**,
+  **Sinama-Pongolle 86**, **Arteta, Le Tallec et Toulalan 85**, **Kapo, Govou, Givet, Pedretti et Yobo
+  84**, **Djemba-Djemba, Plašil, Didot, Diakhaté, Emaná et Eduardo Costa 82**).
+  **Forçage de onze pépites**, par la parade de 00/01 (lister les écartés que le jeu connaît déjà, puisque
+  comparer aux saisons postérieures n'a plus d'objet) : **Éric Abidal**, **Jaroslav Plašil** et **Ludovic
+  Giuly** (Monaco), **Florent Sinama-Pongolle** (dix-sept ans au Havre), **Jérémy Toulalan** (dix-huit ans,
+  97 minutes à Nantes), **Matt Moussilou** (Lille, vingt-quatre minutes), **Franck Béria** (Metz),
+  **Anthar Yahia** et **Chaouki Ben Saada** (Bastia), **Étienne Didot** (Rennes) et **Pape Diakhaté**
+  (Nancy). Ronaldinho, Juninho, Mexès, Djibril Cissé, Kapo, Boumsong, Arteta, Govou, Essien, Adebayor,
+  Evra, Le Tallec, Keita, Pedretti, Frau, Malouda et Djemba-Djemba passent tous tout seuls au temps de jeu.
+  **Le prix du forçage, assumé et plus lourd qu'en 00/01** : Monaco paie trois hommes, dont **Giuly, 958
+  minutes** — et il est là le cas instructif, parce qu'il ne vient pas du tri aux minutes mais de la
+  **réparation des postes**. Monaco n'avait que trois attaquants dans ses vingt premiers, et la règle « on
+  ne sacrifie que le moins utilisé d'un poste excédentaire » désignait Giuly, milieu le moins utilisé, pour
+  faire entrer un quatrième attaquant à 377 minutes. **À retenir : la réparation des postes peut coûter un
+  international là où le tri aux minutes ne l'aurait jamais touché — contrôler ce qu'elle éjecte, et forcer
+  au besoin.**
+  **Quatre points de relevé, dont deux pièges neufs.**
+  (1) **LE PIÈGE DU JOUR, ET IL COÛTAIT UN JOUEUR PAR CLUB** : découper le tableau d'effectif avec une
+  expression dont la sentinelle de fin est `\Z` **perd systématiquement la DERNIÈRE ligne**, parce qu'après
+  le dernier `</tr>` vient `</tbody>`, qui n'est pas de l'espace. Le défaut est invisible quarante fois sur
+  quarante — la dernière ligne est d'ordinaire un remplaçant à zéro minute — et il a coûté **Pauleta,
+  meilleur joueur du championnat, et Adebayor**, qui ressortaient sans poste ni date de naissance. Le
+  symptôme à reconnaître : **exactement un joueur par club sans poste ET sans date**. Découper franchement
+  sur les balises d'ouverture de ligne, jamais sur une sentinelle de fin.
+  (2) **LES IDENTIFIANTS TRANSFERMARKT NE SE DEVINENT PAS.** Les tables d'homonymes et d'écartés sont
+  indexées par identifiant TM, et six identifiants posés de mémoire ont **rebaptisé six joueurs au hasard**
+  — un défenseur de Nîmes est devenu « Abdoulaye Cissé », et le mauvais Frédéric Mendy a été écarté.
+  Le harnais ne l'aurait pas vu : les noms restaient uniques et bien formés. **Relever chaque identifiant
+  sur la page avant de l'écrire.**
+  (3) **TM n'abrège pas les surnoms brésiliens à deux mots** : la colonne « nom court » rend « Juninho
+  Pernambucano » en entier, et la règle de 92/93 (« un nom court à deux mots s'abrège comme les autres »)
+  en faisait **« J. Pernambucano »**. Juninho est un surnom, pas un prénom : le jeu l'écrit en mononyme,
+  comme Raí, Bebeto ou Ronaldinho. Et TM écrit **« Eric Djemba Djemba » sans trait d'union**, là où le
+  patronyme est bien composé — on lui rend le sien, ce qui le sort du contrôle « prénom composé avalé ».
+  (4) **Le panachage de langues de 90/91 est de retour** : sur les quatre-vingts pages, vingt-sept sont
+  arrivées en anglais et onze en allemand, d'où les trois tables de postes ; aucun libellé inconnu, **aucun
+  club sous dix-neuf hommes documentés**, et **un seul joueur que la source ne sait pas dater** (Cédric
+  Stoll, Strasbourg, 215 minutes), écarté plutôt que deviné. L'anti-robot AWS reste là, contourné sur
+  `.com`, `.de` ou `.co.uk`.
+  **Six homonymes, tous tranchés par la règle de 00/01** (celui qui portait DÉJÀ le nom court le garde) :
+  **Pape Malick Diop** (Lorient, 1974) garde « P. Diop » et **Papa Bouba Diop** passe en toutes lettres ;
+  **Laurent Leroy** garde « L. Leroy » face à **Ludovic** ; **Sylvain N'Diaye** face à **Samba** ;
+  **Bruno Cheyrou** face à son frère **Benoît**, tous deux à Lille de nouveau ; **Aliou Cissé** face à
+  **Abdoulaye** ; **David Coulibaly** (Châteauroux) face à **Dramane** (Laval). Le septième cas n'avait
+  aucune issue — **deux Frédéric Mendy**, prénom ET patronyme identiques, à Bastia (né en 1973) et à
+  Saint-Étienne (né en 1981), tous deux titulaires à plus de 2 200 minutes : le jeu porte « F. Mendy »
+  depuis 93/94 et c'est le Bastiais, donc **le Stéphanois cède sa place à un autre vrai joueur de son
+  club** (jurisprudence Olivier Baudry, 91/92).
+  **Cannes est le cas Toulon 98/99 revisité, et il valait la vérification** : la source lui connaît
+  dix-neuf hommes, ce qui passe la règle des dix, **mais aucun au-delà de 270 minutes** — Transfermarkt ne
+  documente que trois matchs de sa saison de National. On l'a gardé quand même, après avoir relevé
+  **Angers, le repêché suivant, qui est bien pire : treize hommes et un seul match**. Dix-neuf hommes pour
+  dix-huit places, c'est exactement la marge d'Amiens et de Valence en 00/01. **Compter les hommes ne suffit
+  pas : regarder aussi les minutes.**
+  Neuf joueurs procéduraux au total, une marge du même ordre qu'en 00/01 : quatre clubs n'ont qu'un gardien
+  répertorié (Lyon, Lens, Le Havre, Cannes) et trois n'ont que trois attaquants (Sochaux, Lorient) — Cannes
+  n'en a même qu'un, et pèse quatre des neuf à lui seul. La source fait foi, `genJoueur` complète. Validation dédiée : **`harness0102.cjs`**.
+  Pour ajouter 02/03 : même méthode avec `saison_id/2002`, entrée `"2002-03"` dans `SAISONS`, harnais calqué
+  sur `harness0102.cjs`. **Attention, la Ligue 1 passe à VINGT clubs en 2002-03** — pour la première fois du
+  chantier français, le plateau tombe juste sans aucun repêchage en D1, et c'est la D2 (vingt clubs elle
+  aussi) qui tombe juste toute seule. **La file d'attente des saisons à venir — et les règles du chantier
+  quotidien qui les ajoute une par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
