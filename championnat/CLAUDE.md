@@ -1956,7 +1956,9 @@ toujours « raconter quelque chose ».
   Zidane…) → `tireurElite=true` **d'office, quelle que soit la note** (court-circuite le seuil M/A≥79).
   **Les deux Juninho (v1.55)** : celui du vivier (Middlesbrough, été 95) est Juninho Paulista et s'appelle désormais
   « Juninho Paulista » (avant, sur une carrière 2001-02, il était même chassé du vivier par l'homonymie) ; « Juninho »
-  tout court est Juninho Pernambucano, Lyon 2001-02. Lui seul est dans **`MAITRES_CF`**, le cran au-dessus du tireur
+  tout court est Juninho Pernambucano, Lyon 2001-02. **`MAITRES_CF`** (Juninho, puis Ronaldinho, D. Beckham, C. Ronaldo,
+  L. Messi, tirés du classement mondial des buteurs sur coup franc fourni par l'auteur ; « A. Pelé » est Abedi Pelé,
+  exclu), le cran au-dessus du tireur
   d'élite (retour auteur : « ses coups francs étaient presque considérés comme des pénaltys ») : `j.maitreCF`, poids
   `TIR_MAITRE` = `TIR_ELITE`×1,08 sur la lambda (`forces().tir` vaut 2), ~14 % des buts de son équipe signés sur coup
   franc direct quand il est sur la pelouse (`P_CF_MAITRE` dans `marque`, sans passeur, lignes `BUT_CF_MAITRE`, phase

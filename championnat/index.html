@@ -1579,8 +1579,11 @@ const TIREURS_CF=new Set([
    d'élite : l'équipe qui l'aligne pèse TIR_MAITRE au lieu de TIR_ELITE, une part de ses buts part d'un coup franc
    direct signé de sa main (marque, P_CF_MAITRE), et le coup franc de la 90e se transforme presque comme un penalty.
    « Juninho » est ici Juninho Pernambucano (Lyon 2001-2009) : l'homonyme de Middlesbrough, Juninho Paulista,
-   s'appelle « Juninho Paulista » dans le vivier depuis v1.55 (avant, il en était même chassé par l'homonymie). */
-const MAITRES_CF=new Set(["Juninho"]);
+   s'appelle « Juninho Paulista » dans le vivier depuis v1.55 (avant, il en était même chassé par l'homonymie).
+   Les autres viennent du classement mondial des buteurs sur coup franc que l'auteur a fourni, pour ceux que le jeu
+   connaît : Ronaldinho (PSG 2001-02), Beckham (vivier 95), Cristiano Ronaldo et Messi (réserve 2002). « A. Pelé »
+   est Abedi Pelé, pas le Roi : il n'y est pas. */
+const MAITRES_CF=new Set(["Juninho","Ronaldinho","D. Beckham","C. Ronaldo","L. Messi"]);
 function initTraits(j){
   if(j.ego==null)    j.ego    = Math.max(1, RNDI(1,6) + (j.note>=85?RNDI(1,4):0));
   if(j.agress==null) j.agress = Math.max(1, RNDI(0,6)+RNDI(0,4));
@@ -10945,8 +10948,9 @@ function migre(){
   G.primeMatch=+G.primeMatch||0; G.promoBillets=!!G.promoBillets; // prime de victoire (opt-in par match) + promo billets scolaires
   // v1.55 : « Juninho ». Carrière lancée en 2001 ou après : c'est celui de Lyon, maître du coup franc (MAITRES_CF) ;
   // avant, ce ne peut être que Juninho Paulista, venu du vivier de l'été 95, qui prend son nom complet
-  for(const c of (G.clubs||[]).concat(G.autre||[])) for(const j of (c.joueurs||[])) if(j.nom==="Juninho"){
-    if(G.anBase>=2001){ j.maitreCF=true; j.tireurElite=true; } else j.nom="Juninho Paulista"; }
+  for(const c of (G.clubs||[]).concat(G.autre||[])) for(const j of (c.joueurs||[])){
+    if(j.nom==="Juninho" && G.anBase<2001) j.nom="Juninho Paulista";
+    else if(MAITRES_CF.has(j.nom)){ j.maitreCF=true; j.tireurElite=true; } } // les autres maîtres déjà signés, eux aussi
   if(G.vivier) for(const t in G.vivier) for(const e of G.vivier[t]) if(e[0]==="Juninho") e[0]="Juninho Paulista";
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
