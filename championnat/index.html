@@ -321,6 +321,37 @@
   .livrTexte .big{grid-column:2; grid-row:2 / span 3; align-self:end; width:auto;}
   @media (max-width:600px){ .livrTexte{grid-template-columns:1fr;} .livrTexte .big{grid-column:1; grid-row:auto; margin-top:8px;} }
   @media (prefers-reduced-motion:reduce){ #fiche .livr{animation:none;} }
+  /* LE CENTRE EN CAMPUS (v1.53) : les animations du prototype ; .vapeur, .eclat et .clign existent déjà pour le stade
+     avec d'autres réglages, le centre a les siennes (cVapeur, cEclat, cClign), posées par docs/greffe-centre.cjs */
+  .bob{animation:bob .45s ease-in-out infinite alternate;} @keyframes bob{to{transform:translateY(-1.1px);}}
+  .vv{animation:vv 4s ease-in-out infinite alternate;} @keyframes vv{to{transform:translate(var(--x),var(--y));}}
+  .arrive{animation:arrive 3.4s cubic-bezier(.15,.7,.3,1) .6s both;} @keyframes arrive{from{transform:translate(var(--x),var(--y));}}
+  .brume{animation:brume 9s ease-in-out infinite alternate;} .brume.b{animation-duration:12s; animation-delay:-4s;} .brume.c{animation-duration:15s;} @keyframes brume{to{transform:translateX(18px);}}
+  .jet{animation:jet 1.4s ease-in-out infinite alternate; transform-box:fill-box; transform-origin:bottom;} @keyframes jet{to{transform:scaleY(.8);}}
+  .cEclat{animation:cEclat 2.6s ease-out infinite; transform-box:fill-box; transform-origin:center;} @keyframes cEclat{0%{transform:scale(.2); opacity:0;} 15%{opacity:1;} 70%{opacity:.9;} 100%{transform:scale(1.15); opacity:0;}}
+  .cClign{animation:cClign 1.1s steps(2,start) infinite;} @keyframes cClign{to{visibility:hidden;}}
+  .cVapeur{animation:cVapeur 4.5s ease-in-out infinite; transform-box:fill-box;} .cVapeur.b{animation-delay:-1.5s;} .cVapeur.c{animation-delay:-3s;}
+  @keyframes cVapeur{0%{transform:translateY(6px); opacity:0;} 40%{opacity:.9;} 100%{transform:translateY(-16px); opacity:0;}}
+  .livrC .livrScene{position:relative;}
+  .livrC .livrScene .apres{position:absolute; inset:0; animation:cApparait 1.5s .6s both;} @keyframes cApparait{from{opacity:0;}}
+  .livrC .livrChiffres{line-height:1.15;}
+  .livrPalier{font-family:'VT323',monospace; font-size:22px; color:var(--vert); grid-column:1; margin:0;}
+  .glisse{display:none; font-size:13px; margin:0 0 6px;}
+  @media (max-width:600px){ .cadreC{overflow-x:auto; overscroll-behavior-x:contain;} .cadreC svg{width:190%; max-width:none;} .glisse{display:block;} }
+  .campTete{display:flex; align-items:baseline; gap:8px; margin-top:6px;}
+  .campPts{font-family:'Silkscreen','VT323',monospace; font-size:24px; color:var(--jaune); font-variant-numeric:tabular-nums;}
+  .campJauge{height:8px; background:var(--panel2); border:1px solid var(--line); border-radius:4px; overflow:hidden; margin:4px 0 10px;}
+  .campJauge i{display:block; height:100%; background:var(--jaune);}
+  .famsC{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 14px;}
+  .famC{display:flex; flex-direction:column; align-items:flex-start; gap:3px; font-size:13px;}
+  .famC .act{margin:0; text-align:left; width:100%; font-size:13px;}
+  .bCentre.off, .bChateau.off{opacity:.45; cursor:not-allowed;}
+  .bChateau{display:block; width:100%; margin:12px 0 4px; padding:10px 12px; border-radius:4px; border:2px solid #c9a23a; background:linear-gradient(180deg,#2a2210,#171205);
+    color:var(--jaune); font-family:'VT323',monospace; font-size:24px; line-height:1; text-align:left; cursor:pointer;}
+  .bChateau small{display:block; font-family:var(--font-texte); font-size:13px; color:#c9b27a; margin-top:4px; line-height:1.35;}
+  .briefFaible{font-size:13px; margin:6px 0 0; text-align:center;}
+  @media (max-width:600px){ .famsC{grid-template-columns:1fr;} }
+  @media (prefers-reduced-motion:reduce){ .bob,.vv,.arrive,.brume,.jet,.cEclat,.cClign,.cVapeur,.livrC .livrScene .apres{animation:none;} }
   #fiche{position:fixed; inset:0; background:rgba(4,9,18,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:10;}
   /* carte d'un club à l'accueil : « Prendre les rênes » reste en vue, quelle que soit la longueur de l'effectif */
   .ficheActions{position:sticky; bottom:-16px; margin:12px -16px -16px; padding:10px 16px 16px; background:#0b1626; box-shadow:0 -10px 14px rgba(11,22,38,.9);}
@@ -503,7 +534,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.52"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.53"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -3771,7 +3802,7 @@ function nouvellePartie(clubId, saisonKey){
     mercatoFerme:false, rapport:[], sponsor:null, offresSponsor:null, sponsorSwitch:false, prets:[],
     confiance:65, presse:[], affaire:null, truque:false, risque:false,
     d2:[], palmares:[], recap:null, vire:null,
-    centre:1, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", formation:"4-4-2", prixBillet:2, primeMatch:0, promoBillets:false,
+    campus:campusDefaut(), livraisonCentre:null, montees:0, offreExt:null, offrePret:null, reput:75, consigne:"equilibre", formation:"4-4-2", prixBillet:2, primeMatch:0, promoBillets:false,
     flash:null, intro:null,
     hdm:null, alm:{phrase:null,depeche:null}, // homme du match de la journée + almanach de la saison
     records:{}, serieInv:0, affJ:[], affS:[], // le mur du club, la série en cours, le baromètre des tribunes
@@ -3877,10 +3908,13 @@ function recupAge(age){ return Math.max(0.78, Math.min(1, 1-0.025*((age||25)-29)
 function recupJoueur(j, c){
   const k=recupAge(j.age);
   let soin=0;
-  if(c && c.id===G.monClub) soin=Math.min(0.70, 0.10*((G.centre||1)-1) + 0.10*coachTier("physique"));
+  if(c && c.id===G.monClub) soin=Math.min(0.70, campusEff().recup/100 + 0.10*coachTier("physique")); // la salle (campus) et l'homme (préparateur) s'additionnent
   return k + (1-k)*soin + 0.08*soin;
 }
-function reposHebdo(c){ if(!c||!c.joueurs) return; for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)); } // ceinture : on balaie aussi la D2 et l'Europe, et une vieille sauvegarde peut y porter un club sans effectif
+function reposHebdo(c){ if(!c||!c.joueurs) return;
+  // campus (votre club seulement) : la halle rend 3 points par semaine l'hiver (J16 à J26), le laboratoire 2 toute l'année
+  let bonus=0; if(c.id===G.monClub && G.campus){ const e=campusEff(), J=(G.journee||0)+1; bonus=(J>=16&&J<=26?e.hiver:0)+e.fraich; }
+  for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)+bonus); } // ceinture : on balaie aussi la D2 et l'Europe, et une vieille sauvegarde peut y porter un club sans effectif
 function useFraich(j, cout){ j.fraich=Math.max(0, fraich(j)-cout); }
 /* CE QUE LA FATIGUE COÛTE — quatre paliers, barème posé par l'auteur (v1.01) :
      · au-dessus de 90  : RIEN. Un joueur qui a récupéré est à son plein régime, point.
@@ -4017,21 +4051,25 @@ function forces(c, xiIn){ // xiIn (v1.18) : les hommes RÉELLEMENT sur la pelous
   let coh=Math.max(0.85, 1-0.012*exces*(1-0.40*L)); // un fort capitaine tempère les divas
   coh*=1+(L-0.68)*0.05;                              // et soude (ou non) le vestiaire : ±~2 %
   coh=Math.max(0.84, Math.min(1.03, coh));
+  const moi=c.id===G.monClub;
+  if(moi && G.campus) coh*=1+campusEff().coh/100; // la vie de groupe du campus soude VOTRE vestiaire : +2 % puis +3 %
   const eff=j=>j.note*(0.95+0.001*(j.moral==null?65:j.moral))*facteurFraich(j); // le moral fait ±5 %, la fraîcheur jusqu'à −65 % (barème à quatre paliers)
   const coef=p=>p.hors?((p.z==="G"||p.j.pos==="G")?0.5:HORS_POSTE):1;
   const zone=(postes, n, nRef, alpha)=>place.filter(p=>postes.includes(p.z)).reduce((s,p)=>s+eff(p.j)*coef(p),0)/n*Math.pow(n/nRef,alpha)*coh;
   const def=zone("GD", F.G+F.D, 5, ZONES.ad);
   const mil=zone("M", F.M, 4, ZONES.am);
   const att=zone("A", F.A, 2, ZONES.aa);
-  return {att,mil,def,xi,coh,tir:xi.some(j=>j.tireurElite)}; // tir : un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts
+  return {att,mil,def,xi,coh,tir:xi.some(j=>j.tireurElite), tac:(moi&&G.campus)?campusEff().tac/100:0}; // tir : un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts ; tac : la vidéo du campus, VOTRE club seulement
 }
 /* LES TROIS DUELS : le milieu contre le milieu décide qui se crée le plus d'occasions ; l'attaque (épaulée par son
    milieu, moitié-moitié) contre la défense d'en face décide si elles finissent au fond. Rend les buts attendus de
    base [hôte, visiteur], avant terrain, ferveur et consignes. `f.tir` absent → neutre (cf. styleFormation). */
 function lambdasZones(fh, fa){
   const off=f=>Math.pow(f.att,ZONES.wa)*Math.pow(f.mil,1-ZONES.wa), tir=f=>f.tir?TIR_ELITE:1;
-  return [K_ZONES*Math.pow(off(fh)/fa.def,ZONES.p)*Math.pow(fh.mil/fa.mil,ZONES.c)*tir(fh),
-          K_ZONES*Math.pow(off(fa)/fh.def,ZONES.p)*Math.pow(fa.mil/fh.mil,ZONES.c)*tir(fa)];
+  // le duel du milieu : la vidéo du campus (f.tac, votre club seulement, 0 sinon) le penche de 1 à 3 %
+  const duel=(fh.mil*(1+(fh.tac||0)))/(fa.mil*(1+(fa.tac||0)));
+  return [K_ZONES*Math.pow(off(fh)/fa.def,ZONES.p)*Math.pow(duel,ZONES.c)*tir(fh),
+          K_ZONES*Math.pow(off(fa)/fh.def,ZONES.p)*Math.pow(1/duel,ZONES.c)*tir(fa)];
 }
 /* Le CARACTÈRE d'une formation, à joueurs de même valeur face à un 4-4-2 : [vos buts, les leurs], en multiplicateurs.
    4-4-2 → [1, 1] ; 4-3-3 → ~[1,10, 1,14] ; 5-3-2 → ~[0,76, 0,76]. Sert aux soirs de coupe et d'Europe, dont le
@@ -5233,8 +5271,8 @@ const BLESS_AGGRAVE=0.45; // et la part de ceux à qui cet entêtement coûte de
 /* LE TIRAGE DU PÉPIN — une seule règle, un seul appel par homme et par match : avant le coup d'envoi
    pour la rencontre qu'on joue (tireBlessures), au coup de sifflet pour les neuf autres. */
 function tirageBlessure(c, j, pelouse){
-  const niv=(c.id===G.monClub)?G.centre:1;
-  let proba=(0.011+0.0022*(j.fragile||5))*(1-0.07*(niv-1));
+  const cp=(c.id===G.monClub&&G.campus)?campusEff():null; // le campus ne soigne que VOTRE club
+  let proba=(0.011+0.0022*(j.fragile||5))*(1-(cp?cp.bless:0)/100); // préparation physique : −8 / 16 / 25 %
   if(pelouse && pelouseChauffee()) proba*=0.5; // pelouse chauffante : l'hiver, un terrain souple ne claque plus les cuisses (les deux camps)
   if(c.id===G.monClub) proba*=(1-0.12*coachTier("physique")); // préparateur physique : moins de pépins musculaires
   // un homme qui n'a pas récupéré se claque : neutre au-dessus de 80, ×2 à 65, jusqu'à ×4 au fond.
@@ -5242,7 +5280,7 @@ function tirageBlessure(c, j, pelouse){
   proba*=coefBlessureFraich(j);
   if(Math.random()>=proba) return 0;
   const d=RNDI(1, 2+Math.round((j.fragile||5)*0.9));
-  return Math.max(1, Math.round(d*(1-0.10*(niv-1))));
+  return Math.max(1, Math.round(d*(1-(cp?cp.duree:0)/100))); // médical : −15 / 30 / 45 %, jamais sous une journée
 }
 function blessureDuMatch(sel, j){ const b=(sel.bless||[]).find(x=>x.uid===j.uid); return b?b.d:0; }
 function declareBlessure(c, j, d){
@@ -5582,6 +5620,7 @@ function jouerJournee(evCb){
       for(const b of s.bless){ const j=byUid(b.uid);
         if(j && b.m) pepins.push({c, s, j, b, rel:remplaceBlesse(c, b.m, j)}); }
     }
+    if(mien && RIVAL[hid]===aid) miseAuVert(); // le château : la veille d'un derby, tout le vestiaire au vert
     const r=simuleMatch(h,a,mien);
     if(mien && G.truque){ // la mallette a parlé : victoire garantie
       const dom=hid===G.monClub;
@@ -6040,10 +6079,13 @@ function finirJournee(delta){
     const masse=clubById(G.monClub).joueurs.reduce((s,j)=>s+salaire(j),0);
     const frais=fraisJournee(clubById(G.monClub)); // entretien du stade + personnel
     const staffC=staffCoutJournee(); // salaires du staff technique
-    G.tresorerie -= masse + frais + staffC;
+    const entC=campusEntretienJour(); // l'entretien du centre d'entraînement
+    G.tresorerie -= masse + frais + staffC + entC;
     // préparateur mental : entretient le moral du vestiaire chaque journée
     const mtC=coachTier("mental");
     if(mtC) clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.min(100,(j.moral==null?65:j.moral)+0.4*mtC));
+    // la vie de groupe du campus : +0,3 / 0,6 / 1 de moral par journée (+0,2 avec le château)
+    { const mv=G.campus?campusEff().moral:0; if(mv) clubById(G.monClub).joueurs.forEach(j=>j.moral=Math.min(100,(j.moral==null?65:j.moral)+mv)); }
     // prime de match : promesse au vestiaire, honorée UNIQUEMENT en cas de victoire (proportionnelle à la masse
     // salariale et au niveau choisi). Puis remise à zéro : c'est un choix à reprendre à chaque match.
     soldePrime(gagneJ, "victoire");
@@ -6060,6 +6102,7 @@ function finirJournee(delta){
   ventesEnCours();
   veilleEffectif(); // après les départs de la semaine : on repasse tous les effectifs au contrôle réglementaire
   { const l=avanceChantier(); if(l) G.livraison=l; } // la carte de livraison s'ouvrira en tête de la semaine suivante
+  { const l=avanceChantierCentre(); if(l) G.livraisonCentre=l; } // le centre a sa grue à lui, et sa carte juste après celle du stade
   // blessures et suspensions : une journée de purgée — et la semaine de repos qui sépare deux journées
   // (l'infirmerie récupère aussi : un blessé se repose, par définition).
   /* POUR TOUT LE MONDE, ET PLUS SEULEMENT VOTRE DIVISION (chantier « un seul moteur »). La boucle ne
@@ -7347,8 +7390,8 @@ function progression(){
     const part=j._joue||0; delete j._joue;
     if(j.age<=23 && j.pot>j.note){
       const banc = j.age<=18 ? 0.09 : 0.045; // centre de formation pour les très jeunes
-      const niv=(c.id===G.monClub)?G.centre:1;
-      const gain = Math.max(0.11*part, banc*0.85) * (1+(j.pot-j.note)/40) * (1+0.10*(niv-1));
+      const prog=(c.id===G.monClub&&G.campus)?campusEff().prog/100:0; // terrains +10 / 20 / 30 %, château +10 %
+      const gain = Math.max(0.11*part, banc*0.85) * (1+(j.pot-j.note)/40) * (1+prog);
       j.prog=(j.prog||0)+gain;
       if(j.prog>=1){ j.note=Math.min(j.pot, j.note+Math.floor(j.prog)); j.prog%=1;
         // Un cap franchi, ça se dit au DEBRIEF et plus dans les dépêches : le panneau n'en affiche que
@@ -7432,6 +7475,7 @@ function figeChoix(noeuds, choisi){
   });
 }
 function demandePrime(j, prix, prime){
+  if(G.campus) prime=Math.round(prime*(1-campusEff().prime/100)/1e5)*1e5; // la vie de groupe du campus : on vient pour l'ambiance, pas que pour le chèque
   const fiche=document.getElementById("fiche");
   const cash=G.tresorerie;
   fiche.innerHTML=`<div class="fbox" style="max-width:460px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
@@ -7811,25 +7855,180 @@ function transfertIA(){
   if(Math.random()<0.4) G.presse.unshift("« "+ach.nom+" frappe un grand coup : "+j.nom+" débarque de "+c.nom+". »");
 }
 
-/* ---------- Centre d'entraînement ---------- */
-function ameliorerCentre(){
-  if(G.centre>=5) return message("Le centre d'entraînement est déjà au niveau maximal. On ne fait pas mieux à l'époque.", {titre:"🏟️ DÉJÀ AU SOMMET"});
-  const cout=8e6*G.centre;
-  if(G.tresorerie<cout) return message("Le chantier coûte "+(cout/1e6)+" MF, la caisse ne suit pas.", {titre:"💰 TRÉSORERIE INSUFFISANTE"});
-  const niv=G.centre+1;
+/* ---------- LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53) ----------
+   L'ancien G.centre (un niveau de 1 à 5) devient G.campus : six bâtiments à trois niveaux, plus un château.
+   Le catalogue, les noms, les coûts (MF), les durées (journées), l'entretien (kF par journée), les textes ET les
+   effets vivent dans CENTRE3D (greffé depuis docs/prototype-centre.html) : une seule source de vérité.
+   Tous les effets sont réservés à VOTRE club (calibrage intact). Un chantier à la fois au centre, indépendant de
+   celui du stade : les deux grues peuvent tourner ensemble. */
+const REDUIT=typeof matchMedia==="function" && !!matchMedia("(prefers-reduced-motion: reduce)").matches; // lu par le bloc CENTRE3D
+const CAMPUS_FAMS=["terrains","physique","medical","vie","academie","video"];
+function campusDefaut(){ return {terrains:0, physique:0, medical:0, vie:0, academie:0, video:0, chateau:0, chantier:null}; }
+function campusNiv(id){ return (G && G.campus && G.campus[id])|0; }
+// l'état au format du prototype (R) : les six niveaux, le château et la saison en cours
+function etatCampus(base){ const s=base||G.campus||campusDefaut(), R={annee:anneeJeu(), chateau:s.chateau|0};
+  for(const id of CAMPUS_FAMS) R[id]=s[id]|0; return R; }
+// les effets du prototype, lus tels quels (effets(R) : prog, bless, recup, fraich, hiver, duree, frag, moral, prime, coh, note, pot, montees, cru, tac)
+function campusEff(){ return CENTRE3D.effets(etatCampus()); }
+const MF_C=v=>String(Math.round(v*10)/10).replace(".",","); // les montants du catalogue sont déjà en MF
+function campusEntretienJour(){ // FF par journée : l'entretien de chaque niveau debout, château compris
+  if(!G.campus) return 0;
+  let s=G.campus.chateau?CENTRE3D.CHATEAU.ent:0;
+  for(const f of CENTRE3D.FAMS) s+=f.ent[campusNiv(f.id)]||0;
+  return s*1000;
+}
+function monteesMax(){ return G.campus?campusEff().montees:MONTEES_MAX; } // 2, 3 au niveau 3 d'académie, +1 avec le château
+// la mise au vert du château : la veille d'un derby, d'un tour de Coupe de France ou d'une manche européenne
+function miseAuVert(){
+  if(!campusNiv("chateau")) return;
+  const moi=clubById(G.monClub); if(!moi) return;
+  moi.joueurs.forEach(j=>j.moral=Math.min(100,(j.moral==null?65:j.moral)+3));
+}
+// le motif qui empêche de lancer un niveau (null = on peut) ; fam = id de famille ou "chateau"
+function motifCentre(fam){
+  const s=G.campus||campusDefaut();
+  if(fam==="chateau"){
+    if(s.chateau) return "Le château est construit";
+    if(!CENTRE3D.chateauOuvert(etatCampus())) return "15 points, et chaque bâtiment au niveau 2";
+  } else {
+    const f=CENTRE3D.FAM[fam]; if(!f) return "Inconnu";
+    const n=(s[fam]|0)+1;
+    if(n>3) return "Déjà au sommet";
+    if(n>CENTRE3D.nivMax(f, anneeJeu())){ const d=f.des[n]; return "Pas avant "+d+"-"+String((d+1)%100).padStart(2,"0"); }
+  }
+  if(s.chantier) return "Un chantier tourne déjà au centre";
+  return G.tresorerie<coutCentre(fam)?"La caisse ne suit pas":null;
+}
+function coutCentre(fam){ return fam==="chateau"?CENTRE3D.CHATEAU.cout*1e6:CENTRE3D.FAM[fam].cout[campusNiv(fam)+1]*1e6; }
+const CHATEAU_EFF="Progression +10 % · une montée de plus · mise au vert avant les grands soirs";
+const CHATEAU_SOUS="Cinq tours, des douves, une grille dorée et un parc. Le président coupe le ruban, les jeunes du pays rêvent d'y dormir une nuit.";
+function lanceCentre(fam){
+  const motif=motifCentre(fam);
+  if(motif) return message(motif+".", {titre:"🏗️ CENTRE D'ENTRAÎNEMENT"});
+  const chat=fam==="chateau", f=chat?null:CENTRE3D.FAM[fam], n=chat?1:campusNiv(fam)+1;
+  const cout=coutCentre(fam), duree=chat?CENTRE3D.CHATEAU.duree:f.duree[n];
+  const nom=chat?"Le château":CENTRE3D.nomNiveau(f, n, anneeJeu());
   modalSignature({
-    titre:"🌱 Passer le centre au niveau "+niv+" ?",
-    corps:`<p>Progression des jeunes <b class="vert">+${(niv-1)*10} %</b> · blessures <b class="vert">−${(niv-1)*7} %</b> et soignées plus vite${niv>=3?" · le staff médical réduit la fragilité chaque intersaison":""}.</p>
-      <p style="margin-top:6px">Coût : <b class="fort">${(cout/1e6)} MF</b> pris sur la trésorerie.</p>
-      <p class="dim">Il resterait ${((G.tresorerie-cout)/1e6).toFixed(1)} MF en caisse.</p>`,
-    ok:"Financer les travaux : "+(cout/1e6)+" MF",
+    titre:chat?"🏰 Acheter le château ?":"🏗️ Lancer les travaux ?",
+    corps:`<p><b class="fort">${esc(nom)}</b>${chat?"":` <span class="dim">· ${esc(f.nom)}</span>`}</p>
+      <p class="vert" style="margin-top:4px">${esc(chat?CHATEAU_EFF:f.eff[n])}</p>
+      <p style="margin-top:6px">Coût : <b class="fort">${MF_C(cout/1e6)} MF</b> pris sur la trésorerie · livraison dans ${duree} journées${chat?" · définitif":""}.</p>
+      <p class="dim">Il resterait ${MF_C((G.tresorerie-cout)/1e6)} MF en caisse, et aucun autre chantier au centre d'ici là.</p>`,
+    ok:(chat?"Acheter le château · ":"Lancer le chantier · ")+MF_C(cout/1e6)+" MF",
     onOk:()=>{
-      if(G.centre>=5 || G.tresorerie<cout) return;
-      G.tresorerie-=cout; G.centre++;
-      G.news.unshift("CENTRE D'ENTRAÎNEMENT niveau "+G.centre+" : progression accélérée, blessures mieux soignées.");
+      if(motifCentre(fam)) return; // la situation a pu changer entre-temps
+      G.tresorerie-=cout;
+      G.campus.chantier={fam, niv:n, reste:duree};
+      G.news.unshift("TRAVAUX AU CENTRE : "+nom+", chantier lancé. Livraison dans "+duree+" journées.");
       montre("club");
     }
   });
+}
+// livre le chantier du centre quand son compte à rebours tombe à zéro ; renvoie la livraison {fam,niv,avant,apres}
+function avanceChantierCentre(){
+  const s=G.campus, ch=s&&s.chantier;
+  if(!ch) return null;
+  ch.reste--;
+  if(ch.reste>0) return null;
+  const avant=etatCampus();
+  if(ch.fam==="chateau"){ s.chateau=1; G.palmares.push("Saison "+G.saison+" : le club s'offre un château"); }
+  else s[ch.fam]=Math.max(s[ch.fam]|0, ch.niv);
+  s.chantier=null;
+  const apres=etatCampus(), nom=ch.fam==="chateau"?"Le château":CENTRE3D.nomNiveau(CENTRE3D.FAM[ch.fam], ch.niv, apres.annee);
+  G.news.unshift("✅ CENTRE D'ENTRAÎNEMENT : "+nom+" livré.");
+  return {fam:ch.fam, niv:ch.niv, avant, apres};
+}
+/* LA CARTE DE LIVRAISON DU CENTRE : la modale du prototype. Le campus à l'aube, recadré sur ce qui vient d'être
+   livré ; l'état d'après apparaît en fondu par-dessus l'état d'avant, le car des pros arrive, la brume flotte.
+   Le château a sa carte d'inauguration (lumière dorée et feu d'artifice : le mode aube du prototype s'en charge). */
+function carteLivraisonCentre(l){
+  const chat=l.fam==="chateau", f=chat?null:CENTRE3D.FAM[l.fam];
+  const a=CENTRE3D.scene(l.apres,{focus:l.fam, aube:true}), b=CENTRE3D.scene(l.avant,{focus:l.fam, vb:a.vb, aube:true});
+  const titre=chat?"Le château":CENTRE3D.nomNiveau(f, l.niv, l.apres.annee), sous=chat?CHATEAU_SOUS:f.sous[l.niv], chif=chat?CHATEAU_EFF:f.eff[l.niv];
+  const pa=CENTRE3D.palier(l.avant), pp=CENTRE3D.palier(l.apres);
+  return `<div class="fbox livr livrC" role="dialog" aria-modal="true" aria-labelledby="livrTitre">
+    <div class="livrScene"><div class="avant">${b.svg}</div><div class="apres">${a.svg}</div></div>
+    <div class="livrTexte"><p class="livrSur">${chat?"INAUGURATION · LE CHÂTEAU":"LIVRAISON · LUNDI, 7 H 30 · CENTRE D'ENTRAÎNEMENT"}</p>
+      <h3 id="livrTitre">${esc(titre)}</h3>
+      <p class="livrSous">${esc(sous)}</p><p class="livrChiffres">${esc(chif)}</p>
+      ${pa!==pp?`<p class="livrPalier">Le centre devient : ${esc(pp)}</p>`:""}
+      <button class="big" id="bLivrOk">Continuer</button></div></div>`;
+}
+function ouvreLivraisonCentre(suite){
+  const l=G.livraisonCentre; G.livraisonCentre=null;
+  if(!l || !l.apres || EN_TEST() || typeof document==="undefined") return suite();
+  const fiche=document.getElementById("fiche");
+  if(!fiche || !fiche.style) return suite();
+  fiche.innerHTML=carteLivraisonCentre(l);
+  fiche.style.display="flex"; window._penEnCours=true;
+  const bt=document.getElementById("bLivrOk");
+  bt.onclick=()=>{ window._penEnCours=false; fermeFiche(); suite(); };
+  if(bt.focus) bt.focus({preventScroll:true});
+}
+/* La maquette de l'écran Club, en cache comme celle du stade : elle ne se redessine que si le campus a bougé. */
+let CACHE_CENTRE={k:null, svg:""};
+function maquetteCentre(){
+  const R=etatCampus(), ch=G.campus&&G.campus.chantier;
+  const k=JSON.stringify(R)+"|"+(ch?ch.fam+"|"+ch.niv+"|"+ch.reste:"");
+  if(CACHE_CENTRE.k===k) return CACHE_CENTRE.svg;
+  let svg=CENTRE3D.scene(R, ch?{ch:{fam:ch.fam, niv:ch.niv}}:{}).svg;
+  if(ch){ // badge de travaux dans le coin haut-gauche, comme au stade
+    const nom=ch.fam==="chateau"?"Le château":CENTRE3D.nomNiveau(CENTRE3D.FAM[ch.fam], ch.niv, R.annee);
+    const txt="🏗 "+nom+" · J-"+ch.reste, bw=Math.min(660, 26+txt.length*8.2);
+    svg=svg.replace(/<\/svg>$/, `<g><rect x="48" y="44" width="${bw.toFixed(0)}" height="26" rx="3" fill="#1a1300" stroke="#ffd24a" stroke-width="1.4"/>
+      <text x="58" y="63" fill="#ffd24a" font-family="VT323,monospace" font-size="19">${esc(txt)}</text></g></svg>`);
+  }
+  CACHE_CENTRE={k, svg};
+  return svg;
+}
+// le bloc du centre dans l'écran Club : titre = le palier, sa phrase, la maquette, le compteur et les chantiers par famille
+function centreHTML(){
+  const R=etatCampus(), p=CENTRE3D.points(R), pal=CENTRE3D.palier(R), P=CENTRE3D.PALIERS;
+  const suiv=P.find(([s])=>s>p), prev=[...P].reverse().find(([s])=>s<=p)||P[0];
+  const jauge=R.chateau||!suiv?100:Math.max(0,Math.min(100,(p-prev[0])/(suiv[0]-prev[0])*100));
+  const bouton=f=>{ const n=R[f.id]+1;
+    if(n>3) return `<span class="fort">${esc(CENTRE3D.nomNiveau(f,3,R.annee))} ✔</span>`;
+    const m=motifCentre(f.id);
+    return `<button class="act bCentre${m?" off":""}" data-f="${f.id}"${m?` aria-disabled="true" title="${esc(m)}"`:""}>${esc(CENTRE3D.nomNiveau(f,n,R.annee))} · ${MF_C(f.cout[n])} MF · ${f.duree[n]} j</button>`; };
+  const fams=CENTRE3D.FAMS.map(f=>`<div class="famC"><span class="dim">${esc(f.nom)}</span>${bouton(f)}</div>`).join("");
+  const C=CENTRE3D.CHATEAU, mc=motifCentre("chateau"), bloque=!CENTRE3D.chateauOuvert(R);
+  const chateau=R.chateau?"":`<button class="bChateau${mc?" off":""}" id="bChateau"${mc?` aria-disabled="true" title="${esc(mc)}"`:""}>Acheter le château<small>${bloque?esc(mc):`${C.cout} MF · ${C.duree} journées · définitif`}</small></button>`;
+  return `<h3 style="margin-top:14px">${esc(pal)}</h3>
+     <p class="dim" style="font-size:13px">${esc(CENTRE3D.SOUS_PALIER[pal]||"")}</p>
+     <div class="maquette cadreC" id="cadreC">${maquetteCentre()}</div>
+     <p class="glisse dim">Faites glisser la maquette du doigt pour faire le tour du campus.</p>
+     <div class="campTete"><span class="campPts">${p}</span><span class="dim">/ 18</span></div>
+     <div class="campJauge"><i style="width:${Math.round(jauge)}%"></i></div>
+     <div class="famsC">${fams}</div>${chateau}`;
+}
+/* Une vieille partie : G.centre = n (1 à 5) donne min(3, n−1) aux terrains, à la préparation physique et au médical,
+   min(2, n−1) à l'académie, rien à la vie de groupe ni à la vidéo ; chaque niveau est ensuite borné par l'époque. */
+function migreCampus(){
+  if(!G.campus || typeof G.campus!=="object"){
+    const n=Math.max(1, Math.min(5, Math.round(+G.centre||1))), k=Math.min(3, n-1), an=anneeJeu(), s=campusDefaut();
+    s.terrains=k; s.physique=k; s.medical=k; s.academie=Math.min(2, n-1);
+    for(const f of CENTRE3D.FAMS) s[f.id]=Math.min(s[f.id], CENTRE3D.nivMax(f, an));
+    G.campus=s;
+  } else G.campus=Object.assign(campusDefaut(), G.campus);
+  const ch=G.campus.chantier;
+  if(ch && !(ch.fam==="chateau" || CENTRE3D.FAM[ch.fam])) G.campus.chantier=null;
+  delete G.centre;
+  G.livraisonCentre=G.livraisonCentre||null;
+}
+/* LE JEUNE DU CRU : académie agréée (niveau 2) ou château, un gamin de 17 ans rejoint l'effectif chaque été.
+   Note 55 à 62, potentiel 78 à 86 (84 à 90 avec le château). Il va là où l'effectif est le plus mince. */
+function jeuneDuCru(moi){
+  if(!moi || !G.campus || !campusEff().cru) return null;
+  const par=p=>moi.joueurs.filter(j=>j.pos===p).length/CIBLE[p];
+  const pos=["D","M","A"].sort((a,b)=>par(a)-par(b))[0];
+  const j=genJoueur(pos, moi.pres||4);
+  j.age=17; j.note=RNDI(55,62); j.pot=campusNiv("chateau")?RNDI(84,90):RNDI(78,86);
+  Object.assign(j,{club:moi.id,avendre:false,buts:0,passes:0,matchs:0,note0:j.note,
+                   fav:false,titu:false,uid:uidGen(),bless:0,susp:0,moral:RNDI(65,80),sansJouer:0});
+  moi.joueurs.push(j);
+  ouvreBio(j,"forme"); // formé au club : sa fiche de vie s'ouvre ici
+  notif("🎓 Un jeune du cru : "+j.nom+", 17 ans, "+LIB_POSTE[pos]+", note "+j.note+". Tout le pays en parle déjà.");
+  return j;
 }
 
 /* ---------- Vases communicants : budget transferts ↔ trésorerie ---------- */
@@ -10613,8 +10812,8 @@ function intersaison(){
     }
   }
   // le staff médical du centre soigne les organismes fragiles
-  if(G.centre>=3){
-    const moi=clubById(G.monClub), soin=G.centre>=5?2:1;
+  if(G.campus && campusEff().frag>0){ // médical : −1 au cabinet, −2 à la clinique
+    const moi=clubById(G.monClub), soin=campusEff().frag;
     for(const j of moi.joueurs) if(j.fragile>4){
       j.fragile=Math.max(2,j.fragile-soin);
       if(j.fragile<=4) rec.push("Le staff médical a transformé "+j.nom+" : sa fragilité appartient au passé.");
@@ -10656,6 +10855,7 @@ function intersaison(){
       rec.push("EN ÉTAT DE GRÂCE : "+heros.nom+" semble métamorphosé à l'entraînement. Et si c'était SA saison ?");
     }
   }
+  jeuneDuCru(moi); // l'académie agréée (ou le château) sort chaque été un gamin du pays
   // budgets de transfert des clubs IA : réapprovisionnés chaque saison selon le prestige (marché vivant)
   for(const c of G.clubs.concat(G.autre||[])) if(c.id!==G.monClub) c.budget=Math.max(c.budget||0, (c.pres||4)*4e6+6e6);
   // Le vivier du recruteur VIEILLIT d'un an, tourne, puis se recomplète en vrais noms de l'époque.
@@ -10704,7 +10904,7 @@ function migre(){
   G.primeMatch=+G.primeMatch||0; G.promoBillets=!!G.promoBillets; // prime de victoire (opt-in par match) + promo billets scolaires
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
-  G.centre=G.centre||1; G.offreExt=G.offreExt||null; G.offrePret=G.offrePret||null;
+  migreCampus(); G.offreExt=G.offreExt||null; G.offrePret=G.offrePret||null;
   G.flash=G.flash||null; G.intro=(G.intro==null?null:G.intro); // occasion de la semaine + mot d'ouverture de saison
   G.multiplex=G.multiplex||null; G.rangAv=G.rangAv||null; // le multiplex de fin de journée (v1.17) : absent des carrières d'avant
   G.notifs=G.notifs||[]; G.declar=G.declar||null; G.buzz=G.buzz||0; G.incident=G.incident||null;
@@ -11590,9 +11790,9 @@ function ecranCalendrier(){
   // sachant qui est blessé. Seule la promo billets attend : elle concerne le samedi, pas le mercredi.
   // Chaque étape se consume (G.incident, G.confPresse, G.notifs… remis à zéro) : revenir sur l'écran ne rejoue rien.
   const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDebrief(rdv?null:ouvrePromo)));
-  ouvreLivraison(()=>{
+  ouvreLivraison(()=>ouvreLivraisonCentre(()=>{
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
-    else { ouvreEre(finChaine); } });
+    else { ouvreEre(finChaine); } }));
   // toute l'échelle reculée d'un cran (le défilement par défaut respire davantage) ; « Très lente » est le nouveau plancher
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
   surligneVitesse(); // état initial : « Normale » mise en valeur
@@ -11830,10 +12030,18 @@ function briefAdverse(adv){
     return js.length?`<div class="fLigne">${js.map(x=>dang.includes(x.j)?`<span class="advDanger">${esc(x.j.nom)}</span>`:`<span>${esc(x.j.nom)}</span>`).join("")}</div>`:""; };
   const pourquoi=j=>(j.buts?j.buts+" but"+(j.buts>1?"s":""):j.passes?j.passes+" passe"+(j.passes>1?"s":"")+" déc.":"note "+j.note)+(j.tireurElite?" · 🎯":"");
   return `<div class="briefAdv">
-       <div class="briefTete">${blason(adv,24)}<b class="fort">${esc(adv.nom)}</b>${rang?`<span class="dim">${rang}</span>`:""}<span class="dim">${cleFormation(adv)}</span></div>
+       <div class="briefTete">${blason(adv,24)}<b class="fort">${esc(adv.nom)}</b>${rang?`<span class="dim">${rang}</span>`:""}${campusNiv("video")>=1?`<span class="dim">${cleFormation(adv)}</span>`:""}</div>
        <div class="terrainXI">${ligne("A")}${ligne("M")}${ligne("D")}${ligne("G")}</div>
        <p class="briefDang">${dang.map(j=>`<span><b>${esc(nomLong(j.nom))}</b> <span class="dim">${pourquoi(j)}</span></span>`).join("")}</p>
+       ${campusNiv("video")>=3?`<p class="briefFaible">${esc(pointFaible(adv))}</p>`:""}
      </div>`;
+}
+/* LA CELLULE D'ANALYSE (vidéo niveau 3) désigne la zone où l'adversaire est le plus en retard sur vous, en une phrase. */
+function pointFaible(adv){
+  const moi=clubById(G.monClub); if(!moi||!adv) return "";
+  const fm=forces(moi), fa=forces(adv);
+  const z=[[fa.def/fm.att,"leur défense, qui va souffrir face à votre attaque"],[fa.mil/fm.mil,"leur milieu, en retard sur le vôtre"],[fa.att/fm.def,"leur attaque, qui bute sur votre défense"]].sort((a,b)=>a[0]-b[0])[0];
+  return "La cellule d'analyse a trouvé la faille : "+z[1]+".";
 }
 function blocFormation(xi, adv){
   const k=FORMATIONS[G.formation]?G.formation:"4-4-2";
@@ -11914,6 +12122,7 @@ function coupeJoue(instant){
   const f=aj.paires.find(p=>p.hid===G.monClub||p.aid===G.monClub);
   if(!f){ coupeResoutTour(false); return montre("calendrier"); }
   const advId=f.hid===G.monClub?f.aid:f.hid, suite=()=>montre("calendrier");
+  miseAuVert(); // le château : la veille d'un tour de coupe, tout le vestiaire au vert
   if(instant){ const tourIdx=aj.tourIdx, nom=aj.nom;
     coupeResoutTour(true); // la fenêtre fait le rôle de la notif perso
     return coupeFenetreVerdict(advId, tourIdx, nom, suite); }
@@ -11931,6 +12140,7 @@ function euroJoue(instant){
   if(idx<0){ euroResoutTour(false); return montre("calendrier"); }
   const pair=aj.paires[idx], advId=pair[0]===G.monClub?pair[1]:pair[0];
   const manche=euroMancheDe(aj), aller=(manche===1 && !aj.finale), suite=()=>montre("calendrier");
+  miseAuVert(); // le château : la veille d'une soirée européenne, tout le vestiaire au vert
   if(instant){ const tourIdx=aj.tourIdx, nom=aj.nom;
     euroResoutTour(true);
     return aller ? euroFenetreAller(advId, suite) : euroFenetreVerdict(advId, tourIdx, nom, suite); }
@@ -13290,12 +13500,12 @@ function mettreAuRepos(j){
 const MONTEES_MAX=2;
 function monteeCentre(pos){
   const c=clubById(G.monClub);
-  if((G.montees||0)>=MONTEES_MAX) return message("Le centre a déjà fait monter "+MONTEES_MAX+" joueurs cette saison. La promotion suivante attendra l'intersaison.", {titre:"🎓 CENTRE DE FORMATION"});
-  const niv=G.centre||1;
+  if((G.montees||0)>=monteesMax()) return message("Le centre a déjà fait monter "+monteesMax()+" joueurs cette saison. La promotion suivante attendra l'intersaison.", {titre:"🎓 CENTRE DE FORMATION"});
+  const ac=campusEff(); // académie : note +2 / 4 / 7, potentiel +3 / 6 / 10
   const j=genJoueur(pos, c.pres);
   j.age=RNDI(17,20);
-  j.note=Math.max(45, Math.min(72, j.note-RNDI(6,12)+2*niv));
-  j.pot=Math.min(92, Math.max(j.note, j.note+RNDI(4,12)+2*niv));
+  j.note=Math.max(45, Math.min(72, j.note-RNDI(6,12)+ac.note));
+  j.pot=Math.min(92, Math.max(j.note, j.note+RNDI(4,12)+ac.pot));
   Object.assign(j,{club:c.id,avendre:false,buts:0,passes:0,matchs:0,note0:j.note,
                    fav:false,titu:false,uid:uidGen(),bless:0,susp:0,moral:RNDI(65,80),sansJouer:0});
   c.joueurs.push(j);
@@ -13360,7 +13570,7 @@ function ecranEffectif(){
        ? "EFFECTIF HORS DES CLOUS : il manque "+liste(hors.map(p=>mq[p]+" "+(mq[p]>1?LIB_POSTES[p]:LIB_POSTE[p])))+"."
        : (marge<=0 ? "Effectif AU PLANCHER : aucun départ possible tant que vous n'avez pas recruté."
                    : "Marge : "+marge+" départ"+(marge>1?"s":"")+".");
-     const reste=MONTEES_MAX-(G.montees||0);
+     const reste=monteesMax()-(G.montees||0);
      const cf=reste>0
        ? `<p style="margin-top:4px;font-size:13px">🎓 Centre de formation · <b>${reste}</b> promotion${reste>1?"s":""} restante${reste>1?"s":""} : ${["G","D","M","A"].map(p=>`<button class="act bCF" data-p="${p}">${LIB_POSTE[p][0].toUpperCase()+LIB_POSTE[p].slice(1)}</button>`).join(" ")}</p>`
        : `<p class="dim" style="margin-top:4px;font-size:13px">🎓 Plus de promotion avant l'intersaison.</p>`;
@@ -13652,6 +13862,7 @@ function ecranFinances(){
     <tr><td>Trésorerie</td><td class="num">${(G.tresorerie/1e6).toFixed(1)} MF</td></tr>
     <tr><td>Masse salariale hebdomadaire</td><td class="num rouge">- ${FMT(masse)} FF</td></tr>
     <tr><td>Frais de fonctionnement</td><td class="num rouge">- ${FMT(fraisJournee(c))} FF/j</td></tr>
+    <tr><td>Entretien du centre</td><td class="num ${campusEntretienJour()>0?'rouge':'dim'}">${campusEntretienJour()>0?"- "+FMT(campusEntretienJour())+" FF/j":"-"}</td></tr>
     <tr><td>Staff technique</td><td class="num ${staffCoutJournee()>0?'rouge':'dim'}">${staffCoutJournee()>0?"- "+FMT(staffCoutJournee())+" FF/j":"-"}</td></tr>
     <tr><td>Droits TV par journée</td><td class="num vert">+ ${G.div===1?"0,45":"0,20"} MF</td></tr>
     <tr><td>Équipementier</td><td class="num">${G.equip?'<span class="vert">'+esc(G.equip.nom)+" : +"+FMT(G.equip.fixe)+" FF/j</span>":'<span class="dim">-</span>'}</td></tr>
@@ -14559,6 +14770,470 @@ const STADE3D=(()=>{
   }
   return {vueMaquette, vueVille, capTribunes, coteSuivante};
 })(); /* ---- fin de la maquette ---- */
+/* ---- CENTRE3D : DÉBUT (v1.53) ----
+   Catalogue (FAMS, PALIERS, CHATEAU), calculs et moteur de dessin du campus, repris TELS QUELS du prototype validé
+   par l'auteur (championnat/docs/prototype-centre.html), enfermés dans CENTRE3D pour que leurs noms courts (T, P, PI,
+   bx, rnd, clamp…) ne croisent pas ceux du jeu. Deux retouches, faites par le script : les classes animées qui existent
+   déjà pour le stade sont préfixées (cVapeur, cEclat, cClign), et les dégradés prennent le préfixe « ct ».
+   Le bloc lit REDUIT (prefers-reduced-motion), défini par le jeu.
+   Pour le régénérer depuis le prototype : node docs/greffe-centre.cjs . (depuis championnat/). */
+const CENTRE3D=(()=>{
+  /* ============================================================
+     MODÈLE : six familles, trois niveaux chacune, et le château
+     ============================================================ */
+  const FAMS=[
+    {id:'terrains', nom:'Terrains',
+     niv:['Un terrain bosselé','Deux terrains en herbe','Quatre terrains, dont un éclairé','La halle couverte'],
+     court:['Bosselé','2 terrains','4 terrains','Halle'],
+     cout:[0,3,8,20], duree:[0,2,3,6], ent:[0,10,25,55],
+     eff:['','Progression des jeunes +10 %','Progression des jeunes +20 %','Progression des jeunes +30 % · l\'hiver, +3 de fraîcheur par semaine'],
+     sous:['','Le jardinier a rebouché les trous. Les frappes ne rebondissent plus sur les taupinières.','Quatre terrains et des projecteurs : on s\'entraîne même quand la nuit tombe à cinq heures.','Il gèle dehors, on fait des toros en tee-shirt.']},
+    {id:'physique', nom:'Préparation physique',
+     niv:['On court autour du terrain','Salle de musculation','Centre de performance','Laboratoire'],
+     court:['Rien','Muscu','Balnéo','Labo'],
+     cout:[0,2,7,18], duree:[0,2,3,5], ent:[0,8,20,45], des:[0,0,0,2004],
+     eff:['','Blessures −8 % · récupération +10 %','Blessures −16 % · récupération +20 %','Blessures −25 % · récupération +30 % · +2 de fraîcheur par semaine'],
+     sous:['','Des haltères, un vélo d\'appartement et un poster qui gondole.','Le bassin chauffe à 34 degrés. Les vétérans ne veulent plus en sortir.','Moins cent dix degrés pendant trois minutes. Le libéro en ressort la moustache gelée.']},
+    {id:'medical', nom:'Médical',
+     niv:['La trousse du soigneur','Infirmerie','Cabinet médical','Clinique du sport'],
+     court:['Trousse','Infirmerie','Cabinet','Clinique'],
+     cout:[0,2,6,16], duree:[0,2,3,5], ent:[0,8,18,40], des:[0,0,0,1998],
+     eff:['','Blessures plus courtes de 15 %','Blessures plus courtes de 30 % · fragilité soignée l\'été','Blessures plus courtes de 45 % · fragilité −2 l\'été'],
+     sous:['','Une table de massage et un stock de bombes de froid.','Un médecin à plein temps et un kiné qui connaît chaque ischio par son prénom.','Une IRM sur place : le diagnostic tombe avant la fin de la séance.']},
+    {id:'vie', nom:'Vie de groupe',
+     niv:['Le préfabriqué','Vestiaires en dur','Maison des pros','Résidence'],
+     court:['Préfa','Vestiaires','Maison','Résidence'],
+     cout:[0,3,9,22], duree:[0,2,4,6], ent:[0,10,30,60],
+     eff:['','Moral +0,3 par journée · primes de signature −10 %','Moral +0,6 par journée · primes −20 % · cohésion +2 %','Moral +1 par journée · primes −30 % · cohésion +3 %'],
+     sous:['','Des douches chaudes pour tout le monde. Même pour les remplaçants.','Un réfectoire, un diététicien, et la fin des frites au petit-déjeuner.','Des chambres pour la mise au vert. Le président a fait installer une table de ping-pong.']},
+    {id:'academie', nom:'Académie',
+     niv:['Les jeunes avec les pros','Internat','Centre de formation agréé','Académie de renom'],
+     court:['Rien','Internat','Agréé','Renom'],
+     cout:[0,3,10,24], duree:[0,3,4,6], ent:[0,12,30,65],
+     eff:['','Jeunes montés : note +2, potentiel +3','Note +4, potentiel +6 · un jeune du cru chaque été','Note +7, potentiel +10 · trois montées par saison'],
+     sous:['','Vingt gamins de quinze ans, un surveillant et des devoirs à rendre.','La Fédération a signé l\'agrément. Les recruteurs des grands clubs rôdent autour des terrains.','Une tribune pour les matchs des U17. Les parents viennent en car.']},
+    {id:'video', nom:'Vidéo',
+     niv:['Le tableau noir','Le magnétoscope','Salle vidéo','Cellule d\'analyse'],
+     court:['Tableau','Magnéto','Salle','Cellule'],
+     cout:[0,1.5,5,14], duree:[0,1,2,4], ent:[0,5,15,35], des:[0,0,0,2002],
+     eff:['','Duel du milieu +1 % · la formation adverse connue d\'avance','Duel du milieu +2 %','Duel du milieu +3 % · le point faible adverse désigné'],
+     sous:['','Une télé sur un chariot et des cassettes du prochain adversaire.','Des fauteuils, un projecteur et un adjoint qui rembobine au ralenti.','Une caméra en haut d\'un mât filme chaque séance. L\'ordinateur compte les kilomètres.']},
+  ];
+  const FAM=Object.fromEntries(FAMS.map(f=>[f.id,f]));
+  const CHATEAU={cout:60, duree:12, ent:100};
+  const PALIERS=[[0,'Terrain annexe'],[3,'Centre d\'entraînement'],[7,'Domaine du club'],[11,'Centre de haute performance'],[15,'Campus']];
+  const SOUS_PALIER={
+    'Terrain annexe':'Un terrain bosselé, un préfabriqué, et c\'est tout. Tout commence ici.',
+    'Centre d\'entraînement':'Les bases sont posées. On ne s\'entraîne plus dans la boue.',
+    'Domaine du club':'Le club a son coin à lui. Les joueurs arrivent le matin et repartent le soir.',
+    'Centre de haute performance':'Les agents en parlent à leurs clients. Les jeunes du coin en rêvent.',
+    'Campus':'Tout y est. Il ne manque plus qu\'un château.',
+    'Le Château':'Le club a ses murs, ses tours et son parc. On y écrit l\'histoire.'};
+
+  const f1=v=>(+v).toFixed(1);
+  const fr=v=>String(Math.round(v*10)/10).replace('.',',');
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function rnd(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  const saison=a=>a+'-'+String((a+1)%100).padStart(2,'0');
+
+  function points(R){ return FAMS.reduce((s,f)=>s+R[f.id],0); }
+  function palier(R){ if(R.chateau) return 'Le Château'; const p=points(R); let n=PALIERS[0][1]; for(const [s,nm] of PALIERS) if(p>=s) n=nm; return n; }
+  function nivMax(f,annee){ if(!f.des) return 3; for(let n=1;n<=3;n++) if(f.des[n]&&f.des[n]>annee) return n-1; return 3; }
+  function chateauOuvert(R){ return points(R)>=15 && FAMS.every(f=>R[f.id]>=2); }
+  function nomNiveau(f,n,annee){ if(f.id==='terrains'&&n===2) return annee<2002?'Quatre terrains, dont un stabilisé éclairé':'Quatre terrains, dont un synthétique éclairé'; return f.niv[n]; }
+
+  function effets(R){
+    const t=R.terrains,p=R.physique,m=R.medical,v=R.vie,a=R.academie,d=R.video,c=R.chateau;
+    const bless=[0,8,16,25][p], duree=[0,15,30,45][m];
+    const perdues=8.4*(1-bless/100)*3.5*(1-duree/100);
+    let invest=c?CHATEAU.cout:0, ent=c?CHATEAU.ent:0;
+    for(const f of FAMS){ for(let n=1;n<=R[f.id];n++) invest+=f.cout[n]; ent+=f.ent[R[f.id]]; }
+    return {
+      prog:[0,10,20,30][t]+(c?10:0), hiver:t===3?3:0,
+      bless, recup:[0,10,20,30][p], fraich:p===3?2:0,
+      duree, frag:[0,0,1,2][m],
+      moral:[0,.3,.6,1][v]+(c?.2:0), prime:[0,10,20,30][v], coh:[0,0,2,3][v],
+      note:[0,2,4,7][a], pot:[0,3,6,10][a], montees:(a===3?3:2)+(c?1:0), cru:a>=2||c,
+      tac:[0,1,2,3][d],
+      sauvees:29.4-perdues, invest, entSaison:ent*38/1000
+    };
+  }
+
+  /* ============================================================
+     DESSIN : la maquette isométrique du campus
+     Même projection que la maquette du stade. Le campus fait
+     240 m sur 200 m, les terrains d'entraînement 75 m sur 60.
+     ============================================================ */
+  const IS={sc:1.7,c:0.8660254,s:0.5,cx:352,cy:88};
+  let BB=null, COLLECT=false, CH=false;
+  function PI(x,y,z){ const X=IS.cx+(x-y)*IS.c*IS.sc, Y=IS.cy+((x+y)*IS.s-z)*IS.sc;
+    if(COLLECT){ if(!BB) BB=[X,Y,X,Y]; else { if(X<BB[0])BB[0]=X; if(Y<BB[1])BB[1]=Y; if(X>BB[2])BB[2]=X; if(Y>BB[3])BB[3]=Y; } }
+    return [X,Y]; }
+  function P(x,y,z){ const p=PI(x,y,z); return f1(p[0])+','+f1(p[1]); }
+  function poly(pts,fill,extra){ return `<polygon points="${pts.map(p=>P(p[0],p[1],p[2])).join(' ')}" fill="${fill}"${extra||''}/>`; }
+  function seg(a,b,extra){ const p=PI(...a), q=PI(...b); return `<line x1="${f1(p[0])}" y1="${f1(p[1])}" x2="${f1(q[0])}" y2="${f1(q[1])}"${extra||''}/>`; }
+  function rect(x0,x1,y0,y1,z,fill,extra){ return poly([[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],fill,extra); }
+
+  const MAT={
+    prefab:['#6b7c92','#566679','#435266'],
+    brique:['#6d4a3c','#8a5a44','#6b4535'],
+    beton:['#7b8ba1','#5f6f86','#4a596e'],
+    clair:['#a3b1c4','#8494aa','#687890'],
+    tole:['#56677d','#4a5a6f','#3b495b'],
+    verre:['#7fa3c4','#35658f','#2a5174'],
+    pierre:['#b9ad95','#c9bda3','#a3977f'],
+    chantier:['#c98a4f','#b0703a','#8e5a2e'],
+  };
+  const mat=m=>CH?MAT.chantier:MAT[m];
+  function bx(x0,x1,y0,y1,z0,z1,m){
+    const c=mat(m);
+    let o=poly([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],c[1])+poly([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],c[2])+rect(x0,x1,y0,y1,z1,c[0]);
+    if(CH){ const e=' stroke="#e6b98a" stroke-width=".45" opacity=".75"';
+      for(let x=x0+3;x<x1;x+=4) o+=seg([x,y1,z0],[x,y1,z1],e);
+      for(let y=y0+3;y<y1;y+=4) o+=seg([x1,y,z0],[x1,y,z1],e);
+      for(let z=z0+3;z<z1;z+=3) o+=seg([x0,y1,z],[x1,y1,z],e)+seg([x1,y0,z],[x1,y1,z],e); }
+    return o; }
+  function fenY(y,x0,x1,z0,z1,cols,rows,seed,frac){ if(CH) return ''; const r=rnd(seed), cw=(x1-x0)/cols, rh=(z1-z0)/rows; let o='';
+    for(let i=0;i<cols;i++) for(let j=0;j<rows;j++){ const a=x0+i*cw+cw*.28, b=a+cw*.44, c=z0+j*rh+rh*.28, d=c+rh*.46, lit=r()<(frac==null?.7:frac);
+      o+=poly([[a,y+.05,c],[b,y+.05,c],[b,y+.05,d],[a,y+.05,d]], lit?'#ffd98a':'#15263b', lit?' opacity=".9"':''); }
+    return o; }
+  function fenX(x,y0,y1,z0,z1,cols,rows,seed,frac){ if(CH) return ''; const r=rnd(seed), cw=(y1-y0)/cols, rh=(z1-z0)/rows; let o='';
+    for(let i=0;i<cols;i++) for(let j=0;j<rows;j++){ const a=y0+i*cw+cw*.28, b=a+cw*.44, c=z0+j*rh+rh*.28, d=c+rh*.46, lit=r()<(frac==null?.7:frac);
+      o+=poly([[x+.05,a,c],[x+.05,b,c],[x+.05,b,d],[x+.05,a,d]], lit?'#ffd98a':'#15263b', lit?' opacity=".9"':''); }
+    return o; }
+  function panneau(o,m,w,txt,fs,fond,enc,coul){ return `<g transform="matrix(${m},${f1(o[0])},${f1(o[1])})"><rect width="${w}" height="${f1(fs+1.6)}" fill="${fond}" stroke="${enc}" stroke-width=".3"/><text x="${w/2}" y="${f1(fs+.35)}" text-anchor="middle" font-family="Silkscreen,monospace" font-size="${fs}" fill="${coul}">${txt}</text></g>`; }
+  const panX=(x,y,z,w,txt,fs,f,e,c)=>CH?'':panneau(PI(x,y,z),`${f1(IS.c*IS.sc)},${f1(-IS.s*IS.sc)},0,${f1(IS.sc)}`,w,txt,fs,f||'#0e1d35',e||'#8fa6c4',c||'#f2f5fa');
+  const panY=(x,y,z,w,txt,fs,f,e,c)=>CH?'':panneau(PI(x,y,z),`${f1(IS.c*IS.sc)},${f1(IS.s*IS.sc)},0,${f1(IS.sc)}`,w,txt,fs,f||'#0e1d35',e||'#8fa6c4',c||'#f2f5fa');
+  function croixRouge(pts){ return poly(pts,'#ff6f61'); }
+  function arbre(x,y,r,h){ r=r||6; h=h||4.5; const b=PI(x,y,0), t=PI(x,y,h);
+    return `<line x1="${f1(b[0])}" y1="${f1(b[1])}" x2="${f1(t[0])}" y2="${f1(t[1])}" stroke="#3a2c1c" stroke-width="2"/><circle cx="${f1(t[0])}" cy="${f1(t[1])}" r="${r}" fill="#163d2d"/><circle cx="${f1(t[0]-r*.25)}" cy="${f1(t[1]-r*.3)}" r="${f1(r*.55)}" fill="#1f5139"/>`; }
+  function pylone(x,y,h){ const b=PI(x,y,0), t=PI(x,y,h);
+    return `<line x1="${f1(b[0])}" y1="${f1(b[1])}" x2="${f1(t[0])}" y2="${f1(t[1])}" stroke="#8193ad" stroke-width="1.5"/><circle cx="${f1(t[0])}" cy="${f1(t[1])}" r="30" fill="url(#ctHalo)" opacity=".5"/><rect x="${f1(t[0]-5)}" y="${f1(t[1]-3.5)}" width="10" height="6" rx="1" fill="#1b2b42" stroke="#c9d6e8" stroke-width=".7"/><circle cx="${f1(t[0]-2.5)}" cy="${f1(t[1]-.5)}" r="1.3" fill="#fffbe6"/><circle cx="${f1(t[0]+2.5)}" cy="${f1(t[1]-.5)}" r="1.3" fill="#fffbe6"/>`; }
+  function parasol(x,y,col){ return seg([x,y,.3],[x,y,3],' stroke="#c9d6e8" stroke-width=".7"')+poly([[x-2,y,2.8],[x,y-2,2.8],[x+2,y,2.8],[x,y+2,2.8]],col); }
+  function grue(x,y,h){ const b=PI(x,y,0), t=PI(x,y,h), j1=PI(x+30,y,h), j2=PI(x-11,y,h), c1=PI(x+22,y,h), c2=PI(x+22,y,h-13), o='#d98a3a';
+    let z=''; for(let q=0;q<=10;q++){ const u=q/10; z+=(q?' L':'M')+f1(b[0]+(t[0]-b[0])*u+(q%2?2:-2))+' '+f1(b[1]+(t[1]-b[1])*u); }
+    return `<g><line x1="${f1(b[0]-2)}" y1="${f1(b[1])}" x2="${f1(t[0]-2)}" y2="${f1(t[1])}" stroke="${o}" stroke-width="1"/><line x1="${f1(b[0]+2)}" y1="${f1(b[1])}" x2="${f1(t[0]+2)}" y2="${f1(t[1])}" stroke="${o}" stroke-width="1"/><path d="${z}" fill="none" stroke="${o}" stroke-width=".6"/>
+      <line x1="${f1(j2[0])}" y1="${f1(j2[1])}" x2="${f1(j1[0])}" y2="${f1(j1[1])}" stroke="${o}" stroke-width="1.6"/><rect x="${f1(j2[0]-3)}" y="${f1(j2[1]-1)}" width="6" height="5" fill="#5a6b80"/>
+      <rect x="${f1(t[0]-3)}" y="${f1(t[1]-1)}" width="6" height="4.5" fill="#f2f5fa"/><line x1="${f1(c1[0])}" y1="${f1(c1[1])}" x2="${f1(c2[0])}" y2="${f1(c2[1])}" stroke="#c9d6e8" stroke-width=".5"/><rect x="${f1(c2[0]-1.8)}" y="${f1(c2[1])}" width="3.6" height="3" fill="${o}"/>
+      <circle class="cClign" cx="${f1(t[0])}" cy="${f1(t[1]-3)}" r="1.4" fill="#ff6f61"/></g>`; }
+
+  /* --- terrains --- */
+  const T=[[60,60,135,120],[150,60,225,120],[60,132,135,192],[150,132,225,192]];
+  function pitch(x0,y0,x1,y1,kind,mow){
+    const K={herbe:['#3a7040','#32653a'],pele:['#3a7040','#32653a'],stab:['#8a6a45','#846542'],synth:['#2f8f55','#2a824d'],terre:['#5a4330','#523d2c']}[kind];
+    let o=''; const nb=8;
+    for(let b=0;b<nb;b++){ const a=x0+(x1-x0)*b/nb, c=x0+(x1-x0)*(b+1)/nb; o+=rect(a,c,y0,y1,0,K[b%2]); }
+    if(kind==='terre'){ for(let y=y0+4;y<y1;y+=5) o+=seg([x0+2,y,0],[x1-2,y,0],' stroke="#6b5139" stroke-width=".6"'); return o; }
+    if(mow) for(let b=0;b<6;b++) if(b%2) o+=rect(x0,x1,y0+(y1-y0)*b/6,y0+(y1-y0)*(b+1)/6,0,'#e8ffe0',' opacity=".07"');
+    if(kind==='pele'){ const tache=(x,y,rx,ry)=>{ const pts=[]; for(let a=0;a<18;a++){ const t=a/18*Math.PI*2, j=1+.2*Math.sin(t*3+x); pts.push([x+rx*j*Math.cos(t),y+ry*j*Math.sin(t),0]); } return poly(pts,'#7d6b3e',' opacity=".55"'); };
+      const my=(y0+y1)/2, mx=(x0+x1)/2; o+=tache(x0+5,my,4,8)+tache(x1-5,my,4,8)+tache(mx,my,7,5)+tache(mx-18,y0+12,3,3)+tache(mx+14,y1-10,4,3)+tache(mx-22,y1-14,3,2); }
+    const lc=kind==='stab'?'#efe3cf':'#e8fbef', op=kind==='pele'?.4:.85, lg=` stroke="${lc}" stroke-width=".8" stroke-opacity="${op}"`;
+    const X0=x0+2,X1=x1-2,Y0=y0+2,Y1=y1-2,mx=(X0+X1)/2,my=(Y0+Y1)/2;
+    o+=rect(X0,X1,Y0,Y1,0,'none',lg)+seg([mx,Y0,0],[mx,Y1,0],lg);
+    { const pts=[]; for(let a=0;a<24;a++){ const t=a/24*Math.PI*2; pts.push([mx+6*Math.cos(t),my+6*Math.sin(t),0]); } o+=poly(pts,'none',lg); }
+    for(const [xe,sg] of [[X0,1],[X1,-1]]){ o+=poly([[xe,my-13,0],[xe+sg*11,my-13,0],[xe+sg*11,my+13,0],[xe,my+13,0]],'none',lg);
+      o+=poly([[xe,my-3.6,0],[xe,my+3.6,0],[xe,my+3.6,2.4],[xe,my-3.6,2.4]],'#f2f5fa',' fill-opacity=".2" stroke="#f2f5fa" stroke-width=".7"'); }
+    return o; }
+  function friche(x0,y0,x1,y1){ let o=rect(x0,x1,y0,y1,0,'#18301f'); const r=rnd(x0*7+y0);
+    for(let i=0;i<14;i++){ const x=x0+4+r()*(x1-x0-8), y=y0+4+r()*(y1-y0-8); o+=rect(x,x+2,y,y+1.4,0,'#21402a'); } return o; }
+  function halle(){ const x0=146,x1=229,y0=128,y1=196,zw=8,hv=13,N=12; let o='';
+    const arc=[]; for(let k=0;k<=N;k++){ const t=k/N; arc.push([x1,y0+(y1-y0)*t,zw+hv*Math.sin(Math.PI*t)]); }
+    const c0=[142,162,187], c1=[81,99,124];
+    for(let k=0;k<N;k++){ const a=arc[k], b=arc[k+1], u=k/(N-1), col=CH?MAT.chantier[k<N/2?0:1]:'rgb('+c0.map((v,i)=>Math.round(v+(c1[i]-v)*u)).join(',')+')';
+      o+=poly([[x0,a[1],a[2]],[x1,a[1],a[2]],[x1,b[1],b[2]],[x0,b[1],b[2]]],col); }
+    if(!CH) for(let x=x0+8;x<x1;x+=10){ let d=''; arc.forEach((p,i)=>{ const q=PI(x,p[1],p[2]); d+=(i?'L':'M')+f1(q[0])+' '+f1(q[1]); }); o+=`<path d="${d}" fill="none" stroke="#b3c4d9" stroke-width=".45" opacity=".55"/>`; }
+    o+=poly([[x0,y1,0],[x1,y1,0],[x1,y1,zw],[x0,y1,zw]],CH?MAT.chantier[2]:'#34506d');
+    if(!CH) o+=poly([[x0+2,y1+.05,3],[x1-2,y1+.05,3],[x1-2,y1+.05,6],[x0+2,y1+.05,6]],'#ffd98a',' opacity=".3"');
+    o+=poly([[x1,y0,0],...arc,[x1,y1,0]],CH?MAT.chantier[1]:'#2c5578');
+    if(!CH){ o+=poly([[x1+.05,y0+3,.8],...arc.slice(1,-1).map(p=>[p[0]+.05,p[1],p[2]-1.8]),[x1+.05,y1-3,.8]],'#ffd98a',' opacity=".2"');
+      for(let k=2;k<N;k+=2) o+=seg([x1+.1,arc[k][1],0],[x1+.1,arc[k][1],arc[k][2]],' stroke="#9fb3cc" stroke-width=".4"');
+      o+=panX(x1,176,zw+7.5,26,'LA HALLE',3,'#0e1d35','#c9d6e8','#f2f5fa'); }
+    return o; }
+  function dessTerrains(lvl,ann,ch,gnd,add){
+    const neuf=ch?lvl:-1, k4=ann<2002?'stab':'synth';
+    gnd(()=>{ let s='';
+      s+= neuf===1?pitch(...T[0],'terre'):pitch(...T[0],lvl===0?'pele':'herbe',lvl>=3);
+      s+= lvl>=1?(neuf===1?pitch(...T[1],'terre'):pitch(...T[1],'herbe',lvl>=3)):friche(...T[1]);
+      s+= lvl>=2?(neuf===2?pitch(...T[2],'terre'):pitch(...T[2],'herbe')):friche(...T[2]);
+      s+= lvl>=2?(neuf===2?pitch(...T[3],'terre'):pitch(...T[3],k4)):friche(...T[3]);
+      return s; });
+    if(lvl===2 && neuf!==2) for(const [x,y] of [[147,129],[228,129],[147,195],[228,195]]) add(x+y,()=>pylone(x,y,24));
+    if(lvl>=3){ add(420,()=>halle(),ch); if(!ch) for(const [x,y] of [[58,58],[137,58],[58,122],[137,122]]) add(x+y,()=>pylone(x,y,24)); }
+  }
+
+  /* --- vie de groupe --- */
+  function dessVie(lvl,ch,add){
+    if(lvl===0) return add(100,()=>bx(62,84,22,36,0,5,'prefab')+poly([[70,36.05,0],[73,36.05,0],[73,36.05,3.4],[70,36.05,3.4]],'#1a2638')+fenY(36,74,84,1.5,4,3,1,3,.5)+fenX(84,24,34,1.5,4,3,1,4,.4));
+    if(lvl===1) return add(100,()=>bx(54,98,14,40,0,6.5,'brique')+fenY(40,56,96,1.5,5.5,9,1,11,.75)+fenX(98,16,38,1.5,5.5,4,1,12)+panY(60,40,9.4,24,'VESTIAIRES',2.2),ch);
+    add(100,()=>{ let o=bx(54,98,12,42,0,13,'clair')+fenY(42,55,97,1,12.5,10,2,21)+fenX(98,13,41,1,12.5,6,2,22);
+      if(lvl===3) o+=bx(54,80,12,34,13,24,'clair')+fenY(34,55,79,13.5,23.5,6,2,31,.8)+fenX(80,13,33,13.5,23.5,5,2,32,.8)+(CH?'':seg([54,34.2,18.5],[80,34.2,18.5],' stroke="#c9d6e8" stroke-width=".6"'))+panY(58,34,26.6,20,'RÉSIDENCE',2.2,'#16243c','#ffd24a','#ffd24a');
+      else o+=panY(62,42,15.6,26,'MAISON DES PROS',2);
+      if(!CH){ o+=rect(58,96,42,49,.3,'#4b3a2a')+parasol(64,46,'#ffd24a')+parasol(76,46,'#f2f5fa')+parasol(88,46,'#ff6f61'); }
+      return o; },ch);
+  }
+  /* --- médical --- */
+  function dessMedical(lvl,ch,add){
+    if(lvl===0) return;
+    if(lvl===1) return add(150,()=>bx(112,132,18,36,0,5,'clair')+fenY(36,113,131,1.5,4,4,1,41,.6)+(CH?'':croixRouge([[121,23,5.05],[123,23,5.05],[123,31,5.05],[121,31,5.05]])+croixRouge([[118,26,5.05],[126,26,5.05],[126,28,5.05],[118,28,5.05]])),ch);
+    if(lvl===2) return add(150,()=>bx(108,136,12,40,0,10,'clair')+fenY(40,109,135,1,9.5,7,2,51)+fenX(136,13,39,1,9.5,6,2,52)+(CH?'':croixRouge([[136.1,29,3],[136.1,31,3],[136.1,31,9],[136.1,29,9]])+croixRouge([[136.1,27,5],[136.1,33,5],[136.1,33,7],[136.1,27,7]])),ch);
+    add(150,()=>bx(107,137,10,42,0,14,'verre')+fenY(42,108,136,1,13.5,9,4,61,.85)+fenX(137,11,41,1,13.5,8,4,62,.85)+(CH?'':croixRouge([[137.1,24.5,6],[137.1,27.5,6],[137.1,27.5,14.5],[137.1,24.5,14.5]])+croixRouge([[137.1,21.5,8.8],[137.1,30.5,8.8],[137.1,30.5,11.7],[137.1,21.5,11.7]])),ch);
+    add(166,()=>bx(107,124,42,50,0,6,'clair')+fenY(50,108,123,1.5,5,5,1,63,.6)+panY(109,50,8.6,12,'IRM',2),ch);
+    if(!ch) add(182,()=>bx(127,135,44.5,48.5,0,3.2,'clair')+poly([[127,48.55,1.2],[135,48.55,1.2],[135,48.55,1.9],[127,48.55,1.9]],'#ff6f61'));
+  }
+  /* --- préparation physique --- */
+  function dessPhysique(lvl,ch,add){
+    if(lvl===0) return;
+    if(lvl===1) return add(190,()=>{ let o=bx(148,178,14,38,0,7,'tole'); if(!CH){ for(let x=150;x<178;x+=2.5) o+=seg([x,38.05,0],[x,38.05,7],' stroke="#34435a" stroke-width=".4"'); o+=poly([[156,38.1,0],[166,38.1,0],[166,38.1,5],[156,38.1,5]],'#2a384a')+panY(150,38,9.6,14,'MUSCU',2.2); } return o; },ch);
+    add(190,()=>{ let o=bx(146,176,12,40,0,10,'beton')+fenY(40,147,175,1,9.5,8,2,71)+fenX(176,13,39,1,9.5,6,2,72);
+      if(lvl===3) o+=bx(150,172,16,36,10,17,'verre')+fenY(36,151,171,10.5,16.5,7,2,73,.9)+fenX(172,17,35,10.5,16.5,5,2,74,.9);
+      return o+panY(148,40,12.6,26,lvl===3?'LABORATOIRE':'PERFORMANCE',2); },ch);
+    if(!ch) add(210,()=>rect(179,193,13,31,.4,'#9aa9bd')+rect(180.5,191.5,14.5,29.5,.45,'#3f8fcf')+seg([182,18,.5],[189,18,.5],' stroke="#8fc3ec" stroke-width=".6" opacity=".7"')+seg([183,24,.5],[190,24,.5],' stroke="#8fc3ec" stroke-width=".6" opacity=".6"')+`<circle cx="${f1(PI(186,22,.5)[0])}" cy="${f1(PI(186,22,.5)[1])}" r="14" fill="url(#ctEau)"/>`+[[183,19],[188,25],[185,27]].map(([x,y])=>{ const p=PI(x,y,.6); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="1.2" fill="#e2b58f"/>`; }).join(''));
+    if(lvl===3 && !ch) add(222,()=>{ const t=PI(185,36,6.5); return bx(182,188,33,39,0,6,'clair')+rect(182.5,187.5,33.5,38.5,6.05,'#c9e4ff')+
+      `<circle class="cVapeur" cx="${f1(t[0]-2)}" cy="${f1(t[1]-2)}" r="3" fill="#e8f2ff" opacity=".8"/><circle class="cVapeur b" cx="${f1(t[0]+2)}" cy="${f1(t[1]-3)}" r="2.4" fill="#e8f2ff" opacity=".8"/><circle class="cVapeur c" cx="${f1(t[0])}" cy="${f1(t[1]-1)}" r="2" fill="#e8f2ff" opacity=".8"/>`; });
+  }
+  /* --- la vie sur les terrains : joueurs, plots, coach, et du mouvement --- */
+  const MAILLOT='#ffd24a', CHASUBLE='#ff6f61', GARDIEN='#5fd98f', GAMIN='#6f9be0', COACH='#c9d6e8';
+  const ADULTE=1.7, JEUNE=1.35;
+  const bouge=()=>typeof REDUIT==='undefined'||!REDUIT;
+  function iso(dx,dy){ return [(dx-dy)*IS.c*IS.sc,(dx+dy)*IS.s*IS.sc]; }
+  /* mv : {dx,dy,dur,del,mode} en mètres au sol. mode 'va' = traverse et recommence, 'vv' = va-et-vient */
+  function gars(x,y,col,t,mv){ t=t||ADULTE; const b=PI(x,y,0), s=IS.sc*t, X=b[0], Y=b[1];
+    let o=`<ellipse cx="${f1(X)}" cy="${f1(Y)}" rx="${f1(1.1*s)}" ry="${f1(.45*s)}" fill="#000" opacity=".3"/>`+
+      `<g class="bob" style="animation-delay:-${f1((x*7+y*3)%10/10)}s"><rect x="${f1(X-.5*s)}" y="${f1(Y-1.5*s)}" width="${f1(1*s)}" height="${f1(1.5*s)}" fill="#1b2433"/>`+
+      `<rect x="${f1(X-.65*s)}" y="${f1(Y-3*s)}" width="${f1(1.3*s)}" height="${f1(1.6*s)}" rx="${f1(.3*s)}" fill="${col}"/>`+
+      `<circle cx="${f1(X)}" cy="${f1(Y-3.55*s)}" r="${f1(.55*s)}" fill="#e2b58f"/></g>`;
+    if(mv&&mv.path){ if(!bouge()) return o; const pts=mv.path.map(([a,b])=>iso(a,b)).map(q=>f1(q[0])+' '+f1(q[1])).join(';');
+      return `<g>${o}<animateTransform attributeName="transform" type="translate" values="${pts}" dur="${f1(mv.dur)}s" begin="-${f1(mv.del||0)}s" repeatCount="indefinite"/></g>`; }
+    if(mv){ const d=iso(mv.dx||0,mv.dy||0); o=`<g class="${mv.mode||'vv'}" style="--x:${f1(d[0])}px;--y:${f1(d[1])}px;animation-duration:${f1(mv.dur||4)}s;animation-delay:-${f1(mv.del||0)}s">${o}</g>`; }
+    return o; }
+  function ballon(x,y){ const p=PI(x,y,.6); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="1.6" fill="#f2f5fa" stroke="#1b2433" stroke-width=".4"/>`; }
+  function ballonMv(pts,dur){ if(!bouge()) return ballon(...pts[0]);
+    const Q=pts.map(([x,y])=>PI(x,y,.6));
+    return `<circle cx="${f1(Q[0][0])}" cy="${f1(Q[0][1])}" r="1.6" fill="#f2f5fa" stroke="#1b2433" stroke-width=".4">`+
+      `<animate attributeName="cx" values="${Q.map(q=>f1(q[0])).join(';')}" dur="${dur}s" repeatCount="indefinite"/>`+
+      `<animate attributeName="cy" values="${Q.map(q=>f1(q[1])).join(';')}" dur="${dur}s" repeatCount="indefinite"/></circle>`; }
+  function plot(x,y){ const b=PI(x,y,0); return `<polygon points="${f1(b[0]-1.5)},${f1(b[1])} ${f1(b[0]+1.5)},${f1(b[1])} ${f1(b[0])},${f1(b[1]-3)}" fill="#ff8a3a"/>`; }
+  function seance(kind,x0,y0,x1,y1,add,fam,seed){
+    const r=rnd(seed), mx=(x0+x1)/2, my=(y0+y1)/2, A=(k,fn)=>add(k,fn,false,fam);
+    if(kind==='footing'){
+      const W=x1-x0+6, H=y1-y0+7, tour=[[0,0],[W,0],[W,H],[0,H],[0,0]];
+      for(let i=0;i<6;i++){ const x=x0-3, y=y0-3.5; A(x+y+i*.01,()=>gars(x,y,MAILLOT,ADULTE,{path:tour,dur:24,del:i*24/6})); }
+      A(x0+y0-8,()=>gars(x0-2,y0-7,COACH)); return; }
+    if(kind==='toro'){ const cx=x0+24, cy=my, R=10, pos=[];
+      for(let i=0;i<7;i++){ const t=i/7*Math.PI*2; pos.push([cx+R*Math.cos(t),cy+R*Math.sin(t)]); }
+      pos.forEach(([x,y])=>A(x+y,()=>gars(x,y,MAILLOT)));
+      A(cx+cy-1,()=>gars(cx-2,cy-1,CHASUBLE,ADULTE,{dx:4,dy:2,dur:1.6,del:.3}));
+      A(cx+cy+1,()=>gars(cx+2,cy+1.5,CHASUBLE,ADULTE,{dx:-3,dy:3,dur:1.3,del:.9}));
+      const passes=[0,3,6,2,5,1,4,0].map(i=>pos[i]); A(cx+cy+30,()=>ballonMv(passes,5.6));
+      for(const [x,y] of [[cx-13,cy-13],[cx+13,cy-13],[cx-13,cy+13],[cx+13,cy+13]]) A(x+y,()=>plot(x,y));
+      A(x1-16+y0+9,()=>gars(x1-16,y0+9,COACH));
+      for(let i=0;i<5;i++){ const x=x1-12+i*1.6, y=my+12+r()*5; A(x+y,()=>ballon(x,y)); } return; }
+    if(kind==='match'){ const pts=[];
+      for(const [col,xa,xb] of [[MAILLOT,x0+14,mx-3],[CHASUBLE,mx+3,x1-14]]) for(let i=0;i<5;i++){
+        const x=xa+r()*(xb-xa), y=y0+9+r()*(y1-y0-18); pts.push([x,y]);
+        A(x+y,()=>gars(x,y,col,ADULTE,{dx:(r()-.5)*14,dy:(r()-.5)*10,dur:2.6+r()*2.4,del:r()*4})); }
+      A(x0+5+my,()=>gars(x0+5,my,GARDIEN,ADULTE,{dy:6,dur:1.8,del:.4}));
+      A(x1-5+my,()=>gars(x1-5,my,GARDIEN,ADULTE,{dy:-6,dur:2.1,del:1.1}));
+      const chemin=[[mx,my],pts[2],pts[6],pts[8],[x1-8,my+2],pts[4],pts[1],[x0+8,my-2],pts[3],[mx,my]];
+      A(mx+my+40,()=>ballonMv(chemin,9));
+      A(mx+y1+2,()=>gars(mx,y1+3,COACH)); return; }
+    if(kind==='slalom'){ const col=fam==='academie'?GAMIN:MAILLOT, t=fam==='academie'?JEUNE:ADULTE;
+      for(let j=0;j<2;j++){ const y=my-9+j*18;
+        for(let i=0;i<7;i++){ const x=x0+16+i*6; A(x+y,()=>plot(x,y)); }
+        const zig=[[0,0]]; for(let k=0;k<=7;k++) zig.push([6+k*6,k%2?2.6:-2.6]); zig.push([52,0],[52,5.5],[0,5.5],[0,0]);
+        for(let i=0;i<3;i++) A(x0+10+y+i*.01,()=>gars(x0+10,y,col,t,{path:zig,dur:11,del:i*11/3+j*1.7})); }
+      A(x0+62+my,()=>gars(x0+62,my,COACH)); return; }
+    if(kind==='frappes'){ const gx=x1-5;
+      A(gx+my,()=>gars(gx,my,GARDIEN,ADULTE,{dy:5,dur:.9,del:.2}));
+      for(let i=0;i<5;i++){ const x=x1-26-i*2.6, y=my-6+i*2.8; A(x+y,()=>gars(x,y,MAILLOT)); }
+      A(x1-20+my+20,()=>ballonMv([[x1-22,my-4],[x1-4,my+2.5],[x1-4,my+2.5],[x1-22,my+3],[x1-3,my-3],[x1-3,my-3],[x1-22,my-4]],3.2));
+      A(x1-34+y0+7,()=>gars(x1-34,y0+7,COACH)); return; }
+  }
+  function vieSurLeTerrain(R,chT,add){
+    const t=R.terrains, ac=R.academie;
+    if(t===0){ if(!chT) seance('footing',...T[0],add,'terrains',3); return; }
+    if(chT&&t===1) return;
+    seance('toro',...T[0],add,'terrains',5);
+    seance('match',...T[1],add,'terrains',9);
+    if(t>=2 && !(chT&&t===2)){ seance('slalom',...T[2],add,ac>=1?'academie':'terrains',13); if(t===2) seance('frappes',...T[3],add,'terrains',17); }
+    else if(ac>=1) for(let i=0;i<5;i++){ const x=50, y=64; add(x+y+i*.01,()=>gars(x,y,GAMIN,JEUNE,{path:[[0,0],[0,38],[4,38],[4,0],[0,0]],dur:20,del:i*20/5}),false,'academie'); }
+  }
+
+  /* --- vidéo --- */
+  function dessVideo(lvl,ch,add){
+    if(lvl===0) return;
+    if(lvl===1) return add(240,()=>bx(206,222,20,32,0,5,'prefab')+fenY(32,207,221,1.5,4,3,1,81,.5)+(CH?'':seg([214,26,5],[214,26,11],' stroke="#c9d6e8" stroke-width=".7"')+seg([211,26,10],[217,26,10],' stroke="#c9d6e8" stroke-width=".6"')+seg([212,26,8.5],[216,26,8.5],' stroke="#c9d6e8" stroke-width=".6"'))+panY(207,32,7.4,14,'VIDÉO',2),ch);
+    if(lvl===2) return add(240,()=>{ let o=bx(200,230,14,38,0,8,'beton')+fenY(38,201,229,1,7.5,8,1,91,.35)+fenX(230,15,37,1,7.5,5,1,92,.3)+panY(202,38,10.6,22,'SALLE VIDÉO',2);
+      if(!CH){ o+=bx(221,227,18,24,8,10,'tole'); const p=PI(224,21,15); o+=seg([224,21,10],[224,21,13.5],' stroke="#8193ad" stroke-width="1"')+`<ellipse cx="${f1(p[0])}" cy="${f1(p[1])}" rx="7.5" ry="4.2" transform="rotate(-28 ${f1(p[0])} ${f1(p[1])})" fill="#c9d6e8" stroke="#8193ad" stroke-width=".6"/><circle cx="${f1(p[0]+2)}" cy="${f1(p[1]-1)}" r="1" fill="#8193ad"/>`; }
+      return o; },ch);
+    add(240,()=>{ let o=bx(198,232,12,40,0,8,'beton')+fenY(40,199,231,1,7.5,9,1,95,.35)+fenX(232,13,39,1,7.5,6,1,96,.3);
+      o+=bx(206,224,18,34,8,30,'beton')+fenY(34,206.5,223.5,9,22,5,4,97,.65)+fenX(224,18.5,33.5,9,22,4,4,98,.65);
+      o+=bx(205,225,17,35,30,37,'verre')+fenY(35,205.5,224.5,30.5,36.5,6,1,99,1)+fenX(225,17.5,34.5,30.5,36.5,5,1,100,1)+rect(205,225,17,35,37.05,CH?MAT.chantier[0]:'#3a4a60');
+      if(!CH) o+=seg([215,26,37],[215,26,46],' stroke="#8193ad" stroke-width=".8"')+`<circle class="cClign" cx="${f1(PI(215,26,46)[0])}" cy="${f1(PI(215,26,46)[1])}" r="1.2" fill="#ff6f61"/>`;
+      return o+panY(200,40,10.6,22,'CELLULE D\'ANALYSE',1.7); },ch);
+    if(!ch) for(const [x,y,k] of [[233,55,290],[53,55,110]]) add(k,()=>{ const b=PI(x,y,0), t=PI(x,y,32);
+      return `<line x1="${f1(b[0])}" y1="${f1(b[1])}" x2="${f1(t[0])}" y2="${f1(t[1])}" stroke="#8193ad" stroke-width="1.3"/><rect x="${f1(t[0]-4)}" y="${f1(t[1]-3)}" width="8" height="4.5" rx="1" fill="#1b2b42" stroke="#c9d6e8" stroke-width=".6"/><circle cx="${f1(t[0]-4)}" cy="${f1(t[1]-.8)}" r="1.4" fill="#0e1d35" stroke="#c9d6e8" stroke-width=".4"/><circle class="cClign" cx="${f1(t[0]+2.6)}" cy="${f1(t[1]-1.8)}" r=".9" fill="#ff6f61"/>`; },false,'video');
+  }
+  /* --- académie --- */
+  function toit2(x0,x1,y0,y1,z,hz){ const xm=(x0+x1)/2, c=CH?MAT.chantier:['#7a4a3a','#8e5440','#6b4032'];
+    return poly([[x1,y0,z],[x1,y1,z],[xm,y1,z+hz],[xm,y0,z+hz]],c[1])+poly([[x0,y1,z],[x1,y1,z],[xm,y1,z+hz]],c[2]); }
+  function dessAcademie(lvl,ann,ch,add,chat){
+    if(lvl===0) return;
+    if(lvl===1) return add(105,()=>bx(14,30,78,106,0,5.5,'beton')+toit2(14,30,78,106,5.5,4)+fenX(30,79,105,1,5,6,1,101,.8)+fenY(106,15,29,1,5,3,1,102,.7)+panX(30,104,9.8,20,'INTERNAT',2),ch);
+    add(105,()=>{ let o=bx(12,32,58,108,0,9,'beton')+fenX(32,59,107,1,8.5,10,2,101,.75)+fenY(108,13,31,1,8.5,3,2,102);
+      if(lvl===3) o+=bx(12,32,58,108,9,14,'beton')+fenX(32,59,107,9.5,13.5,10,1,103,.8)+fenY(108,13,31,9.5,13.5,3,1,104)+toit2(12,32,58,108,14,3.5);
+      else o+=toit2(12,32,58,108,9,3.5);
+      return o+panX(32,104,lvl===3?16.6:11.6,24,'INTERNAT',2.1); },ch);
+    add(92,()=>{ let o=bx(32,46,58,72,0,9,'beton')+fenX(46,59,71,1,8.5,3,2,105)+fenY(72,33,45,1,8.5,3,2,106)+panY(33,72,12.2,12,'U17',2.2,'#16243c','#ffd24a','#ffd24a');
+      if(!CH){ const b=PI(48,60,0), t=PI(48,60,17); o+=`<line x1="${f1(b[0])}" y1="${f1(b[1])}" x2="${f1(t[0])}" y2="${f1(t[1])}" stroke="#c9d6e8" stroke-width=".7"/><polygon points="${f1(t[0])},${f1(t[1])} ${f1(t[0]+8)},${f1(t[1]+2)} ${f1(t[0])},${f1(t[1]+4.5)}" fill="#ffd24a"/>`; }
+      return o; },ch);
+    if(lvl===3){
+      add(118,()=>bx(32,44,84,100,0,12,'verre')+fenX(44,84.5,99.5,.5,11.5,5,3,107,.95)+fenY(100,32.5,43.5,.5,11.5,3,3,108,.95)+rect(31,45,83,101,12.05,CH?MAT.chantier[0]:'#5f6f86')+panX(44,99,15.2,14,'ACADÉMIE',1.9,'#16243c','#ffd24a','#ffd24a'),ch);
+      const tranches=chat?[[134,150],[161,190]]:[[134,190]];
+      tranches.forEach(([ya,yb],n)=>add(ya+46+n,()=>{ let o=bx(46,49.5,ya,yb,0,4.5,'beton')+bx(49.5,53,ya,yb,0,3,'beton')+bx(53,57,ya,yb,0,1.5,'beton');
+        if(!CH){ const r=rnd(7+n); for(const [xa,z] of [[46.4,4.5],[49.9,3],[53.4,1.5]]) for(let y=ya+2;y<yb-1;y+=2.2) if(r()<.55) o+=rect(xa+r()*.8,xa+r()*.8+1.2,y,y+1.2,z+.05,['#ffd24a','#f2f5fa','#ff8a7a','#9fe0b9'][Math.floor(r()*4)]);
+          o+=seg([46,ya,4.5],[46,ya,9],' stroke="#8193ad" stroke-width=".6"')+seg([46,yb,4.5],[46,yb,9],' stroke="#8193ad" stroke-width=".6"')+poly([[44.5,ya-1,9],[51,ya-1,9],[51,yb+1,9],[44.5,yb+1,9]],'#5f6f86',' opacity=".92"');
+          if(yb-ya>25) o+=panX(51,yb-12,11.4,24,'FORMÉ AU CLUB',2,'#16243c','#ffd24a','#ffd24a'); }
+        return o; },ch));
+    }
+  }
+  /* --- château --- */
+  /* une tour ronde (octogone) coiffée d'un toit pointu */
+  function tour(cx,cy,r,h,hc,m,fen){
+    const c=mat(m), V=[]; for(let k=0;k<8;k++){ const a=(k+.5)*Math.PI/4; V.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]); }
+    const faces=[]; for(let k=0;k<8;k++){ const n=(k+1)*Math.PI/4, cs=Math.cos(n), sn=Math.sin(n); if(cs+sn>.01) faces.push({k,cs,sn,d:(V[k][0]+V[(k+1)%8][0]+V[k][1]+V[(k+1)%8][1])/2}); }
+    faces.sort((a,b)=>a.d-b.d);
+    let o=''; const ardoise=CH?[MAT.chantier[1],MAT.chantier[2]]:['#2f3d54','#232e41'];
+    for(const f of faces){ const A=V[f.k], B=V[(f.k+1)%8], col=f.cs>f.sn+.2?c[1]:(f.sn>f.cs+.2?c[2]:c[0]);
+      o+=poly([[A[0],A[1],0],[B[0],B[1],0],[B[0],B[1],h],[A[0],A[1],h]],col);
+      if(fen&&!CH&&Math.abs(f.cs-f.sn)<.3){ const mx=(A[0]+B[0])/2, my=(A[1]+B[1])/2, dx=(B[0]-A[0])*.18, dy=(B[1]-A[1])*.18;
+        for(const z of [h*.35,h*.7]) o+=poly([[mx-dx,my-dy,z],[mx+dx,my+dy,z],[mx+dx,my+dy,z+2.2],[mx-dx,my-dy,z+2.2]],'#ffd98a',' opacity=".92"'); } }
+    if(!hc) return o+poly(V.map(v=>[v[0],v[1],h]),c[0]);
+    for(const f of faces){ const A=V[f.k], B=V[(f.k+1)%8]; o+=poly([[A[0],A[1],h],[B[0],B[1],h],[cx,cy,h+hc]],f.cs>=f.sn?ardoise[0]:ardoise[1]); }
+    return o; }
+  function fanion(x,y,z,col){ if(CH) return ''; const b=PI(x,y,z), t=PI(x,y,z+7);
+    return `<line x1="${f1(b[0])}" y1="${f1(b[1])}" x2="${f1(t[0])}" y2="${f1(t[1])}" stroke="#c9d6e8" stroke-width=".7"/><polygon points="${f1(t[0])},${f1(t[1])} ${f1(t[0]+9)},${f1(t[1]+2.2)} ${f1(t[0])},${f1(t[1]+4.6)}" fill="${col||'#ffd24a'}"/>`; }
+  function cone(x,y,h,r){ const b=PI(x,y,0), t=PI(x,y,h); return `<line x1="${f1(b[0])}" y1="${f1(b[1])}" x2="${f1(t[0])}" y2="${f1(t[1])}" stroke="#3a2c1c" stroke-width="1.2"/><polygon points="${f1(t[0]-r)},${f1(b[1]-1)} ${f1(t[0]+r)},${f1(b[1]-1)} ${f1(t[0])},${f1(t[1]-2)}" fill="#1f5139"/><polygon points="${f1(t[0])},${f1(b[1]-1)} ${f1(t[0]+r)},${f1(b[1]-1)} ${f1(t[0])},${f1(t[1]-2)}" fill="#163d2d"/>`; }
+  function dessChateau(on,ch,gnd,add){
+    if(!on){ const pos=[[14,126],[26,124],[38,128],[20,138],[33,140],[12,152],[26,150],[40,154],[18,166],[32,168],[42,178],[14,182],[27,186],[38,192]];
+      pos.forEach(([x,y],i)=>add(x+y,()=>arbre(x,y,5+(i%3),4+(i%2)),false,'decor')); return; }
+    gnd(()=>{ let s=rect(3,46,116,199,0,'#1f4230');
+      s+=rect(6,44,127,189,.02,ch?'#4a3a2a':'#244e74')+rect(9,41,130,186,.04,'#27513a');
+      if(!ch){ for(let y=131;y<186;y+=4) s+=seg([6.5,y,.05],[8.5,y+1.5,.05],' stroke="#5f93c0" stroke-width=".4" opacity=".6"');
+        s+=rect(11,39,131.5,184.5,.05,'none',' stroke="#8a8070" stroke-width="1.2" opacity=".8"'); }
+      s+=rect(44,59,152,160,.05,'#8a8070')+rect(41,44,152,160,.6,'#a3977f');
+      if(!ch){ const pts=[]; for(let a=0;a<20;a++){ const t=a/20*Math.PI*2; pts.push([51.5+3.2*Math.cos(t),156+3.2*Math.sin(t),.2]); }
+        s+=poly(pts,'#9aa9bd')+poly(pts.map(p=>[51.5+(p[0]-51.5)*.72,156+(p[1]-156)*.72,.3]),'#3f8fcf'); }
+      return s; });
+    if(!ch){ for(const [x,y] of [[11,133],[39,133],[11,183],[39,183],[11,158]]) add(x+y,()=>cone(x,y,6,2.4));
+      for(const [x,y] of [[8,194],[18,195],[28,194],[38,195],[5,122],[16,121],[28,122],[40,121]]) add(x+y,()=>arbre(x,y,4.4,3.8)); }
+    add(155,()=>tour(13,142,3.6,18,10,'pierre',true)+fanion(13,142,28,'#f2f5fa'),ch);
+    add(176,()=>tour(19,158,4.4,30,12,'pierre',true)+fanion(19,158,42),ch);
+    add(190,()=>{ let o=bx(13,33,142,174,0,13,'pierre')+fenX(33,143,173,1.5,12,8,2,121,.85)+fenY(174,14,32,1.5,12,6,2,122,.85);
+      const r=CH?MAT.chantier:['#2f3d54','#2b374b','#232e41'];
+      o+=poly([[33,142,13],[33,174,13],[25,168,21],[25,148,21]],r[1])+poly([[13,174,13],[33,174,13],[25,168,21],[21,168,21]],r[2]);
+      for(const y of [148,156,164]) o+=bx(28,30.5,y,y+3,15,18,'pierre')+poly([[30.5,y,18],[30.5,y+3,18],[29.3,y+1.5,20]],r[1])+(CH?'':poly([[30.55,y+.8,15.6],[30.55,y+2.2,15.6],[30.55,y+2.2,17.2],[30.55,y+.8,17.2]],'#ffd98a',' opacity=".9"'));
+      o+=bx(22,23.5,151,152.5,19,25,'pierre')+bx(22,23.5,163,164.5,19,25,'pierre');
+      if(!CH){ o+=poly([[33.05,155,0],[33.05,161,0],[33.05,161,5],[33.05,158,7],[33.05,155,5]],'#2a1c12')+poly([[33.1,156,0],[33.1,160,0],[33.1,160,4.6],[33.1,158,6.2],[33.1,156,4.6]],'#ffd98a',' opacity=".55"');
+        o+=panX(33,164,9.8,20,'LE CHÂTEAU',2,'#16243c','#ffd24a','#ffd24a'); }
+      return o; },ch);
+    add(191,()=>tour(13,174,3.6,18,10,'pierre',true),ch);
+    add(192,()=>tour(33,142,3.6,18,10,'pierre',true)+fanion(33,142,28,'#ff6f61'),ch);
+    add(209,()=>tour(33,174,3.6,18,10,'pierre',true),ch);
+    if(!ch) add(200,()=>{ let o='';
+      for(const [ya,yb] of [[129,151],[161,187]]) for(let y=ya;y<=yb;y+=1.6){ o+=seg([44.8,y,0],[44.8,y,3.4],' stroke="#1b2433" stroke-width=".7"'); const t=PI(44.8,y,3.6); o+=`<circle cx="${f1(t[0])}" cy="${f1(t[1])}" r=".5" fill="#ffd24a"/>`; }
+      for(const [ya,yb] of [[129,151],[161,187]]) o+=seg([44.8,ya,3],[44.8,yb,3],' stroke="#1b2433" stroke-width=".8"');
+      for(const y of [150.5,160]) { o+=bx(44,45.6,y,y+1.6,0,5.5,'pierre'); const t=PI(44.8,y+.8,6.4); o+=`<circle cx="${f1(t[0])}" cy="${f1(t[1])}" r="1.3" fill="#ffd24a"/>`; }
+      const j=PI(51.5,156,.4); o+=`<g class="jet"><line x1="${f1(j[0])}" y1="${f1(j[1])}" x2="${f1(j[0])}" y2="${f1(j[1]-9)}" stroke="#dff0ff" stroke-width="1.2" opacity=".85"/><circle cx="${f1(j[0])}" cy="${f1(j[1]-9)}" r="2" fill="#dff0ff" opacity=".6"/></g>`;
+      return o; });
+  }
+
+  /* --- décor fixe : route, clôture, parking, portail, arbres --- */
+  function decor(add){
+    let s=rect(-22,262,-26,222,0,'#0b1728')+rect(0,240,0,200,0,'#10241c');
+    for(let g=10;g<240;g+=10) s+=seg([g,0,0],[g,200,0],' stroke="#132a21" stroke-width=".5"');
+    for(let g=10;g<200;g+=10) s+=seg([0,g,0],[240,g,0],' stroke="#132a21" stroke-width=".5"');
+    s+=rect(-22,262,-20,-6,0,'#141f2e')+seg([-22,-13,0],[262,-13,0],' stroke="#51647f" stroke-width=".8" stroke-dasharray="4 5"');
+    s+=rect(4,238,48,56,0,'#1a2b3f')+rect(137,148,56,198,0,'#1a2b3f')+rect(48,238,122,130,0,'#1a2b3f')+rect(14,30,0,48,0,'#1a2b3f');
+    s+=rect(6,46,6,46,.02,'#172538'); for(let x=10;x<46;x+=6) s+=seg([x,8,.05],[x,20,.05],' stroke="#c9d6e8" stroke-width=".4" opacity=".6"')+seg([x,32,.05],[x,44,.05],' stroke="#c9d6e8" stroke-width=".4" opacity=".6"');
+    s+=rect(0,240,0,200,0,'none',' stroke="#3a5170" stroke-width=".9" stroke-dasharray="1 3"');
+    const cars=[[11,10,'#8c2f2f'],[23,10,'#2f4f8c'],[35,34,'#9aa9bd'],[17,34,'#4a6a3a']];
+    cars.forEach(([x,y,c],i)=>add(x+y,()=>bx(x,x+3.4,y,y+7,0,2,'prefab').replace(/#6b7c92|#566679|#435266/g,m=>({'#6b7c92':c,'#566679':c,'#435266':'#26344a'})[m]),false,'decor'));
+    add(20,()=>bx(12,15,-2,1,0,6.5,'pierre')+bx(29,32,-2,1,0,6.5,'pierre')+bx(12,32,-1.5,.5,6.5,8.2,'pierre')+panY(13.5,.5,8.1,17,'CENTRE',2,'#16243c','#ffd24a','#ffd24a'),false,'decor');
+    for(const [x,y] of [[-10,20],[-11,48],[-10,76],[-12,104],[-10,132],[-11,160],[-10,188],[60,-30],[100,-31],[150,-30],[200,-31],[244,-30]]) add(x+y,()=>arbre(x,y,6,4.5),false,'decor');
+    for(const [x,y] of [[70,206],[110,207],[160,206],[205,207],[244,40],[245,90],[244,150]]) add(x+y,()=>arbre(x,y,4.5,3.6),false,'decor');
+    return s; }
+
+  /* --- l'aube des cartes de livraison : le car des pros, la brume, la lumière --- */
+  const CAR={vie:72,medical:118,physique:160,video:208,terrains:96,academie:40};
+  function car(xb){ const x0=xb, x1=xb+13, y0=49.3, y1=54.2, z0=.9, z1=5.4; const d=iso(-80,0);
+    let o=poly([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],'#23497a')+poly([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],'#2f5f9a')+rect(x0,x1,y0,y1,z1,'#dfe7f2');
+    o+=poly([[x0,y1+.02,z0],[x1,y1+.02,z0],[x1,y1+.02,z0+.6],[x0,y1+.02,z0+.6]],'#1b2433');
+    o+=poly([[x0,y1+.02,1.9],[x1,y1+.02,1.9],[x1,y1+.02,2.5],[x0,y1+.02,2.5]],'#ffd24a');
+    o+=poly([[x0+.4,y1+.03,2.9],[x1-2.6,y1+.03,2.9],[x1-2.6,y1+.03,4.8],[x0+.4,y1+.03,4.8]],'#1d3350');
+    for(let x=x0+.9;x<x1-3;x+=1.7) o+=poly([[x,y1+.04,3.1],[x+1.3,y1+.04,3.1],[x+1.3,y1+.04,4.6],[x,y1+.04,4.6]],'#7fa8d1');
+    o+=poly([[x1-2.3,y1+.03,z0+.6],[x1-1,y1+.03,z0+.6],[x1-1,y1+.03,4.8],[x1-2.3,y1+.03,4.8]],'#1d3350');
+    o+=poly([[x1+.03,y0+.5,2.8],[x1+.03,y1-.5,2.8],[x1+.03,y1-.5,4.9],[x1+.03,y0+.5,4.9]],'#9fc3e6');
+    const e=PI((x0+x1)/2-1.5,y1+.05,3.3); o+=`<circle cx="${f1(e[0])}" cy="${f1(e[1]-2.4)}" r="1.5" fill="#ffd24a" stroke="#16243c" stroke-width=".4"/>`;
+    for(const xr of [x0+2.2,x1-3.2]){ const r=PI(xr,y1,.9); o+=`<ellipse cx="${f1(r[0])}" cy="${f1(r[1])}" rx="1.9" ry="1.6" fill="#10151f"/><ellipse cx="${f1(r[0])}" cy="${f1(r[1])}" rx=".8" ry=".7" fill="#8193ad"/>`; }
+    const f=PI(x1,y0+1,1.6), g=PI(x1,y1-1,1.6); o+=`<circle cx="${f1(f[0])}" cy="${f1(f[1])}" r="5" fill="url(#ctHalo)"/><circle cx="${f1(g[0])}" cy="${f1(g[1])}" r="5" fill="url(#ctHalo)"/>`;
+    return `<g class="arrive" style="--x:${f1(d[0])}px;--y:${f1(d[1])}px">${o}</g>`; }
+  function vbN(vb){ return vb.split(' ').map(Number); }
+  function brume(vb){ let o=''; const r=rnd(33);
+    for(const [x0,y0,x1,y1] of T){ for(let i=0;i<2;i++){ const p=PI(x0+(x1-x0)*(.3+.4*i),y0+(y1-y0)*(.35+.3*r()),2), w=70+r()*40;
+      o+=`<ellipse class="brume${i?' b':''}" cx="${f1(p[0])}" cy="${f1(p[1])}" rx="${f1(w)}" ry="${f1(w*.24)}" fill="url(#ctBrume)"/>`; } }
+    const [X,Y,W,H]=vbN(vb);
+    return o+`<rect class="brume c" x="${f1(X)}" y="${f1(Y+H*.55)}" width="${f1(W)}" height="${f1(H*.45)}" fill="url(#ctBrume)" opacity=".5"/>`; }
+  function lumiere(vb,fete){ const [X,Y,W,H]=vbN(vb);
+    let o=`<rect x="${f1(X)}" y="${f1(Y)}" width="${f1(W)}" height="${f1(H)}" fill="url(#ctAube)" style="mix-blend-mode:screen"/>`;
+    if(fete){ o+=`<rect x="${f1(X)}" y="${f1(Y)}" width="${f1(W)}" height="${f1(H)}" fill="url(#ctOr)"/>`;
+      const r=rnd(41), C=['#ffd24a','#f2f5fa','#ff6f61','#5fd98f','#ffd24a'];
+      for(let i=0;i<5;i++){ const cx=X+W*(.18+.16*i+r()*.05), cy=Y+H*(.1+r()*.18), R=10+r()*10, col=C[i]; let rays='';
+        for(let k=0;k<12;k++){ const a=k/12*Math.PI*2; rays+=`<line x1="${f1(cx+Math.cos(a)*R*.3)}" y1="${f1(cy+Math.sin(a)*R*.3)}" x2="${f1(cx+Math.cos(a)*R)}" y2="${f1(cy+Math.sin(a)*R)}" stroke="${col}" stroke-width="1.1" stroke-linecap="round"/><circle cx="${f1(cx+Math.cos(a)*R*1.08)}" cy="${f1(cy+Math.sin(a)*R*1.08)}" r=".9" fill="${col}"/>`; }
+        o+=`<g class="cEclat" style="animation-delay:${f1(i*.45)}s">${rays}</g>`; } }
+    return o; }
+
+  /* --- la scène --- */
+  const GRUES={terrains:[137,128,40],physique:[180,46,30],medical:[102,50,30],vie:[50,48,34],academie:[42,114,30],video:[194,48,46],chateau:[48,168,48]};
+  function scene(R,o){
+    o=o||{}; BB=null; const F=o.focus||null, ann=R.annee, objs=[]; let ground='';
+    const add=(fam)=>(k,fn,ch,famOverride)=>{ const fm=famOverride||fam; COLLECT=F===fm; CH=!!ch; const svg=fn(); CH=false; COLLECT=false; objs.push({k,fam:fm,svg}); };
+    const gnd=(fam)=>(fn)=>{ COLLECT=F===fam; const svg=fn(); COLLECT=false; ground+=(F&&F!==fam)?`<g opacity=".38">${svg}</g>`:svg; };
+    const niv=id=>(o.ch&&o.ch.fam===id)?o.ch.niv:R[id], ch=id=>!!(o.ch&&o.ch.fam===id);
+    const base=decor(add('decor'));
+    dessTerrains(niv('terrains'),ann,ch('terrains'),gnd('terrains'),add('terrains'));
+    dessVie(niv('vie'),ch('vie'),add('vie'));
+    dessMedical(niv('medical'),ch('medical'),add('medical'));
+    dessPhysique(niv('physique'),ch('physique'),add('physique'));
+    dessVideo(niv('video'),ch('video'),add('video'));
+    dessAcademie(niv('academie'),ann,ch('academie'),add('academie'),niv('chateau'));
+    dessChateau(niv('chateau'),ch('chateau'),gnd('chateau'),add('chateau'));
+    vieSurLeTerrain({...R,terrains:niv('terrains'),academie:niv('academie')},ch('terrains'),add('terrains'));
+    if(o.ch){ const g=GRUES[o.ch.fam]; add('grue')(g[0]+g[1]+2,()=>grue(g[0],g[1],g[2])); }
+    if(o.aube && F && F!=='chateau'){ const xb=CAR[F]||90; add('aube')(xb+52,()=>car(xb)); }
+    objs.sort((a,b)=>a.k-b.k);
+    let vb='38 34 690 450';
+    if(o.vb) vb=o.vb;
+    else if(F&&BB){ const pad=30, AR=760/440; let w=BB[2]-BB[0]+pad*2, h=BB[3]-BB[1]+pad*2; if(w/h<AR) w=h*AR; else h=w/AR; w=Math.max(w,300); h=Math.max(h,300/AR);
+      const cx=(BB[0]+BB[2])/2, cy=(BB[1]+BB[3])/2; vb=`${f1(cx-w/2)} ${f1(cy-h/2)} ${f1(w)} ${f1(h)}`; }
+    const gold=R.chateau&&!F?rect(-3,243,-3,203,0,'none',' stroke="#ffd24a" stroke-width="1.4" opacity=".55"'):'';
+    let s=`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Maquette isométrique du centre d'entraînement, ${palier(R)}">
+    <defs><radialGradient id="ctHalo"><stop offset="0" stop-color="#fffbe6" stop-opacity=".9"/><stop offset=".3" stop-color="#ffe58a" stop-opacity=".4"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ctAube" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb07a" stop-opacity=".55"/><stop offset=".5" stop-color="#e08aa0" stop-opacity=".16"/><stop offset="1" stop-color="#5a6ab0" stop-opacity=".08"/></linearGradient>
+    <linearGradient id="ctOr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd24a" stop-opacity=".35"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></linearGradient>
+    <radialGradient id="ctBrume"><stop offset="0" stop-color="#eef3fb" stop-opacity=".5"/><stop offset=".6" stop-color="#eef3fb" stop-opacity=".18"/><stop offset="1" stop-color="#eef3fb" stop-opacity="0"/></radialGradient>
+    <radialGradient id="ctEau"><stop offset="0" stop-color="#8fd0ff" stop-opacity=".35"/><stop offset="1" stop-color="#8fd0ff" stop-opacity="0"/></radialGradient></defs>
+    <rect x="-400" y="-400" width="1600" height="1400" fill="${o.aube?'#141a33':'#081221'}"/>`;
+    s+= F?`<g opacity=".4">${base}</g>`:base;
+    s+=ground+gold;
+    if(o.aube) s+=brume(vb);
+    for(const ob of objs) s+=(F&&ob.fam!==F&&ob.fam!=='grue'&&ob.fam!=='aube')?`<g opacity=".3">${ob.svg}</g>`:ob.svg;
+    if(o.aube) s+=lumiere(vb,F==='chateau');
+    return {svg:s+'</svg>', vb};
+  }
+  return {scene, FAMS, FAM, PALIERS, SOUS_PALIER, CHATEAU, points, palier, nivMax, chateauOuvert, nomNiveau, effets};
+})();
+/* ---- CENTRE3D : FIN ---- */
 /* ---- Visuel du stade : étapes de développement ---- */
 const PALIERS_STADE=[[0,"Stade municipal"],[12000,"Stade de Division 1"],[20000,"Grande enceinte"],[30000,"Enceinte internationale"],[50000,"Arène européenne"],[75000,"Cathédrale du football"]];
 function etapeStade(cap, stade){
@@ -14617,9 +15292,7 @@ function ecranClub(){
        </span> ${affPct}%${affEstim?' <span class="dim" style="font-size:13px">(estim.)</span>':''}</p>
      ${baroTribunes()}
      <div class="ctr" style="margin-top:8px">${projetsHTML()}</div>
-     <h3 style="margin-top:12px">Centre d'entraînement · niveau ${G.centre}/5</h3>
-     <p class="dim">Progression des jeunes +${(G.centre-1)*10} % · Blessures −${(G.centre-1)*7} %</p>
-     <p style="margin-top:4px"><button class="act" id="bCe" ${G.centre>=5?"disabled":""}>Améliorer le centre (niveau ${G.centre+1} · ${8*G.centre} MF)</button></p>
+     ${centreHTML()}
      <h3 style="margin-top:12px">Staff technique</h3>
      <div>${staffHTML()}</div>
    </div>
@@ -14651,7 +15324,9 @@ function ecranClub(){
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade
   document.querySelectorAll(".bCoachIn").forEach(b=>b.onclick=()=>ouvreRecrutement(b.dataset.id));
   document.querySelectorAll(".bCoachOut").forEach(b=>b.onclick=()=>remercierCoach(b.dataset.id));
-  document.getElementById("bCe").onclick=ameliorerCentre;
+  document.querySelectorAll(".bCentre").forEach(b=>b.onclick=()=>lanceCentre(b.dataset.f));
+  { const bC=document.getElementById("bChateau"); if(bC) bC.onclick=()=>lanceCentre("chateau"); }
+  { const cC=document.getElementById("cadreC"); if(cC && cC.scrollWidth>cC.clientWidth) cC.scrollLeft=(cC.scrollWidth-cC.clientWidth)/2; } // sur téléphone : la maquette s'ouvre centrée
 }
 
 /* ---------- Démarrage ---------- */

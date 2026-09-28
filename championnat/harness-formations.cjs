@@ -284,9 +284,13 @@ const advDe = G => { const p = G.calendrier[G.journee].find(([x, y]) => x === G.
     // l'adversaire du samedi (25/09/2026) : son onze tel que le moteur l'alignera, et ses hommes dangereux
     const brief = h.match(/<div class="briefAdv">([\s\S]*?)<p class="briefDang">([\s\S]*?)<\/p>/) || ["", "", ""];
     const xiAdv = api.onze(advDe(G));
-    ok(/4-4-2/.test(brief[1]) && (brief[1].match(/<span(?: class="advDanger")?>[^<]+<\/span>/g) || []).length === 11
+    ok(!/4-4-2/.test(brief[1]) && (brief[1].match(/<span(?: class="advDanger")?>[^<]+<\/span>/g) || []).length === 11
        && xiAdv.every(j => brief[1].includes(">" + j.nom + "<")),
-      f + " : l'avant-match montre les onze titulaires d'en face, ceux que le moteur alignera, en 4-4-2");
+      f + " : l'avant-match montre les onze titulaires d'en face, ceux que le moteur alignera, mais pas leur formation sans vidéo");
+    // v1.53 : la formation adverse se lit au magnétoscope (vidéo du campus, niveau 1)
+    G.campus.video = 1; api.ecranCalendrier(); G.campus.video = 0;
+    const briefV = APP.innerHTML.match(/<div class="briefAdv">([\s\S]*?)<p class="briefDang">/) || ["", ""];
+    ok(/4-4-2/.test(briefV[1]), f + " : avec le magnétoscope, la formation d'en face s'affiche (4-4-2)");
     ok((brief[2].match(/<span><b>/g) || []).length === 3 && (brief[1].match(/advDanger/g) || []).length === 3,
       f + " : trois dangers, nommés sous leur terrain et mis en relief dessus");
     ok(!/Au milieu, vos|rapport de forces/.test(h) && !/pts<\/span>/.test(brief[1]), f + " : plus de lecture des duels, et pas de classement à la 1re journée");

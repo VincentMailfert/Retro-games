@@ -1331,6 +1331,76 @@ toujours « raconter quelque chose ».
   prestige gagné au stade dans **`G.stade.presStade`** ; **`presObjectif(c)`** le retire avant `objectifPour`
   (intersaison et `migre`). Le prestige garde tous ses autres effets (affluence, sponsors, équipementier, jeunes).
   Seul le stade fait monter `c.pres` dans le jeu. Vieille partie : `presStade` absent = 0 (comportement d'avant).
+- **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
+  texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
+  `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente
+  rien, on reprend son code.
+  **La greffe** : le prototype délimite un bloc entre « CENTRE3D : DÉBUT » et « CENTRE3D : FIN » (catalogue `FAMS`,
+  `PALIERS`, `SOUS_PALIER`, `CHATEAU`, calculs `points`/`palier`/`nivMax`/`chateauOuvert`/`nomNiveau`/`effets`, et tout le
+  moteur de dessin : `scene`, bâtiments, séances animées, car des pros, brume, lumière). **`node docs/greffe-centre.cjs .`**
+  (depuis `championnat/`) le copie dans `index.html` entre les marqueurs `/* ---- CENTRE3D : DÉBUT` et
+  `/* ---- CENTRE3D : FIN ---- */`, juste après le bloc `STADE3D`, dans une fermeture qui expose `CENTRE3D`. **Rejouable,
+  et idempotent** (deux passes, même fichier) : si le prototype évolue, on relance le script, **on ne touche jamais le bloc
+  à la main**. Deux retouches seulement, faites par le script : les classes `.vapeur`/`.eclat`/`.clign`, qui existent déjà
+  pour le stade avec d'autres réglages, deviennent `cVapeur`/`cEclat`/`cClign` ; les dégradés `cHalo`/`cAube`/`cOr`/
+  `cBrume`/`cEau` deviennent `ct…`. Le script refuse un tiret long. Le bloc lit **`REDUIT`** (défini par le jeu depuis
+  `prefers-reduced-motion`) pour couper ses animations SMIL ; le CSS coupe `.bob .vv .arrive .brume .jet .cEclat .cClign
+  .cVapeur` et le fondu de la carte.
+  **Le modèle** : `G.campus = {terrains, physique, medical, vie, academie, video : 0 à 3, chateau : 0/1, chantier : null |
+  {fam, niv, reste}}`. **`CENTRE3D.FAMS` est la seule source de vérité** : noms, coûts (MF), durées (journées), entretien
+  (kF par journée), textes (`eff` = l'effet, `sous` = la phrase de livraison) et même les valeurs d'effet
+  (`CENTRE3D.effets(R)`, lu par `campusEff()`). On ne construit que le niveau suivant ; trois niveaux ont une époque
+  (`des`) : clinique dès 1998, cellule d'analyse dès 2002, laboratoire dès 2004, lue avec `anneeJeu()` ; le terrain
+  éclairé du niveau 2 est un stabilisé avant 2002, un synthétique ensuite (`nomNiveau`). Paliers : Terrain annexe (0),
+  Centre d'entraînement (3), Domaine du club (7), Centre de haute performance (11), Campus (15), puis Le Château. **Le
+  château** : 15 points et tous les bâtiments au niveau 2 (`chateauOuvert`), 60 MF, 12 journées, définitif, une ligne au
+  palmarès « Saison xxxx-xx : le club s'offre un château ».
+  **Le chantier** : **un seul à la fois AU CENTRE, indépendant de celui du stade** (deux grues possibles). `motifCentre(fam)`
+  dit ce qui bloque (époque « Pas avant 1998-99 », seuil du château, chantier en cours, caisse), dans cet ordre ; il sert à
+  la fois au refus, à l'infobulle des boutons grisés (`aria-disabled`, pas `disabled`, pour que l'infobulle et le clic qui
+  explique marchent partout) et à `lanceCentre`, qui passe par `modalSignature` et **re-vérifie tout dans `onOk`**.
+  `avanceChantierCentre()` décompte dans `finirJournee` (juste après `avanceChantier`) et range la livraison
+  `{fam, niv, avant, apres}` dans **`G.livraisonCentre`** (deux petits états, pas de SVG dans la sauvegarde). L'entretien
+  (`campusEntretienJour`, 400 kF par journée campus complet, château compris) est prélevé avec la masse salariale et
+  s'affiche aux Finances, ligne « Entretien du centre ».
+  **Les effets, VOTRE club seulement** (chaque lecture passe par `campusEff()`, jamais d'autres clubs) : progression des
+  jeunes +10/20/30 % (terrains) et +10 % au château (`progression`) ; blessures −8/16/25 % (physique) et durée −15/30/45 %
+  (médical, arrondie, jamais sous une journée) (`tirageBlessure`) ; soin 0,10/0,20/0,30 (physique) **additionné au
+  préparateur physique sous le plafond 0,70** (`recupJoueur`) ; fragilité −1/−2 l'été au médical 2/3 (`intersaison`) ;
+  jeunes montés note +2/4/7 et potentiel +3/6/10 (`monteeCentre`), montées `monteesMax()` = 2, 3 à l'académie de renom, +1
+  au château (`MONTEES_MAX` reste la base, 2) ; fraîcheur +3 par semaine de J16 à J26 avec la halle et +2 avec le labo
+  (`reposHebdo`, plafond 100) ; moral +0,3/0,6/1 par journée, +0,2 au château (`finirJournee`) ; prime de signature
+  −10/20/30 % (`demandePrime`) ; cohésion +2/+3 % (`forces`, APRÈS le bornage de la cohésion) ; vidéo : duel du milieu
+  +1/2/3 % pour votre match (`forces` pose `tac`, `lambdasZones` le lit ; `styleFormation` et les autres clubs ont `tac`
+  à 0), formation adverse affichée dans `briefAdverse` dès le magnétoscope, point faible désigné à la cellule d'analyse
+  (`pointFaible` : la zone où l'adversaire est le plus en retard sur vous) ; **jeune du cru** (académie 2 ou château) :
+  un gamin de 17 ans chaque été, note 55-62, potentiel 78-86 (84-90 au château), annoncé au debrief (`jeuneDuCru`,
+  appelé après le changement de saison) ; **mise au vert** (château) : +3 de moral avant un derby (`jouerJournee`), un tour
+  de Coupe de France (`coupeJoue`) ou une manche européenne (`euroJoue`).
+  **L'écran Club** (`centreHTML`, sous le stade) : titre = le palier, sa phrase, la maquette (`maquetteCentre`, en cache
+  `CACHE_CENTRE` comme le stade, ~80 Ko, badge « 🏗 … · J-n » pendant un chantier), le compteur « x / 18 » et sa jauge vers
+  le palier suivant, un bouton par famille (niveau suivant · coût · durée), le bouton doré du château. **Sur téléphone
+  (< 600 px)** la maquette est à 190 % dans un cadre qui défile, centrée à l'ouverture, avec « Faites glisser la maquette
+  du doigt pour faire le tour du campus. » **Aucun paragraphe de mode d'emploi** : l'effet d'un niveau se lit dans la
+  fenêtre de lancement.
+  **La carte de livraison** : `ouvreLivraisonCentre`, chaînée juste après `ouvreLivraison` du stade dans `ecranCalendrier`.
+  `scene(etat, {focus, aube:true})` avant et après, l'après en fondu par-dessus, le car des pros, la brume ; surtitre
+  « LIVRAISON · LUNDI, 7 H 30 · CENTRE D'ENTRAÎNEMENT », titre = nom du niveau, sous-titre = `sous`, chiffres = `eff`,
+  « Le centre devient : … » si le palier change. Château : « INAUGURATION · LE CHÂTEAU », lumière dorée et feu d'artifice.
+  **Migration** (`migreCampus`, dans `migre`) : `G.centre = n` donne `min(3, n−1)` aux terrains, à la physique et au médical,
+  `min(2, n−1)` à l'académie, 0 à la vie et à la vidéo, chaque niveau borné par `nivMax` de la saison en cours ; `G.centre`
+  est supprimé. `ameliorerCentre` et le bloc « Centre d'entraînement · niveau x/5 » ont disparu.
+  **Calibrage mesuré** : `harness.cjs` 2,393 / 2,409 / 2,416 avant, 2,421 / 2,388 / 2,410 après ; section G de
+  `harness-centre.cjs`, même graine : 2,473 campus à zéro, 2,475 au maximum.
+  **Pièges rencontrés** : (a) **collision d'identifiants SVG** : `vueVille` du stade prend le préfixe `c` par défaut et
+  produirait `cHalo`, le même nom que le halo du centre (d'où le préfixe `ct`). (b) **La formation adverse est devenue une
+  récompense** : `briefAdverse` l'affichait toujours ; `harness-formations` (section I) a été réécrit sciemment (pas de
+  formation sans vidéo, la formation avec le magnétoscope). (c) **Le niveau 0 de l'académie ne donne rien** alors que
+  l'ancien centre au niveau 1 donnait +2 de note aux jeunes montés : une partie neuve fait monter des gamins un peu plus
+  bruts qu'avant (voulu par la consigne). (d) Au harnais, **l'entretien se mesure en différentiel** (même graine, une
+  seule différence : deux terrains, 10 000 FF d'écart exact) ; et le compte à rebours d'un chantier se lit AVANT la
+  journée, l'objet étant décrémenté pendant. (e) Les bornes de `monteeCentre` (45 à 72) rognent la mesure de l'académie
+  pour un club prestigieux : le harnais mesure à prestige 4. Validation : **`harness-centre.cjs`** (A à I).
 - **Staff technique — coachs spécialisés (v0.69)** : le 2e pilier « je construis mon club ». Six **postes fonctionnels**
   (`STAFF_POSTES` : attaque, defense, gardien, cpa, physique, mental) qu'on POURVOIT en recrutant un coach — modèle
   **hybride** : chaque recrue a un **nom généré** (`COACH_PRENOMS`+`NOMS`) et une **petite phrase** de caractère
@@ -2345,6 +2415,11 @@ générés toujours prénommés, noms sans initiale laissés tels quels).
    `harness-stade.cjs` (le stade en maquette, v1.36 : nouvelle partie à la taille du club, vieille sauvegarde convertie,
    chemin jusqu'à 100 000 places, effets bornés, rendu dans vingt états, Entrer dans l'histoire dans les six styles ;
    section G v1.41 : entretien réduit des places ajoutées, remboursement d'une tribune, accès, pelouse chauffante),
+   `harness-centre.cjs` (le centre d'entraînement en campus, v1.53 : campus à zéro dans une partie neuve, migration d'un
+   vieux `G.centre` bornée par l'époque, un chantier à la fois au centre mais possible pendant celui du stade, refus sans
+   argent, livraison et entretien, les trois époques, le château refusé puis livré, chaque effet à zéro et au maximum
+   pour votre club seulement avec le plafond de soin 0,70, le calibrage en différentiel, vingt états de rendu sans NaN ni
+   tiret long, et une carrière de six saisons où le campus monte),
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
@@ -2657,7 +2732,7 @@ générés toujours prénommés, noms sans initiale laissés tels quels).
   (`acheter`, en amont de la prime, qui reste le second temps de la négociation), recrue joker
   (`acheterJoker` → le corps est passé à `signeJoker`), vente éclair (`venteEclair`, qui abandonne au
   passage le `confirm()` du navigateur, hors décor et muet sur ce qu'on perd), chantier de stade
-  (`lanceProjet`) et centre de formation (`ameliorerCentre`). Les deux derniers **re-vérifient leurs
+  (`lanceProjet`) et centre d'entraînement (`ameliorerCentre`, devenu `lanceCentre` en v1.53). Les deux derniers **re-vérifient leurs
   conditions dans `onOk`** : entre l'ouverture et la confirmation, la situation a pu changer.
   **`modalSignature` court-circuite en `EN_TEST()`** (appel direct de `onOk`) — sans quoi
   `harness-euro.cjs`, qui appelle `acheterJoker(0)` sans DOM pour cliquer, dormirait les yeux ouverts.
