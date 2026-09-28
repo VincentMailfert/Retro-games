@@ -534,7 +534,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.54"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.55"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1568,14 +1568,19 @@ const BOUCHERS={
 // Les rois du coup franc de la L1 (classement historique des buteurs sur CPA) — don inné des balles
 // arrêtées : ceux-là deviennent tireurs d'élite (🎯) dès qu'ils foulent une pelouse, même peu notés.
 const TIREURS_CF=new Set([
- // NB : le « Juninho » de notre Middlesbrough est Juninho Paulista, PAS Juninho Pernambucano —
- // il n'a donc pas le don du coup franc d'office (il peut l'avoir au hasard via le seuil M/A≥79).
  "F. Sauzée","A. Caveglia","F. Meyrieu","Wendel","P. Pauleta","M. Bastos","T. Bertin",
  "A. Asanović","C. Martins","M. Vahirua","S. Guivarc'h","J.-L. Zanon","W. Khazri","Nenê","L. Robert",
  "C. Grenier","D. Wass","F. Brisson","P. Jeannol","Z. Ibrahimović","A. Emon","B. Ferrer","B. Bellone",
  "P. Le Guen","Z. Zidane","J. Gourvennec","G. Passi","V. Halilhodžić","D. Payet","R. Boudebouz",
  "N. Fekir","Á. Di María","B. Bourigeaud","T. Savanier",
 ]);
+/* LES MAÎTRES DU COUP FRANC (v1.55, retour de l'auteur : « Juninho de Lyon est un tireur de coup franc élite,
+   ses coups francs étaient presque considérés comme des pénaltys à une époque »). Un cran au-dessus du tireur
+   d'élite : l'équipe qui l'aligne pèse TIR_MAITRE au lieu de TIR_ELITE, une part de ses buts part d'un coup franc
+   direct signé de sa main (marque, P_CF_MAITRE), et le coup franc de la 90e se transforme presque comme un penalty.
+   « Juninho » est ici Juninho Pernambucano (Lyon 2001-2009) : l'homonyme de Middlesbrough, Juninho Paulista,
+   s'appelle « Juninho Paulista » dans le vivier depuis v1.55 (avant, il en était même chassé par l'homonymie). */
+const MAITRES_CF=new Set(["Juninho"]);
 function initTraits(j){
   if(j.ego==null)    j.ego    = Math.max(1, RNDI(1,6) + (j.note>=85?RNDI(1,4):0));
   if(j.agress==null) j.agress = Math.max(1, RNDI(0,6)+RNDI(0,4));
@@ -1588,6 +1593,7 @@ function initTraits(j){
   // don RARE des coups de pied arrêtés (penaltys + coups francs) : réservé aux bons milieux/attaquants, peu fréquent ;
   // un vrai roi du coup franc (TIREURS_CF) l'a d'office, quelle que soit sa note
   if(j.tireurElite==null) j.tireurElite = ((t&&t.tireur)||TIREURS_CF.has(j.nom)) ? true : ("MA".includes(j.pos||"") && (j.note||0)>=79 && Math.random()<0.09);
+  if(MAITRES_CF.has(j.nom)){ j.maitreCF=true; j.tireurElite=true; }
 }
 const egoLib=v=>v>=9?"Diva, le vestiaire retient son souffle":v>=7?"Forte tête":v>=5?"Caractère affirmé":"Bon coéquipier";
 const agressLib=v=>v>=8?"Boucher notoire":v>=6?"Rugueux":v>=4?"Engagé":"Fair-play";
@@ -1595,7 +1601,7 @@ const fragLib=v=>v>=8?"En sucre":v>=6?"Fragile":v>=4?"Constitution normale":"Un 
 const venalLib=v=>v>=8?"L'argent lui tourne la tête":v>=6?"Sensible aux sirènes":v>=4?"Pragmatique":"Joue pour le maillot";
 function pictos(j, avecTireur){
   let s="";
-  if(avecTireur && j.tireurElite) s+='<span title="Tireur d\'élite, coups francs et penaltys">🎯</span>';
+  if(avecTireur && j.tireurElite) s+='<span title="'+(j.maitreCF?"Maître du coup franc":"Tireur d\'élite, coups francs et penaltys")+'">🎯</span>';
   if((j.ego||5)>=8)    s+='<span title="Diva, ego surdimensionné, pèse sur la cohésion">👑</span>';
   else if((j.ego||5)<=3) s+='<span title="Team player, bon coéquipier, ciment du vestiaire">🤝</span>';
   if((j.agress||5)>=8) s+='<span title="'+((j.agress||5)>=10?"Boucher légendaire, la terreur des ailiers":"Boucher, collectionne cartons et suspensions")+'">🪝</span>';
@@ -4031,6 +4037,7 @@ const ZONES={p:2, wa:0.5, c:0.9, aa:0.9, am:0.5, ad:1.1};
 // K_ZONES : 2,45 comme l'ancien moteur, remonté de 1,1 % après mesure — à 2,45, trente passes de harness.cjs donnaient
 // 2,3833 buts/match contre 2,4097 en v1.11 (erreur-type 0,0035) : la formule à trois zones ne coïncide pas au chiffre près
 const K_ZONES=2.477, TIR_ELITE=Math.pow(1.03,2.5); // le tireur d'élite pèse exactement ce qu'il pesait avant (+3 % d'attaque à la puissance 2,5)
+const TIR_MAITRE=TIR_ELITE*1.08; // le maître du coup franc (MAITRES_CF) : ~0,1 but de plus par match, ses coups francs directs
 /* QUI JOUE OÙ. Chaque ligne reçoit d'abord ses hommes de métier ; un dépanneur (effectif décimé, que `onze` complète
    hors poste) joue dans la ligne qui manque d'hommes — défense d'abord, puis milieu, attaque, et le but en tout
    dernier — à HORS_POSTE de sa valeur (la moitié s'il enfile les gants, ou s'il est gardien et joue dans le champ).
@@ -4059,13 +4066,13 @@ function forces(c, xiIn){ // xiIn (v1.18) : les hommes RÉELLEMENT sur la pelous
   const def=zone("GD", F.G+F.D, 5, ZONES.ad);
   const mil=zone("M", F.M, 4, ZONES.am);
   const att=zone("A", F.A, 2, ZONES.aa);
-  return {att,mil,def,xi,coh,tir:xi.some(j=>j.tireurElite), tac:(moi&&G.campus)?campusEff().tac/100:0}; // tir : un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts ; tac : la vidéo du campus, VOTRE club seulement
+  return {att,mil,def,xi,coh,tir:xi.some(j=>j.maitreCF)?2:(xi.some(j=>j.tireurElite)?1:0), tac:(moi&&G.campus)?campusEff().tac/100:0}; // tir : un tireur d'élite (coups de pied arrêtés) pèse sur le total de buts ; tac : la vidéo du campus, VOTRE club seulement
 }
 /* LES TROIS DUELS : le milieu contre le milieu décide qui se crée le plus d'occasions ; l'attaque (épaulée par son
    milieu, moitié-moitié) contre la défense d'en face décide si elles finissent au fond. Rend les buts attendus de
    base [hôte, visiteur], avant terrain, ferveur et consignes. `f.tir` absent → neutre (cf. styleFormation). */
 function lambdasZones(fh, fa){
-  const off=f=>Math.pow(f.att,ZONES.wa)*Math.pow(f.mil,1-ZONES.wa), tir=f=>f.tir?TIR_ELITE:1;
+  const off=f=>Math.pow(f.att,ZONES.wa)*Math.pow(f.mil,1-ZONES.wa), tir=f=>f.tir===2?TIR_MAITRE:(f.tir?TIR_ELITE:1);
   // le duel du milieu : la vidéo du campus (f.tac, votre club seulement, 0 sinon) le penche de 1 à 3 %
   const duel=(fh.mil*(1+(fh.tac||0)))/(fa.mil*(1+(fa.tac||0)));
   return [K_ZONES*Math.pow(off(fh)/fa.def,ZONES.p)*Math.pow(duel,ZONES.c)*tir(fh),
@@ -4164,11 +4171,22 @@ const ARRET_ARRET=[
   "Coup de casque de {A} sur corner... arrêt sur la ligne ! Ah, il y avait but, j'en mettrais ma main au feu !",
 ];
 const TIRS_ARRET=new Set([...BUT_ARRET,...ARRET_ARRET]);
+/* LE COUP FRANC DU MAÎTRE (v1.55, cf. MAITRES_CF) : la phase "cf", pour que la montée pose le ballon au lieu
+   d'annoncer une percée. */
+const BUT_CF_MAITRE=[
+  "{A} pose le ballon, trois pas d'élan, et la frappe flotte, plonge, tombe sous la barre. {G} n'a pas bougé. BUT !",
+  "Coup franc pour {A} à vingt-cinq mètres. Le mur saute, le ballon passe dessus, redescend d'un coup : lucarne ! BUUUT !",
+  "{A} frappe sans effet, le ballon danse dans l'air, {G} plonge du mauvais côté. AU FOND !",
+  "Tout le stade savait où ça allait, {G} aussi. {A} la met quand même dans la lucarne. BUT !",
+  "{A} tire le coup franc comme on tire un penalty : plein cadre, trop fort, trop vicieux. BUUUT !",
+  "La feuille morte de {A} ! Le ballon passe au-dessus du mur et meurt dans le petit filet. BUT !",
+];
+const TIRS_CF=new Set(BUT_CF_MAITRE);
 /* La phase de tir telle que le moteur la pose sur l'évènement (`g` ou `q`), lue par `monteeUn` et
    `monteeDeux` : "" = jeu ouvert et finition proche, "loin" = frappe de vingt mètres et plus,
    "lob" = le gardien est sorti et on tente de le lober, "bal" = la conclusion vient d'un corner.
    Un seul champ, court : les évènements du direct sont nombreux et ce drapeau les suit tous. */
-function phaseTir(l){ return TIRS_LOIN.has(l)?"loin":(TIRS_LOB.has(l)?"lob":(TIRS_ARRET.has(l)?"bal":"")); }
+function phaseTir(l){ return TIRS_CF.has(l)?"cf":(TIRS_LOIN.has(l)?"loin":(TIRS_LOB.has(l)?"lob":(TIRS_ARRET.has(l)?"bal":""))); }
 const COMM={
  amb:[
   "Le public donne de la voix dans les tribunes.",
@@ -4667,8 +4685,10 @@ function estContre(c,m){
 // c'est la plus lue du téléscripteur, et c'est elle qu'on voyait revenir mot pour mot dans une
 // même rencontre. Sans mémoire, un match à quatre buts avait près d'une chance sur quatre de
 // servir deux fois le même commentaire (23 lignes au pool, tirage avec remise).
+const P_CF_MAITRE=0.14; // part des buts de son équipe que le maître signe sur coup franc direct, s'il est sur la pelouse
 function marque(c, sh, sa, verbeux, ev, m, prefixe, contre, vus){
-  const j=tireur(c);
+  const mcf=contre ? null : enJeu(c).find(x=>x.maitreCF), surCF=!!mcf && Math.random()<P_CF_MAITRE;
+  const j=surCF ? mcf : tireur(c);
   // LA LIGNE EST TIRÉE AVANT LE PASSEUR (v1.05) : le corner direct est le seul but où personne ne
   // touche le ballon, et le téléscripteur le faisait quand même suivre d'une « Passe décisive de X ».
   // On ne peut le savoir qu'une fois la ligne connue — d'où ce tirage remonté d'un cran. Le prix est
@@ -4676,8 +4696,8 @@ function marque(c, sh, sa, verbeux, ev, m, prefixe, contre, vus){
   // Elle sert aussi, comme avant, au drapeau `ph` : il se lit sur le GABARIT, jamais sur le texte
   // affiché (noms déjà substitués). En match muet (autres rencontres), aucune ligne n'est tirée et
   // le passeur est désigné comme avant : le calibrage des passes hors de votre match ne bouge pas.
-  const lgn=verbeux?pickNR(contre?COMM.butContre:COMM.but,vus||[]):null;
-  const p=(lgn && BUT_SANS_PASSE.has(lgn)) ? null : passeur(c,j);
+  const lgn=verbeux?pickNR(surCF?BUT_CF_MAITRE:(contre?COMM.butContre:COMM.but),vus||[]):null;
+  const p=(surCF || (lgn && BUT_SANS_PASSE.has(lgn))) ? null : passeur(c,j); // un coup franc direct n'a pas de passeur
   // le but va dans le compteur de la compétition en cours (cf. COMPET) : en championnat le classement
   // des buteurs, en coupe un compteur à part qui ne s'y mêle jamais
   const kB=cleButs(), kP=clePasses();
@@ -5139,7 +5159,10 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA,opts){
   // sauf celui qu'un rouge du fil recollé vient d'annuler (expulse), puisqu'on ne remplace pas un expulsé. Le tri se fait
   // deux fois : ICI, contre la feuille que l'effacement des rouges vient de rendre (le gardien d'urgence d'un rouge effacé
   // n'a plus de ligne — si le nouveau fil le rappelle, simuleReste l'écrit à neuf), et après la re-simulation
-  const enFeuille=l=>{ const p=CHANGEMENTS[l.cote]; return !p || p.banc.some(j=>j.uid===l.uid); };
+  // (v1.55) l'entrant ET la minute : faites entrer au banc un joueur prévu plus tard, son changement prévu saute
+  // (avanceLeBanc) mais lui reste sur la feuille, à la minute du banc. Ne regarder que l'entrant laissait survivre
+  // la ligne prévue, et il entrait une seconde fois (retour de l'auteur).
+  const enFeuille=l=>{ const p=CHANGEMENTS[l.cote]; return !p || p.banc.some((j,k)=>j.uid===l.uid && p.min[k]===l.m); };
   // la SCÈNE d'un pépin survit toujours au recollage (v1.18) : une consigne changée n'empêche personne de se blesser
   const changes=r.ev.slice(fromIdx).filter(l=>l.bl || (l.ic==="sub" && enFeuille(l))).concat(rendus).sort((x,y)=>x.m-y.m);
   const out=simuleReste(h,a,mNow,sh,sa,mulH,mulA,memoireDe(r),opts?Object.assign({},opts,{enProlong}):undefined);
@@ -5755,6 +5778,16 @@ const MONTEE_ARRET=[
   "Le tireur prend son temps au drapeau, ça se marque à la culotte dans les six mètres…",
   "Arrêt de jeu, tout le monde monte : ce corner sent le danger…",
 ];
+const MONTEE_CF=[
+  "Faute aux abords de la surface. Le banc d'en face se prend la tête dans les mains…",
+  "Coup franc à vingt-cinq mètres, plein axe. Le mur se forme, les défenseurs se regardent…",
+  "L'arbitre siffle la faute, juste devant la surface. Un murmure parcourt les tribunes…",
+];
+const MONTEE_CF_FRAPPE=[
+  (p,gk)=>p+" pose le ballon, recule de trois pas. "+gk+" règle son mur, puis le règle encore…",
+  (p,gk)=>p+" est sur le ballon. "+gk+" le sait, tout le stade le sait…",
+  (p,gk)=>"Le silence. "+p+" fixe le but, "+gk+" hurle pour aligner cinq hommes…",
+];
 const MONTEE_ARRET_FRAPPE=[
   (p,gk)=>"Tout le monde est monté dans la surface, "+p+" aussi, et "+gk+" hurle sur son monde…",
   (p,gk)=>p+" est au cœur de la mêlée, "+gk+" ne voit plus rien du tout…",
@@ -5828,6 +5861,7 @@ function monteeUn(info, lignes, campA, campD, m){ // m : la minute de l'action (
     let rec=quelconque(campA, m); if(rec.nom===info.but) rec=quelconque(campA, m); // éviter que le voleur soit le buteur
     return pickM(MONTEE_CONTRE,lignes)(rec.nom, quelconque(campD, m).nom);
   }
+  if(info && info.ph==="cf") return pickM(MONTEE_CF,lignes);      // le maître du coup franc pose le ballon (cf. TIRS_CF)
   if(info && info.ph==="bal") return pickM(MONTEE_ARRET,lignes);  // la conclusion vient d'un corner (cf. TIRS_ARRET)
   if(info && info.ph==="loin") return pickM(MONTEE_LOIN,lignes);  // frappe de loin : le bloc tient, l'action ressort (cf. TIRS_LOIN)
   if(info && info.ph==="lob") return pickM(MONTEE_LOB,lignes);    // lob : le gardien a quitté sa surface (cf. TIRS_LOB)
@@ -5839,7 +5873,7 @@ function monteeUn(info, lignes, campA, campD, m){ // m : la minute de l'action (
    l'occasion est immense… » avant de conclure « PRALINE DE TRENTE MÈTRES ! » — signalé en playtest. */
 function monteeDeux(info, lignes, gk){
   const ph=info&&info.ph;
-  const pool=ph==="bal"?MONTEE_ARRET_FRAPPE:(ph==="loin"?MONTEE_LOIN_FRAPPE:(ph==="lob"?MONTEE_LOB_FRAPPE:MONTEE_FRAPPE));
+  const pool=ph==="cf"?MONTEE_CF_FRAPPE:ph==="bal"?MONTEE_ARRET_FRAPPE:(ph==="loin"?MONTEE_LOIN_FRAPPE:(ph==="lob"?MONTEE_LOB_FRAPPE:MONTEE_FRAPPE));
   return pickM(pool,lignes)(info.but, gk);
 }
 const MONTEE_CONTRE=[
@@ -5893,7 +5927,7 @@ function tireMoment(moi,adv){
     if(!tir) return null;
     const dist=RNDI(16,25), elite=!!tir.tireurElite;
     return {type:"coupfranc", uid:tir.uid, dist,
-      annonce:"COUP FRANC DANGEREUX POUR "+moi.nom.toUpperCase()+" À "+dist+" MÈTRES ! "+tir.nom+(elite?", votre spécialiste,":"")+" place le ballon et fixe la lucarne..."};
+      annonce:"COUP FRANC DANGEREUX POUR "+moi.nom.toUpperCase()+" À "+dist+" MÈTRES ! "+tir.nom+(tir.maitreCF?", et tout le stade se lève,":elite?", votre spécialiste,":"")+" place le ballon et fixe la lucarne..."};
   }
   if(t<0.64){
     const b=xiM.filter(j=>(j.agress||5)>=7).sort((a,b)=>(b.agress||0)-(a.agress||0))[0];
@@ -5967,7 +6001,7 @@ function autoMoment(mo){ // résolution sans intervention (tests, abandon de ban
   if(mo.type==="pen_pour")   return Math.random()<(0.74+0.04*coachTier("cpa")) ? +1 : 0; // le spécialiste CPA aiguise la conversion
   if(mo.type==="pen_contre") return Math.random()<(0.70-0.03*coachTier("gardien")) ? -1 : 0; // un bon coach des gardiens en sauve davantage
   if(mo.type==="coupfranc"){ const j=byUid(mo.uid); const el=!!(j&&j.tireurElite); // un spécialiste transforme bien plus souvent
-    return Math.random()<((el?0.30:0.09)+0.04*coachTier("cpa")) ? +1 : 0; }
+    return Math.random()<((j&&j.maitreCF?0.55:el?0.30:0.09)+0.04*coachTier("cpa")) ? +1 : 0; } // le maître, presque un penalty
   if(mo.type==="tacle"){ const j=byUid(mo.uid); if(j) j.susp=(j.susp||0)+3; return 0; }
   if(mo.type==="provoc"){ const j=byUid(mo.uid); if(j && Math.random()<0.4) j.susp=(j.susp||0)+1; return 0; }
   if(mo.type==="but50" || mo.type==="geste" || mo.type==="gkbut"){ // but d'exception (gardien buteur inclus) : il compte, et il marque les esprits
@@ -8063,7 +8097,7 @@ const VIVIER={
    ["A. Shevchenko","A",18,70,92,"Dynamo Kiev"],
    ["F. Totti","M",19,72,91,"AS Roma"],
    ["A. Nesta","D",19,71,92,"Lazio Rome"],
-   ["Juninho","M",22,80,87,"Middlesbrough"],
+   ["Juninho Paulista","M",22,80,87,"Middlesbrough"],
    ["P. Nedvěd","M",23,76,89,"Sparta Prague"],
    ["J. S. Verón","M",20,73,89,"Estudiantes"],
    ["Rivaldo","M",23,80,92,"Palmeiras"],
@@ -9762,10 +9796,17 @@ function coupeRejoue(sortie, from, mNow, mulH, mulA){
   const o=sortie.o||{}, R=sortie.r, H=coupeClub(sortie.hid), A=coupeClub(sortie.aid);
   return enCompet("CF", ()=>sousFeuilles(o.feuilles||{}, ()=>rejoueDepuis(R, H, A, from, mNow, mulH, mulA, o)));
 }
+/* UNE CONSIGNE CHANGÉE EN DIRECT VAUT POUR CE MATCH SEUL (v1.55, retour de l'auteur : « si je bascule en offensif
+   au cours d'un match, c'est le réglage par défaut du match d'après »). Le premier changement en direct met de
+   côté la consigne d'avant-match ; au coup de sifflet (soldePrime, appelée à la fin de chacun de vos matchs,
+   championnat, coupe et Europe), elle revient. Celle réglée avant le match, elle, reste un réglage durable. */
+function consigneEnDirect(k){ if(G._consigneAvant==null) G._consigneAvant=G.consigne; G.consigne=k; }
+function rendConsigne(){ if(G._consigneAvant!=null){ G.consigne=G._consigneAvant; delete G._consigneAvant; } }
 /* La prime promise pour un match se règle toujours de la même façon : payée si l'on gagne, puis remise à zéro
    — c'est un choix à reprendre à chaque match. Le samedi (finirJournee) comme les soirs de coupe. `quoi` dit
    ce qu'on a gagné : une victoire, une qualification, une manche aller. */
 function soldePrime(gagne, quoi){
+  rendConsigne();
   const pm=+G.primeMatch||0; if(pm<=0) return;
   if(gagne){ const moi=clubById(G.monClub), masse=moi?moi.joueurs.reduce((s,j)=>s+salaire(j),0):0, cout=Math.round(masse*pm*3);
     G.tresorerie-=cout;
@@ -10902,6 +10943,11 @@ function migre(){
   G.saisonIdx=G.saisonIdx||1; G.anBase=G.anBase||1995; G.confiance=G.confiance==null?65:G.confiance; // anBase : année de la 1re saison de la carrière (anciennes sauvegardes = 1995)
   G.presse=G.presse||[]; G.affaire=G.affaire||null; G.truque=!!G.truque; G.risque=+G.risque||0; G.consigne=G.consigne||"equilibre"; G.formation=FORMATIONS[G.formation]?G.formation:"4-4-2"; G.prixBillet=(G.prixBillet==null?2:G.prixBillet);
   G.primeMatch=+G.primeMatch||0; G.promoBillets=!!G.promoBillets; // prime de victoire (opt-in par match) + promo billets scolaires
+  // v1.55 : « Juninho ». Carrière lancée en 2001 ou après : c'est celui de Lyon, maître du coup franc (MAITRES_CF) ;
+  // avant, ce ne peut être que Juninho Paulista, venu du vivier de l'été 95, qui prend son nom complet
+  for(const c of (G.clubs||[]).concat(G.autre||[])) for(const j of (c.joueurs||[])) if(j.nom==="Juninho"){
+    if(G.anBase>=2001){ j.maitreCF=true; j.tireurElite=true; } else j.nom="Juninho Paulista"; }
+  if(G.vivier) for(const t in G.vivier) for(const e of G.vivier[t]) if(e[0]==="Juninho") e[0]="Juninho Paulista";
   G.d2=G.d2||[]; G.palmares=G.palmares||[]; G.recap=G.recap||null; G.vire=G.vire||null;
   G.poolPromus=G.poolPromus||[];
   migreCampus(); G.offreExt=G.offreExt||null; G.offrePret=G.offrePret||null;
@@ -11866,7 +11912,7 @@ function cableTactiqueDirect(o){
     const from=(L[i] && L[i]._monte) ? i+1 : i;
     const sif=L.findIndex(l=>l.t==="sys" && /^COUP DE SIFFLET FINAL/.test(l.x||""));
     if(sif<0 || from>sif) return;                  // le sifflet est passé : il n'y a plus rien à rejouer
-    G.consigne=k;
+    consigneEnDirect(k);
     const mNow=from>i ? L[i].m : o.minute();
     o.rejoue(from, mNow);
     o.verdict();
@@ -11887,7 +11933,7 @@ function cableTactiqueRdv(o){
     const from=(L[i] && L[i]._monte) ? i+1 : i;   // une action déjà annoncée par la montée va à son terme : on recolle APRÈS elle
     const sif=L.findIndex(l=>l.t==="sys" && /^COUP DE SIFFLET FINAL/.test(l.x||""));
     if(sif<0 || from>sif) return;                  // le sifflet est passé : il n'y a plus rien à rejouer
-    G.consigne=k;
+    consigneEnDirect(k);
     const mNow=from>0 ? L[from-1].m : 0, apres=o.lambdas();
     rejoueRdv(o.gen, L, from, mNow, o.r, enCours, apres);
     enCours=apres;
@@ -13051,7 +13097,7 @@ function lanceMatch(instant){
   }
   const changeTactique=(k)=>{
     if(monMatch._truque || !G._pend || i>=lignes.length || k===G.consigne) return; // match arrangé / fini ou déjà finalisé / inchangé
-    G.consigne=k;
+    consigneEnDirect(k);
     // une action déjà annoncée par la montée de tension (« X se présente seul… ») va à son terme : on recolle APRÈS
     // elle (v1.10). Avant, elle restait en l'air et le fil repartait sur tout autre chose.
     const from=(lignes[i] && lignes[i]._monte) ? i+1 : i, mNow=from>i ? lignes[i].m : liveMin;
@@ -13318,7 +13364,7 @@ function momentCoupFranc(mo,moi,adv,resoudre,suite){
   const fiche=cadreMoment("COUP FRANC : "+dist+" MÈTRES",
     `<img class="momImg" src="${PICK(IMG_MOMENT.coupfranc)}" alt="">
      <p><b>${esc(t.nom)}</b> (note ${t.note}) à ${dist} m face au mur, ${esc(gk.nom)} (${gk.note}) dans les buts.</p>
-     ${el?`<p>🎯 Votre spécialiste est sur le ballon.</p>`
+     ${t.maitreCF?`<p>🎯 Le maître est sur le ballon.</p>`:el?`<p>🎯 Votre spécialiste est sur le ballon.</p>`
          :""}
      <div style="display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0">
        <button class="act zChoix" data-c="lucarne" style="padding:12px;text-align:left">Par-dessus le mur, plein lucarne</button>
@@ -13331,8 +13377,8 @@ function momentCoupFranc(mo,moi,adv,resoudre,suite){
     const distF=1-Math.max(0,(dist-16))*0.02;       // plus c'est loin, plus c'est dur
     const noteF=1+((s-78)*0.012);                    // un grand frappeur cadre mieux
     const gkF=1-Math.max(0,(g-76))*0.006;            // un gardien d'exception sauve un peu plus
-    let p=base*(el?3.4:1)*distF*noteF*gkF;
-    p=Math.max(0.03,Math.min(0.55,p));
+    let p=base*(t.maitreCF?6:el?3.4:1)*distF*noteF*gkF;
+    p=Math.max(0.03,Math.min(t.maitreCF?0.70:0.55,p)); // le maître du coup franc : presque un penalty
     const but=Math.random()<p;
     const place=c==="lucarne"?"par-dessus le mur en pleine lucarne":(c==="enroule"?"enroulé au ras du poteau":"d'une frappe tendue déviée par le mur");
     const rate=c==="lucarne"?"AU-DESSUS, d'un rien !":(c==="enroule"?"LE GARDIEN SE DÉTEND ET REPOUSSE !":"LE MUR PREND TOUT !");
@@ -13551,7 +13597,7 @@ function ecranEffectif(){
        j.pretIn?`<span>prêt, retour J${(G.prets.find(p=>p.uid===j.uid)||{fin:"?"}).fin}</span>`:""].filter(Boolean);
      return `<tr class="click" data-i="${i}">
      <td class="effEtat">${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span title="Titularisé de force">★</span>':""}${j.repos?'<span title="Mis au repos, il récupère">🛌</span>':""}${j.avendre?'<span title="Sur la liste des transferts">🏷️</span>':""}</td>
-     <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span title="Tireur d\'élite, coups francs et penaltys">🎯</span>':""}${(p=>p.includes("class=\"dim\"")?"":` <span class="effCar">${p}</span>`)(pictos(j))}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
+     <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span title="'+(j.maitreCF?"Maître du coup franc":"Tireur d\'élite, coups francs et penaltys")+'">🎯</span>':""}${(p=>p.includes("class=\"dim\"")?"":` <span class="effCar">${p}</span>`)(pictos(j))}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
      <td class="pos-${j.pos}">${j.pos}</td>
      <td class="num">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux">⏳</span>':""}${j.age}</td>
      <td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
@@ -13680,7 +13726,7 @@ function ouvreFiche(j){
     <p>Forme : ${jaugeFraich(j,80)} ${libFraich(j)[3]} <b class="${libFraich(j)[2]}">${esc(libFraich(j)[1])}</b> <span class="dim">(${Math.round(fraich(j))}/100)</span>${j.repos?' <span>🛌 au repos</span>':""}</p>
     ${j.capitaine?`<p class="jaune">©️ Capitaine de l'équipe</p>`
       :(j.club===G.monClub&&!j.pretIn?`<p class="dim">Capitanat : ${esc(libLeadership(j))} <button class="act" id="bCap" style="margin-left:6px">©️ Nommer capitaine</button></p>`:"")}
-    ${j.tireurElite?`<p>🎯 Tireur d'élite, il tire les penaltys et les coups francs</p>`:""}
+    ${j.maitreCF?`<p>🎯 Maître du coup franc</p>`:j.tireurElite?`<p>🎯 Tireur d'élite, il tire les penaltys et les coups francs</p>`:""}
     ${j.grace?`<p class="vert">✨ En état de grâce, il vit la saison de sa vie !</p>`:""}
     ${j.selA?`<p>International A${j.butSel?", a marqué en sélection":""}</p>`:(j.selEsp?`<p>International Espoirs</p>`:"")}
     ${(!j.reel&&j.histoire)?`<p style="margin-top:8px">Histoire :</p><p class="dim" style="font-style:italic">${esc(j.histoire)}</p>`:""}

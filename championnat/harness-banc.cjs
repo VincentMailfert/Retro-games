@@ -381,5 +381,32 @@ console.log("I) Un nom bricolé ne peut pas ouvrir de balise");
   clic("bFermeBanc");
 }
 
+/* ============ J) L'HOMME QUE LE BANC GARDAIT POUR PLUS TARD N'ENTRE QU'UNE FOIS (v1.55) ============
+   Retour de l'auteur : « après avoir fait entrer un joueur manuellement, il est rentré une 2e fois
+   automatiquement ». avanceLeBanc faisait bien sauter son changement prévu de la feuille, mais la ligne
+   déjà écrite pour la 65e survivait au recollage : le tri ne regardait que l'entrant, pas la minute. */
+console.log("J) Un homme prévu plus tard, qu'on fait entrer tout de suite, n'entre qu'une fois");
+{
+  let vus = 0, doubles = 0;
+  for (let n = 0; n < 40; n++) {
+    const s = scene(["LIL", "REN", "OM", "AUX"][n % 4], 40);
+    const k = s.p.min.findIndex(x => x > 40);
+    if (k < 0) continue;
+    const entrant = s.p.banc[k];
+    const liste = api.bancDispo(s.moi, s.p, 40)
+      .sort((x, y) => ("DMA".indexOf(y.pos) - "DMA".indexOf(x.pos)) || (api.noteSel(y) - api.noteSel(x))).slice(0, 6);
+    const iE = liste.indexOf(entrant);
+    if (iE < 0) continue;
+    api.ouvreBanc(s.ctx);
+    FICHE.querySelectorAll(".bEntreB")[iE].onclick();
+    FICHE.querySelectorAll(".bSortB")[0].onclick();
+    reprendreLeMatch();
+    vus++;
+    if (s.r.ev.filter(l => l.ic === "sub" && l.uid === entrant.uid).length !== 1) doubles++;
+  }
+  ok(vus >= 10, `des scènes où l'homme était attendu plus tard (${vus})`);
+  ok(doubles === 0, `le téléscripteur ne le fait entrer qu'une fois (${doubles} double(s) sur ${vus})`);
+}
+
 console.log(FAILS === 0 ? "\n✅ HARNAIS BANC : TOUT EST VERT" : `\n❌ ${FAILS} ÉCHEC(S)`);
 process.exit(FAILS ? 1 : 0);

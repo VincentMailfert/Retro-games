@@ -194,6 +194,10 @@ toujours « raconter quelque chose ».
   comme pour une consigne changée (on recolle APRÈS une action déjà annoncée par la montée de tension). Le poids
   passe par `poidsPelouse` (onze contre onze : la formule des trois zones), puis `rejoueDepuis` rejoue la fin du
   match et la ligne « Changement pour X : A entre à la place de B. » est posée en tête de ce qui reste à lire.
+  **Piège corrigé en v1.55** (retour auteur : « il est rentré une 2e fois automatiquement ») : faire entrer un homme que
+  le banc gardait pour plus tard fait sauter son changement prévu (`avanceLeBanc`), mais sa ligne pré-écrite survivait
+  au recollage, car `enFeuille` (dans `rejoueDepuis`) ne comparait que l'uid de l'entrant, qui est toujours sur la
+  feuille, à la minute du banc. Il compare désormais l'uid ET la minute. Gardé par la section J de `harness-banc.cjs`.
   **Le vivier est commun au pépin et au choix** : `bancDispo(c,p,m)` (jamais le gardien remplaçant, jamais un
   homme déjà entré, mais OUI un homme que le banc comptait faire entrer plus tard — `avanceLeBanc` retire alors
   ce changement-là). **`ligneChangement` distingue trois causes** : `blessure` (SUBS_BLESSURE), le gardien
@@ -999,7 +1003,10 @@ toujours « raconter quelque chose ».
   impact calibrage.
 - **Consigne d'avant-match** (`CONSIGNES`, `G.consigne` ∈ `prudent`/`equilibre`/`offensif`, défaut `equilibre`) :
   un **choix restreint** avant chaque match (sélecteur sur l'écran du match, consigne active surlignée, elle
-  persiste jusqu'au changement suivant). Modulateur d'agressivité appliqué **au SEUL match du joueur** dans
+  persiste jusqu'au changement suivant). **Mais celle changée EN DIRECT ne vaut que pour ce match (v1.55,
+  retour auteur)** : le premier changement en direct (`consigneEnDirect`, appelée par les trois contrôles du direct)
+  met de côté la consigne d'avant-match dans `G._consigneAvant`, et `rendConsigne` la rétablit au coup de sifflet,
+  depuis `soldePrime` (le point de fin de chacun de vos matchs, championnat, coupe et Europe). Modulateur d'agressivité appliqué **au SEUL match du joueur** dans
   `simuleMatch` (`att` = votre attaque, `adv` = l'attaque adverse contre vous) : offensif marque plus mais
   expose, prudent verrouille. Neutre (×1) pour tous les autres clubs et en `equilibre` → **le calibrage du
   championnat reste intact** (le harnais joue en `equilibre`). Multiplicateurs = réglages tunables. À migrer
@@ -1947,8 +1954,15 @@ toujours « raconter quelque chose ».
   notoires de la L1** (Di Meco « le pire » et Rool à 10, etc.) → ils portent le picto 🪝 ; ≥10 affiche la
   variante « Boucher légendaire ». **`TIREURS_CF`** (Set) consigne les **rois du coup franc** (Sauzée, Caveglia,
   Zidane…) → `tireurElite=true` **d'office, quelle que soit la note** (court-circuite le seuil M/A≥79).
-  **Attention (v0.61)** : le « Juninho » de notre Middlesbrough est **Juninho Paulista**, PAS Juninho Pernambucano — il a
-  été **retiré de `TIREURS_CF`** (il peut au plus décrocher le don au hasard via le seuil M/A≥79, comme tout bon milieu).
+  **Les deux Juninho (v1.55)** : celui du vivier (Middlesbrough, été 95) est Juninho Paulista et s'appelle désormais
+  « Juninho Paulista » (avant, sur une carrière 2001-02, il était même chassé du vivier par l'homonymie) ; « Juninho »
+  tout court est Juninho Pernambucano, Lyon 2001-02. Lui seul est dans **`MAITRES_CF`**, le cran au-dessus du tireur
+  d'élite (retour auteur : « ses coups francs étaient presque considérés comme des pénaltys ») : `j.maitreCF`, poids
+  `TIR_MAITRE` = `TIR_ELITE`×1,08 sur la lambda (`forces().tir` vaut 2), ~14 % des buts de son équipe signés sur coup
+  franc direct quand il est sur la pelouse (`P_CF_MAITRE` dans `marque`, sans passeur, lignes `BUT_CF_MAITRE`, phase
+  de montée `"cf"` avec `MONTEE_CF`/`MONTEE_CF_FRAPPE`), et le coup franc de la 90e à ×6 plafonné à 70 % (0,55 en
+  auto). Picto 🎯 inchangé, titre « Maître du coup franc ». `migre` pose le statut sur les sauvegardes lancées en 2001
+  ou après, et renomme « Juninho » en « Juninho Paulista » sur celles d'avant.
   Seuls les joueurs **présents** dans le jeu matchent (Di Meco/Sauzée/Caveglia/Rool en 95-96) ;
   le reste est de la donnée correcte-par-construction si un nom surgit (procédural multi-saisons). Étendre ces
   listes par simple ajout de nom au bon format d'initiale.
