@@ -1372,7 +1372,7 @@ toujours « raconter quelque chose ».
   (`reposHebdo`, plafond 100) ; moral +0,3/0,6/1 par journée, +0,2 au château (`finirJournee`) ; prime de signature
   −10/20/30 % (`demandePrime`) ; cohésion +2/+3 % (`forces`, APRÈS le bornage de la cohésion) ; vidéo : duel du milieu
   +1/2/3 % pour votre match (`forces` pose `tac`, `lambdasZones` le lit ; `styleFormation` et les autres clubs ont `tac`
-  à 0), formation adverse affichée dans `briefAdverse` dès le magnétoscope, point faible désigné à la cellule d'analyse
+  à 0), point faible désigné à la cellule d'analyse
   (`pointFaible` : la zone où l'adversaire est le plus en retard sur vous) ; **jeune du cru** (académie 2 ou château) :
   un gamin de 17 ans chaque été, note 55-62, potentiel 78-86 (84-90 au château), annoncé au debrief (`jeuneDuCru`,
   appelé après le changement de saison) ; **mise au vert** (château) : +3 de moral avant un derby (`jouerJournee`), un tour
@@ -1393,9 +1393,10 @@ toujours « raconter quelque chose ».
   **Calibrage mesuré** : `harness.cjs` 2,393 / 2,409 / 2,416 avant, 2,421 / 2,388 / 2,410 après ; section G de
   `harness-centre.cjs`, même graine : 2,473 campus à zéro, 2,475 au maximum.
   **Pièges rencontrés** : (a) **collision d'identifiants SVG** : `vueVille` du stade prend le préfixe `c` par défaut et
-  produirait `cHalo`, le même nom que le halo du centre (d'où le préfixe `ct`). (b) **La formation adverse est devenue une
-  récompense** : `briefAdverse` l'affichait toujours ; `harness-formations` (section I) a été réécrit sciemment (pas de
-  formation sans vidéo, la formation avec le magnétoscope). (c) **Le niveau 0 de l'académie ne donne rien** alors que
+  produirait `cHalo`, le même nom que le halo du centre (d'où le préfixe `ct`). (b) **La formation adverse reste visible de tous
+  (choix de l'auteur, 28/09/2026)** : la consigne la réservait au magnétoscope (vidéo niveau 1), livré ainsi en v1.53 ;
+  l'auteur l'a rendue à tout le monde en v1.54. Le magnétoscope ne garde que +1 % au duel du milieu (texte corrigé dans
+  le prototype, puis greffe relancée). (c) **Le niveau 0 de l'académie ne donne rien** alors que
   l'ancien centre au niveau 1 donnait +2 de note aux jeunes montés : une partie neuve fait monter des gamins un peu plus
   bruts qu'avant (voulu par la consigne). (d) Au harnais, **l'entretien se mesure en différentiel** (même graine, une
   seule différence : deux terrains, 10 000 FF d'écart exact) ; et le compte à rebours d'un chantier se lit AVANT la

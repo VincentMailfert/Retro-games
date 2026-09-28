@@ -534,7 +534,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.53"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.54"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -12030,7 +12030,7 @@ function briefAdverse(adv){
     return js.length?`<div class="fLigne">${js.map(x=>dang.includes(x.j)?`<span class="advDanger">${esc(x.j.nom)}</span>`:`<span>${esc(x.j.nom)}</span>`).join("")}</div>`:""; };
   const pourquoi=j=>(j.buts?j.buts+" but"+(j.buts>1?"s":""):j.passes?j.passes+" passe"+(j.passes>1?"s":"")+" déc.":"note "+j.note)+(j.tireurElite?" · 🎯":"");
   return `<div class="briefAdv">
-       <div class="briefTete">${blason(adv,24)}<b class="fort">${esc(adv.nom)}</b>${rang?`<span class="dim">${rang}</span>`:""}${campusNiv("video")>=1?`<span class="dim">${cleFormation(adv)}</span>`:""}</div>
+       <div class="briefTete">${blason(adv,24)}<b class="fort">${esc(adv.nom)}</b>${rang?`<span class="dim">${rang}</span>`:""}<span class="dim">${cleFormation(adv)}</span></div>
        <div class="terrainXI">${ligne("A")}${ligne("M")}${ligne("D")}${ligne("G")}</div>
        <p class="briefDang">${dang.map(j=>`<span><b>${esc(nomLong(j.nom))}</b> <span class="dim">${pourquoi(j)}</span></span>`).join("")}</p>
        ${campusNiv("video")>=3?`<p class="briefFaible">${esc(pointFaible(adv))}</p>`:""}
@@ -14816,7 +14816,7 @@ const CENTRE3D=(()=>{
      niv:['Le tableau noir','Le magnétoscope','Salle vidéo','Cellule d\'analyse'],
      court:['Tableau','Magnéto','Salle','Cellule'],
      cout:[0,1.5,5,14], duree:[0,1,2,4], ent:[0,5,15,35], des:[0,0,0,2002],
-     eff:['','Duel du milieu +1 % · la formation adverse connue d\'avance','Duel du milieu +2 %','Duel du milieu +3 % · le point faible adverse désigné'],
+     eff:['','Duel du milieu +1 %','Duel du milieu +2 %','Duel du milieu +3 % · le point faible adverse désigné'],
      sous:['','Une télé sur un chariot et des cassettes du prochain adversaire.','Des fauteuils, un projecteur et un adjoint qui rembobine au ralenti.','Une caméra en haut d\'un mât filme chaque séance. L\'ordinateur compte les kilomètres.']},
   ];
   const FAM=Object.fromEntries(FAMS.map(f=>[f.id,f]));

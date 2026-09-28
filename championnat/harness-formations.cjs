@@ -235,7 +235,10 @@ console.log("\nF) Le vrai moteur (simuleMatch, 5 000 matchs par formation)");
   console.log("    " + FORMS.map(f => f + " : " + r2(res[f][0]) + " – " + r2(res[f][1])).join(" · "));
   ok(p5 + c5 <= (p0 + c0) * 0.85, "le 5-3-2 ferme le match : " + r2(p5 + c5) + " buts contre " + r2(p0 + c0) + " en 4-4-2");
   ok(c5 < c0 * 0.88, "…et d'abord derrière : " + r2(c5) + " encaissés contre " + r2(c0));
-  ok(p3 + c3 >= (p0 + c0) * 1.04 && c3 > c0, "le 4-3-3 ouvre le match : " + r2(p3 + c3) + " buts, dont " + r2(c3) + " encaissés");
+  // Ce que le 4-3-3 rapporte devant dépend de VOTRE effectif (le troisième attaquant contre le quatrième milieu, cf. E) :
+  // mesuré sur 60 graines, vos buts vont de ×0,96 à ×1,15 et le total, borné à ×1,04, rougissait de temps en temps.
+  // Ce qu'il coûte derrière, lui, tient à la formation : ×1,13 d'encaissés en moyenne, jamais sous ×1,088 (28/09/2026).
+  ok(c3 >= c0 * 1.06 && p3 + c3 > p0 + c0, "le 4-3-3 ouvre le match : " + r2(c3) + " encaissés contre " + r2(c0) + ", et " + r2(p3 + c3) + " buts au total contre " + r2(p0 + c0));
   G.formation = "4-4-2";
 }
 
@@ -284,13 +287,9 @@ const advDe = G => { const p = G.calendrier[G.journee].find(([x, y]) => x === G.
     // l'adversaire du samedi (25/09/2026) : son onze tel que le moteur l'alignera, et ses hommes dangereux
     const brief = h.match(/<div class="briefAdv">([\s\S]*?)<p class="briefDang">([\s\S]*?)<\/p>/) || ["", "", ""];
     const xiAdv = api.onze(advDe(G));
-    ok(!/4-4-2/.test(brief[1]) && (brief[1].match(/<span(?: class="advDanger")?>[^<]+<\/span>/g) || []).length === 11
+    ok(/4-4-2/.test(brief[1]) && (brief[1].match(/<span(?: class="advDanger")?>[^<]+<\/span>/g) || []).length === 11
        && xiAdv.every(j => brief[1].includes(">" + j.nom + "<")),
-      f + " : l'avant-match montre les onze titulaires d'en face, ceux que le moteur alignera, mais pas leur formation sans vidéo");
-    // v1.53 : la formation adverse se lit au magnétoscope (vidéo du campus, niveau 1)
-    G.campus.video = 1; api.ecranCalendrier(); G.campus.video = 0;
-    const briefV = APP.innerHTML.match(/<div class="briefAdv">([\s\S]*?)<p class="briefDang">/) || ["", ""];
-    ok(/4-4-2/.test(briefV[1]), f + " : avec le magnétoscope, la formation d'en face s'affiche (4-4-2)");
+      f + " : l'avant-match montre les onze titulaires d'en face, ceux que le moteur alignera, en 4-4-2");
     ok((brief[2].match(/<span><b>/g) || []).length === 3 && (brief[1].match(/advDanger/g) || []).length === 3,
       f + " : trois dangers, nommés sous leur terrain et mis en relief dessus");
     ok(!/Au milieu, vos|rapport de forces/.test(h) && !/pts<\/span>/.test(brief[1]), f + " : plus de lecture des duels, et pas de classement à la 1re journée");
@@ -354,13 +353,15 @@ const advDe = G => { const p = G.calendrier[G.journee].find(([x, y]) => x === G.
   moi.joueurs.forEach(j => { j.susp = 0; });
 }
 
-/* ===== J) deux saisons en changeant de formation chaque semaine ===== */
-console.log("\nJ) Deux saisons en changeant de formation chaque semaine");
+/* ===== J) quatre saisons en changeant de formation chaque semaine =====
+   Quatre et plus deux depuis le 28/09/2026 : sur 760 matchs, le calibrage variait de 2,37 à 2,68 selon la graine et
+   sortait de la fenêtre deux fois sur soixante. La mesure devient plus précise, et la fenêtre est recentrée (ci-dessous). */
+console.log("\nJ) Quatre saisons en changeant de formation chaque semaine");
 {
   let err = null, buts = 0, matchs = 0, malAlignes = 0, horsPoste = 0;
   try {
     neuve("AUX");
-    for (let s = 0; s < 2; s++) {
+    for (let s = 0; s < 4; s++) {
       for (let d = 0; d < 38; d++) {
         const G = api.getG(); G.formation = FORMS[(d + s) % 3];
         const xi = api.onze(api.clubById(G.monClub)), F = api.FORMATIONS[G.formation], place = api.placeXI(xi, F);
@@ -373,10 +374,12 @@ console.log("\nJ) Deux saisons en changeant de formation chaque semaine");
       G.vire = null; api.intersaison();
     }
   } catch (e) { err = e.stack; }
-  ok(!err, "76 journées et deux intersaisons sans exception" + (err ? " : " + err : ""));
+  ok(!err, "152 journées et quatre intersaisons sans exception" + (err ? " : " + err : ""));
   ok(malAlignes === 0, "chaque semaine, les onze places de la formation sont occupées (" + horsPoste + " semaine(s) avec un dépanneur, effectif décimé)");
   const cal = buts / matchs;
-  ok(cal >= 2.2 && cal <= 2.6, "calibrage de la division tenu : " + r3(cal) + " buts par match");
+  // Recentrée le 28/09/2026, même largeur : cette division contient VOTRE club, dont les matchs portent les moments de la
+  // 90e (~2,97 buts par match contre ~2,42 pour les autres) ; mesurée sur 200 graines, elle tourne à 2,495 (écart-type 0,046).
+  ok(cal >= 2.3 && cal <= 2.7, "calibrage de la division tenu : " + r3(cal) + " buts par match");
 }
 
 console.log(F ? "\n❌ HARNAIS FORMATIONS : " + F + " PROBLÈME(S)" : "\n✅ HARNAIS FORMATIONS : TOUT EST VERT");

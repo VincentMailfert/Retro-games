@@ -40,7 +40,7 @@ global.localStorage = ls; global.navigator = { userAgent: "h" };
 global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = cb => setTimeout(cb, 0); global.cancelAnimationFrame = id => clearTimeout(id);
 
-const api = new Function(script + "\n;return {nouvellePartie,jouerJournee,intersaison,simuleMatch,hommeDuMatch,designeHdm,motifHdm,faitsDuFil,eclatLigne,retientAlmanach,bilanSaison,ecranBilan,equipeType,matchDeLannee,coteSaison,ecranClassement,ecranCalendrier,clubById,byUid,onze,MOTS_ECLAT,MOTS_SOUFRE,CLUBS,getG:function(){return G;}};")();
+const api = new Function(script + "\n;return {nouvellePartie,jouerJournee,intersaison,simuleMatch,hommeDuMatch,designeHdm,motifHdm,faitsDuFil,eclatLigne,retientAlmanach,bilanSaison,ecranBilan,equipeType,matchDeLannee,coteSaison,ecranClassement,ecranCalendrier,clubById,byUid,onze,nomLong,esc,MOTS_ECLAT,MOTS_SOUFRE,CLUBS,getG:function(){return G;}};")();
 
 let F = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) F++; };
@@ -222,14 +222,16 @@ console.log("\nG) Le bilan de fin de saison : une page d'almanach qui se lit");
     && /L'HOMME DE LA SAISON/.test(APP._h) && /LE MATCH DE L'ANNÉE/.test(APP._h)
     && /LA PHRASE DE LA SAISON/.test(APP._h) && /LA DÉPÊCHE/.test(APP._h),
     "les six chapitres demandés sont à l'écran");
-  ok(APP._h.indexOf(B.buteur.nom) >= 0 && APP._h.indexOf(B.xi[0].nom) >= 0, "le buteur et le gardien de l'équipe type y sont nommés");
+  // le buteur s'écrit en toutes lettres (« Lilian Laslandes », v1.48), l'équipe type en nom court : on cherche ce que l'écran doit écrire
+  const nomButeur = api.esc(api.nomLong(B.buteur.nom));
+  ok(APP._h.indexOf(nomButeur) >= 0 && APP._h.indexOf(api.esc(B.xi[0].nom)) >= 0, "le buteur (" + nomButeur + ") et le gardien de l'équipe type y sont nommés");
   ok(/PASSER À L'INTERSAISON/.test(APP._h), "et le bouton d'intersaison reste au bout de la page");
 
   // remercié au coup de sifflet final : la page reste lisible, mais elle ne mène plus à l'intersaison
   G.vire = "objectif";
   api.ecranBilan();
   ok(/Revenir/.test(APP._h) && !/PASSER À L'INTERSAISON/.test(APP._h), "limogé, le bouton du bas devient « ← Revenir »");
-  ok(/ALMANACH/.test(APP._h) && APP._h.indexOf(B.buteur.nom) >= 0, "et l'almanach reste entier : c'est la saison qu'on relit le plus");
+  ok(/ALMANACH/.test(APP._h) && APP._h.indexOf(nomButeur) >= 0, "et l'almanach reste entier : c'est la saison qu'on relit le plus");
   api.ecranCalendrier();
   ok(/LIMOGÉ/.test(APP._h) && /Lire le bilan de la saison/.test(APP._h), "l'écran LIMOGÉ propose d'aller lire le bilan");
   G.vire = vire;

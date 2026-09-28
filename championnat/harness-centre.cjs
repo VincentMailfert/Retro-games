@@ -251,11 +251,11 @@ try {
 
   // l'adversaire vu par la vidéo
   pose(ZERO); const br0 = api.briefAdverse(autre);
-  pose({ ...ZERO, video: 1 }); const br1 = api.briefAdverse(autre);
+  pose({ ...ZERO, video: 2 }); const br2 = api.briefAdverse(autre);
   pose({ ...ZERO, video: 3 }); const br3 = api.briefAdverse(autre);
   const fo = /\d-\d-\d/;
-  ok(!fo.test(br0) && fo.test(br1) && !br1.includes("cellule d'analyse") && br3.includes("La cellule d'analyse a trouvé la faille"),
-    "brief adverse : la formation au magnétoscope, le point faible à la cellule d'analyse");
+  ok(fo.test(br0) && !br2.includes("cellule d'analyse") && br3.includes("La cellule d'analyse a trouvé la faille"),
+    "brief adverse : la formation pour tout le monde (choix de l'auteur), le point faible à la cellule d'analyse seulement");
   ok(/^La cellule d'analyse a trouvé la faille : leur (défense|milieu|attaque)/.test(api.pointFaible(autre)), `« ${api.pointFaible(autre)} »`);
 } catch (e) { fail("exception F : " + e.stack); }
 
