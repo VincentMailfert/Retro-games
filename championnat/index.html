@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.62"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.63"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1756,6 +1756,9 @@ const NOMS_RIVALITES={"PSG-OM":"Le Classique","LEN-LIL":"Le derby du Nord","LYO-
  "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand","AJA-BAS":"Le derby corse"};
 function nomRivalite(a,b){ return NOMS_RIVALITES[a+"-"+b]||NOMS_RIVALITES[b+"-"+a]||"Le derby"; }
 const JAMAIS_CHAMPION=new Set(["AUX","LEN","MET","MTP","REN","BAS","GUI","LEH","CAN","MAR","GUE","TOU","CAE","NCY","LYO"]);
+// premier titre réel (année de début de la saison du sacre) : une carrière lancée après ne le vit plus comme une malédiction
+const PREMIER_TITRE={AUX:1995,LEN:1997,LYO:2001};
+function jamaisChampion(id, an){ return JAMAIS_CHAMPION.has(id) && !(PREMIER_TITRE[id]<an); }
 const MALEDICTIONS={
  AUX:"Jamais champion de France, Guy Roux attend son heure depuis 1961.",
  LEN:"Le titre fuit l'Artois depuis toujours. Bollaert gronde d'impatience.",
@@ -1803,6 +1806,46 @@ const MALEDICTIONS={
  CLE:"Jamais un match de première division en Auvergne, et un club de rugby qui remplit le stade à sa place.",
  BES:"Quatre-vingt-dix ans de football et jamais la première division : la Franche-Comté attend toujours son tour.",
 };
+// le mot d'un club dépend de la saison de départ : [à partir de, texte] ; null rend le texte de MALEDICTIONS (écrit pour 1995)
+const MALEDICTIONS_EPOQUE={
+ OM:[[1990,"Deux titres de suite. Tapie ne pense plus qu'à une chose : la Coupe d'Europe."],
+     [1991,"Trois titres d'affilée et la finale perdue à Bari. Tapie veut la Coupe aux grandes oreilles."],
+     [1992,"Quatre titres d'affilée. Il ne manque que l'Europe, et Tapie ne dort plus."],
+     [1993,null],
+     [1999,"Munich est loin, le dernier titre aussi. Le Vélodrome exige qu'on lui rende sa grandeur."]],
+ PSG:[[1990,"Un seul titre, en 1986, et un Parc qui s'ennuie. Paris attend son sauveur."],
+      [1991,"Un seul titre, en 1986. Canal+ arrive avec ses millions et Paris rêve enfin en grand."],
+      [1994,null]],
+ BOR:[[1990,"Trois titres sous Claude Bez, et des comptes qui inquiètent. Lescure retient son souffle."],
+      [1991,null],
+      [1999,"Champion en 1999 d'un but de Feindouno au Parc, à la dernière minute. Bordeaux veut remettre ça."]],
+ AUX:[[1996,"Champion en 1996, avec la Coupe en prime. Guy Roux a eu son doublé, l'Abbé-Deschamps en redemande."]],
+ LEN:[[1998,"Champion en 1998 sur un nul à Auxerre. Bollaert a goûté au titre, il ne s'en remet pas."]],
+ LYO:[[1990,"Remonté en 1989, avec un jeune président nommé Aulas. Gerland rêve déjà du trône."],
+      [1994,null],
+      [2002,"Premier titre en 2002, arraché à Lens au bout d'un duel à Gerland. Aulas parle déjà de dynastie."],
+      [2003,"Deux titres de rang. Gerland ne sait plus perdre, et Aulas en veut encore."]],
+ BAS:[[1990,"Une île entière derrière un seul club. À Furiani, on ne joue jamais à onze."],
+      [1992,null]],
+ CAN:[[1990,"Un gamin de la Castellane nommé Zidane fait ses gammes à Coubertin. Le garder le plus longtemps possible."],
+      [1992,null]],
+ REN:[[1990,"Près de 90 ans d'existence, zéro titre. La Bretagne rouge et noire espère."],
+      [1991,null],
+      [2001,"Un siècle d'existence, zéro titre. La Bretagne rouge et noire espère encore."]],
+ NCY:[[1990,"Platini est parti depuis plus de dix ans. Marcel-Picot attend un héritier."],
+      [1994,null],
+      [2002,"Platini est parti depuis près d'un quart de siècle. Marcel-Picot attend toujours un héritier."]],
+ NIM:[[1990,"Les Costières sont toutes neuves et attendent un grand Nîmes. Les Crocodiles ont faim d'élite."],
+      [1996,null]],
+ SED:[[1999,"Montés en 1999 avec une finale de Coupe en prime : les Sangliers réveillent l'Ardenne."],
+      [2003,"Quatre saisons d'élite, puis la chute. Le Sanglier gratte déjà la terre pour remonter."]],
+ AJA:[[2002,"Champion de D2 et monté en Ligue 1 : toute la Corse sur le dos, avec Bastia qui ricane d'en face."]],
+};
+function malediction(id, an){
+  let t=MALEDICTIONS[id];
+  for(const [d,x] of (MALEDICTIONS_EPOQUE[id]||[])) if(d<=an) t=(x===null?MALEDICTIONS[id]:x);
+  return t;
+}
 
 /* ---------- Blasons : imitations aux couleurs des clubs ---------- */
 const BLASONS={
@@ -10905,7 +10948,7 @@ function finDeSaison(){
   G.news.unshift("FIN DE SAISON ("+(G.div===1?"D1":"D2")+"), "+rang+"ᵉ place. Prime de classement : "+(prime/1e6).toFixed(1)+" MF (70 % au budget transferts).");
   if(rang===1){
     if(G.div===1){
-      const premier=JAMAIS_CHAMPION.has(G.monClub);
+      const premier=jamaisChampion(G.monClub, G.anBase||1995) && !G.palmares.some(p=>p.startsWith("Champion de France"));
       G.palmares.push("Champion de France "+G.saison+(premier?" : PREMIER TITRE DE L'HISTOIRE":""));
       if(premier) G.presse.unshift("« LA MALÉDICTION EST MORTE : "+clubById(G.monClub).nom+" champion pour la première fois de son histoire ! »");
     } else G.palmares.push("Champion de Division 2 "+G.saison);
@@ -11748,7 +11791,7 @@ function ficheClubAccueil(id){
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${(c.budget/1e6).toFixed(0)} MF</p>
     ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="fort">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
     ${riv?`<p><span class="dim">Rival historique :</span> <b class="rouge">${esc(riv.nom)}</b> · ${esc(nomRivalite(c.id,riv.id))}</p>`:""}
-    ${MALEDICTIONS[c.id]?`<p style="margin-top:8px;font-style:italic;border-left:2px solid ${st.coul};padding-left:8px">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
+    ${malediction(c.id,S.an)?`<p style="margin-top:8px;font-style:italic;border-left:2px solid ${st.coul};padding-left:8px">« ${esc(malediction(c.id,S.an))} »</p>`:""}
     ${(()=>{
       const stars=((enD2?S.starsD2:S.starsD1)[c.id]||[]).slice().sort((a,b)=>"GDMA".indexOf(a[1])-"GDMA".indexOf(b[1])||b[3]-a[3]);
       if(!stars.length) return "";
@@ -15767,7 +15810,7 @@ function ecranClub(){
      <h3 style="margin-top:12px">Mémoire du club</h3>
      ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> · ${esc(nomRivalite(c.id,RIVAL[c.id]))}.</p>`:""}
      <p>Bête noire : <b class="fort">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"-")}</b>${c.bnBattue?' <span class="vert">signe indien brisé cette saison ✓</span>':' <span class="dim">signe indien à briser</span>'}</p>
-     ${MALEDICTIONS[c.id]?`<p class="dim" style="font-style:italic">« ${esc(MALEDICTIONS[c.id])} »</p>`:""}
+     ${malediction(c.id,G.anBase||1995)?`<p class="dim" style="font-style:italic">« ${esc(malediction(c.id,G.anBase||1995))} »</p>`:""}
      <h3 style="margin-top:12px">Les records du club</h3>
      ${(()=>{ const l=recordsTenus();
         if(!l.length) return `<p class="dim" style="font-size:13px">Rien dans les archives pour l'instant.</p>`;
