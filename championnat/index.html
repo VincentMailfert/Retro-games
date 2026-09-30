@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.58"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.59"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -11935,7 +11935,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives.${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
+   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a>${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
@@ -12016,6 +12016,11 @@ function ecranApropos(){
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
        et qui est coincé dans l'ascenseur depuis.</p>
      <p class="dim" style="font-size:13px;line-height:1.5">MULTIPLEX · prototype v${VERSION}</p>
+   </div>
+   <div class="panel">
+     <h2>Offrir un café</h2>
+     <p class="dim" style="font-size:13px;margin-bottom:10px">Pour tenir jusqu'au bout du mercato.</p>
+     <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="display:inline-block;padding:9px 20px;background:var(--jaune);color:#16243c;font-weight:bold;text-decoration:none">☕ buymeacoffee.com/multiplex</a>
    </div>
    <div class="panel">
      <h2>Une remarque ? Un scandale ?</h2>
