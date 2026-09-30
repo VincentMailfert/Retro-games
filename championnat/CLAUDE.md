@@ -1086,10 +1086,125 @@ toujours « raconter quelque chose ».
   dernière à la reprise. Dix joueurs procéduraux au total, du même ordre qu'en 00/01 et 01/02 : Auxerre et
   Guingamp n'ont qu'**un gardien** répertorié, et sept clubs n'ont que deux ou trois attaquants (Lens deux
   seulement). La source fait foi, `genJoueur` complète. Validation dédiée : **`harness0203.cjs`**.
-  Pour ajouter 03/04 : même méthode avec `saison_id/2003`, entrée `"2003-04"` dans `SAISONS`, harnais calqué
-  sur `harness0203.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03), donc **plus de repêchage à
-  arbitrer** : la journée va entièrement aux hommes. **La file d'attente des saisons à venir — et les règles
-  du chantier quotidien qui les ajoute une par une — sont dans `chantier-saisons.md`.**
+  **2003-04 (v1.57)** : `STARS_0304`/`STARS_D2_0304`, `D1_0304`/`D2_0304`, `an:2003`, `saison_id/2003` —
+  sous le nom **« Le printemps des finalistes »**, et c'est désormais la saison la plus RÉCENTE du
+  jeu. Le nom dit la singularité de l'année, qui ne s'est jamais reproduite : **la France place deux
+  clubs en finale européenne le même printemps et n'en ramène aucune coupe** — Monaco perd la Ligue
+  des champions 3-0 contre Porto à Gelsenkirchen le 26 mai, Marseille la Coupe UEFA 2-0 contre
+  Valence à Göteborg trois jours plus tôt. Lyon prend son **troisième titre d'affilée avec
+  soixante-dix-neuf points**, un record du championnat, et Grégory Coupet est élu meilleur gardien.
+  **Didier Drogba fait la saison de sa vie au Vélodrome** — meilleur joueur du championnat aux
+  trophées UNFP, dix-neuf buts en Ligue 1 et trente-deux toutes compétitions, puis Chelsea pour
+  vingt-quatre millions de livres —, **Djibril Cissé en plante vingt-six pour Auxerre** et finit
+  meilleur buteur pour la deuxième fois avant de filer à Liverpool, Alex Frei en met vingt pour
+  Rennes. Sur le Rocher, Didier Deschamps est élu meilleur entraîneur et lance Morientes (prêté par
+  le Real, meilleur buteur de la C1 avec neuf buts), Giuly, Rothen et un **Patrice Evra élu meilleur
+  espoir**. À Rennes, Petr Čech garde les buts avant Chelsea, et un gamin de dix-sept ans entre en
+  jeu : **Yoann Gourcuff**. Saint-Étienne écrase la Ligue 2 et remonte enfin ; Besançon la découvre.
+  **LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA DEUXIÈME FOIS DE SUITE** : la Ligue 1 réelle a ses
+  vingt clubs et la Ligue 2 les siens, donc **aucun repêchage, aucun écarté**, et le harnais vérifie
+  les deux listes par égalité comme en 02/03. Trois promus (**Toulouse** champion de Ligue 2,
+  **Metz** et **Le Mans**), trois descendus (**Troyes, Sedan, Le Havre**). Un seul club neuf dans
+  `CLUBS_EXTRA` : **Besançon** (`BES`, **Léo-Lagrange**, **rouge et blanc**, couleurs vérifiées sur
+  sa fiche Wikipédia, jurisprudence Créteil), monté du National et redescendu au bout d'un an.
+  **Sièges européens — et pour la première fois depuis 96/97, les sept sont en première division** :
+  **Lyon (champion) et Monaco (2e) en phase de groupes de Ligue des champions, Marseille (3e) au
+  troisième tour de qualification** ; en Coupe UEFA **Bordeaux (4e), Sochaux (5e), Auxerre
+  (vainqueur de la Coupe de France 2003) et LENS, qualifié au CLASSEMENT DU FAIR-PLAY** — un motif
+  qu'aucune autre saison du jeu n'avait encore servi. `euroC2` est vide pour la quatrième fois.
+  **Vérifié plutôt que supposé** : Guingamp, Nantes et Nice ont joué l'Intertoto 2003 mais n'ont pas
+  de siège, **aucun club français n'ayant gagné cette édition** (Schalke 04, Villarreal et Perugia).
+  `HONNEURS` n'a rien eu à apprendre — il connaît 1992 → 2006 — et **partir de 03/04 fait tomber
+  l'EURO 2004 dès la PREMIÈRE intersaison**, celui de la Grèce : l'été 2005 est muet et le Mondial
+  2006 attend la troisième. Le harnais vérifie que cette dépêche ne contient pas « LA FRANCE » en
+  capitales, que `finDeSaison` lirait comme un triomphe.
+  **L'héritage fait presque tout, et toutes les ancres sont derrière** : **516 des 760 noms
+  reprennent leur note 02/03 vieillie d'un an**, 87 viennent de plus loin, **157 seulement sont
+  calculés**. Distribution collée à celle de 02/03 (L1 : moyenne 70,4 et médiane 70, contre 70,5
+  et 70 ; L2 : 66,6 et 67, contre 66,7 et 67).
+  Table d'ajustements à la main de **soixante-six entrées**, la deuxième plus longue du chantier
+  après 90/91, parce que 2003-04 est une saison de prêts prestigieux que le calcul ne peut pas
+  connaître : **Morientes 83** (Real Madrid), **Élber 80** (Bayern), **Sorín 79** (Argentine),
+  **Celades 75** et **Riera 72/85** (Real et Majorque, tous deux à Bordeaux), **Ibarra 75** (Boca),
+  **Mido 72/86** (Ajax), **Tavlaridis 71/78** et **Dante 64/84** (Arsenal et Juventude, tous deux à
+  Lille). Le reste rattrape les révélations : **Drogba 85/91** (l'héritage seul le laissait à 77),
+  **Coupet 85**, **Cissé 85/91**, **Frau 80/85**, **Evra 79/88**, **Essien 82/91**, **Čech 82/93**,
+  **Frei 78/84**, **Gourcuff 61/90**. Et **deux corrections en sens inverse**, parce que **le
+  vieillissement dérape dans les deux sens** : **Florian Maurice ressortait à 82** à Bastia, huitième
+  note du championnat, ramené à **77** ; **Lilian Laslandes à 79** à trente-deux ans, ramené à **75**.
+  **Forçage de dix-sept pépites**, par la parade de 00/01 (lister les écartés que le jeu connaît
+  déjà) doublée du relevé des débutants : **Yoann Gourcuff (dix-sept ans, 315 minutes à Rennes)**,
+  **Yoan Gouffran (dix-sept ans, 55 minutes à Caen)**, **Guillaume Hoarau (dix-neuf ans, QUINZE
+  minutes au Havre)**, **Mathieu Debuchy**, **Dante**, **Jimmy Briand**, **Jérémy Clément**,
+  **Guirane N'Daw**, **Benoît Assou-Ekotto**, **Ludovic Obraniak**, **Loïc Perrin**, **Ronald
+  Zubar**, **Christopher Samba**, **Mounir Obbadi**, **Mehdi Lacen**, **Madjid Bougherra** et
+  **Philippe Christanval** — le seul vétéran de la liste, prêté par le Barça à l'OM, 1 452 minutes
+  et noté 79, que la profondeur du Vélodrome jetait hors des vingt. Lille, Rennes et Caen paient
+  chacun deux hommes. Drogba, Cissé, Coupet, Evra, Čech, Essien, Morientes, Giuly, Rothen, Frau,
+  Mavuba, Flamini, Adebayor, Chamakh et Élber passent tous tout seuls au temps de jeu.
+  **LE PIÈGE DU JOUR, ET C'EST LA SENTINELLE DE FIN POUR LA TROISIÈME FOIS** : découper le tableau de
+  temps de jeu sur les ouvertures de ligne laisse la **DERNIÈRE ligne collée à tout le bas de page**,
+  si bien qu'une expression ancrée sur la fin de morceau (`\Z`) ne trouve plus la cellule des minutes
+  et rend **zéro**. Un joueur par club, donc quarante, et le tri aux minutes les jetait tous. **Treize
+  avaient leur place dans un effectif** — dont **Pierre-Alain Frau, cinquième buteur du championnat
+  avec dix-sept buts et 3 796 minutes**, **Bernard Diomède, champion du monde 1998, titulaire à
+  Ajaccio**, **Chaouki Ben Saada** et **Bafétimbi Gomis, dix-huit ans à Saint-Étienne**. Le symptôme à
+  reconnaître, comme en 01/02 et 02/03 : **exactement un joueur par club à zéro minute**, et un poste
+  qui manque là où la source n'a pas de trou (Sochaux se retrouvait à deux attaquants). La parade :
+  **borner la ligne à la main** — le `</table>` ferme la table imbriquée du nom, le premier `</tr>`
+  d'après ferme la ligne —, jamais une sentinelle de fin. `harness0304.cjs` garde nommément les treize.
+  **LA DÉCOUVERTE DU JOUR, ET ELLE CORRIGE UNE DÉCISION DE 02/03 : LES DEUX TABLES 96/97 SONT
+  DÉCALÉES D'UN AN.** Elles ont été curées avec « âge_jeu = âge TM − 1 » (la convention notée plus
+  haut pour 96/97), là où les vingt-quatre autres suivent « âge = AN − naissance ». Mesuré sur cette
+  saison : **48 ancres sur 86 en D1 et 32 sur 60 en D2 accusent ce +1, contre zéro dans toutes les
+  autres tables** — c'est la moitié des hommes, soit exactement ceux qui sont nés au second semestre.
+  Le garde-fou d'âge prenait donc un seul homme pour deux. Trois appariements en dépendaient, tous
+  trois **vérifiés par identifiant Transfermarkt** sur la page d'effectif 96/97 du club concerné
+  (Beauvais, Châteauroux, Gueugnon) : **Kor Sarr, Paulo Vida et Mansour Boutabout** sont bien les
+  mêmes hommes qu'en 96/97. Conséquence : **« K. Sarr » lui revient**, alors que 02/03 l'avait écrit
+  en toutes lettres au motif d'un homonyme qui n'existait pas — et la table `PRENOMS_VRAIS` le disait
+  déjà, « K. Sarr » → Kor. **Règle à garder : tolérer un écart d'un an, et lui seul, sur une ancre
+  96/97 ; et trancher l'identité par l'identifiant TM, jamais par l'âge.** Les tables de 02/03 n'ont
+  pas été retouchées : une saison livrée ne se refait pas.
+  **Trois autres points de relevé.** (1) **Un mononyme brésilien ne se déduit pas du seul prénom** :
+  la règle de 01/02 (« si le premier mot du nom complet est un mononyme connu du jeu, on l'écrit en
+  mononyme ») transformait **Christian Bassila en « Christian »**, au seul motif qu'un Brésilien
+  prénommé Christian existe ailleurs dans le jeu — et pareil pour Christian Nadé et Christian Mendy.
+  La condition manquante : **TM n'a PAS abrégé le nom court**. Juninho Pernambucano arrive en entier,
+  Christian Bassila arrive en « C. Bassila ». (2) **On reprend désormais l'orthographe de l'ancre** :
+  la colonne « nom court » de TM rend « J. Plasil » là où le jeu écrit parfois « J. Plašil », et
+  écrire le nom de l'ancre garde un homme sous le même nom d'une saison de départ à l'autre (zéro
+  divergence sur les 603 appariements de cette saison). (3) **Vérifier avant d'ajouter un homme qu'on
+  croit connaître** : Franck Ribéry est absent du relevé de Metz, et c'est la source qui a raison —
+  il jouait à **Brest, en National**, en 2003-04, et n'arrive à Metz qu'à l'été 2004. De même Jérémy
+  Ménez et Charles N'Zogbia ne débutent qu'en 2004-05, et Bacary Sagna est bien à Auxerre mais à
+  **zéro minute**.
+  **Un homonyme parfait écarté, et c'est une reconduction** : **deux Frédéric Mendy**, prénom ET
+  patronyme identiques, le Bastiais né en 1973 que le jeu porte depuis 93/94 et le Stéphanois né en
+  1981, titulaire à 2 877 minutes. Le jeu garde le premier, le second **cède sa place à un autre vrai
+  joueur de son club** (jurisprudence Olivier Baudry 91/92, déjà appliquée en 01/02). Trois autres
+  noms courts restent à d'autres : **Benoît Cheyrou** (Bruno est parti pour Liverpool mais le nom est
+  à lui), **Serge Simon** (dix-neuf ans à Laval — « S. Simon » est Segundo Simon depuis 90/91) et
+  **Abdoulaye Faye** (« A. Faye » est Amdy depuis 00/01, parti en Angleterre : **un nom ne se libère
+  pas parce que son homme a quitté la France**). Et un patronyme en deux mots blanchi sur pièces :
+  **Gilles Donald YAPI YAPO**, l'Ivoirien que Nantes recrute en janvier 2004, comme Michael Mio
+  Nielsen l'avait été en 90/91.
+  **La source est généreuse, à peine moins qu'en 02/03** : aucun libellé de poste inconnu sur les
+  trois langues, **un seul joueur que la source ne sait pas dater** (Clément Halet, Laval, 155
+  minutes — présent sur la page de temps de jeu mais absent de l'effectif), écarté plutôt que deviné,
+  et le club le plus pauvre est **Amiens avec vingt et un hommes ayant joué** pour dix-huit places.
+  144 prénoms neufs dans `PRENOMS_VRAIS`, **dont aucun vide**. Quatre écarts relevés avec la table
+  existante, tous des variantes du même homme, et la table garde la sienne (règle de 02/03) : le
+  « Juan-Luis Montero » du jeu est le « Jean-Louis Montero » de TM, et Wikipédia donne les deux.
+  **Six joueurs procéduraux seulement**, le meilleur score du chantier : cinq clubs n'ont qu'**un
+  gardien** répertorié (Auxerre, Guingamp, Bastia, Toulouse, Besançon) et Sochaux que trois
+  attaquants. La source fait foi, `genJoueur` complète. Validation dédiée : **`harness0304.cjs`**.
+  Pour ajouter 04/05 : même méthode avec `saison_id/2004`, entrée `"2004-05"` dans `SAISONS`, harnais
+  calqué sur `harness0304.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03), donc **plus de
+  repêchage à arbitrer** : la journée va entièrement aux hommes. Attention, **`HONNEURS` devra
+  apprendre 2008** le jour où la première saison concernée arrivera. **La file d'attente des saisons à
+  venir — et les règles du chantier quotidien qui les ajoute une par une — sont dans
+  `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
