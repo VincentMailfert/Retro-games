@@ -368,6 +368,7 @@
      pixels. Avec des carrières en cours, il s'efface devant « Reprendre ». */
   .accHero{text-align:center; padding:28px 18px 24px;}
   .accHero .accLogo{max-width:520px; margin:0 auto 6px; font-size:inherit;}
+  .accLogoMini{max-width:300px; margin:14px auto 10px;} /* le logo au-dessus de « Vos carrières » : on le revoit à chaque reprise */
   .accHero .accPitch{font-size:15px; color:var(--clair); max-width:44ch; margin:12px auto 0; line-height:1.4; text-wrap:balance;}
   .accHero .accSous{font-size:14px; color:var(--dim); margin-top:8px;}
   .accHero .accPortes{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; margin-top:18px;}
@@ -11900,7 +11901,7 @@ function ecranAccueil(){
   const tous=cD1.concat(cD2);
   app.innerHTML=`
    <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(22)}MULTIPLEX</span><span class="r">Division 1 française</span></div>
-   ${parties.length ? panneauCarrieres(parties) : `<div class="panel accHero">
+   ${parties.length ? `<div class="accLogoMini">${logoGenerique(true)}</div>`+panneauCarrieres(parties) : `<div class="panel accHero">
      <h1 class="accLogo">${logoGenerique(true)}</h1>
      <p class="accPitch">${esc(ACCROCHE_ACCUEIL)}</p>
      <p class="accSous">${tous.length} clubs, plus de 10 saisons et des effectifs aussi fidèles que possible</p>
