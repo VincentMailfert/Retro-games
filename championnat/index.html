@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.64"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.65"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1871,8 +1871,39 @@ const MALEDICTIONS_EPOQUE={
       [2001,"Pauleta marque à la pelle, et Nantes vient de prendre le titre. Lescure veut retrouver le trône de 1999."],
       [2002,"La Coupe de la Ligue en poche, Pauleta en feu. Bordeaux veut le titre avant que Lyon ne prenne tout."],
       [2003,"Pauleta parti à Paris, Lyon qui règne. Bordeaux compte ses sous et attend son heure."]],
- AUX:[[1996,"Champion en 1996, avec la Coupe en prime. Guy Roux a eu son doublé, l'Abbé-Deschamps en redemande."]],
- LEN:[[1998,"Champion en 1998 sur un nul à Auxerre. Bollaert a goûté au titre, il ne s'en remet pas."]],
+ AUX:[[1993,"Demi-finaliste de l'UEFA, sorti aux tirs au but par Dortmund. Guy Roux attend son titre depuis 1961."],
+      [1994,"La Coupe de France 1994 en vitrine. Il manque le championnat, et Guy Roux compte les années."],
+      [1995,null],
+      [1996,"Champion en 1996, avec la Coupe en prime. Guy Roux a eu son doublé, l'Abbé-Deschamps en redemande."],
+      [1997,"Champion en 1996, quart de finaliste de la Ligue des champions. Guy Roux a vu l'Europe, il y retourne."],
+      [1998,"Un titre, des Coupes, un centre de formation qui tourne. Guy Roux, lui, ne partira jamais."],
+      [2000,"Guy Roux a passé la main, pour la première fois depuis 1961. L'Abbé-Deschamps n'y croit pas vraiment."],
+      [2001,"Guy Roux est revenu, évidemment. Cissé a vingt ans et marque comme il respire."],
+      [2002,"Troisième, et la Ligue des champions. Cissé fait trembler toutes les défenses."],
+      [2003,"Vainqueur de la Coupe de France contre Paris. Guy Roux a soixante-cinq ans et ne pense pas à la retraite."]],
+ LEN:[[1990,"En D2, les caisses vides et le stade plein. Bollaert attend l'élite."],
+      [1991,null],
+      [1998,"Champion en 1998 sur un nul à Auxerre. Bollaert a goûté au titre, il ne s'en remet pas."],
+      [1999,"Champion, puis la Ligue des champions et Arsenal battu à Wembley. Bollaert a pris goût aux grands soirs."],
+      [2000,"Demi-finaliste de l'UEFA, sorti par Arsenal. Lens s'est fait un nom en Europe."],
+      [2001,"Champion en 1998, et Bollaert chante toujours comme au premier jour. Il en veut un deuxième."],
+      [2002,"Deuxième, battu à Gerland le jour où tout se jouait. Bollaert ne s'en remet pas."],
+      [2003,"Un titre gagné, un autre envolé à Gerland. Bollaert croit toujours au deuxième."]],
+ MET:[[1997,"La Coupe de la Ligue 1996 en vitrine, Pirès et Song en pleine bourre. La Lorraine rêve du titre."],
+      [1998,"Deuxième à la différence de buts derrière Lens. Saint-Symphorien n'a jamais été si près."],
+      [1999,null],
+      [2002,"Relégué en Ligue 2. La Lorraine grenat veut d'abord remonter, le miracle attendra."],
+      [2003,null]],
+ STR:[[1990,"En D2, la Meinau attend de revoir l'élite. Un titre en 1979, et depuis le silence."],
+      [1992,null],
+      [1997,"La Coupe de la Ligue 1997 en vitrine. Un titre en 1979, et la Meinau en redemande."],
+      [1998,null],
+      [2001,"Vainqueur de la Coupe de France et relégué la même saison. La Meinau ne sait plus s'il faut rire ou pleurer."],
+      [2002,null]],
+ STE:[[1996,"Dix titres, et la D2 encore. Geoffroy-Guichard refuse d'y croire."],
+      [1999,"Remonté, et Geoffroy-Guichard chante comme en 1976. Dix titres, et une faim intacte."],
+      [2001,"Relégué, avec l'affaire des faux passeports en prime. Dix titres, et tout à reconstruire."],
+      [2002,"Encore la Ligue 2. Dix titres, et Geoffroy-Guichard qui attend la remontée."]],
  LYO:[[1990,"Remonté en 1989, avec un jeune président nommé Aulas. Gerland rêve déjà du trône."],
       [1991,null],
       [1995,"Deuxième derrière le grand Nantes. Gerland a vu le trône de près, il s'impatiente."],
@@ -1883,7 +1914,8 @@ const MALEDICTIONS_EPOQUE={
       [2002,"Premier titre en 2002, arraché à Lens au bout d'un duel à Gerland. Aulas parle déjà de dynastie."],
       [2003,"Deux titres de rang. Gerland ne sait plus perdre, et Aulas en veut encore."]],
  BAS:[[1990,"Une île entière derrière un seul club. À Furiani, on ne joue jamais à onze."],
-      [1992,null]],
+      [1992,null],
+      [2002,"Finaliste de la Coupe de France, battu par Lorient. Furiani reste le stade le plus chaud du pays."]],
  CAN:[[1990,"Un gamin de la Castellane nommé Zidane fait ses gammes à Coubertin. Le garder le plus longtemps possible."],
       [1992,null]],
  REN:[[1990,"Près de 90 ans d'existence, zéro titre. La Bretagne rouge et noire espère."],
@@ -2093,6 +2125,31 @@ const CLUBS_EXTRA=[ // clubs présents en 96/97 mais absents de la base 95-96
  {id:"BES", nom:"Besançon RC",              stade:"Léo-Lagrange",      cap:10000, pres:2, budget:5e6}, // 03/04
 ];
 function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===id)||CLUBS_EXTRA.find(c=>c.id===id); }
+/* Le prestige des fiches est celui de 1995 : une carrière lancée à une autre saison prend celui de son époque
+   ([à partir de, prestige] ; null rend la valeur de la fiche). Le budget suit dans la même proportion. */
+const PRES_EPOQUE={
+ OM:[[1990,10],[1993,9],[1994,null]],
+ PSG:[[1990,7],[1991,8],[1993,9],[1994,null],[1998,8]],
+ AUX:[[1990,7],[1994,null]],
+ BOR:[[1991,7],[1992,null]],
+ NAN:[[1990,6],[1994,null]],
+ LEN:[[1990,4],[1991,5],[1994,null],[1998,7],[1999,null]],
+ LYO:[[1990,5],[1995,null],[1999,7],[2001,8],[2002,9],[2003,10]],
+ MET:[[1997,6],[1999,null]],
+ STR:[[1990,4],[1992,null]],
+ LIL:[[2001,6],[2002,5]],
+ MTP:[[1990,6],[1991,null]],
+ SED:[[1999,4],[2003,null]],
+ TOU:[[2001,4]],
+ GUI:[[2003,4]],
+};
+function metaSaison(id, an){
+  const c=metaClub(id); if(!c) return c;
+  let p=c.pres;
+  for(const [d,x] of (PRES_EPOQUE[id]||[])) if(d<=an) p=(x===null?c.pres:x);
+  if(p===c.pres) return c;
+  return {...c, pres:p, budget:Math.round(c.budget*p/c.pres/1e6)*1e6};
+}
 const STARS_9697={
  PSG:[["B. Lama","G",33,88,88],["V. Fernandez","G",21,69,74],
    ["A. Roche","D",28,86,86],["B. N'Gotty","D",25,83,85],["J. Cobos","D",28,75,76],["D. Domi","D",18,64,84],["J. Algérino","D",24,74,77],
@@ -4327,8 +4384,8 @@ function construitDivision(listeClubs, starsMap){
 function nouvellePartie(clubId, saisonKey){
   const S=SAISONS[saisonKey]||SAISONS[SAISON_DEFAUT]; // saison de départ choisie (vrais effectifs d'époque)
   MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*", page:1, sel:null}; // filtres mercato à neuf
-  const d1=construitDivision(S.d1.map(metaClub), S.starsD1);
-  const d2=construitDivision(S.d2.map(metaClub), S.starsD2);
+  const d1=construitDivision(S.d1.map(id=>metaSaison(id,S.an)), S.starsD1);
+  const d2=construitDivision(S.d2.map(id=>metaSaison(id,S.an)), S.starsD2);
   const enD1=S.d1.includes(clubId);
   const clubs=enD1?d1:d2, autre=enD1?d2:d1;
   G={
@@ -11836,7 +11893,7 @@ function euroSeedDe(id, S){ // compétition européenne à laquelle un club est 
 }
 function ficheClubAccueil(id){
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
-  const c=metaClub(id);
+  const c=metaSaison(id,S.an);
   const enD2=!S.d1.includes(id);
   const st=statutClub(c);
   const riv=RIVAL[c.id]&&metaClub(RIVAL[c.id]);
@@ -11950,7 +12007,7 @@ const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert a
 function ecranAccueil(){
   const parties=partiesListe();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
-  const cD1=S.d1.map(metaClub), cD2=S.d2.map(metaClub);
+  const cD1=S.d1.map(id=>metaSaison(id,S.an)), cD2=S.d2.map(id=>metaSaison(id,S.an));
   const opts=Object.keys(SAISONS).map(k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}</option>`).join("");
   const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:9px">
         ${blason(c,22)}<span style="flex:1;line-height:1.1"><b>${esc(c.nom)}</b><br><span class="sous">${esc(c.stade)} · ${FMT(c.cap)} places</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</button>`; };
