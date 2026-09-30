@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.60"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.61"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -11356,15 +11356,6 @@ function classement(){
 }
 
 /* ---------- Sauvegarde ---------- */
-function exporter(){ // nom de fichier parlant : on doit reconnaître la carrière sans l'ouvrir
-  const c=clubById(G.monClub);
-  const slug=t=>String(t).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase();
-  const blob=new Blob([JSON.stringify(G)],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="multiplex95-"+slug(c?c.nom:"partie")+"-"+slug(G.saison)+"-J"+Math.min((G.journee||0)+1,38)+".json";
-  a.click();
-}
 function migre(){
   G.rapport=G.rapport||[]; G.sponsor=G.sponsor||null;
   G.offresSponsor=G.offresSponsor||null; G.sponsorSwitch=!!G.sponsorSwitch;
@@ -11473,36 +11464,6 @@ function migre(){
     finirJournee(r&&r.moment?autoMoment(r.moment):null);
   }
 }
-/* UN FICHIER DE SAUVEGARDE VIENT DE L'EXTÉRIEUR : rien n'empêche d'y avoir bricolé un nom de club ou
-   de joueur. Ces noms ressortent ensuite dans du HTML — téléscripteur, dépêches, incidents, fiches —
-   par une bonne centaine de points d'écriture, et tous ne passent pas par esc(). Plutôt que de parier
-   sur l'exhaustivité d'un audit, on coupe à la RACINE, à l'entrée : les chevrons sont retirés de toutes
-   les chaînes du fichier. Aucun nom de club n'en a jamais contenu, et sans eux il ne reste plus de
-   balise à ouvrir. (Le nom de carrière, lui, est saisi dans le jeu et passe par esc() à l'affichage.) */
-function assainit(o, prof){
-  prof=prof||0;
-  if(prof>24 || o==null || typeof o!=="object") return o;
-  for(const k in o){
-    const v=o[k];
-    if(typeof v==="string"){ if(v.indexOf("<")>=0 || v.indexOf(">")>=0) o[k]=v.replace(/[<>]/g,""); }
-    else if(v && typeof v==="object") assainit(v, prof+1);
-  }
-  return o;
-}
-function importer(ev){
-  const f=ev.target.files[0]; if(!f)return;
-  if(!placeDispo()) return;
-  const r=new FileReader();
-  r.onload=()=>{
-    let o=null;
-    try{ o=JSON.parse(r.result); }catch(e){ o=null; }
-    if(!o || !o.monClub || !o.clubs) return message("Ce fichier n'est pas une sauvegarde MULTIPLEX.", {titre:"📂 FICHIER ILLISIBLE", coul:"#ff6f61"});
-    G=assainit(o);
-    PARTIE=partieNeuve(); G.pid=PARTIE.id; // un fichier importé ouvre une carrière DE PLUS : il n'écrase jamais celles du navigateur
-    migre(); sauvegardeLocale(true); majTitre(); montre("calendrier");
-  };
-  r.readAsText(f);
-}
 /* ---------- Sauvegarde rapide en 1 clic (localStorage, sans fichier) ---------- */
 /* PLUSIEURS CARRIÈRES cohabitent dans le navigateur : chacune a sa propre clé, et un petit index
    (IDXKEY) garde leur carte d'identité (club, saison, journée, date) pour dresser la liste de
@@ -11582,8 +11543,8 @@ function sauvegardeLocale(silencieux){
     SAVE_KO=true;
     const plein=e&&(e.name==="QuotaExceededError"||e.name==="NS_ERROR_DOM_QUOTA_REACHED"||e.code===22||e.code===1014);
     if(!silencieux || !SAVE_CRIE){ SAVE_CRIE=true; // en sauvegarde auto, on ne crie qu'une fois par session
-      message(plein?"La mémoire du navigateur est pleine.\n\nExportez cette carrière en fichier, puis supprimez-en une ancienne depuis l'accueil."
-                   :"Le stockage du navigateur est indisponible (navigation privée ?). Passez par l'export en fichier.",
+      message(plein?"La mémoire du navigateur est pleine.\n\nSupprimez une ancienne carrière depuis l'accueil."
+                   :"Le stockage du navigateur est indisponible (navigation privée ?).",
               {titre:"💾 SAUVEGARDE IMPOSSIBLE", coul:"#ff6f61"});
     }
     return false;
@@ -11610,7 +11571,7 @@ function supprimePartie(id){
   // le nom de carrière vient du joueur (saisie libre) : corpsMessage l'échappe avant de l'écrire
   confirme({
     titre:"🗑️ SUPPRIMER CETTE CARRIÈRE ?",
-    texte:"\u00ab "+(p.nom||p.club)+" \u00bb, "+p.saison+", J"+p.journee+"/38.\nElle sera perdue pour de bon, sauf si vous l'avez exportée en fichier.",
+    texte:"\u00ab "+(p.nom||p.club)+" \u00bb, "+p.saison+", J"+p.journee+"/38.\nElle sera perdue pour de bon.",
     oui:"Supprimer définitivement", non:"La garder",
     onOui:()=>{
       lsEfface(p.k);
@@ -11848,11 +11809,9 @@ function grpAccueil(clubs){ // regroupe une division (déjà triée par prestige
   return out;
 }
 function panneauCarrieres(parties){ // l'étagère des carrières en cours, la dernière jouée en tête
-  const imp=`<label class="act" style="cursor:pointer">📂 Importer un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`;
   if(!parties.length) return `<div class="panel">
      <h2>Reprendre une carrière</h2>
-     <p class="dim" style="font-size:13px;margin-bottom:8px">Aucune carrière sauvegardée dans ce navigateur, choisissez un club plus bas.</p>
-     <p class="carSous">${imp}</p>
+     <p class="dim" style="font-size:13px">Aucune carrière sauvegardée dans ce navigateur, choisissez un club plus bas.</p>
    </div>`;
   const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}`;
   const p0=parties[0], reste=parties.slice(1);
@@ -11882,7 +11841,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
      </div>`).join("")}
      <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:13px">${parties.length>=MAX_PARTIES
        ? "Maximum de "+MAX_PARTIES+" carrières atteint : supprimez-en une pour en commencer une autre."
-       : `<button class="lien" id="bMagie" style="padding-left:0">✨ Nouvelle carrière au hasard</button>`}</span>${imp}</p>
+       : `<button class="lien" id="bMagie" style="padding-left:0">✨ Nouvelle carrière au hasard</button>`}</span></p>
    </div>`;
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
@@ -11935,7 +11894,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a>${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
+   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a></p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
@@ -11945,7 +11904,6 @@ function ecranAccueil(){
   app.querySelectorAll(".carGo").forEach(b=>b.onclick=()=>chargeLocale(b.dataset.id));
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
   app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
-  const bia=document.getElementById("bImpAcc"); if(bia) bia.onchange=importer;
   document.getElementById("bAproposAcc").onclick=ecranApropos;
   const t1=document.getElementById("tabD1"), t2=document.getElementById("tabD2");
   if(t1) t1.onclick=()=>{ ACCUEIL_DIV=1; ecranAccueil(); };
@@ -11990,14 +11948,12 @@ function chrome(actif, corps){
    <p class="footer">MULTIPLEX · v${VERSION} ·
      <button class="act" id="bMenu">📁 Mes carrières</button>
      <button class="act" id="bApropos">À propos</button>
-     ${SAVE_KO?`<br><b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Exportez en fichier, puis supprimez une vieille carrière.</b>
-     <button class="act" id="bExp">Exporter (fichier)</button>`:""}
+     ${SAVE_KO?`<br><b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Supprimez une vieille carrière depuis l'accueil.</b>`:""}
    </p>`;
-  // la sauvegarde est automatique à chaque changement d'écran : plus de bouton, et le fichier ne sert plus qu'en secours
+  // la sauvegarde est automatique à chaque changement d'écran : plus de bouton, et plus de fichier
   app.querySelectorAll("nav button, .sousNav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
   document.getElementById("bApropos").onclick=()=>montre("apropos");
   document.getElementById("bMenu").onclick=retourAccueil;
-  const be=document.getElementById("bExp"); if(be) be.onclick=exporter;
 }
 
 const CONTACT_MAIL="vincent.mailfert@gmail.com";

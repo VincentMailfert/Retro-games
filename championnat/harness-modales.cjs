@@ -6,7 +6,6 @@
      B) rien de ce qui vient du joueur ou d'un fichier ne peut ouvrir une balise
      C) une confirmation ne dit « oui » que si on clique « oui » — Échap vaut un refus
      D) le nom de carrière saisi est rangé tel quel mais ressort échappé
-     E) un fichier importé est désamorcé à l'entrée (assainit)
      F) le journal des messages, que lisent les autres harnais, reste borné
      G) Échap dépile le message avant #fiche, et ne perce jamais une fenêtre verrouillée
    Usage : node harness-modales.cjs                                                              */
@@ -36,7 +35,7 @@ global.window={__TEST__:true,addEventListener(){},removeEventListener(){},localS
 global.localStorage=ls; global.navigator={userAgent:"h"};
 global.getComputedStyle=()=>makeStub();
 global.requestAnimationFrame=cb=>setTimeout(cb,0); global.cancelAnimationFrame=id=>clearTimeout(id);
-const api=new Function(script+"\n;return {message,confirme,saisie,fermeMessage,videMessage,fermeFiche,esc,assainit,MSG_JOURNAL,nouvellePartie,renommePartie,supprimePartie,partiesListe,sauvegardeLocale,idxLit,getG:function(){return G;},CLUBS};")();
+const api=new Function(script+"\n;return {message,confirme,saisie,fermeMessage,videMessage,fermeFiche,esc,MSG_JOURNAL,nouvellePartie,renommePartie,supprimePartie,partiesListe,sauvegardeLocale,idxLit,getG:function(){return G;},CLUBS};")();
 /* la touche Échap, telle qu'elle est câblée en bas d'index.html : le message d'abord, #fiche ensuite */
 const echap=()=>{ if(api.fermeMessage()) return "message"; api.fermeFiche(); return "fiche"; };
 
@@ -85,13 +84,6 @@ window._saisie=null;
 const nom=api.partiesListe()[0].nom;
 ok(nom.indexOf("<script")>=0, "le nom est rangé tel quel dans l'index : "+JSON.stringify(nom));
 ok(api.esc(nom).indexOf("<")<0, "et esc() le neutralise à l'affichage : "+api.esc(nom));
-
-console.log("\nE) Un fichier importé est désamorcé à l'entrée");
-const sale={monClub:"PSG", clubs:[{id:"PSG", nom:'PSG <img src=x onerror=1>', joueurs:[{nom:"Z <b>Z</b>", histoire:"né <i>ici</i>"}]}], news:["<script>x</scr"+"ipt>"]};
-api.assainit(sale);
-ok(sale.clubs[0].nom==="PSG img src=x onerror=1", "nom de club nettoyé : "+sale.clubs[0].nom);
-ok(sale.clubs[0].joueurs[0].nom.indexOf("<")<0 && sale.clubs[0].joueurs[0].histoire.indexOf("<")<0, "les joueurs en profondeur aussi");
-ok(sale.news[0].indexOf("<")<0, "les dépêches aussi");
 
 console.log("\nF) Le journal des messages reste borné");
 api.MSG_JOURNAL.length=0;
