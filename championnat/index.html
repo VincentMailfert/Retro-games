@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.61"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.62"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -11957,6 +11957,7 @@ function chrome(actif, corps){
 }
 
 const CONTACT_MAIL="vincent.mailfert@gmail.com";
+const CONTACT_FN="https://hemedkhebhllymdgvuka.supabase.co/functions/v1/contact";
 function ecranApropos(){
   const objets=["Proposition d'amélioration","Erreur scandaleuse à corriger","Autres"];
   const champ="background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:13px;padding:8px";
@@ -11984,18 +11985,34 @@ function ecranApropos(){
      <label style="display:block;margin-bottom:10px;font-size:13px">Message
        <textarea id="ctcMsg" rows="5" placeholder="Nom de joueur, effectif, note scandaleuse basse... dites moi tout" style="display:block;width:100%;margin-top:4px;resize:vertical;${champ}"></textarea>
      </label>
+     <label style="display:block;margin-bottom:10px;font-size:13px">Votre email <span class="dim">(facultatif, pour une réponse)</span>
+       <input id="ctcMail" type="email" autocomplete="email" style="display:block;width:100%;margin-top:4px;${champ}">
+     </label>
+     <input id="ctcPiege" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
      <button class="big" id="ctcEnvoi">✉️ Envoyer</button>
+     <p id="ctcEtat" style="font-size:13px;margin-top:8px"></p>
    </div>`;
   if(G) chrome("apropos",corps);
   else { app.innerHTML=`<p style="margin:0 0 10px"><button class="act" id="bRetourAcc">← Accueil</button></p>${corps}`;
          document.getElementById("bRetourAcc").onclick=ecranAccueil; window.scrollTo(0,0); }
-  document.getElementById("ctcEnvoi").onclick=()=>{
-    const obj=document.getElementById("ctcObjet").value;
-    const msg=document.getElementById("ctcMsg").value;
+  // envoi direct (fonction Supabase « contact ») : le mailto: ne faisait rien sans logiciel de messagerie
+  const bouton=document.getElementById("ctcEnvoi"), etat=document.getElementById("ctcEtat");
+  bouton.onclick=async()=>{
+    const zone=document.getElementById("ctcMsg"), msg=zone.value.trim();
+    if(!msg){ etat.className="rouge"; etat.textContent="Le message est vide."; zone.focus(); return; }
     const c=(G&&clubById(G.monClub))||{};
-    const sujet="[Multiplex v"+VERSION+"] "+obj;
-    const txt=msg+(G?"\n\n"+(c.nom||"")+" · "+(G.saison||"")+" · J"+Math.min((G.journee||0)+1,38)+"/38":"");
-    window.location.href="mailto:"+CONTACT_MAIL+"?subject="+encodeURIComponent(sujet)+"&body="+encodeURIComponent(txt);
+    bouton.disabled=true; bouton.textContent="Envoi…"; etat.textContent="";
+    try{
+      const r=await fetch(CONTACT_FN,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        objet:document.getElementById("ctcObjet").value, message:msg,
+        email:document.getElementById("ctcMail").value, piege:document.getElementById("ctcPiege").value,
+        contexte:G?(c.nom||"")+" · "+(G.saison||"")+" · J"+Math.min((G.journee||0)+1,38)+"/38":"", version:VERSION})});
+      if(!r.ok) throw new Error(r.status);
+      bouton.textContent="✅ Message envoyé, merci !"; zone.value="";
+    }catch(e){
+      bouton.disabled=false; bouton.textContent="✉️ Envoyer";
+      etat.className="rouge"; etat.innerHTML=`L'envoi n'est pas passé. Réessayez, ou écrivez à <b>${CONTACT_MAIL}</b>.`;
+    }
   };
 }
 
