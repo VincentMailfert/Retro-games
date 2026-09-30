@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.66"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.67"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -1925,12 +1925,12 @@ const MALEDICTIONS_EPOQUE={
       [1994,null],
       [1998,"François Pinault rachète le club. La Bretagne rouge et noire a enfin un mécène, et plus d'excuses."],
       [2001,"Un siècle d'existence, jamais champion. La Bretagne rouge et noire espère encore."],
-      [2002,"Halilhodžić arrive de Lille, un gardien tchèque de vingt ans nommé Čech aussi. Pinault s'impatiente."],
+      [2002,"Philippe Bergeroo arrive sur le banc, un gardien tchèque de vingt ans nommé Čech aussi. Pinault s'impatiente."],
       [2003,"Un siècle d'existence, jamais champion, et Halilhodžić déjà parti à Paris. La Bretagne rouge et noire espère encore."]],
  LIL:[[1997,"Relégué en D2 après près de vingt ans d'élite. Les Dogues dorment depuis 1954, le réveil sera long."],
       [2000,"Champion de D2 avec Halilhodžić, les Dogues sont de retour. Quelqu'un est enfin en train de les réveiller."],
       [2001,"Troisième pour son retour, Lille découvre la Ligue des champions. Les Dogues sont bien réveillés."],
-      [2002,"Halilhodžić parti à Rennes, Claude Puel arrive. Les Dogues doivent apprendre à mordre sans leur dresseur."],
+      [2002,"Halilhodžić parti, Claude Puel arrive. Les Dogues doivent apprendre à mordre sans leur dresseur."],
       [2003,null]],
  NIC:[[1991,"Retombé en D2, les caisses vides. La gloire des années 50 pèse plus lourd que jamais au Ray."],
       [1994,null],
@@ -1944,16 +1944,16 @@ const MALEDICTIONS_EPOQUE={
       [2001,null]],
  SOC:[[2001,"Remonté en D1 avec une bande de gamins formés au club. Bonal y croit."],
       [2003,"Cinquième et finaliste de la Coupe de la Ligue. Pedretti et Santos font de Bonal un théâtre."]],
- GUI:[[1990,"Huit mille habitants, un stade de poche, et l'envie folle de voir la D1."],
+ GUI:[[1990,"Huit mille habitants, un stade neuf plus grand que la ville, et l'envie folle de voir la D1."],
       [1995,null],
       [1997,"Finaliste de la Coupe de France, battu aux tirs au but par Nice. Le village qui défie les villes a goûté aux grands soirs."],
       [1998,null],
       [2003,"Septième avec Drogba et Malouda, le plus beau classement de son histoire. Les deux sont partis, l'épopée continue."]],
  LEH:[[1990,"En D2, le club doyen (1872) regarde les jeunes lui passer devant."],
       [1991,null],
-      [2001,"Relégué en D2. Le club doyen (1872) regarde les jeunes lui passer devant, une division plus bas."],
+      [2001,"Deuxième saison en D2. Le club doyen (1872) regarde les jeunes lui passer devant, une division plus bas."],
       [2002,null],
-      [2003,"Relégué en D2. Le club doyen (1872) regarde les jeunes lui passer devant, une division plus bas."]],
+      [2003,"Relégué en Ligue 2. Le club doyen (1872) regarde les jeunes lui passer devant, une division plus bas."]],
  NCY:[[1990,"Platini est parti depuis plus de dix ans. Marcel-Picot attend un héritier."],
       [1994,null],
       [2002,"Platini est parti depuis près d'un quart de siècle. Marcel-Picot attend toujours un héritier."]],
@@ -2176,12 +2176,26 @@ const PRES_EPOQUE={
  TOU:[[2001,4]],
  GUI:[[2003,4]],
 };
+// le stade aussi : [à partir de, nom, places] ; null rend celui de la fiche (sources : Wikipédia, vérifié le 30/09/2026)
+const STADE_EPOQUE={
+ OM:[[1998,"Vélodrome",60000]],
+ LYO:[[1998,"Gerland",42000]],
+ LEN:[[1998,"Félix-Bollaert",41000]],
+ BOR:[[1998,"Parc Lescure",34000],[2001,"Chaban-Delmas",34000]],
+ MTP:[[1997,"La Mosson",35500]],
+ STR:[[1990,"La Meinau",42000],[1992,null]],
+ CAE:[[1990,"Venoix",11500],[1993,null]],
+ AMI:[[1999,"La Licorne",12500]],
+ SOC:[[2000,"Auguste-Bonal",20000]],
+ SED:[[2000,"Louis-Dugauguez",24000]],
+};
 function metaSaison(id, an){
   const c=metaClub(id); if(!c) return c;
-  let p=c.pres;
+  let p=c.pres, st=null;
   for(const [d,x] of (PRES_EPOQUE[id]||[])) if(d<=an) p=(x===null?c.pres:x);
-  if(p===c.pres) return c;
-  return {...c, pres:p, budget:Math.round(c.budget*p/c.pres/1e6)*1e6};
+  for(const [d,nom,cap] of (STADE_EPOQUE[id]||[])) if(d<=an) st=(nom===null?null:{stade:nom,cap});
+  if(p===c.pres && !st) return c;
+  return {...c, ...(st||{}), pres:p, budget:p===c.pres?c.budget:Math.round(c.budget*p/c.pres/1e6)*1e6};
 }
 const STARS_9697={
  PSG:[["B. Lama","G",33,88,88],["V. Fernandez","G",21,69,74],
