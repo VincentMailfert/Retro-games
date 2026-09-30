@@ -1,0 +1,55 @@
+# Publie le jeu à la racine de multiplex.club : le contenu de championnat/ devient le site,
+# sans déplacer un seul fichier dans le dépôt (harnais, routine nocturne et branches intacts).
+# Prérequis unique : Settings → Pages → Source = « GitHub Actions ».
+name: Publication
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assembler le site
+        run: |
+          mkdir _site
+          # Le jeu et ses images ; pas les outils d'atelier (harnais, notes, prototypes, audits, réglages).
+          rsync -a --exclude='.*' --exclude='*.cjs' --exclude='*.md' --exclude='*.json' \
+                --exclude='audit/' --exclude='docs/' championnat/ _site/
+          echo "multiplex.club" > _site/CNAME
+          # L'ancienne adresse /championnat/ renvoie vers la racine (liens déjà partagés).
+          mkdir -p _site/championnat/img
+          cp championnat/img/partage.png _site/championnat/img/
+          cat > _site/championnat/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="fr"><head><meta charset="UTF-8">
+          <meta http-equiv="refresh" content="0; url=../">
+          <link rel="canonical" href="https://multiplex.club/">
+          <title>MULTIPLEX</title></head>
+          <body><script>location.replace("../" + location.search + location.hash);</script>
+          <a href="../">Entrer dans Multiplex</a></body></html>
+          EOF
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploiement
+        uses: actions/deploy-pages@v4

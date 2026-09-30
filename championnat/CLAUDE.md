@@ -4,7 +4,7 @@
 Jeu de management de football rétro, **fichier HTML unique autonome** (`index.html`).
 Saison de départ : France 1995-96, deux divisions jouables (D1 et **D2 — où l'OM purge sa relégation
 post-affaire VA-OM**), vrais clubs et joueurs, puis carrière multi-saisons avec montées/descentes.
-Hébergé sur GitHub Pages dans le repo `retro-games`, servi à l'URL `…/championnat/`.
+Hébergé sur GitHub Pages dans le repo `retro-games`, servi à la racine de https://multiplex.club/ : le workflow `.github/workflows/publication.yml` publie le contenu de `championnat/` (sans harnais, notes, `docs/`, `audit/`) à chaque push sur main ; l'ancienne adresse `/championnat/` redirige vers la racine.
 **Joué par l'auteur SEUL (constat du 25/09/2026 : « personne ne joue au jeu, sauf moi pour l'instant »).** Il n'y a
 pas de testeurs : les « retours de playtest » cités dans ce fichier sont les siens, et son ressenti en jouant est le
 seul retour qui existe. Ne pas justifier une décision par « les testeurs » ni proposer de « faire tester » à
