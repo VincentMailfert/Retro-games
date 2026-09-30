@@ -10,10 +10,13 @@ pas de testeurs : les « retours de playtest » cités dans ce fichier sont les 
 seul retour qui existe. Ne pas justifier une décision par « les testeurs » ni proposer de « faire tester » à
 d'autres ; une livraison sur `main` n'expose que sa propre partie (dont la sauvegarde doit rester compatible).
 **Nom & identité (v0.82)** : le jeu s'appelle **MULTIPLEX** (sans « 95 » depuis v1.44 : le jeu couvre 1990 à 2000 ; le multiplex radio — « tous les stades en
-direct », l'oreille collée au transistor, très 1995). Le logo (`logoMultiplex(s, sombre)`, à côté de `blason`)
-est un **SVG géométrique embarqué** — un transistor dont le haut-parleur est un filet de but avec un ballon logé
-dedans, molette, antenne, ondes cyan (zéro requête réseau, comme le favicon et les blasons ; `sombre=true` trace
-en `#16243c` pour un fond jaune). Marque affichée à l'accueil (bandeau + pieds de page + `<title>`/`majTitre`),
+direct », l'oreille collée au transistor, très 1995). Le logo (**v1.58**, choisi par l'auteur parmi cinq pistes, cf. `docs/logos.html`) est le **générique télé des années 90** :
+« MULTIPLEX » en lettres chromées italiques (Archivo Black), relief rouge, trajectoire de frappe finie sur un ballon, et le
+slogan **« LE PLAISIR DU FOOT RETRO »** sur bandeau rouge, dont le bord gauche prolonge au pixel le jambage du M (même pente
+de 12°). `logoGenerique()` le rend entier (bandeau d'accueil, et l'image de partage `img/partage.png` en est une capture),
+`logoMultiplex(s)` son icône : le M seul, en **tracé** (pas en texte, pour ne dépendre d'aucune fonte), sur tuile bleu nuit
+(barre du haut) ; le favicon en est la copie figée en `data:` URI, à régénérer si l'icône change. Chaque appel numérote
+ses dégradés (`LOGO_N`). Marque affichée à l'accueil (bandeau + pieds de page + `<title>`/`majTitre`),
 mais **le bandeau EN JEU reste au club** (blason + nom). **Piège** : le rebranding est cosmétique et ne touche
 NI la clé de sauvegarde `SAVEKEY` (`d1manager_sauvegarde_v1`) NI le compte GoatCounter (`d1manager`) — les
 changer casserait les sauvegardes des testeurs et l'historique de stats. L'ancien nom « D1 MANAGER » ne subsiste
