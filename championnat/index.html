@@ -6,13 +6,13 @@
 <title>MULTIPLEX · le foot français des années 90</title>
 <!-- APERÇU DU LIEN (chantier accueil, 25/09/2026) : sans ces balises, un lien envoyé par messagerie ne montrait
      qu'un titre nu. L'image vit dans le dépôt (img/partage.png) ; les réseaux exigent une adresse ABSOLUE. -->
-<meta name="description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur de votre club. Jeu de gestion de football rétro : 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
+<meta name="description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur et président de votre club. Jeu de gestion de football rétro : 40 clubs, plus de 10 saisons et des effectifs aussi fidèles que possible.">
 <meta name="theme-color" content="#0b1626">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="Multiplex">
 <meta property="og:title" content="MULTIPLEX · le foot français des années 90, en direct">
-<meta property="og:description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur de votre club. 40 vrais clubs, vrais effectifs d'époque, tous les stades en direct.">
+<meta property="og:description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur et président de votre club. 40 clubs, plus de 10 saisons et des effectifs aussi fidèles que possible.">
 <meta property="og:url" content="https://vincentmailfert.github.io/Retro-games/championnat/">
 <meta property="og:image" content="https://vincentmailfert.github.io/Retro-games/championnat/img/partage.png">
 <meta property="og:image:width" content="1200">
@@ -368,7 +368,7 @@
      pixels. Avec des carrières en cours, il s'efface devant « Reprendre ». */
   .accHero{text-align:center; padding:28px 18px 24px;}
   .accHero .accLogo{max-width:520px; margin:0 auto 6px; font-size:inherit;}
-  .accHero .accPitch{font-size:18px; color:var(--clair); max-width:34ch; margin:12px auto 0; line-height:1.4; text-wrap:balance;}
+  .accHero .accPitch{font-size:15px; color:var(--clair); max-width:44ch; margin:12px auto 0; line-height:1.4; text-wrap:balance;}
   .accHero .accSous{font-size:14px; color:var(--dim); margin-top:8px;}
   .accHero .accPortes{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; margin-top:18px;}
   /* les deux portes ont un relief de touche (ombre dure dessous, qui s'écrase au clic) : côte à côte, jaune plein
@@ -392,7 +392,7 @@
   .magie .fige{color:var(--jaune); animation:magFige .35s ease-out;}
   .magie .magClub.fige{color:var(--clair);}
   @keyframes magFige{0%{transform:scale(1.18);} 100%{transform:scale(1);}}
-  @media(max-width:700px){ .accHero .accPitch{font-size:16px;} .accHero .accPortes button{width:100%; min-width:0;} .accHero .accPortes .ou{width:100%;} }
+  @media(max-width:700px){ .accHero .accPitch{font-size:14px;} .accHero .accPortes button{width:100%; min-width:0;} .accHero .accPortes .ou{width:100%;} }
   /* le premier match d'une carrière : on joue d'abord, on règle ensuite (les réglages restent à un clic) */
   details.avantMatch{margin-top:12px; text-align:center;}
   details.avantMatch > summary{cursor:pointer; color:var(--dim); font-size:14px; width:max-content; margin:0 auto; padding:4px 0;}
@@ -1897,7 +1897,7 @@ function logoMultiplex(s){ // s = côté en px ; tuile bleu nuit, lisible aussi 
     ${logoBallon(100,96,11,n)}
   </svg>`;
 }
-function logoGenerique(){ // le logo entier, à la largeur de son conteneur
+function logoGenerique(centre){ // le logo entier, à la largeur de son conteneur ; centre=true centre le bandeau (accueil)
   const n=LOGO_N++, f=`font-family="'Archivo Black','Arial Black',Impact,sans-serif" font-size="118" text-anchor="middle" textLength="640" lengthAdjust="spacingAndGlyphs"`;
   let relief=""; for(let i=9;i>=1;i--) relief+=`<text x="${390+i}" y="${152+i}" ${f} fill="${i===9?"#5e1712":"#b8392f"}">MULTIPLEX</text>`;
   return `<svg viewBox="0 0 780 272" style="width:100%;height:auto;display:block" role="img" aria-label="Multiplex, le plaisir du foot rétro">${logoDefs(n)}
@@ -1905,8 +1905,8 @@ function logoGenerique(){ // le logo entier, à la largeur de son conteneur
     <path d="M110 214 C 270 188, 480 178, 676 190" stroke="url(#lgT${n})" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
     <g transform="translate(34 0) skewX(-12)">${relief}<text x="390" y="152" ${f} fill="url(#lgC${n})" stroke="#0b1626" stroke-width="4.5" paint-order="stroke">MULTIPLEX</text></g>
     ${logoBallon(708,178,19,n)}
-    <polygon points="61.8,226 399.8,226 392.8,258 54.8,258" fill="#ff6f61"/>
-    <text x="74" y="250" font-family="VT323,monospace" font-size="28" fill="#0b1626" textLength="312" lengthAdjust="spacingAndGlyphs">LE PLAISIR DU FOOT RETRO</text>
+    <polygon points="${centre?"224.5,226 562.5,226 555.5,258 217.5,258":"61.8,226 399.8,226 392.8,258 54.8,258"}" fill="#ff6f61"/>
+    <text x="${centre?390:74}" y="250" ${centre?'text-anchor="middle" ':""}font-family="VT323,monospace" font-size="28" fill="#0b1626" textLength="312" lengthAdjust="spacingAndGlyphs">LE PLAISIR DU FOOT RETRO</text>
   </svg>`;
 }
 
@@ -11886,7 +11886,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
 let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
-const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur de votre club.";
+const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur et président de votre club.";
 function ecranAccueil(){
   const parties=partiesListe();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
@@ -11901,9 +11901,9 @@ function ecranAccueil(){
   app.innerHTML=`
    <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(22)}MULTIPLEX</span><span class="r">Division 1 française</span></div>
    ${parties.length ? panneauCarrieres(parties) : `<div class="panel accHero">
-     <h1 class="accLogo">${logoGenerique()}</h1>
+     <h1 class="accLogo">${logoGenerique(true)}</h1>
      <p class="accPitch">${esc(ACCROCHE_ACCUEIL)}</p>
-     <p class="accSous">${tous.length} vrais clubs · vrais effectifs d'époque · tous les stades en direct</p>
+     <p class="accSous">${tous.length} clubs, plus de 10 saisons et des effectifs aussi fidèles que possible</p>
      <div class="accPortes">
        <button class="big" id="bMagie">✨ Laisser la magie opérer</button>
        <span class="ou">ou</span>
