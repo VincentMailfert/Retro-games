@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.59"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.60"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -11935,7 +11935,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a>${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
+   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a>${parties.length?"":`<br><label class="act" style="cursor:pointer">📂 Reprendre une carrière depuis un fichier<input type="file" accept=".json" style="display:none" id="bImpAcc"></label>`}</p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
@@ -11946,6 +11946,7 @@ function ecranAccueil(){
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
   app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
   const bia=document.getElementById("bImpAcc"); if(bia) bia.onchange=importer;
+  document.getElementById("bAproposAcc").onclick=ecranApropos;
   const t1=document.getElementById("tabD1"), t2=document.getElementById("tabD2");
   if(t1) t1.onclick=()=>{ ACCUEIL_DIV=1; ecranAccueil(); };
   if(t2) t2.onclick=()=>{ ACCUEIL_DIV=2; ecranAccueil(); };
@@ -11987,30 +11988,24 @@ function chrome(actif, corps){
    ${barreNav(actif)}
    <div id="corps">${corps}</div>
    <p class="footer">MULTIPLEX · v${VERSION} ·
-     <button class="act" id="bSave">💾 Sauvegarder</button>
      <button class="act" id="bMenu">📁 Mes carrières</button>
-     <button class="act" id="bExp">Exporter (fichier)</button>
-     <label class="act" style="cursor:pointer">Importer (fichier)<input type="file" accept=".json" style="display:none" id="bImp"></label>
      <button class="act" id="bApropos">À propos</button>
-     ${SAVE_KO?`<b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Exportez en fichier, puis supprimez une vieille carrière.</b>`:""}
+     ${SAVE_KO?`<br><b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Exportez en fichier, puis supprimez une vieille carrière.</b>
+     <button class="act" id="bExp">Exporter (fichier)</button>`:""}
    </p>`;
+  // la sauvegarde est automatique à chaque changement d'écran : plus de bouton, et le fichier ne sert plus qu'en secours
   app.querySelectorAll("nav button, .sousNav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
   document.getElementById("bApropos").onclick=()=>montre("apropos");
-  document.getElementById("bSave").onclick=()=>{
-    if(sauvegardeLocale(false)){ const b=document.getElementById("bSave");
-      b.textContent="✓ Partie sauvegardée"; b.disabled=true;
-      setTimeout(()=>{ const bb=document.getElementById("bSave"); if(bb){ bb.textContent="💾 Sauvegarder"; bb.disabled=false; } },1600); }
-  };
   document.getElementById("bMenu").onclick=retourAccueil;
-  document.getElementById("bExp").onclick=exporter;
-  document.getElementById("bImp").onchange=importer;
+  const be=document.getElementById("bExp"); if(be) be.onclick=exporter;
 }
 
 const CONTACT_MAIL="vincent.mailfert@gmail.com";
 function ecranApropos(){
   const objets=["Proposition d'amélioration","Erreur scandaleuse à corriger","Autres"];
   const champ="background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:13px;padding:8px";
-  chrome("apropos",`
+  // sans carrière chargée (lien du pied de page d'accueil), la page se montre seule, avec un retour à l'accueil
+  const corps=`
    <div class="panel">
      <h2>À propos</h2>
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
@@ -12034,14 +12029,17 @@ function ecranApropos(){
        <textarea id="ctcMsg" rows="5" placeholder="Nom de joueur, effectif, note scandaleuse basse... dites moi tout" style="display:block;width:100%;margin-top:4px;resize:vertical;${champ}"></textarea>
      </label>
      <button class="big" id="ctcEnvoi">✉️ Envoyer</button>
-   </div>`);
+   </div>`;
+  if(G) chrome("apropos",corps);
+  else { app.innerHTML=`<p style="margin:0 0 10px"><button class="act" id="bRetourAcc">← Accueil</button></p>${corps}`;
+         document.getElementById("bRetourAcc").onclick=ecranAccueil; window.scrollTo(0,0); }
   document.getElementById("ctcEnvoi").onclick=()=>{
     const obj=document.getElementById("ctcObjet").value;
     const msg=document.getElementById("ctcMsg").value;
-    const c=clubById(G.monClub)||{};
+    const c=(G&&clubById(G.monClub))||{};
     const sujet="[Multiplex v"+VERSION+"] "+obj;
-    const corps=msg+"\n\n"+(c.nom||"")+" · "+(G.saison||"")+" · J"+Math.min((G.journee||0)+1,38)+"/38";
-    window.location.href="mailto:"+CONTACT_MAIL+"?subject="+encodeURIComponent(sujet)+"&body="+encodeURIComponent(corps);
+    const txt=msg+(G?"\n\n"+(c.nom||"")+" · "+(G.saison||"")+" · J"+Math.min((G.journee||0)+1,38)+"/38":"");
+    window.location.href="mailto:"+CONTACT_MAIL+"?subject="+encodeURIComponent(sujet)+"&body="+encodeURIComponent(txt);
   };
 }
 
