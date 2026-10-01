@@ -1206,10 +1206,119 @@ toujours « raconter quelque chose ».
   **Six joueurs procéduraux seulement**, le meilleur score du chantier : cinq clubs n'ont qu'**un
   gardien** répertorié (Auxerre, Guingamp, Bastia, Toulouse, Besançon) et Sochaux que trois
   attaquants. La source fait foi, `genJoueur` complète. Validation dédiée : **`harness0304.cjs`**.
-  Pour ajouter 04/05 : même méthode avec `saison_id/2004`, entrée `"2004-05"` dans `SAISONS`, harnais
-  calqué sur `harness0304.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03), donc **plus de
+  **2004-05 (v1.68)** : `STARS_0405`/`STARS_D2_0405`, `D1_0405`/`D2_0405`, `an:2004`, `saison_id/2004` —
+  sous le nom **« Quatre fois de suite »**, et c'est désormais la saison la plus RÉCENTE du jeu. Lyon
+  prend son **quatrième titre d'affilée avec soixante-dix-neuf points, exactement le total de
+  l'année d'avant** : avant lui, seuls Saint-Étienne (1967-1970) et Marseille (1989-1992) avaient
+  gagné quatre championnats de suite. **Michael Essien est élu meilleur joueur** avant de filer à
+  Chelsea pour vingt-quatre millions de livres, Grégory Coupet meilleur gardien pour la troisième
+  fois, **Paul Le Guen meilleur entraîneur pour sa dernière saison sur le banc**, et Jérémy Toulalan
+  meilleur espoir à Nantes. Lille finit **deuxième**, sa meilleure place depuis des décennies, avec
+  les seize buts de Matt Moussilou. Alexander Frei plante vingt buts pour Rennes et finit meilleur
+  buteur ; Javier Saviola arrive en prêt du Barça sur le Rocher ; **un Franck Ribéry de vingt et un
+  ans fait la saison de sa vie à Metz** avant Galatasaray puis le Vélodrome. Et à Lyon, un gamin de
+  dix-sept ans entre en jeu **cent sept minutes** : Karim Benzema.
+  **LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA TROISIÈME FOIS DE SUITE** : les deux échelons réels ont
+  vingt clubs, donc **aucun repêchage, aucun écarté**, et le harnais vérifie les deux listes par
+  égalité comme en 02/03 et 03/04. Trois promus (**Saint-Étienne** champion de Ligue 2, **Caen** et
+  **Istres**), trois descendus (**Guingamp, Le Mans, Montpellier**). Un seul club neuf dans
+  `CLUBS_EXTRA` : **Dijon** (`DIJ`, **Gaston-Gérard**, **rouge et blanc**, couleurs vérifiées sur sa
+  fiche Wikipédia, jurisprudence Créteil), monté du National en 2004 pour sa **première saison
+  professionnelle**, qu'il termine quatrième après avoir sorti Bordeaux en Coupe de la Ligue.
+  **Sièges européens — et un siège repart en deuxième division** : **Lyon (champion) et le Paris SG
+  (2e) en phase de groupes de Ligue des champions, Monaco (3e, finaliste sortant) au troisième tour
+  de qualification** ; en Coupe UEFA **Auxerre (4e), Sochaux (5e et vainqueur de la Coupe de la
+  Ligue), LILLE au titre de l'INTERTOTO 2004** — le premier club français à gagner cette coupe
+  depuis Montpellier en 1999, après deux saisons où il fallait justement constater qu'aucun ne
+  l'avait gagnée — et **CHÂTEAUROUX, finaliste BATTU de la Coupe de France 2004**, le Paris SG
+  vainqueur étant déjà qualifié en C1. La Berrichonne jouait la Ligue 2 : c'est le **sixième club du
+  jeu à jouer l'Europe depuis la deuxième division**, et **le premier à y aller pour avoir PERDU une
+  finale** — un motif qu'aucune autre saison n'avait servi. Marseille, septième, n'a aucun siège.
+  `euroC2` est vide pour la cinquième fois.
+  `HONNEURS` n'a rien eu à apprendre — il connaît 1992 → 2006 — mais **partir de 04/05 laisse la
+  PREMIÈRE intersaison MUETTE** (sixième cas, après 90/91, 92/93, 00/01 et 02/03) : l'été 2005 ne
+  porte aucun tournoi et **le Mondial 2006 attend la deuxième**, celui que l'Italie gagne aux tirs au
+  but à Berlin. Le harnais vérifie que cette dépêche ne contient pas « LA FRANCE » en capitales, que
+  `finDeSaison` lirait comme un triomphe — la France a perdu cette finale. **`HONNEURS` doit toujours
+  apprendre 2008**, comme depuis 03/04 ; aucune saison ne l'exige encore, un été inconnu restant
+  simplement muet.
+  **L'héritage fait presque tout, et toutes les ancres sont derrière** : **513 des 760 noms
+  reprennent leur note 03/04 vieillie d'un an**, 75 viennent de plus loin, **172 seulement sont
+  calculés**. Distribution collée à celle de 03/04 (L1 : moyenne 70,7 et médiane 70, contre 70,4
+  et 70 ; L2 : 66,8 et 67, contre 66,6 et 67).
+  **MESURE QUI FIXE ENFIN LA RÈGLE DE VIEILLISSEMENT, et il fallait la faire** : les seuils
+  (+2 jusqu'à 21 ans, +1 jusqu'à 24, −1 de 30 à 32, −2 au-delà) se lisent sur **l'âge À L'ANCRE**, pas
+  sur l'âge d'arrivée. Vérifié en rejouant 02/03 → 03/04 sur les 516 hommes appariés : lus sur l'âge
+  de départ, **487 notes sur 516 ressortent à l'identique** ; lus sur l'âge d'arrivée, seulement 362,
+  et les 132 écarts tombent tous sur les âges de bascule (22, 25, 30, 33). À faire une fois, et à ne
+  plus refaire.
+  Table d'ajustements à la main de **quarante-six entrées**, parce que 2004-05 est une saison de
+  prêts et d'arrivées que le calcul ne peut pas connaître : **Saviola 81/86** (prêté par le Barça),
+  **Isaksson 79/86** (international suédois à Rennes), **Maicon 77/88** (Monaco, avant le triplé de
+  l'Inter), **Chevantón 77**, **Kallon 77**, **Zokora 77/84**, **Ačimović 76**, **Odemwingie 74/80**,
+  et deux palmarès que rien dans un classement ne trahit : **Kapsis 75**, CHAMPION D'EUROPE 2004 avec
+  la Grèce, et **Jankauskas 74**, vainqueur de la LIGUE DES CHAMPIONS 2004 avec Porto. Le reste
+  rattrape les révélations : **Essien 86/91** (l'héritage seul le laissait à 84), **Frei 82/85**,
+  **Coupet 85**, **Cristiano 80/84**, **Ribéry 74/88**, **Moussilou 76/82**, **Sagna 74/86**,
+  **Toulalan 72/86**, **Benzema 64/93**, **Mandanda 60/88**, **Koscielny 64/85**, **Matuidi 62/87**.
+  Et **trois corrections en sens inverse**, le vieillissement dérapant toujours dans les deux sens :
+  **Titi Camara ressortait à 78** en Ligue 2 à trente-deux ans, ramené à **74** ; **Djetou à 78**,
+  ramené à **75** ; **Karembeu à 68** à trente-quatre ans, remonté à **70**.
+  **Forçage de dix-huit pépites**, la plus grosse fournée du chantier après 03/04, par la parade de
+  00/01 (lister les écartés que le jeu connaît déjà) doublée du relevé des débutants : **Karim
+  Benzema (dix-sept ans, CENT SEPT MINUTES à Lyon)**, **Blaise Matuidi (dix-sept ans, cent
+  cinquante-huit minutes à Troyes)**, **Steve Mandanda (dix-neuf ans, QUATRE-VINGT-DIX MINUTES au
+  Havre — un seul match)**, **Yohan Cabaye**, **Laurent Koscielny**, **André-Pierre Gignac**, **Abou
+  Diaby**, **Didier Digard**, **François Clerc** (nommé meilleur espoir), **Bafétimbi Gomis** (prêté
+  à Troyes), **Dante**, **Yoan Gouffran**, **Guillaume Hoarau**, et cinq noms que le jeu portait déjà
+  — **Christian Karembeu** (trente-quatre ans à Bastia), **Bernard Diomède**, **Martin Djetou**,
+  **Titi Camara** et **Patrick Blondeau** (trente-six ans). **Le Havre paie TROIS hommes**, Troyes,
+  Créteil, Lille et Nice deux chacun. Ribéry, Nasri, Ménez, Ben Arfa, Sagna, Kaboul, Lassana Diarra,
+  Toulalan, Mavuba, Gourcuff, Essien, Saviola, Adebayor et Evra passent tous tout seuls au temps de
+  jeu — et **Hugo Lloris, dix-huit ans à Nice, est absent parce qu'il n'a pas joué une minute** : la
+  source fait foi, on ne force pas un homme qui n'était pas sur le terrain.
+  **LE PIÈGE DU JOUR, ET IL VIENT D'UNE RÈGLE ÉCRITE EN 03/04 : LA TOLÉRANCE D'UN AN DES TABLES
+  96/97 FABRIQUE DE FAUX APPARIEMENTS.** 03/04 avait découvert que les deux tables 96/97 sont
+  décalées d'un an (curées avec « âge TM − 1 ») et autorisé un écart d'un an sur leurs ancres. Mais
+  appliquée sans garde-fou, cette tolérance a pris **Ludovic Leroy** (Reims, défenseur né en
+  septembre 1975, vingt-neuf ans) pour **Laurent Leroy** (attaquant né en avril 1976, vingt-huit
+  ans), que le jeu porte sous « L. Leroy » depuis 96/97 : le Rémois héritait de sa note **et de son
+  nom**. La parade, et c'est la règle à garder : **la tolérance d'un an ne vaut que pour un nom que
+  SEULES les deux tables 96/97 connaissent**. Dès qu'une table non décalée porte le même nom, c'est
+  elle qui dit l'âge vrai, et un écart d'un an signifie deux hommes. Les trois appariements de 03/04
+  (Kor Sarr, Paulo Vida, Mansour Boutabout) sont justement des noms que seul 96/97 connaissait : la
+  règle neuve les conserve et ne coûte rien.
+  **LE NOM QUI N'ÉTAIT PAS LIBRE, ET C'EST UN CAS SANS PRÉCÉDENT : DEUX MONONYMES « Cris ».** Le jeu
+  donne « Cris » depuis 03/04 au défenseur brésilien d'Angers, né en 1979 ; le Cris de Lyon — patron
+  de la défense championne, 4 083 minutes — est un **autre homme**, né en 1977, et la règle de 02/03
+  est formelle : un nom court que le jeu attribue déjà ne se reprend pas. Les remèdes connus ne
+  marchaient ni l'un ni l'autre : « écrire en toutes lettres » suppose un prénom à déplier (Benoît
+  Cheyrou, Serge Simon), et la jurisprudence Olivier Baudry — le plus marginal cède sa place —
+  aurait coûté un titulaire de la saison, alors que l'Angevin n'est même pas du plateau 04/05 (715
+  minutes en Ligue 2, écarté au tri). La décision : **le Lyonnais s'écrit « Cristiano »**, son prénom
+  civil, que Transfermarkt donne en entier (« Cristiano Márques Gómes ») — un vrai nom, dans le style
+  des mononymes brésiliens que le jeu emploie déjà, et qui ne marche sur personne. **Et l'on n'a PAS
+  retouché 03/04 pour lui donner « Cris » : une saison livrée ne se refait pas.**
+  **La source est la plus généreuse du chantier** : **aucun club sous vingt-trois hommes ayant
+  joué** (Lens et Rennes, pour vingt places), **aucun joueur que la source ne sache dater** — une
+  première —, et un seul libellé de poste inconnu à ajouter aux trois langues (« Deuxième
+  attaquant »). Le relevé n'a coûté aucun échec : les quatre-vingts pages sont passées du premier
+  coup, l'anti-robot ne frappant qu'une fois, sur la page de classement de Ligue 2, et la rotation de
+  domaines (`.com`, `.de`, `.fr`, `.co.uk`) l'a réglée. **Quarante-quatre hommes listés dans deux
+  clubs** sont allés là où ils ont le plus joué (Fiorèse du Paris SG à l'OM, Ziani à Lorient, Gomis
+  prêté à Troyes), dédoublonnés **par identifiant Transfermarkt**.
+  157 prénoms neufs dans `PRENOMS_VRAIS`, **dont aucun vide** — pour la deuxième fois de suite.
+  Trois écarts relevés avec la table existante, tous des variantes du même homme, et la table garde
+  la sienne (règle de 02/03) : « J. Francia » dit Juan quand TM dit Juan Pablo, « J.-L. Montero »
+  Juan-Luis contre Jean-Louis, « E. Kroupi » Éli contre Elie.
+  **Quatre joueurs procéduraux seulement, le meilleur score du chantier** : Rennes et Toulouse n'ont
+  qu'**un gardien** ayant joué (Isaksson et Revault ont tout disputé, et aucune doublure n'est entrée
+  une minute), Lens que **trois attaquants**, Saint-Étienne que **quatre milieux**. La source fait
+  foi, `genJoueur` complète. Validation dédiée : **`harness0405.cjs`**.
+  Pour ajouter 05/06 : même méthode avec `saison_id/2005`, entrée `"2005-06"` dans `SAISONS`, harnais
+  calqué sur `harness0405.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03), donc **plus de
   repêchage à arbitrer** : la journée va entièrement aux hommes. Attention, **`HONNEURS` devra
-  apprendre 2008** le jour où la première saison concernée arrivera. **La file d'attente des saisons à
+  apprendre 2008** le jour où une saison l'exigera. **La file d'attente des saisons à
   venir — et les règles du chantier quotidien qui les ajoute une par une — sont dans
   `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
