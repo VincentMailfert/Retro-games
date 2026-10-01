@@ -102,10 +102,10 @@ console.log("C) Toujours les mêmes ?");
 }
 
 /* ===== D) La relève à chaque intersaison, puis le relais après la dernière liste ===== */
-console.log("D) Carrière 2002-03 → 2006-07 : la liste suit l'été");
+console.log("D) Carrière 2004-05 → 2010-11 : la liste suit l'été, puis le relais");
 try {
-  api.nouvellePartie(api.SAISONS["2002-03"].d1[0], "2002-03");
-  for (let s = 0; s < 4; s++) {
+  api.nouvellePartie(api.SAISONS["2004-05"].d1[0], "2004-05");
+  for (let s = 0; s < 6; s++) {
     for (let d = 0; d < 38; d++) api.jouerJournee();
     const G = api.getG(); G.vire = null;
     api.intersaison();

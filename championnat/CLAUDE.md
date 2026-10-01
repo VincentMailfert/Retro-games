@@ -369,7 +369,7 @@ toujours « raconter quelque chose ».
 - **LE RECRUTEUR, SAISON PAR SAISON (v1.69, retour auteur)** : « David Sommeil en D2 à Caen en 2003 », « on voit
   toujours les mêmes », « leur note aussi ». Le vivier de l'été 95 projeté dans le temps gardait le club de 1995,
   et chaque carrière démarrait sur les mêmes trente noms. Désormais `VIVIER_SAISON[an]` donne, pour chaque été
-  de 1990 à 2004, une quarantaine de vrais joueurs **au club où ils jouent cet été-là**, avec une note à leur
+  de 1990 à 2009 (2005-2009 ajoutés en v1.70, avant même les saisons de départ correspondantes, pour les longues carrières), une quarantaine de vrais joueurs **au club où ils jouent cet été-là**, avec une note à leur
   niveau du moment : `[nom, poste, année de naissance, note, pot, club, drapeau, prénom]`, drapeau `""`,
   `"FR"` (Français de l'étranger, nationalité FR à la signature) ou `"froid"` (décote ; le club porte alors
   la raison, « Inter Milan, en rééducation »). Le profil affiché se déduit (`profilSaison`). `vivierDeSaison(an)`
