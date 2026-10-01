@@ -35,6 +35,11 @@ livre pas, on écrit le blocage au journal, et on laisse la saison à demain.
    jamais de prénom deviné. Même nom court, deux hommes différents d'une saison à l'autre : `""` aussi, sauf
    s'ils ont le même prénom. `harness-prenoms.cjs` refuse la livraison si un vrai joueur n'a pas d'entrée,
    ou si un prénom ne commence pas par l'initiale affichée.
+   **Écrire aussi la liste du recruteur de l'été** (depuis la v1.69) : une entrée `VIVIER_SAISON[an]`
+   d'environ quarante vrais joueurs qui jouent HORS de France cet été-là, au club où ils sont après le
+   mercato d'été, avec une note à leur niveau du moment (même échelle que les listes voisines). Pas plus de
+   la moitié des noms en commun avec l'été précédent. Vérifier clubs et années de naissance contre Wikidata
+   (voir la section « LE RECRUTEUR, SAISON PAR SAISON » de `CLAUDE.md`) ; `harness-recruteur.cjs` doit rester vert.
 4. **Valider**, sans exception : extraction du JS + `node --check`, le nouveau harnais de la saison, puis
    **tous les autres harnais du dossier** en non-régression. Tout doit finir « TOUT EST VERT ».
 5. **Cocher la ligne** dans ce fichier, ajouter une ligne au journal en bas, écrire le paragraphe de la

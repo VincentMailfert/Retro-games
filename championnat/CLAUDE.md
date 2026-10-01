@@ -366,6 +366,21 @@ toujours « raconter quelque chose ».
   dépannage si la réserve est momentanément épuisée → ~90%+ (en pratique ~100%) de vrais noms. Les gens
   n'accrochent pas aux jokers factices : garder le vivier réel, et `enJeu` (effectifs D1 **+ D2** + vivier)
   empêche tout doublon d'un joueur entre un club et le vivier.
+- **LE RECRUTEUR, SAISON PAR SAISON (v1.69, retour auteur)** : « David Sommeil en D2 à Caen en 2003 », « on voit
+  toujours les mêmes », « leur note aussi ». Le vivier de l'été 95 projeté dans le temps gardait le club de 1995,
+  et chaque carrière démarrait sur les mêmes trente noms. Désormais `VIVIER_SAISON[an]` donne, pour chaque été
+  de 1990 à 2004, une quarantaine de vrais joueurs **au club où ils jouent cet été-là**, avec une note à leur
+  niveau du moment : `[nom, poste, année de naissance, note, pot, club, drapeau, prénom]`, drapeau `""`,
+  `"FR"` (Français de l'étranger, nationalité FR à la signature) ou `"froid"` (décote ; le club porte alors
+  la raison, « Inter Milan, en rééducation »). Le profil affiché se déduit (`profilSaison`). `vivierDeSaison(an)`
+  bâtit le vivier au départ (`genRapport`) et le **remplace entièrement à chaque intersaison** : les clubs ont
+  bougé, les notes aussi. Au-delà de la dernière liste, l'ancien vieillissement (`ageJoker` + réserves) prend le
+  relais. Une sauvegarde d'avant v1.69 est refaite sur la liste de sa saison au chargement (`migre`, repère
+  `G._vivierAn`). Clubs et années de naissance **vérifiés par script contre Wikidata** (P54 avec dates, P569) ;
+  un été ne partage pas plus de ~50 % de ses noms avec le précédent. Le prénom de la liste n'entre dans
+  `PRENOMS_VRAIS` que si le nom court n'y figure pas déjà (« M. Hughes » y est Michael, de Strasbourg : Mark
+  Hughes n'est donc PAS dans les listes ; même prudence pour tout nom court ambigu). La clé « En froid avec son
+  club » a perdu son tiret long. Gardé par `harness-recruteur.cjs`.
 - **Deux divisions** (`CLUBS`/`STARS` = D1, `CLUBS_D2`/`STARS_D2` = D2, 20 clubs chacune). On peut choisir
   un club de D1 OU de D2 à l'accueil (OM est en D2). `G.div` (1/2), `G.clubs` = la division JOUÉE (simulée
   en détail par le moteur), `G.autre` = l'autre division (simulée en **abstrait** via `classementAbstrait`
