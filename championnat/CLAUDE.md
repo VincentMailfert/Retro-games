@@ -1726,10 +1726,16 @@ toujours « raconter quelque chose ».
   `plein × min(1, (journées faites + 5)/30)`, soit un tiers pour 5 journées, deux tiers pour 15, plein dès 25 ; avant,
   5 journées valaient un an et le prêt court était le meilleur placement du jeu. **LE STAFF FORME (v1.73, choix
   auteur)** : `coachFormation(pos)` ajoute à la progression des joueurs de `monClub` +15 %/étoile du coach de leur
-  secteur (G → gardien, D → defense, A → attaque, M → moyenne attaque/défense, faute de coach du milieu), cumulé
-  avec le campus dans `progression`. Un prêté n'en profite pas (il est dans le club hôte). Mesure (19 ans, 65/88,
-  une saison, campus max + coach ★★★) : banc 69, titulaire 76, prêt 74. Le grand staff ne sauve pas le banc,
-  il fait d'un titulaire maison le meilleur choix. Validation : **section H**. Validation : **section G de `harness-effectif.cjs`** (une saison jouée pour de bon).
+  secteur (`coachSecteur` : G → gardien, D → defense, M → **milieu**, A → attaque), cumulé avec le campus dans
+  `progression`. Un prêté n'en profite pas (il est dans le club hôte). Mesure (19 ans, 65/88, une saison, campus max
+  + coach ★★★) : banc 69, titulaire 76, prêt 74. **v1.74, l'auteur : « un entraîneur doit faire progresser TOUS les
+  joueurs »** : (1) un 7e poste **`milieu`** (« Coach du milieu », 🧭) : +1 %/étoile devant et −1 %/étoile encaissé dans
+  `simuleMatch`, et il forme les milieux ; ajouté aux deux inits de `G.staff` (les vieilles sauvegardes sans la clé le
+  voient vacant, `coachTier` tolère `undefined`). (2) les **confirmés (24-30 ans)** de votre club progressent avec le
+  coach de leur secteur, `0.02 × étoiles × max(part, 0.3)` par journée (moitié après 27 ans), **jusqu'à `pot + étoiles`** :
+  le coach fait dépasser le plafond (78/78 → 80 en une saison de titulaire avec ★★★, 81 au maximum). Sans coach, rien ne
+  change. (3) les **vétérans (31+)** déclinent 20 % moins souvent par étoile. L'IA n'a pas de staff : calibrage des
+  autres clubs intact. Validation : **section H**. Validation : **section G de `harness-effectif.cjs`** (une saison jouée pour de bon).
 - **Affluence** (`affluence(home,away,sansPromo)`) : depuis v0.61, le **club hôte pèse plus que le visiteur** (`home.pres*0.022`
   + `away.pres*0.016`, base 0,46) et le **classement** compte fort (top 3 : +0,13 ; 4-6 : +0,06 ; ≥16 : −0,06) — retour de
   playtest « 2e avec le PSG et le stade pas plein, illogique ». Plus derby (+0,15), buzz/réputation/tarif (votre club). Le

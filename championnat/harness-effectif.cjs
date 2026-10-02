@@ -293,16 +293,19 @@ ok(espoir.note > noteEspoir + 3 && espoir.note <= espoir.pot,
   `une saison de titulaire, ça se voit : note ${noteEspoir} → ${espoir.note} (potentiel ${espoir.pot})`);
 
 /* ============ H) le staff fait grandir les jeunes de son secteur (v1.73) ============ */
-console.log("H) Les coachs forment les jeunes de leur secteur");
+console.log("H) Les coachs font progresser leur secteur");
 api.nouvellePartie("PSG");
 G = api.getG();
 G.campus = null;
 moi = api.clubById(G.monClub);
 ok(api.coachFormation("A") === 0 && api.coachFormation("M") === 0, "sans staff, aucun effet (calibrage intact)");
+ok("milieu" in G.staff, "le poste de coach du milieu existe dans une partie neuve");
 G.staff.attaque = { nom: "Test", tier: 3, phrase: "", salaire: 0 };
-ok(Math.abs(api.coachFormation("A") - 0.45) < 1e-9 && Math.abs(api.coachFormation("M") - 0.225) < 1e-9
+ok(Math.abs(api.coachFormation("A") - 0.45) < 1e-9 && api.coachFormation("M") === 0
   && api.coachFormation("D") === 0 && api.coachFormation("G") === 0,
-  "un coach des attaquants ★★★ : +45 % aux attaquants, +22,5 % aux milieux, rien derrière");
+  "un coach des attaquants ★★★ : +45 % aux attaquants, rien aux autres secteurs");
+G.staff.milieu = { nom: "Test", tier: 2, phrase: "", salaire: 0 };
+ok(Math.abs(api.coachFormation("M") - 0.30) < 1e-9, "le coach du milieu ★★ : +30 % aux milieux");
 // deux jumeaux sur le banc, un attaquant et un défenseur : seul l'attaquant profite du coach
 const jumeau = (pos) => { const j = moi.joueurs.find(x => x.pos === pos && !x._pris); j._pris = true;
   j.age = 19; j.note = 65; j.pot = 88; j.prog = 0; return j; };
@@ -315,6 +318,29 @@ api.preteJoueur(att, 38, 50000, null);
 att._joue = 0; def._joue = 0;
 api.progression();
 ok(Math.abs(att.prog - def.prog) < 1e-9, "prêté, l'attaquant ne profite plus du coach de la maison");
+
+// un confirmé à son plafond : sans coach il ne bouge plus, avec le coach ★★★ il dépasse son plafond (jusqu'à +3)
+api.nouvellePartie("PSG");
+G = api.getG();
+moi = api.clubById(G.monClub);
+const conf = moi.joueurs.find(x => x.pos === "A"), confD = moi.joueurs.find(x => x.pos === "D");
+for (const j of [conf, confD]) { j.age = 26; j.note = 78; j.pot = 78; j.prog = 0; }
+const saisonConf = () => { for (let k = 0; k < 38; k++) { conf._joue = 1; confD._joue = 1; api.progression(); } };
+saisonConf();
+ok(conf.note === 78 && confD.note === 78, "sans coach, un confirmé de 26 ans à son plafond ne bouge plus");
+G.staff.attaque = { nom: "Test", tier: 3, phrase: "", salaire: 0 };
+saisonConf();
+ok(conf.note >= 80 && conf.note <= 81 && confD.note === 78,
+  `avec le coach des attaquants ★★★, une saison de titulaire : ${78} → ${conf.note} (le défenseur reste à ${confD.note})`);
+saisonConf(); saisonConf();
+ok(conf.note === 81, `jamais plus de trois points au-dessus de son plafond (${conf.note})`);
+// un vétéran décline moins vite avec le coach de son secteur
+let chutesAvec = 0, chutesSans = 0;
+for (let k = 0; k < 400; k++) {
+  conf.age = 33; conf.note = 75; confD.age = 33; confD.note = 75; api.progression();
+  chutesAvec += 75 - conf.note; chutesSans += 75 - confD.note;
+}
+ok(chutesAvec < chutesSans * 0.75, `vétérans de 33 ans : ${chutesAvec} déclins avec le coach, ${chutesSans} sans (sur 400 journées)`);
 
 console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS EFFECTIF : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.73"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.74"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -4846,7 +4846,7 @@ function nouvellePartie(clubId, saisonKey){
   clubs.find(c=>c.id===clubId).joueurs.forEach(j=>ouvreBio(j,"origine")); // la fiche de vie s'ouvre pour tout l'effectif de départ
   G.intro=S.an; // mot d'ouverture de la toute première saison de la carrière
   G.stade=inferStade(clubs.find(c=>c.id===clubId)); G.chantier=null; // état du stade déduit de sa taille de départ
-  G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique : postes vacants au départ
+  G.staff={attaque:null,milieu:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique : postes vacants au départ
   G.rapport=genRapport();
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
@@ -5943,7 +5943,8 @@ function simuleMatch(home,away,verbeux,opts){
     const pm=+G.primeMatch||0;
     if(pm>0){ if(home.id===G.monClub) lh*=(1+pm); else la*=(1+pm); }
     // staff technique : bonus sectoriels de VOTRE match seul (neutre sans coach, et vide au harnais → calibrage intact)
-    const cAtt=1+0.02*coachTier("attaque"), cDef=1-0.02*coachTier("defense"), cGk=1-0.015*coachTier("gardien");
+    const cMil=coachTier("milieu"); // le coach du milieu (v1.74) : un peu devant, un peu derrière
+    const cAtt=(1+0.02*coachTier("attaque"))*(1+0.01*cMil), cDef=(1-0.02*coachTier("defense"))*(1-0.01*cMil), cGk=1-0.015*coachTier("gardien");
     if(home.id===G.monClub){ lh*=cAtt; la*=cDef*cGk; } else { la*=cAtt; lh*=cDef*cGk; }
   }
   // (v1.00 : le forfait « −5 % après un tour de coupe » a disparu — la fatigue vit désormais dans la
@@ -8465,7 +8466,19 @@ function progression(){
           ? "📈 "+j.nom+" progresse à "+((clubById(j.club)||{}).nom||"son club hôte")+" : note "+j.note+". La pige paie."
           : "📈 "+j.nom+" progresse ! Note : "+j.note+".");
       }
-    } else if(j.age>=31 && Math.random()<0.05){ j.note=Math.max(50,j.note-1); }
+    } else if(c.id===G.monClub && j.age<=30 && coachSecteur(j.pos)>0){
+      // LE COACH FAIT AUSSI PROGRESSER LES CONFIRMÉS (v1.74, demande de l'auteur : « un entraîneur doit faire
+      // progresser tous les joueurs »). Sans coach, un joueur de plus de 23 ans ne bouge plus ; avec le coach de
+      // son secteur, il grappille lentement, et l'étoile du coach lui fait même dépasser son plafond (★ +1 …
+      // ★★★ +3) : l'entraîneur qui tire d'un joueur plus que ce qu'on croyait possible. Plus lent après 27 ans,
+      // plus rapide pour un titulaire. Votre club seul (l'IA n'a pas de staff) : calibrage des autres intact.
+      const t=coachSecteur(j.pos), plafond=Math.max(j.note, (j.pot||j.note)+t);
+      if(j.note<plafond){
+        j.prog=(j.prog||0)+0.02*t*Math.max(part,0.3)*(j.age<=27?1:0.5);
+        if(j.prog>=1){ j.note=Math.min(plafond, j.note+Math.floor(j.prog)); j.prog%=1;
+          if(aMoi(j)) notif("📈 "+j.nom+" progresse encore à "+j.age+" ans ! Note : "+j.note+"."); }
+      }
+    } else if(j.age>=31 && Math.random()<0.05*(c.id===G.monClub ? 1-0.2*coachSecteur(j.pos) : 1)){ j.note=Math.max(50,j.note-1); } // le coach retarde le déclin
   }
 }
 
@@ -11007,9 +11020,10 @@ function projetsHTML(){
    au SEUL match de MON club (comme la consigne → calibrage intact, neutre en EN_TEST car G.staff est vide au harnais).
    Chaque coach coûte une indemnité à l'embauche + un salaire/journée : encore de l'argent qui devient une contrainte. */
 const STAFF_POSTES=[
-  {id:"attaque",  nom:"Coach des attaquants",   pic:"⚔️", eff:t=>"Attaque +"+(2*t)+" % (votre match) · fait grandir vos jeunes attaquants"},
-  {id:"defense",  nom:"Coach de la défense",     pic:"🛡️", eff:t=>"Vous encaissez "+(2*t)+" % de moins · fait grandir vos jeunes défenseurs"},
-  {id:"gardien",  nom:"Entraîneur des gardiens", pic:"🧤", eff:t=>"Gardien plus sûr ("+(1.5*t)+" % de buts en moins, penaltys contre) · fait grandir vos jeunes gardiens"},
+  {id:"attaque",  nom:"Coach des attaquants",   pic:"⚔️", eff:t=>"Attaque +"+(2*t)+" % (votre match) · fait progresser vos attaquants"},
+  {id:"milieu",   nom:"Coach du milieu",         pic:"🧭", eff:t=>"Le milieu tient le ballon (+"+t+" % devant, "+t+" % de buts encaissés en moins) · fait progresser vos milieux"},
+  {id:"defense",  nom:"Coach de la défense",     pic:"🛡️", eff:t=>"Vous encaissez "+(2*t)+" % de moins · fait progresser vos défenseurs"},
+  {id:"gardien",  nom:"Entraîneur des gardiens", pic:"🧤", eff:t=>"Gardien plus sûr ("+(1.5*t)+" % de buts en moins, penaltys contre) · fait progresser vos gardiens"},
   {id:"cpa",      nom:"Spécialiste des coups de pied arrêtés", pic:"🎯", eff:t=>"Penaltys et coups francs mieux convertis (+"+(5*t)+" pts)"},
   {id:"physique", nom:"Préparateur physique",    pic:"💪", eff:t=>"Blessures −"+(12*t)+" %"},
   {id:"mental",   nom:"Préparateur mental",      pic:"🧠", eff:t=>"Moral du vestiaire entretenu (+"+(0.4*t).toFixed(1)+"/journée)"},
@@ -11017,6 +11031,7 @@ const STAFF_POSTES=[
 const COACH_PRENOMS=["Gérard","Guy","Raymond","Roger","Aimé","Robert","Marcel","Henri","Bernard","Jean-Claude","José","Daniel","Michel","Pierre","Lucien","Bruno","Francis","Gilbert","René","Claude"];
 const COACH_PHRASES={
   attaque:["« Du droit, du gauche, de la piche s'il le faut : je vais t'apprendre à la mettre au fond. »","« Avec moi, tu vas en nettoyer des lucarnes. »","« Si tu tires pas, tu marques pas. »","« Devant, on ne réfléchit pas : on frappe. »","« Je veux des buts, pas des jolis gestes. »"],
+  milieu:["« Le ballon, on le garde. C'est nous qui décidons quand il part. »","« Un milieu, ça lève la tête avant de recevoir. »","« Le match se gagne dans le rond central, pas ailleurs. »","« Une passe en retrait n'a jamais tué personne. »"],
   defense:["« Zéro derrière, et on gagne 1-0. Le foot, c'est simple. »","« Un bon défenseur, ça se salit le maillot. »","« Le clean sheet, c'est ma religion. »","« On défend à onze, ou on ne défend pas. »"],
   gardien:["« Un gardien, ça se tait et ça arrête. »","« Les pieds d'abord, les mains ensuite. »","« Je fais des murs, pas des passoires. »","« Sur sa ligne, un portier doit être une évidence. »"],
   cpa:["« Un coup franc, ça se travaille mille fois à l'entraînement. »","« Le penalty, c'est dans la tête, pas dans le pied. »","« Donnez-moi un ballon arrêté, je vous rends un but. »","« La feuille morte, c'est un art, jeune homme. »"],
@@ -11025,16 +11040,16 @@ const COACH_PHRASES={
 };
 const TIER_NOM=["","prometteur","confirmé","réputé"];
 function coachTier(id){ return (G.staff && G.staff[id]) ? G.staff[id].tier : 0; }
-/* LE STAFF FORME AUSSI (v1.73, question de l'auteur : « un jeune progresse-t-il mieux avec un grand coach
-   ou prêté dans un petit club ? »). Chaque coach fait grandir les jeunes de SON secteur, +15 % de progression
-   par étoile (★★★ = +45 %, à peu près le campus au maximum), cumulé avec le campus. Les milieux n'ont pas
-   de coach à eux : ils prennent la moyenne de l'attaque et de la défense. Un prêté n'en profite pas (il
-   s'entraîne chez l'hôte) : le grand staff réduit l'écart avec le prêt, et un titulaire chez vous le dépasse. */
-function coachFormation(pos){
-  const t = pos==="G" ? coachTier("gardien") : pos==="D" ? coachTier("defense") : pos==="A" ? coachTier("attaque")
-          : (coachTier("attaque")+coachTier("defense"))/2;
-  return 0.15*t;
+/* LE STAFF FAIT PROGRESSER (v1.73-1.74, auteur : « un jeune progresse-t-il mieux avec un grand coach ou
+   prêté dans un petit club ? », puis « un entraîneur doit faire progresser tous les joueurs »). Chaque coach
+   travaille SON secteur : G → gardiens, D → défense, M → milieu (poste ajouté en v1.74), A → attaque.
+   Jeunes : +15 % de progression par étoile, cumulé avec le campus. Confirmés (24-30 ans) : ils progressent
+   lentement et peuvent dépasser leur plafond d'une étoile par étoile. Vétérans : déclin ralenti de 20 %
+   par étoile. Un prêté n'en profite pas (il s'entraîne chez l'hôte). Cf. progression(). */
+function coachSecteur(pos){
+  return coachTier(pos==="G" ? "gardien" : pos==="D" ? "defense" : pos==="M" ? "milieu" : "attaque");
 }
+function coachFormation(pos){ return 0.15*coachSecteur(pos); }
 function staffCoutJournee(){ if(!G.staff) return 0; return STAFF_POSTES.reduce((s,p)=>s+(G.staff[p.id]?G.staff[p.id].salaire:0),0); }
 function etoiles(t){ return "★".repeat(t)+"☆".repeat(3-t); }
 function genCandidatsCoach(id){
@@ -12892,7 +12907,7 @@ function migre(){
   G.affJ=G.affJ||[]; G.affS=G.affS||[];                        // le baromètre des tribunes (saison en cours + saisons passées)
   G.stade=migreStade(G.stade, clubById(G.monClub)); // stade en niveaux (v1.36) : déduit de la taille, ou converti depuis les booléens d'avant
   G.chantier=migreChantier(G.chantier||null);
-  if(!G.staff) G.staff={attaque:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique
+  if(!G.staff) G.staff={attaque:null,milieu:null,defense:null,gardien:null,cpa:null,physique:null,mental:null}; // staff technique
   G.reput=G.reput==null?75:G.reput;
   G.equip=G.equip||null; G.offresEquip=G.offresEquip||null;
   if(!G.equip && !G.offresEquip) G.offresEquip=genEquip(); // anciennes sauvegardes : proposer des offres
