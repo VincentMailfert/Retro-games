@@ -41,7 +41,7 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,simuleMatch,clubById,onze,byUid," +
   "manqueEffectif,refusDepart,veilleEffectif,listerVente,venteEclair,ventesEnCours,preteJoueur," +
-  "acheter,finaliseAchat,accepterOffreExt,migre,monteeCentre,intersaison,rappelPret,coutRappel,retourPret,traiterPrets," +
+  "acheter,finaliseAchat,accepterOffreExt,migre,monteeCentre,intersaison,rappelPret,coutRappel,retourPret,traiterPrets,dureesPret,tarifPret," +
   "PLANCHER,PLANCHER_TOTAL,QUOTA_CESSIONS,MONTEES_MAX,MSG_JOURNAL,getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 const ALERTES = api.MSG_JOURNAL; // le journal des messages poussés au joueur (fenêtres maison)
@@ -251,6 +251,41 @@ api.preteJoueur(jeune2, 5, 50000, null);
 G.journee = 8; api.traiterPrets();
 ok(jeune2.note === Math.min(plafond2, n2 + plein2),
   `prêt mené à terme : le bénéfice reste plein (note ${n2} → ${jeune2.note})`);
+
+/* ============ G) le prêt d'une saison entière (v1.72) ============ */
+console.log("G) Prêter un jeune pour toute la saison");
+api.nouvellePartie("PSG");
+G = api.getG();
+G.tresorerie = 40e6;
+moi = api.clubById(G.monClub);
+const plusLongue = (j0) => { G.journee = j0; const l = api.dureesPret(); return l[l.length - 1]; };
+ok(plusLongue(0).d === 38 && /^Toute la saison/.test(plusLongue(0).lib) && plusLongue(4).d === 34,
+  `l'été, la pige d'un an est proposée : « ${plusLongue(0).lib} »`);
+ok(plusLongue(20).d === 18 && /^Jusqu'en juin/.test(plusLongue(20).lib),
+  `en janvier, elle court jusqu'à la J38 : « ${plusLongue(20).lib} »`);
+ok(plusLongue(25).d <= 15,
+  "à treize journées de la fin, plus de saison entière : il ne reste que les piges courtes");
+
+G.journee = 0;
+const espoir = moi.joueurs.slice().sort((a, b) => a.age - b.age).find(j => j.pos !== "G");
+espoir.age = 19; espoir.pot = Math.min(95, espoir.note + 15);
+const noteEspoir = espoir.note;
+api.preteJoueur(espoir, plusLongue(0).d, api.tarifPret(espoir), null);
+const pS = G.prets.find(p => p.uid === espoir.uid);
+const hoteS = api.clubById(pS.hote);
+ok(!!pS && pS.fin === 38, `${espoir.nom} part à ${hoteS.nom} jusqu'à la J${pS.fin}`);
+let dehors = 0;
+for (let k = 0; k < 40 && G.journee < 38; k++) {
+  api.jouerJournee();
+  if (G.journee < 38 && espoir.pretOut && espoir.club === pS.hote) dehors++;
+}
+moi = api.clubById(G.monClub);
+ok(dehors >= 36, `il a passé la saison à ${hoteS.nom} (${dehors} journées sur 37 avant la dernière)`);
+ok(!G.prets.some(p => p.uid === espoir.uid) && !espoir.pretOut && moi.joueurs.includes(espoir) && espoir.club === G.monClub,
+  "la saison finie, il est rentré dans l'effectif");
+ok(!hoteS.joueurs.includes(espoir), `${hoteS.nom} ne le garde pas en double`);
+ok(espoir.note > noteEspoir + 3 && espoir.note <= espoir.pot,
+  `une saison de titulaire, ça se voit : note ${noteEspoir} → ${espoir.note} (potentiel ${espoir.pot})`);
 
 console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS EFFECTIF : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

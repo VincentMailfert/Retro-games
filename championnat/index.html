@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.71"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.72"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -8632,11 +8632,22 @@ function byUid(uid){
   return null;
 }
 function tarifPret(j){ return Math.max(20000, Math.round(valeur(j)*0.0020/1e4)*1e4); } // appoint, pas une rente : prêter libère surtout le salaire et du temps de jeu
+/* Les durées proposées à la signature d'un prêt (v1.72, demande de l'auteur) : les piges de 5, 10 et
+   15 journées, plus la SAISON ENTIÈRE dès qu'il reste davantage à jouer. Signée l'été, c'est le vrai
+   prêt d'un an (« Toute la saison ») ; signée en janvier, la pige court jusqu'à la J38 (« Jusqu'en
+   juin »). Rien d'autre à câbler : le prêté joue titulaire chez l'hôte chaque samedi (il progresse
+   donc au rythme d'un titulaire, mais loin de votre campus), et finDeSaison le ramène s'il est encore dehors. */
+function dureesPret(){
+  const reste=38-G.journee;
+  const l=[5,10,15].filter(d=>d<=Math.min(15, 37-G.journee)).map(d=>({d, lib:d+" journées"}));
+  if(reste>15) l.push({d:reste, lib:(G.journee<5?"Toute la saison":"Jusqu'en juin")+" · "+reste+" journées"});
+  return l;
+}
 function modalPret(j, sens){ // sens: "in" = emprunter, "out" = prêter
   const maxD=Math.min(15, 37-G.journee);
   if(maxD<3) return message("Il reste trop peu de journées : une pige de moins de trois matchs n'intéresse personne.", {titre:"⏳ TROP TARD DANS LA SAISON"});
   const tarif=tarifPret(j);
-  const durees=[5,10,15].filter(d=>d<=maxD);
+  const durees=dureesPret();
   // destination crédible : un club où il jouera vraiment (prestige inférieur au vôtre)
   let hote=null;
   if(sens==="out"){
@@ -8650,7 +8661,7 @@ function modalPret(j, sens){ // sens: "in" = emprunter, "out" = prêter
     <h2>${sens==="in"?"Emprunter":"Prêter"} ${esc(j.nom)}</h2>
     ${sens==="out"?`<p style="margin-top:6px">Destination proposée : <b class="fort">${esc(hote.nom)}</b> <span class="dim">(prestige ${hote.pres}/10 · il y jouera titulaire)</span>.</p>`:""}
     <p style="margin-top:8px">Durée :
-      <select id="selD">${durees.map(d=>`<option value="${d}">${d} journées</option>`).join("")}</select>
+      <select id="selD">${durees.map(o=>`<option value="${o.d}">${o.lib}</option>`).join("")}</select>
       · Indemnité : <b class="fort">${FMT(tarif)} FF / journée</b> ${sens==="in"?"(à payer)":"(encaissée)"}</p>
     <p style="margin-top:12px">
       <button class="act" id="bOkP">Confirmer le prêt</button>

@@ -1717,6 +1717,13 @@ toujours « raconter quelque chose ».
   toujours plus que ce que le prêt rapporte. UI : bouton « 📞 Rappeler — X MF » dans le tableau « En prêt à
   l'extérieur » de l'écran Effectif (qui a gagné une ligne d'en-tête au passage) **et** sur la fiche du joueur,
   qui affiche désormais où il est prêté. Validation : **section F de `harness-effectif.cjs`**.
+  **LE PRÊT D'UNE SAISON (v1.72, demande de l'auteur)** : `dureesPret()` ajoute aux piges de 5/10/15 journées une
+  pige qui court **jusqu'à la J38** dès qu'il reste plus de 15 journées : « Toute la saison » l'été (J0-J4),
+  « Jusqu'en juin » ensuite. Aucun autre câblage : le prêté joue titulaire chez l'hôte (`_joue=1`) et progresse
+  au rythme d'un titulaire, SANS le bonus du campus (réservé à `monClub`), puis rentre par `traiterPrets` à la J38
+  avec le bonus de retour plein. Mesure (19 ans, 65/88, une saison) : prêt 74, titulaire à la maison 71 (73 avec le
+  campus au maximum), banc 67 (68). Le +3 de retour ne dépend PAS de la durée : réglage laissé en l'état, à
+  rediscuter avec l'auteur. Validation : **section G de `harness-effectif.cjs`** (une saison jouée pour de bon).
 - **Affluence** (`affluence(home,away,sansPromo)`) : depuis v0.61, le **club hôte pèse plus que le visiteur** (`home.pres*0.022`
   + `away.pres*0.016`, base 0,46) et le **classement** compte fort (top 3 : +0,13 ; 4-6 : +0,06 ; ≥16 : −0,06) — retour de
   playtest « 2e avec le PSG et le stade pas plein, illogique ». Plus derby (+0,15), buzz/réputation/tarif (votre club). Le
