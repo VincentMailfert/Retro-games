@@ -1722,8 +1722,11 @@ toujours « raconter quelque chose ».
   « Jusqu'en juin » ensuite. Aucun autre câblage : le prêté joue titulaire chez l'hôte (`_joue=1`) et progresse
   au rythme d'un titulaire, SANS le bonus du campus (réservé à `monClub`), puis rentre par `traiterPrets` à la J38
   avec le bonus de retour plein. Mesure (19 ans, 65/88, une saison) : prêt 74, titulaire à la maison 71 (73 avec le
-  campus au maximum), banc 67 (68). Le +3 de retour ne dépend PAS de la durée : réglage laissé en l'état, à
-  rediscuter avec l'auteur. Validation : **section G de `harness-effectif.cjs`** (une saison jouée pour de bon).
+  campus au maximum), banc 67 (68). **Le bonus de retour suit désormais la durée** (choix auteur, même version) :
+  `plein × min(1, (journées faites + 5)/30)`, soit un tiers pour 5 journées, deux tiers pour 15, plein dès 25 ; avant,
+  5 journées valaient un an et le prêt court était le meilleur placement du jeu. **Aucun coach du staff ne touche à la
+  progression** (constat du 02/10/2026, question ouverte de l'auteur : « s'entraîner avec un grand coach ou jouer
+  ailleurs ? »). Validation : **section G de `harness-effectif.cjs`** (une saison jouée pour de bon).
 - **Affluence** (`affluence(home,away,sansPromo)`) : depuis v0.61, le **club hôte pèse plus que le visiteur** (`home.pres*0.022`
   + `away.pres*0.016`, base 0,46) et le **classement** compte fort (top 3 : +0,13 ; 4-6 : +0,06 ; ≥16 : −0,06) — retour de
   playtest « 2e avec le PSG et le stade pas plein, illogique ». Plus derby (+0,15), buzz/réputation/tarif (votre club). Le

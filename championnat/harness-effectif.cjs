@@ -249,8 +249,13 @@ const n2 = jeune2.note, plein2 = jeune2.age <= 21 ? 3 : jeune2.age <= 25 ? 2 : 1
 const plafond2 = Math.max(jeune2.note, jeune2.pot || jeune2.note);
 api.preteJoueur(jeune2, 5, 50000, null);
 G.journee = 8; api.traiterPrets();
-ok(jeune2.note === Math.min(plafond2, n2 + plein2),
-  `prêt mené à terme : le bénéfice reste plein (note ${n2} → ${jeune2.note})`);
+ok(jeune2.note === Math.min(plafond2, n2 + Math.round(plein2 / 3)),
+  `prêt court mené à terme : un tiers du bonus, la durée compte (note ${n2} → ${jeune2.note})`);
+api.preteJoueur(jeune2, 30, 50000, null);
+const n3 = jeune2.note, plafond3 = Math.max(jeune2.note, jeune2.pot || jeune2.note);
+G.journee = 38; api.traiterPrets();
+ok(jeune2.note === Math.min(plafond3, n3 + plein2),
+  `pige de 30 journées menée à terme : le bonus est plein (note ${n3} → ${jeune2.note})`);
 
 /* ============ G) le prêt d'une saison entière (v1.72) ============ */
 console.log("G) Prêter un jeune pour toute la saison");
