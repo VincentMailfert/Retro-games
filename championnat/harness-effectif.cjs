@@ -41,7 +41,7 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,simuleMatch,clubById,onze,byUid," +
   "manqueEffectif,refusDepart,veilleEffectif,listerVente,venteEclair,ventesEnCours,preteJoueur," +
-  "acheter,finaliseAchat,accepterOffreExt,migre,monteeCentre,intersaison,rappelPret,coutRappel,retourPret,traiterPrets,dureesPret,tarifPret," +
+  "acheter,finaliseAchat,accepterOffreExt,migre,monteeCentre,intersaison,rappelPret,coutRappel,retourPret,traiterPrets,dureesPret,tarifPret,progression,coachFormation," +
   "PLANCHER,PLANCHER_TOTAL,QUOTA_CESSIONS,MONTEES_MAX,MSG_JOURNAL,getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 const ALERTES = api.MSG_JOURNAL; // le journal des messages poussés au joueur (fenêtres maison)
@@ -291,6 +291,30 @@ ok(!G.prets.some(p => p.uid === espoir.uid) && !espoir.pretOut && moi.joueurs.in
 ok(!hoteS.joueurs.includes(espoir), `${hoteS.nom} ne le garde pas en double`);
 ok(espoir.note > noteEspoir + 3 && espoir.note <= espoir.pot,
   `une saison de titulaire, ça se voit : note ${noteEspoir} → ${espoir.note} (potentiel ${espoir.pot})`);
+
+/* ============ H) le staff fait grandir les jeunes de son secteur (v1.73) ============ */
+console.log("H) Les coachs forment les jeunes de leur secteur");
+api.nouvellePartie("PSG");
+G = api.getG();
+G.campus = null;
+moi = api.clubById(G.monClub);
+ok(api.coachFormation("A") === 0 && api.coachFormation("M") === 0, "sans staff, aucun effet (calibrage intact)");
+G.staff.attaque = { nom: "Test", tier: 3, phrase: "", salaire: 0 };
+ok(Math.abs(api.coachFormation("A") - 0.45) < 1e-9 && Math.abs(api.coachFormation("M") - 0.225) < 1e-9
+  && api.coachFormation("D") === 0 && api.coachFormation("G") === 0,
+  "un coach des attaquants ★★★ : +45 % aux attaquants, +22,5 % aux milieux, rien derrière");
+// deux jumeaux sur le banc, un attaquant et un défenseur : seul l'attaquant profite du coach
+const jumeau = (pos) => { const j = moi.joueurs.find(x => x.pos === pos && !x._pris); j._pris = true;
+  j.age = 19; j.note = 65; j.pot = 88; j.prog = 0; return j; };
+const att = jumeau("A"), def = jumeau("D");
+api.progression();
+ok(Math.abs(att.prog / def.prog - 1.45) < 1e-6, `même âge, même banc : l'attaquant progresse 1,45 fois plus vite (${att.prog.toFixed(3)} contre ${def.prog.toFixed(3)})`);
+// le prêté s'entraîne chez l'hôte : le coach de la maison ne le suit pas
+G.journee = 0; att.prog = 0; def.prog = 0;
+api.preteJoueur(att, 38, 50000, null);
+att._joue = 0; def._joue = 0;
+api.progression();
+ok(Math.abs(att.prog - def.prog) < 1e-9, "prêté, l'attaquant ne profite plus du coach de la maison");
 
 console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS EFFECTIF : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

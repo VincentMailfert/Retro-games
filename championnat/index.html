@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.72"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.73"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -8454,7 +8454,8 @@ function progression(){
     if(j.age<=23 && j.pot>j.note){
       const banc = j.age<=18 ? 0.09 : 0.045; // centre de formation pour les très jeunes
       const prog=(c.id===G.monClub&&G.campus)?campusEff().prog/100:0; // terrains +10 / 20 / 30 %, château +10 %
-      const gain = Math.max(0.11*part, banc*0.85) * (1+(j.pot-j.note)/40) * (1+prog);
+      const staff=c.id===G.monClub?coachFormation(j.pos):0;            // le coach de son secteur, s'il est dans VOTRE vestiaire
+      const gain = Math.max(0.11*part, banc*0.85) * (1+(j.pot-j.note)/40) * (1+prog+staff);
       j.prog=(j.prog||0)+gain;
       if(j.prog>=1){ j.note=Math.min(j.pot, j.note+Math.floor(j.prog)); j.prog%=1;
         // Un cap franchi, ça se dit au DEBRIEF et plus dans les dépêches : le panneau n'en affiche que
@@ -11006,9 +11007,9 @@ function projetsHTML(){
    au SEUL match de MON club (comme la consigne → calibrage intact, neutre en EN_TEST car G.staff est vide au harnais).
    Chaque coach coûte une indemnité à l'embauche + un salaire/journée : encore de l'argent qui devient une contrainte. */
 const STAFF_POSTES=[
-  {id:"attaque",  nom:"Coach des attaquants",   pic:"⚔️", eff:t=>"Attaque +"+(2*t)+" % (votre match)"},
-  {id:"defense",  nom:"Coach de la défense",     pic:"🛡️", eff:t=>"Vous encaissez "+(2*t)+" % de moins"},
-  {id:"gardien",  nom:"Entraîneur des gardiens", pic:"🧤", eff:t=>"Gardien plus sûr ("+(1.5*t)+" % de buts en moins, penaltys contre)"},
+  {id:"attaque",  nom:"Coach des attaquants",   pic:"⚔️", eff:t=>"Attaque +"+(2*t)+" % (votre match) · fait grandir vos jeunes attaquants"},
+  {id:"defense",  nom:"Coach de la défense",     pic:"🛡️", eff:t=>"Vous encaissez "+(2*t)+" % de moins · fait grandir vos jeunes défenseurs"},
+  {id:"gardien",  nom:"Entraîneur des gardiens", pic:"🧤", eff:t=>"Gardien plus sûr ("+(1.5*t)+" % de buts en moins, penaltys contre) · fait grandir vos jeunes gardiens"},
   {id:"cpa",      nom:"Spécialiste des coups de pied arrêtés", pic:"🎯", eff:t=>"Penaltys et coups francs mieux convertis (+"+(5*t)+" pts)"},
   {id:"physique", nom:"Préparateur physique",    pic:"💪", eff:t=>"Blessures −"+(12*t)+" %"},
   {id:"mental",   nom:"Préparateur mental",      pic:"🧠", eff:t=>"Moral du vestiaire entretenu (+"+(0.4*t).toFixed(1)+"/journée)"},
@@ -11024,6 +11025,16 @@ const COACH_PHRASES={
 };
 const TIER_NOM=["","prometteur","confirmé","réputé"];
 function coachTier(id){ return (G.staff && G.staff[id]) ? G.staff[id].tier : 0; }
+/* LE STAFF FORME AUSSI (v1.73, question de l'auteur : « un jeune progresse-t-il mieux avec un grand coach
+   ou prêté dans un petit club ? »). Chaque coach fait grandir les jeunes de SON secteur, +15 % de progression
+   par étoile (★★★ = +45 %, à peu près le campus au maximum), cumulé avec le campus. Les milieux n'ont pas
+   de coach à eux : ils prennent la moyenne de l'attaque et de la défense. Un prêté n'en profite pas (il
+   s'entraîne chez l'hôte) : le grand staff réduit l'écart avec le prêt, et un titulaire chez vous le dépasse. */
+function coachFormation(pos){
+  const t = pos==="G" ? coachTier("gardien") : pos==="D" ? coachTier("defense") : pos==="A" ? coachTier("attaque")
+          : (coachTier("attaque")+coachTier("defense"))/2;
+  return 0.15*t;
+}
 function staffCoutJournee(){ if(!G.staff) return 0; return STAFF_POSTES.reduce((s,p)=>s+(G.staff[p.id]?G.staff[p.id].salaire:0),0); }
 function etoiles(t){ return "★".repeat(t)+"☆".repeat(3-t); }
 function genCandidatsCoach(id){
