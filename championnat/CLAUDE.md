@@ -1330,12 +1330,121 @@ toujours « raconter quelque chose ».
   qu'**un gardien** ayant joué (Isaksson et Revault ont tout disputé, et aucune doublure n'est entrée
   une minute), Lens que **trois attaquants**, Saint-Étienne que **quatre milieux**. La source fait
   foi, `genJoueur` complète. Validation dédiée : **`harness0405.cjs`**.
-  Pour ajouter 05/06 : même méthode avec `saison_id/2005`, entrée `"2005-06"` dans `SAISONS`, harnais
-  calqué sur `harness0405.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03), donc **plus de
+  **2005-06 (v1.71)** : `STARS_0506`/`STARS_D2_0506`, `D1_0506`/`D2_0506`, `an:2005`, `saison_id/2005` —
+  sous le nom **« Le coup franc de Juninho »**, et c'est désormais la saison la plus RÉCENTE du jeu.
+  Lyon prend son **cinquième titre d'affilée, et le plus large de tous** : quatre-vingt-quatre
+  points, **quinze de plus que Bordeaux**. **Juninho Pernambucano est élu meilleur joueur du
+  championnat**, Grégory Coupet meilleur gardien **pour la quatrième fois**, et Claude Puel meilleur
+  entraîneur d'un Lille troisième qui va chercher les **huitièmes de la Ligue des champions**.
+  Pauleta plante **vingt et un buts** pour le Paris SG et finit meilleur buteur ; **Franck Ribéry,
+  élu meilleur espoir**, règne sur le Vélodrome avant le Mondial. **Nancy, qui n'avait plus vu la
+  première division depuis 1997**, remonte et gagne la **Coupe de la Ligue 2006** à Saint-Denis
+  contre Nice, par Zerka et Kim — deux hommes que le jeu a dans son effectif lorrain ; le Paris SG
+  prend la **Coupe de France 2006** contre Marseille. À Nice, un gardien de dix-neuf ans fait ses
+  premiers matchs : **Hugo Lloris**.
+  **LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA QUATRIÈME FOIS DE SUITE** : les deux échelons réels ont
+  vingt clubs, donc **aucun repêchage, aucun écarté**, et le harnais vérifie les deux listes par
+  égalité comme depuis 02/03. Trois promus (**Nancy** champion de Ligue 2, **Le Mans** et **Troyes**),
+  trois descendus (**Caen, Bastia, Istres**). Un seul club neuf dans `CLUBS_EXTRA` : **Sète**
+  (`SET`, **Louis-Michel**, 8 700 places, **vert et blanc**, couleurs vérifiées sur sa fiche
+  Wikipédia, jurisprudence Créteil), monté du National, **dernier avec vingt-trois points et
+  redescendu aussitôt** — une seule saison dans l'antichambre.
+  **Sièges européens — HUIT sièges, tous en Ligue 1, la plus grosse délégation depuis 97/98** :
+  **Lyon (champion) et LILLE (2e) en phase de groupes de Ligue des champions, Monaco (3e) au
+  troisième tour de qualification** ; en Coupe UEFA **Rennes (4e)**, **Auxerre** au titre de la
+  Coupe de France 2005, **Strasbourg** au titre de la Coupe de la Ligue 2005, et **MARSEILLE ET
+  LENS, tous DEUX vainqueurs de l'INTERTOTO 2005** — c'est la première fois que le jeu place **deux
+  clubs français qualifiés par la même Intertoto**, et il fallait le vérifier plutôt que le
+  supposer, Lens n'étant que septième du championnat précédent. `euroC2` est vide pour la sixième
+  fois. **Et un contrôle que le harnais garde parce que c'est l'erreur la plus facile et la plus
+  invisible : Bordeaux, DEUXIÈME du championnat 2005-06, part sans Europe** — les sièges se gagnent
+  l'année d'AVANT, et les Girondins n'étaient que quinzièmes en 2004-05.
+  **Partir de 05/06 fait tomber le Mondial 2006 dès la PREMIÈRE intersaison** — celui que l'Italie
+  gagne aux tirs au but à Berlin, et que la France perd : le harnais vérifie que cette dépêche ne
+  contient pas « LA FRANCE » en capitales, que `finDeSaison` lirait comme un triomphe. L'été 2007
+  est ensuite **muet**. **`HONNEURS` doit toujours apprendre 2008**, et **06/07 sera la première
+  saison qui le réclame vraiment**, à sa deuxième intersaison.
+  **L'héritage fait presque tout, et toutes les ancres sont derrière** : **526 des 760 noms
+  reprennent leur note 04/05 vieillie d'un an**, 78 viennent de plus loin, **156 seulement sont
+  calculés**. Distribution collée à celle de 04/05 (L1 : moyenne 70,0 et médiane 70, contre 70,7
+  et 70 ; L2 : 66,8 et 67, comme l'an passé au dixième près).
+  Table d'ajustements à la main de **soixante-deux entrées** : les palmarès de l'année d'abord
+  (**Juninho 85/86**, **Coupet 85/87**, **Pauleta 84/86**, **Ribéry 80/89** — l'héritage seul le
+  laissait à 76), puis les arrivées que le calcul ne peut pas connaître (**John Carew 77/80**,
+  ex-Valence et Roma ; **Tiago Mendes 78/83**, arrivé de Chelsea ; **Hélder Postiga 73/80**, prêté
+  à Saint-Étienne ; **Grafite 70/78**, futur meilleur buteur de Bundesliga), les gamins que rien
+  dans un classement ne trahit (**Lloris 64/92**, **Gourcuff 70/91**, **Payet 60/89**, **Giroud
+  58/86**, **Benzema 66/93**, **Mandanda 70/89** — deux mille huit cent quarante minutes, il tient
+  vraiment les buts), et **quatorze corrections en sens inverse**, le vieillissement dérapant
+  toujours dans les deux sens : **Pius N'Diefi ressortait à 79** pour cent une minutes de Ligue 2 à
+  trente ans, ramené à **73** ; Carrière, Déhu, Lamouchi, Laslandes, Šmicer et Frau redescendus eux
+  aussi.
+  **Forçage de dix-neuf pépites** par la parade de 00/01 (lister les écartés que le jeu connaît
+  déjà) doublée du relevé des débutants : **Karim Benzema** (dix-huit ans, 796 minutes) et **Hatem
+  Ben Arfa** à Lyon, **Younès Kaboul** et **Abou Diaby** à Auxerre, **Kevin Mirallas** et **Dante**
+  à Lille, **Kévin Gameiro** et **Ricardo Faty** à Strasbourg, **Dimitri Payet (QUATRE-VINGT-HUIT
+  MINUTES)** et **Dennis Oliech** à Nantes, **OLIVIER GIROUD, dix-neuf ans et CENT QUATORZE MINUTES
+  en Ligue 2 à Grenoble**, **Moussa Sow**, **Laurent Koscielny**, **André-Pierre Gignac** (neuf
+  minutes), **Hassan Yebda**, **Madjid Bougherra**, **Gaëtan Bong** (dix-sept ans), **Bernard
+  Diomède** et **Martin Djetou**. **Cinq clubs paient DEUX hommes chacun** (Lyon, Auxerre, Lille,
+  Strasbourg, Nantes). Ribéry, Nasri, Ménez, Gourcuff, Toulalan, Cabaye, Matuidi, Sagna, Mandanda,
+  Gomis, Chamakh, Mavuba et Briand passent tous tout seuls au temps de jeu — **et HUGO LLORIS
+  ENTRE ENFIN** : écarté de 04/05 parce qu'il n'avait pas joué une minute, il en joue **mille
+  cinquante** à Nice en 05/06. **La source fait foi dans les deux sens**, et c'est la meilleure
+  illustration qu'on ait eue de la règle.
+  **LE PIÈGE DU JOUR NE VIENT PAS DE TRANSFERMARKT MAIS DE LA SENTINELLE DE FIN, POUR LA QUATRIÈME
+  FOIS — ET CETTE FOIS ELLE A FRAPPÉ DU CÔTÉ DES ANCRES.** Le script qui relit les tables
+  `STARS_*` du jeu pour en tirer les notes héritées perdait **le DERNIER club de chaque table**
+  (vingt hommes en L1, dix-huit en L2, parce que la dernière entrée est suivie de `,` puis de `}`
+  et non d'un club suivant) : 04/05 ressortait à 380 et 342 au lieu de 400 et 360. Le symptôme est
+  **un compte d'ancres rond mais trop petit**, et la conséquence aurait été invisible — une
+  quarantaine d'hommes recalculés au lieu d'héritiers, sans qu'aucun harnais s'en plaigne.
+  **À retenir : la sentinelle de fin se vérifie sur les tables du jeu comme sur les pages de la
+  source.**
+  **LA DÉCOUVERTE DU JOUR, ET C'EST UNE RÈGLE NEUVE : UN FORCÉ NE DOIT PAS CONTREDIRE LE RECRUTEUR.**
+  **Christian Vieri a 747 minutes au Monaco de 2005-06** et le tri aux minutes l'écartait : un nom
+  pareil appelait le forçage. Mais Vieri **n'est arrivé sur le Rocher qu'en janvier**, et les
+  « vitrines du désir » de l'été 2005 le placent — à raison — **au Milan AC**. Le forcer aurait mis
+  le même homme à deux endroits au coup d'envoi. **Il reste donc dehors**, et la règle à garder est
+  celle-là : avant de forcer un homme venu de l'étranger en cours de saison, **vérifier qu'il n'est
+  pas déjà au vivier ou aux vitrines de l'été**. Croisement fait, `VIVIER_SAISON[2005]` et les
+  effectifs n'ont **aucun nom en commun**.
+  **Troisième leçon, de relevé : la page de temps de jeu ne sert le NOM COURT que dans son span
+  `show-for-small`**, le `hide-for-small` donnant le nom complet — et pour un patronyme déjà court
+  elle sert **le nom complet des deux côtés** (« Alex Frei », « Rudy Riou », « Issa Ba », « Hervé
+  Tum », « Marco Paulo »…). Seize hommes étaient dans ce cas : la forme abrégée a été **reprise des
+  tables du jeu**, à l'âge qui concorde, plutôt que devinée. Sans cela seize vrais joueurs
+  changeaient de nom d'une saison à l'autre.
+  **Deux mononymes « Adailton », et c'est le cas « Cris » de 04/05 qui se rejoue** : le jeu donne
+  « Adailton » depuis 04/05 au Rennais né en 1983 ; celui de Nancy, né en 1979, est un autre homme.
+  Sa fiche Transfermarkt donne son nom civil en entier — **Adailton da Silva Santos** —, il s'écrit
+  donc **« Adailton Santos »**, et **04/05 n'a pas été retouché**. Au total **six homonymes résolus
+  dans la saison, un record** (Moké Diarra, Benoît Cheyrou, Alaeddine Yahia, Frédéric Mendy, Ismaël
+  Bangoura, Dramane Coulibaly), plus **Mamadou Diallo** qui garde son nom en toutes lettres,
+  « M. Diallo » étant à l'Amiénois de 03/04.
+  **La source est aussi généreuse qu'en 04/05** : **aucun club sous vingt-deux hommes ayant joué**,
+  **aucun joueur que la source ne sache dater** (deuxième fois de suite), **quatre-vingts pages
+  aspirées sans un seul échec et sans un seul anti-robot**, et un seul libellé de poste inconnu à
+  ajouter aux trois langues (« Défense »). **Trente-quatre hommes listés dans deux clubs** sont
+  allés là où ils ont le plus joué (Frau de Lyon à Lens, Luyindula à Auxerre, Pagis à Strasbourg),
+  dédoublonnés **par identifiant Transfermarkt**. Les quarante identifiants de clubs ont été
+  **relevés sur les pages de championnat `wettbewerb/FR1` et `FR2` de la saison** plutôt que posés
+  de mémoire — la leçon de 01/02, où six identifiants de mémoire avaient rebaptisé six joueurs.
+  138 prénoms neufs dans `PRENOMS_VRAIS`, **dont aucun vide** — pour la troisième fois de suite.
+  **DEUX joueurs procéduraux seulement, le meilleur score du chantier** : Troyes n'a qu'**un
+  gardien** ayant joué (Le Crom a tout disputé) et Saint-Étienne que **quatre milieux**. La source
+  fait foi, `genJoueur` complète.
+  **Une imperfection connue et laissée telle quelle** : le registre appelle encore Valenciennes
+  « US Valenciennes-Anzin », son nom de 1990-91 ; le club s'appelle **Valenciennes FC** depuis 1996.
+  Le jeu n'a pas de mécanisme de nom par saison (seuls le stade, le prestige et le mot du club en
+  ont un), et en fabriquer un n'était pas le travail de la journée. Validation dédiée :
+  **`harness0506.cjs`**.
+  Pour ajouter 06/07 : même méthode avec `saison_id/2006`, entrée `"2006-07"` dans `SAISONS`, harnais
+  calqué sur `harness0506.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03), donc **plus de
   repêchage à arbitrer** : la journée va entièrement aux hommes. Attention, **`HONNEURS` devra
-  apprendre 2008** le jour où une saison l'exigera. **La file d'attente des saisons à
-  venir — et les règles du chantier quotidien qui les ajoute une par une — sont dans
-  `chantier-saisons.md`.**
+  apprendre 2008** — et 06/07 est la première saison qui le réclame, à sa deuxième intersaison.
+  **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les ajoute une
+  par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
