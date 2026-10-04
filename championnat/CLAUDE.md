@@ -1564,6 +1564,131 @@ toujours « raconter quelque chose ».
   déjà. **C'est l'assertion qui a vieilli, pas le jeu** — la corriger est un travail de moteur, pas de
   saison, et on ne touche pas à une assertion un jour de livraison de données. Validation dédiée :
   **`harness0607.cjs`**.
+  **2007-08 (v1.76)** : `STARS_0708`/`STARS_D2_0708`, `D1_0708`/`D2_0708`, `an:2007`, `saison_id/2007` —
+  sous le nom **« Les vingt buts de Benzema »**, et c'est désormais la saison la plus RÉCENTE du jeu.
+  Lyon prend son **septième titre d'affilée, et le dernier de la série** : soixante-dix-neuf points,
+  quatre d'avance sur un Bordeaux de Laurent Blanc qui a mené la danse jusqu'au printemps, le titre
+  acquis le dernier soir à l'Abbé-Deschamps. **Karim Benzema, vingt ans, est élu meilleur joueur du
+  championnat ET meilleur buteur avec vingt buts** — le seul doublé individuel depuis Pauleta en
+  02/03, et le nom de la saison le raconte. **Hatem Ben Arfa est meilleur espoir**, deuxième Lyonnais
+  primé de l'année ; **Steve Mandanda meilleur gardien** au Vélodrome sans manquer une minute (4 350) ;
+  **Jérôme Leroy meilleur passeur à TRENTE-TROIS ANS** à Rennes, avec dix offrandes ; Laurent Blanc
+  meilleur entraîneur. Le Paris SG, **seizième**, sauve sa saison en gagnant la Coupe de la Ligue
+  contre Lens, et Lyon le bat en finale de Coupe de France. En Ligue 2, **Guillaume Hoarau plante
+  vingt-huit buts**, le plus gros total de la division, et ramène Le Havre dans l'élite ; le FC
+  Nantes remonte dans la foulée, un an après la chute que 06/07 racontait. Et à Lille, un Belge de
+  seize ans entre en jeu pour la première fois : **Eden Hazard**.
+  **LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA SIXIÈME FOIS DE SUITE** : les deux échelons réels ont
+  vingt clubs, donc **aucun repêchage, aucun écarté**, et le harnais vérifie les deux listes par
+  égalité comme depuis 02/03. Trois promus (**Metz** champion de Ligue 2, **Caen** et **Strasbourg**),
+  trois descendus (**Nantes, Troyes, Sedan**) ; en Ligue 2, trois montées du National (**Clermont**
+  champion, **Angers** et Boulogne) pour trois descentes (Créteil, Istres, Tours). Un seul club neuf
+  dans `CLUBS_EXTRA` : **Boulogne** (`BLG`, **stade de la Libération**, 8 700 places, **rouge et
+  noir**, couleurs vérifiées sur sa fiche Wikipédia, jurisprudence Créteil), monté du National pour
+  sa **première saison professionnelle après cent neuf ans d'existence**. **Attention au code** :
+  `BOU` est pris depuis 91/92 par le **FC Bourges**, d'où `BLG` — et le harnais garde les deux.
+  **Sièges européens — SEPT sièges, tous en Ligue 1** : **Lyon (champion) et MARSEILLE (2e de
+  2006-07) en phase de groupes de Ligue des champions, TOULOUSE (3e) au troisième tour de
+  qualification, pour la première fois de son histoire** ; en Coupe UEFA **Rennes (4e)**, **Lens** au
+  titre de l'**Intertoto 2007** (l'un des onze vainqueurs de l'édition, Hambourg emportant le titre
+  général), **Bordeaux** au titre de la Coupe de la Ligue 2007 et **Sochaux** au titre de la Coupe de
+  France 2007. `euroC2` est vide pour la huitième fois. **Et le contrôle que le harnais garde joue
+  ici DANS LES DEUX SENS, ce qui n'était jamais arrivé** : Nancy (4e) et Saint-Étienne (5e) du
+  championnat 2007-08 partent **sans** Europe, parce que les sièges se gagnent l'année d'AVANT ; et
+  **TOULOUSE, QUI FINIRA DIX-SEPTIÈME, JOUE BEL ET BIEN LA LIGUE DES CHAMPIONS** — le siège le plus
+  invraisemblable que le jeu ait eu à poser, et celui qu'on aurait corrigé à tort en relisant le
+  classement de la saison elle-même.
+  **`HONNEURS` A APPRIS L'ÉTÉ 2010, le deuxième été que la table ait eu à écrire** après 2008, et
+  c'est 07/08 qui le réclame : partir de cette saison fait tomber l'**EURO 2008 dès la PREMIÈRE
+  intersaison** (celui de l'Espagne et de la frappe de Torres, les Bleus sortis au premier tour),
+  laisse l'**été 2009 muet**, et porte le **MONDIAL 2010** à la **troisième** — l'Espagne sacrée pour
+  la première fois, un but d'Iniesta à la 116e minute, et les Bleus qui rentrent de **Knysna** sans
+  avoir gagné un match. Comme pour 2008, le harnais vérifie que **ni l'une ni l'autre dépêche ne
+  contient « LA FRANCE » en capitales**, que `finDeSaison` lirait comme un triomphe.
+  **L'héritage n'a JAMAIS autant porté, et toutes les ancres sont derrière** : **540 des 760 noms
+  reprennent leur note 06/07 vieillie d'un an**, 73 viennent de plus loin, **147 seulement sont
+  calculés** — le meilleur taux du chantier (81 %). Distribution collée à celle de 06/07 (L1 :
+  moyenne 70,3 et médiane 70, contre 70,2 et 70 ; L2 : 67,1 et 67, contre 66,7 et 67).
+  Table d'ajustements à la main de **cinquante-huit entrées** : les palmarès de l'année d'abord
+  (**Benzema 84/93** — l'héritage seul le laissait à 73 —, **Mandanda 82/90**, **Ben Arfa 78/90**,
+  **Hoarau 78/85**, **Jérôme Leroy 74/83**, **Lloris 78/92**), puis les arrivées que le calcul ne
+  peut pas connaître — **Fabio Grosso 79/80** (le tireur du dernier penalty de la finale 2006),
+  **Petter Hansson 76/78**, **Fernando Cavenaghi 76/85**, **Nenê 75/83**, **Adriano 75/80**,
+  **Wendel 75/82**, **Hilton 74/78**, **Ceará 72/77** —, les gamins que rien dans un classement ne
+  trahit (**Miralem Pjanić 67/92**, dix-sept ans et **2 839 minutes** dans un Metz dernier ;
+  **Moussa Sissoko 66/89**, dix-huit ans à Toulouse ; **Mapou Yanga-Mbiwa 66/88**, dix-huit ans et
+  3 571 minutes ; **Gervinho 72/90**, **Gomis 74/87**, **Matuidi 72/87**, **Sakho 64/90**), et
+  **cinq corrections EN SENS INVERSE** : **Jean-Alain Boumsong, ancré en 2003 et vieilli QUATRE
+  fois, ressortait à 79** pour mille deux cents minutes de remplaçant derrière Cris et Squillaci,
+  ramené à **76** ; Dalmat, Frau, Pauleta et Arribagé redescendus eux aussi. **La règle de 06/07
+  tient : une ancre lointaine vieillie plusieurs fois dérape beaucoup plus qu'une ancre d'un an.**
+  **Forçage de vingt-trois pépites**, et la première de toutes vaut la journée : **EDEN HAZARD,
+  SEIZE ANS ET TRENTE-TROIS MINUTES AU LOSC** — son premier match professionnel, le troisième
+  seizième anniversaire du jeu après Didier Domi (94/95) et Mamadou Sakho (06/07), et **le plus haut
+  potentiel du plateau (94)**. Avec lui **Pierre-Baptiste Baherlé, seize ans à Boulogne en Ligue 2**,
+  ce qui donne **DEUX hommes de seize ans dans la même saison, une première** ; **Henri Saivet**
+  (dix-sept ans, douze minutes à Bordeaux), **Abdelhamid El Kaoutari** (dix-sept ans, Montpellier),
+  **Alfred N'Diaye** (dix-sept ans, Nancy), **Morgan Schneiderlin** (dix-huit ans, reconduit pour la
+  troisième saison), **Cédric Mongongu**, **Medhi Benatia** (quatre-vingt-dix minutes, un seul match,
+  et le Bayern au bout), **Loïc Rémy**, **Razak Boukari**, **Papiss Cissé**, **Kévin Constant**,
+  **Bakary Sako**, **Gaëtan Bong**, **Bakary Koné**, **Grégory Borne**, **Jirès Kembo Ekoko**,
+  **William Vainqueur**, **Mahamane Traoré**, **Lucas Deaux**, **Boukary Dramé**, **Jaroslav Plašil**
+  et **Alain Traoré, gardé pour TROIS MINUTES** — la borne basse de l'année. **Lens, Rennes et Monaco
+  paient DEUX hommes chacun, Châteauroux en paie TROIS.**
+  **LE PIÈGE DU JOUR EST NEUF, ET IL EST GRAVE : DEUX HOMMES NÉS LA MÊME ANNÉE PEUVENT SE DISPUTER
+  UNE SEULE ANCRE, ET LES MINUTES TRANCHENT À L'ENVERS.** « A. Traoré » est au milieu d'Auxerre que
+  le jeu porte depuis 06/07 — **Alain**, né en 1988, trois minutes en 2007-08. Mais **Abdou Traoré**
+  est né la même année, joue à Bordeaux, et avait soixante et onze minutes : l'arbitrage « le plus
+  utilisé garde le nom » lui donnait **le nom ET la note** d'Alain, et **les deux hommes héritaient
+  de la même ancre**. La règle à garder : **quand plusieurs hommes concordent avec une seule ancre,
+  c'est le CLUB DE L'ANCRE qui tranche, pas les minutes**, et le perdant perd le nom ET l'héritage.
+  D'où une vérification générale ajoutée au relevé — **aucune ancre ne doit servir deux fois**, et
+  elle sort à zéro. Le symptôme aurait été parfaitement invisible.
+  **Deuxième correctif de méthode, du même tonneau : l'ancre doit se chercher AUSSI sous le nom
+  FINAL**, après le repli en toutes lettres. Sans cela, les hommes que le jeu porte en toutes lettres
+  perdaient leur héritage en silence — **Benoît Cheyrou (3 798 minutes), André Luiz (3 627), Sidi
+  Keita, Momar N'Diaye, Bakary Koné, Moké Diarra, Jérémy Acédo** et une douzaine d'autres repartaient
+  sur une note recalculée. La correction fait passer l'héritage de **613 à 615 appariements directs**
+  et surtout remet les bonnes notes sur les bons hommes.
+  **Deux mononymes brésiliens qu'il a fallu descendre au NOM CIVIL** (jurisprudence Cristiano 04/05,
+  Adailton Santos 05/06), les deux identités tranchées **par identifiant Transfermarkt** : **«
+  Eduardo » est au Toulousain né en 1979** (id 6802, vérifié sur la page de Toulouse 2003-04), donc
+  le Guingampais né en 1980 (id 3890) s'écrit **« Eduardo Ribeiro »** ; et **« Henrique » reste au
+  Girondin né en 1983** que le jeu porte depuis 05/06, donc le Rémois né en 1982 s'écrit **«
+  Henrique Gomes »** — un an d'écart, deux hommes. Les formes du jeu tiennent par ailleurs :
+  **Cris garde « Cristiano »** depuis 04/05 et **Juninho Pernambucano garde « Juninho »** depuis
+  01/02, l'une et l'autre posées à la main parce que la source ne les écrit pas comme ça.
+  **Quatorze homonymes de registre au plateau**, dont **trois paires qui jouent en France la MÊME
+  année** et cohabitent (Bruno Cheyrou face à Benoît, **Rudy Riou face à Rémy**, Bakari Koné face à
+  Bakary), et **quatre noms courts qui doivent rester ABSENTS** parce que leur porteur ne joue plus
+  en France cette année-là — Seydou Keita est à Séville, Antar Yahia à Bochum : « S. Keita », «
+  M. N'Diaye », « A. Luiz » et « C. Sánchez » n'apparaissent nulle part, et Sidi, Momar, André Luiz
+  et Carlos Sánchez passent en toutes lettres. **C'est ce contrôle-là que le harnais garde**, parce
+  qu'un nom court qui réapparaît est le signe qu'un homme a pris celui d'un autre.
+  **Un forcé ne doit pas contredire le recruteur** (règle de 05/06) : le croisement de
+  `VIVIER_SAISON[2007]` — déjà écrit par la v1.70 — et des quarante effectifs rend **aucun nom en
+  commun**.
+  **La source est la plus généreuse du chantier, pour la troisième fois de suite** : **aucun club
+  sous vingt-deux hommes ayant joué** (Angers ferme la marche à vingt-deux), **aucun joueur que la
+  source ne sache dater, aucun libellé de poste inconnu**, et **quatre-vingts pages aspirées sans un
+  seul échec ni un seul anti-robot** (troisième fois de suite). **Mille quatre-vingt-six hommes ont
+  joué** pour sept cent soixante places ; **quarante-cinq listés dans deux clubs** sont allés là où
+  ils ont le plus joué, dédoublonnés **par identifiant Transfermarkt**, et les quarante identifiants
+  de clubs ont été **relevés sur les pages `wettbewerb/FR1` et `FR2` de la saison** (leçon de
+  01/02). La sentinelle de fin a été vérifiée des deux côtés — **vingt derniers de tableau ont leur
+  place dans un effectif**, dont **Marouane Chamakh et ses 2 692 minutes** chez les Girondins.
+  131 prénoms neufs dans `PRENOMS_VRAIS`, **dont aucun vide** — pour la cinquième fois de suite ;
+  une seule correction de graphie, « P. Baherlé », que TM écrit avec un **trait d'union insécable**
+  (U+2011) qui n'a rien à faire dans le jeu.
+  **TROIS joueurs procéduraux seulement, le meilleur score du chantier après les deux de 05/06** :
+  Sochaux et Angers n'ont qu'**un gardien** ayant joué, Saint-Étienne que **quatre milieux**. La
+  source fait foi, `genJoueur` complète.
+  **Le rougissement aléatoire de `harness-recruteur.cjs` est toujours là, et toujours le même** : sa
+  section F exige un prénom sur chaque carte alors que `PRENOMS_VRAIS` porte `"J. S. Verón":""`, un
+  prénom volontairement vide (consigne v1.46). Quatre lancements sur douze rougissent. **Prouvé non
+  régressif à graine fixe** : à `Math.random` remplacé par une suite déterministe de graine 10, la
+  v1.75 et la v1.76 rendent **le même échec sur le même homme**. Aucune assertion n'a été touchée.
+  Validation dédiée : **`harness0708.cjs`**.
   Pour ajouter 07/08 : même méthode avec `saison_id/2007`, entrée `"2007-08"` dans `SAISONS`, harnais
   calqué sur `harness0607.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03), donc **plus de
   repêchage à arbitrer** : la journée va entièrement aux hommes. `HONNEURS` connaît désormais 1992 →
