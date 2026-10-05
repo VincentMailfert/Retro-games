@@ -1694,6 +1694,171 @@ toujours « raconter quelque chose ».
   repêchage à arbitrer** : la journée va entièrement aux hommes. `HONNEURS` connaît désormais 1992 →
   2008 ; **2010** (Mondial en Afrique du Sud, l'Espagne — et pour la France, Knysna) sera le prochain
   été à écrire, et **08/09 est la première saison qui le réclamera**, à sa deuxième intersaison.
+  **2008-09 (v1.77)** : `STARS_0809`/`STARS_D2_0809`, `D1_0809`/`D2_0809`, `an:2008`, `saison_id/2008` —
+  sous le nom **« Gourcuff fait tomber Lyon »**, et c'est désormais la saison la plus RÉCENTE du
+  jeu. **Le huitième titre d'affilée de l'Olympique lyonnais n'arrive jamais** : les Girondins de
+  Bordeaux de Laurent Blanc prennent le championnat avec **quatre-vingts points**, trois de plus
+  que Marseille, et sept de plus qu'un Lyon qui finit troisième — la série de sept que 01/02
+  ouvrait s'arrête là. **Yoann Gourcuff est élu meilleur joueur**, la saison de sa vie à vingt-deux
+  ans ; **André-Pierre Gignac meilleur buteur avec vingt-quatre buts** à Toulouse ; **Hugo Lloris
+  meilleur gardien**, arrivé de Nice à Gerland l'été d'avant ; **Eric Gerets meilleur entraîneur**
+  d'un Marseille deuxième ; et **Eden Hazard, dix-sept ans, est meilleur espoir** — celui qui
+  entrait en jeu trente-trois minutes en 07/08 joue mille six cent quatre-vingt-dix-huit minutes
+  cette année-là. Caen, Nantes et Le Havre descendent, les Normands après une seule saison. En
+  Ligue 2, Lens remonte aussitôt avec Montpellier et Boulogne, **Guingamp va chercher la Coupe de
+  France depuis la deuxième division** (deux buts d'**Eduardo**, l'homme même dont 07/08 avait dû
+  trancher le nom), et **Vannes, monté du National, perd la finale de la Coupe de la Ligue** au
+  Stade de France.
+  **LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA SEPTIÈME FOIS DE SUITE** : les deux échelons réels ont
+  vingt clubs, donc **aucun repêchage, aucun écarté**, et le harnais vérifie les deux listes par
+  égalité comme depuis 02/03. Trois promus (**Le Havre** champion de Ligue 2, **Nantes** et
+  **Grenoble**), trois descendus (**Lens, Metz, Strasbourg**) ; en Ligue 2, trois montées du
+  National (**Vannes** champion, **Tours** et **Nîmes**) pour trois descentes (Niort, Libourne,
+  Gueugnon). Un seul club neuf dans `CLUBS_EXTRA` : **Vannes OC** (`VNS`, **stade de la Rabine**,
+  7 500 places, **blanc et noir**, couleurs vérifiées — le club a porté le jaune et vert à sa
+  naissance en 1998 et n'est passé au blanc et noir qu'en 2003-04, jurisprudence Créteil), monté du
+  National pour sa **première saison professionnelle, dix ans après sa création**. **Attention au
+  code, comme `BOU`/`BLG` en 07/08** : `VAN` est pris depuis 90/91 par **Valenciennes**, qui joue
+  justement la Ligue 1 cette année-là — d'où `VNS`, et le harnais garde les deux clubs au même
+  plateau. Le blason de Vannes est en chevron pour ne pas se confondre avec celui d'Angers, noir et
+  blanc à rayures depuis 90/91.
+  **Sièges européens — SEPT sièges, tous en Ligue 1 pour la quatrième fois de suite** : **Lyon
+  (champion) et BORDEAUX (2e de 2007-08) en phase de groupes de Ligue des champions, MARSEILLE
+  (3e) au troisième tour de qualification** ; en Coupe UEFA **Nancy (4e)**, **SAINT-ÉTIENNE (5e)**
+  — la place de la Coupe de France lui est revenue, Lyon l'ayant gagnée mais étant déjà en C1 —,
+  le **Paris SG** au titre de la **Coupe de la Ligue 2008** et **Rennes**, vainqueur de son barrage
+  d'**INTERTOTO 2008**, la **dernière édition** de la compétition. `euroC2` est vide pour la
+  neuvième fois. **Et le contrôle des deux sens trouve son pendant exact au Toulouse de 07/08** :
+  Toulouse (4e) et Lille (5e) du championnat 2008-09 partent **sans** Europe, tandis que
+  **SAINT-ÉTIENNE, QUI FINIRA DIX-SEPTIÈME, JOUE BEL ET BIEN LA COUPE UEFA** — et il ira jusqu'aux
+  huitièmes. Vérifié plutôt que supposé : **Guingamp gagne la Coupe de France en mai 2009, donc son
+  siège est pour 2009-10 et non pour cette saison.**
+  **`HONNEURS` n'a rien eu à apprendre, pour la première fois depuis 05/06** : la table connaissait
+  déjà 2010 depuis 07/08, et c'est 08/09 qui le réclamait en premier. Partir de cette saison laisse
+  l'**été 2009 MUET** (septième cas) — l'Euro 2008 s'est joué **avant** le coup d'envoi — et porte
+  le **MONDIAL 2010** à la **deuxième** intersaison, Knysna comprise et sans « LA FRANCE » en
+  capitales.
+  **L'héritage porte presque autant qu'en 07/08, et toutes les ancres sont derrière** : **520 des
+  760 noms reprennent leur note 07/08 vieillie d'un an**, 69 viennent de plus loin, **171 sont
+  calculés** — 77 %, contre 81 % l'an dernier, et la baisse a une cause honnête : le mercato de
+  l'été 2008 a été large, et les arrivées de l'étranger n'ont pas d'ancre. Distribution collée à
+  celle de 07/08 (L1 : moyenne 70,5 et médiane 70, contre 70,3 et 70 ; L2 : 67,6 et 68, contre 67,1
+  et 67).
+  Table d'ajustements à la main de **cent entrées, la plus grosse du chantier** : les palmarès de
+  l'année d'abord (**Gourcuff 84/91** — l'héritage seul le laissait à 75, avec une ancre rennaise de
+  2005 —, **Lloris 82/92**, **Gignac 80/88**, **Hazard 71/95**, **Benzema 85/93**, le mieux noté du
+  plateau pour sa dernière saison française, **Bastos 78/86**), puis les arrivées que le calcul ne
+  peut pas connaître — **Carlos Bocanegra 75/79** (le capitaine des États-Unis, et il marquera pour
+  Rennes en finale de Coupe de France), **Chu-young Park 75/83**, **Dario Simic 74/78** (ex-Milan),
+  **Mateja Kežman 74/77**, **César Delgado 76/79**, **Diego Placente 74/77**, **Brandão 75/79**,
+  **Ivan Klasnic 72/76**, **Róbert Vittek 73/78**, **Tino Costa 74/84** —, et les gamins que rien
+  dans un classement ne trahit : **Pierre-Emerick Aubameyang 70/93** (dix-neuf ans, prêté par le
+  Milan AC à Dijon), **Nicolas N'Koulou 72/94** (dix-huit ans et 2 188 minutes à Monaco),
+  **Steven Nzonzi 67/90** (vingt ans à Amiens, champion du monde dix ans plus tard), **Étienne
+  Capoue 74/92**, **David Ospina 72/90**, **Marvin Martin 70/89**, **Benjamin André 67/89**,
+  **Wahbi Khazri 68/90**, **Moussa Sissoko 71/89**, **Mapou Yanga-Mbiwa 70/89**, **Medhi Benatia
+  69/89**. Et **une correction en sens inverse** : **Ludovic Giuly, ancré à Monaco en 2003 et
+  vieilli CINQ fois, ressortait trop haut** pour une saison de trente-deux ans au Parc — la règle
+  de 06/07 tient saison après saison, une ancre lointaine dérape beaucoup plus qu'une ancre d'un an.
+  **Forçage de vingt-quatre pépites, et la récolte d'adolescents est sans précédent : NEUF hommes de
+  dix-sept ans ou moins au plateau**, contre deux en 07/08. **SEGA KEÏTA, SEIZE ANS ET TRENTE ET UNE
+  MINUTES À TROYES** ouvre la liste — le quatrième seizième anniversaire du jeu après Didier Domi
+  (94/95), Mamadou Sakho (06/07) et Eden Hazard (07/08) — et sept dix-sept ans le suivent :
+  **Timothée Kolodziejczak** et **Yannis Salibur**, **Rajiv van La Parra**, **Abdelhakim Omrani**,
+  **Loïc Damour**, **Johan Martial**, plus Hazard et **Wahbi Khazri** que le temps de jeu suffisait
+  à garder. Avec eux **Miralem Pjanić** (dix-huit ans, passé de Metz à Lyon), **JOSUHA GUILAVOGUI,
+  GARDÉ POUR UNE MINUTE** à Saint-Étienne — la borne basse du chantier, sous les trois minutes
+  d'Alain Traoré en 07/08 —, **Henri Saivet** (cinq minutes), **Grégory Sertic**, **Abdelhamid El
+  Kaoutari** (reconduit pour la troisième saison), **Kévin Théophile-Catherine**, **Franck
+  Tabanou**, **Jean-Armel Kana-Biyik**, **Fallou Diagne**, **Jonathan Kodjia**, **Tongo Doumbia**
+  (cinq minutes), **Delvin N'Dinga**, **Yohan M'Vila**, **Guillaume Borne**, **Steven Mouyokolo**,
+  **Youssouf Mulumbu** et **Sidi Keita**. **Lyon, Bordeaux et Lens paient DEUX hommes chacun.**
+  **LE PIÈGE DU JOUR EST TOMBÉ AVANT MÊME LE RELEVÉ, ET IL ÉTAIT GRAVE : « OM » EST UN CODE DE CLUB
+  À DEUX LETTRES.** Le script qui relit les tables du jeu pour en tirer les ancres découpait les
+  blocs de club sur une expression `[A-Z]{3}`, si bien que **les vingt Marseillais partaient chez
+  Bordeaux** — vingt ancres attribuées au mauvais club, et la règle « c'est le club de l'ancre qui
+  tranche » faussée en silence. Le symptôme visible était minuscule : dix-neuf clubs lus au lieu de
+  vingt. **À garder : `OM` est le seul code à deux lettres du jeu, et tout découpage par code de
+  club doit l'accepter.** La correction a aussi rendu 95 entrées d'ancres perdues ailleurs.
+  **Deuxième piège, celui de Ben Arfa qui se rejoue deux fois** : forcer un gamin éjecte un homme
+  qu'on voulait garder. Le forçage de deux dix-sept ans à Lyon sortait **Miralem Pjanić et ses 924
+  minutes** ; celui de deux jeunes à Lens sortait **Sidi Keita et ses 1 253 minutes**, un homme que
+  le jeu porte depuis 03/04. **Le contrôle à reconduire : lister, club par club, les écartés de plus
+  de neuf cents minutes et regarder en face ce que chaque forçage coûte.** Nolan Roux (39 minutes)
+  et Freddy Adu (159) sont sortis de la liste pour cette raison — Adu laissant revenir **Adriano**,
+  que le jeu porte depuis 07/08 pour 1 258 minutes.
+  **Troisième piège, et c'est le recruteur qui l'a attrapé** : **Jérémy Ménez**, cent seize minutes
+  au Rocher, figurait dans `VIVIER_SAISON[2008]` — il est parti à la Roma à l'été 2008, et les
+  vitrines ont raison contre la page de temps de jeu. Il reste dehors, exactement comme Christian
+  Vieri en 05/06. **La règle de 05/06 ne se contente pas d'être vraie : elle attrape des choses.**
+  **Le piège de 07/08 se rejoue aussi, et le remède a dû être précisé** : deux hommes nés la même
+  année se disputent l'ancre **« A. Traoré »**. Alain, que le jeu porte depuis 06/07, **a changé de
+  club** (Auxerre → Brest) ; Abdou, né la même année, joue à Bordeaux. La règle de 07/08 disait « le
+  club de l'ancre tranche » — elle ne suffit plus dès que l'homme déménage. **La formulation à
+  garder : c'est l'HOMME de l'ancre qui la garde, identifié par son identifiant Transfermarkt, et le
+  club de l'ancre n'est qu'un indice.** Alain garde « A. Traoré » à Brest ; Abdou, écarté au temps
+  de jeu, n'est pas au plateau.
+  **Cinq paires d'homonymes cohabitent**, dont trois reconduites de 07/08 (Bruno face à Benoît
+  Cheyrou, Rudy face à Rémy Riou, Bakari face à Bakary Koné) et **deux neuves** : Abdul Kader Keita
+  face à **Alphousseyni Keita**, et surtout **Marvin Martin face à Malaury Martin, nés la MÊME année
+  et tous deux inconnus du registre** — aucune ancre, aucun garde-fou d'âge pour trancher, donc
+  c'est le temps de jeu qui décide (1 811 minutes à Sochaux contre Nîmes). **Cinq noms courts
+  doivent rester ABSENTS** parce que leur porteur ne joue plus en France : Marcos Paulo, Youssouf
+  Touré, Maodomalick Faye, Hassoun Camara et Leyti N'Diaye passent en toutes lettres, et les cinq
+  cessions de 07/08 sont reconduites.
+  **Deux noms posés à la main que la source écrit autrement** : **Sega Keïta s'écrit en toutes
+  lettres**, parce que « S. Keita » est à Seydou depuis 00/01 et que **le tréma ne se voit pas** —
+  deux chaînes différentes pour l'œil du moteur, un seul nom pour celui du joueur, et c'est la
+  première fois que le chantier cède un nom court sur une différence d'accent seule. Et **« El
+  Fardou Ben » garde son nom entier** : découper son prénom au premier mot fabriquait « E. Fardou
+  Ben », un nom qui n'existe pas.
+  **La source est la plus généreuse du chantier pour la quatrième fois de suite** : **aucun club
+  sous vingt-trois hommes ayant joué** (Toulouse, Amiens et Boulogne ferment la marche à
+  vingt-trois), **aucun libellé de poste inconnu** après l'ajout de « Deuxième attaquant » et
+  « Défense », **quatre-vingts pages aspirées sans un seul échec ni un seul anti-robot**, et
+  **deux joueurs seulement que la source ne sache pas dater** — Moussa Sissoko et Pierre-Emerick
+  Aubameyang, tous deux nés en 1989, vérifiés pièce en main. **Mille cent trente-huit hommes ont
+  joué** pour sept cent soixante places ; **quarante-deux listés dans deux clubs** sont allés là où
+  ils ont le plus joué, dédoublonnés **par identifiant Transfermarkt**, et les quarante identifiants
+  de clubs ont été **relevés sur les pages `wettbewerb/FR1` et `FR2` de la saison** (leçon de
+  01/02). La sentinelle de fin a été vérifiée des deux côtés — **six derniers de tableau ont leur
+  place dans un effectif**, et le plus cher de tous est **Pierre-Emerick Aubameyang, dernière ligne
+  du tableau dijonnais, 2 484 minutes** ; **Moussa Sissoko et ses 2 761 minutes** fermaient celui de
+  Toulouse.
+  **NEUF vétérans de 36 ans et plus, un record**, dont **cinq gardiens titulaires** ; et le doyen du
+  jeu est le même que l'an dernier, **Gilles Wimbée, TRENTE-SEPT ANS**, qui garde les buts de
+  Grenoble en Ligue 1 après l'y avoir fait monter — et le promu aligne DEUX de ces neuf vétérans à
+  lui seul, Michaël Flachez tenant la défense à trente-six ans.
+  156 prénoms neufs dans `PRENOMS_VRAIS`, **dont aucun vide** — pour la sixième fois de suite ; le
+  découpage des **initiales composées** doit suivre exactement celui de `harness-prenoms.cjs`
+  (`split(/\.-?/)`), sans quoi Jean-Jacques Gosso, Jean-Armel Kana-Biyik, Jean-Philippe Sabo,
+  Jean-Alain Fanchone et Pierre-Emerick Aubameyang ressortaient **sans prénom** pour une raison
+  purement typographique.
+  **AUCUN joueur procédural : les quarante effectifs tiennent entièrement sur de vrais noms, et
+  c'est une première du chantier.**
+  **Le rougissement aléatoire de `harness-recruteur.cjs` est toujours là, et toujours le même** : sa
+  section F exige un prénom sur chaque carte alors que `PRENOMS_VRAIS` porte `"J. S. Verón":""`, un
+  prénom volontairement vide (consigne v1.46). Quatre lancements sur douze rougissent, comme en
+  07/08. **Prouvé non régressif à graine fixe** : à `Math.random` remplacé par une suite
+  déterministe de graine 10, la v1.76 et la v1.77 rendent **le même échec sur le même homme**.
+  Aucune assertion n'a été touchée.
+  **ET IL Y EN A UN DEUXIÈME, DÉCOUVERT CETTE NUIT : `harness-effectif.cjs` rougit environ une fois
+  sur douze**, sur une assertion **statistique** du moteur — « les vétérans de 33 ans déclinent moins
+  avec un coach que sans » —, dont les deux comptages se croisent quand le tirage est serré (12
+  déclins contre 13). Le harnais **ne mentionne 08/09 nulle part**, le taux est **identique sur les
+  deux versions** (une fois sur douze de part et d'autre), et c'est **prouvé non régressif à graine
+  fixe** : à graine 4, la v1.76 et la v1.77 rendent **le même échec avec les mêmes chiffres**, et
+  aux graines 3, 7, 11 et 21 les deux sont vertes. Aucune assertion n'a été touchée. **À garder pour
+  les saisons suivantes : deux harnais rougissent désormais par hasard, et la parade est la même —
+  comparer à graine fixe avant de conclure quoi que ce soit.**
+  Validation dédiée : **`harness0809.cjs`**.
+  Pour ajouter 09/10 : même méthode avec `saison_id/2009`, entrée `"2009-10"` dans `SAISONS`,
+  harnais calqué sur `harness0809.cjs`. Le plateau ne bouge plus (vingt et vingt depuis 02/03). Deux
+  choses à préparer : la Coupe UEFA devient la **LIGUE EUROPA** à l'été 2009 et passe à des barrages
+  (l'appeler par son nom d'époque dans le sous-titre sans toucher aux libellés du moteur, comme la
+  Ligue 1 en 02/03), et **`HONNEURS` devra apprendre l'été 2012** (Euro en Pologne et en Ukraine,
+  l'Espagne encore) si l'on veut qu'une carrière de 09/10 ne traverse pas un été vide à sa troisième
+  intersaison.
   **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les ajoute une
   par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
