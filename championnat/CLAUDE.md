@@ -2148,8 +2148,9 @@ toujours « raconter quelque chose ».
   joueurs »** : (1) un 7e poste **`milieu`** (« Coach du milieu », 🧭) : +1 %/étoile devant et −1 %/étoile encaissé dans
   `simuleMatch`, et il forme les milieux ; ajouté aux deux inits de `G.staff` (les vieilles sauvegardes sans la clé le
   voient vacant, `coachTier` tolère `undefined`). (2) les **confirmés (24-30 ans)** de votre club progressent avec le
-  coach de leur secteur, `0.02 × étoiles × max(part, 0.3)` par journée (moitié après 27 ans), **jusqu'à `pot + étoiles`** :
-  le coach fait dépasser le plafond (78/78 → 80 en une saison de titulaire avec ★★★, 81 au maximum). Sans coach, rien ne
+  coach de leur secteur, `0.02 × étoiles × max(part, 0.3)` par journée (moitié après 27 ans), **jusqu'à `pot + 2 × étoiles`**
+  (v1.78, choix auteur, d'abord `pot + étoiles` en v1.74) : le coach fait dépasser le plafond (78/78 → 80 en une saison
+  de titulaire avec ★★★, 84 au maximum en trois saisons environ). Sans coach, rien ne
   change. (3) les **vétérans (31+)** déclinent 20 % moins souvent par étoile. L'IA n'a pas de staff : calibrage des
   autres clubs intact. Validation : **section H**. Validation : **section G de `harness-effectif.cjs`** (une saison jouée pour de bon).
 - **Affluence** (`affluence(home,away,sansPromo)`) : depuis v0.61, le **club hôte pèse plus que le visiteur** (`home.pres*0.022`

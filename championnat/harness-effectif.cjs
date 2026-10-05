@@ -332,15 +332,15 @@ G.staff.attaque = { nom: "Test", tier: 3, phrase: "", salaire: 0 };
 saisonConf();
 ok(conf.note >= 80 && conf.note <= 81 && confD.note === 78,
   `avec le coach des attaquants ★★★, une saison de titulaire : ${78} → ${conf.note} (le défenseur reste à ${confD.note})`);
-saisonConf(); saisonConf();
-ok(conf.note === 81, `jamais plus de trois points au-dessus de son plafond (${conf.note})`);
+for (let s = 0; s < 6; s++) saisonConf();
+ok(conf.note === 84, `jamais plus de six points au-dessus de son plafond (${conf.note})`);
 // un vétéran décline moins vite avec le coach de son secteur
 let chutesAvec = 0, chutesSans = 0;
-for (let k = 0; k < 400; k++) {
+for (let k = 0; k < 4000; k++) {
   conf.age = 33; conf.note = 75; confD.age = 33; confD.note = 75; api.progression();
   chutesAvec += 75 - conf.note; chutesSans += 75 - confD.note;
 }
-ok(chutesAvec < chutesSans * 0.75, `vétérans de 33 ans : ${chutesAvec} déclins avec le coach, ${chutesSans} sans (sur 400 journées)`);
+ok(chutesAvec < chutesSans * 0.6, `vétérans de 33 ans : ${chutesAvec} déclins avec le coach, ${chutesSans} sans (sur 4 000 journées)`);
 
 console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS EFFECTIF : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);
