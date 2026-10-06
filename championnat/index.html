@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.78"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.79"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 const RND = (a,b)=>a+Math.random()*(b-a);
@@ -906,6 +906,34 @@ const ANECDOTES=["On dit qu'il n'a jamais manqué un entraînement.","Sa grand-m
    (choix de l'auteur, plutôt qu'un faux prénom sur un vrai joueur). Joueur généré (nom de NOMS) : un prénom
    d'époque de son origine, qui commence par son initiale, toujours le même pour un même nom (tirage haché). */
 const PRENOMS_VRAIS={
+  /* 2009-10 (v1.79) */
+  "D. Lovren":"Dejan","M. Gonalons":"Maxime","L. López":"Lisandro","A. Lacazette":"Alexandre","L. González":"Lucho",
+  "J. Ayew":"Jordan","L. Sané":"Lamine","J. Vandam":"Jerry","I. Gueye":"Idrissa","J.-E. Maurice":"Jean-Eudes",
+  "D. Nounkeu":"Dany","C. Kazım-Richards":"Colin","A. Tettey":"Alexander","Y. Thuram":"Yohann","L. Haruna":"Lukman",
+  "C.-y. Park":"Chu-young","M. Maazou":"Moussa","Y. Andreu":"Yoann","G. Fernandes":"Gelson","A. Fernández":"Augusto",
+  "G. Bergessio":"Gonzalo","E. Rivière":"Emmanuel","B. Sanogo":"Boubacar","K. Malaga":"Kévin","Y. Sanogo":"Yaya",
+  "I. Gace":"Ismaël","L. Mabiala":"Larrys","A. Mounier":"Anthony","D. Bakar":"Djamel","F. Sosa":"Franco",
+  "S. Dubarbier":"Sebastián","G. Ndy Assembé":"Guy","B. Angoua":"Benjamin","E. Spahic":"Emir","Y. Belhanda":"Younès",
+  "B. Dabo":"Bryan","D. Ovono":"Didier","J. Paulo":"João","H. Goulon":"Hérold","A. Abdi":"Almen","M. Dossevi":"Mathieu",
+  "M. Dreyer":"Matthieu","F. Duplus":"Frédéric","V. Nogueira":"Vincent","B. Ideye":"Brown","É. Butin":"Édouard",
+  "C. Davies":"Charlie","H. Kasraoui":"Hamdi","S. Aurier":"Serge","D. Situ":"Darnel","D. Milovanovic":"Dejan",
+  "S. Taïder":"Saphir","Y. Ravet":"Yoric","I. Koné":"Ibrahim","B. Soumaré":"Bakary","B. Dembélé":"Bira",
+  "O. Adefemi":"Olubayo","O. Karuru":"Ovidy","L. Kamenar":"Lubos","P. Djilobodji":"Papy","P. Ba":"Papa",
+  "F. Djordjevic":"Filip","T. Heurtaux":"Thomas","I. N'Diaye":"Ismaïla","Y. El Arabi":"Youssef","M. Le Marchand":"Maxime",
+  "G. Fofana":"Gueïda","C. Baseya":"Cédric","B. Jovial":"Brice","R. Mendes":"Ryan","O. Sissoko":"Oumar",
+  "J. Pied":"Jérémy","M. Mutsch":"Mario","Y. Mokhtari":"Youssef","R. Omotoyossi":"Razak","M. Autret":"Mathias",
+  "N. Roux":"Nolan","K. Olimpa":"Kévin","V. Manceau":"Vincent","P. Oniangué":"Prince","G. Charbonnier":"Gaëtan",
+  "G. Imbula":"Giannelli","D. Ledy":"David","M. Gueye":"Magaye","X. Tomas":"Xavier","J. Cétout":"Julien",
+  "K. Saïdi":"Karim","G. Adjet":"Geoffrey","R. Grange":"Romain","A. Baby":"Amara","M. Dembélé":"Mana","N.-M. Yattara":"Naby-Moussa",
+  "R. Reynaud":"Romain","M. Esor":"Marvin","J.-C. Cirilli":"Jean-Charles","E. Corrèze":"Emmanuel","D. Himmes":"Driss",
+  "D. N'Diaye":"Démé","M. Dalé":"Maurice","K. Abdallah":"Kassim","P. Valdivia":"Pierrick","S. Henaini":"Samir",
+  "S. Souprayen":"Samuel","C. Zarour":"Chaher","C. Boateng":"Charles","N. Belvito":"Nicolas","C. Najih":"Chafik",
+  "N. Haquin":"Nicolas","Y. Brahimi":"Yacine","R. Armand":"Romain","K. Adénon":"Khaled","C. Gaffory":"Christophe",
+  "W. Moimbé":"Wilfried","K. Diaz":"Kévin","V. Erard":"Vincent","H. Al-Shaibani":"Haidar","M. Stosic":"Miodrag",
+  "S. Sbaï":"Salaheddine","S. Aït Bahi":"Saïd","B. Moukandjo":"Benjamin","A. Delort":"Andy","M. Ménétrier":"Michaël",
+  "C. Dielna":"Claude","F. Lejeune":"Florian","R. Ciaravino":"Romain","W. Mesloub":"Walid","P. Kessany":"Paul",
+  "B. El Bahri":"Brahim","R. Nouri":"Riad","M. Pichot":"Matthieu","M. Puig":"Mathieu","A. Gonçalves":"Anthony",
+  "R. Hamouma":"Romain","S. Haguy":"Steve","F. Raddas":"Fabien",
   "G. Sertic":"Grégory","D. Placente":"Diego","T. Kolodziejczak":"Timothée","C. Delgado":"César",
   "F. Tabanou":"Franck","É. Capoue":"Étienne","D. Braaten":"Daniel","C. M'Bengue":"Cheikh",
   "S. Larsen":"Søren","Y. Salibur":"Yannis","É. Conceição":"Émerson","A. Chedjou":"Aurélien",
@@ -1949,6 +1977,7 @@ const MALEDICTIONS={
  LIB:"Né d'une fusion et monté du National pour sa première saison professionnelle : sept mille places, et toute la Gironde qui regarde Bordeaux.",
  BLG:"Cent neuf ans de football et pas une saison chez les professionnels avant celle-ci : la Côte d'Opale entre dans le métier par la petite porte.",
  VNS:"Né en 1998, monté du National pour sa première saison chez les professionnels : sept mille cinq cents places à la Rabine, et le rugby qui s'y installe le dimanche.",
+ ARL:"Deux villes et deux clubs fondus en un l'été d'avant, monté du National, et un stade prêté par Avignon à trente kilomètres d'Arles : le pays d'Arles découvre le métier sans savoir où il habite.",
 };
 // le mot d'un club dépend de la saison de départ : [à partir de, texte] ; null rend le texte de MALEDICTIONS (écrit pour 1995)
 const MALEDICTIONS_EPOQUE={
@@ -2156,6 +2185,7 @@ const BLASONS={
  LIB:{a:"#1c4fa0",b:"#ffffff",st:"v"},
  BLG:{a:"#d40026",b:"#1a1a1a",st:"ray"},
  VNS:{a:"#1a1a1a",b:"#ffffff",st:"v"},
+ ARL:{a:"#1c4fa0",b:"#e8b800",st:"ray"},
 };
 let _blN=0;
 function blason(c,s){
@@ -2309,6 +2339,7 @@ const CLUBS_EXTRA=[ // clubs présents en 96/97 mais absents de la base 95-96
  {id:"LIB", nom:"FC Libourne-Saint-Seurin", stade:"Jean-Antoine-Moueix", cap:7000, pres:2, budget:5e6}, // 06/07
  {id:"BLG", nom:"US Boulogne",              stade:"Stade de la Libération", cap:8700, pres:2, budget:5e6}, // 07/08
  {id:"VNS", nom:"Vannes OC",                stade:"Stade de la Rabine", cap:7500, pres:2, budget:5e6}, // 08/09
+ {id:"ARL", nom:"AC Arles-Avignon",        stade:"Parc des Sports",   cap:17500, pres:2, budget:5e6}, // 09/10
 ];
 function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===id)||CLUBS_EXTRA.find(c=>c.id===id); }
 /* Le prestige des fiches est celui de 1995 : une carrière lancée à une autre saison prend celui de son époque
@@ -5362,6 +5393,172 @@ const STARS_D2_0809={ // L2 2008-09 — 18 par club
 };
 const D1_0809=["LYO","BOR","OM","NCY","STE","REN","LIL","NIC","LMN","LOR","CAE","MON","VAN","SOC","AUX","PSG","TOU","LEH","NAN","GRE"];
 const D2_0809=["SED","CLE","TRO","BRE","MTP","AJA","ANG","BAS","GUI","REI","AMI","CHA","BLG","DIJ","LEN","STR","MET","TRS","NIM","VNS"];
+const STARS_0910={ // effectifs réels 2009-10 (Transfermarkt, saison_id/2009) — 20 par club
+ LYO:[["H. Lloris","G",23,84,92],["R. Vercoutre","G",29,75,80],
+   ["Cristiano","D",32,77,84],["A. Cissokho","D",22,76,86],["A. Réveillère","D",30,77,85],["J.-A. Boumsong","D",30,75,84],["D. Lovren","D",20,69,91],
+   ["J. Toulalan","M",26,78,87],["M. Pjanić","M",19,76,92],["K. Källström","M",27,75,84],["J. Makoun","M",26,75,86],["M. Bastos","M",26,78,86],["M. Gonalons","M",20,70,90],["Ederson","M",23,72,82],["M. Bodmer","M",27,74,82],
+   ["L. López","A",26,84,88],["B. Gomis","A",24,77,87],["S. Govou","A",30,75,84],["C. Delgado","A",28,76,79],["A. Lacazette","A",18,63,93]],
+ OM:[["S. Mandanda","G",24,84,90],["Andrade","G",30,72,76],
+   ["S. Diawara","D",31,70,74],["L. Bonnart","D",30,72,77],["T. Taiwo","D",24,79,86],["G. Heinze","D",31,78,86],["Hilton","D",32,72,78],
+   ["Benoît Cheyrou","M",28,76,82],["É. Cissé","M",31,70,80],["L. González","M",28,81,84],["S. Mbia","M",23,74,83],["F. Abriel","M",30,68,73],["M. Valbuena","M",25,78,86],["C. Kaboré","M",21,66,83],["H. Ben Arfa","M",22,81,91],
+   ["M. Niang","A",30,82,84],["Brandão","A",29,75,79],["B. Koné","A",28,74,83],["F. Morientes","A",33,72,84],["J. Ayew","A",18,63,87]],
+ BOR:[["C. Carrasso","G",28,72,78],["U. Ramé","G",37,69,82],
+   ["B. Trémoulinas","D",24,75,88],["M. Chalmé","D",29,71,76],["M. Ciani","D",25,76,82],["M. Planus","D",27,77,81],["L. Sané","D",22,70,83],["Henrique","D",26,74,82],
+   ["J. Plasil","M",27,68,86],["Wendel","M",27,75,82],["A. Diarra","M",28,78,84],["Y. Gourcuff","M",23,85,91],["Fernando","M",28,74,80],["Jussiê","M",26,73,80],["G. Sertic","M",20,70,88],["H. Saivet","M",19,68,88],
+   ["M. Chamakh","A",25,80,85],["Y. Gouffran","A",23,73,84],["F. Cavenaghi","A",26,78,85],["D. Bellion","A",27,68,74]],
+ LIL:[["M. Landreau","G",30,82,86],["L. Butelle","G",26,66,72],
+   ["A. Rami","D",24,76,85],["F. Béria","D",26,68,82],["A. Chedjou","D",24,74,84],["M. Debuchy","D",24,75,85],["É. Conceição","D",23,74,84],["J. Vandam","D",21,68,82],
+   ["R. Mavuba","M",25,78,85],["F. Balmont","M",29,74,82],["Y. Cabaye","M",23,78,88],["L. Obraniak","M",25,70,80],["S. Dumont","M",27,78,87],["I. Gueye","M",20,66,90],
+   ["E. Hazard","A",18,79,95],["Gervinho","A",22,78,90],["P.-A. Frau","A",29,75,82],["T. de Melo","A",24,69,77],["R. Vittek","A",27,73,78],["P.-E. Aubameyang","A",20,72,93]],
+ PSG:[["A. Edel","G",23,70,80],["G. Coupet","G",37,77,87],
+   ["M. Sakho","D",19,72,90],["S. Armand","D",29,79,81],["C. Jallet","D",26,74,80],["Ceará","D",29,72,77],["Z. Camara","D",30,74,82],["S. Traoré","D",33,64,71],
+   ["J. Clément","M",25,73,82],["C. Makélélé","M",36,74,90],["S. Sessègnon","M",25,74,85],["C. Chantôme","M",22,70,82],["G. N'Goyi","M",21,64,80],["Y. Sankharé","M",20,65,83],
+   ["M. Erdinç","A",22,72,84],["L. Giuly","A",33,75,85],["P. Luyindula","A",30,75,84],["G. Hoarau","A",25,79,85],["J.-E. Maurice","A",23,65,75],["M. Kežman","A",30,73,77]],
+ TOU:[["Y. Pelé","G",27,66,80],["O. Blondel","G",30,64,71],["M. Valverde","G",26,67,74],
+   ["D. Congré","D",24,73,81],["C. M'Bengue","D",21,73,89],["A. Ebondo","D",25,74,83],["F. Tabanou","D",20,70,89],["D. Nounkeu","D",23,68,78],["M. Cetto","D",27,74,79],["M. Fofana","D",24,70,79],
+   ["M. Sissoko","M",20,73,89],["É. Capoue","M",21,76,92],["P. Machado","M",23,72,83],["É. Didot","M",26,70,82],["M. Berson","M",29,74,76],["P. Sirieix","M",29,71,75],
+   ["A.-P. Gignac","A",24,81,88],["D. Braaten","A",27,74,79],["C. Kazım-Richards","A",23,64,74],["Luan","A",21,62,76]],
+ REN:[["N. Douchez","G",29,69,80],["A. Diallo","G",17,61,83],
+   ["R. Fanni","D",28,72,82],["K. Mangane","D",26,68,78],["P. Hansson","D",33,73,78],["C. Bocanegra","D",30,74,79],["R. Danzé","D",23,71,84],["K. Théophile-Catherine","D",20,69,88],
+   ["Yann M'Vila","M",19,74,90],["S. Marveaux","M",23,72,85],["J. Leroy","M",35,70,83],["F. Lemoine","M",22,72,89],["A. Tettey","M",23,71,80],["B. Cheyrou","M",31,71,82],["T. Doumbia","M",20,65,85],
+   ["A. Gyan","A",24,76,82],["J. Briand","A",24,74,88],["Ismaël Bangoura","A",24,74,84],["M. Sow","A",23,67,83],["J. Kembo Ekoko","A",21,69,85]],
+ MON:[["S. Ruffier","G",23,68,81],["Y. Thuram","G",21,65,79],
+   ["S. Puygrenier","D",27,72,80],["C. Mongongu","D",20,65,81],["D. Traoré","D",29,67,78],["F. Modesto","D",31,70,78],["N. N'Koulou","D",19,74,94],["Adriano","D",27,75,80],["V. Muratori","D",22,72,89],
+   ["Nenê","M",28,78,83],["A. Alonso","M",27,71,77],["D. Pérez","M",29,73,79],["L. Haruna","M",19,66,85],["T. Mangani","M",22,68,85],["E. Costa","M",27,76,82],["M. Coutadeur","M",23,74,85],
+   ["C.-y. Park","A",24,76,83],["M. Maazou","A",21,69,82],["J. Pino","A",22,72,85],["Y. Mollo","A",20,72,90]],
+ STE:[["J. Janot","G",32,65,80],["V. Planté","G",29,69,71],
+   ["Y. Benalouane","D",22,71,88],["P. Diakhaté","D",25,69,82],["C. Varrault","D",29,72,76],["M. Dabo","D",23,67,77],["L. Perrin","D",24,72,80],["Y. Andreu","D",20,61,77],
+   ["B. Matuidi","M",22,75,88],["G. N'Daw","M",25,74,82],["G. Fernandes","M",23,71,79],["D. Payet","M",22,74,89],["C. Landrin","M",32,71,78],["A. Fernández","M",23,63,73],["J. Guilavogui","M",19,66,89],
+   ["G. Bergessio","A",25,71,75],["E. Rivière","A",19,64,84],["B. Sako","A",21,70,85],["K. Mirallas","A",22,71,85],["B. Sanogo","A",27,66,70]],
+ AUX:[["O. Sorin","G",28,70,73],["Rémy Riou","G",22,69,81],
+   ["C. Hengbart","D",29,71,75],["S. Grichting","D",30,71,78],["A. Coulibaly","D",29,75,79],["J.-P. Mignot","D",28,73,79],["J. Berthod","D",25,75,82],["K. Malaga","D",22,69,81],
+   ["B. Pedretti","M",29,79,84],["V. Birsa","M",23,74,85],["D. N'Dinga","M",21,69,87],["K. Chafni","M",27,69,78],["D. Dudka","M",26,73,78],["A. Traoré","M",21,68,85],
+   ["I. Jeleń","A",28,74,77],["D. Niculae","A",27,72,78],["D. Oliech","A",24,72,78],["R. Contout","A",24,67,76],["A. Capoue","A",27,67,76],["Y. Sanogo","A",16,60,88]],
+ NIC:[["D. Ospina","G",21,74,90],["L. Létizi","G",36,69,84],
+   ["D. Diakité","D",24,68,77],["G. Paisley","D",32,67,73],["O. Apam","D",23,72,82],["I. Gace","D",23,66,76],["L. Mabiala","D",22,65,77],["R. Civelli","D",26,68,76],["G. Cid","D",26,69,76],["A. Cantareil","D",26,69,76],
+   ["D. Hellebuyck","M",30,75,78],["E. Faé","M",25,75,81],["K. Coulibaly","M",24,69,82],["J. Sablé","M",29,77,79],["O. Echouafni","M",37,63,74],["D. Digard","M",23,69,82],
+   ["L. Rémy","A",22,76,86],["A. Mounier","A",22,70,82],["C. Ben Saada","A",25,76,80],["M. Bagayoko","A",30,72,77]],
+ NCY:[["G. Bracigliano","G",29,69,71],["D. Grégorini","G",30,71,77],
+   ["André Luiz","D",29,75,80],["R. Lemaître","D",26,71,78],["J. Brison","D",26,69,77],["J. Lotiès","D",25,69,75],["A. Ouaddou","D",31,66,72],["J. Sami","D",25,71,80],["M. Chrétien","D",25,72,76],["F. Marange","D",23,68,80],
+   ["J. Féret","M",27,67,76],["P. Berenguer","M",28,68,72],["Alfred N'Diaye","M",19,68,88],["B. Traoré","M",24,63,71],["B. Ca","M",23,68,78],
+   ["I. Dia","A",22,65,77],["Y. Hadji","A",29,74,82],["C. Malonga","A",22,73,90],["D. Bakar","A",20,64,80],["P. Alo'o Efoulou","A",26,68,78]],
+ LOR:[["F. Audard","G",31,65,73],["L. Cappone","G",30,67,74],
+   ["L. Koscielny","D",24,77,85],["S. Marchal","D",29,71,73],["F. Sosa","D",28,74,78],["A. Le Lan","D",31,71,78],["J. Morel","D",25,69,82],["M. Baca","D",26,68,76],["G. Bourillon","D",25,76,80],["B. Genton","D",29,69,73],["S. Dubarbier","D",23,68,78],
+   ["M. Amalfitano","M",24,73,81],["A. Mvuemba","M",24,74,82],["S. Diarra","M",25,68,73],["P. Ducasse","M",22,69,81],["Y. Mansouri","M",31,67,73],
+   ["K. Gameiro","A",22,73,85],["M. Vahirua","A",29,77,79],["J. Fanchone","A",29,71,73],["O. Monterrubio","A",33,67,80]],
+ VAN:[["N. Penneteau","G",28,74,77],["G. Ndy Assembé","G",23,69,78],
+   ["M. Bisevac","D",26,70,80],["R. Mater","D",29,73,77],["D. Ducourtioux","D",31,64,70],["S. Tiéné","D",27,72,78],["G. Bong","D",21,65,78],["B. Angoua","D",23,67,77],["J. Abardonado","D",31,66,72],["Rafael","D",29,76,82],
+   ["R. Gomis","M",25,70,79],["Carlos Sánchez","M",23,73,84],["R. Cohade","M",25,69,78],["F. Kadir","M",26,68,78],["J. Saez","M",27,68,74],
+   ["F. Ben Khalfallah","A",27,65,70],["G. Pujol","A",29,73,78],["G. Danic","A",28,76,79],["J. Audel","A",26,76,83],["M. Samassa","A",23,70,83]],
+ MTP:[["G. Jourdren","G",23,68,79],["L. Pionnier","G",27,69,74],
+   ["M. Yanga-Mbiwa","D",20,72,89],["E. Spahic","D",29,77,80],["A. El Kaoutari","D",19,65,85],["N. Dzodic","D",32,68,75],["X. Collin","D",35,58,72],["G. Bocaly","D",21,65,81],
+   ["R. Pitau","M",32,67,75],["T. Costa","M",24,75,84],["J. Marveaux","M",27,67,73],["C. Jeunechamp","M",34,68,80],["Y. Belhanda","M",19,68,88],["J. Saihi","M",22,73,88],["B. Dabo","M",17,59,86],
+   ["V. Montaño","A",25,72,78],["S. Camara","A",27,76,81],["K. Aït-Fana","A",20,66,86],["G. Dernis","A",29,68,72],["L. Compan","A",32,69,78]],
+ LMN:[["D. Ovono","G",26,70,74],["R. Roche","G",30,69,74],
+   ["L. Baal","D",23,69,82],["S. Corchia","D",19,70,90],["G. Cerdan","D",27,68,74],["J. Paulo","D",28,69,73],["H. Goulon","D",21,64,78],["C. Louvion","D",22,68,80],["A. Géder","D",31,69,74],["S. Bouhours","D",22,71,88],
+   ["F. Thomas","M",29,68,72],["G. Loriot","M",23,68,78],["M. Narry","M",23,73,83],["A. Abdi","M",23,63,73],["O. Thomert","M",29,68,70],
+   ["A. Le Tallec","A",25,79,85],["R. Lamah","A",22,70,84],["M. Maïga","A",22,72,87],["M. Dossevi","A",21,65,80],["T. Helstad","A",32,70,75]],
+ SOC:[["T. Richert","G",35,72,80],["M. Dreyer","G",20,62,78],
+   ["J. Bréchet","D",30,75,83],["D. Perquis","D",25,73,80],["J. Faty","D",25,72,80],["Y. Mikari","D",26,67,73],["B. Dramé","D",24,68,77],["F. Duplus","D",19,61,79],["Carlão","D",23,71,81],["M. Josse","D",22,64,76],
+   ["N. Maurice-Belay","M",24,67,76],["M. Martin","M",21,72,89],["S. Dalmat","M",30,73,82],["R. Boudebouz","M",19,70,92],["B. Gavanon","M",29,73,78],["V. Nogueira","M",21,63,77],
+   ["V. Sverkos","A",26,70,76],["B. Ideye","A",21,67,83],["É. Butin","A",21,63,77],["C. Davies","A",23,63,73]],
+ LEN:[["V. Runje","G",33,69,76],["H. Kasraoui","G",26,69,73],
+   ["Y. Démont","D",31,65,71],["Alaeddine Yahia","D",28,73,79],["É. Chelle","D",32,68,74],["M. Ramos","D",26,71,78],["R. Sartre","D",27,71,77],["S. Aurier","D",17,62,90],["D. Situ","D",17,59,82],
+   ["A. Hermach","M",23,71,81],["S. Roudet","M",28,75,78],["Samba Sow","M",20,68,84],["N. Kovacevic","M",29,74,77],["D. Milovanovic","M",25,68,74],
+   ["K. Monnet-Paquet","A",21,73,89],["R. Boukari","A",22,70,81],["Eduardo Ribeiro","A",29,71,76],["K. Akalé","A",28,72,78],["I. Jemâa","A",25,70,76],["T. Maoulida","A",30,72,82]],
+ GRE:[["J. Viviani","G",27,65,71],["R. Le Crom","G",35,62,76],
+   ["D. Sauget","D",30,67,74],["B. Cesar","D",27,71,77],["J. Calvé","D",25,69,75],["S. Paillot","D",22,71,85],["M. Robin","D",32,67,72],["M. Vitakic","D",32,70,77],["J. Mainfroi","D",26,66,74],
+   ["L. Batlles","M",34,65,80],["A. Romao","M",25,64,80],["N. Dieuze","M",30,73,78],["D. Matsui","M",28,73,78],["L. Courtois","M",31,67,75],["S. Feghouli","M",20,66,88],["S. Taïder","M",17,58,87],
+   ["N. Akrour","A",35,61,70],["D. Ljuboja","A",31,69,80],["P. Boya","A",25,67,75],["Y. Ravet","A",20,60,76]],
+ BLG:[["J.-F. Bédénik","G",31,63,71],["I. Koné","G",20,59,75],
+   ["D. Marcq","D",21,66,82],["Y. Lachor","D",33,70,78],["A. Lecointe","D",29,68,74],["N. Rabuel","D",31,65,71],["B. Soumaré","D",24,68,76],["B. Dembélé","D",21,63,77],["G. Borne","D",21,70,86],["Z. Touré","D",20,71,88],["D. Perrinelle","D",26,70,77],
+   ["A. Cuvillier","M",23,72,82],["L. Agouazi","M",25,70,80],["G. Ducatel","M",30,66,70],["O. Kapo","M",29,76,82],["O. Adefemi","M",24,64,72],
+   ["F. Da Rocha","A",35,63,80],["J. Blayac","A",26,64,70],["O. Karuru","A",20,61,77],["G. Thil","A",29,64,69]]
+};
+const STARS_D2_0910={ // L2 2009-10 — 18 par club
+ NAN:[["L. Kamenar","G",22,65,77],["J. Alonzo","G",37,59,75],
+   ["F. Jarjat","D",29,66,71],["R. Maréval","D",26,76,82],["J.-J. Pierre","D",28,67,73],["I. Tall","D",28,72,79],["M. Sambou","D",23,69,82],["P. Djilobodji","D",21,64,84],
+   ["S. Darbion","M",25,70,79],["W. Vainqueur","M",21,65,83],["P. Ba","M",29,66,70],["M. Zerka","M",28,69,73],["D. De Freitas","M",30,68,71],["H. Shereni","M",34,63,71],
+   ["J.-C. Darcheville","A",34,69,82],["D. Abdoun","A",23,72,85],["F. Djordjevic","A",22,61,73],["T. N'Diaye","A",28,69,74]],
+ CAE:[["A. Thébaux","G",24,67,75],
+   ["J. Sorbon","D",26,68,75],["T. Heurtaux","D",21,69,84],["P. Barzola","D",26,70,76],["J. Eluchans","D",29,72,78],["G. Tafforeau","D",33,68,79],["A. Raineau","D",23,63,76],
+   ["B. Nivet","M",32,63,76],["G. Leca","M",29,72,74],["N. Seube","M",30,69,74],["G. Proment","M",31,68,76],["S. Yatabaré","M",20,67,85],["I. N'Diaye","M",21,65,79],
+   ["S. Langil","A",21,70,86],["Y. El Arabi","A",22,70,85],["K. Traoré","A",29,70,74],["J. Toudic","A",24,66,75],["R. van La Parra","A",18,66,89]],
+ LEH:[["J. Placide","G",21,66,82],["C. Revault","G",37,64,80],
+   ["N. Gillet","D",33,66,80],["J. Hénin","D",32,69,74],["J.-A. Kana-Biyik","D",20,67,86],["M. Le Marchand","D",20,66,83],["O. Davidas","D",28,64,69],["L. Nestor","D",20,70,90],["A. Ba","D",33,63,72],
+   ["A. Bonnet","M",23,64,74],["J. Aït Ben Idir","M",25,70,79],["G. Fofana","M",18,63,86],["K. Anin","M",23,71,84],["H. Alla","M",29,66,70],
+   ["Mamadou Diallo","A",27,68,77],["C. Baseya","A",22,64,76],["B. Jovial","A",25,66,72],["R. Mendes","A",19,62,84]],
+ MET:[["C. Marichez","G",35,59,71],["O. Sissoko","G",22,65,77],
+   ["Vivian","D",27,69,75],["J. Pied","D",20,67,84],["C. Guèye","D",23,73,84],["S. Borbiconi","D",30,65,70],["V. Bessat","D",24,69,82],["F. Biancalani","D",35,63,75],["Frechaut","D",32,66,70],
+   ["R. Rocchi","M",28,71,78],["P. Johansen","M",30,73,78],["J. Cardy","M",28,69,73],["M. Mutsch","M",25,70,76],["Y. Mokhtari","M",30,67,71],
+   ["V. Mendy","A",28,70,76],["P. Cissé","A",24,71,86],["R. Omotoyossi","A",24,67,75],["S. Wiltord","A",35,70,88]],
+ BRE:[["S. Elana","G",29,72,75],["S. Pontdemé","G",21,64,80],
+   ["A. Kantari","D",24,71,84],["O. Daf","D",32,65,74],["M. Brou Apanga","D",27,66,72],["C. Fabien","D",27,67,73],["Y. Bourgis","D",30,71,76],["F. Laurenti","D",26,75,81],["B. Ferradj","D",22,71,88],
+   ["O. Ewolo","M",31,69,75],["B. Grougi","M",26,68,77],["D. Bouard","M",32,63,71],["Y. Bigné","M",32,70,78],["M. Autret","M",18,63,83],
+   ["R. Poyet","A",29,69,75],["N. Roux","A",21,70,84],["B. Lesoimier","A",26,73,83],["R. Socrier","A",30,61,68]],
+ ANG:[["J.-D. Padovani","G",29,71,74],["K. Olimpa","G",21,65,79],
+   ["K. Djellabi","D",26,66,75],["T. Mienniel","D",29,68,74],["Matar Fall","D",27,69,75],["M. Couturier","D",27,68,77],["B. Ecuele Manga","D",21,71,88],["V. Manceau","D",20,65,79],
+   ["P. Oniangué","M",21,68,84],["M. Stéphan","M",34,58,70],["O. Auriac","M",26,71,78],["P. Brunel","M",36,62,75],["C. Diers","M",28,70,76],["S. Renouard","M",25,70,76],
+   ["A. Modeste","A",21,68,84],["G. Charbonnier","A",21,67,82],["C. Keșerü","A",23,66,79],["Y. Adnane","A",24,67,76]],
+ GUI:[["G. Gauclin","G",28,64,70],["S. Trévisan","G",36,60,72],
+   ["F. Saad","D",26,70,80],["C. Bassila","D",32,68,80],["Bakary Koné","D",21,68,86],["Y. Deroff","D",31,71,74],["R. Soumah","D",23,68,81],["T. Argelier","D",23,67,80],
+   ["F. Colleau","M",32,68,75],["M. Diallo","M",23,64,74],["T. Giresse","M",28,71,75],["F. Bellugou","M",22,66,80],["L. Mathis","M",28,74,78],["G. Imbula","M",17,58,89],
+   ["M. Ogounbiyi","A",27,65,71],["A. El Jadeyaoui","A",23,67,80],["S. Grax","A",25,74,83],["M. Scarpelli","A",28,70,74]],
+ STR:[["S. Cassard","G",37,61,78],["R. Gurtner","G",23,68,78],
+   ["G. Lacour","D",29,70,75],["M. Sikimic","D",29,72,77],["S. Pichot","D",33,66,76],["J.-A. Fanchone","D",21,73,89],["A. Maire","D",30,65,72],["S. Pelé","D",28,67,73],["H. Bellaïd","D",23,66,75],
+   ["Ferrugem","M",29,67,72],["Q. Othon","M",21,63,79],["M. Bah","M",21,70,86],["E. Gargorov","M",28,69,74],["Y. Bezzaz","M",28,68,74],
+   ["N. Fauvergue","A",25,68,78],["D. Ledy","A",22,61,73],["M. Gueye","A",19,60,83],["S. Zenke","A",21,70,86]],
+ TRS:[["R. Salin","G",25,67,73],["J. Sopalski","G",28,68,75],
+   ["R. Genevois","D",22,68,85],["X. Tomas","D",23,66,76],["F. N'Ganga","D",24,70,78],["J. Cétout","D",21,65,79],["A. Dujeux","D",33,64,72],["K. Saïdi","D",26,67,71],
+   ["G. Englebert","M",33,70,79],["J. François","M",30,72,79],["F. Atik","M",25,73,82],["G. Doumeng","M",29,71,73],["G. Adjet","M",21,62,76],
+   ["O. Giroud","A",23,76,86],["C. Belghazouani","A",23,64,74],["Y. Yenga","A",24,64,73],["Youssouf Touré","A",23,69,79],["S. Gakpé","A",22,67,79]],
+ CHA:[["V. Fernandez","G",34,66,74],["G. Deneuve","G",24,68,81],
+   ["K. Constant","D",22,67,82],["J. Cordonnier","D",29,74,80],["L. Koné","D",20,67,86],["H. Bedimo","D",25,69,78],["J. Roumégous","D",24,67,76],["R. Brégerie","D",23,71,82],["M. Giraudon","D",29,74,76],
+   ["R. Haddad","M",24,68,77],["D. Fleurival","M",25,70,80],["T. Xavier","M",26,63,70],["A. Kashi","M",21,66,82],["R. Grange","M",21,60,74],
+   ["T. Buengo","A",29,64,68],["A. Baby","A",20,61,77],["A. Baldé","A",23,68,78],["M. Dembélé","A",21,60,74]],
+ ARL:[["C. Merville","G",27,71,76],["N.-M. Yattara","G",25,68,74],
+   ["R. Reynaud","D",26,73,77],["R. Elie","D",24,69,82],["M. Esor","D",20,67,83],["J.-C. Vergerolle","D",24,68,77],["B. Soro","D",24,68,77],["J.-C. Cirilli","D",27,70,74],
+   ["T. Ayasse","M",22,68,85],["S. Piocelle","M",31,71,76],["E. Corrèze","M",27,69,73],["D. Himmes","M",26,69,73],["Dédé","M",28,69,73],
+   ["D. N'Diaye","A",24,71,79],["B. Psaume","A",24,71,79],["M. Dalé","A",24,70,78],["A. Ayew","A",20,70,90],["K. Diawara","A",34,69,82]],
+ SED:[["B. Costil","G",22,67,86],["V. Briant","G",23,68,81],
+   ["I. Traoré","D",23,73,85],["P. Baysse","D",21,70,86],["S. Cantini","D",22,69,83],["K. Abdallah","D",22,63,75],["A. Scaramozzino","D",24,69,78],
+   ["J. Le Moigne","M",26,63,70],["M. Mokaké","M",28,69,75],["D. Tibéri","M",24,72,85],["P. Valdivia","M",21,63,77],["D. Sidibé","M",27,71,76],["S. Oliveira","M",21,68,84],["L. Karaboué","M",21,71,87],
+   ["A. Allart","A",23,68,81],["Y. Eudeline","A",27,70,76],["S. Henaini","A",25,65,71],["D. Suarez","A",30,73,78]],
+ DIJ:[["G. Malicki","G",36,62,76],["F. Grandel","G",31,68,74],
+   ["S. Souprayen","D",20,66,82],["C. Zarour","D",26,71,75],["A. Zywiecki","D",25,68,77],["A. Vosahlo","D",34,62,72],["L. Malouda","D",26,66,74],["A. Lebrun","D",36,56,64],
+   ["É. Carrière","M",36,70,82],["S. Morisot","M",31,73,78],["M. Isabey","M",34,63,73],["Y. M'Vila","M",21,67,84],["C. Boateng","M",20,62,78],["D. Linarès","M",34,63,76],
+   ["S. Ribas","A",21,71,87],["L. Kitambala","A",21,63,79],["C. Mandanne","A",24,67,75],["N. Belvito","A",23,64,74]],
+ CLE:[["M. Fabre","G",25,68,75],["P. Bouysse","G",26,60,68],
+   ["C. Bockhorni","D",26,66,73],["A. Madouni","D",29,70,76],["J. Cellier","D",25,66,76],["M. Benatia","D",22,70,89],["J. Salze","D",22,67,79],["B. Abdoulaye","D",27,71,77],
+   ["E. Ekobo","M",28,76,82],["R. Hamdani","M",24,74,87],["F. Chaussidière","M",31,65,70],["C. Najih","M",26,69,73],["S. Pinto Borges","M",23,64,74],
+   ["N. Haquin","A",29,72,76],["Y. Brahimi","A",19,67,90],["M. Yatabaré","A",23,69,79],["R. Armand","A",22,65,77],["L. Arnaud","A",22,67,84]],
+ BAS:[["M. Novaes","G",26,70,76],["D. Agostini","G",20,67,85],
+   ["F. Harek","D",27,71,77],["K. Adénon","D",24,66,74],["D. Dunjic","D",28,67,72],["G. Lorenzi","D",26,69,77],["J. Martial","D",18,66,88],["É. Cubilier","D",30,70,75],
+   ["Y. Cahuzac","M",24,68,77],["F. Jau","M",31,67,71],["F. Ghisolfi","M",24,66,74],["J.-D. Périatambée","M",34,62,71],["M. Robail","M",24,67,80],["Y. Gomez","M",28,72,78],
+   ["P.-Y. André","A",35,64,80],["C. Gaffory","A",21,62,76],["W. Khazri","A",18,70,90],["X. Pentecôte","A",23,68,81]],
+ VNS:[["B. Benvegnu","G",24,69,78],["G. Gnanhouan","G",30,65,70],
+   ["D. Martot","D",28,69,75],["L. Guillon","D",27,73,79],["P. Leugueun","D",28,69,76],["B. Kamissoko","D",26,71,78],["E. Quintin","D",25,70,78],["A. Faivre","D",31,64,70],
+   ["L. Hervé","M",33,60,69],["V. Mézague","M",26,76,80],["C. Liabeuf","M",30,72,79],["L. Macquet","M",30,70,76],["F. Boudarène","M",31,72,78],
+   ["A. Camara","A",19,64,82],["F. Sammaritano","A",23,71,82],["G. Gimbert","A",24,61,70],["V. Reset","A",24,69,77],["F. Dja Djédjé","A",23,71,82]],
+ AJA:[["T. Debès","G",35,57,70],["L. Quiévreux","G",30,66,72],
+   ["J.-P. Sabo","D",22,71,85],["R. Fournier","D",26,71,81],["C. Medjani","D",24,73,81],["Leyti N'Diaye","D",24,65,74],["W. Moimbé","D",21,63,77],["E. Dohin","D",26,67,77],["J. Martins Pereira","D",23,67,77],
+   ["L. Guerriero","M",24,73,86],["B. André","M",19,69,89],["C. Kinkela","M",27,66,74],["K. Diaz","M",21,63,77],["J.-B. Pierazzi","M",24,66,75],
+   ["J. Viale","A",27,64,70],["J.-F. Rivière","A",32,69,75],["G. Ba","A",30,66,73],["V. Erard","A",19,58,76]],
+ NIM:[["N. Puydebois","G",28,71,78],["H. Al-Shaibani","G",25,65,71],
+   ["B. Poulain","D",22,67,81],["M. Stosic","D",28,70,74],["A. Zarabi","D",30,65,70],["M. Sidibé","D",28,63,68],["S. Sbaï","D",24,66,74],["S. Aït Bahi","D",25,65,71],
+   ["M. Mostefa","M",26,69,75],["J. Cavalli","M",28,65,71],["S. Sow","M",33,62,72],["N. Bayod","M",27,67,73],["Alphousseyni Keita","M",24,65,74],["S. Auvray","M",28,69,74],
+   ["J. Ayité","A",24,71,84],["J.-J. Mandrichi","A",25,63,69],["B. Moukandjo","A",21,68,85],["A. Delort","A",18,60,87]],
+ IST:[["M. Ménétrier","G",31,65,69],["K. Agassa","G",31,65,71],
+   ["M. Doumbia","D",29,66,70],["T. Scotto","D",31,68,74],["A. Kehiha","D",32,62,68],["C. Dielna","D",22,63,75],["F. Begeorgi","D",22,65,77],["F. Diawara","D",29,70,72],["F. Lejeune","D",18,61,86],
+   ["G. Coulibaly","M",23,68,81],["A. Chedli","M",33,65,78],["R. Ciaravino","M",25,66,72],["W. Mesloub","M",24,64,72],["P. Kessany","M",24,63,71],
+   ["B. El Bahri","A",23,65,75],["Y. Rivière","A",25,70,76],["R. Nouri","A",24,63,71],["R. Saïfi","A",34,62,73]],
+ LAV:[["A. Balijon","G",26,68,75],["M. Pichot","G",20,62,78],
+   ["J. Chapuis","D",34,58,66],["P. Talmont","D",32,65,71],["J. Stinat","D",31,67,73],["M. Puig","D",31,66,70],["M. Buzaré","D",33,64,71],
+   ["D. Neumann","M",32,73,81],["C. Coué","M",27,67,76],["F. Levrat","M",30,72,77],["A. Gonçalves","M",23,66,76],["L. Genest","M",22,69,83],["U. Le Pen","M",35,65,77],
+   ["R. Hamouma","A",22,70,84],["S. Haguy","A",28,70,74],["J. Lebouc","A",30,67,72],["F. Do Marcolino","A",26,68,76],["F. Raddas","A",29,67,71]]
+};
+const D1_0910=["LYO","OM","BOR","LIL","PSG","TOU","REN","MON","STE","AUX","NIC","NCY","LOR","VAN","MTP","LMN","SOC","LEN","GRE","BLG"];
+const D2_0910=["NAN","CAE","LEH","MET","BRE","ANG","GUI","STR","TRS","CHA","ARL","SED","DIJ","CLE","BAS","VNS","AJA","NIM","IST","LAV"];
 const SAISONS={
  "1990-91":{ an:1990, titre:"1990-91", nom:"Le bal des débutants", d1:D1_9091, d2:D2_9091, starsD1:STARS_9091, starsD2:STARS_D2_9091, euroC1:["OM"], euroC2:["MTP"], euroC3:["BOR","MON"],
    sous:"Le plus ancien plateau du jeu. Marseille écrase la France et court l'Europe jusqu'à la finale de Bari ; Papin plante vingt-trois buts et prendra le Ballon d'or, Waddle et Abedi Pelé enchantent le Vélodrome. Monaco finit deuxième et gagnera la Coupe de France. Ailleurs, des gamins débutent : Zidane a dix-huit ans à Cannes, Thuram quinze minutes en tout à Monaco, Weah en plante déjà sur le Rocher. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
@@ -5401,6 +5598,8 @@ const SAISONS={
    sous:"Le septième titre d'affilée de l'Olympique lyonnais, et le dernier de la série : quatre points d'avance sur un Bordeaux de Laurent Blanc qui a mené la danse jusqu'au printemps. Karim Benzema, vingt ans, est élu meilleur joueur du championnat ET meilleur buteur avec vingt buts ; Hatem Ben Arfa est meilleur espoir, Steve Mandanda meilleur gardien au Vélodrome, Jérôme Leroy meilleur passeur à trente-trois ans. Le Paris SG, seizième, sauve sa saison en gagnant la Coupe de la Ligue contre Lens, et Lyon le bat en finale de Coupe de France. Toulouse, troisième l'année d'avant, finit dix-septième et joue quand même la Ligue des champions. À Lille, un Belge de seize ans entre en jeu pour la première fois : Eden Hazard. En Ligue 2, Guillaume Hoarau plante vingt-huit buts et ramène Le Havre dans l'élite ; le FC Nantes remonte dans la foulée, et Boulogne découvre le monde professionnel." },
  "2008-09":{ an:2008, titre:"2008-09", nom:"Gourcuff fait tomber Lyon", d1:D1_0809, d2:D2_0809, starsD1:STARS_0809, starsD2:STARS_D2_0809, euroC1:["LYO","BOR","OM"], euroC2:[], euroC3:["NCY","STE","PSG","REN"],
    sous:"Le huitième titre d'affilée de l'Olympique lyonnais n'arrivera jamais : les Girondins de Bordeaux de Laurent Blanc prennent le championnat avec quatre-vingts points, trois de plus que Marseille, et Yoann Gourcuff est élu meilleur joueur de la saison de sa vie. André-Pierre Gignac plante vingt-quatre buts pour Toulouse et finit meilleur buteur ; Hugo Lloris, arrivé de Nice à Gerland, est meilleur gardien ; Eric Gerets meilleur entraîneur d'un Marseille deuxième ; et à Lille, Eden Hazard a dix-sept ans et il est déjà meilleur espoir du championnat. Tout en bas, Caen, Nantes et Le Havre descendent, les Normands après une seule saison dans l'élite. En Ligue 2, Lens remonte aussitôt avec Montpellier et Boulogne ; Guingamp va chercher la Coupe de France DEPUIS LA DEUXIÈME DIVISION, deux buts d'Eduardo contre Rennes au Stade de France ; et Vannes, monté du National pour sa première saison professionnelle, perd la finale de la Coupe de la Ligue contre Bordeaux. À Dijon, un attaquant de dix-neuf ans prêté par le Milan AC fait ses débuts : Pierre-Emerick Aubameyang." },
+ "2009-10":{ an:2009, titre:"2009-10", nom:"Le doublé de Deschamps", d1:D1_0910, d2:D2_0910, starsD1:STARS_0910, starsD2:STARS_D2_0910, euroC1:["BOR","OM","LYO"], euroC2:[], euroC3:["TOU","LIL","GUI"],
+   sous:"Le neuvième titre de l'Olympique de Marseille, et le premier depuis dix-huit ans : soixante-dix-huit points, six d'avance sur Lyon, et le doublé puisque Didier Deschamps ramène aussi la Coupe de la Ligue au Vélodrome. Mamadou Niang plante dix-huit buts et finit meilleur buteur, son retourné contre Lyon est élu but de l'année ; Lisandro López, arrivé de Porto, est meilleur joueur du championnat ; Hugo Lloris meilleur gardien pour la deuxième année de suite, Eden Hazard meilleur espoir pour la deuxième année aussi, à dix-neuf ans ; et Jean Fernandez est meilleur entraîneur d'un Auxerre troisième qui n'avait plus vu pareille saison. Le Paris SG, treizième, sauve son printemps en gagnant la Coupe de France contre Monaco. À Gerland, un attaquant de dix-huit ans entre en jeu douze minutes : Alexandre Lacazette. En Ligue 2, Olivier Giroud plante vingt et un buts pour Tours et devient meilleur joueur de la division ; Caen et Brest remontent, et Arles-Avignon, monté du National, se hisse jusqu'à la troisième place. Guingamp, vainqueur de la Coupe de France 2009, joue la LIGUE EUROPA DEPUIS LA DEUXIÈME DIVISION." },
 };
 const SAISON_DEFAUT="1995-96";
 let SAISON_ACCUEIL=SAISON_DEFAUT; // saison sélectionnée à l'écran d'accueil
@@ -13383,6 +13582,7 @@ function intersaison(){
     2006:"ÉTÉ 2006 · Coupe du monde : l'Italie au bout des tirs au but, un soir de drame à Berlin.",
     2008:"ÉTÉ 2008 · Euro en Autriche et en Suisse : l'Espagne met fin à quarante-quatre ans d'attente, une frappe de Torres à Vienne. Les Bleus, eux, rentrent dès le premier tour.",
     2010:"ÉTÉ 2010 · Coupe du monde en Afrique du Sud : l'Espagne sacrée pour la première fois, un but d'Iniesta à la 116e minute. Les Bleus, eux, rentrent de Knysna sans avoir gagné un match.",
+    2012:"ÉTÉ 2012 · Euro en Pologne et en Ukraine : l'Espagne conserve son titre et en écrase quatre à l'Italie à Kiev, trois trophées de suite, du jamais-vu. Les Bleus sortent en quarts, battus par ce même adversaire.",
   };
   const ev=HONNEURS[anneeJeu()+1];
   if(ev){

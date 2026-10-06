@@ -1859,6 +1859,190 @@ toujours « raconter quelque chose ».
   Ligue 1 en 02/03), et **`HONNEURS` devra apprendre l'été 2012** (Euro en Pologne et en Ukraine,
   l'Espagne encore) si l'on veut qu'une carrière de 09/10 ne traverse pas un été vide à sa troisième
   intersaison.
+  **2009-10 (v1.79)** : `STARS_0910`/`STARS_D2_0910`, `D1_0910`/`D2_0910`, `an:2009`,
+  `saison_id/2009` — sous le nom **« Le doublé de Deschamps »**, et c'est désormais la saison la plus
+  RÉCENTE du jeu. **L'Olympique de Marseille reprend le titre après DIX-HUIT ANS** : soixante-dix-huit
+  points, six d'avance sur Lyon, et **le doublé**, puisque Didier Deschamps ramène aussi la Coupe de la
+  Ligue au Vélodrome — lui qui portait le brassard du dernier sacre, celui de 1992-93 que le jeu
+  raconte déjà sous « Le sacre et le soupçon ». **Mamadou Niang est meilleur buteur avec dix-huit
+  buts** et son retourné contre Lyon est élu **but de l'année** ; **Lisandro López**, arrivé de Porto
+  pour vingt-quatre millions, est **meilleur joueur** ; **Hugo Lloris meilleur gardien pour la
+  deuxième année de suite** et **Eden Hazard meilleur espoir pour la deuxième année aussi** ;
+  **Jean Fernandez meilleur entraîneur** d'un Auxerre troisième ; et **Claude Makélélé reçoit le
+  trophée d'honneur** à trente-six ans, au milieu de terrain du Parc. Le Paris SG, treizième, sauve
+  son printemps en gagnant la Coupe de France contre Monaco. Le Mans, Boulogne et Grenoble descendent.
+  En Ligue 2, **Olivier Giroud plante vingt et un buts pour Tours et finit meilleur joueur ET meilleur
+  buteur de la division** — le troisième doublé individuel du chantier après Pauleta en 02/03 et
+  Benzema en 07/08, et le jeu le porte depuis 05/06, où il entrait cent quatorze minutes à Grenoble ;
+  Caen et Brest remontent (**Brest retrouve l'élite dix-neuf ans après la rétrogradation
+  administrative que 91/92 raconte**), et Arles-Avignon, monté du National, se hisse troisième.
+  **LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA HUITIÈME FOIS DE SUITE** : les deux échelons réels ont
+  vingt clubs, donc **aucun repêchage, aucun écarté**, et le harnais vérifie les deux listes par
+  égalité comme depuis 02/03. Trois promus (**Lens** champion de Ligue 2, **Montpellier** et
+  **Boulogne**), trois descendus (**Caen, Nantes, Le Havre**) ; en Ligue 2, trois montées du National
+  (**Arles-Avignon** champion, **Laval** et **Istres**) pour trois descentes (Amiens, Troyes, Reims).
+  Un seul club neuf dans `CLUBS_EXTRA` : **AC Arles-Avignon** (`ARL`, **Parc des Sports d'Avignon**,
+  17 500 places, **bleu et jaune** — « azur et or » —, couleurs vérifiées, jurisprudence Créteil), né
+  de la fusion de l'Athlétic Club arlésien et du football avignonnais à l'été 2009 et monté du
+  National. Deux détails de ce club valent d'être gardés : **il joue à trente kilomètres de la ville
+  dont il porte le nom**, parce qu'Arles n'avait pas de stade aux normes professionnelles, ce que dit
+  sa malédiction ; et **Créteil porte déjà le bleu et jaune depuis 99/00**, d'où un motif de blason
+  différent, ce que le harnais vérifie nommément.
+  **Sièges européens — SIX sièges seulement, la plus petite délégation depuis 02/03, ET LE SIXIÈME
+  EST EN LIGUE 2** : **Bordeaux (champion 2008-09) et MARSEILLE (2e) en phase de groupes de Ligue des
+  champions, LYON (3e) au barrage** ; en **Ligue Europa** — la Coupe UEFA a changé de nom à l'été
+  2009, ce que le sous-titre dit par son nom d'époque sans toucher aux libellés du moteur, comme la
+  Ligue 1 en 02/03 — **Toulouse (4e)**, **Lille (5e)** et **GUINGAMP, vainqueur de la Coupe de France
+  2009 ALORS QU'IL JOUAIT DÉJÀ LA LIGUE 2**, et qui la joue encore cette année-là : c'est le premier
+  siège de deuxième division depuis Châteauroux en 04/05, et il ira perdre ses deux matchs contre
+  Hambourg. `euroC2` est vide pour la dixième fois. **Et le contrôle des deux sens trouve son plus
+  beau cas** : **AUXERRE, QUI FINIRA TROISIÈME, ET MONTPELLIER, CINQUIÈME, PARTENT SANS EUROPE** —
+  ils étaient quatorzième et huitième l'année d'avant — tandis qu'un club de Ligue 2 joue la coupe
+  d'Europe. Vérifié plutôt que supposé : Bordeaux a gagné la Coupe de la Ligue 2009 en plus du
+  championnat, si bien que **ce siège-là est redescendu au classement** et non à un vainqueur de coupe.
+  **`HONNEURS` A APPRIS L'ÉTÉ 2012**, le troisième été que la table ait eu à écrire depuis l'ouverture
+  du chantier, après 2008 (écrit par 06/07) et 2010 (écrit par 07/08) : l'Espagne conserve son titre
+  et en met quatre à l'Italie à Kiev, et les Bleus sortent en quarts contre ce même adversaire — sans
+  « LA FRANCE » en capitales, que `finDeSaison` lit comme un triomphe. Partir de 09/10 fait tomber le
+  **MONDIAL 2010 dès la PREMIÈRE intersaison** (Knysna comprise), laisse l'**été 2011 MUET** (huitième
+  cas) et porte l'**EURO 2012 à la TROISIÈME**.
+  **L'héritage porte comme en 07/08, son meilleur niveau** : **529 des 760 noms reprennent leur note
+  08/09 vieillie d'un an**, 88 viennent de plus loin, **143 sont calculés** — 81 %, le taux de 07/08
+  retrouvé. Distribution collée à celle de 08/09 (L1 : moyenne 70,5 et médiane 70, comme l'an
+  dernier ; L2 : 67,3 et 68, contre 67,6 et 68). Le mieux noté du plateau est **Yoann Gourcuff à 85**,
+  sa dernière saison bordelaise avant les vingt-deux millions de Lyon.
+  Table d'ajustements à la main de **soixante-dix-huit entrées** : les palmarès de l'année d'abord
+  (**Lisandro López 84/88** — le calcul seul le laissait à 77, aucune ancre ne le connaissait —,
+  **Niang 82/84**, **Lloris 84/92**, **Hazard 79/95**, **Giroud 76/86**, que l'héritage seul laissait
+  à **64**, **Steeve Elana 72/75**, meilleur gardien de Ligue 2, **Makélélé 74/90**), puis les
+  arrivées que le calcul ne peut pas connaître — **Lucho González 81/84** (meilleur passeur, dix-neuf
+  millions de Porto), **Gabriel Heinze 78/86** (du Real Madrid), **Emir Spahic 77/80**, **Gelson
+  Fernandes 71/79**, **Gonzalo Bergessio 71/75**, **Eduardo Ribeiro 71/76** —, les hausses que le
+  temps a confirmées (**Koscielny 77/85**, signé par Arsenal l'été suivant, **Gyan 76/82**, vedette du
+  Mondial 2010, **Gervinho 78/90**, **Rami 76/85**, **Debuchy 75/85**, **Nenê 78/83**), et les gamins
+  que rien dans un classement ne trahit : **Alexandre Lacazette 63/93**, **Dejan Lovren 69/91**,
+  **Maxime Gonalons 70/90**, **Serge Aurier 62/90**, **Yann M'Vila 74/90**, **Yacine Brahimi 67/90**,
+  **Idrissa Gueye 66/90**, **Sébastien Corchia 70/90**, **Giannelli Imbula 58/89**, **Younès Belhanda
+  68/88**, **Yaya Sanogo 60/88**, **Saphir Taïder 58/87**, **Andy Delort 60/87**, **Bryan Dabo 59/86**,
+  **Florian Lejeune 61/86**, **Gueïda Fofana 63/86**.
+  **TROIS CORRECTIONS EN SENS INVERSE, ET L'UNE VA DANS L'AUTRE SENS QUE LES DEUX AUTRES** : la règle
+  de 06/07 sur les ancres lointaines se reconduit pour la quatrième saison — **Fernando Morientes**,
+  ancré à Monaco en 2003 et vieilli six fois, ressortait trop haut pour six cent vingt et une minutes
+  à trente-trois ans, et **Ludovic Giuly** a dû être retenu une seconde fois. **Mais Aly Cissokho
+  montre que l'ancre lointaine se trompe dans les DEUX directions** : ancré à Gueugnon en 2007, il
+  revient de Porto pour quinze millions et joue 4 206 minutes à Lyon — l'héritage seul le sortait à
+  **63**, soit aussi faux que les 88 de Djibril Cissé en 06/07, mais par le bas. **La formulation à
+  garder : une ancre de plus de deux ans n'est pas trop haute, elle est juste fausse, et il faut la
+  regarder dans les deux sens.**
+  **Dix-huit pépites forcées seulement, le plus petit forçage depuis 04/05, ET C'EST UN CHOIX** : le
+  contrôle de 08/09 — « lister, club par club, les écartés de plus de neuf cents minutes et regarder
+  en face ce que chaque forçage coûte » — a fait sortir quinze noms d'une première liste de
+  trente-trois. **Il a payé trois fois** : forcer deux Lyonnais de plus coûtait **Ederson et ses 1 681
+  minutes puis Mathieu Bodmer et ses 1 131**, deux hommes que le jeu porte depuis des années ; forcer
+  Diafra Sakho et Fallou Diagne à Metz coûtait **SYLVAIN WILTORD, champion du monde 1998**, et
+  **Frechaut et ses 1 718 minutes** ; et forcer Loïc Nego à Nantes coûtait **Papy Djilobodji**, futur
+  Chelsea, c'est-à-dire la carrière plus grosse des deux. **Trois autres renoncements du même ordre** :
+  **El Fardou Ben laissait sortir Ryan Mendes** (dix-neuf ans, cinquante sélections cap-verdiennes),
+  **Loïc Damour laissait sortir Yacine Bezzaz** (1 062 minutes, international algérien) et **Paul Lasne
+  laissait sortir Marc Giraudon** (1 193 minutes). **La règle à garder, et elle est plus sévère que
+  celle de 08/09 : un forçage ne se juge pas sur la carrière du forcé, mais sur la différence entre sa
+  carrière et celle de l'homme qu'il sort.** Restent **Alexandre Lacazette, dix-huit ans et DOUZE
+  MINUTES à Gerland** (son premier match professionnel), **YAYA SANOGO, SEIZE ANS ET QUINZE MINUTES À
+  AUXERRE** — le cinquième seizième anniversaire du jeu après Didier Domi (94/95), Mamadou Sakho
+  (06/07), Eden Hazard (07/08) et Sega Keïta (08/09) —, **Bryan Dabo gardé pour SIX MINUTES** à
+  Montpellier, Jordan Ayew, Idrissa Gueye, Henri Saivet, Josuha Guilavogui, Saphir Taïder, Sofiane
+  Feghouli, Kévin Théophile-Catherine, Tongo Doumbia, Alain Traoré, Rajiv van La Parra, Mathias
+  Autret, Vincent Manceau, Giannelli Imbula, Andy Delort et Florian Lejeune. **Grenoble, Rennes et
+  Auxerre paient deux hommes chacun.** Et **sept hommes de dix-sept ans ou moins** sont au plateau,
+  contre neuf en 08/09 — dont **Serge Aurier, dix-sept ans et 547 minutes à Lens, qui passe au temps
+  de jeu tout seul**, et Darnel Situ dans le même vestiaire.
+  **LE PIÈGE DU JOUR EST DOUBLE ET IL TIENT EN UNE PHRASE : LES FORMES DU JEU PASSENT AVANT CELLES DE
+  LA SOURCE, MÊME QUAND LA SOURCE SERT UN MONONYME.** Transfermarkt écrit **« Cris »** pour le
+  défenseur central de Lyon et **« Eduardo »** pour l'attaquant de Lens, deux noms d'un seul mot que
+  le dédoublonnage traitait comme des mononymes brésiliens authentiques. Or le jeu réserve « Cris » à
+  l'Angevin de 03/04 et « Eduardo » au Toulousain de 03/04 : le Lyonnais s'appelle **« Cristiano »**
+  depuis 04/05, et le Lensois est **EDUARDO RIBEIRO DOS SANTOS**, celui même qui a marqué les deux
+  buts de la Coupe de France 2009 pour Guingamp, que le jeu écrit **« Eduardo Ribeiro »** depuis 07/08
+  et qui déménage à Lens à l'été 2009. Pris pour des mononymes, les deux perdaient leur ancre et
+  recevaient une note recalculée. **Le contrôle à reconduire : pour chaque mononyme du relevé,
+  chercher dans les tables du jeu un homme NÉ LA MÊME ANNÉE dont le nom commence par ce mot.** C'est
+  ainsi que les deux ont été attrapés, et aucun autre des vingt-cinq mononymes de la saison n'était
+  concerné.
+  **Deuxième piège, un défaut de relevé neuf : Transfermarkt écrit parfois « N/A (31) » en colonne de
+  naissance**, et le parseur, qui cherchait la première cellule contenant une date, retombait alors
+  sur la colonne **« Membre depuis »** — Youssef Mokhtari, arrivé à Metz le 27 janvier 2010,
+  ressortait **né en 2010**, soit moins un an au coup d'envoi. **La naissance est la PREMIÈRE cellule
+  `zentriert` de la ligne, et elle seule** ; quand elle ne porte pas de date, le joueur est non daté,
+  point. Lui et Mustafa Kučuković ont été datés sur **deux sources concordantes** — l'âge que TM
+  affiche à côté du « N/A » et leur fiche Wikipédia (1979 et 1986) —, jurisprudence Vujović 92/93.
+  **Troisième piège, et il n'a pas de solution propre : DEUX DAMIEN PERQUIS, prénom ET patronyme
+  identiques**, l'un défenseur à Sochaux (3 179 minutes, le jeu le porte depuis 06/07), l'autre
+  **gardien à Caen** (270 minutes). Aucune forme ne les sépare, exactement comme les deux Olivier
+  Baudry de 91/92, et la convention dit que le marginal cède sa place à un autre vrai joueur de son
+  club — **sauf que Caen n'a pas d'autre gardien ayant joué**. Le jeu complète donc avec **UN SEUL
+  joueur procédural sur les sept cent soixante**, le deuxième gardien de Caen, et c'est exactement la
+  marge de 99/00, où Caen n'avait déjà qu'un gardien répertorié. **La règle : quand l'homonymie est
+  parfaite et qu'aucun remplaçant réel n'existe, on laisse le jeu compléter plutôt que de doubler un
+  nom — mais on ne le fait jamais pour un homme que la source documente ailleurs.**
+  **Six paires d'homonymes cohabitent**, dont trois reconduites de 08/09 (Bruno face à Benoît Cheyrou,
+  Bakari face à Bakary Koné, Mamadou face à Mustapha Diallo) et **trois neuves**, dont une qui **se
+  tranche à l'envers du temps de jeu** : **YANN M'VILA joue 3 318 minutes à Rennes et devient
+  international français dans l'année, mais « Y. M'Vila » est à YOHAN depuis 08/09**, qui n'en joue
+  que 1 527 à Dijon — c'est l'homme de l'ancre qui garde son nom, pas celui qui a le plus joué, et
+  Yann passe en toutes lettres. Les deux autres : **Sadio Sow garde « S. Sow » sur une ancre de
+  CRÉTEIL 2002-03** que Transfermarkt ne lui connaît pas et que sa fiche Wikipédia confirme (il y a
+  joué de 2002 à 2006), donc Samba Sow cède ; et Alphousseyni Keita reconduit sa forme entière.
+  **Quatre noms courts doivent rester ABSENTS** parce que leur porteur ne joue plus — Ismaël Bangoura,
+  Alaeddine Yahia, Matar Fall et **Rémy Riou, dont le cas mérite d'être lu : RUDY RIOU EST BIEN À
+  MARSEILLE en 2009-10, mais il n'y joue PAS UNE MINUTE**, donc le tri aux minutes l'écarte et
+  « R. Riou » disparaît du plateau sans que la paire soit cassée. **Un nom court absent n'est pas une
+  cession ratée : c'est parfois un homme qui n'a pas joué.** Les cessions de 07/08 et 08/09 sont
+  reconduites, et **« C.-y. Park » garde la minuscule que 08/09 lui a donnée** — la source écrit
+  autrement, le jeu ne change pas de nom en route.
+  **Quatre assertions du harnais, écrites de mémoire, ont été démenties par le mercato de l'été 2009,
+  et c'est le harnais qui a eu raison contre moi** : **Christophe Jallet** avait quitté Lorient pour
+  le Paris SG, **Benjamin Gavanon** Nancy pour Sochaux, **Jérémy Mathieu** Toulouse pour Valence — il
+  n'est donc nulle part au plateau —, et **ANDRÉ AYEW, prêté par Marseille, jouait la LIGUE 2 À
+  ARLES-AVIGNON**, si bien que **les deux frères Ayew sont au plateau la même année**, Jordan à
+  dix-huit ans au Vélodrome et André à vingt au Parc des Sports d'Avignon. Les quatre sont désormais
+  contrôlés nommément, comme Savidan en 08/09. **Et une cinquième assertion s'est trompée d'un an sur
+  l'âge d'Eden Hazard** : né en janvier 1991, il est **meilleur espoir à dix-neuf ans dans la réalité
+  mais à DIX-HUIT au registre**, parce que l'âge du jeu est « année civile − naissance ». La
+  convention est celle de 96/97, et un harnais qui raisonne sur l'âge réel d'un joueur né en janvier
+  se trompera toujours.
+  **La source est la plus généreuse du chantier pour la cinquième fois de suite** : **aucun club sous
+  vingt-quatre hommes ayant joué** (Auxerre, Caen, Clermont, Laval et Tours ferment la marche à
+  vingt-quatre), **aucun libellé de poste inconnu**, **quatre-vingts pages aspirées sans un seul échec
+  ni un seul anti-robot**, et **sept joueurs seulement que la source ne sache pas dater** — cinq qui
+  n'apparaissent que sur la page de temps de jeu (Aubameyang, Moussa Sissoko, Amiran Sanaia, Luboš
+  Kamenár, Romain Thomas, relevés sur leur fiche TM) et les deux « N/A » ci-dessus. **Mille cent
+  vingt-six hommes ont joué** pour sept cent soixante places ; **trente-quatre listés dans deux
+  clubs** sont allés là où ils ont le plus joué, dédoublonnés **par identifiant Transfermarkt**, et
+  les quarante identifiants de clubs ont été **relevés sur les pages `wettbewerb/FR1` et `FR2` de la
+  saison** (leçon de 01/02). La sentinelle de fin a été vérifiée des deux côtés — **huit derniers de
+  tableau ont leur place dans un effectif**, et le plus cher de tous est **RAFIK SAÏFI, 1 021 minutes
+  à Istres**, soixante sélections algériennes et le Mondial 2010 devant lui ; Moussa Dembélé fermait
+  celui de Châteauroux avec 1 002 minutes.
+  **TREIZE vétérans de 36 ans et plus, un record qui écrase les neuf de 08/09**, dont **sept
+  gardiens** ; **Dijon en aligne TROIS à lui seul** — Grégory Malicki, Anthony Lebrun et surtout
+  **ÉRIC CARRIÈRE, MEILLEUR JOUEUR DU CHAMPIONNAT 2000-01**, qui finit sa carrière en Ligue 2 à
+  trente-six ans, le plus bel écho que le chantier ait produit avec « Le jeu à la nantaise ». Les
+  doyens sont six hommes de trente-sept ans : Ramé, Coupet, Echouafni, Alonzo, Revault et Cassard.
+  135 prénoms neufs dans `PRENOMS_VRAIS`, **dont aucun vide** — pour la septième fois de suite.
+  **Le rougissement aléatoire de `harness-recruteur.cjs` est toujours là, et toujours le même** : sa
+  section F exige un prénom sur chaque carte alors que `PRENOMS_VRAIS` porte `"J. S. Verón":""`, un
+  prénom volontairement vide (consigne v1.46). Deux lancements sur huit rougissent. **Prouvé non
+  régressif à graine fixe** : à `Math.random` remplacé par une suite déterministe, la v1.78 et la
+  v1.79 rendent **le même échec sur le même homme à la graine 4**, et sont vertes aux graines 3, 7,
+  10, 11 et 21. Aucune assertion n'a été touchée. `harness-effectif.cjs`, l'autre rougissement
+  aléatoire découvert en 08/09, est resté vert huit fois de suite.
+  Validation dédiée : **`harness0910.cjs`**.
+  Pour ajouter 10/11 : même méthode avec `saison_id/2010`, entrée `"2010-11"` dans `SAISONS`, harnais
+  calqué sur `harness0910.cjs`. Le plateau ne bouge toujours pas (vingt et vingt depuis 02/03) ;
+  **Arles-Avignon monte en Ligue 1** pour la seule saison de son histoire, avec Caen et Brest, et
+  **Lille fera le doublé championnat-Coupe de France**. `HONNEURS` connaît déjà 2012 : partir de 10/11
+  le fait tomber à la deuxième intersaison, l'été 2011 reste muet à la première, et **il faudra
+  écrire 2014** (Mondial au Brésil, l'Allemagne, et le 7-1 de Belo Horizonte) pour la quatrième.
   **La file d'attente des saisons à venir — et les règles du chantier quotidien qui les ajoute une
   par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
