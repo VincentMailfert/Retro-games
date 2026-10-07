@@ -3481,6 +3481,96 @@ pour rester le même d'une ouverture à l'autre.
 Gardé par `harness-prenoms.cjs` (couverture de tous les vrais joueurs, prénom collé à l'initiale, prénom composé,
 générés toujours prénommés, noms sans initiale laissés tels quels).
 
+### COMMENT UN PAYS ENTRE DANS LE JEU (ANG-A, v1.80)
+Première étape du lot structure qui précède l'Angleterre. Rien n'est joué ici : **aucune saison étrangère n'est
+ajoutée**, on pose seulement le cadre qui permettra d'en ajouter une. La décision a été écrite AVANT la première
+ligne de code, comme l'exige `chantier-saisons.md`.
+
+**Le principe, en une phrase** : le moteur reste un moteur français, et un pays est une **couche d'affichage**
+par-dessus. Les montants restent en francs dans `G`, les divisions restent `G.div` 1 et 2, le championnat garde ses
+vingt clubs et ses trente-huit journées, la coupe nationale reste `G.coupe`. Ce qui change d'un pays à l'autre,
+c'est **le nom qu'on donne aux choses et l'unité dans laquelle on les écrit**. Aucune règle de jeu n'est
+paramétrée par pays, et c'est volontaire : un moteur qui se plie par pays se casse par pays.
+
+**La table `PAYS`** (en tête de script, juste sous `VERSION`) décrit chaque pays : son nom, son adjectif, son
+drapeau, les libellés de ses deux divisions (en fonction de l'année, voir plus bas), les étiquettes courtes du
+bandeau, sa coupe nationale, sa coupe de la ligue, la formule « champion de … », son unité monétaire et son
+**taux d'affichage**. Deux entrées pour l'instant, `FR` et `ANG`.
+**Piège de vocabulaire, à ne pas confondre** : `CLUBS_EUROPE` porte DÉJÀ un champ `pays`, qui contient un nom de
+pays en français (« Angleterre », « Pays-Bas ») et sert à la présentation d'un adversaire de Coupe d'Europe. Le
+champ `pays` de `SAISONS` est d'une autre nature : c'est un **code** (`"FR"`, `"ANG"`), clé de la table `PAYS`.
+
+**Le champ `pays` dans `SAISONS`** : chaque saison dit de quel pays elle est. Les vingt saisons françaises portent
+`pays:"FR"`, et **l'absence du champ vaut `"FR"`** — une saison sans pays est française, ce qui garde toute
+sauvegarde d'avant la v1.80 valide sans migration de données. `G.pays` est posé par `nouvellePartie` et rattrapé
+par `migre()` pour les carrières déjà ouvertes.
+
+**Les clés de `SAISONS` : préfixées, sauf la France.** `"ANG-1990-91"`, `"ITA-1990-91"`, `"ESP-1990-91"` — mais la
+France garde ses clés nues, `"1995-96"`, `"2009-10"`. Ce n'est pas une exception de confort, c'est le choix le
+moins risqué : ces clés nues sont écrites en dur dans **vingt harnais** (`const KEY = "1990-91"`), dans
+`SAISON_DEFAUT`, et dans toute l'histoire de ce fichier. Les préfixer coûterait vingt fichiers de retouche pour
+zéro gain, puisque **la vérité sur le pays d'une saison est son champ `pays`, pas sa clé**. La clé n'est qu'un
+espace de noms : elle empêche `"1990-91"` français et `"1990-91"` anglais de se recouvrir. Règle, donc : *la clé
+d'une saison est son créneau daté, préfixé du code pays pour tout pays autre que la France.*
+
+**Le pays REGARDÉ, et non le pays joué** (`PAYS_VU`, `AN_VU`, `voitPays(code, an)`). Les libellés et les montants
+s'affichent aussi à l'accueil, avant qu'aucune carrière n'existe — et l'accueil peut montrer une saison anglaise
+alors que `G` porte encore une carrière française, puisque « 📁 Mes carrières » ne vide pas `G`. Lire `G.pays` pour
+afficher serait donc faux à l'accueil. On tient deux variables de session, le code du pays regardé et l'année
+regardée, posées à **exactement trois endroits** : `ecranAccueil()` (la saison choisie au sélecteur),
+`nouvellePartie()` (le pays de la saison de départ) et `migre()` (donc tout chargement de carrière). Rien n'entre
+dans la sauvegarde hors `G.pays`. Les helpers `paysVu()`, `libDiv(n, an)`, `tagDiv(n, an)`, `libCoupeNat()`,
+`libCoupeLigue()`, `libChampion()` et `adjPays()` lisent ces deux variables.
+
+**Les libellés de divisions suivent l'ANNÉE, pas seulement le pays** — c'est le détail d'époque qui vaut le
+détour, et il est vérifié : en Angleterre, l'élite est la **First Division** jusqu'en 1991-92 et la **Premier
+League** à partir de 1992-93 ; l'échelon du dessous est la **Second Division** jusqu'en 1991-92, la **Division
+One** de 1992-93 à 2003-04, et le **Championship** à partir de 2004-05. Une carrière anglaise commencée en 1990-91
+voit donc son bandeau passer de « D1 » à « PL » au bout de deux saisons, tout seul.
+**En France, les libellés ne bougent PAS.** La D1 réelle devient la Ligue 1 en 2002, mais `chantier-saisons.md`
+tranche depuis le début : on dit le nom d'époque dans le sous-titre de la saison et **on ne touche pas aux
+libellés du moteur**. `PAYS.FR` rend donc « Division 1 » et « Division 2 » quelle que soit l'année, et c'est la
+garantie que la v1.80 ne change pas un pixel d'une partie française.
+
+**La monnaie d'affichage** : le moteur compte en francs, point. Chaque pays porte un **taux d'affichage** qui
+convertit au moment d'écrire, et son unité. `FR` : taux 1, « FF » et « MF ». `ANG` : taux 1/8, « £ » et « M£ »,
+parce que **huit francs valaient une livre** dans les années 90 — vérifié sur les moyennes annuelles de la Réserve
+fédérale (1995 : 4,9864 FF/$ × 1,5785 $/£ = 7,87 FF/£ ; 1996 : 5,1158 × 1,5607 = 7,99). Le chiffre est juste
+d'époque et rond à retenir. Conséquence agréable : un budget de 100 MF devient 12,5 M£, et un billet à 70 FF
+devient 9 £, deux ordres de grandeur conformes à l'Angleterre de 1995. **L'économie n'est donc calibrée qu'une
+fois**, en francs, pour tous les pays — on ne rejoue pas l'équilibrage à chaque frontière.
+Cinq helpers écrivent les montants, et **en France ils rendent exactement ce que rendaient les expressions
+qu'ils remplacent, à l'octet près** : `MM(n, d)` pour les millions (point décimal, comme la grande majorité des
+sites existants), `MMv(n, d)` pour les millions à virgule (les quelques sites qui faisaient
+`.replace(".", ",")`), `MMC(n)` pour le catalogue du centre de formation (qui passe par `MF_C`), `UU(n)` pour
+un montant à l'unité, et `MMn(n, d)` pour le **nombre seul**. Ce cinquième est né d'un piège : sur cent
+soixante-sept sites, **deux ne portaient pas leur unité** — la cellule « Valeur MF » de l'effectif, dont
+l'unité est dans l'en-tête de colonne, et le « au lieu de 3.0 » du coup de la semaine. Les convertir comme
+les autres y aurait ajouté un « MF » qui n'y était pas. Le point et la virgule qui cohabitent sont une verrue héritée des cent dix sites d'origine,
+pas une décision : la régulariser un jour se fera d'un coup, en touchant aux deux helpers et à rien d'autre —
+c'est précisément ce que le cadre apporte.
+**Ce qui N'EST PAS passé au cadre, et pourquoi** : les montants écrits **en toutes lettres dans un récit**
+(« 6 points de pénalité, 8 MF d'amende », « 300 000 francs » pour le guérisseur, « 0,8 MF retenus sur salaire »,
+les tarifs cités dans les commentaires de la billetterie). Ce sont des **textes**, pas des montants calculés :
+les convertir veut dire réécrire la phrase, ce qui est le travail d'**ANG-D**. La ligne de partage retenue : *un
+montant calculé passe par le cadre ; un montant écrit dans une phrase est du texte.* Même raison pour
+`PALIERS_STADE` (« Stade de Division 1 »), les historiques de clubs et les sous-titres de saisons.
+**Piège à ne pas rouvrir** : `"Pépite de Division 2"` est une **clé du vivier**, sérialisée dans `G.vivier` et
+testée par `harness-recruteur.cjs`. Ce n'est pas un libellé : on n'y touche jamais.
+
+**Le sélecteur d'accueil est groupé par pays, et ne se montre groupé que s'il y a de quoi.** Tant que `SAISONS`
+ne contient qu'un pays, le `<select>` reste la liste plate d'aujourd'hui ; dès qu'un deuxième pays entre, les
+`<optgroup>` apparaissent tout seuls, drapeau et nom en tête de groupe, dans l'ordre de la table `PAYS`. Le code
+est en place et gardé par le harnais (qui enregistre une fausse saison anglaise le temps de son contrôle), mais
+l'écran d'aujourd'hui est inchangé : c'est voulu, un groupe unique n'est pas un groupe.
+
+**Ce que ce cadre ne fait PAS, et qui reste aux étapes suivantes** : les clubs anglais et leurs couleurs (ANG-B),
+la réconciliation avec `CLUBS_EUROPE` — un club anglais ne peut pas être à la fois au championnat et dans le
+vivier de Coupe d'Europe (ANG-C), tout ce qui dit « France » sans le savoir : `HONNEURS`, la sélection nationale,
+les dépêches, la presse, les noms de villages de la coupe, les prénoms procéduraux, les incidents datés (ANG-D),
+et le harnais de plateau (ANG-E). Gardé par **`harness-pays.cjs`**.
+
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
@@ -3503,6 +3593,12 @@ générés toujours prénommés, noms sans initiale laissés tels quels).
    `harness9192.cjs` (saison de départ 91/92 : aucun repêchage en D1, Tours écarté et Beauvais repêché,
    Bourges et le Gazélec, Euro 92 dès la 1re intersaison, homonymes Ferri/Vujovic), `harness-euro.cjs` (les trois coupes d'Europe),
    `harness-prenoms.cjs` (les prénoms, v1.46 : chaque vrai joueur a son entrée, le prénom colle à l'initiale),
+   `harness-pays.cjs` (le cadre des pays, ANG-A v1.80 : la table PAYS complète, les libellés de divisions
+   qui suivent le pays ET l'année côté anglais sans bouger d'un mot côté français, le champ `pays` et la
+   convention de clé, les cinq helpers de montants prouvés IDENTIQUES aux expressions qu'ils remplacent en
+   France et convertis à huit francs la livre en Angleterre, le pays regardé qui n'est pas le pays joué,
+   le sélecteur qui se groupe dès qu'un deuxième pays entre — contrôlé en enregistrant une fausse saison
+   anglaise le temps du test),
    `harness-noms.cjs` (les saisons nommées : un nom par saison, la collection sans doublon, et surtout le
    créneau daté laissé intact dans `titre` et `G.saison`),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
