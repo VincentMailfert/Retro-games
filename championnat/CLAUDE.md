@@ -2282,7 +2282,7 @@ toujours « raconter quelque chose ».
   description distincte (pas de « le public l'adore »). Badge d'offre et `desc` exposent le bonus récurrent.
   **Noms (v1.82, choix de l'auteur le 08/10/2026)** : de VRAIES marques de l'époque (Mammouth, Cochonou, Prisunic,
   Air Inter, Bi-Bop, La Cinq, Enron…) mêlées de pastiches maison (Copytoo, Doozer, Madoff Consulting, Jens Lehmann
-  Brothers, Kachkar.biz, BetCash). Toutes datées (`de`/`a`), propres compris (objets `{nom,de,a}`) ; `datedDispo`
+  Brothers, Kachkar.biz 2006-2009 en clin d'œil à Jack Kachkar, BetCash). Toutes datées (`de`/`a`), propres compris (objets `{nom,de,a}`) ; `datedDispo`
   retombe sur la liste entière si une année est vide. Liste arrêtée par l'auteur : ne pas en ajouter sans lui.
 - **Équipementiers** (`EQUIPEMENTIERS`, `genEquip`/`choisirEquip`) : 2e source de revenu, **se signe comme un
   sponsor** — rien au début de saison, on choisit parmi des offres (`G.offresEquip`) qui dépendent de la
