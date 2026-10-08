@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.82"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.83"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11837,26 +11837,30 @@ function choisirSponsor(k){
 const EQUIPEMENTIERS=[
  {nom:"Athéna",                min:8.5, max:12, cachet:1.00, note:"l'équipementier roi, virgule conquérante, contrats en or"},
  {nom:"Triax",                 min:7,   max:11, cachet:0.92, note:"trois bandes et un palmarès continental"},
- {nom:"Cheetah",               min:6,   max:9.5,cachet:0.82, note:"le félin qui monte, marketing agressif"},
- {nom:"Ombra",                 min:5,   max:8,  cachet:0.68, note:"valeur sûre venue des terrains anglais"},
- {nom:"Oméga",                 min:4,   max:7,  cachet:0.55, note:"l'outsider transalpin aux motifs voyants"},
- {nom:"Le Faisan Sportif",     min:3,   max:6,  cachet:0.44, note:"la fierté cocardière, coupe à l'ancienne"},
- {nom:"Ringbok",               min:3,   max:5,  cachet:0.36, note:"robuste, increvable, sans fioritures"},
- {nom:"Tombola",               min:2,   max:4,  cachet:0.28, note:"couleurs criardes et prix plancher"},
- {nom:"Sportec Vosges",        min:1,   max:3,  cachet:0.20, note:"la petite manufacture du coin, cousue main"},
+ // les marques du milieu suivent l'époque (liste de l'auteur, 08/10/2026)
+ {nom:"Uhlsport",              min:6,   max:9.5,cachet:0.82, a:1999, note:"l'allemand des gardiens, sérieux comme un bilan"},
+ {nom:"Mitre",                 min:4.5, max:8,  cachet:0.62, a:1999, note:"le vétéran anglais, ballons et maillots depuis toujours"},
+ {nom:"Duarig",                min:3,   max:6,  cachet:0.44, a:1999, note:"la marque française des cours de récré"},
+ {nom:"Corfatex",              min:2,   max:5,  cachet:0.34, a:1995, note:"le synthétique qui brille sous les projecteurs"},
+ {nom:"Constri-foot",          min:1,   max:4,  cachet:0.25, a:1999, note:"la tenue des clubs du dimanche, robuste et pas chère"},
+ {nom:"Diadora",               min:6,   max:9.5,cachet:0.82, de:2000, note:"l'italienne des grands numéros 10"},
+ {nom:"Kelme",                 min:4.5, max:8,  cachet:0.62, de:2000, note:"la patte espagnole sur la manche"},
+ {nom:"Airness",               min:3,   max:6,  cachet:0.44, de:2000, note:"la panthère du 93, l'insolence en maillot"},
+ {nom:"Baliston",              min:1,   max:4,  cachet:0.25, de:2000, note:"la petite marque qui monte"},
  {nom:"Le Grand Échalas",      min:0,   max:2,  cachet:0.14, note:"l'atelier du village, floqué à la maison le samedi"},
 ];
 /* offres d'équipementier selon la notoriété — comme les sponsors : rien tant qu'on n'a pas signé */
 function genEquip(){
   const c=clubById(G.monClub);
   const standing=c.pres + Math.max(-1.5, Math.min(1.5, ((G.reput==null?75:G.reput)-75)/20));
-  const elig=EQUIPEMENTIERS.filter(e=>standing>=e.min && standing<=e.max).sort((a,b)=>b.cachet-a.cachet);
-  const ordre=elig.length?elig:[EQUIPEMENTIERS[EQUIPEMENTIERS.length-1]];
+  const liste=datedDispo(EQUIPEMENTIERS); // les marques de l'époque
+  const elig=liste.filter(e=>standing>=e.min && standing<=e.max).sort((a,b)=>b.cachet-a.cachet);
+  const ordre=elig.length?elig:[liste[liste.length-1]];
   const base=120000*(0.65+0.05*c.pres), rnd=x=>Math.round(x/1000)*1000;
   const prem=ordre[0];
-  const iPrem=EQUIPEMENTIERS.indexOf(prem);
-  const chal=ordre[1] || EQUIPEMENTIERS[iPrem+1] || EQUIPEMENTIERS[iPrem-1] || prem;
-  const loc=EQUIPEMENTIERS[EQUIPEMENTIERS.length-1]; // l'atelier local, modeste mais aimé
+  const iPrem=liste.indexOf(prem);
+  const chal=ordre[1] || liste[iPrem+1] || liste[iPrem-1] || prem;
+  const loc=liste[liste.length-1]; // l'atelier local, modeste mais aimé
   const offres=[
     {nom:prem.nom, fixe:rnd(base*prem.cachet),        prime:0,                          rep:0,  note:prem.note, desc:"le gros contrat, fixe maximal"},
     // le pari (v1.82, demande de l'auteur : trop de risque pour trop peu) : calé sur le fixe du N°1, pas sur le
