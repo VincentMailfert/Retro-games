@@ -11835,18 +11835,16 @@ function choisirSponsor(k){
 }
 /* ---------- Équipementiers : revenu selon la notoriété du club (noms fictifs) ---------- */
 const EQUIPEMENTIERS=[
- {nom:"Athéna",                min:8.5, max:12, cachet:1.00, note:"l'équipementier roi, virgule conquérante, contrats en or"},
- {nom:"Triax",                 min:7,   max:11, cachet:0.92, note:"trois bandes et un palmarès continental"},
- // les marques du milieu suivent l'époque (liste de l'auteur, 08/10/2026)
- {nom:"Uhlsport",              min:6,   max:9.5,cachet:0.82, a:1999, note:"l'allemand des gardiens, sérieux comme un bilan"},
- {nom:"Mitre",                 min:4.5, max:8,  cachet:0.62, a:1999, note:"le vétéran anglais, ballons et maillots depuis toujours"},
- {nom:"Duarig",                min:3,   max:6,  cachet:0.44, a:1999, note:"la marque française des cours de récré"},
- {nom:"Corfatex",              min:2,   max:5,  cachet:0.34, a:1995, note:"le synthétique qui brille sous les projecteurs"},
- {nom:"Constri-foot",          min:1,   max:4,  cachet:0.25, a:1999, note:"la tenue des clubs du dimanche, robuste et pas chère"},
- {nom:"Diadora",               min:6,   max:9.5,cachet:0.82, de:2000, note:"l'italienne des grands numéros 10"},
- {nom:"Kelme",                 min:4.5, max:8,  cachet:0.62, de:2000, note:"la patte espagnole sur la manche"},
- {nom:"Airness",               min:3,   max:6,  cachet:0.44, de:2000, note:"la panthère du 93, l'insolence en maillot"},
- {nom:"Baliston",              min:1,   max:4,  cachet:0.25, de:2000, note:"la petite marque qui monte"},
+ // les marques suivent l'époque (liste et phrases de l'auteur, 08/10/2026) ; Le Grand Échalas, toujours le dernier
+ {nom:"Uhlsport",              min:7,   max:13, cachet:1.00, a:1999, note:"l'allemand des gardiens, sérieux comme une porte de prison"},
+ {nom:"Mitre",                 min:5,   max:9.5,cachet:0.78, a:1999, note:"le vétéran anglais, aussi vieux que le foot"},
+ {nom:"Duarig",                min:3,   max:7,  cachet:0.55, a:1999, note:"la marque française plus fiable que Dugarry"},
+ {nom:"Corfatex",              min:2,   max:5,  cachet:0.40, a:1995, note:"la marque mythique de l'île de Beauté"},
+ {nom:"Constri-foot",          min:1,   max:4,  cachet:0.28, a:1999, note:"la définition du vintage"},
+ {nom:"Diadora",               min:7,   max:13, cachet:1.00, de:2000, note:"une touche de calcio sur le maillot"},
+ {nom:"Kelme",                 min:5,   max:9.5,cachet:0.78, de:2000, note:"la patte espagnole sur la manche"},
+ {nom:"Airness",               min:3,   max:7,  cachet:0.55, de:2000, note:"une panthère qui met le 93 sur la carte"},
+ {nom:"Baliston",              min:1,   max:4,  cachet:0.28, de:2000, note:"barre de céréales non incluse"},
  {nom:"Le Grand Échalas",      min:0,   max:2,  cachet:0.14, note:"l'atelier du village, floqué à la maison le samedi"},
 ];
 /* offres d'équipementier selon la notoriété — comme les sponsors : rien tant qu'on n'a pas signé */
