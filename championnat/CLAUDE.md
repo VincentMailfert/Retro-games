@@ -3570,6 +3570,118 @@ vivier de Coupe d'Europe (ANG-C), tout ce qui dit « France » sans le savoir : 
 les dépêches, la presse, les noms de villages de la coupe, les prénoms procéduraux, les incidents datés (ANG-D),
 et le harnais de plateau (ANG-E). Gardé par **`harness-pays.cjs`**.
 
+### LES CLUBS ANGLAIS (ANG-B, v1.81)
+Deuxième étape du lot structure. Toujours aucune saison anglaise jouable : on pose les **clubs**, c'est-à-dire
+la matière que les vingt saisons anglaises iront piocher. Rien du moteur n'est touché, une seule ligne de code
+l'est (`metaClub`, qui cherche désormais aussi dans la nouvelle table).
+
+**Combien de clubs, et comment on l'a su.** La file d'attente annonçait « ~45 clubs » ; ils sont **72**. Le
+chiffre n'a pas été deviné : les **quarante classements** de la période ont été relevés un par un sur Wikipédia
+(First Division puis Premier League, Second Division puis Division One puis Championship), et l'union de ces
+quarante plateaux donne soixante-douze clubs. Les quarante tables ont été lues, pas trente-sept : les sept
+dernières se cachaient derrière trois formats différents — une table transcluse d'un article séparé
+(`{{:1997–98 Football League First Division}}`), un renvoi `{{main|…}}` vers un article qui porte la table, et
+un `team_order=` où le « code » d'équipe est le nom du club en clair. **Leçon pour l'Italie et l'Espagne : une
+table de classement Wikipédia se lit de trois façons, et s'arrêter à la première laisse des clubs dehors.**
+C'est ce qui a rattrapé Bury et Walsall, deux clubs que les trente-sept premières tables ne montraient pas.
+
+**Une table à part, `CLUBS_ANG`, et pas une rallonge de `CLUBS_EXTRA`.** Les clubs français ont grandi par
+sédimentation, un club neuf par saison ajoutée ; les clubs anglais arrivent d'un bloc, et les mélanger aurait
+rendu les deux listes illisibles. `metaClub` cherche dans l'ordre `CLUBS`, `CLUBS_D2`, `CLUBS_EXTRA`, puis
+`CLUBS_ANG` : **un club français répond donc toujours en premier**, ce qui est la garantie qu'aucune partie
+française ne change de fiche.
+
+**Les identifiants : aucun vol, et quatre partages voulus.** Cent quinze codes étaient déjà pris (clubs
+français et vivier de Coupe d'Europe). Les soixante-douze codes anglais les évitent tous — d'où `CHL` pour
+Charlton (`CHA` est Châteauroux), `CRW` pour Crewe (`CRE` est Créteil), `TOT` pour Tottenham (`TOU` est
+Toulouse), `BNS` pour Barnsley (`BAR` est le Barça). **Quatre codes sont en revanche partagés exprès** :
+`BLB`, `EVE`, `FOR` et `LIV` — Blackburn, Everton, Nottingham Forest et Liverpool sont **déjà** dans
+`CLUBS_EUROPE`. Même club, même code : c'est précisément ce qui permettra à **ANG-C** de retirer Liverpool du
+vivier européen le jour où l'on jouera le championnat anglais. Leur donner un second code aurait rendu la
+réconciliation impossible. Le harnais vérifie que les codes partagés sont **exactement** ces quatre-là.
+Conséquence agréable et assumée : ces quatre clubs **gagnent leurs couleurs** dans `BLASONS`, donc une partie
+française voit enfin Liverpool en rouge et Everton en bleu en Coupe d'Europe, au lieu du gris de repli.
+
+**Les capacités sont celles de l'après-rapport Taylor, et c'est une décision.** Un stade anglais de 1990
+annonçait 57 000 places debout et en remplissait 36 000 ; la capacité du jeu fait la recette, donc c'est la
+seconde qui compte. La capacité de base est celle du stade **tout assis** du début des années 90, pas la
+capacité à terrasses. Highbury entre donc à 38 500 et non à 57 000.
+
+**Les budgets suivent le barème FRANÇAIS du moteur**, prestige par prestige (10 → 95 MF, 9 → 75, 8 → 58,
+7 → 42, 6 → 36, 5 → 26, 4 → 18, 3 → 13, 2 → 8, 1 → 6). Manchester United pesait en vrai dix fois le PSG : le
+reporter tel quel aurait fait sauter l'équilibrage. Le choix d'ANG-A tient — **l'économie n'est calibrée
+qu'une fois, en francs** — et la couche `PAYS` divise par huit à l'affichage, ce qui donne des ordres de
+grandeur anglais justes (58 MF = 7,3 M£ pour Arsenal en 1990). Le harnais refuse tout budget hors barème.
+
+**Les déménagements, tous datés sur l'année d'ouverture du stade.** C'est le point où une erreur se verrait :
+un club dans un stade qui n'existe pas encore. Les trente-cinq déménagements de la fenêtre sont donc dans
+`STADE_EPOQUE`, chacun vérifié sur l'infobox de l'article du stade — Emirates **2006**, City of Manchester
+Stadium **2003** (le stade a ouvert en 2002, mais pour l'athlétisme), Stadium of Light **30 juillet 1997**,
+St Mary's **11 août 2001**, Riverside **26 août 1995**, Pride Park **18 juillet 1997**, Reebok et Britannia
+**1997**, Walkers **2002**, Ricoh **2005**, JJB **1999**, KC **décembre 2002**, Madejski **1998**, Kassam
+**2001**, Liberty **2005**, New Den **4 août 1993**, Alfred McAlpine **1994**, Keepmoat **2007**, le stade de
+Colchester **août 2008**, Cardiff City Stadium **22 juillet 2009**. Le harnais épingle **cinquante-trois faits
+de stade**, en vérifiant chaque fois l'année d'avant ET l'année d'après. Trois cas valaient le détour :
+**Charlton** joue à Selhurst Park en 90/91, à Upton Park en 91/92 et ne rentre à The Valley qu'en décembre
+1992 ; **Wimbledon** quitte Plough Lane pour Selhurst Park en 1991 puis part à Milton Keynes en 2003 ;
+**Brighton** perd le Goldstone Ground en 1997, squatte Priestfield deux ans, et atterrit à Withdean.
+
+**Le standing, lui, raconte l'argent.** `PRES_EPOQUE` porte trente-neuf clubs anglais, parce que la fenêtre
+1990-2010 est exactement celle où le football anglais change de mains : l'argent de Jack Walker fait passer
+Blackburn de 3 à 8 entre 1990 et 1995, celui d'Abramovitch Chelsea de 7 à 10 en deux ans, celui d'Abou Dhabi
+Manchester City de 6 à 9, pendant que Leeds tombe de 8 à 4 et Nottingham Forest de 6 à 3. Le budget suit tout
+seul, `metaSaison` le recalculant dans la proportion du prestige.
+
+**Les couleurs sont vérifiées club par club**, sur deux sources concordantes de la page Wikipédia de chaque
+club : les **hex du maillot** de l'infobox (`body1`, `leftarm1`, `shorts1`, `socks1`) et la **phrase de la
+section couleurs** qui dit le motif (« red and white striped shirts », « blue-and-white halves »,
+« red and white hoops »). Les valeurs sont ensuite ramenées à la **palette maison** — le harnais refuse toute
+couleur qui n'est pas déjà employée par un club français, pour que les deux pays se ressemblent à l'écran.
+Vingt et un clubs sont donc rayés (Newcastle, Sunderland, Stoke, Sheffield United, Southampton, QPR, Reading,
+Brighton, Crystal Palace, Grimsby, Notts County, Hull, Bradford, Huddersfield, Colchester, Brentford,
+Doncaster, Scunthorpe, Sheffield Wednesday, West Bromwich Albion, Wigan), neuf coupés en deux (Aston Villa,
+West Ham, Burnley, Blackburn, Bristol Rovers, Bury, Crewe, Fulham, Ipswich), quarante-deux unis. **Des clubs
+partagent une allure** et c'est voulu : Rennes et Guingamp la partagent déjà dans le jeu, et on a préféré la
+couleur juste au blason distinctif.
+
+**Vingt-huit derbys**, tous réciproques et tous nommés : Manchester, le Merseyside, le nord de Londres,
+l'ouest de Londres, le Tyne-et-Wear, la seconde ville, le Black Country, Sheffield, le Yorkshire de l'Ouest,
+l'East Anglia, les Potteries, les East Midlands, le Lancashire de l'Est, la M61, la côte sud, le sud du Pays
+de Galles, Bristol, la M23, les dockers, la M69, la Tamise, le Lancashire de l'Ouest, la M1, la vallée de la
+Tamise, le Lincolnshire, le Yorkshire du Sud, l'Essex, les Fens. Le harnais vérifie qu'**aucune paire n'est
+franco-anglaise** dans un sens ni dans l'autre, qu'aucun club n'a deux rivaux, et que les trente-sept noms de
+derby du jeu sont tous différents.
+
+**Le piège neuf, et il est petit mais il est réel : l'esperluette.** « Brighton & Hove Albion » est le premier
+nom de club du jeu à porter un `&` — aucun club français n'en a. Vérification faite, tout nom de club atteint
+l'écran par `esc()`, jusqu'au texte des dilemmes (`esc(cp.q)`), donc le nom passe. Le harnais ne cache pas le
+cas, il l'**épingle** : il refuse tout chevron et tout guillemet, compte **une seule** esperluette dans toute
+la table, et vérifie que `esc()` la rend bien en `&amp;`.
+
+**Ce qui N'EST PAS fait ici, et reste aux étapes suivantes** : la réconciliation avec `CLUBS_EUROPE`
+(ANG-C), tout ce qui dit « France » sans le savoir — `HONNEURS`, la sélection, les dépêches, la presse, les
+noms procéduraux (ANG-D), le harnais de plateau (ANG-E). Et deux tables de **lore** sont restées françaises
+exprès, parce qu'elles sont du texte et non de la métadonnée : `JAMAIS_CHAMPION`/`MALEDICTIONS` ne connaissent
+aucun club anglais, donc aucun d'eux ne vit de malédiction — c'est le travail d'ANG-D, et en attendant le jeu
+ne raconte rien de faux. Gardé par **`harness-clubs-ang.cjs`**.
+
+**Le correctif de moteur livré au passage (v1.81), et pourquoi ce jour-là.** La validation d'ANG-B a fait
+remonter le rouge intermittent de `harness-recruteur.cjs` que les livraisons de 06/07, 07/08 et 08/09 avaient
+diagnostiqué et laissé, chaque fois pour la même bonne raison : *corriger une assertion est un travail de
+moteur, pas de saison*. ANG-B **est** une journée de moteur, et le diagnostic d'alors, qui accusait
+l'assertion, s'est révélé incomplet : la faute était dans **`nomLong`**. La fonction ne consommait qu'**une**
+initiale en tête (`^\p{Lu}\.(?:-\p{Lu}\.)* `), alors que **dix vrais joueurs** en portent deux — séparées
+par une **espace** (« T. A. Flo », « J. S. Verón », « J. C. Unzué », « B. T. Kvarme », « J. L. Diezma »,
+« J. L. Vidigal », « J. M. Prieto », « J. O. Hjelde », « T. K. Staurvik ») ou par un **trait d'union suivi
+d'une minuscule** (« C.-y. Park », comme souvent dans un prénom coréen). Le jeu écrivait donc **« Tore André
+A. Flo »** et **« Juan Carlos C. Unzué »** sur la fiche, la signature et la feuille de match, et gardait
+« C.-y. Park » au nom court alors que son prénom était connu. Le motif devient
+`^\p{Lu}\.(?:[-\s]\p{L}\.)* `, et le `""` de « J. S. Verón » — un prénom laissé vide alors que Juan
+Sebastián Verón ne fait aucun doute, et le seul des dix à tomber dans le vivier du recruteur — reçoit son
+prénom. Sur les **4 457** noms à prénom connu, il ne reste **aucune** initiale orpheline. **Garde-fou : la
+section G de `harness-prenoms.cjs`**, et son motif `INI` aligné sur celui de `nomLong` — le harnais avait
+exactement le même angle mort, et rangeait « C.-y. Park » parmi les noms *sans* initiale.
+
 
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :

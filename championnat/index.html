@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.80"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.81"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -1307,7 +1307,7 @@ const PRENOMS_VRAIS={
  "J. Palatsi":"Jérôme","J. Paniagua":"","J. Parkinson":"Joe","J. Pastinelli":"José","J. Pedersen":"Jan","J. Pettersson":"Jörgen",
  "J. Peuget":"Jean","J. Philippon":"Jean-Marc","J. Pierre-Fanfan":"José","J. Pineda":"Javi","J. Pinot":"José","J. Pinto":"",
  "J. Podbrożny":"Jerzy","J. Pradier":"Jacques","J. Radet":"Johan","J. Redknapp":"Jamie","J. Remy":"Jacques","J. Rico":"Jocelyn",
- "J. Riise":"John Arne","J. Riquelme":"Juan","J. Rivière":"Jean-François","J. Rothen":"Jérôme","J. S. Verón":"","J. Sabas":"Juan",
+ "J. Riise":"John Arne","J. Riquelme":"Juan","J. Rivière":"Jean-François","J. Rothen":"Jérôme","J. S. Verón":"Juan Sebastián","J. Sabas":"Juan",
  "J. Sablé":"Julien","J. Sanchez":"","J. Savine":"Jessy","J. Scales":"John","J. Singla":"","J. Sivebaek":"John",
  "J. Songné":"","J. Songo'o":"Jacques","J. Sørensen":"","J. Soriano":"","J. Sorín":"Juan Pablo","J. Stadler":"Joachim",
  "J. Štajner":"Jiří","J. Stam":"Jaap","J. Stejskal":"Jan","J. Strasser":"Jeff","J. Suchoparek":"Jan","J. Suchopárek":"Jan",
@@ -1817,7 +1817,13 @@ function prenomDe(nom){
   return l.length ? l[hacheNom(nom)%l.length] : "";
 }
 function nomLong(nom){ // « B. Lama » → « Bernard Lama », « J.-P. Papin » → « Jean-Pierre Papin » ; sinon le nom court
-  const p=prenomDe(nom), m=/^\p{Lu}\.(?:-\p{Lu}\.)* (.+)$/u.exec(nom||""); // « João M. Pinto » n'a pas d'initiale en tête
+  /* Les initiales en tête se suivent soit par trait d'union (« J.-P. Papin »), soit par une ESPACE
+     (« T. A. Flo », « J. S. Verón ») : il faut consommer toute la série, sinon le prénom complet se
+     colle à une initiale orpheline et le jeu écrit « Tore André A. Flo ». Neuf vrais joueurs étaient
+     dans ce cas. La deuxième initiale n'est pas toujours une capitale — « C.-y. Park » porte un y
+     minuscule, comme souvent dans un prénom coréen — d'où \p{L} après la première. « João M. Pinto »
+     n'a pas d'initiale en tête : il n'entre pas ici. */
+  const p=prenomDe(nom), m=/^\p{Lu}\.(?:[-\s]\p{L}\.)* (.+)$/u.exec(nom||"");
   return (p && m) ? p+" "+m[1] : (nom||"");
 }
 function genHistoire(nom){
@@ -1984,10 +1990,41 @@ function veilleEffectif(){
 /* ---------- Lore : rivalités et malédictions ---------- */
 const RIVAL={PSG:"OM",OM:"PSG",LEN:"LIL",LIL:"LEN",LYO:"STE",STE:"LYO",NAN:"BOR",BOR:"NAN",
  NIC:"MON",MON:"NIC",GUI:"REN",REN:"GUI",MET:"NCY",NCY:"MET",CAE:"LEH",LEH:"CAE",
- AJA:"BAS",BAS:"AJA"};
+ AJA:"BAS",BAS:"AJA",
+ /* Angleterre (ANG-B) */
+ MUN:"MCI",MCI:"MUN", LIV:"EVE",EVE:"LIV", ARS:"TOT",TOT:"ARS", CHE:"QPR",QPR:"CHE", NEW:"SUN",SUN:"NEW", AVL:"BIR",BIR:"AVL", WBA:"WOL",WOL:"WBA", SHU:"SHW",SHW:"SHU", LEE:"BRD",BRD:"LEE", NOR:"IPS",IPS:"NOR", STK:"PTV",PTV:"STK", DER:"FOR",FOR:"DER", BLB:"BUR",BUR:"BLB", BOL:"WIG",WIG:"BOL", POR:"SOU",SOU:"POR", CAR:"SWA",SWA:"CAR", BSC:"BSR",BSR:"BSC", CPL:"BHA",BHA:"CPL", WHU:"MIW",MIW:"WHU", LEI:"COV",COV:"LEI", FUL:"BTF",BTF:"FUL", PNE:"BLP",BLP:"PNE", WAT:"LUT",LUT:"WAT", RDG:"OXF",OXF:"RDG", GRI:"SCU",SCU:"GRI", DON:"ROT",ROT:"DON", COL:"SND",SND:"COL", CAM:"PET",PET:"CAM"};
 const NOMS_RIVALITES={"PSG-OM":"Le Classique","LEN-LIL":"Le derby du Nord","LYO-STE":"Le derby du Rhône",
  "NAN-BOR":"Le derby de l'Atlantique","NIC-MON":"Le derby de la Côte d'Azur","GUI-REN":"Le derby breton",
- "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand","AJA-BAS":"Le derby corse"};
+ "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand","AJA-BAS":"Le derby corse",
+ /* Angleterre (ANG-B) */
+ "MUN-MCI":"Le derby de Manchester",
+ "LIV-EVE":"Le derby du Merseyside",
+ "ARS-TOT":"Le derby du nord de Londres",
+ "CHE-QPR":"Le derby de l'ouest de Londres",
+ "NEW-SUN":"Le derby du Tyne-et-Wear",
+ "AVL-BIR":"Le derby de la seconde ville",
+ "WBA-WOL":"Le derby du Black Country",
+ "SHU-SHW":"Le derby de Sheffield",
+ "LEE-BRD":"Le derby du Yorkshire de l'Ouest",
+ "NOR-IPS":"Le derby de l'East Anglia",
+ "STK-PTV":"Le derby des Potteries",
+ "DER-FOR":"Le derby des East Midlands",
+ "BLB-BUR":"Le derby du Lancashire de l'Est",
+ "BOL-WIG":"Le derby de la M61",
+ "POR-SOU":"Le derby de la côte sud",
+ "CAR-SWA":"Le derby du sud du Pays de Galles",
+ "BSC-BSR":"Le derby de Bristol",
+ "CPL-BHA":"Le derby de la M23",
+ "WHU-MIW":"Le derby des dockers",
+ "LEI-COV":"Le derby de la M69",
+ "FUL-BTF":"Le derby de la Tamise",
+ "PNE-BLP":"Le derby du Lancashire de l'Ouest",
+ "WAT-LUT":"Le derby de la M1",
+ "RDG-OXF":"Le derby de la vallée de la Tamise",
+ "GRI-SCU":"Le derby du Lincolnshire",
+ "DON-ROT":"Le derby du Yorkshire du Sud",
+ "COL-SND":"Le derby de l'Essex",
+ "CAM-PET":"Le derby des Fens"};
 function nomRivalite(a,b){ return NOMS_RIVALITES[a+"-"+b]||NOMS_RIVALITES[b+"-"+a]||"Le derby"; }
 const JAMAIS_CHAMPION=new Set(["AUX","LEN","MET","MTP","REN","BAS","GUI","LEH","CAN","MAR","GUE","TOU","CAE","NCY","LYO"]);
 // premier titre réel (année de début de la saison du sacre) : une carrière lancée après ne le vit plus comme une malédiction
@@ -2254,6 +2291,82 @@ const BLASONS={
  BLG:{a:"#d40026",b:"#1a1a1a",st:"ray"},
  VNS:{a:"#1a1a1a",b:"#ffffff",st:"v"},
  ARL:{a:"#1c4fa0",b:"#e8b800",st:"ray"},
+ /* --- Angleterre (ANG-B) : couleurs relevées sur le maillot documenté de chaque club (hex de
+    l'infobox Wikipédia + phrase de la section couleurs), ramenées à la palette maison. Des clubs
+    partagent une allure, comme Rennes et Guingamp la partagent déjà : on a préféré la couleur
+    juste au blason distinctif. --- */
+ ARS :{a:"#d40026",b:"#ffffff",st:"uni"},  // Arsenal
+ AVL :{a:"#7a1f3d",b:"#37a6dc",st:"v"},  // Aston Villa
+ BNS :{a:"#d40026",b:"#ffffff",st:"uni"},  // Barnsley
+ BIR :{a:"#1c4fa0",b:"#ffffff",st:"uni"},  // Birmingham City
+ BLB :{a:"#ffffff",b:"#1d6bb5",st:"v"},  // Blackburn Rovers
+ BLP :{a:"#ff7b00",b:"#ffffff",st:"uni"},  // Blackpool
+ BOL :{a:"#ffffff",b:"#0a2a6b",st:"uni"},  // Bolton Wanderers
+ BRD :{a:"#7a1f3d",b:"#e8b800",st:"ray"},  // Bradford City
+ BTF :{a:"#d40026",b:"#ffffff",st:"ray"},  // Brentford
+ BHA :{a:"#1d6bb5",b:"#ffffff",st:"ray"},  // Brighton & Hove Albion
+ BSC :{a:"#d40026",b:"#ffffff",st:"uni"},  // Bristol City
+ BSR :{a:"#ffffff",b:"#0a2a6b",st:"v"},  // Bristol Rovers
+ BUR :{a:"#7a1f3d",b:"#0aa5d4",st:"v"},  // Burnley
+ BRY :{a:"#ffffff",b:"#1c4fa0",st:"v"},  // Bury
+ CAM :{a:"#f7d917",b:"#111111",st:"uni"},  // Cambridge United
+ CAR :{a:"#2a6bd4",b:"#ffffff",st:"uni"},  // Cardiff City
+ CHL :{a:"#b8001f",b:"#ffffff",st:"uni"},  // Charlton Athletic
+ CHE :{a:"#1c4fa0",b:"#ffffff",st:"uni"},  // Chelsea
+ COL :{a:"#1c4fa0",b:"#ffffff",st:"ray"},  // Colchester United
+ COV :{a:"#37a6dc",b:"#0a2a6b",st:"uni"},  // Coventry City
+ CRW :{a:"#d40026",b:"#ffffff",st:"v"},  // Crewe Alexandra
+ CPL :{a:"#d40026",b:"#1c4fa0",st:"ray"},  // Crystal Palace
+ DER :{a:"#ffffff",b:"#111111",st:"uni"},  // Derby County
+ DON :{a:"#d40026",b:"#ffffff",st:"ray"},  // Doncaster Rovers
+ EVE :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Everton
+ FUL :{a:"#ffffff",b:"#111111",st:"v"},  // Fulham
+ GIL :{a:"#0a3580",b:"#ffffff",st:"uni"},  // Gillingham
+ GRI :{a:"#111111",b:"#ffffff",st:"ray"},  // Grimsby Town
+ HUD :{a:"#2a6bd4",b:"#ffffff",st:"ray"},  // Huddersfield Town
+ HUL :{a:"#111111",b:"#f7d917",st:"ray"},  // Hull City
+ IPS :{a:"#0a3580",b:"#ffffff",st:"v"},  // Ipswich Town
+ LEE :{a:"#ffffff",b:"#e8b800",st:"uni"},  // Leeds United
+ LEI :{a:"#1c4fa0",b:"#e8b800",st:"uni"},  // Leicester City
+ LIV :{a:"#b8001f",b:"#ffffff",st:"uni"},  // Liverpool
+ LUT :{a:"#ffffff",b:"#ff7b00",st:"uni"},  // Luton Town
+ MCI :{a:"#37a6dc",b:"#ffffff",st:"uni"},  // Manchester City
+ MUN :{a:"#d40026",b:"#111111",st:"uni"},  // Manchester United
+ MID :{a:"#d40026",b:"#ffffff",st:"uni"},  // Middlesbrough
+ MIW :{a:"#0a2a6b",b:"#ffffff",st:"uni"},  // Millwall
+ NEW :{a:"#111111",b:"#ffffff",st:"ray"},  // Newcastle United
+ NOR :{a:"#f7d917",b:"#1c7c3a",st:"uni"},  // Norwich City
+ FOR :{a:"#d40026",b:"#ffffff",st:"uni"},  // Nottingham Forest
+ NTC :{a:"#111111",b:"#ffffff",st:"ray"},  // Notts County
+ OLD :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Oldham Athletic
+ OXF :{a:"#f7d917",b:"#0a2a6b",st:"uni"},  // Oxford United
+ PET :{a:"#2a6bd4",b:"#ffffff",st:"uni"},  // Peterborough United
+ PLY :{a:"#1c7c3a",b:"#ffffff",st:"uni"},  // Plymouth Argyle
+ PTV :{a:"#ffffff",b:"#111111",st:"uni"},  // Port Vale
+ POR :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Portsmouth
+ PNE :{a:"#ffffff",b:"#0a2a6b",st:"uni"},  // Preston North End
+ QPR :{a:"#1c4fa0",b:"#ffffff",st:"ray"},  // Queens Park Rangers
+ RDG :{a:"#1d6bb5",b:"#ffffff",st:"ray"},  // Reading
+ ROT :{a:"#d40026",b:"#ffffff",st:"uni"},  // Rotherham United
+ SCU :{a:"#7a1f3d",b:"#0aa5d4",st:"ray"},  // Scunthorpe United
+ SHU :{a:"#d40026",b:"#ffffff",st:"ray"},  // Sheffield United
+ SHW :{a:"#1d6bb5",b:"#ffffff",st:"ray"},  // Sheffield Wednesday
+ SOU :{a:"#d40026",b:"#ffffff",st:"ray"},  // Southampton
+ SND :{a:"#0a2a6b",b:"#ffffff",st:"uni"},  // Southend United
+ SKP :{a:"#2a6bd4",b:"#ffffff",st:"uni"},  // Stockport County
+ STK :{a:"#d40026",b:"#ffffff",st:"ray"},  // Stoke City
+ SUN :{a:"#d40026",b:"#ffffff",st:"ray"},  // Sunderland
+ SWA :{a:"#ffffff",b:"#111111",st:"uni"},  // Swansea City
+ SWI :{a:"#d40026",b:"#ffffff",st:"uni"},  // Swindon Town
+ TOT :{a:"#ffffff",b:"#0a2a6b",st:"uni"},  // Tottenham Hotspur
+ TRM :{a:"#ffffff",b:"#1d6bb5",st:"uni"},  // Tranmere Rovers
+ WAL :{a:"#d40026",b:"#ffffff",st:"uni"},  // Walsall
+ WAT :{a:"#f7d917",b:"#d40026",st:"uni"},  // Watford
+ WBA :{a:"#0a2a6b",b:"#ffffff",st:"ray"},  // West Bromwich Albion
+ WHU :{a:"#7a1f3d",b:"#37a6dc",st:"v"},  // West Ham United
+ WIG :{a:"#1c4fa0",b:"#ffffff",st:"ray"},  // Wigan Athletic
+ WIM :{a:"#1c4fa0",b:"#f7d917",st:"uni"},  // Wimbledon
+ WOL :{a:"#e8b800",b:"#111111",st:"uni"},  // Wolverhampton Wanderers
 };
 let _blN=0;
 function blason(c,s){
@@ -2409,7 +2522,93 @@ const CLUBS_EXTRA=[ // clubs présents en 96/97 mais absents de la base 95-96
  {id:"VNS", nom:"Vannes OC",                stade:"Stade de la Rabine", cap:7500, pres:2, budget:5e6}, // 08/09
  {id:"ARL", nom:"AC Arles-Avignon",        stade:"Parc des Sports",   cap:17500, pres:2, budget:5e6}, // 09/10
 ];
-function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===id)||CLUBS_EXTRA.find(c=>c.id===id); }
+/* ---------- LES CLUBS ANGLAIS (ANG-B, v1.81) ----------
+   Les 72 clubs qui ont traversé les deux premières divisions anglaises entre 1990-91 et 2009-10,
+   relevés table par table sur les quarante classements de la période (Wikipédia). Le stade et la
+   capacité sont ceux du DÉBUT de la fenêtre, 1990 ; STADE_EPOQUE porte les déménagements, tous
+   vérifiés sur la date d'ouverture de l'article du stade. Les capacités sont celles de
+   l'après-rapport Taylor (places assises), pas les capacités à terrasses de 1990 : un stade anglais
+   annonçait alors 57 000 places debout et en remplissait 36 000 — c'est la seconde qui fait la
+   recette. Les budgets suivent l'échelle FRANÇAISE du moteur (le prestige donne le budget, comme
+   pour les clubs français) : l'économie n'est calibrée qu'une fois, en francs, et la couche PAYS
+   convertit à l'affichage. Quatre identifiants sont ceux que CLUBS_EUROPE porte DÉJÀ — BLB, EVE,
+   FOR, LIV : même club, même code, et c'est exprès, puisque c'est ce qui permettra à ANG-C de
+   retirer Liverpool du vivier de Coupe d'Europe le jour où l'on jouera le championnat anglais. */
+const CLUBS_ANG=[
+ {id:"ARS", nom:"Arsenal",                 stade:"Highbury",                cap:38500, pres:8, budget:58e6},
+ {id:"AVL", nom:"Aston Villa",             stade:"Villa Park",              cap:39300, pres:7, budget:42e6},
+ {id:"BNS", nom:"Barnsley",                stade:"Oakwell",                 cap:23000, pres:2, budget:8e6},
+ {id:"BIR", nom:"Birmingham City",         stade:"St Andrew's",             cap:28000, pres:3, budget:13e6},
+ {id:"BLB", nom:"Blackburn Rovers",        stade:"Ewood Park",              cap:22000, pres:3, budget:13e6},
+ {id:"BLP", nom:"Blackpool",               stade:"Bloomfield Road",         cap:9500,  pres:1, budget:6e6},
+ {id:"BOL", nom:"Bolton Wanderers",        stade:"Burnden Park",            cap:25000, pres:3, budget:13e6},
+ {id:"BRD", nom:"Bradford City",           stade:"Valley Parade",           cap:14000, pres:2, budget:8e6},
+ {id:"BTF", nom:"Brentford",               stade:"Griffin Park",            cap:12300, pres:1, budget:6e6},
+ {id:"BHA", nom:"Brighton & Hove Albion",  stade:"Goldstone Ground",        cap:18200, pres:2, budget:8e6},
+ {id:"BSC", nom:"Bristol City",            stade:"Ashton Gate",             cap:21500, pres:3, budget:13e6},
+ {id:"BSR", nom:"Bristol Rovers",          stade:"Twerton Park",            cap:8800,  pres:1, budget:6e6},
+ {id:"BUR", nom:"Burnley",                 stade:"Turf Moor",               cap:20000, pres:2, budget:8e6},
+ {id:"BRY", nom:"Bury",                    stade:"Gigg Lane",               cap:11800, pres:1, budget:6e6},
+ {id:"CAM", nom:"Cambridge United",        stade:"Abbey Stadium",           cap:9600,  pres:1, budget:6e6},
+ {id:"CAR", nom:"Cardiff City",            stade:"Ninian Park",             cap:21500, pres:2, budget:8e6},
+ {id:"CHL", nom:"Charlton Athletic",       stade:"Selhurst Park",           cap:26300, pres:2, budget:8e6},
+ {id:"CHE", nom:"Chelsea",                 stade:"Stamford Bridge",         cap:31800, pres:6, budget:36e6},
+ {id:"COL", nom:"Colchester United",       stade:"Layer Road",              cap:6300,  pres:1, budget:6e6},
+ {id:"COV", nom:"Coventry City",           stade:"Highfield Road",          cap:23500, pres:4, budget:18e6},
+ {id:"CRW", nom:"Crewe Alexandra",         stade:"Gresty Road",             cap:10000, pres:1, budget:6e6},
+ {id:"CPL", nom:"Crystal Palace",          stade:"Selhurst Park",           cap:26300, pres:5, budget:26e6},
+ {id:"DER", nom:"Derby County",            stade:"Baseball Ground",         cap:18300, pres:4, budget:18e6},
+ {id:"DON", nom:"Doncaster Rovers",        stade:"Belle Vue",               cap:11500, pres:1, budget:6e6},
+ {id:"EVE", nom:"Everton",                 stade:"Goodison Park",           cap:40200, pres:7, budget:42e6},
+ {id:"FUL", nom:"Fulham",                  stade:"Craven Cottage",          cap:19000, pres:2, budget:8e6},
+ {id:"GIL", nom:"Gillingham",              stade:"Priestfield",             cap:11400, pres:1, budget:6e6},
+ {id:"GRI", nom:"Grimsby Town",            stade:"Blundell Park",           cap:9500,  pres:2, budget:8e6},
+ {id:"HUD", nom:"Huddersfield Town",       stade:"Leeds Road",              cap:16000, pres:2, budget:8e6},
+ {id:"HUL", nom:"Hull City",               stade:"Boothferry Park",         cap:15200, pres:1, budget:6e6},
+ {id:"IPS", nom:"Ipswich Town",            stade:"Portman Road",            cap:22600, pres:4, budget:18e6},
+ {id:"LEE", nom:"Leeds United",            stade:"Elland Road",             cap:40200, pres:6, budget:36e6},
+ {id:"LEI", nom:"Leicester City",          stade:"Filbert Street",          cap:22000, pres:3, budget:13e6},
+ {id:"LIV", nom:"Liverpool",               stade:"Anfield",                 cap:41000, pres:10, budget:95e6},
+ {id:"LUT", nom:"Luton Town",              stade:"Kenilworth Road",         cap:10200, pres:3, budget:13e6},
+ {id:"MCI", nom:"Manchester City",         stade:"Maine Road",              cap:35000, pres:6, budget:36e6},
+ {id:"MUN", nom:"Manchester United",       stade:"Old Trafford",            cap:44000, pres:8, budget:58e6},
+ {id:"MID", nom:"Middlesbrough",           stade:"Ayresome Park",           cap:26000, pres:4, budget:18e6},
+ {id:"MIW", nom:"Millwall",                stade:"The Den",                 cap:18000, pres:3, budget:13e6},
+ {id:"NEW", nom:"Newcastle United",        stade:"St James' Park",          cap:36600, pres:4, budget:18e6},
+ {id:"NOR", nom:"Norwich City",            stade:"Carrow Road",             cap:21400, pres:5, budget:26e6},
+ {id:"FOR", nom:"Nottingham Forest",       stade:"City Ground",             cap:30600, pres:6, budget:36e6},
+ {id:"NTC", nom:"Notts County",            stade:"Meadow Lane",             cap:20300, pres:3, budget:13e6},
+ {id:"OLD", nom:"Oldham Athletic",         stade:"Boundary Park",           cap:13500, pres:3, budget:13e6},
+ {id:"OXF", nom:"Oxford United",           stade:"Manor Ground",            cap:9500,  pres:2, budget:8e6},
+ {id:"PET", nom:"Peterborough United",     stade:"London Road",             cap:15300, pres:1, budget:6e6},
+ {id:"PLY", nom:"Plymouth Argyle",         stade:"Home Park",               cap:18000, pres:2, budget:8e6},
+ {id:"PTV", nom:"Port Vale",               stade:"Vale Park",               cap:18900, pres:1, budget:6e6},
+ {id:"POR", nom:"Portsmouth",              stade:"Fratton Park",            cap:19200, pres:3, budget:13e6},
+ {id:"PNE", nom:"Preston North End",       stade:"Deepdale",                cap:16000, pres:2, budget:8e6},
+ {id:"QPR", nom:"Queens Park Rangers",     stade:"Loftus Road",             cap:18400, pres:5, budget:26e6},
+ {id:"RDG", nom:"Reading",                 stade:"Elm Park",                cap:15000, pres:2, budget:8e6},
+ {id:"ROT", nom:"Rotherham United",        stade:"Millmoor",                cap:11000, pres:1, budget:6e6},
+ {id:"SCU", nom:"Scunthorpe United",       stade:"Glanford Park",           cap:9200,  pres:1, budget:6e6},
+ {id:"SHU", nom:"Sheffield United",        stade:"Bramall Lane",            cap:30400, pres:4, budget:18e6},
+ {id:"SHW", nom:"Sheffield Wednesday",     stade:"Hillsborough",            cap:39800, pres:5, budget:26e6},
+ {id:"SOU", nom:"Southampton",             stade:"The Dell",                cap:15200, pres:5, budget:26e6},
+ {id:"SND", nom:"Southend United",         stade:"Roots Hall",              cap:12300, pres:1, budget:6e6},
+ {id:"SKP", nom:"Stockport County",        stade:"Edgeley Park",            cap:10900, pres:1, budget:6e6},
+ {id:"STK", nom:"Stoke City",              stade:"Victoria Ground",         cap:24000, pres:3, budget:13e6},
+ {id:"SUN", nom:"Sunderland",              stade:"Roker Park",              cap:22500, pres:4, budget:18e6},
+ {id:"SWA", nom:"Swansea City",            stade:"Vetch Field",             cap:11500, pres:1, budget:6e6},
+ {id:"SWI", nom:"Swindon Town",            stade:"County Ground",           cap:15700, pres:3, budget:13e6},
+ {id:"TOT", nom:"Tottenham Hotspur",       stade:"White Hart Lane",         cap:36200, pres:7, budget:42e6},
+ {id:"TRM", nom:"Tranmere Rovers",         stade:"Prenton Park",            cap:16600, pres:2, budget:8e6},
+ {id:"WAL", nom:"Walsall",                 stade:"Bescot Stadium",          cap:11300, pres:1, budget:6e6},
+ {id:"WAT", nom:"Watford",                 stade:"Vicarage Road",           cap:22000, pres:3, budget:13e6},
+ {id:"WBA", nom:"West Bromwich Albion",    stade:"The Hawthorns",           cap:25300, pres:4, budget:18e6},
+ {id:"WHU", nom:"West Ham United",         stade:"Boleyn Ground",           cap:26000, pres:5, budget:26e6},
+ {id:"WIG", nom:"Wigan Athletic",          stade:"Springfield Park",        cap:7200,  pres:1, budget:6e6},
+ {id:"WIM", nom:"Wimbledon",               stade:"Plough Lane",             cap:13000, pres:4, budget:18e6},
+ {id:"WOL", nom:"Wolverhampton Wanderers", stade:"Molineux",                cap:25000, pres:4, budget:18e6},
+];
+function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===id)||CLUBS_EXTRA.find(c=>c.id===id)||CLUBS_ANG.find(c=>c.id===id); }
 /* Le prestige des fiches est celui de 1995 : une carrière lancée à une autre saison prend celui de son époque
    ([à partir de, prestige] ; null rend la valeur de la fiche). Le budget suit dans la même proportion. */
 const PRES_EPOQUE={
@@ -2427,6 +2626,48 @@ const PRES_EPOQUE={
  SED:[[1999,4],[2003,null]],
  TOU:[[2001,4]],
  GUI:[[2003,4]],
+ /* --- Angleterre (ANG-B) : ce que la fenêtre 1990-2010 a changé au standing d'un club — l'argent
+    de Jack Walker à Blackburn, celui d'Abramovitch à Chelsea, celui d'Abou Dhabi à Manchester City,
+    et la chute de Leeds comme celle de Nottingham Forest. --- */
+ MUN:[[1993,9],[1999,10]],
+ ARS:[[1998,9]],
+ LIV:[[1995,9],[2001,8]],
+ BLB:[[1992,7],[1995,8],[1997,5],[1999,4]],
+ NEW:[[1993,7],[1996,8],[2004,7]],
+ LEE:[[1992,7],[2000,8],[2002,6],[2004,4]],
+ CHE:[[1997,7],[2003,9],[2004,10]],
+ MCI:[[1996,4],[2000,5],[2002,6],[2008,8],[2009,9]],
+ FOR:[[1993,5],[1997,4],[1999,3]],
+ EVE:[[1995,6],[1998,5],[2005,6]],
+ TOT:[[2006,8]],
+ AVL:[[1996,6],[2006,7]],
+ MID:[[1995,5],[2004,6]],
+ SUN:[[1997,5],[2003,4]],
+ SOU:[[2005,4]],
+ DER:[[1996,5],[2002,3]],
+ LEI:[[1996,5],[2002,4]],
+ COV:[[2001,3]],
+ QPR:[[1996,3]],
+ SHW:[[2000,3]],
+ SHU:[[1994,3]],
+ IPS:[[1995,3],[2000,5],[2002,4]],
+ WHU:[[2003,4],[2005,5]],
+ CHL:[[1998,4],[2007,3]],
+ WIM:[[1999,3]],
+ FUL:[[1999,3],[2001,5]],
+ WIG:[[2003,3],[2005,4]],
+ POR:[[2003,4],[2008,5]],
+ RDG:[[2006,4]],
+ HUL:[[2008,3]],
+ STK:[[2008,4]],
+ BOL:[[2001,4]],
+ BIR:[[2002,4]],
+ LUT:[[1992,2]],
+ OLD:[[1991,4],[1994,2]],
+ NOR:[[1995,4]],
+ SWI:[[1993,4],[1994,2]],
+ BRD:[[1999,4],[2001,2]],
+ WBA:[[2002,5],[2006,4]],
 };
 // le stade aussi : [à partir de, nom, places] ; null rend celui de la fiche (sources : Wikipédia, vérifié le 30/09/2026)
 const STADE_EPOQUE={
@@ -2440,6 +2681,43 @@ const STADE_EPOQUE={
  AMI:[[1999,"La Licorne",12500]],
  SOC:[[2000,"Auguste-Bonal",20000]],
  SED:[[2000,"Louis-Dugauguez",24000]],
+ /* --- Angleterre (ANG-B) : les déménagements de 1990 à 2010, chacun daté sur l'année d'ouverture
+    relevée dans l'infobox du stade (Wikipédia, vérifié le 08/10/2026). --- */
+ ARS:[[2006,"Emirates Stadium",60400]],
+ BLB:[[1994,"Ewood Park",31400]],
+ BHA:[[1997,"Priestfield",11400],[1999,"Withdean",7000]],
+ BOL:[[1997,"Reebok Stadium",25000]],
+ BRD:[[1999,"Valley Parade",18000],[2001,"Valley Parade",25100]],
+ BSR:[[1996,"Memorial Ground",11900]],
+ CAR:[[2009,"Cardiff City Stadium",26800]],
+ CHE:[[2001,"Stamford Bridge",42400]],
+ CHL:[[1991,"Upton Park",26000],[1992,"The Valley",15000],[1998,"The Valley",20000],[2002,"The Valley",26500]],
+ BUR:[[2000,"Turf Moor",22500]],
+ FUL:[[2002,"Loftus Road",18400],[2004,"Craven Cottage",22000]],
+ WIM:[[1991,"Selhurst Park",26300],[2003,"National Hockey Stadium",9000]],
+ COL:[[2008,"Weston Homes Community Stadium",10100]],
+ COV:[[2005,"Ricoh Arena",32600]],
+ DER:[[1997,"Pride Park",33600]],
+ DON:[[2007,"Keepmoat Stadium",15200]],
+ HUD:[[1994,"Alfred McAlpine Stadium",24500]],
+ HUL:[[2002,"KC Stadium",25400]],
+ IPS:[[2001,"Portman Road",30300]],
+ LEI:[[2002,"Walkers Stadium",32500]],
+ MCI:[[2003,"City of Manchester Stadium",48000]],
+ MID:[[1995,"Riverside Stadium",34900]],
+ MIW:[[1993,"The New Den",20100]],
+ MUN:[[1996,"Old Trafford",55000],[2000,"Old Trafford",67500],[2006,"Old Trafford",76000]],
+ NEW:[[2000,"St James' Park",52200]],
+ OXF:[[2001,"Kassam Stadium",12500]],
+ PNE:[[1998,"Deepdale",20600]],
+ RDG:[[1998,"Madejski Stadium",24200]],
+ SOU:[[2001,"St Mary's Stadium",32500]],
+ STK:[[1997,"Britannia Stadium",28400]],
+ SUN:[[1997,"Stadium of Light",42000],[2000,"Stadium of Light",48300]],
+ SWA:[[2005,"Liberty Stadium",20500]],
+ WHU:[[2001,"Boleyn Ground",35300]],
+ WIG:[[1999,"JJB Stadium",25100]],
+ WOL:[[1993,"Molineux",28500]],
 };
 function metaSaison(id, an){
   const c=metaClub(id); if(!c) return c;

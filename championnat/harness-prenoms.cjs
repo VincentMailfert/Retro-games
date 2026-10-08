@@ -43,7 +43,11 @@ const sansAccent = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 // tous les vrais joueurs : chaque tuple [nom, poste, âge, note, pot…] écrit dans le fichier
 const reels = new Set();
 for (const m of script.matchAll(/\["([^"]+)","[GDMA]",\d+,\d+,\d+/g)) reels.add(m[1]);
-const INI = /^\p{Lu}\.(?:-\p{Lu}\.)* /u;           // « B. », « É. », « J.-P. » ; pas « João M. Pinto »
+const INI = /^\p{Lu}\.(?:[-\s]\p{L}\.)* /u;        // « B. », « É. », « J.-P. », « T. A. », « C.-y. » ; pas « João M. Pinto »
+/* La série d'initiales en tête se suit par trait d'union OU par une espace, et la deuxième n'est pas
+   toujours une capitale (« C.-y. Park ») : ce motif est le MÊME que celui de nomLong, et c'est voulu —
+   il avait le même angle mort que lui avant la v1.81, et classait « C.-y. Park » parmi les noms sans
+   initiale. Voir la section G. */
 const aInitiale = [...reels].filter(n => INI.test(n));
 
 /* ===== A) couverture ===== */
@@ -150,6 +154,31 @@ console.log("F) Là où l'on veut un joueur, il a son prénom");
   ok(script.includes('<td>${esc(j.nom)}</td><td class="pos-${j.pos}">'), "le tableau du marché garde les noms courts");
   // carte du club (v1.49) : avec vingt noms complets, « Prendre les rênes » ne doit jamais tomber sous l'écran
   ok(script.includes('<p class="ficheActions">') && html.includes(".ficheActions{position:sticky"), "le bouton de la carte du club reste collé en bas");
+}
+
+/* ===== G) les initiales multiples (v1.81) =====
+   « T. A. Flo » et « C.-y. Park » portent DEUX initiales, l'une séparée par une espace, l'autre par un
+   trait d'union et en minuscule. nomLong n'en consommait qu'une : le jeu écrivait « Tore André A. Flo »
+   et gardait « C.-y. Park » tel quel, sur dix vrais joueurs. Le contrôle ci-dessous est ce qui
+   empêchera la régression : aucune initiale orpheline ne doit survivre dans un nom long. */
+console.log("G) Les noms à plusieurs initiales ne laissent pas d'initiale orpheline");
+{
+  const P = api.PRENOMS_VRAIS;
+  const connus = Object.keys(P).filter(n => P[n]);
+  const orphelines = connus.filter(n => /(^| )\p{L}\.( |$)/u.test(api.nomLong(n)));
+  ok(orphelines.length === 0,
+    `aucun des ${connus.length} noms à prénom connu ne garde d'initiale orpheline${orphelines.length ? " — " + orphelines.slice(0, 8).join(", ") : ""}`);
+  const muets = connus.filter(n => api.nomLong(n) === n);
+  ok(muets.length === 0, `et aucun ne reste au nom court alors que son prénom est connu${muets.length ? " — " + muets.slice(0, 8).join(", ") : ""}`);
+  const multi = connus.filter(n => /^\p{Lu}\.[-\s]\p{L}\. /u.test(n));
+  ok(multi.length >= 10, `${multi.length} noms à deux initiales sont couverts`);
+  ok(api.nomLong("T. A. Flo") === "Tore André Flo" && api.nomLong("J. S. Verón") === "Juan Sebastián Verón" &&
+     api.nomLong("C.-y. Park") === "Chu-young Park",
+    "à l'œil : Tore André Flo, Juan Sebastián Verón, Chu-young Park");
+  // et ce qui marchait avant marche encore, y compris le nom qui n'a pas d'initiale en tête
+  ok(api.nomLong("B. Lama") === "Bernard Lama" && api.nomLong("J.-P. Papin") === "Jean-Pierre Papin" &&
+     api.nomLong("João M. Pinto") === "João M. Pinto" && api.nomLong("Ronaldo") === "Ronaldo",
+    "et Bernard Lama, Jean-Pierre Papin, João M. Pinto et Ronaldo n'ont pas bougé");
 }
 
 console.log(FAILS ? `\n✗ ${FAILS} échec(s)` : "\n✓ Tout est vert");
