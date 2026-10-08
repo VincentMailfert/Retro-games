@@ -2280,7 +2280,10 @@ toujours « raconter quelque chose ».
   cumulés sur une saison, en plus du bonus de signature : le « petit » sponsor devient un vrai choix « image ».
   **Réservé au terroir positif** : la seule entrée à `rep<0` (3617 Monique, minitel rose) a `repJ:0` et une
   description distincte (pas de « le public l'adore »). Badge d'offre et `desc` exposent le bonus récurrent.
-  Noms = pastiches inventés, jamais de vraie marque déposée (risque juridique).
+  **Noms (v1.82, choix de l'auteur le 08/10/2026)** : de VRAIES marques de l'époque (Mammouth, Cochonou, Prisunic,
+  Air Inter, Bi-Bop, La Cinq, Enron…) mêlées de pastiches maison (Copytoo, Doozer, Madoff Consulting, Jens Lehmann
+  Brothers, Kachkar.biz, BetCash). Toutes datées (`de`/`a`), propres compris (objets `{nom,de,a}`) ; `datedDispo`
+  retombe sur la liste entière si une année est vide. Liste arrêtée par l'auteur : ne pas en ajouter sans lui.
 - **Équipementiers** (`EQUIPEMENTIERS`, `genEquip`/`choisirEquip`) : 2e source de revenu, **se signe comme un
   sponsor** — rien au début de saison, on choisit parmi des offres (`G.offresEquip`) qui dépendent de la
   **notoriété** (prestige nuancé par la réputation) ; le contrat (`G.equip`) verse un cachet chaque journée et

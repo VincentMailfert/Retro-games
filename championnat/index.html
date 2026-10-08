@@ -11763,49 +11763,48 @@ function cableFlash(){
 }
 
 /* ---------- Sponsors ---------- */
-// Les ringards cultes : peu rémunérateurs mais attachants et fédérateurs (petit bonus de réputation).
-// Clins d'œil aux vrais sponsors kitsch de l'histoire du foot français (Justin Bridou, Zoo de Marseille, Poulet de Loué...).
+// Liste choisie par l'auteur le 08/10/2026 (v1.82) : de vraies marques de l'époque, plus quelques pastiches maison.
+// Chaque marque est datée (de/a) : les offres changent avec les années. Trois familles, le même dilemme image/argent.
+// Le terroir : peu rémunérateur mais attachant (gros bonus de réputation, récurrent).
 const SPONSORS_RINGARDS=[
- {nom:"Saucissons Gros-Jacquot", rep:+7, ere:"Le saucisson roi sur le maillot. Tout est bon dans le cochon, dit la pub."},
- {nom:"Zoo Municipal", rep:+6, ere:"Le zoo de la ville s'affiche fièrement. Les enfants adorent, les joueurs un peu moins."},
- {nom:"Limonade Pétillou", rep:+6, ere:"La limonade pétillante du goûter, bulles et sucre. Le sponsor le plus rafraîchissant du championnat."},
- {nom:"Poulet d'Or", rep:+7, ere:"Le poulet label rouge de la région. Ça ne fait pas voler bien haut, mais c'est du sérieux."},
- {nom:"Le Râpé de Mémé", rep:+6, ere:"Le fromage râpé de la fromagerie locale. Le fromage annonce souvent la fin du repas."},
- {nom:"Bonbons Crocandy", rep:+4, ere:"Des bonbons et des blagues pourries au dos de l'emballage. De quoi sourire à chaque but."},
- {nom:"Siro Nimo", rep:+4, ere:"Le sirop de grenadine qui désaltère toute la famille au goûter. Pétillant de ringardise."},
- {nom:"Cassoulet Torloting", rep:+7, ere:"La conserve qui sent bon le Sud-Ouest, le confit et le haricot. Ça tient au corps."},
- {nom:"Mammouth", rep:+4, ere:"La grande surface au design culte des années 80. Le mammouth écrase les prix."},
- {nom:"La Halle aux Bonnes Affaires", rep:+3, ere:"Des fringues pas chères pour un sport populaire. Style discount assumé."},
- {nom:"La Crèmerie du Mont Joufflu", rep:+8, ere:"La crèmerie du coin et ses pâtes pressées qui sentent bon l'alpage. Le Mont Joufflu veille, débonnaire, sur le maillot."},
- {nom:"Pastaga 41", rep:+5, ere:"Le pastis de l'apéro d'après-match, 41 à l'ombre des platanes. « À consommer avec modération », jure l'étiquette en tout petit."},
- {nom:"3617 Monique", rep:-3, de:1995, a:2004, ere:"Un service de minitel rose sur le maillot. « Composez le 3617 », osé pour un club familial."},
+ {nom:"Mammouth", rep:+5, a:1996, ere:"Le mammouth écrase les prix, et maintenant il porte vos couleurs."},
+ {nom:"Tati", rep:+5, a:2017, ere:"Les carreaux roses et blancs de Barbès sur le maillot. Les prix les plus bas."},
+ {nom:"Cochonou", rep:+7, ere:"La 2CV, le saucisson et la nappe à carreaux. Le public en redemande."},
+ {nom:"Tipiak", rep:+6, ere:"La semoule et le tapioca des repas de famille. Un sponsor qui sent bon le dimanche."},
+ {nom:"Bordeau Chesnel", rep:+7, ere:"Les rillettes de la Sarthe s'affichent en grand. Ça tient au corps."},
+ {nom:"Fleury Michon", rep:+6, ere:"Le jambon de Vendée, rose et sérieux. Une maison qui inspire confiance."},
+ {nom:"Amora", rep:+6, ere:"La moutarde qui monte au nez. Un maillot qui pique."},
+ {nom:"Teisseire", rep:+6, ere:"Le sirop du goûter et des après-matchs au bord du terrain."},
 ];
-const SPONSORS_PROPRES=["Brasseries Royale","Eaux Vives du Forez","Micro-Galaxie Informatique","Supermarchés Maxi",
- "Assurances du Littoral","Télévisions Hexagone","Boucherie Sanzot","Boulangeries Les Deux Miches","Cols Bleus Mutuelle","Pulse FM","Sopalin"];
+// Les marques nationales : équilibrées, image saine.
+const SPONSORS_PROPRES=[
+ {nom:"Air Inter", a:1997}, {nom:"Prisunic", a:2002}, {nom:"Euromarché", a:1991}, {nom:"Vedette", a:2005},
+ {nom:"Radiola", a:2001}, {nom:"Naf Naf", a:2005}, {nom:"Creeks", a:1999}, {nom:"Moulinex", a:2001},
+ {nom:"La Camif", a:2008}, {nom:"Itineris", de:1992, a:2000}, {nom:"Bi-Bop", de:1993, a:1997}, {nom:"Tatoo", de:1995, a:2001},
+ {nom:"Copytoo", de:1996, a:2006}, {nom:"Niouf Telecom", de:2004, a:2010}, {nom:"Doozer", de:2008}, {nom:"Lebonfilon", de:2009},
+];
+// Les sulfureux : pont d'or, image en baisse, parfois défaut de paiement.
 const SPONSORS_SULFUREUX=[
- // intemporels : ces tentations existent depuis toujours
- {nom:"BTP Construquick", rep:-12, defaut:0.30, ere:"La boîte de BTP au carnet de commandes trouble. Du cash tout de suite, des questions plus tard."},
- {nom:"Bâtiment Santucci & Fils", rep:-13, defaut:0.25, ere:"Une société de BTP insulaire au capital opaque et aux amitiés bien placées. On ne refuse pas vraiment, et on ne pose pas de questions."},
- {nom:"Cigarettes Mistral", rep:-15, a:2008, ere:"Une marque de tabac, comme au bon vieux temps des maillots enfumés."},
- {nom:"Roch, Encourt & Associés", rep:-10, defaut:0.45, ere:"Pleine de belles promesses... mais paiera-t-elle vraiment ? Rien n'est moins sûr."},
- {nom:"Télé-Magnat Diffusion", rep:-13, de:1999, ere:"Une nouvelle chaîne tenue par des magnats à la réputation sulfureuse, l'argent du câble coule à flots."},
- {nom:"Bidoo Startup Internet", rep:-8, de:1998, a:2003, defaut:0.40, moderne:true, ere:"Une jeune pousse de l'Internet, gavée de capital-risque et de promesses en « -oo ». La « nouvelle économie » s'affiche sur les maillots, pourvu que la bulle ne crève pas."},
- {nom:"Mobilis-Téléphonie Mobile", rep:-6, a:2004, defaut:0.15, ere:"Un de ces nouveaux opérateurs de téléphonie mobile qui se lancent à grand renfort de pub. Le GSM, paraît-il, va tout changer."},
- {nom:"Visit-Petrostan Office du Tourisme", rep:-13, de:2008, ere:"Le sponsoring déguisé d'un État lointain en quête de respectabilité."},
- // ère internet / paris en ligne : impossible avant la fin des années 2000
- {nom:"TurboParis Paris Sportifs", rep:-14, de:2010, moderne:true, ere:"Les paris sportifs en ligne, tout juste légalisés, frappent à la porte. Une autre époque commence."},
- {nom:"BetMax Pronostics en ligne", rep:-13, de:2010, moderne:true, ere:"Une plateforme de paris en ligne, le foot entre dans l'ère du pari permanent."},
- {nom:"GoldTrade Plateforme de Trading", rep:-12, de:2014, moderne:true, ere:"Le trading en ligne s'affiche sur les maillots. Promesses de fortune, parfum de scandale."},
- {nom:"CryptoMillions.com", rep:-12, de:2017, moderne:true, ere:"La cryptomonnaie veut son maillot. Personne ne comprend vraiment, tout le monde flaire le danger."},
+ {nom:"La Cinq", rep:-10, a:1992, defaut:0.35, ere:"La télé des paillettes paie rubis sur l'ongle. Pour l'instant."},
+ {nom:"Gauloises", rep:-15, a:1992, ere:"Une marque de tabac sur le maillot, avant que la loi ne s'en mêle."},
+ {nom:"Suze", rep:-11, a:1992, ere:"L'apéritif à la gentiane s'invite au stade. Les ligues antialcool grincent des dents."},
+ {nom:"3615 Ulla", rep:-12, a:1999, ere:"Le minitel rose sur le maillot. Osé pour un club familial."},
+ {nom:"Madoff Consulting", rep:-10, de:1992, a:2008, defaut:0.40, ere:"Des rendements réguliers, trop réguliers. Personne ne pose de questions."},
+ {nom:"Enron", rep:-9, de:1997, a:2001, defaut:0.45, ere:"Le géant texan de l'énergie, des comptes éblouissants. Trop, peut-être."},
+ {nom:"Jens Lehmann Brothers", rep:-10, de:2001, a:2008, defaut:0.35, ere:"Une banque d'affaires qui promet des rendements en béton. Le béton a parfois des fissures."},
+ {nom:"Yemen Airways", rep:-13, de:2004, ere:"Une compagnie aérienne d'État en quête de respectabilité. Le chèque est énorme."},
+ {nom:"BetCash", rep:-14, de:2010, moderne:true, ere:"Les paris sportifs en ligne, tout juste légalisés, frappent à la porte."},
+ {nom:"Kachkar.biz", rep:-12, de:2017, defaut:0.40, moderne:true, ere:"La cryptomonnaie veut son maillot. Personne ne comprend vraiment, tout le monde flaire le danger."},
 ];
 function datedDispo(liste){
   const an=anneeJeu();
-  return liste.filter(s=>(!s.de||an>=s.de) && (!s.a||an<=s.a));
+  const ok=liste.filter(s=>(!s.de||an>=s.de) && (!s.a||an<=s.a));
+  return ok.length?ok:liste; // filet : jamais d'offre vide, même dans une année creuse
 }
 function sponsorsDispo(){ return datedDispo(SPONSORS_SULFUREUX); }
 function genSponsors(mult){
   const ech=clubById(G.monClub).pres*0.09+0.55;
-  const propres=SPONSORS_PROPRES.slice().sort(()=>Math.random()-.5);
+  const propres=datedDispo(SPONSORS_PROPRES).map(p=>p.nom).sort(()=>Math.random()-.5);
   const ring=PICK(datedDispo(SPONSORS_RINGARDS));
   const sulf=PICK(sponsorsDispo());
   return [
@@ -13984,7 +13983,7 @@ function intersaison(){
   G.equip=null; G.offresEquip=genEquip(); // l'équipementier est à re-signer chaque saison, selon la notoriété
   // une nouvelle ère de sponsoring s'ouvre-t-elle cette saison ?
   G.nouvelleEre=null;
-  const an=1994+G.saisonIdx;
+  const an=anneeJeu(); // (était 1994+saisonIdx : faux dès qu'on ne partait pas en 1995)
   const modernesActifs=SPONSORS_SULFUREUX.filter(s=>s.moderne && s.de===an);
   if(modernesActifs.length) G.nouvelleEre=modernesActifs[0];
   G.confiance=65;
