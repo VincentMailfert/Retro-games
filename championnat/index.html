@@ -533,7 +533,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.81"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.82"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -8277,7 +8277,8 @@ function finirJournee(delta){
     G.tresorerie += (G.div===1?450000:200000); // droits TV par journée — bien moindres en D2 : remonter, c'est aussi décrocher le jackpot télé
     G.tresorerie += stadeRecetteJour(); // boutique, musée, ruban LED : une rentrée chaque journée, match ou pas
     const gagneJ=(hid===G.monClub&&r.sh>r.sa)||(aid===G.monClub&&r.sa>r.sh);
-    if(G.equip){ G.tresorerie += G.equip.fixe; if(gagneJ&&G.equip.prime) G.tresorerie += G.equip.prime; } // contrat équipementier
+    if(G.equip){ G.tresorerie += G.equip.fixe; if(gagneJ&&G.equip.prime) G.tresorerie += G.equip.prime; // contrat équipementier
+      if(G.equip.repJ) G.reput=Math.max(0,Math.min(100,(G.reput==null?75:G.reput)+G.equip.repJ)); } // l'atelier local entretient l'image
     if(G.sponsor){
       if(G.sponsor.defaut && Math.random()<G.sponsor.defaut){
         notif("💸 "+G.sponsor.nom+" n'a pas versé son dû cette journée. Les relances restent sans réponse.");
@@ -11854,10 +11855,14 @@ function genEquip(){
   const loc=EQUIPEMENTIERS[EQUIPEMENTIERS.length-1]; // l'atelier local, modeste mais aimé
   const offres=[
     {nom:prem.nom, fixe:rnd(base*prem.cachet),        prime:0,                          rep:0,  note:prem.note, desc:"le gros contrat, fixe maximal"},
-    {nom:chal.nom, fixe:rnd(base*chal.cachet*0.72),   prime:rnd(base*chal.cachet*0.55),  rep:0,  note:chal.note, desc:"moins de fixe, mais une prime à chaque victoire"},
+    // le pari (v1.82, demande de l'auteur : trop de risque pour trop peu) : calé sur le fixe du N°1, pas sur le
+    // rang du challenger. Moitié moins de fixe, grosse prime : on rattrape le gros contrat vers 14 victoires,
+    // un club de tête gagne ~30-40 % de plus, un mal classé perd ~20 %.
+    {nom:chal.nom, fixe:rnd(base*prem.cachet*0.5),    prime:rnd(base*prem.cachet*1.4),   rep:0,  note:chal.note, desc:"moins de fixe, mais une prime à chaque victoire"},
   ];
+  // l'atelier local : un vrai choix d'image (comme le sponsor du terroir), gros bonus à la signature puis chaque journée
   if(loc.nom!==prem.nom && loc.nom!==chal.nom)
-    offres.push({nom:loc.nom, fixe:rnd(base*0.22), prime:0, rep:+1, note:loc.note, desc:"l'atelier du coin, modeste, mais le public et la région l'adorent"});
+    offres.push({nom:loc.nom, fixe:rnd(base*0.22), prime:0, rep:+10, repJ:0.3, note:loc.note, desc:"l'atelier du coin, modeste, mais le public et la région l'adorent"});
   return offres;
 }
 function choisirEquip(k){
@@ -16995,7 +17000,7 @@ function ecranFinances(){
     ${G.offresEquip.map((o,k)=>`<p style="margin:8px 0">
       <button class="act bEq" data-k="${k}">Signer</button>
       <b class="fort">${esc(o.nom)}</b> · ${UU(o.fixe)}/journée${o.prime?" + "+UU(o.prime)+" par victoire":""}
-      ${o.rep?`<span class="vert">[réputation +${o.rep}]</span>`:""}
+      ${o.rep?`<span class="vert">[réputation +${o.rep}${o.repJ?", puis +"+o.repJ+"/journée":""}]</span>`:""}
       <br><span class="dim" style="font-size:13px">${esc(o.desc)}, « ${esc(o.note)} »</span></p>`).join("")}</div>`:"";
   chrome("finances",`${offres}${offresEq}<div class="panel"><h2>Finances</h2>
    <table class="fit">

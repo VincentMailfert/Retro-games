@@ -2285,7 +2285,10 @@ toujours « raconter quelque chose ».
   sponsor** — rien au début de saison, on choisit parmi des offres (`G.offresEquip`) qui dépendent de la
   **notoriété** (prestige nuancé par la réputation) ; le contrat (`G.equip`) verse un cachet chaque journée et
   expire à l'intersaison (à re-signer). 3 offres types : gros fixe / fixe moindre + prime à la victoire /
-  atelier local modeste mais +réputation. Noms **fictifs** (Athéna, Triax, Cheetah, Ombra, Oméga,
+  atelier local modeste mais +réputation. **v1.82 (demande auteur)** : l'offre à prime est calée sur le cachet du
+  N°1 (fixe ×0,5, prime ×1,4 par victoire : point mort vers 14 victoires, +30-40 % pour un club de tête, −20 % pour
+  un mal classé) ; l'atelier local donne **+10 à la signature puis +0,3/journée** (`repJ`, appliqué en silence dans
+  `finirJournee` comme le sponsor du terroir). Noms **fictifs** (Athéna, Triax, Cheetah, Ombra, Oméga,
   Le Faisan Sportif, Ringbok, Tombola, Sportec Vosges, Le Grand Échalas…) — jamais de vraie marque.
 - **Économie — « l'argent est une contrainte »** : chaque journée, pour MON club, `finirJournee` encaisse
   billetterie à domicile (`affluence×70`), droits TV (**450 kF en D1, 200 kF en D2** — remonter, c'est le
