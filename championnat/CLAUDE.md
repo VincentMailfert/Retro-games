@@ -142,6 +142,10 @@ toujours « raconter quelque chose ».
 ## Conventions de code
 - **Éditions chirurgicales** : modifier le strict nécessaire, préserver l'art ASCII, les blasons SVG,
   le rendu existant. Ne JAMAIS réécrire le fichier en entier sauf nécessité absolue.
+- **Encre du code dans l'écu (v1.88)** : `encreBlason(B)` choisit la couleur du code court (écus ≥ 28 px) : couleur
+  du club sur un écu uni si elle tient 3:1, sinon bleu nuit `#0b1626` ou blanc cassé `#f2f5fa`, la première qui tient
+  3:1 sur le fond (les deux moitiés d'un écu `v`) ; sinon blanc cassé cerné d'un contour bleu nuit épais (1.1).
+  Ne plus jamais écrire une encre en dur dans `blason()` : un nouveau blason se lit tout seul.
 - Constantes de données en MAJUSCULES (`CLUBS`, `STARS`, `INCIDENTS`, `SPONSORS_SULFUREUX`…).
 - Helpers courts en camelCase (`clubById`, `onze`, `majReput`, `tireIncident`…).
 - Montants en francs (FF) ou millions de francs (MF). Époque oblige.

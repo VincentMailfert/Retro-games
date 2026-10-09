@@ -538,7 +538,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.87"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.88"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -2374,6 +2374,19 @@ const BLASONS={
  WOL :{a:"#e8b800",b:"#111111",st:"uni"},  // Wolverhampton Wanderers
 };
 let _blN=0;
+/* L'encre du code court dans l'écu : la couleur du club si elle se lit (écu uni), sinon bleu nuit ou blanc cassé,
+   la première qui tient 3:1 sur le fond (les DEUX moitiés pour un écu coupé en deux). Si aucune ne tient (moitié
+   claire, moitié sombre), blanc cassé cerné d'un contour bleu nuit épais : le contour fait le fond. */
+function encreBlason(B){
+  const lum=h=>{ if(h.length===4) h="#"+h[1]+h[1]+h[2]+h[2]+h[3]+h[3]; // l'écu gris générique est en #666
+    const v=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(c=>c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4));
+    return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2]; };
+  const ctr=(x,y)=>{ const p=lum(x), q=lum(y); return (Math.max(p,q)+0.05)/(Math.min(p,q)+0.05); };
+  const fonds=B.st==="v"?[B.a,B.b]:[B.a];
+  for(const c of (B.st==="uni"?[B.b]:[]).concat(["#0b1626","#f2f5fa"]))
+    if(Math.min(...fonds.map(f=>ctr(c,f)))>=3) return {fill:c, trait:".4"};
+  return {fill:"#f2f5fa", trait:"1.1"};
+}
 function blason(c,s){
   s=s||18;
   const B=BLASONS[c.id]||{a:"#666",b:"#333",st:"uni"};
@@ -2384,7 +2397,8 @@ function blason(c,s){
   if(B.st==="ray")  motif=`<g clip-path="url(#${id})" fill="${B.b}"><rect x="5" y="0" width="3.4" height="24"/><rect x="11.8" y="0" width="3.4" height="24"/></g>`;
   if(B.st==="diag") motif=`<line x1="-2" y1="5" x2="17" y2="27" stroke="${B.b}" stroke-width="7" clip-path="url(#${id})"/>`;
   if(B.st==="uni")  motif=`<path d="${ecu}" fill="none" stroke="${B.b}" stroke-width="2.4"/>`;
-  const txt=s>=28?`<text x="10" y="11" text-anchor="middle" font-family="Consolas,monospace" font-weight="bold" font-size="6.5" fill="${B.st==="uni"?B.b:"#0b1626"}" stroke="#0b1626" stroke-width=".4" paint-order="stroke">${c.id}</text>`:"";
+  const enc=s>=28?encreBlason(B):null;
+  const txt=s>=28?`<text x="10" y="11" text-anchor="middle" font-family="Consolas,monospace" font-weight="bold" font-size="6.5" fill="${enc.fill}" stroke="#0b1626" stroke-width="${enc.trait}" paint-order="stroke">${c.id}</text>`:"";
   return `<svg width="${s}" height="${s*1.2}" viewBox="0 0 20 24" style="vertical-align:middle;flex:none">
     <defs><clipPath id="${id}"><path d="${ecu}"/></clipPath></defs>
     <path d="${ecu}" fill="${B.a}"/>${motif}${txt}
