@@ -175,8 +175,13 @@ Le plateau bouge beaucoup : First Division à 20 en 1990-91, à 22 en 1991-92, P
 à 1995, 20 ensuite ; et l'échelon du dessous a 24 clubs, donc il faudra écarter les quatre derniers par le
 classement réel. Le sous-titre de chaque saison est une mine (Cantona, le triplé 99, les Invincibles 2004).
 
+**Choix de l'auteur (09/10/2026) : l'Angleterre ouvre par 1995-96**, la saison phare du jeu comme côté
+français (le retour de Cantona, les douze points d'avance perdus par Newcastle). Elle passe donc en tête,
+aussitôt après ANG-E ; les dix-neuf autres suivent ensuite dans l'ordre.
+
+- [ ] **ANG 1995-96**
 - [ ] **ANG 1990-91** · [ ] **ANG 1991-92** · [ ] **ANG 1992-93** · [ ] **ANG 1993-94** · [ ] **ANG 1994-95**
-- [ ] **ANG 1995-96** · [ ] **ANG 1996-97** · [ ] **ANG 1997-98** · [ ] **ANG 1998-99** · [ ] **ANG 1999-00**
+- [ ] **ANG 1996-97** · [ ] **ANG 1997-98** · [ ] **ANG 1998-99** · [ ] **ANG 1999-00**
 - [ ] **ANG 2000-01** · [ ] **ANG 2001-02** · [ ] **ANG 2002-03** · [ ] **ANG 2003-04** · [ ] **ANG 2004-05**
 - [ ] **ANG 2005-06** · [ ] **ANG 2006-07** · [ ] **ANG 2007-08** · [ ] **ANG 2008-09** · [ ] **ANG 2009-10**
 
