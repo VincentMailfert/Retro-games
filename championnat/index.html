@@ -538,7 +538,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.84"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.85"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -6006,12 +6006,16 @@ function nouvellePartie(clubId, saisonKey){
   G.offresSponsor=genSponsors(1);
   G.equip=null; G.offresEquip=genEquip(); // équipementier : à signer, rien au départ
   assureCapitaine(); // un capitaine par défaut dès le coup d'envoi de la carrière
-  // vivier européen (C1 + C2 + C3), figé en 95-96 : un joueur réel employé en France à la saison de départ
-  // (Ravanelli à l'OM en 97/98, Collins à Monaco dès 96/97…) quitte son club européen pour ne pas jouer sur deux terrains
-  const enFrance=new Set([].concat(...Object.values(S.starsD1), ...Object.values(S.starsD2)).map(t=>t[0]));
+  // vivier européen (C1 + C2 + C3), figé en 95-96. DEUX RÉCONCILIATIONS, et elles se lisent au pays de la
+  // saison (ANG-C) : (1) par le CLUB, un club du plateau quitte le vivier — on ne peut pas l'affronter le
+  // mardi soir et le samedi après-midi (sans effet en France, aucun club français n'est dans les 45 ; en
+  // Angleterre, les quatre codes partagés d'ANG-B s'en vont) ; (2) par le NOM, un joueur réel employé au
+  // championnat de la saison de départ (Ravanelli à l'OM en 97/98, Collins à Monaco dès 96/97…) quitte son
+  // club européen pour ne pas jouer sur deux terrains.
+  const auChampionnat=new Set([].concat(...Object.values(S.starsD1), ...Object.values(S.starsD2)).map(t=>t[0]));
   const starsEur=Object.assign({}, STARS_EUROPE, STARS_EUROPE_C2, STARS_EUROPE_C3);
-  for(const k in starsEur) starsEur[k]=starsEur[k].filter(t=>!enFrance.has(t[0]));
-  G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3), starsEur);
+  for(const k in starsEur) starsEur[k]=starsEur[k].filter(t=>!auChampionnat.has(t[0]));
+  G.europe=construitDivision(viviersEuroDe(S), starsEur);
   G.euroCompet=(S.euroC1||[]).includes(clubId)?"C1":((S.euroC2||[]).includes(clubId)?"C2":((S.euroC3||[]).includes(clubId)?"C3":null)); // compétition européenne de la 1re saison (sièges français réels)
   euroInit();        // tirage de la compétition européenne
   // LE TIRAGE DE LA COUPE DE FRANCE VIENT EN DERNIER, ET C'EST VOULU : depuis qu'il bâtit les effectifs
@@ -13378,6 +13382,118 @@ const COMPETS={
   C3:{nom:"Coupe UEFA",          court:"C3", emoji:"🌍", pool:CLUBS_EUROPE_C3.map(c=>c.id), siege:"BOR", prime:EURO_PRIME_C3, dotV:12e6,                      recette:0.8e6},
 };
 const EUROCLUBS=CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3); // toutes les métadonnées (C1 + C2 + C3)
+
+/* ---------- LES SIÈGES EUROPÉENS ANGLAIS, SAISON PAR SAISON (ANG-C, v1.85) ----------
+   Mêmes clés que les saisons françaises (`euroC1`/`euroC2`/`euroC3` dans `SAISONS`) : les clubs qui ONT
+   JOUÉ la compétition cette saison-là, dans l'ordre sportif. Les vingt saisons anglaises à venir n'auront
+   qu'à étaler la ligne de leur année ; ici la table sert déjà de repli de siège (voir SIEGES_PAYS).
+   Relevé un par un sur les tableaux de participants de Wikipédia (section « Teams » de chaque édition),
+   jamais de mémoire. Trois choses à savoir, et elles comptent :
+   • 1990-91 N'A PAS DE SIÈGE EN C1, et ce n'est pas un oubli : les clubs anglais rentrent d'exil cette
+     saison-là après le drame du Heysel, mais Liverpool, champion 89-90, purge une année de plus. Seuls
+     Manchester United (vainqueur de la FA Cup 1990, qui va gagner la C2 à Rotterdam) et Aston Villa
+     (2e, en C3) sont au départ.
+   • `C2` est VIDE à partir de 1999 : la Coupe des Coupes n'existe plus, exactement comme côté français.
+   • LES TROIS LISTES D'UNE SAISON SONT DISJOINTES. Un club reversé d'une compétition à l'autre en cours
+     d'année (Arsenal 3e de son groupe de C1 en 1999-00, Liverpool en 2002-03 et en 2009-10, Newcastle
+     sorti au 3e tour de qualification en 2003-04, Everton en 2005-06) n'est listé QUE là où il entre :
+     c'est ainsi que `nouvellePartie` lit la compétition d'un club, et deux listes se chevauchant lui
+     feraient dire n'importe quoi.
+   Les clubs gallois qui jouaient la Coupe des Coupes par la Welsh Cup (Wrexham, Swansea, Cardiff) sont
+   écartés : aucun n'était dans les deux premières divisions anglaises l'année de sa campagne, donc aucun
+   n'est au plateau du jeu. */
+const SIEGES_ANG={
+  1990:{C1:[],                        C2:["MUN"],       C3:["AVL"]},
+  1991:{C1:["ARS"],                   C2:["TOT","MUN"], C3:["LIV"]},
+  1992:{C1:["LEE"],                   C2:["LIV"],       C3:["MUN","SHW"]},
+  1993:{C1:["MUN"],                   C2:["ARS"],       C3:["AVL","NOR"]},
+  1994:{C1:["MUN"],                   C2:["CHE","ARS"], C3:["BLB","NEW","AVL"]},
+  1995:{C1:["BLB"],                   C2:["EVE"],       C3:["MUN","FOR","LIV","LEE"]},
+  1996:{C1:["MUN"],                   C2:["LIV"],       C3:["NEW","AVL","ARS"]},
+  1997:{C1:["MUN","NEW"],             C2:["CHE"],       C3:["ARS","LIV","LEI","AVL"]},
+  1998:{C1:["ARS","MUN"],             C2:["CHE","NEW"], C3:["LIV","LEE","BLB","AVL"]},
+  1999:{C1:["MUN","ARS","CHE"],       C2:[],            C3:["LEE","TOT","NEW","WHU"]},
+  2000:{C1:["MUN","ARS","LEE"],       C2:[],            C3:["CHE","LIV","LEI"]},
+  2001:{C1:["MUN","ARS","LIV"],       C2:[],            C3:["LEE","IPS","CHE","AVL"]},
+  2002:{C1:["ARS","LIV","MUN","NEW"], C2:[],            C3:["LEE","CHE","BLB","FUL","IPS"]},
+  2003:{C1:["MUN","ARS","NEW","CHE"], C2:[],            C3:["LIV","BLB","SOU","MCI"]},
+  2004:{C1:["ARS","CHE","MUN","LIV"], C2:[],            C3:["NEW","MID","MIW"]},
+  2005:{C1:["CHE","ARS","MUN","EVE","LIV"], C2:[],      C3:["BOL","MID"]},
+  2006:{C1:["CHE","MUN","LIV","ARS"], C2:[],            C3:["TOT","BLB","WHU","NEW"]},
+  2007:{C1:["MUN","CHE","LIV","ARS"], C2:[],            C3:["TOT","EVE","BOL","BLB"]},
+  2008:{C1:["MUN","CHE","ARS","LIV"], C2:[],            C3:["POR","EVE","TOT","AVL","MCI"]},
+  2009:{C1:["MUN","LIV","CHE","ARS"], C2:[],            C3:["EVE","AVL","FUL"]},
+};
+/* LE SIÈGE DE REPLI, PAR PAYS — celui qui prend la seizième place du tableau quand VOTRE club n'est pas
+   qualifié. La France garde `COMPETS[*].siege` (Nantes en C1), figé à l'époque du vivier et inchangé
+   depuis la v0.72 : vingt harnais s'appuient dessus, et le vivier lui-même est figé en 95-96, donc son
+   siège l'est aussi. L'Angleterre prend la même époque, c'est-à-dire la ligne 1995 de la table ci-dessus
+   (Blackburn champion 94-95 en C1, Everton vainqueur de la FA Cup 1995 en C2, puis Manchester United,
+   Nottingham Forest, Liverpool et Leeds en Coupe UEFA). `null` = on retombe sur `COMPETS[*].siege`. */
+const SIEGES_PAYS={ FR:null, ANG:SIEGES_ANG[1995] };
+
+/* ---------- LE PLATEAU NE PEUT PAS ÊTRE AUSSI LE VIVIER (ANG-C, v1.85) ----------
+   Un club du championnat ne peut pas être en même temps un adversaire de Coupe d'Europe : on
+   l'affronterait le mardi soir et le samedi après-midi, avec le même effectif des deux côtés. ANG-B a
+   partagé QUATRE codes exprès entre `CLUBS_ANG` et le vivier d'Europe (BLB, EVE, FOR, LIV) pour que la
+   réconciliation soit possible : c'est ici qu'elle se fait. Sans effet en France — aucun des quarante-cinq
+   clubs du vivier n'est français — et c'est la garantie qu'une partie française ne bouge pas.
+   LA SEULE EXCEPTION, et elle existe depuis toujours : le SIÈGE NATIONAL est un club du championnat
+   (Nantes occupe la C1 de 95-96 tout en jouant la D1). Un pays est représenté par un de ses clubs, c'est
+   le principe même ; ce qu'on interdit, c'est qu'un club du championnat serve d'ADVERSAIRE anonyme.
+   LE PIÈGE, ET IL A ROUGI DU PREMIER COUP : la réconciliation se lit AU PAYS DE LA SAISON, jamais au seul
+   code. `AJA` est l'AC Ajaccio dans `CLUBS_EXTRA` depuis 98/99 ET l'Ajax Amsterdam dans le vivier de C1
+   depuis la v0.72 — deux clubs, deux pays, un seul code, et cette collision dort dans DOUZE listes de
+   saisons françaises. Comparer les codes tout seuls retirait donc l'Ajax du vivier dès qu'Ajaccio était au
+   plateau : douze saisons françaises changeaient de tableau de Coupe d'Europe. D'où `memePays` : un club du
+   vivier ne s'en va que s'il est au plateau ET du pays de la carrière. Aucun des quarante-cinq n'étant
+   français, la France ne perd jamais personne, et c'est prouvé saison par saison au harnais. */
+function memePays(c, code){ return !!c && c.pays===(PAYS[code]||PAYS.FR).nom; }
+function clubsDuPlateauEnEurope(ids, code){ // les clubs du vivier qui jouent AUSSI ce championnat-là
+  const p=new Set(ids);
+  return EUROCLUBS.filter(c=>p.has(c.id) && memePays(c, code)).map(c=>c.id);
+}
+function plateauDeSaison(S){ return new Set((S.d1||[]).concat(S.d2||[])); }
+function viviersEuroDe(S){
+  const sortants=new Set(clubsDuPlateauEnEurope(plateauDeSaison(S), S.pays||"FR"));
+  return EUROCLUBS.filter(c=>!sortants.has(c.id));
+}
+function plateauEnCours(){ return new Set((G.clubs||[]).concat(G.autre||[]).map(c=>c.id)); }
+function plateauHorsVivier(){ return new Set(clubsDuPlateauEnEurope(plateauEnCours(), G.pays||"FR")); }
+function retireClubDEurope(id){ // ceinture : un club du plateau qui traînerait dans le vivier en sort
+  if(!G.europe) return false;
+  const i=G.europe.findIndex(c=>c.id===id); if(i<0) return false;
+  G.europe.splice(i,1); return true;
+}
+function siegePays(compet){ // le club qui occupe le siège national quand VOTRE club n'est pas qualifié
+  const s=SIEGES_PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"];
+  if(!s) return COMPETS[compet].siege;            // France : siège historique, inchangé
+  const liste=s[compet]||[];
+  for(const id of liste) if(!G||id!==G.monClub) return id; // jamais VOTRE club : il n'est pas qualifié
+  return null;                                    // 1990-91 en C1 : l'Angleterre n'a personne, et c'est juste
+}
+/* LE TABLEAU GARDE SES SEIZE CLUBS, quoi qu'il arrive — sinon les tours ne tombent plus juste (16 → 8 →
+   4 → 2). Le vivier ayant perdu les clubs du plateau, on recomplète dans cet ordre : les AUTRES sièges du
+   pays dans cette compétition (de vrais clubs, avec de vrais effectifs, qui jouaient bien l'Europe cette
+   année-là), puis les clubs des deux viviers DORMANTS — une seule compétition se joue par carrière, donc
+   un club de C3 ne joue nulle part ailleurs quand la C1 est à l'affiche. C'est un emprunt d'époque dans un
+   vivier déjà figé en 95-96, pas une invention : aucun joueur, aucun club n'est fabriqué.
+   EN FRANCE, LA RECOMPLÉTION NE SE DÉCLENCHE JAMAIS : le vivier garde ses quinze, et le seizième est VOUS
+   ou le siège historique. L'ordre rendu est exactement celui d'avant (le vivier, puis le siège), ce qui
+   laisse `melange` tirer la même suite de hasards qu'avant la v1.85. */
+function vivierEuro(compet, qualifie){
+  const plateau=plateauHorsVivier();
+  const siege=qualifie?G.monClub:siegePays(compet);
+  const cible=siege?15:16, out=[], pris=new Set([G.monClub]);
+  if(siege) pris.add(siege);
+  const pousse=id=>{ if(id && !pris.has(id) && out.length<cible){ pris.add(id); out.push(id); } };
+  for(const id of COMPETS[compet].pool) if(!plateau.has(id)) pousse(id);
+  const s=SIEGES_PAYS[G.pays||"FR"];
+  if(s) for(const id of (s[compet]||[])) pousse(id);               // les autres sièges du pays
+  for(const k of ["C1","C3","C2"]) if(k!==compet)
+    for(const id of COMPETS[k].pool) if(!plateau.has(id)) pousse(id); // les viviers dormants
+  return siege?out.concat([siege]):out;
+}
 function competDe(k){ return COMPETS[k]||COMPETS.C1; }
 function competActif(){ return competDe(G.euro&&G.euro.compet); }
 
@@ -13389,7 +13505,8 @@ function euroClub(id){ // objet club vivant (européen OU français), pour force
 function euroMeta(id){ return EUROCLUBS.find(c=>c.id===id); }
 function estEuropeen(id){ return EUROCLUBS.some(c=>c.id===id); }
 function nomEuro(id){ const e=euroMeta(id); if(e) return e.nom; const c=clubById(id); return c?c.nom:id; }
-function paysEuro(id){ const e=euroMeta(id); return e?e.pays:"France"; }
+// un club hors du vivier est un club du championnat, donc du pays de la carrière (France, Angleterre…)
+function paysEuro(id){ const e=euroMeta(id); return e?e.pays:paysVu().nom; }
 function forceEuro(id){
   const c=euroClub(id); let f=c?forceClub(c):55;
   if(id===G.monClub && G.euro) f*=(ROTATION_COUPE[G.euro.rotation]||ROTATION_COUPE.mixte).mult; // votre rotation pèse (préparé pour le lot 2)
@@ -13473,10 +13590,10 @@ function euroClotureAvec(a,b,l1,l2,tabR){ // même verdict, le score du retour l
 }
 function euroInit(){ // (re)tirage de la compétition européenne de la saison (C1 par défaut si non qualifié)
   if(!G||!G.europe) return;
-  const compet=G.euroCompet||"C1", CP=COMPETS[compet];
+  const compet=G.euroCompet||"C1";
   const enLice=!!G.euroCompet;                       // MON club est-il qualifié dans une vraie compétition ?
-  const siege=enLice?G.monClub:CP.siege;             // le 16e : vous si qualifié, sinon le siège français
-  const vivants=melange(CP.pool.concat([siege]));
+  // seize clubs : le vivier moins les clubs du championnat, recomplété, et vous (ou le siège du pays) au bout
+  const vivants=melange(vivierEuro(compet, enLice));
   G.euro={ saison:G.saison, compet, enLice, tourIdx:0, vivants,
     monParcours:[], elimine:!enLice, tourSortie:null, vainqueur:null,
     dernierTour:null, rotation:"mixte", gains:0, aJouer:null, attente:null, enDirect:null };
@@ -14129,6 +14246,9 @@ function migre(){
   if(!G.europe) G.europe=construitDivision(CLUBS_EUROPE.concat(CLUBS_EUROPE_C2, CLUBS_EUROPE_C3), Object.assign({}, STARS_EUROPE, STARS_EUROPE_C2, STARS_EUROPE_C3)); // Coupe d'Europe : vivier C1 + C2 + C3
   else { if(!G.europe.some(c=>c.id==="MIL")) G.europe=G.europe.concat(construitDivision(CLUBS_EUROPE_C3, STARS_EUROPE_C3)); // vieux vivier C1-seul (v0.72-0.74) → C3
          if(!G.europe.some(c=>c.id==="PAR")) G.europe=G.europe.concat(construitDivision(CLUBS_EUROPE_C2, STARS_EUROPE_C2)); } // vivier C1+C3 (v0.75) → on ajoute la C2
+  // ceinture (ANG-C) : les deux lignes ci-dessus recollent des viviers entiers, et un club du plateau ne
+  // doit jamais y entrer par cette porte. Sans effet sur une partie française, où rien ne se recoupe.
+  for(const id of plateauHorsVivier()) retireClubDEurope(id);
   if(G.euroCompet===undefined) G.euroCompet=G._euroC1?"C1":null; // migration : booléen C1 → registre de compétitions
   if(!G.euro) euroInit(); // vieilles sauvegardes : on ouvre la compétition européenne
   else { if(G.euro.aJouer===undefined) G.euro.aJouer=null; if(G.euro.enDirect===undefined) G.euro.enDirect=null; if(G.euro.compet===undefined) G.euro.compet="C1"; // sauvegardes v0.72-0.74

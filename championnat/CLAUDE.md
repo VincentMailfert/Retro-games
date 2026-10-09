@@ -3689,6 +3689,84 @@ prénom. Sur les **4 457** noms à prénom connu, il ne reste **aucune** initial
 section G de `harness-prenoms.cjs`**, et son motif `INI` aligné sur celui de `nomLong` — le harnais avait
 exactement le même angle mort, et rangeait « C.-y. Park » parmi les noms *sans* initiale.
 
+### LA RÉCONCILIATION EUROPÉENNE (ANG-C, v1.85)
+Troisième étape du lot structure. Toujours aucune saison anglaise jouable : on règle ici une impossibilité
+qui aurait sauté aux yeux dès la première, et on relève la donnée qu'elle réclame. L'impossibilité tient en
+une phrase : **un club anglais ne peut pas être à la fois dans le championnat et dans le vivier de Coupe
+d'Europe** — on l'affronterait le mardi soir en Coupe d'Europe et le samedi après-midi en championnat, avec
+le même effectif des deux côtés. ANG-B avait partagé quatre codes exprès pour que ce jour arrive
+(`BLB`, `EVE`, `FOR`, `LIV`) ; c'est aujourd'hui qu'ils servent.
+
+**La réconciliation se lit AU PAYS DE LA SAISON, et c'est tout le sujet.** Elle existe désormais à deux
+niveaux, et ils sont jumeaux. Par le **nom**, `retireDEurope(nom)` et le filtre d'effectifs de
+`nouvellePartie` (la variable s'appelait `enFrance`, elle s'appelle `auChampionnat`) : un joueur réel
+employé au championnat de la saison de départ quitte son club européen. Par le **club**, nouveau :
+`viviersEuroDe(S)` retire du vivier les clubs qui jouent le championnat de la saison, et
+`retireClubDEurope(id)` fait la même chose à la pièce, en ceinture, au chargement d'une sauvegarde.
+
+**LE PIÈGE DU JOUR, ET IL A ROUGI DU PREMIER COUP : comparer les codes tout seuls change douze saisons
+françaises.** `AJA` est l'**AC Ajaccio** dans `CLUBS_EXTRA` depuis 98/99 **et** l'**Ajax Amsterdam** dans le
+vivier de C1 depuis la v0.72 — deux clubs, deux pays, un seul code, et la collision dort dans **douze
+listes de saisons françaises** (`D2_9899` → `D2_0910`). Une réconciliation par code retirait donc l'Ajax du
+vivier dès qu'Ajaccio était au plateau. D'où **`memePays(c, code)`** : un club du vivier ne s'en va que
+s'il est au plateau **ET du pays de la carrière**. Aucun des quarante-cinq clubs du vivier n'étant français,
+**la France ne perd jamais personne**, et le harnais le prouve saison par saison. La collision `AJA`
+elle-même n'a pas été touchée : renommer un code casserait vingt harnais et les sauvegardes en cours, et
+`euroClub` cherche de toute façon dans `G.europe` d'abord. **Règle à garder : un code de club n'est une
+identité qu'à l'intérieur d'un pays.**
+
+**LE TABLEAU GARDE SES SEIZE CLUBS, quoi qu'il perde.** Un tour se divise par deux jusqu'à la finale
+(16 → 8 → 4 → 2) : un vivier à quatorze casserait le tirage. **`vivierEuro(compet, qualifie)`** bâtit donc
+les seize, dans cet ordre : le vivier de la compétition moins les clubs du championnat, puis — s'il manque
+du monde — les **autres sièges du pays** dans cette compétition (de vrais clubs, qui jouaient bien l'Europe
+cette année-là), puis les clubs des **deux viviers DORMANTS**, une seule compétition se jouant par
+carrière. C'est un emprunt d'époque dans un vivier **déjà figé en 95-96 pour les vingt saisons**, pas une
+invention : aucun joueur, aucun club n'est fabriqué. **En France la recomplétion ne se déclenche jamais**,
+et l'ordre rendu est exactement celui d'avant (le vivier, puis le siège au bout), ce qui laisse `melange`
+tirer la même suite de hasards qu'avant la v1.85 — condition de non-régression écrite noir sur blanc et
+vérifiée sur les 120 tableaux des vingt saisons françaises.
+
+**Le siège national devient une propriété du pays** (`siegePays(compet)`, table `SIEGES_PAYS`). La France
+garde `COMPETS[*].siege`, c'est-à-dire **Nantes en C1**, le PSG en C2, Bordeaux en C3 : figé à l'époque du
+vivier, inchangé depuis la v0.72, et lu par vingt harnais. L'Angleterre prend **la même époque**, donc la
+ligne 1995 de la table ci-dessous. Deux garde-fous : **votre club ne peut jamais être le siège quand il
+n'est pas qualifié** (on ne joue pas une coupe à laquelle on n'est pas invité), et un pays peut n'avoir
+**aucun** siège — c'est le cas de l'Angleterre en C1 1990-91, et le tableau se recomplète alors entièrement
+par le vivier. `paysEuro(id)` suit : un club hors du vivier est un club du championnat, donc du pays de la
+carrière, et il n'est plus annoncé « France » par défaut.
+
+**LES SIÈGES EUROPÉENS ANGLAIS, SAISON PAR SAISON (`SIEGES_ANG`)** — la donnée du jour, et les vingt
+saisons anglaises n'auront qu'à étaler la ligne de leur année dans leur `euroC1`/`euroC2`/`euroC3`, comme
+les françaises. Relevée une par une sur les **tableaux de participants** de Wikipédia (section « Teams » de
+chaque édition : European Cup / Champions League, Coupe des Coupes, Coupe UEFA / Ligue Europa), jamais de
+mémoire — et il a fallu **quatre formats de table différents** pour les avoir tous, les éditions de 1992 à
+1994 et celles de 2007 à 2009 ne s'écrivant pas comme les autres. Trois choses à savoir :
+**(1) 1990-91 n'a AUCUN siège en C1, et ce n'est pas un oubli** : les clubs anglais rentrent d'exil cette
+saison-là, cinq ans après le drame du Heysel, mais **Liverpool, champion 89-90, purge une année de plus** —
+si bien que l'Angleterre n'a personne dans la Coupe des clubs champions, et seulement **Manchester United**
+en Coupe des Coupes (qu'il va gagner à Rotterdam, deux buts de Mark Hughes contre le Barça) et **Aston
+Villa** en Coupe UEFA. Liverpool ne revient qu'en 1991-92, en C3.
+**(2) `C2` est vide à partir de 1999**, exactement comme côté français : la Coupe des Coupes n'existe plus.
+**(3) Les trois listes d'une saison sont DISJOINTES**, et c'est une nécessité de code : `nouvellePartie` lit
+la compétition d'un club dans ces listes, deux listes qui se chevauchent lui feraient dire n'importe quoi.
+Un club **reversé** d'une compétition à l'autre en cours d'année n'est donc listé que là où il **entre** —
+Arsenal troisième de son groupe de C1 en 1999-00, Liverpool en 2002-03 et en 2009-10, Newcastle sorti au
+troisième tour de qualification en 2003-04, Everton en 2005-06.
+**Les clubs gallois écartés, et vérifié plutôt que supposé** : Wrexham, Swansea et Cardiff jouaient la Coupe
+des Coupes par la Welsh Cup, mais **aucun n'était dans les deux premières divisions anglaises l'année de sa
+campagne**, donc aucun n'est au plateau du jeu — un club qui n'est pas au plateau ne peut pas prendre un
+siège. En revanche **Millwall joue bien la Coupe UEFA 2004-05 depuis la deuxième division** (finaliste battu
+de la FA Cup, Manchester United vainqueur étant déjà en C1) : c'est le pendant anglais de Guingamp et de
+Châteauroux, et il est gardé nommément par le harnais.
+La délégation anglaise va de **deux clubs** (1990-91) à **neuf** (2005-06 : cinq en C1, dont Liverpool
+tenant du titre repêché, et deux en C3), ce que le harnais borne.
+
+**Ce qui N'EST PAS fait ici, et reste aux étapes suivantes** : tout ce qui dit « France » sans le savoir —
+`HONNEURS`, la sélection nationale, les dépêches, la presse, les noms procéduraux des jeunes, les villages
+de la coupe (ANG-D), et le harnais de plateau (ANG-E). Gardé par **`harness-europe-ang.cjs`**, dont la
+section B est la vraie pièce maîtresse : c'est elle qui refait les 120 tableaux français et exige qu'aucun
+n'ait changé d'un club ni d'un rang.
+
 
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
@@ -3718,6 +3796,12 @@ exactement le même angle mort, et rangeait « C.-y. Park » parmi les noms *san
    France et convertis à huit francs la livre en Angleterre, le pays regardé qui n'est pas le pays joué,
    le sélecteur qui se groupe dès qu'un deuxième pays entre — contrôlé en enregistrant une fausse saison
    anglaise le temps du test),
+   `harness-europe-ang.cjs` (la réconciliation européenne, ANG-C v1.85 : la table des sièges anglais
+   saison par saison, les 120 tableaux français refaits et prouvés identiques au club et au rang près —
+   l'Ajax compris, malgré le code `AJA` qu'il partage avec Ajaccio —, le plateau qui quitte le vivier sur
+   une saison anglaise d'essai, les seize clubs tenus dans les trois compétitions qualifié ou non, le
+   siège du pays et son absence en C1 1990-91, la ceinture de `migre`, et trente-huit journées anglaises
+   jouées pour de vrai avec leur Coupe d'Europe),
    `harness-noms.cjs` (les saisons nommées : un nom par saison, la collection sans doublon, et surtout le
    créneau daté laissé intact dans `titre` et `G.saison`),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,
