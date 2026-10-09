@@ -60,7 +60,7 @@ try {
     if (sansStade.length) fail("clubs sans stade/capacité : " + sansStade.join(","));
     else ok("aucun club neuf cette saison : les quarante étaient déjà au registre, avec stade et capacité");
     // La D1 1992-93 comptait bien vingt clubs et n'a repêché personne.
-    const D1_REELLE = ["OM","PSG","MON","BOR","NAN","AUX","STE","STR","LEN","MTP",
+    const D1_REELLE = ["OM","PSG","MON","BOR","NAN","AJA","STE","STR","LEN","MTP",
                        "CAE","MET","TOU","LYO","LEH","SOC","LIL","VAN","TON","NIM"];
     const horsD1 = D1_REELLE.filter(id => !S.d1.includes(id));
     if (horsD1.length) fail("D1 92/93 : clubs réels absents — " + horsD1.join(","));
@@ -83,7 +83,7 @@ try {
     for (const id of ["MUL", "GUE"])
       if (S.d2.includes(id)) fail(id + " est onzième de son groupe : il n'entre que si un club de tête manque");
     ok("Mulhouse et Gueugnon, onzièmes de leur groupe, restent dehors : aucun club de tête n'a manqué à l'appel");
-    if (S.d2.includes("AJA") || S.d2.includes("GFC"))
+    if (S.d2.includes("ACA") || S.d2.includes("GFC"))
       fail("ni l'AC Ajaccio ni le Gazélec ne jouent la D2 92/93");
     // effectifs : non vides, postes valides, notes dans les bornes
     let pb = [];
@@ -215,7 +215,7 @@ try {
   // gagnera à Munich) ; Monaco en C2 — la Coupe de France 1992 n'a PAS eu de vainqueur
   // après le drame de Furiani, et c'est le finaliste qui prend la place ; Auxerre, le
   // PSG et Caen en Coupe UEFA.
-  const attendu = { OM: "C1", MON: "C2", AUX: "C3", PSG: "C3", CAE: "C3",
+  const attendu = { OM: "C1", MON: "C2", AJA: "C3", PSG: "C3", CAE: "C3",
                     BOR: null, NAN: null, STE: null, STR: null, LEN: null, NIM: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);

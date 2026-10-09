@@ -61,8 +61,8 @@ try {
 
     // LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA QUATRIÈME FOIS DE SUITE : les deux échelons réels
     // ont vingt clubs, donc aucun repêchage, aucun écarté. On vérifie les deux listes par ÉGALITÉ.
-    const REELS_D1 = ["LYO", "BOR", "LIL", "LEN", "OM", "REN", "AUX", "MON", "PSG", "NIC",
-                      "NAN", "STE", "SOC", "LMN", "TOU", "NCY", "TRO", "AJA", "STR", "MET"];
+    const REELS_D1 = ["LYO", "BOR", "LIL", "LEN", "OM", "REN", "AJA", "MON", "PSG", "NIC",
+                      "NAN", "STE", "SOC", "LMN", "TOU", "NCY", "TRO", "ACA", "STR", "MET"];
     const REELS_D2 = ["VAN", "SED", "LOR", "CAE", "DIJ", "BAS", "LEH", "CRE", "GUI", "GRE",
                       "IST", "MTP", "AMI", "CHA", "REI", "GUE", "BRE", "CLE", "LAV", "SET"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
@@ -135,7 +135,7 @@ try {
     else ok("Sylvain Wiltord, dernier du tableau lyonnais, noté " + wiltord[3] + " pour ses 3 107 minutes");
 
     // les gamins de 2005 : le tri au temps de jeu les écartait, la liste de forçage les rattrape
-    const forces = { LYO: "K. Benzema", AUX: "Y. Kaboul", LIL: "K. Mirallas", STR: "R. Faty",
+    const forces = { LYO: "K. Benzema", AJA: "Y. Kaboul", LIL: "K. Mirallas", STR: "R. Faty",
                      NAN: "D. Payet", REN: "M. Sow", MET: "G. Bong" };
     const forcesD2 = { GRE: "O. Giroud", GUI: "L. Koscielny", LOR: "A.-P. Gignac",
                        LAV: "H. Yebda", GUE: "M. Bougherra", CLE: "B. Diomède", IST: "M. Djetou" };
@@ -160,7 +160,7 @@ try {
       fail("Karim Benzema : dix-huit ans à Lyon, 796 minutes, et le plus gros potentiel de la saison");
     else ok("Karim Benzema, dix-huit ans à Lyon, noté " + benzema[3] + " pour un potentiel de " + benzema[4]);
     // Lille, Auxerre, Strasbourg et Nantes paient deux forcés chacun : le prix du forçage, assumé
-    const pairesD1 = [["LYO", ["K. Benzema", "H. Ben Arfa"]], ["AUX", ["Y. Kaboul", "A. Diaby"]],
+    const pairesD1 = [["LYO", ["K. Benzema", "H. Ben Arfa"]], ["AJA", ["Y. Kaboul", "A. Diaby"]],
                       ["LIL", ["K. Mirallas", "Dante"]], ["STR", ["K. Gameiro", "R. Faty"]],
                       ["NAN", ["D. Payet", "D. Oliech"]]];
     const manquePaire = pairesD1.filter(([id, ns]) => ns.some(n => !(S.starsD1[id] || []).some(t => t[0] === n)));
@@ -177,7 +177,7 @@ try {
                     LEN: ["S. Keita", "A. Diarra", "É. Carrière", "P.-A. Frau"],
                     MON: ["P. Evra", "Maicon", "E. Adebayor", "S. Squillaci"],
                     PSG: ["Pauleta", "J. Rothen", "S. Armand"], NAN: ["M. Landreau", "J. Toulalan"],
-                    AUX: ["B. Sagna", "Benoît Cheyrou"], STE: ["D. Zokora", "B. Gomis"],
+                    AJA: ["B. Sagna", "Benoît Cheyrou"], STE: ["D. Zokora", "B. Gomis"],
                     SOC: ["J. Ménez"], TOU: ["J. Mathieu"], TRO: ["B. Matuidi"], MET: ["S. Bassong"] };
     const rates = [];
     for (const id in seuls) for (const nom of seuls[id])
@@ -256,7 +256,7 @@ try {
   else ok("homonymes résolus : Mahamadou Diarra garde « M. Diarra » face à Moké, Bruno Cheyrou face à Benoît, Antar Yahia face à Alaeddine, le Mendy de Montpellier face au Stéphanois");
   // « M. N'Diaye » est l'Ajaccien que le jeu porte depuis 00/01 ; le Messin Momar, dix-huit ans, a
   // cédé sa place au forçage de Gaëtan Bong, dix-sept ans — le seul des vingt que Metz pouvait payer.
-  if (!(api.STARS_0506.AJA || []).some(t => t[0] === "M. N'Diaye"))
+  if (!(api.STARS_0506.ACA || []).some(t => t[0] === "M. N'Diaye"))
     fail("« M. N'Diaye » est l'attaquant d'Ajaccio, que le jeu porte depuis 00/01");
   else ok("« M. N'Diaye » reste à l'Ajaccien : un seul N'Diaye à initiale au plateau");
 
@@ -337,9 +337,9 @@ try {
   // AUXERRE au titre de la Coupe de France 2005, STRASBOURG au titre de la Coupe de la Ligue 2005, et
   // MARSEILLE et LENS, tous deux vainqueurs de l'INTERTOTO 2005 — deux clubs français la même année,
   // ce qui n'était plus arrivé depuis les trois de 1998. Huit sièges, tous en Ligue 1.
-  const attendu = { LYO: "C1", LIL: "C1", MON: "C1", REN: "C3", AUX: "C3", STR: "C3", OM: "C3", LEN: "C3",
+  const attendu = { LYO: "C1", LIL: "C1", MON: "C1", REN: "C3", AJA: "C3", STR: "C3", OM: "C3", LEN: "C3",
                     BOR: null, PSG: null, NIC: null, NAN: null, STE: null, SOC: null, LMN: null,
-                    TOU: null, NCY: null, TRO: null, AJA: null, MET: null,
+                    TOU: null, NCY: null, TRO: null, ACA: null, MET: null,
                     VAN: null, SED: null, LOR: null, CAE: null, DIJ: null, BAS: null, LEH: null,
                     CRE: null, GUI: null, GRE: null, IST: null, MTP: null, AMI: null, CHA: null,
                     REI: null, GUE: null, BRE: null, CLE: null, LAV: null, SET: null };

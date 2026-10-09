@@ -67,7 +67,7 @@ try {
 /* ===== C) qualification du champion (multi-saisons) ===== */
 console.log("C) Champion de D1 → C1 la saison suivante");
 try {
-  api.nouvellePartie(api.CLUBS[0].id); // AUX (pas seed C1 en 95-96)
+  api.nouvellePartie(api.CLUBS[0].id); // AJA (pas seed C1 en 95-96)
   let G = api.getG();
   const seed = G.euro.enLice;
   let sawChampionQualif = false, seasons = 0, exc = 0;
@@ -101,7 +101,7 @@ try {
   else fail("retireDEurope n'a pas retiré Deschamps");
   // chemin complet acheterJoker : on force une offre dont le nom existe en Europe
   const moi = G.clubs.find(c => c.id === G.monClub);
-  const euNom = "P. Kluivert", club = G.europe.find(c => c.id === "AJA");
+  const euNom = "P. Kluivert", club = G.europe.find(c => c.id === "AFC");
   const avant = club.joueurs.some(j => j.nom === euNom);
   G.budget = 999e6;
   G.vivier = G.vivier || {}; G.vivier["Jeune espoir étranger"] = G.vivier["Jeune espoir étranger"] || [];
@@ -142,7 +142,7 @@ try {
   const N = 120;
   const tally = {};
   for (let t = 0; t < N; t++) {
-    api.nouvellePartie("AUX"); // AUX pas qualifié en 95-96 → C1 de fond entre les 15 + Nantes
+    api.nouvellePartie("AJA"); // AJA pas qualifié en 95-96 → C1 de fond entre les 15 + Nantes
     for (let d = 0; d < 38; d++) api.jouerJournee();
     const G = api.getG();
     const w = G.euro.vainqueur; if (w) tally[w] = (tally[w]||0)+1;
@@ -150,7 +150,7 @@ try {
   const rows = Object.entries(tally).sort((a,b)=>b[1]-a[1]);
   const top = rows.slice(0,6).map(r=>r[0]+":"+r[1]).join(" ");
   ok("vainqueurs sur " + N + " C1 → " + top);
-  const elite = (tally.JUV||0)+(tally.AJA||0)+(tally.RMA||0)+(tally.DOR||0)+(tally.BLB||0);
+  const elite = (tally.JUV||0)+(tally.AFC||0)+(tally.RMA||0)+(tally.DOR||0)+(tally.BLB||0);
   const modestes = (tally.FER||0)+(tally.AAB||0)+(tally.LEG||0);
   if (elite <= modestes) fail("le modèle de force ne favorise pas assez l'élite (élite " + elite + " ≤ modestes " + modestes + ")");
   else ok("l'élite domine les modestes (élite " + elite + " vs modestes " + modestes + ")");

@@ -442,7 +442,7 @@ toujours « raconter quelque chose ».
   et Martigues (45)**, meilleurs relégués de D2 97/98, y sont repêchés à leur tour. **Toulon, pourtant 20e et donc
   prioritaire, a été écarté** : Transfermarkt ne lui connaît qu'UN joueur en 98/99 (le club s'effondrait financièrement),
   son effectif aurait été procédural à 95 %. Deux clubs neufs dans `CLUBS_EXTRA` : **Sedan** (`SED`, Émile-Albeau, vert et
-  rouge) et **Ajaccio** (`AJA`, François-Coty, champion du National), avec blason et malédiction ; Ajaccio apporte au
+  rouge) et **Ajaccio** (`ACA` depuis la v1.87, ex-`AJA`, François-Coty, champion du National), avec blason et malédiction ; Ajaccio apporte au
   passage **le derby corse** (`RIVAL` + `NOMS_RIVALITES`, dormant tant que les deux Corses ne sont pas dans la même
   division). Sièges européens réels : **Lens (champion) et Metz en C1**, **PSG en C2** (vainqueur de la Coupe 98),
   Monaco/OM/Bordeaux **plus les trois vainqueurs de l'Intertoto 98 — Bastia, Auxerre, Lyon** — en C3.
@@ -590,7 +590,7 @@ toujours « raconter quelque chose ».
   Deux clubs neufs seulement dans `CLUBS_EXTRA`, le plateau étant déjà presque entièrement connu du jeu :
   **Bourges** (`BOU`, Jacques-Rimbault, **rouge et bleu**) et le **Gazélec Ajaccio** (`GFC`, **Mezzavia** —
   attention, le stade ne devient Ange-Casanova qu'en 1994 —, rouge et bleu rayé), couleurs vérifiées une à une.
-  **`GFC` n'est pas `AJA`** : le Gazélec et l'AC Ajaccio sont deux clubs distincts, comme `VAN` (Valenciennes) et
+  **`GFC` n'est pas `ACA`** : le Gazélec et l'AC Ajaccio sont deux clubs distincts, comme `VAN` (Valenciennes) et
   `VAL` (Valence) le sont depuis 90/91. Sièges européens réels : **l'OM en C1** (champion), **Monaco en C2**
   (vainqueur de la Coupe de France 1991, contre l'OM en finale), **Auxerre, Cannes et Lyon en C3** — trois places
   UEFA cette année-là contre deux en 90/91, vérifié sur le tableau de la Coupe UEFA 1991-92.
@@ -3711,8 +3711,11 @@ listes de saisons françaises** (`D2_9899` → `D2_0910`). Une réconciliation p
 vivier dès qu'Ajaccio était au plateau. D'où **`memePays(c, code)`** : un club du vivier ne s'en va que
 s'il est au plateau **ET du pays de la carrière**. Aucun des quarante-cinq clubs du vivier n'étant français,
 **la France ne perd jamais personne**, et le harnais le prouve saison par saison. La collision `AJA`
-elle-même n'a pas été touchée : renommer un code casserait vingt harnais et les sauvegardes en cours, et
-`euroClub` cherche de toute façon dans `G.europe` d'abord. **Règle à garder : un code de club n'est une
+a été levée le jour même en **v1.87, sur décision de l'auteur** : l'AC Ajaccio devient `ACA` (son nom
+officiel), l'Ajax `AFC`, et `AJA` est rendu à **Auxerre** (ex-`AUX`). Les sauvegardes d'avant sont relues par
+`migreCodes` (au début de `migre`, marqueur `G._codes`) : un « AJA » se tranche par l'endroit où il se trouve
+(vivier = l'Ajax ; ailleurs = Ajaccio s'il est au plateau, l'Ajax sinon), et `harness-codes.cjs` prouve qu'une
+sauvegarde relue est identique à la même partie lancée en v1.87. **Règle à garder : un code de club n'est une
 identité qu'à l'intérieur d'un pays.**
 
 **LE TABLEAU GARDE SES SEIZE CLUBS, quoi qu'il perde.** Un tour se divise par deux jusqu'à la finale
@@ -3802,10 +3805,13 @@ n'ait changé d'un club ni d'un rang.
    anglaise le temps du test),
    `harness-europe-ang.cjs` (la réconciliation européenne, ANG-C v1.85 : la table des sièges anglais
    saison par saison, les 120 tableaux français refaits et prouvés identiques au club et au rang près —
-   l'Ajax compris, malgré le code `AJA` qu'il partage avec Ajaccio —, le plateau qui quitte le vivier sur
+   l'Ajax compris —, le plateau qui quitte le vivier sur
    une saison anglaise d'essai, les seize clubs tenus dans les trois compétitions qualifié ou non, le
    siège du pays et son absence en C1 1990-91, la ceinture de `migre`, et trente-huit journées anglaises
    jouées pour de vrai avec leur Coupe d'Europe),
+   `harness-codes.cjs` (les trois codes de la v1.87 : Auxerre `AJA`, Ajaccio `ACA`, l'Ajax `AFC` ; une
+   sauvegarde d'avant relue identique au caractère près à la même partie lancée en v1.87, le derby corse,
+   et la carrière relue qui se joue),
    `harness-noms.cjs` (les saisons nommées : un nom par saison, la collection sans doublon, et surtout le
    créneau daté laissé intact dans `titre` et `G.saison`),
    `harness-effectif.cjs` (plancher réglementaire, quotas de cession, soupape du centre de formation,

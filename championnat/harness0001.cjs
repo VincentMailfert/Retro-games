@@ -55,7 +55,7 @@ try {
       ok("00/01 = 20 D1 + 20 D2, 40 clubs uniques, toutes métadonnées résolues");
     // La D1 réelle 2000-01 n'avait que DIX-HUIT clubs : les dix-huit doivent être là.
     const REELS_D1 = ["NAN", "LYO", "LIL", "BOR", "SED", "REN", "TRO", "BAS", "PSG", "GUI",
-                      "MON", "MET", "AUX", "LEN", "OM", "TOU", "STE", "STR"];
+                      "MON", "MET", "AJA", "LEN", "OM", "TOU", "STE", "STR"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
     if (absentsD1.length) fail("clubs réels de D1 00/01 absents : " + absentsD1.join(","));
     else ok("les dix-huit clubs de la vraie D1 2000-01 sont au plateau (Lille, Guingamp et Toulouse promus)");
@@ -74,7 +74,7 @@ try {
       fail("Louhans-Cuiseaux, 20e de D2 99/00 (24 pts), ne doit PAS être repêché");
     else ok("Amiens et Valence, meilleurs relégués de D2 99/00, repêchés en D2");
     // les dix-huit autres clubs de la vraie D2 2000-01, Nancy et Le Havre partis en D1
-    const REELS_D2 = ["SOC", "LOR", "MTP", "NIO", "CHA", "NIM", "LAV", "GUE", "BEA", "AJA",
+    const REELS_D2 = ["SOC", "LOR", "MTP", "NIO", "CHA", "NIM", "LAV", "GUE", "BEA", "ACA",
                       "WAS", "LMN", "NIC", "CRE", "CAE", "MAR", "CAN", "ANG"];
     const absentsD2 = REELS_D2.filter(id => !S.d2.includes(id));
     if (absentsD2.length) fail("clubs réels de D2 00/01 absents : " + absentsD2.join(","));
@@ -104,7 +104,7 @@ try {
     else ok("vétérans de 36 ans et plus conservés : Lama et Kastendeuch (37 ans), Gardié, Lemasson");
     // les gamins de 2000 : le tri au temps de jeu les écartait, la liste de forçage les rattrape
     const forces = { LMN: "D. Drogba", MON: "J. Riise", NIC: "P. Evra", PSG: "M. Arteta",
-                     AUX: "T. Tainio", TRO: "M. Niang", OM: "A. Méïté" };
+                     AJA: "T. Tainio", TRO: "M. Niang", OM: "A. Méïté" };
     const perdus = Object.entries(forces).filter(([id, nom]) => {
       const L = (S.d1.includes(id) ? S.starsD1 : S.starsD2)[id] || [];
       return !L.some(t => t[0] === nom);
@@ -112,7 +112,7 @@ try {
     if (perdus.length) fail("pépites forcées absentes : " + perdus.map(([id, n]) => n + " (" + id + ")").join(", "));
     else ok("pépites forcées présentes : Drogba, Riise, Evra, Arteta, Tainio, Niang, Méïté");
     // celles que le temps de jeu suffisait à garder
-    const seuls = { AUX: ["P. Mexès", "D. Cissé", "J.-A. Boumsong"], NAN: ["M. Landreau", "S. Armand"],
+    const seuls = { AJA: ["P. Mexès", "D. Cissé", "J.-A. Boumsong"], NAN: ["M. Landreau", "S. Armand"],
                     LYO: ["S. Malbranque", "S. Govou"], BAS: ["M. Essien"] };
     const rates = [];
     for (const id in seuls) for (const nom of seuls[id])
@@ -215,7 +215,7 @@ try {
   // 2000) en Coupe UEFA — AVEC GUEUGNON, vainqueur de la Coupe de la Ligue 2000, QUI JOUAIT LA D2.
   // La Coupe des Coupes n'existe plus depuis 1999 : PERSONNE en C2.
   const attendu = { MON: "C1", PSG: "C1", LYO: "C1", BOR: "C3", NAN: "C3", GUE: "C3",
-                    LIL: null, SED: null, REN: null, OM: null, LEN: null, AUX: null, SOC: null };
+                    LIL: null, SED: null, REN: null, OM: null, LEN: null, AJA: null, SOC: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
     const c = api.getG().euroCompet;

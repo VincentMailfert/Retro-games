@@ -165,7 +165,7 @@ let moi = api.clubById(G.monClub);
 
 /* ============ D) le onze se protège, et reste alignable ============ */
 console.log("D) La sélection : le onze se protège tout seul, ★ passe outre, 🛌 écarte");
-api.nouvellePartie("AUX");
+api.nouvellePartie("AJA");
 G = api.getG(); moi = api.clubById(G.monClub);
 {
   moi.joueurs.forEach(j => { j.fraich = 100; j.titu = false; j.repos = false; });

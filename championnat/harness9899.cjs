@@ -54,7 +54,7 @@ try {
     else ok("Guingamp et Châteauroux repêchés en D1 (la vraie D1 98/99 n'avait que 18 clubs)");
     if (!S.d2.includes("LOU") || !S.d2.includes("MAR")) fail("Louhans-Cuiseaux et Martigues devraient compléter la D2");
     else ok("Louhans-Cuiseaux et Martigues repêchés en D2 (la vraie D2 98/99 n'avait que 20 clubs, dont 2 montés en D1)");
-    for (const neuf of ["SED", "AJA"]) {
+    for (const neuf of ["SED", "ACA"]) {
       const m = api.metaClub(neuf);
       if (!m) fail("club neuf " + neuf + " absent de CLUBS_EXTRA");
       else if (!m.stade || !m.cap) fail("club neuf " + neuf + " sans stade/capacité");
@@ -133,7 +133,7 @@ try {
   G = api.getG();
   if (!/Euro : LA FRANCE RÉALISE LE DOUBLÉ/i.test((G.recap || []).join(" "))) fail("été 2000 : Euro 2000 non déclenché à la 2e intersaison");
   else ok("année de base 1998 ; Euro 2000 déclenché à l'été 2000");
-  const attendu = { LEN: "C1", MET: "C1", PSG: "C2", MON: "C3", OM: "C3", BOR: "C3", BAS: "C3", AUX: "C3", LYO: "C3", REN: null, STE: null, SED: null };
+  const attendu = { LEN: "C1", MET: "C1", PSG: "C2", MON: "C3", OM: "C3", BOR: "C3", BAS: "C3", AJA: "C3", LYO: "C3", REN: null, STE: null, SED: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
     const c = api.getG().euroCompet;

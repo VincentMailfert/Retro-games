@@ -411,7 +411,7 @@ console.log("J) Une saison : aucune exception, et le taux de blessures reste dan
 {
   let boum = null, miens = 0, autres = 0, jMiens = 0, jAutres = 0, scenes = 0;
   try {
-    for (const club of ["REN", "OM", "AUX"]) {
+    for (const club of ["REN", "OM", "AJA"]) {
       api.nouvellePartie(club);
       G = api.getG();
       const mien = G.monClub;
@@ -579,7 +579,7 @@ console.log("K) La fenêtre du banc : quatre boutons, quatre conséquences");
   ok(s3.etat.suites === 1, "et la fin du match a été rejouée avec lui");
 
   // 5) plus aucun changement possible : finir à dix, ou serrer les dents
-  const s4 = scene("AUX", (p) => { p.min = p.min.map(() => 12); }); // les trois changements faits à la 12e
+  const s4 = scene("AJA", (p) => { p.min = p.min.map(() => 12); }); // les trois changements faits à la 12e
   const f4 = ouvre(s4);
   ok(!s4.rel.entre && !!f4.querySelector("#bDix") && !f4.querySelector("#bVite"),
     "aucun remplaçant possible : la fenêtre propose de finir à dix, et plus de remplacement rapide");

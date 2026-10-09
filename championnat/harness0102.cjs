@@ -55,7 +55,7 @@ try {
     if (!metaManquante.length && setIds.size === 40 && S.d1.length === 20 && S.d2.length === 20)
       ok("01/02 = 20 D1 + 20 D2, 40 clubs uniques, toutes métadonnées résolues");
     // La D1 réelle 2001-02 n'avait que DIX-HUIT clubs — la dernière à porter le nom de Division 1.
-    const REELS_D1 = ["LYO", "LEN", "AUX", "PSG", "LIL", "BOR", "TRO", "SOC", "OM", "NAN",
+    const REELS_D1 = ["LYO", "LEN", "AJA", "PSG", "LIL", "BOR", "TRO", "SOC", "OM", "NAN",
                       "BAS", "REN", "MTP", "SED", "MON", "GUI", "MET", "LOR"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
     if (absentsD1.length) fail("clubs réels de D1 01/02 absents : " + absentsD1.join(","));
@@ -68,7 +68,7 @@ try {
       fail("Strasbourg, 18e et dernier relégué de 00/01 (29 pts), ne doit PAS être repêché en D1");
     else ok("Toulouse et Saint-Étienne, meilleurs relégués de D1 00/01, repêchés ; Strasbourg reste en D2");
     // les dix-neuf autres clubs de la vraie D2 2001-02, Saint-Étienne parti en D1
-    const REELS_D2 = ["AJA", "STR", "NIC", "LEH", "LMN", "CAE", "BEA", "CHA", "NCY", "LAV",
+    const REELS_D2 = ["ACA", "STR", "NIC", "LEH", "LMN", "CAE", "BEA", "CHA", "NCY", "LAV",
                       "NIO", "AMI", "GUE", "WAS", "GRE", "IST", "CRE", "NIM", "MAR"];
     const absentsD2 = REELS_D2.filter(id => !S.d2.includes(id));
     if (absentsD2.length) fail("clubs réels de D2 01/02 absents : " + absentsD2.join(","));
@@ -115,7 +115,7 @@ try {
     if (trioMON.length) fail("Monaco : " + trioMON.join(", ") + " manquent (forçage assumé de trois hommes)");
     else ok("Monaco garde ses trois forcés : Abidal, Plašil et Giuly (958 minutes, écarté par la réparation des postes)");
     // celles que le temps de jeu suffisait à garder
-    const seuls = { AUX: ["D. Cissé", "P. Mexès", "O. Kapo", "J.-A. Boumsong"], PSG: ["Ronaldinho", "M. Arteta"],
+    const seuls = { AJA: ["D. Cissé", "P. Mexès", "O. Kapo", "J.-A. Boumsong"], PSG: ["Ronaldinho", "M. Arteta"],
                     LYO: ["Juninho", "S. Govou"], BAS: ["M. Essien"], MET: ["E. Adebayor"],
                     SOC: ["B. Pedretti", "P.-A. Frau"], GUI: ["F. Malouda"], NAN: ["E. Djemba-Djemba"] };
     const rates = [];
@@ -225,7 +225,7 @@ try {
   // les deux vainqueurs de l'Intertoto 2001 — le PSG et Troyes — ET STRASBOURG, vainqueur de la
   // Coupe de France 2001, QUI JOUAIT LA DEUXIÈME DIVISION. La Coupe des Coupes n'existe plus.
   const attendu = { NAN: "C1", LYO: "C1", LIL: "C1", BOR: "C3", SED: "C3", STR: "C3", PSG: "C3", TRO: "C3",
-                    LEN: null, AUX: null, OM: null, MON: null, MET: null, STE: null, TOU: null, AJA: null };
+                    LEN: null, AJA: null, OM: null, MON: null, MET: null, STE: null, TOU: null, ACA: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
     const c = api.getG().euroCompet;

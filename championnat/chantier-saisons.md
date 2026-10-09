@@ -159,7 +159,7 @@ la routine en fait une par jour, comme une saison.
       championnat et dans le vivier de Coupe d'Europe. Généraliser `retireDEurope` et la réconciliation
       d'effectifs au pays de la saison, et définir les sièges européens **anglais** par saison.
       *Fait le 09/10/2026 (v1.85). Réconciliation à deux niveaux (par le nom, par le club), **lue au pays de
-      la saison et non au seul code** — `AJA` est l'Ajax ET l'AC Ajaccio, et douze saisons françaises en
+      la saison et non au seul code** — `AJA` était l'Ajax ET l'AC Ajaccio (levé en v1.87 : ACA, AFC, et AJA = Auxerre), douze saisons en
       dépendent. `vivierEuro` tient les seize clubs du tableau en recomplétant par les autres sièges du
       pays puis par les viviers dormants ; `SIEGES_ANG` donne les sièges anglais des vingt saisons, relevés
       sur les tableaux de participants. Voir « LA RÉCONCILIATION EUROPÉENNE » dans `CLAUDE.md`.*

@@ -56,7 +56,7 @@ try {
       ok("91/92 = 20 D1 + 20 D2, 40 clubs uniques, toutes métadonnées résolues");
     // La D1 1991-92 comptait bien vingt clubs et n'a repêché personne : Bordeaux, Brest
     // et Nice ont été rétrogradés administrativement, Le Havre, Lens et Nîmes sont montés.
-    const D1_REELLE = ["OM","MON","PSG","AUX","CAE","MTP","LEH","LEN","NAN","STE",
+    const D1_REELLE = ["OM","MON","PSG","AJA","CAE","MTP","LEH","LEN","NAN","STE",
                        "TOU","MET","LIL","CAN","NCY","NIM","REN","SOC","TON","LYO"];
     const horsD1 = D1_REELLE.filter(id => !S.d1.includes(id));
     if (horsD1.length) fail("D1 91/92 : clubs réels absents — " + horsD1.join(","));
@@ -86,7 +86,7 @@ try {
     if (api.metaClub("GFC").stade !== "Mezzavia")
       fail("le stade du Gazélec s'appelait Mezzavia en 1991 — Ange-Casanova ne le baptise qu'en 1994");
     else ok("stade du Gazélec au nom de l'époque : Mezzavia (rebaptisé Ange-Casanova en 1994)");
-    if (S.d2.includes("AJA") && S.d2.includes("GFC"))
+    if (S.d2.includes("ACA") && S.d2.includes("GFC"))
       fail("AC Ajaccio et Gazélec sont deux clubs distincts : l'AC ne joue pas la D2 91/92");
     // effectifs : non vides, postes valides, notes dans les bornes
     let pb = [];
@@ -206,7 +206,7 @@ try {
   else ok("été 94 déclenché à la 3e intersaison : le Mondial aux États-Unis");
   // l'Europe 1991-92 telle qu'elle s'est jouée : l'OM champion en C1 ; Monaco,
   // vainqueur de la Coupe de France 1991, en C2 ; Auxerre, Cannes et Lyon en Coupe UEFA.
-  const attendu = { OM: "C1", MON: "C2", AUX: "C3", CAN: "C3", LYO: "C3",
+  const attendu = { OM: "C1", MON: "C2", AJA: "C3", CAN: "C3", LYO: "C3",
                     PSG: null, CAE: null, MTP: null, LEN: null, NIM: null, BOR: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);

@@ -191,7 +191,7 @@ try {
   // l'Europe 1990-91 telle qu'elle s'est jouée : l'OM, champion 89-90, en C1 ; Montpellier,
   // vainqueur de la Coupe de France 1990, en C2 ; Bordeaux (2e) et Monaco (3e) en Coupe UEFA.
   const attendu = { OM: "C1", MTP: "C2", BOR: "C3", MON: "C3",
-                    PSG: null, AUX: null, CAN: null, LYO: null, BRE: null, REN: null };
+                    PSG: null, AJA: null, CAN: null, LYO: null, BRE: null, REN: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
     const c = api.getG().euroCompet;

@@ -60,8 +60,8 @@ try {
 
     // LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA DEUXIÈME FOIS : les deux échelons réels ont vingt
     // clubs, donc aucun repêchage, aucun écarté. On vérifie les deux listes par ÉGALITÉ.
-    const REELS_D1 = ["LYO", "MON", "OM", "BOR", "SOC", "AUX", "GUI", "LEN", "NAN", "NIC",
-                      "PSG", "BAS", "STR", "LIL", "REN", "MTP", "AJA", "TOU", "LMN", "MET"];
+    const REELS_D1 = ["LYO", "MON", "OM", "BOR", "SOC", "AJA", "GUI", "LEN", "NAN", "NIC",
+                      "PSG", "BAS", "STR", "LIL", "REN", "MTP", "ACA", "TOU", "LMN", "MET"];
     const REELS_D2 = ["GRE", "CLE", "BES", "IST", "CRE", "ROU", "VAL", "ANG", "AMI", "GUE",
                       "STE", "CHA", "CAE", "NIO", "NCY", "LOR", "TRO", "SED", "LAV", "LEH"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
@@ -115,7 +115,7 @@ try {
     // morceau ne trouve plus la cellule des minutes et rend ZÉRO. Un joueur par club, donc quarante,
     // et treize d'entre eux avaient leur place dans un effectif — dont Pierre-Alain Frau, cinquième
     // buteur du championnat avec dix-sept buts, et Bernard Diomède, champion du monde 1998.
-    const DERNIERS = { SOC: "P.-A. Frau", BAS: "C. Ben Saada", AJA: "B. Diomède", GUI: "S. Camara",
+    const DERNIERS = { SOC: "P.-A. Frau", BAS: "C. Ben Saada", ACA: "B. Diomède", GUI: "S. Camara",
                        REN: "S. N'Guéma", MET: "B. Guèye", TOU: "J. Blayac" };
     const DERNIERS_D2 = { STE: "B. Gomis", TRO: "F. Garny", NCY: "O. Rambo", ANG: "P. Sampil",
                           IST: "M. Hissein", LAV: "K. Aubry" };
@@ -152,7 +152,7 @@ try {
     else ok("Lille garde Dante et Debuchy, Rennes Gourcuff et Briand, Caen Zubar et Gouffran — trois clubs qui paient deux hommes");
 
     // celles que le temps de jeu suffisait à garder
-    const seuls = { OM: ["D. Drogba", "F. Barthez", "M. Flamini"], AUX: ["D. Cissé", "P. Mexès", "J.-A. Boumsong", "O. Kapo"],
+    const seuls = { OM: ["D. Drogba", "F. Barthez", "M. Flamini"], AJA: ["D. Cissé", "P. Mexès", "J.-A. Boumsong", "O. Kapo"],
                     MON: ["F. Morientes", "L. Giuly", "J. Rothen", "P. Evra", "E. Adebayor", "S. Squillaci"],
                     LYO: ["G. Coupet", "Juninho", "M. Essien", "F. Malouda", "G. Élber", "M. Diarra"],
                     REN: ["P. Cech", "A. Frei"], PSG: ["Pauleta", "J. Sorín"], BOR: ["R. Mavuba", "M. Chamakh", "A. Riera"],
@@ -296,9 +296,9 @@ try {
   // Bordeaux (4e), Sochaux (5e), Auxerre (vainqueur de la Coupe de France 2003) et Lens (classement
   // du fair-play). Aucun club français n'a gagné l'Intertoto 2003 (Schalke, Villarreal et Perugia),
   // donc Guingamp, Nantes et Nice n'ont pas de siège à ce titre.
-  const attendu = { LYO: "C1", MON: "C1", OM: "C1", BOR: "C3", SOC: "C3", AUX: "C3", LEN: "C3",
+  const attendu = { LYO: "C1", MON: "C1", OM: "C1", BOR: "C3", SOC: "C3", AJA: "C3", LEN: "C3",
                     PSG: null, NAN: null, NIC: null, GUI: null, REN: null, LIL: null, MTP: null,
-                    BAS: null, STR: null, AJA: null, TOU: null, LMN: null, MET: null,
+                    BAS: null, STR: null, ACA: null, TOU: null, LMN: null, MET: null,
                     STE: null, CAE: null, IST: null, BES: null, TRO: null, SED: null, LEH: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
@@ -310,7 +310,7 @@ try {
   if ((S.euroC2 || []).length) fail("la Coupe des Coupes n'existe plus en 2003-04 : euroC2 doit être vide");
   else ok("aucun siège en Coupe des Coupes : la compétition a disparu après 1999");
   // pour la première fois depuis 96/97, les SEPT sièges européens sont tous en première division
-  const horsL1 = ["LYO", "MON", "OM", "BOR", "SOC", "AUX", "LEN"].filter(id => !S.d1.includes(id));
+  const horsL1 = ["LYO", "MON", "OM", "BOR", "SOC", "AJA", "LEN"].filter(id => !S.d1.includes(id));
   if (horsL1.length) fail("siège européen hors Ligue 1 : " + horsL1.join(","));
   else ok("les sept clubs européens jouent tous la Ligue 1 — aucun siège en deuxième division, ce qui n'était plus arrivé depuis 96/97");
 } catch (e) { fail("exception année/Europe : " + e.stack); }

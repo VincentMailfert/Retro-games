@@ -113,8 +113,8 @@ console.log("\nB) La France ne bouge pas : sur les vingt saisons, le tableau est
     api.nouvellePartie(S.d1[0], cle);
     const G = api.getG();
     if ((G.europe || []).length !== EUROCLUBS.length) viviersCourts++;
-    // LE PIÈGE DU JOUR : « AJA » est l'AC Ajaccio au plateau ET l'Ajax Amsterdam au vivier de C1
-    if (plateauDe(S).has("AJA") && !G.europe.some(c => c.id === "AJA" && c.nom.includes("Ajax"))) sansAjax.push(cle);
+    // l'ancien piège : « AJA » était l'AC Ajaccio ET l'Ajax jusqu'à la v1.86 ; depuis la v1.87, ACA et AFC
+    if (plateauDe(S).has("ACA") && !G.europe.some(c => c.id === "AFC" && c.nom.includes("Ajax"))) sansAjax.push(cle);
     // et la réconciliation par le nom, celle qui a de vraies dents : de vrais joueurs des deux côtés
     const cures = new Set();
     for (const c of G.clubs.concat(G.autre)) for (const j of c.joueurs) if (j.reel) cures.add(j.nom);
@@ -134,7 +134,7 @@ console.log("\nB) La France ne bouge pas : sur les vingt saisons, le tableau est
   ok(ecarts === 0, "sur 120 tableaux français, pas un seul n'a changé d'un club ni d'un rang");
   ok(siegesFaux === 0, "et le siège national reste Nantes en C1, le PSG en C2, Bordeaux en C3");
   ok(sansAjax.length === 0,
-    `l'Ajax Amsterdam reste au vivier des douze saisons où l'AC Ajaccio joue le championnat, malgré le code « AJA » partagé${sansAjax.length ? " — " + sansAjax.join(", ") : ""}`);
+    `l'Ajax Amsterdam reste au vivier des douze saisons où l'AC Ajaccio joue le championnat, Ajaccio sous ACA, l'Ajax sous AFC${sansAjax.length ? " — " + sansAjax.join(", ") : ""}`);
   ok(surDeuxTerrains.length === 0,
     `aucun joueur curé du championnat français ne joue aussi dans un club du vivier${surDeuxTerrains.length ? " — " + surDeuxTerrains.slice(0, 5).join(", ") : ""}`);
 

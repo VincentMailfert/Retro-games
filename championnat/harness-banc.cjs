@@ -210,7 +210,7 @@ console.log("B) Qui peut entrer, qui peut sortir");
 /* ============ C) UNE DES TROIS PLACES, JAMAIS UNE QUATRIÈME ============ */
 console.log("C) Un changement voulu prend l'une des trois places");
 {
-  const s = scene("AUX", 40);
+  const s = scene("AJA", 40);
   const prevusAvant = s.p.min.filter(x => x > 40).length;
   api.ouvreBanc(s.ctx);
   paireLibre(s, 40);
@@ -234,7 +234,7 @@ console.log("D) Le sortant se tait, l'entrant joue");
     || (!l.g && !l.c && l.ic !== "sub" && !l.bl && typeof l.x === "string" && !AMBIGUS.has(j.nom) && ditLeNom(l.x, j.nom));
   let faux = null, faits = 0;
   for (let n = 0; n < 60 && !faux; n++) {
-    const s = scene(["LIL", "REN", "OM", "AUX"][n % 4], 30 + (n % 20));
+    const s = scene(["LIL", "REN", "OM", "AJA"][n % 4], 30 + (n % 20));
     poseAmbigus(s.chg);
     // on compte À la minute du changement, pas après : la fin rejouée peut sortir un rouge dès la minute
     // suivante, et ce n'est pas le changement qui aurait retiré l'homme. Un rouge d'AVANT, lui, compte :
@@ -372,7 +372,7 @@ console.log("H) Un changement voulu se paie comme les autres");
 /* ============ I) ÉCHAPPEMENT ============ */
 console.log("I) Un nom bricolé ne peut pas ouvrir de balise");
 {
-  const s = scene("AUX", 40);
+  const s = scene("AJA", 40);
   api.bancDispo(s.moi, s.p, 40).forEach(x => { x.nom = 'R. <img src=x onerror="pan()">'; });
   api.ouvreBanc(s.ctx);
   ok(FICHE._h.indexOf("<img") < 0 && /&lt;img/.test(FICHE._h), "les noms du banc ressortent échappés");
@@ -389,7 +389,7 @@ console.log("J) Un homme prévu plus tard, qu'on fait entrer tout de suite, n'en
 {
   let vus = 0, doubles = 0;
   for (let n = 0; n < 40; n++) {
-    const s = scene(["LIL", "REN", "OM", "AUX"][n % 4], 40);
+    const s = scene(["LIL", "REN", "OM", "AJA"][n % 4], 40);
     const k = s.p.min.findIndex(x => x > 40);
     if (k < 0) continue;
     const entrant = s.p.banc[k];

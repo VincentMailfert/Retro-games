@@ -154,7 +154,7 @@ console.log("\nD) Le compteur de distinctions se remet à zéro avec les buts");
 /* ===== E) le classement des hommes du match se rend ===== */
 console.log("\nE) Le classement des hommes du match, dans l'onglet Classement");
 {
-  api.nouvellePartie("AUX");
+  api.nouvellePartie("AJA");
   G = api.getG();
   let pepin = null;
   try { api.ecranClassement(); } catch (e) { pepin = e.message; }

@@ -360,7 +360,7 @@ console.log("\nJ) Quatre saisons en changeant de formation chaque semaine");
 {
   let err = null, buts = 0, matchs = 0, malAlignes = 0, horsPoste = 0;
   try {
-    neuve("AUX");
+    neuve("AJA");
     for (let s = 0; s < 4; s++) {
       for (let d = 0; d < 38; d++) {
         const G = api.getG(); G.formation = FORMS[(d + s) % 3];

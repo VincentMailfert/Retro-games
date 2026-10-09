@@ -61,9 +61,9 @@ try {
 
     // LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA CINQUIÈME FOIS DE SUITE : les deux échelons réels
     // ont vingt clubs, donc aucun repêchage, aucun écarté. On vérifie les deux listes par ÉGALITÉ.
-    const REELS_D1 = ["LYO", "OM", "TOU", "REN", "LEN", "BOR", "SOC", "AUX", "MON", "LIL",
+    const REELS_D1 = ["LYO", "OM", "TOU", "REN", "LEN", "BOR", "SOC", "AJA", "MON", "LIL",
                       "STE", "LMN", "NCY", "LOR", "PSG", "NIC", "VAN", "TRO", "SED", "NAN"];
-    const REELS_D2 = ["MET", "CAE", "STR", "GUI", "BAS", "AMI", "REI", "LEH", "AJA", "DIJ",
+    const REELS_D2 = ["MET", "CAE", "STR", "GUI", "BAS", "AMI", "REI", "LEH", "ACA", "DIJ",
                       "NIO", "MTP", "BRE", "GRE", "CHA", "LIB", "GUE", "CRE", "IST", "TRS"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
     const intrusD1 = S.d1.filter(id => !REELS_D1.includes(id));
@@ -138,7 +138,7 @@ try {
     // C'est la plus grosse fournée du chantier, parce que 2006-07 est une année de débuts énorme.
     const forces = { LYO: "L. Rémy", PSG: "M. Sakho", LEN: "A. Taarabt", LIL: "A. Rami",
                      NAN: "W. Vainqueur", MON: "C. Mongongu", SOC: "M. Erdinç",
-                     REN: "J. Kembo Ekoko", TOU: "K. Constant", AUX: "A. Traoré", LMN: "H. Yebda" };
+                     REN: "J. Kembo Ekoko", TOU: "K. Constant", AJA: "A. Traoré", LMN: "H. Yebda" };
     const forcesD2 = { GRE: "O. Giroud", MET: "G. Bong", STR: "M. Schneiderlin",
                        GUI: "Bakary Koné", MTP: "M. Yanga-Mbiwa", CHA: "B. Sako",
                        LIB: "C. Kaboré", GUE: "A. Cissokho" };
@@ -184,7 +184,7 @@ try {
                     LEN: ["S. Keita", "A. Dindane", "N. Kovacevic", "Hilton"],
                     BOR: ["M. Chamakh", "U. Ramé", "Wendel", "G. Obertan"],
                     SOC: ["T. Richert", "A. Le Tallec", "V. Birsa"],
-                    AUX: ["B. Sagna", "B. Pedretti", "I. Jeleń", "Benoît Cheyrou"],
+                    AJA: ["B. Sagna", "B. Pedretti", "I. Jeleń", "Benoît Cheyrou"],
                     MON: ["Y. Touré", "J. Koller", "J. Ménez", "S. Ruffier", "G. Givet"],
                     LIL: ["Y. Cabaye", "J. Makoun", "M. Debuchy", "P. Odemwingie", "M. Bastos"],
                     STE: ["B. Gomis", "F. Guarín", "Z. Camara"], LMN: ["Ismaël Bangoura", "M. Coutadeur", "Grafite"],
@@ -367,11 +367,11 @@ try {
   // le PARIS SG (Coupe de France 2006), NANCY (Coupe de la Ligue 2006), et MARSEILLE et AUXERRE,
   // tous DEUX vainqueurs de l'INTERTOTO 2006 — deux clubs français par la même Intertoto pour la
   // DEUXIÈME année de suite. Huit sièges, tous en Ligue 1.
-  const attendu = { LYO: "C1", BOR: "C1", LIL: "C1", LEN: "C3", PSG: "C3", NCY: "C3", OM: "C3", AUX: "C3",
+  const attendu = { LYO: "C1", BOR: "C1", LIL: "C1", LEN: "C3", PSG: "C3", NCY: "C3", OM: "C3", AJA: "C3",
                     TOU: null, REN: null, SOC: null, MON: null, STE: null, LMN: null, LOR: null,
                     NIC: null, VAN: null, TRO: null, SED: null, NAN: null,
                     MET: null, CAE: null, STR: null, GUI: null, BAS: null, AMI: null, REI: null,
-                    LEH: null, AJA: null, DIJ: null, NIO: null, MTP: null, BRE: null, GRE: null,
+                    LEH: null, ACA: null, DIJ: null, NIO: null, MTP: null, BRE: null, GRE: null,
                     CHA: null, LIB: null, GUE: null, CRE: null, IST: null, TRS: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);

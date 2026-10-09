@@ -237,7 +237,7 @@ console.log("G) Une partie française ne bouge pas d'un octet");
   ok(CLUBS.length === 20 && CLUBS_D2.length === 20, `les tables françaises sont intactes (${CLUBS.length} + ${CLUBS_D2.length})`);
   const TEMOINS = [
     ["PSG", "Parc des Princes", 48000, 10, 95e6], ["OM", "Vélodrome", 42000, 8, 30e6],
-    ["AUX", "Abbé-Deschamps", 20000, 8, 55e6], ["GUE", "Jean-Laville", 9000, 2, 9e6],
+    ["AJA", "Abbé-Deschamps", 20000, 8, 55e6], ["GUE", "Jean-Laville", 9000, 2, 9e6],
   ];
   const bougés = TEMOINS.filter(([id, st, cap, p, b]) => {
     const c = metaClub(id); return c.stade !== st || c.cap !== cap || c.pres !== p || c.budget !== b;

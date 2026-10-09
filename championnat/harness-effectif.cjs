@@ -142,7 +142,7 @@ ok(compte(cible2, "G") >= api.PLANCHER.G, `l'adversaire a racheté un gardien ($
 /* ============ D) carrière longue : personne ne sort des clous ============ */
 console.log("D) Carrière longue : contrôle réglementaire de toutes les divisions");
 let violPlancher = 0, violXI = 0, minEff = 99, exemple = "";
-for (const club of ["AUX", "OM", "MTP"]) {
+for (const club of ["AJA", "OM", "MTP"]) {
   api.nouvellePartie(club);
   G = api.getG();
   for (let s = 0; s < 6; s++) {

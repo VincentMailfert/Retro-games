@@ -64,10 +64,10 @@ try {
 
     // LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA HUITIÈME FOIS DE SUITE : les deux échelons
     // réels ont vingt clubs, donc aucun repêchage, aucun écarté. Listes vérifiées par ÉGALITÉ.
-    const REELS_D1 = ["LYO", "OM", "BOR", "LIL", "PSG", "TOU", "REN", "MON", "STE", "AUX",
+    const REELS_D1 = ["LYO", "OM", "BOR", "LIL", "PSG", "TOU", "REN", "MON", "STE", "AJA",
                       "NIC", "NCY", "LOR", "VAN", "MTP", "LMN", "SOC", "LEN", "GRE", "BLG"];
     const REELS_D2 = ["NAN", "CAE", "LEH", "MET", "BRE", "ANG", "GUI", "STR", "TRS", "CHA",
-                      "ARL", "SED", "DIJ", "CLE", "BAS", "VNS", "AJA", "NIM", "IST", "LAV"];
+                      "ARL", "SED", "DIJ", "CLE", "BAS", "VNS", "ACA", "NIM", "IST", "LAV"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
     const intrusD1 = S.d1.filter(id => !REELS_D1.includes(id));
     if (absentsD1.length || intrusD1.length)
@@ -181,7 +181,7 @@ try {
 
     // les gamins de 2009 : le tri au temps de jeu les écartait, la liste de forçage les rattrape.
     const forces = { LYO: "A. Lacazette", OM: "J. Ayew", BOR: "H. Saivet", LIL: "I. Gueye",
-                     REN: "K. Théophile-Catherine", STE: "J. Guilavogui", AUX: "Y. Sanogo",
+                     REN: "K. Théophile-Catherine", STE: "J. Guilavogui", AJA: "Y. Sanogo",
                      MTP: "B. Dabo", GRE: "S. Feghouli" };
     const forcesD2 = { CAE: "R. van La Parra", BRE: "M. Autret", ANG: "V. Manceau",
                        GUI: "G. Imbula", NIM: "A. Delort", IST: "F. Lejeune" };
@@ -200,7 +200,7 @@ try {
     // YAYA SANOGO, SEIZE ANS ET QUINZE MINUTES À AUXERRE : le cinquième seizième anniversaire
     // du jeu, après Didier Domi (94/95), Mamadou Sakho (06/07), Eden Hazard (07/08) et
     // Sega Keïta (08/09).
-    const sanogo = (S.starsD1.AUX || []).find(t => t[0] === "Y. Sanogo");
+    const sanogo = (S.starsD1.AJA || []).find(t => t[0] === "Y. Sanogo");
     if (!sanogo || sanogo[2] !== 16)
       fail("Yaya Sanogo : seize ans à Auxerre, quinze minutes en Ligue 1");
     else ok("Yaya Sanogo, SEIZE ANS à Auxerre, le plus jeune du plateau — le cinquième du chantier");
@@ -224,7 +224,7 @@ try {
     else ok("Bryan Dabo gardé pour SIX MINUTES à Montpellier — le plus petit temps de jeu de la saison");
     // GRENOBLE, RENNES ET AUXERRE PAIENT DEUX HOMMES CHACUN : le prix du forçage, assumé
     const paires = [["GRE", ["S. Feghouli", "S. Taïder"]], ["REN", ["K. Théophile-Catherine", "T. Doumbia"]],
-                    ["AUX", ["Y. Sanogo", "A. Traoré"]]];
+                    ["AJA", ["Y. Sanogo", "A. Traoré"]]];
     const manquePaire = paires.filter(([id, ns]) => ns.some(n => !(S.starsD1[id] || []).some(t => t[0] === n)));
     if (manquePaire.length) fail("forçage multiple incomplet : " + manquePaire.map(p => p[0]).join(", "));
     else ok("Grenoble, Rennes et Auxerre paient DEUX hommes chacun");
@@ -232,7 +232,7 @@ try {
     // celles que le temps de jeu suffisait à garder
     const seuls = { OM: ["S. Mandanda", "M. Niang", "L. González", "H. Ben Arfa", "M. Valbuena", "G. Heinze", "T. Taiwo", "Brandão"],
                     LYO: ["H. Lloris", "L. López", "M. Pjanić", "J. Toulalan", "M. Bastos", "B. Gomis", "Cristiano", "D. Lovren", "M. Gonalons"],
-                    AUX: ["B. Pedretti", "I. Jeleń", "D. Oliech", "S. Grichting", "Rémy Riou"],
+                    AJA: ["B. Pedretti", "I. Jeleń", "D. Oliech", "S. Grichting", "Rémy Riou"],
                     LIL: ["E. Hazard", "Y. Cabaye", "A. Rami", "M. Debuchy", "Gervinho", "R. Mavuba", "P.-E. Aubameyang"],
                     MTP: ["E. Spahic", "Y. Belhanda", "M. Yanga-Mbiwa"],
                     BOR: ["Y. Gourcuff", "M. Chamakh", "A. Diarra", "Wendel", "Jussiê", "B. Trémoulinas"],
@@ -258,7 +258,7 @@ try {
                              ["ANG", "P. Oniangué"], ["ANG", "G. Charbonnier"], ["LAV", "R. Hamouma"],
                              ["NIM", "B. Moukandjo"], ["STR", "M. Gueye"], ["ARL", "S. Piocelle"],
                              ["IST", "R. Saïfi"], ["GUI", "Bakary Koné"], ["TRS", "Youssouf Touré"],
-                             ["AJA", "Leyti N'Diaye"], ["NIM", "Alphousseyni Keita"], ["GUI", "M. Diallo"]])
+                             ["ACA", "Leyti N'Diaye"], ["NIM", "Alphousseyni Keita"], ["GUI", "M. Diallo"]])
       if (!(S.starsD2[id] || []).some(t => t[0] === nom)) rates.push(nom + " (" + id + ")");
     if (rates.length) fail("pépites passées au temps de jeu et pourtant absentes : " + rates.join(", "));
     else ok("Gourcuff, Lloris, Hazard, Gignac, Giroud, Brahimi, Koscielny, Belhanda, Aubameyang, Corchia, Djilobodji et Hamouma passent au temps de jeu");
@@ -413,7 +413,7 @@ try {
   else ok("« M. Traoré » reste à son homme de 1990 : les six Traoré du plateau gardent chacun son initiale");
   // L'HOMME DE L'ANCRE GARDE SON NOM (règle de 08/09) : « A. Traoré » suit Alain, revenu de Brest
   // à Auxerre, où il ne joue que QUINZE MINUTES. Abdou, né la même année, est écarté au temps de jeu.
-  const atr = (api.STARS_0910.AUX || []).find(t => t[0] === "A. Traoré");
+  const atr = (api.STARS_0910.AJA || []).find(t => t[0] === "A. Traoré");
   if (!atr) fail("« A. Traoré » doit rester à Alain, que le jeu porte depuis 06/07 — il est de retour à Auxerre en 2009-10");
   else if (atr[2] !== 21) fail("Alain Traoré a vingt et un ans en 2009-10, reçu " + atr[2]);
   else if (compte["Abdou Traoré"]) fail("Abdou Traoré est écarté au temps de jeu à Bordeaux : il ne peut pas être au plateau");
@@ -522,11 +522,11 @@ try {
   // UEFA a changé de nom à l'été 2009 — TOULOUSE (4e), LILLE (5e) et GUINGAMP, vainqueur de la
   // Coupe de France 2009. Six sièges, et le sixième est EN LIGUE 2.
   const attendu = { BOR: "C1", OM: "C1", LYO: "C1", TOU: "C3", LIL: "C3", GUI: "C3",
-                    PSG: null, REN: null, MON: null, STE: null, AUX: null, NIC: null, NCY: null,
+                    PSG: null, REN: null, MON: null, STE: null, AJA: null, NIC: null, NCY: null,
                     LOR: null, VAN: null, MTP: null, LMN: null, SOC: null, LEN: null, GRE: null, BLG: null,
                     NAN: null, CAE: null, LEH: null, MET: null, BRE: null, ANG: null, STR: null,
                     TRS: null, CHA: null, ARL: null, SED: null, DIJ: null, CLE: null, BAS: null,
-                    VNS: null, AJA: null, NIM: null, IST: null, LAV: null };
+                    VNS: null, ACA: null, NIM: null, IST: null, LAV: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
     const c = api.getG().euroCompet;
@@ -540,7 +540,7 @@ try {
   // SENS : AUXERRE finira TROISIÈME et MONTPELLIER CINQUIÈME, et ni l'un ni l'autre ne joue
   // l'Europe cette année-là, parce que les sièges se gagnent sur le classement de 2008-09 ; et
   // GUINGAMP, QUI EST EN LIGUE 2, JOUE BEL ET BIEN LA LIGUE EUROPA.
-  for (const id of ["AUX", "MTP", "LOR", "MON"])
+  for (const id of ["AJA", "MTP", "LOR", "MON"])
     if ((S.euroC1 || []).includes(id) || (S.euroC3 || []).includes(id))
       fail(id + " n'a pas de siège en 2009-10 : les sièges se gagnent sur le classement de 2008-09");
   ok("Auxerre et Montpellier, futurs troisième et cinquième, partent sans Europe : les sièges se gagnent l'année d'avant");

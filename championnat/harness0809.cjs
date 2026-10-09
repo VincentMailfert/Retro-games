@@ -64,8 +64,8 @@ try {
     // LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA SEPTIÈME FOIS DE SUITE : les deux échelons
     // réels ont vingt clubs, donc aucun repêchage, aucun écarté. Listes vérifiées par ÉGALITÉ.
     const REELS_D1 = ["LYO", "BOR", "OM", "NCY", "STE", "REN", "LIL", "NIC", "LMN", "LOR",
-                      "CAE", "MON", "VAN", "SOC", "AUX", "PSG", "TOU", "LEH", "NAN", "GRE"];
-    const REELS_D2 = ["SED", "CLE", "TRO", "BRE", "MTP", "AJA", "ANG", "BAS", "GUI", "REI",
+                      "CAE", "MON", "VAN", "SOC", "AJA", "PSG", "TOU", "LEH", "NAN", "GRE"];
+    const REELS_D2 = ["SED", "CLE", "TRO", "BRE", "MTP", "ACA", "ANG", "BAS", "GUI", "REI",
                       "AMI", "CHA", "BLG", "DIJ", "LEN", "STR", "MET", "TRS", "NIM", "VNS"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
     const intrusD1 = S.d1.filter(id => !REELS_D1.includes(id));
@@ -153,7 +153,7 @@ try {
 
     // les gamins de 2008 : le tri au temps de jeu les écartait, la liste de forçage les rattrape.
     const forces = { BOR: "H. Saivet", LYO: "M. Pjanić", TOU: "F. Tabanou", LIL: "Y. Salibur",
-                     PSG: "Y. Mulumbu", REN: "K. Théophile-Catherine", AUX: "D. N'Dinga",
+                     PSG: "Y. Mulumbu", REN: "K. Théophile-Catherine", AJA: "D. N'Dinga",
                      STE: "J. Guilavogui", CAE: "R. van La Parra", LEH: "J.-A. Kana-Biyik" };
     const forcesD2 = { LEN: "A. Omrani", MTP: "A. El Kaoutari", BLG: "S. Mouyokolo", STR: "L. Damour",
                        MET: "F. Diagne", DIJ: "Y. M'Vila", BAS: "J. Martial", BRE: "G. Borne",
@@ -206,7 +206,7 @@ try {
                     STE: ["B. Gomis", "B. Matuidi", "D. Payet", "Ilan"],
                     NIC: ["D. Ospina", "L. Rémy", "Mahamane Traoré"],
                     MON: ["N. N'Koulou", "Adriano", "C.-y. Park", "D. Simic"],
-                    AUX: ["Rémy Riou", "B. Pedretti", "D. Dudka"],
+                    AJA: ["Rémy Riou", "B. Pedretti", "D. Dudka"],
                     LMN: ["Gervinho", "M. Maïga", "T. Helstad"],
                     NCY: ["André Luiz", "B. Gavanon"], LOR: ["C. Jallet", "J. Morel"],
                     CAE: ["S. Savidan", "N. Seube"], VAN: ["Carlos Sánchez", "Mody Traoré", "G. Danic"],
@@ -217,7 +217,7 @@ try {
       if (!(S.starsD1[id] || []).some(t => t[0] === nom)) rates.push(nom + " (" + id + ")");
     for (const [id, nom] of [["MTP", "M. Yanga-Mbiwa"], ["MET", "P. Cissé"], ["CLE", "M. Benatia"],
                              ["GUI", "Eduardo Ribeiro"], ["GUI", "Bakary Koné"], ["BAS", "W. Khazri"],
-                             ["AMI", "S. Nzonzi"], ["AJA", "B. André"], ["VNS", "F. Sammaritano"],
+                             ["AMI", "S. Nzonzi"], ["ACA", "B. André"], ["VNS", "F. Sammaritano"],
                              ["TRO", "C. Beauvue"], ["SED", "I. Traoré"], ["BLG", "Z. Touré"],
                              ["VNS", "B. Costil"]])
       if (!(S.starsD2[id] || []).some(t => t[0] === nom)) rates.push(nom + " (" + id + ")");
@@ -443,7 +443,7 @@ try {
   const attendu = { LYO: "C1", BOR: "C1", OM: "C1", NCY: "C3", STE: "C3", PSG: "C3", REN: "C3",
                     LIL: null, NIC: null, LMN: null, LOR: null, CAE: null, MON: null, VAN: null,
                     SOC: null, TOU: null, LEH: null, NAN: null, GRE: null,
-                    SED: null, CLE: null, TRO: null, BRE: null, MTP: null, AJA: null, ANG: null,
+                    SED: null, CLE: null, TRO: null, BRE: null, MTP: null, ACA: null, ANG: null,
                     BAS: null, GUI: null, REI: null, AMI: null, CHA: null, BLG: null, DIJ: null,
                     LEN: null, STR: null, MET: null, TRS: null, NIM: null, VNS: null };
   for (const id in attendu) {
@@ -460,7 +460,7 @@ try {
   // servis par le classement de 2008-09, parce que les sièges se gagnent l'année d'AVANT ; et
   // SAINT-ÉTIENNE, QUI FINIRA DIX-SEPTIÈME, JOUE BEL ET BIEN LA COUPE UEFA, pour avoir été
   // cinquième en 2007-08. C'est le pendant exact du Toulouse de 07/08.
-  for (const id of ["TOU", "LIL", "NIC", "AUX"])
+  for (const id of ["TOU", "LIL", "NIC", "AJA"])
     if ((S.euroC1 || []).includes(id) || (S.euroC3 || []).includes(id))
       fail(id + " n'a pas de siège en 2008-09 : les sièges se gagnent sur le classement de 2007-08");
   ok("Toulouse et Lille, futurs quatrième et cinquième, partent sans Europe : les sièges se gagnent l'année d'avant");

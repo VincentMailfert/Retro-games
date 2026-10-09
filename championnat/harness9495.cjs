@@ -61,7 +61,7 @@ try {
     if (sansStade.length) fail("clubs sans stade/capacité : " + sansStade.join(","));
     else ok("aucun club neuf cette saison : les quarante étaient déjà au registre, avec stade et capacité");
     // La D1 1994-95 comptait bien vingt clubs et n'a repêché personne.
-    const D1_REELLE = ["NAN","LYO","PSG","AUX","LEN","MON","BOR","MET","CAN","STR",
+    const D1_REELLE = ["NAN","LYO","PSG","AJA","LEN","MON","BOR","MET","CAN","STR",
                        "MAR","LEH","REN","LIL","BAS","NIC","MTP","STE","CAE","SOC"];
     const horsD1 = D1_REELLE.filter(id => !S.d1.includes(id));
     if (horsD1.length) fail("D1 94/95 : clubs réels absents — " + horsD1.join(","));
@@ -234,7 +234,7 @@ try {
   // demi-finale), Auxerre la Coupe des Coupes qu'il a gagnée sur le terrain (Coupe de
   // France 1994), et l'OM joue la Coupe UEFA DEPUIS LA D2 — vice-champion 93/94, il a
   // sorti l'Olympiakos avant de tomber à Sion.
-  const attendu = { PSG: "C1", AUX: "C2", OM: "C3", BOR: "C3", NAN: "C3", CAN: "C3",
+  const attendu = { PSG: "C1", AJA: "C2", OM: "C3", BOR: "C3", NAN: "C3", CAN: "C3",
                     LYO: null, LEN: null, MON: null, MET: null, STR: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);

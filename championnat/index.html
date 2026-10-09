@@ -538,7 +538,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.86"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.87"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -679,7 +679,7 @@ const uidGen=()=>Math.random().toString(36).slice(2,10);
 /* ---------- Clubs D1 1995-96 (les 20 vrais) ---------- */
 /* prestige 1-10, capacité stade approx. de l'époque, budget mercato en francs */
 const CLUBS=[
- {id:"AUX", nom:"AJ Auxerre",        stade:"Abbé-Deschamps",   cap:20000, pres:8, budget:55e6},
+ {id:"AJA", nom:"AJ Auxerre",        stade:"Abbé-Deschamps",   cap:20000, pres:8, budget:55e6},
  {id:"BAS", nom:"SC Bastia",         stade:"Furiani",          cap:10500, pres:4, budget:18e6},
  {id:"BOR", nom:"Girondins Bordeaux",stade:"Parc Lescure",     cap:31000, pres:8, budget:60e6},
  {id:"CAN", nom:"AS Cannes",         stade:"La Bocca",         cap:12000, pres:3, budget:14e6},
@@ -747,7 +747,7 @@ const STARS={
       ["F. Fontan","G",22,69,72],["W. Prunier","D",28,76,76],["M. Varešanović","D",23,72,74],
       ["D. Dutuel","M",28,70,73],["P. Lucas","M",32,72,76],["J.-Y. de Blasiis","M",22,70,74],
       ["D. Tholot","A",31,73,73],["K. Diawara","A",20,70,82]],
- AUX:[["L. Charbonnier","G",29,82,82],["L. Blanc","D",30,89,89],["C. Rémy","D",24,73,74],
+ AJA:[["L. Charbonnier","G",29,82,82],["L. Blanc","D",30,89,89],["C. Rémy","D",24,73,74],
       ["C. Martins","M",26,83,83],["M. Saïb","M",26,80,81],["P. Violeau","M",25,75,77],
       ["S. Lamouchi","M",24,79,84],["B. Diomède","A",21,76,84],
       ["C. Cocard","A",28,81,81],["A. Goma","D",23,75,84],["S. Guivarc'h","A",25,80,86],["L. Laslandes","A",24,79,83],
@@ -1995,12 +1995,12 @@ function veilleEffectif(){
 /* ---------- Lore : rivalités et malédictions ---------- */
 const RIVAL={PSG:"OM",OM:"PSG",LEN:"LIL",LIL:"LEN",LYO:"STE",STE:"LYO",NAN:"BOR",BOR:"NAN",
  NIC:"MON",MON:"NIC",GUI:"REN",REN:"GUI",MET:"NCY",NCY:"MET",CAE:"LEH",LEH:"CAE",
- AJA:"BAS",BAS:"AJA",
+ ACA:"BAS",BAS:"ACA",
  /* Angleterre (ANG-B) */
  MUN:"MCI",MCI:"MUN", LIV:"EVE",EVE:"LIV", ARS:"TOT",TOT:"ARS", CHE:"QPR",QPR:"CHE", NEW:"SUN",SUN:"NEW", AVL:"BIR",BIR:"AVL", WBA:"WOL",WOL:"WBA", SHU:"SHW",SHW:"SHU", LEE:"BRD",BRD:"LEE", NOR:"IPS",IPS:"NOR", STK:"PTV",PTV:"STK", DER:"FOR",FOR:"DER", BLB:"BUR",BUR:"BLB", BOL:"WIG",WIG:"BOL", POR:"SOU",SOU:"POR", CAR:"SWA",SWA:"CAR", BSC:"BSR",BSR:"BSC", CPL:"BHA",BHA:"CPL", WHU:"MIW",MIW:"WHU", LEI:"COV",COV:"LEI", FUL:"BTF",BTF:"FUL", PNE:"BLP",BLP:"PNE", WAT:"LUT",LUT:"WAT", RDG:"OXF",OXF:"RDG", GRI:"SCU",SCU:"GRI", DON:"ROT",ROT:"DON", COL:"SND",SND:"COL", CAM:"PET",PET:"CAM"};
 const NOMS_RIVALITES={"PSG-OM":"Le Classique","LEN-LIL":"Le derby du Nord","LYO-STE":"Le derby du Rhône",
  "NAN-BOR":"Le derby de l'Atlantique","NIC-MON":"Le derby de la Côte d'Azur","GUI-REN":"Le derby breton",
- "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand","AJA-BAS":"Le derby corse",
+ "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand","ACA-BAS":"Le derby corse",
  /* Angleterre (ANG-B) */
  "MUN-MCI":"Le derby de Manchester",
  "LIV-EVE":"Le derby du Merseyside",
@@ -2031,12 +2031,12 @@ const NOMS_RIVALITES={"PSG-OM":"Le Classique","LEN-LIL":"Le derby du Nord","LYO-
  "COL-SND":"Le derby de l'Essex",
  "CAM-PET":"Le derby des Fens"};
 function nomRivalite(a,b){ return NOMS_RIVALITES[a+"-"+b]||NOMS_RIVALITES[b+"-"+a]||"Le derby"; }
-const JAMAIS_CHAMPION=new Set(["AUX","LEN","MET","MTP","REN","BAS","GUI","LEH","CAN","MAR","GUE","TOU","CAE","NCY","LYO"]);
+const JAMAIS_CHAMPION=new Set(["AJA","LEN","MET","MTP","REN","BAS","GUI","LEH","CAN","MAR","GUE","TOU","CAE","NCY","LYO"]);
 // premier titre réel (année de début de la saison du sacre) : une carrière lancée après ne le vit plus comme une malédiction
-const PREMIER_TITRE={AUX:1995,LEN:1997,LYO:2001};
+const PREMIER_TITRE={AJA:1995,LEN:1997,LYO:2001};
 function jamaisChampion(id, an){ return JAMAIS_CHAMPION.has(id) && !(PREMIER_TITRE[id]<an); }
 const MALEDICTIONS={
- AUX:"Jamais champion de France, Guy Roux attend son heure depuis 1961.",
+ AJA:"Jamais champion de France, Guy Roux attend son heure depuis 1961.",
  LEN:"Le titre fuit l'Artois depuis toujours. Bollaert gronde d'impatience.",
  STE:"Dix titres au compteur... et le poids écrasant du glorieux passé.",
  PSG:"Deux titres (1986, 1994), des pionniers de Rocheteau aux héros d'Europe : Paris exige l'hégémonie, rien de moins.",
@@ -2064,7 +2064,7 @@ const MALEDICTIONS={
  NIM:"Finalistes de la Coupe en 1996 depuis le National. Les Crocodiles ont encore faim d'élite.",
  WAS:"Un club de quartier dans le grand Stadium Nord : deux mille fidèles et seize mille sièges vides.",
  SED:"Deux Coupes de France au temps du noir et blanc, puis quarante ans de purgatoire ardennais.",
- AJA:"Champion du National, et déjà toute la Corse sur le dos, avec Bastia qui ricane d'en face.",
+ ACA:"Champion du National, et déjà toute la Corse sur le dos, avec Bastia qui ricane d'en face.",
  CRE:"Monté du National dans l'ombre du Parc : en Val-de-Marne, on rêve d'un derby que Paris ne regardera jamais.",
  BRE:"Armoricaine jusqu'au bout : le club vit au-dessus de ses moyens et le sait.",
  VAN:"Vingt-deux mille places à Nungesser, et une ville qui n'a jamais eu son titre.",
@@ -2154,7 +2154,7 @@ const MALEDICTIONS_EPOQUE={
       [2001,"Pauleta marque à la pelle, et Nantes vient de prendre le titre. Lescure veut retrouver le trône de 1999."],
       [2002,"La Coupe de la Ligue en poche, Pauleta en feu. Bordeaux veut le titre avant que Lyon ne prenne tout."],
       [2003,"Pauleta parti à Paris, Lyon qui règne. Bordeaux compte ses sous et attend son heure."]],
- AUX:[[1993,"Demi-finaliste de l'UEFA, sorti aux tirs au but par Dortmund. Guy Roux attend son titre depuis 1961."],
+ AJA:[[1993,"Demi-finaliste de l'UEFA, sorti aux tirs au but par Dortmund. Guy Roux attend son titre depuis 1961."],
       [1994,"La Coupe de France 1994 en vitrine. Il manque le championnat, et Guy Roux compte les années."],
       [1995,null],
       [1996,"Champion en 1996, avec la Coupe en prime. Guy Roux a eu son doublé, l'Abbé-Deschamps en redemande."],
@@ -2243,7 +2243,7 @@ const MALEDICTIONS_EPOQUE={
       [1996,null]],
  SED:[[1999,"Montés en 1999 avec une finale de Coupe en prime : les Sangliers réveillent l'Ardenne."],
       [2003,"Quatre saisons d'élite, puis la chute. Le Sanglier gratte déjà la terre pour remonter."]],
- AJA:[[2002,"Champion de D2 et monté en Ligue 1 : toute la Corse sur le dos, avec Bastia qui ricane d'en face."]],
+ ACA:[[2002,"Champion de D2 et monté en Ligue 1 : toute la Corse sur le dos, avec Bastia qui ricane d'en face."]],
 };
 function malediction(id, an){
   let t=MALEDICTIONS[id];
@@ -2258,7 +2258,7 @@ const BLASONS={
  NAN:{a:"#f7d917",b:"#1c7c3a",st:"ray"},  MON:{a:"#d40026",b:"#ffffff",st:"diag"},
  LEN:{a:"#e8b800",b:"#b8001f",st:"v"},    LIL:{a:"#d40026",b:"#0a2a6b",st:"v"},
  LYO:{a:"#ffffff",b:"#0a2a6b",st:"diag"}, STE:{a:"#1c7c3a",b:"#ffffff",st:"uni"},
- AUX:{a:"#ffffff",b:"#0a3a7a",st:"uni"},  REN:{a:"#d40026",b:"#111111",st:"v"},
+ AJA:{a:"#ffffff",b:"#0a3a7a",st:"uni"},  REN:{a:"#d40026",b:"#111111",st:"v"},
  STR:{a:"#2a6bd4",b:"#ffffff",st:"uni"},  GUI:{a:"#d40026",b:"#111111",st:"v"},
  BAS:{a:"#1d6bb5",b:"#ffffff",st:"ray"},  NIC:{a:"#d40026",b:"#111111",st:"ray"},
  MTP:{a:"#0a2a6b",b:"#ff7b00",st:"uni"},  LEH:{a:"#0aa5d4",b:"#0a2a6b",st:"v"},
@@ -2270,7 +2270,7 @@ const BLASONS={
  NIO:{a:"#f7d917",b:"#1d6bb5",st:"uni"},  LAV:{a:"#ff7b00",b:"#111111",st:"uni"},
  LOR:{a:"#ff7b00",b:"#111111",st:"uni"},  PER:{a:"#d40026",b:"#f7d917",st:"ray"},
  NIM:{a:"#d40026",b:"#ffffff",st:"uni"},  WAS:{a:"#f7d917",b:"#111111",st:"v"},
- SED:{a:"#1c7c3a",b:"#d40026",st:"v"},    AJA:{a:"#d40026",b:"#ffffff",st:"ray"},
+ SED:{a:"#1c7c3a",b:"#d40026",st:"v"},    ACA:{a:"#d40026",b:"#ffffff",st:"ray"},
  CRE:{a:"#1c4fa0",b:"#f7d917",st:"diag"},  TRO:{a:"#1c4fa0",b:"#ffffff",st:"v"},
  AMI:{a:"#ffffff",b:"#111111",st:"uni"},   VAL:{a:"#d40026",b:"#ffffff",st:"v"},
  LOU:{a:"#f7d917",b:"#111111",st:"ray"},   BEA:{a:"#b8001f",b:"#ffffff",st:"uni"},
@@ -2502,7 +2502,7 @@ const CLUBS_EXTRA=[ // clubs présents en 96/97 mais absents de la base 95-96
  {id:"NIM", nom:"Nîmes Olympique",  stade:"Costières",        cap:18000, pres:4, budget:8e6}, // 97/98
  {id:"WAS", nom:"ES Wasquehal",     stade:"Stadium Nord",     cap:18000, pres:2, budget:5e6}, // 97/98
  {id:"SED", nom:"CS Sedan-Ardennes",stade:"Émile-Albeau",     cap:12000, pres:3, budget:6e6}, // 98/99
- {id:"AJA", nom:"AC Ajaccio",       stade:"François-Coty",    cap:10000, pres:3, budget:6e6}, // 98/99
+ {id:"ACA", nom:"AC Ajaccio",       stade:"François-Coty",    cap:10000, pres:3, budget:6e6}, // 98/99
  {id:"CRE", nom:"US Créteil",       stade:"Dominique-Duvauchelle", cap:12000, pres:2, budget:5e6}, // 99/00
  {id:"BRE", nom:"Brest Armorique FC",      stade:"Francis-Le Blé",    cap:15000, pres:4, budget:16e6}, // 90/91
  {id:"VAN", nom:"US Valenciennes-Anzin",   stade:"Nungesser",         cap:22000, pres:4, budget:12e6}, // 90/91
@@ -2619,7 +2619,7 @@ function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===
 const PRES_EPOQUE={
  OM:[[1990,10],[1993,9],[1994,null]],
  PSG:[[1990,7],[1991,8],[1993,9],[1994,null],[1998,8]],
- AUX:[[1990,7],[1994,null]],
+ AJA:[[1990,7],[1994,null]],
  BOR:[[1991,7],[1992,null]],
  NAN:[[1990,6],[1994,null]],
  LEN:[[1990,4],[1991,5],[1994,null],[1998,7],[1999,null]],
@@ -2745,7 +2745,7 @@ const STARS_9697={
    ["B. Lambourde","D",25,77,79],["C. Domoraud","D",24,76,80],["P. Colleter","D",30,75,76],["F. Grenet","D",21,72,81],["L. Croci","D",31,74,74],["K. Afanou","D",18,62,78],
    ["M. Pavon","M",27,75,77],["I. Bá","M",22,78,84],["J. Micoud","M",22,76,86],["S. Ziani","M",24,74,79],["C. Anselin","M",18,63,77],
    ["J.-P. Papin","A",32,82,82],["K. Diawara","A",20,71,82],["D. Tholot","A",32,73,73],["C. Biaggio","A",28,74,75]],
- AUX:[["L. Charbonnier","G",29,82,82],["F. Cool","G",23,71,79],
+ AJA:[["L. Charbonnier","G",29,82,82],["F. Cool","G",23,71,79],
    ["N. Zelic","D",24,76,80],["T. West","D",22,78,84],["A. Goma","D",23,76,84],["F. Silvestre","D",29,75,75],["J.-S. Jaurès","D",18,62,78],
    ["P. Violeau","M",25,75,77],["S. Lamouchi","M",24,79,84],["M. Saïb","M",27,80,81],["Y. Lachuer","M",23,72,76],["A. Sibierski","M",21,70,82],["A. Tasfaout","M",27,74,76],
    ["B. Diomède","A",22,77,84],["L. Laslandes","A",24,79,83],["S. Marlet","A",22,72,84],["J.-L. Valois","A",22,70,76]],
@@ -2896,7 +2896,7 @@ const STARS_D2_9697={
    ["J.-M. Ferreri","M",33,73,73],["L. Bonadei","M",26,68,71],["F. Moreau","M",28,67,70],["D. Rabat","M",29,67,70],["L. Boissier","M",24,66,71],
    ["J.-N. Cabezas","A",29,68,70],["A. Moses","A",23,67,72],["D. Angibeaud","A",21,65,72],["F. Cabon","A",23,66,71]],
 };
-const D1_9697=["PSG","MON","BOR","AUX","NAN","LEN","LYO","MET","STR","MTP","REN","LEH","BAS","GUI","NIC","CAN","LIL","CAE","NCY","OM"];
+const D1_9697=["PSG","MON","BOR","AJA","NAN","LEN","LYO","MET","STR","MTP","REN","LEH","BAS","GUI","NIC","CAN","LIL","CAE","NCY","OM"];
 const D2_9697=["STE","TOU","SOC","MAR","GUE","LOR","NIO","LMN","LAV","RST","CHA","AMI","MUL","VAL","PER","EPI","BEA","BRI","TRO","TON"];
 /* ============================================================================
    SAISON DE DÉPART ALTERNATIVE — 1997-98 (vrais effectifs curés, source Transfermarkt saison_id/1997)
@@ -2935,7 +2935,7 @@ const STARS_9798={
    ["S. Pérez","D",24,75,80],["C. Rool","D",22,73,80],["M. Soumah","D",26,72,74],["C. Deguerville","D",27,71,73],["P. Moreau","D",24,70,74],["F. Jurietti","D",22,69,78],["F. Mendy","D",24,68,72],
    ["L. Moravcik","M",32,80,80],["P. Swierczewski","M",25,76,80],["J.-J. Etamé","M",31,69,71],["M. Faye","M",30,69,71],["L. Casanova","M",26,68,71],
    ["E. Siljak","A",24,74,76],["A. Kozniku","A",30,72,74],["P.-Y. André","A",23,71,80],["W. Gohel","A",29,71,72],["P. Laurent","A",27,69,72],["P. Daye","A",19,64,78]],
- AUX:[["L. Charbonnier","G",31,81,82],["F. Cool","G",25,71,79],
+ AJA:[["L. Charbonnier","G",31,81,82],["F. Cool","G",25,71,79],
    ["A. Goma","D",25,76,84],["F. Danjou","D",23,74,80],["F. Silvestre","D",30,74,75],["F. Rabarivony","D",27,72,74],["L. Ciechelski","D",26,71,74],["J. Radet","D",21,66,74],["F. Jay","D",21,65,74],["É. Assati","D",23,65,70],["J.-S. Jaurès","D",20,64,78],
    ["S. Lamouchi","M",26,79,84],["Y. Lachuer","M",25,72,76],["C. Jeunechamp","M",22,72,80],["A. Sibierski","M",23,71,82],["K. Agboh","M",20,64,74],
    ["S. Guivarc'h","A",27,83,85],["B. Diomède","A",23,78,84],["S. Marlet","A",23,73,84],["T. Deniaud","A",26,69,72]],
@@ -3124,7 +3124,7 @@ const STARS_9899={
    ["P. Valéry","D",29,75,77],["S. Pérez","D",25,75,80],["M. Soumah","D",27,72,74],["C. Deguerville","D",28,71,73],["P. Moreau","D",25,70,74],["F. Jurietti","D",23,70,78],["Clayton","D",24,69,72],["F. Mendy","D",25,68,72],["F. Modesto","D",20,65,78],
    ["P. Świerczewski","M",26,76,80],["S. Odet","M",22,72,78],["D. Mazzoncini","M",27,71,73],["L. Casanova","M",27,68,71],["F. Matingou","M",19,64,74],
    ["F. Née","A",23,72,80],["P.-Y. André","A",24,72,80],["P. Laurent","A",28,69,72],["P. Alves","A",29,65,65]],
- AUX:[["F. Cool","G",26,71,79],["R. Le Crom","G",24,70,76],
+ AJA:[["F. Cool","G",26,71,79],["R. Le Crom","G",24,70,76],
    ["F. Danjou","D",24,75,80],["T. Klos","D",25,73,75],["O. Dieng","D",26,71,71],["L. Ciechelski","D",27,71,74],["P. Reyes","D",26,70,70],["É. Assati","D",24,66,70],["F. Jay","D",22,66,74],["J.-S. Jaurès","D",21,66,78],
    ["C. Jeunechamp","M",23,73,80],["S. Carnot","M",26,69,72],["K. Agboh","M",21,66,74],["B. Nivet","M",21,62,76],["T. Tainio","M",19,61,78],
    ["B. Diomède","A",24,79,84],["S. Marlet","A",24,74,84],["G. Baticle","A",29,72,73],["T. Deniaud","A",27,69,72],["D. Cissé","A",17,60,89]],
@@ -3179,7 +3179,7 @@ const STARS_D2_9899={
    ["F. Safanjon","D",26,67,70],["P. Correia","D",27,67,70],["E. Deloumeaux","D",25,66,72],["T. Saxemard","D",31,66,70],["J. Acédo","D",34,65,70],
    ["F. Weber","M",25,69,70],["S. Poinçon","M",25,69,73],["Y. Chandioux","M",23,68,73],["K. Kerkar","M",21,66,74],["S. Roda","M",25,65,67],["A. Bettagno","M",30,64,67],["G. G'Badié","M",21,62,70],
    ["A. Traoré","A",33,71,73],["N. Esceth-N'Zi","A",21,69,76],["K. Cherrad","A",24,68,71],["S. Flauto","A",21,66,76]],
- AJA:[["D. Klein","G",25,70,72],["T. Maqua","G",21,62,70],
+ ACA:[["D. Klein","G",25,70,72],["T. Maqua","G",21,62,70],
    ["P. Burle","D",25,69,71],["P. Maroselli","D",32,68,71],["E. Colling","D",27,67,70],["O. Féron","D",24,67,70],["A. Bibi","D",25,66,68],["S. Opinel","D",21,62,70],
    ["C. Granon","M",26,71,72],["O. De Luca","M",25,66,68],["N. Bonnal","M",22,65,70],["O. Pantaloni","M",32,65,65],["Y. Toursel","M",21,64,71],["L. Courtois","M",20,63,75],
    ["D. Faderne","A",28,72,72],["D. Prso","A",24,71,82],["V. Petit","A",24,70,74],["J.-R. Testa","A",34,62,62]],
@@ -3266,7 +3266,7 @@ const STARS_9900={
    ["E. Capron","D",28,76,77],["E. Oliveira","D",27,72,72],["O. Dieng","D",27,71,71],["C. Elzéard","D",24,68,71],["J.-L. Montero","D",28,67,70],["L. Satorra","D",30,66,70],
    ["O. Quint","M",28,74,74],["L. Huard","M",26,72,75],["P. Deblock","M",26,71,74],["D. Novak","M",30,69,72],["E. Crosnier","M",27,69,71],["F. Brandes","M",27,68,70],["M. Adjaoud","M",28,68,68],["J.-P. Faure","M",33,64,70],
    ["P. N'Diefi","A",24,79,82],["C. Mionnet","A",25,72,75],["A. Di Rocco","A",29,69,73],["G. Frigård","A",29,69,70]],
- AUX:[["F. Cool","G",27,71,79],["R. Le Crom","G",25,70,76],
+ AJA:[["F. Cool","G",27,71,79],["R. Le Crom","G",25,70,76],
    ["T. Klos","D",26,73,75],["L. Ciechelski","D",28,71,74],["P. Reyes","D",27,70,70],["C. Magnier","D",30,69,71],["J. Radet","D",23,68,74],["F. Jay","D",23,67,74],["É. Assati","D",25,66,70],["P. Mexès","D",17,65,88],
    ["C. Jeunechamp","M",24,74,80],["A. Comisetti","M",26,70,72],["S. Carnot","M",27,69,72],["K. Agboh","M",22,67,74],["O. Kapo","M",19,66,77],["T. Tainio","M",20,63,78],
    ["S. Guivarc'h","A",29,83,85],["B. Diomède","A",25,79,84],["S. Marlet","A",25,74,84],["D. Cissé","A",18,62,89]],
@@ -3341,7 +3341,7 @@ const STARS_D2_9900={
    ["G. Tafforeau","D",23,70,79],["M. Glonek","D",31,70,73],["J.-P. Caillet","D",22,69,75],["J. Hébert","D",27,69,72],["R. Lecour","D",26,67,71],["M. Barre","D",25,67,69],["A. Gnohéré","D",21,66,74],["B. Mendy","D",18,60,82],
    ["J. Rothen","M",21,70,84],["S. Tanguy","M",24,70,75],["J. Gallon","M",21,68,76],["A. Deroin","M",20,67,76],["A. Tanguy","M",23,66,71],
    ["C. Horlaville","A",30,74,76],["Seyni N'Diaye","A",26,72,76],["C. Watier","A",27,71,73],["K. Ouejdide","A",19,63,74]],
- AJA:[["D. Klein","G",26,70,72],["T. Maqua","G",22,63,70],
+ ACA:[["D. Klein","G",26,70,72],["T. Maqua","G",22,63,70],
    ["D. Jauréguiberry","D",23,72,77],["P. Burle","D",26,69,71],["Y. Zambernardi","D",22,68,76],["M. Robin","D",22,67,72],["E. Colling","D",28,67,70],
    ["G. Ursule","M",22,71,79],["C. Granon","M",27,71,72],["U. Courville","M",21,67,75],["F. Levrat","M",20,66,77],["N. Bonnal","M",23,66,70],["Y. Toursel","M",22,65,71],["O. Pantaloni","M",33,63,65],
    ["D. Faderne","A",29,72,72],["V. Petit","A",25,70,74],["S. Guessand","A",24,65,70],["F. Soudani","A",27,65,67]],
@@ -3403,12 +3403,12 @@ const STARS_D2_9900={
    ["S. Lecocq","A",23,69,74],["Y. Diani","A",22,62,70],["P. Sampil","A",25,62,64],["N. Florentin","A",21,61,69]],
 };
 
-const D1_9899=["BOR","OM","LYO","MON","REN","LEN","NAN","MTP","PSG","MET","NCY","STR","BAS","AUX","LEH","LOR","SOC","TOU","GUI","CHA"];
-const D2_9899=["STE","SED","TRO","LIL","CAE","GUE","AJA","LAV","NIO","CAN","NIM","NIC","WAS","AMI","LMN","VAL","RST","BEA","LOU","MAR"];
-const D1_9900=["MON","PSG","LYO","BOR","LEN","STE","SED","AUX","STR","BAS","MET","NAN","REN","TRO","OM","NCY","LEH","MTP","SOC","LOR"];
-const D2_9900=["LIL","GUI","TOU","GUE","CAE","AJA","CHA","LMN","LAV","NIC","CAN","NIM","NIO","WAS","CRE","AMI","VAL","LOU","RST","BEA"];
+const D1_9899=["BOR","OM","LYO","MON","REN","LEN","NAN","MTP","PSG","MET","NCY","STR","BAS","AJA","LEH","LOR","SOC","TOU","GUI","CHA"];
+const D2_9899=["STE","SED","TRO","LIL","CAE","GUE","ACA","LAV","NIO","CAN","NIM","NIC","WAS","AMI","LMN","VAL","RST","BEA","LOU","MAR"];
+const D1_9900=["MON","PSG","LYO","BOR","LEN","STE","SED","AJA","STR","BAS","MET","NAN","REN","TRO","OM","NCY","LEH","MTP","SOC","LOR"];
+const D2_9900=["LIL","GUI","TOU","GUE","CAE","ACA","CHA","LMN","LAV","NIC","CAN","NIM","NIO","WAS","CRE","AMI","VAL","LOU","RST","BEA"];
 
-const D1_9798=["LEN","MET","MON","OM","BOR","LYO","BAS","AUX","PSG","MTP","TOU","STR","REN","NAN","LEH","CHA","CAN","GUI","CAE","NCY"];
+const D1_9798=["LEN","MET","MON","OM","BOR","LYO","BAS","AJA","PSG","MTP","TOU","STR","REN","NAN","LEH","CHA","CAN","GUI","CAE","NCY"];
 const D2_9798=["NIM","BEA","WAS","MUL","VAL","AMI","GUE","MAR","LMN","NIO","NIC","LOR","RST","TRO","LIL","LAV","SOC","LOU","STE","TON"];
 /* ---- 1990-91 : la plus ancienne saison du jeu. La D2 se jouait en DEUX groupes de dix-huit ;
    les dix premiers de chaque groupe tiennent les vingt clubs de la Division 2 du jeu. ---- */
@@ -3421,7 +3421,7 @@ const STARS_9091={
    ["L. Sonor","D",28,80,80],["R. Mendy","D",30,77,77],["P. Blondeau","D",22,73,77],["P. Valéry","D",21,72,79],["L. Thuram","D",18,62,90],
    ["F. Sauzée","M",25,83,85],["R. Barros","M",25,81,81],["C. Puel","M",29,79,79],["M. Dib","M",30,78,78],["G. Passi","M",26,78,78],["Y. Djorkaeff","M",22,76,89],["E. Petit","M",20,75,89],["D. Bijotat","M",29,75,75],["G. Grimandi","M",20,68,79],
    ["G. Weah","A",24,80,92],["R. Díaz","A",31,78,78],["Y. Fofana","A",24,72,72],["M. Sarr Jr","A",17,63,71]],
- AUX:[["B. Martini","G",28,82,82],["L. Charbonnier","G",24,75,82],
+ AJA:[["B. Martini","G",28,82,82],["L. Charbonnier","G",24,75,82],
    ["A. Roche","D",23,79,84],["M. Catalano","D",31,75,75],["W. Prunier","D",23,74,80],["S. Mazzolini","D",24,72,72],["F. Darras","D",24,71,71],["S. Mahé","D",22,71,77],["A. Goma","D",18,65,84],
    ["E. Scifo","M",24,83,85],["Z. Kaczmarek","M",28,77,77],["R. Guerreiro","M",22,72,72],["D. Dutuel","M",23,72,73],
    ["C. Cocard","A",23,77,81],["P. Vahirua","A",24,77,77],["K. Kovács","A",25,75,75],["F. Vignola","A",24,68,68],["D. Otokoré","A",21,66,67],["F. Soler","A",20,66,71],["J.-L. Courtet","A",22,66,70]],
@@ -3578,7 +3578,7 @@ const STARS_D2_9091={
    ["L. Roussey","A",29,66,66],["S. Rodionov","A",28,62,62],["S. Michel","A",19,59,71],["S. Yally","A",29,59,59]],
 };
 
-const D1_9091=["OM","MON","AUX","CAN","LYO","LIL","MTP","CAE","PSG","BOR","BRE","MET","STE","NIC","NAN","TON","NCY","SOC","TOU","REN"];
+const D1_9091=["OM","MON","AJA","CAN","LYO","LIL","MTP","CAE","PSG","BOR","BRE","MET","STE","NIC","NAN","TON","NCY","SOC","TOU","REN"];
 const D2_9091=["NIM","STR","VAN","ALE","IST","BAS","AVI","ROD","ANN","MUL","LEH","LEN","LAV","ANG","ROU","REI","GUI","BEA","TRS","RST"];
 
 /* ---- 1991-92 : l'OM gagne son quatrième titre d'affilée et Papin le Ballon d'or.
@@ -3599,7 +3599,7 @@ const STARS_9192={
    ["R. Gomes","D",27,80,82],["Geraldão","D",28,75,77],["P. Colleter","D",26,75,77],["A. Kombouaré","D",28,73,75],["B. Héréson","D",22,69,79],
    ["Valdo","M",27,80,82],["L. Fournier","M",27,79,81],["P. Le Guen","M",27,78,81],["D. Bravo","M",28,78,80],["B. Germain","M",31,77,78],["B. Pardo","M",31,76,77],["C. Perez","M",28,72,74],["P. Reynaud","M",23,68,78],["O. Sène","M",32,68,69],
    ["A. Simba","A",30,78,79],["D. Ginola","A",24,78,86],["L. Sandjak","A",25,71,77],["P. Nouma","A",19,64,84]],
- AUX:[["B. Martini","G",29,82,82],["L. Charbonnier","G",25,75,82],
+ AJA:[["B. Martini","G",29,82,82],["L. Charbonnier","G",25,75,82],
    ["A. Roche","D",24,80,86],["W. Prunier","D",24,75,81],["S. Mahé","D",23,72,82],["S. Mazzolini","D",25,72,78],["F. Darras","D",25,71,77],["A. Goma","D",19,67,87],
    ["J.-M. Ferreri","M",29,78,78],["Z. Kaczmarek","M",29,77,77],["C. Martins","M",22,75,85],["D. Dutuel","M",24,73,79],["R. Guerreiro","M",23,72,82],
    ["C. Cocard","A",24,78,84],["P. Vahirua","A",25,77,83],["K. Kovács","A",26,75,77],["G. Baticle","A",22,70,80],["F. Vignola","A",25,68,74],["D. Otokoré","A",22,67,77],["T. Deniaud","A",20,64,79]],
@@ -3750,7 +3750,7 @@ const STARS_D2_9192={
    ["L. Chastel","M",25,71,77],["J.-P. Faure","M",25,70,76],["S. Lamouchi","M",20,69,84],["F. Rizzetto","M",20,64,79],["F. Diaf","M",20,58,73],
    ["J.-N. Cabezas","A",25,66,72],["T. Alajarin","A",24,61,67],["V. Chicharo","A",24,59,65],["M. Traoré","A",20,57,72]],
 };
-const D1_9192=["OM","MON","PSG","AUX","CAE","MTP","LEH","LEN","NAN","STE","TOU","MET","LIL","CAN","NCY","NIM","REN","SOC","TON","LYO"];
+const D1_9192=["OM","MON","PSG","AJA","CAE","MTP","LEH","LEN","NAN","STE","TOU","MET","LIL","CAN","NCY","NIM","REN","SOC","TON","LYO"];
 const D2_9192=["VAN","ANG","LMN","LOU","LAV","GUI","ROU","BOU","DUN","BEA","BOR","STR","IST","BAS","GFC","ROD","PER","CHA","NIC","ALE"];
 
 const STARS_9293={
@@ -3774,7 +3774,7 @@ const STARS_9293={
    ["L. Guyot","D",23,66,75],["Z. Vulic","D",31,73,74],["S. Le Dizet","D",28,72,74],["E. Capron","D",21,68,81],["S. Moreau","D",21,66,70],
    ["C. Karembeu","M",22,68,82],["R. Pedros","M",21,69,84],["J.-M. Ferri","M",23,71,80],["C. Makélélé","M",19,70,91],["S. Ziani","M",21,68,81],["F. Debotté","M",29,70,72],["A. Martins","M",21,66,80],
    ["N. Ouédec","A",21,69,83],["P. Loko","A",22,73,87],["J. N'Doram","A",26,74,84],["J.-L. Lima","A",25,68,74],["J. Dalmao","A",23,67,80]],
- AUX:[["B. Martini","G",30,81,82],["L. Charbonnier","G",26,75,82],
+ AJA:[["B. Martini","G",30,81,82],["L. Charbonnier","G",26,75,82],
    ["F. Verlaat","D",24,76,84],["W. Prunier","D",25,75,81],["S. Mahé","D",24,73,82],["T. Bonalair","D",26,70,76],["S. Mazzolini","D",26,72,78],["A. Goma","D",20,69,87],["F. Rabarivony","D",22,71,74],["L. Ciechelski","D",21,70,74],
    ["C. Martins","M",23,76,85],["R. Guerreiro","M",24,73,82],["D. Dutuel","M",25,73,79],["M. Saïb","M",23,76,81],
    ["C. Cocard","A",25,78,84],["G. Baticle","A",23,71,80],["P. Vahirua","A",26,77,83],["L. Laslandes","A",21,74,83],["D. Otokoré","A",23,68,77],["B. Diomède","A",18,69,84]],
@@ -3917,7 +3917,7 @@ const STARS_D2_9293={
    ["K. Fradin","M",20,64,73],["P. Violeau","M",22,68,77],["D. Lollia","M",23,61,71],["F. Azzopardi","M",22,62,68],["P. Galéra","M",25,61,64],
    ["P. Bollini","A",26,62,62],["T. Alajarin","A",25,61,67],["K. Fiawoo","A",23,64,73],["W. Loko","A",20,63,77],["P. Suywens","A",21,55,71]],
 };
-const D1_9293=["OM","PSG","MON","BOR","NAN","AUX","STE","STR","LEN","MTP","CAE","MET","TOU","LYO","LEH","SOC","LIL","VAN","TON","NIM"];
+const D1_9293=["OM","PSG","MON","BOR","NAN","AJA","STE","STR","LEN","MTP","CAE","MET","TOU","LYO","LEH","SOC","LIL","VAN","TON","NIM"];
 const D2_9293=["MAR","CAN","NIC","NCY","VAL","SED","BAS","IST","CHV","ALE","ANG","REN","ROU","RST","LMN","DUN","BOU","BEA","LAV","NIO"];
 
 const STARS_9394={
@@ -3929,7 +3929,7 @@ const STARS_9394={
    ["W. Prunier","D",26,75,81],["É. Di Meco","D",30,78,80],["B. Boli","D",26,83,89],["J. Angloma","D",28,76,83],["P. Fugier","D",25,73,81],["M. Desailly","D",25,82,88],
    ["D. Deschamps","M",25,81,89],["J.-P. Durand","M",33,75,78],["D. Dutuel","M",26,73,79],["A. Boghossian","M",23,65,76],["D. Stojkovic","M",28,79,88],["R. Barros","M",28,81,83],["J.-C. Thomas","M",29,72,74],
    ["R. Völler","A",33,82,83],["S. Anderson","A",23,81,88],["A. Bokšić","A",23,84,90],["Futre","A",27,71,73],["M. Libbra","A",21,70,86]],
- AUX:[["B. Martini","G",31,80,82],["L. Charbonnier","G",27,75,82],
+ AJA:[["B. Martini","G",31,80,82],["L. Charbonnier","G",27,75,82],
    ["F. Verlaat","D",25,77,84],["F. Silvestre","D",26,72,78],["A. Goma","D",21,71,87],["S. Mahé","D",25,74,82],["F. Rabarivony","D",23,72,74],["L. Ciechelski","D",22,72,74],["T. West","D",19,69,84],
    ["C. Martins","M",24,77,85],["M. Saïb","M",24,77,81],["R. Guerreiro","M",25,74,82],["C. Henna","M",21,69,79],["P. Violeau","M",23,69,77],
    ["C. Cocard","A",26,78,84],["P. Vahirua","A",27,77,83],["G. Baticle","A",24,72,80],["L. Laslandes","A",22,76,83],["F. Vignola","A",27,68,74],["F. Lepaul","A",17,62,78]],
@@ -4084,7 +4084,7 @@ const STARS_D2_9394={
    ["A. Duncker","M",22,70,81],["A. Di Fraya","M",27,69,75],["I. Etshélé","M",25,68,76],["D. Le Frapper","M",22,68,79],["T. Fernier","M",29,66,68],
    ["Y. Mangione","A",29,74,76],["J. Cloarec","A",27,70,76],["L. Dufresne","A",21,61,71],["D. Corroyer","A",29,69,71]],
 };
-const D1_9394=["PSG","OM","AUX","BOR","NAN","CAN","MTP","LYO","MON","LEN","STE","MET","STR","SOC","LIL","CAE","LEH","MAR","TOU","ANG"];
+const D1_9394=["PSG","OM","AJA","BOR","NAN","CAN","MTP","LYO","MON","LEN","STE","MET","STR","SOC","LIL","CAE","LEH","MAR","TOU","ANG"];
 const D2_9394=["NIC","REN","BAS","NIM","RST","BRI","LAV","DUN","CHV","ALE","SED","NCY","GUE","MUL","VAL","BEA","LMN","NIO","ROU","VAN"];
 const STARS_9495={
  NAN:[["D. Casagrande","G",23,74,80],["D. Marraud","G",30,71,73],["E. Loussouarn","G",20,62,76],["J.-L. Garcia","G",32,60,62],
@@ -4099,7 +4099,7 @@ const STARS_9495={
    ["A. Roche","D",27,80,86],["P. Colleter","D",29,75,77],["A. Kombouaré","D",31,72,75],["J. Cobos","D",26,74,82],["F. Llacer","D",23,74,78],["O. Dieng","D",22,70,84],["R. Gomes","D",30,80,82],["D. Domi","D",16,60,83],
    ["P. Le Guen","M",30,78,81],["V. Guérin","M",29,82,84],["D. Bravo","M",31,77,80],["Valdo","M",30,80,82],["Raí","M",29,82,90],["P. Ducrocq","M",18,61,80],
    ["G. Weah","A",28,86,92],["D. Ginola","A",27,84,86],["P. Nouma","A",22,70,84],["P. Mboma","A",24,74,85]],
- AUX:[["L. Charbonnier","G",28,75,82],["F. Cool","G",22,64,79],["B. Martini","G",32,79,82],
+ AJA:[["L. Charbonnier","G",28,75,82],["F. Cool","G",22,64,79],["B. Martini","G",32,79,82],
    ["F. Verlaat","D",26,77,84],["F. Silvestre","D",27,72,78],["S. Mahé","D",26,74,82],["A. Goma","D",22,73,87],["T. West","D",20,71,84],["F. Rabarivony","D",24,73,74],
    ["C. Martins","M",25,78,85],["S. Lamouchi","M",23,74,84],["M. Saïb","M",25,78,81],["R. Guerreiro","M",26,74,82],["P. Violeau","M",24,70,77],
    ["L. Laslandes","A",23,77,83],["B. Diomède","A",20,73,84],["P. Vahirua","A",28,77,83],["G. Baticle","A",25,73,80],["C. Cocard","A",27,78,84],["F. Soler","A",24,72,72]],
@@ -4250,7 +4250,7 @@ const STARS_D2_9495={
    ["L. Jumel","M",25,69,76],["M. Verschuère","M",22,62,70],["A. Garcia","M",22,64,72],["J. Pinot","M",29,66,69],["S. Bizasène","M",24,62,69],["M. Popovic","M",30,70,70],["E. Borges","M",25,65,71],
    ["O. Vandevoorde","A",25,67,74],["J. Lempereur","A",21,62,72],["L. Hochart","A",28,67,73],["E. Tutard","A",22,62,76]],
 };
-const D1_9495=["NAN","LYO","PSG","AUX","LEN","MON","BOR","MET","CAN","STR","MAR","LEH","REN","LIL","BAS","NIC","MTP","STE","CAE","SOC"];
+const D1_9495=["NAN","LYO","PSG","AJA","LEN","MON","BOR","MET","CAN","STR","MAR","LEH","REN","LIL","BAS","NIC","MTP","STE","CAE","SOC"];
 const D2_9495=["OM","GUI","GUE","TOU","CHA","RST","NCY","DUN","AMI","ALE","CHV","LMN","MUL","VAL","LAV","PER","ANG","NIO","BRI","BEA"];
 const STARS_0001={ // effectifs réels 2000-01 (Transfermarkt, saison_id/2000) — 20 par club
  MON:[["S. Porato","G",27,74,79],["J.-M. Aubry","G",31,72,76],
@@ -4281,7 +4281,7 @@ const STARS_0001={ // effectifs réels 2000-01 (Transfermarkt, saison_id/2000) �
    ["E. Capron","D",29,76,77],["E. Oliveira","D",28,72,72],["P. Gourville","D",25,71,76],["C. Elzéard","D",25,68,71],["J.-L. Montero","D",29,67,70],["L. Satorra","D",31,65,70],
    ["O. Quint","M",29,74,74],["S. Diao","M",23,72,82],["M. Adjaoud","M",29,68,68],["P. Celdran","M",27,68,72],["F. Brandes","M",28,68,70],["M. Verschuère","M",28,66,70],["J. Frétard","M",25,65,70],["M. M'Bami","M",18,65,82],
    ["P. N'Diefi","A",25,79,82],["M. N'Diaye","A",21,74,83],["C. Mionnet","A",26,72,75],["T. Brogno","A",27,71,73]],
- AUX:[["F. Cool","G",28,71,79],["R. Le Crom","G",26,70,76],
+ AJA:[["F. Cool","G",28,71,79],["R. Le Crom","G",26,70,76],
    ["P. Reyes","D",28,70,70],["J. Radet","D",24,69,74],["J.-A. Boumsong","D",21,68,86],["J.-S. Jaurès","D",23,68,78],["F. Jay","D",24,68,74],["C. Magnier","D",31,68,71],["P. Mexès","D",18,67,88],
    ["M. Saïb","M",31,78,81],["C. Jeunechamp","M",25,74,80],["P. Deblock","M",27,71,74],["A. Comisetti","M",27,70,72],["A. Faye","M",23,69,75],["O. Kapo","M",20,68,77],["K. Agboh","M",23,68,74],["T. Tainio","M",21,65,78],
    ["S. Guivarc'h","A",30,82,85],["K. Fadiga","A",26,75,78],["D. Cissé","A",19,68,90]],
@@ -4371,7 +4371,7 @@ const STARS_D2_0001={ // D2 2000-01 — 18 par club
    ["C. Borbiconi","D",27,71,74],["S. Zèbré","D",24,68,74],["G. Sanz","D",23,67,72],["D. Vairelles","D",23,67,74],["J.-M. Moulin","D",27,66,70],["A. Clément","D",25,65,69],["Y. Démont","D",22,64,71],
    ["K. Assignon","M",26,66,69],["D. Camara","M",24,64,68],["D. De Freitas","M",21,64,71],["N. Girard","M",22,62,69],["C. Charton","M",24,62,66],
    ["A. Gonzalez","A",23,69,75],["R. Ray","A",32,68,72],["A. Petitjean","A",26,67,73],["N. Florentin","A",22,62,69]],
- AJA:[["T. Sylva","G",25,71,76],["T. Maqua","G",23,64,70],
+ ACA:[["T. Sylva","G",25,71,76],["T. Maqua","G",23,64,70],
    ["S. Squillaci","D",20,69,84],["P. Burle","D",27,69,71],["M. Robin","D",23,68,72],["E. Colling","D",29,67,70],["N. Baudoin","D",30,67,71],["C. Destruhaut","D",27,65,67],["S. Maurel","D",20,64,73],
    ["G. Ursule","M",23,72,79],["C. Granon","M",28,71,72],["A. Garcia","M",28,66,72],["Y. Toursel","M",23,66,71],["Y. Achard","M",24,63,69],
    ["S. Abou","A",27,75,80],["A. Bancarel","A",29,72,74],["S. Savidan","A",22,65,72],["R. Angeletti","A",23,65,71]],
@@ -4416,8 +4416,8 @@ const STARS_D2_0001={ // D2 2000-01 — 18 par club
    ["R. Calenda","M",28,68,68],["M. Zouaoui","M",23,66,73],["M. Stéphan","M",25,65,70],["C. Fayard","M",30,63,64],["L. Bédani","M",27,62,64],["P. Roques","M",29,59,61],
    ["É. Assadourian","A",34,66,73],["M.-É. Gueï","A",20,61,70],["T. Dossevi","A",21,61,70]],
 };
-const D1_0001=["MON","PSG","LYO","BOR","LEN","STE","SED","AUX","STR","BAS","MET","NAN","REN","TRO","OM","LIL","GUI","TOU","NCY","LEH"];
-const D2_0001=["SOC","LOR","MTP","NIO","CHA","NIM","LAV","GUE","BEA","AJA","WAS","LMN","NIC","CRE","CAE","MAR","CAN","ANG","AMI","VAL"];
+const D1_0001=["MON","PSG","LYO","BOR","LEN","STE","SED","AJA","STR","BAS","MET","NAN","REN","TRO","OM","LIL","GUI","TOU","NCY","LEH"];
+const D2_0001=["SOC","LOR","MTP","NIO","CHA","NIM","LAV","GUE","BEA","ACA","WAS","LMN","NIC","CRE","CAE","MAR","CAN","ANG","AMI","VAL"];
 const STARS_0102={ // effectifs réels 2001-02 (Transfermarkt, saison_id/2001) — 20 par club
  LYO:[["G. Coupet","G",29,82,86],
    ["P. Müller","D",25,77,82],["F. Laville","D",28,77,82],["J. Bréchet","D",22,73,83],["E. Deflandre","D",28,73,75],["C. Caçapa","D",25,70,80],["C. Delmotte","D",32,69,74],["J.-M. Chanelet","D",33,68,74],
@@ -4427,7 +4427,7 @@ const STARS_0102={ // effectifs réels 2001-02 (Transfermarkt, saison_id/2001) �
    ["J. Bąk","D",28,77,82],["V. Ismaël","D",26,75,83],["E. Sikora","D",33,74,78],["Y. Lachor","D",25,74,78],["J.-G. Wallemme","D",34,73,80],["A. Coulibaly","D",21,70,79],["F. Coly","D",28,69,78],["D. Traoré","D",21,64,78],
    ["J. Blanchard","M",29,75,77],["A. Sibierski","M",27,74,82],["C.-E. Coridon","M",28,73,78],["M. Debève","M",31,73,77],["S. Pédron","M",30,71,75],["P. Sarr","M",24,70,78],["Papa Bouba Diop","M",23,67,71],
    ["D. Moreira","A",24,74,80],["B. Rodriguez","A",29,74,78],["E.-H. Diouf","A",20,69,88],["M. Bucher","A",19,63,73]],
- AUX:[["F. Cool","G",29,71,79],["R. Le Crom","G",27,70,76],
+ AJA:[["F. Cool","G",29,71,79],["R. Le Crom","G",27,70,76],
    ["J.-A. Boumsong","D",22,75,86],["J. Radet","D",25,70,74],["J.-S. Jaurès","D",24,69,78],["P. Mexès","D",19,76,88],["F. Jay","D",25,69,74],["J.-J. Perrier-Doumbé","D",23,68,72],
    ["K. Fadiga","M",27,75,78],["Y. Lachuer","M",29,72,76],["O. Kapo","M",21,74,84],["L. Diabaté","M",27,70,77],["A. Faye","M",24,70,75],["T. Tainio","M",22,67,78],["L. Mathis","M",20,67,78],["P. Sirieix","M",21,66,75],
    ["D. Cissé","A",20,78,90],["A. Gonzalez","A",24,70,75],["P. Wlodarczyk","A",24,68,70],["H. Esteves","A",24,67,69]],
@@ -4501,7 +4501,7 @@ const STARS_0102={ // effectifs réels 2001-02 (Transfermarkt, saison_id/2001) �
    ["C. Pouget","A",29,76,80],["A. Di Rocco","A",31,67,73],["M. Kuzba","A",24,63,65],["Rodrigão","A",23,61,65]]
 };
 const STARS_D2_0102={ // D2 2001-02 — 18 par club
- AJA:[["S. Trévisan","G",28,69,72],["P. Luzi","G",21,63,72],
+ ACA:[["S. Trévisan","G",28,69,72],["P. Luzi","G",21,63,72],
    ["D. Jauréguiberry","D",25,74,77],["S. Squillaci","D",21,71,84],["W. Regragui","D",26,70,75],["M. Robin","D",24,69,72],["D. Terrier","D",28,68,70],["E. Colling","D",30,67,70],
    ["G. Ursule","M",24,73,79],["C. Granon","M",29,71,72],["F. Levrat","M",22,70,77],["É. Darbelet","M",28,67,71],["A. Garcia","M",29,66,72],["R. Connen","M",21,64,73],
    ["S. Abou","A",28,75,80],["Samba N'Diaye","A",29,72,76],["X. Bécas","A",22,68,75],["Júnior","A",25,66,68]],
@@ -4582,8 +4582,8 @@ const STARS_D2_0102={ // D2 2001-02 — 18 par club
    ["L. Macquet","M",22,69,76],["F. Muller","M",24,66,72],["S. Floiras","M",21,66,73],["A. Préget","M",29,65,69],["M. Pacios","M",24,61,63],["F. Masson","M",22,60,67],["G. Forschelet","M",20,59,70],["F. Durix","M",36,58,62],["D. Joseph","M",25,58,60],["S. Ruster","M",19,55,67],
    ["D. Suarez","A",22,71,78]]
 };
-const D1_0102=["LYO","LEN","AUX","PSG","LIL","BOR","TRO","SOC","OM","NAN","BAS","REN","MTP","SED","MON","GUI","MET","LOR","TOU","STE"];
-const D2_0102=["AJA","STR","NIC","LEH","LMN","CAE","BEA","CHA","NCY","LAV","NIO","AMI","GUE","WAS","GRE","IST","CRE","NIM","MAR","CAN"];
+const D1_0102=["LYO","LEN","AJA","PSG","LIL","BOR","TRO","SOC","OM","NAN","BAS","REN","MTP","SED","MON","GUI","MET","LOR","TOU","STE"];
+const D2_0102=["ACA","STR","NIC","LEH","LMN","CAE","BEA","CHA","NCY","LAV","NIO","AMI","GUE","WAS","GRE","IST","CRE","NIM","MAR","CAN"];
 const STARS_0203={ // effectifs réels 2002-03 (Transfermarkt, saison_id/2002) — 20 par club
  LYO:[["G. Coupet","G",30,83,86],["R. Vercoutre","G",22,72,80],
    ["P. Müller","D",26,77,82],["J. Bréchet","D",23,74,83],["E. Deflandre","D",29,73,75],["C. Caçapa","D",26,70,80],["C. Delmotte","D",33,68,74],["J.-M. Chanelet","D",34,66,74],
@@ -4605,7 +4605,7 @@ const STARS_0203={ // effectifs réels 2002-03 (Transfermarkt, saison_id/2002) �
    ["S. Monsoreau","D",21,71,79],["N. Saveljić","D",32,71,76],["M. Flachez","D",30,71,76],["J. Mathieu","D",19,69,84],["I. Tall","D",21,68,79],["J.-J. Domoraud","D",21,68,79],["O. Daf","D",25,68,74],["P. Raschke","D",35,61,71],
    ["W. Oruma","M",26,79,85],["B. Pedretti","M",22,77,84],["J. Lonfat","M",29,73,76],["F. Boudarène","M",24,73,78],["M. Isabey","M",27,69,73],["G. N'Daw","M",18,64,82],
    ["Santos","A",23,77,80],["M. Pagis","A",29,71,79],["P.-A. Frau","A",22,71,80],["B. de Carvalho","A",21,67,78]],
- AUX:[["F. Cool","G",30,71,79],
+ AJA:[["F. Cool","G",30,71,79],
    ["P. Mexès","D",20,78,88],["J.-A. Boumsong","D",23,76,86],["J. Radet","D",26,70,74],["J.-S. Jaurès","D",25,70,78],["S. Grichting","D",23,70,78],["J.-J. Perrier-Doumbé","D",24,69,72],["J.-P. Mignot","D",21,68,79],
    ["O. Kapo","M",22,76,84],["K. Fadiga","M",28,75,78],["Y. Lachuer","M",30,72,76],["A. Faye","M",25,71,75],["P. Deblock","M",29,71,74],["L. Mathis","M",21,69,78],["T. Tainio","M",23,68,78],["K. Akalé","M",21,67,78],["H. Yebda","M",18,64,82],
    ["D. Cissé","A",21,82,90],["Benjani","A",24,71,76],["A. Gonzalez","A",25,71,75]],
@@ -4649,7 +4649,7 @@ const STARS_0203={ // effectifs réels 2002-03 (Transfermarkt, saison_id/2002) �
    ["B. Carotti","D",30,71,75],["N. Dzodic","D",25,71,75],["S. Blanc","D",30,70,74],["S. Michalowski","D",24,68,71],["F. Silvestre","D",35,66,75],["C. Ramond","D",22,65,70],["B. Robert","D",19,64,78],["M. Assoumani","D",19,62,76],
    ["J.-C. Rouvière","M",28,72,76],["C. Barbosa","M",26,70,73],["V. Mézague","M",19,68,80],["F. Mansaré","M",21,68,77],["G. Doumeng","M",22,68,73],["G. Moullec","M",22,65,72],
    ["V. Bonilla","A",31,71,74],["M.-É. Gueï","A",22,65,70],["H. Bamogo","A",20,62,73],["Abdoulaye Cissé","A",19,62,75]],
- AJA:[["S. Trévisan","G",29,69,72],["F. Lucchini","G",21,61,72],
+ ACA:[["S. Trévisan","G",29,69,72],["F. Lucchini","G",21,61,72],
    ["W. Regragui","D",27,70,75],["M. Robin","D",25,70,72],["M. Seck","D",23,70,76],["H. Alicarte","D",28,70,78],["D. Terrier","D",29,68,70],["X. Collin","D",28,66,72],["D. Ananko","D",29,66,69],["Y. Démont","D",24,66,71],["C. Destruhaut","D",29,65,67],
    ["B. Diomède","M",28,79,84],["A. Ouadah","M",27,68,74],["R. Connen","M",22,66,73],["G. Lacombe","M",20,65,76],["S. Grégoire","M",34,63,71],
    ["B. Rodriguez","A",30,74,78],["D. Faderne","A",32,70,72],["X. Bécas","A",23,69,75],["W. Guglielmone","A",24,65,70]],
@@ -4769,7 +4769,7 @@ const STARS_0304={ // effectifs réels 2003-04 (Transfermarkt, saison_id/2003) �
    ["S. Monsoreau","D",22,73,79],["J. Mathieu","D",20,72,85],["S. Diawara","D",25,72,74],["G. Paisley","D",26,70,73],["I. Tall","D",22,70,79],["M. Flachez","D",31,70,76],["O. Daf","D",26,68,74],["P. Raschke","D",36,59,71],
    ["B. Pedretti","M",23,79,85],["W. Oruma","M",27,79,85],["F. Boudarène","M",25,74,78],["J. Lonfat","M",30,73,76],["J. Zairi","M",21,71,80],["M. Isabey","M",28,69,73],["G. N'Daw","M",19,66,82],
    ["P.-A. Frau","A",23,80,85],["Santos","A",24,78,80],["M. Pagis","A",30,71,79]],
- AUX:[["F. Cool","G",31,70,79],
+ AJA:[["F. Cool","G",31,70,79],
    ["P. Mexès","D",21,81,88],["J.-A. Boumsong","D",24,79,86],["S. Grichting","D",24,71,78],["J. Radet","D",27,70,74],["J.-J. Perrier-Doumbé","D",25,70,72],["J.-P. Mignot","D",22,70,79],["J.-S. Jaurès","D",26,70,78],["G. Lecacheur","D",21,66,76],
    ["O. Kapo","M",23,77,84],["L. Mathis","M",22,71,78],["P. Violeau","M",33,71,77],["Y. Lachuer","M",31,71,76],["P. Sirieix","M",23,69,75],["T. Tainio","M",24,69,78],
    ["D. Cissé","A",22,85,91],["B. Kalou","A",25,76,78],["Benjani","A",25,72,76],["A. Gonzalez","A",26,71,75],["K. Akalé","A",22,69,78]],
@@ -4813,7 +4813,7 @@ const STARS_0304={ // effectifs réels 2003-04 (Transfermarkt, saison_id/2003) �
    ["N. Dzodic","D",26,71,75],["B. Carotti","D",31,70,75],["S. Blanc","D",31,69,74],["S. Michalowski","D",25,69,71],["B. Robert","D",20,66,78],["M. Assoumani","D",20,64,76],["T. Gathuessi","D",21,64,74],["J. Mainfroi","D",20,60,74],
    ["J.-C. Rouvière","M",29,72,76],["V. Mézague","M",20,70,80],["G. Doumeng","M",23,69,73],["P. Laigle","M",33,69,74],["G. Moullec","M",23,66,72],["N. Godemèche","M",19,59,73],
    ["F. Mansaré","A",22,70,77],["H. Bamogo","A",21,64,73],["R. Pataca","A",30,63,65],["J. Lafourcade","A",20,60,74]],
- AJA:[["S. Trévisan","G",30,69,72],["F. Lucchini","G",22,63,72],
+ ACA:[["S. Trévisan","G",30,69,72],["F. Lucchini","G",22,63,72],
    ["F. Danjou","D",29,76,80],["M. Seck","D",24,71,76],["M. Robin","D",26,70,72],["W. Regragui","D",28,70,75],["D. Terrier","D",30,68,70],["Y. Démont","D",25,67,71],["X. Collin","D",29,66,72],
    ["C. Granon","M",31,70,72],["L. Diabaté","M",29,70,77],["N. Bonnal","M",27,68,70],["R. Connen","M",23,67,73],["Ferrugem","M",23,65,72],["L. Moracchini","M",35,64,73],["S. Grégoire","M",35,61,71],
    ["B. Diomède","A",29,72,76],["M. Bagayoko","A",24,72,77],["A. Ouadah","A",28,68,74],["G. Lacombe","A",21,67,76]],
@@ -4910,9 +4910,9 @@ const STARS_D2_0304={ // D2 2003-04 — 18 par club
    ["J. Hénin","D",26,72,74],["L. Ciechelski","D",32,69,74],["A. Dujeux","D",27,68,72],["A. Genet","D",21,66,76],["D. Martot","D",22,66,75],["A. Soumaré","D",21,65,75],["T. Lecossais","D",22,65,74],
    ["G. Beuzelin","M",24,71,76],["J.-M. Lesage","M",26,70,75],["P. Ducrocq","M",27,70,80],["A. Bertin","M",23,68,74],["T. Giresse","M",22,68,75],
    ["O. Fauconnier","A",27,67,69],["G. Baticle","A",34,66,73],["H. Bugnet","A",22,65,72],["G. Hoarau","A",19,58,84]]};
-const D1_0203=["LYO","MON","OM","BOR","SOC","AUX","GUI","LEN","NAN","NIC","PSG","BAS","STR","LIL","REN","MTP","AJA","LEH","TRO","SED"];
+const D1_0203=["LYO","MON","OM","BOR","SOC","AJA","GUI","LEN","NAN","NIC","PSG","BAS","STR","LIL","REN","MTP","ACA","LEH","TRO","SED"];
 const D2_0203=["GRE","CLE","BEA","IST","WAS","CRE","VAL","REI","AMI","GUE","MET","CHA","LMN","CAE","NIO","NCY","LOR","LAV","STE","TOU"];
-const D1_0304=["LYO","MON","OM","BOR","SOC","AUX","GUI","LEN","NAN","NIC","PSG","BAS","STR","LIL","REN","MTP","AJA","TOU","LMN","MET"];
+const D1_0304=["LYO","MON","OM","BOR","SOC","AJA","GUI","LEN","NAN","NIC","PSG","BAS","STR","LIL","REN","MTP","ACA","TOU","LMN","MET"];
 const D2_0304=["GRE","CLE","BES","IST","CRE","ROU","VAL","ANG","AMI","GUE","STE","CHA","CAE","NIO","NCY","LOR","TRO","SED","LAV","LEH"];
 const STARS_0405={ // effectifs réels 2004-05 (Transfermarkt, saison_id/2004) — 20 par club
  LYO:[["G. Coupet","G",32,85,86],["N. Puydebois","G",23,69,78],
@@ -4943,7 +4943,7 @@ const STARS_0405={ // effectifs réels 2004-05 (Transfermarkt, saison_id/2004) �
    ["J. Bąk","D",31,76,82],["A. Coulibaly","D",24,74,79],["Y. Lachor","D",28,74,78],["P. Barul","D",27,71,74],["É. Cubilier","D",25,71,75],["Hilton","D",27,70,80],["N. Gillet","D",28,70,80],["B. Assou-Ekotto","D",20,66,80],
    ["É. Carrière","M",31,81,84],["S. Keita","M",24,78,88],["J. Leroy","M",30,72,83],["Jussiê","M",21,72,83],["A. Diarra","M",23,70,82],["M. Diane","M",22,69,80],["O. Thomert","M",24,67,70],
    ["J. Utaka","A",22,77,82],["D. Cousin","A",27,72,78],["D. Bakari","A",30,69,77]],
- AUX:[["S. Hamel","G",29,73,77],["F. Cool","G",32,69,79],
+ AJA:[["S. Hamel","G",29,73,77],["F. Cool","G",32,69,79],
    ["B. Sagna","D",21,74,86],["R. Bolf","D",30,74,76],["S. Grichting","D",25,72,78],["J.-P. Mignot","D",23,71,79],["D. Recorbet","D",28,70,75],["J. Radet","D",28,70,74],["J.-S. Jaurès","D",27,70,78],["Y. Kaboul","D",18,64,84],
    ["Benoît Cheyrou","M",23,74,82],["L. Mathis","M",23,72,78],["T. Tainio","M",25,70,78],["Y. Lachuer","M",32,70,76],["P. Violeau","M",34,69,77],["A. Diaby","M",18,65,86],
    ["B. Kalou","A",26,76,78],["Benjani","A",26,72,76],["L. Pieroni","A",24,72,77],["K. Akalé","A",23,70,78]],
@@ -4967,7 +4967,7 @@ const STARS_0405={ // effectifs réels 2004-05 (Transfermarkt, saison_id/2004) �
    ["L. Clément","D",28,69,71],["S. Lièvre","D",32,69,73],["A. Ebondo","D",20,68,83],["D. Arribagé","D",33,68,76],["D. Congré","D",19,66,81],["F. Clerc","D",21,66,79],["H. Bedimo","D",20,63,78],["L. Aubey","D",20,61,73],
    ["S. Dalmat","M",25,77,86],["N. Dieuze","M",25,74,78],["A. Emaná","M",22,71,82],["P. Sirieix","M",24,70,75],["T. Giresse","M",23,69,75],["J. Cardy","M",23,67,73],["N. Taïder","M",21,66,75],
    ["D. Moreira","A",27,75,80],["D. Suarez","A",25,74,78],["Eduardo","A",25,69,75],["B. Psaume","A",19,64,79]],
- AJA:[["S. Porato","G",31,73,79],["S. Trévisan","G",31,68,72],
+ ACA:[["S. Porato","G",31,73,79],["S. Trévisan","G",31,68,72],
    ["M. Seck","D",25,72,76],["F. Laurenti","D",21,71,81],["N. Dzodic","D",27,71,75],["M. Robin","D",27,70,72],["D. Terrier","D",31,67,70],["Gaspar","D",29,67,69],["Y. Démont","D",26,67,71],["X. Collin","D",30,66,72],
    ["A. Luiz","M",30,72,73],["N. Bonnal","M",28,68,70],["R. Connen","M",24,68,73],["Ferrugem","M",24,66,72],["M. Carioca","M",33,65,66],["L. Merlin","M",20,62,77],
    ["C. Chapuis","A",25,70,78],["A. Ouadah","A",29,68,74],["L. Pereira","A",22,68,79],["Tamandaré","A",25,67,71]],
@@ -5078,7 +5078,7 @@ const STARS_D2_0405={ // L2 2004-05 — 18 par club
    ["G. Norbert","M",24,72,78],["J. Gourvennec","M",32,72,77],["M. Obbadi","M",21,66,79],["L. Norbert","M",21,64,76],["S. Stassin","M",28,64,66],["P. Bédrossian","M",30,63,66],["G. Moussi","M",19,59,74],
    ["O. Fauconnier","A",28,67,69],["C. Théreau","A",21,61,72],["C. Rami","A",24,60,67],["P. Ognjenovic","A",27,59,63]],
 };
-const D1_0405=["LYO","LIL","MON","REN","OM","STE","LEN","AUX","PSG","SOC","STR","NIC","TOU","AJA","BOR","MET","NAN","CAE","BAS","IST"];
+const D1_0405=["LYO","LIL","MON","REN","OM","STE","LEN","AJA","PSG","SOC","STR","NIC","TOU","ACA","BOR","MET","NAN","CAE","BAS","IST"];
 const D2_0405=["NCY","LMN","TRO","DIJ","CHA","SED","GUI","MTP","BRE","LOR","GRE","GUE","AMI","LAV","CRE","REI","LEH","CLE","NIO","ANG"];
 const STARS_0506={ // effectifs réels 2005-06 (Transfermarkt, saison_id/2005) — 20 par club
  LYO:[["G. Coupet","G",33,85,87],["R. Vercoutre","G",25,75,80],
@@ -5105,7 +5105,7 @@ const STARS_0506={ // effectifs réels 2005-06 (Transfermarkt, saison_id/2005) �
    ["Adailton","D",22,75,84],["E. Edman","D",27,73,75],["G. Bourillon","D",21,72,80],["J.-J. Perrier-Doumbé","D",27,70,72],["A. Ouaddou","D",27,68,72],["J. Faty","D",21,68,80],["J. Mensah","D",23,67,74],
    ["K. Källström","M",23,74,84],["C. Jeunechamp","M",30,74,80],["Y. Gourcuff","M",19,70,91],["É. Didot","M",22,68,82],["S. Mbia","M",19,66,82],
    ["A. Frei","A",26,82,85],["J. Utaka","A",23,78,82],["Y. Hadji","A",25,74,82],["O. Monterrubio","A",29,71,80],["J. Briand","A",20,66,88],["M. Sow","A",19,61,83]],
- AUX:[["S. Hamel","G",30,73,77],["F. Cool","G",33,68,79],
+ AJA:[["S. Hamel","G",30,73,77],["F. Cool","G",33,68,79],
    ["B. Sagna","D",22,76,86],["J.-P. Mignot","D",24,72,79],["S. Grichting","D",26,72,78],["J. Radet","D",29,70,74],["J.-S. Jaurès","D",28,70,78],["Y. Kaboul","D",19,66,85],["B. Martin","D",20,64,77],
    ["Benoît Cheyrou","M",24,75,82],["M. Berson","M",25,74,76],["L. Mathis","M",24,73,78],["T. Kahlenberg","M",22,71,81],["Y. Lachuer","M",33,69,76],["P. Violeau","M",35,67,77],["A. Diaby","M",19,67,87],
    ["P. Luyindula","A",26,76,84],["L. Pieroni","A",25,73,77],["Benjani","A",27,72,76],["K. Akalé","A",24,71,78]],
@@ -5149,7 +5149,7 @@ const STARS_0506={ // effectifs réels 2005-06 (Transfermarkt, saison_id/2005) �
    ["G. Paisley","D",28,70,73],["I. Faye","D",26,69,73],["A. Dujeux","D",29,68,72],["B. Kouassi","D",30,67,71],["F. Boucansaud","D",24,64,69],["C. Tourenne","D",33,64,70],["J.-L. Montero","D",34,62,70],
    ["B. Boskovic","M",25,73,78],["B. Nivet","M",28,66,76],["G. Amzine","M",32,66,71],["F. Adam","M",32,65,72],["B. Matuidi","M",18,64,87],["É. Enza-Yamissi","M",22,60,70],
    ["S. Grax","A",21,70,83],["I. Bangoura","A",23,69,79],["G. Ba","A",26,67,73],["S. Dallet","A",32,66,72],["Z. Jaziri","A",27,64,66],["C. Nadé","A",21,64,74]],
- AJA:[["S. Porato","G",32,72,79],["S. Trévisan","G",32,67,72],
+ ACA:[["S. Porato","G",32,72,79],["S. Trévisan","G",32,67,72],
    ["F. Danjou","D",31,75,80],["F. Laurenti","D",22,73,81],["N. Dzodic","D",28,71,75],["D. Jabi","D",24,70,77],["M. Robin","D",28,70,72],["X. Collin","D",31,65,72],["Antônio Carlos","D",22,64,74],
    ["A. Luiz","M",31,71,73],["S. Ziani","M",34,71,79],["R. Rocchi","M",24,70,78],["K. Chafni","M",23,68,78],["Ferrugem","M",25,67,72],
    ["M. N'Diaye","A",26,76,81],["K. Diawara","A",30,75,82],["L. Pereira","A",23,69,79],["R. Saïfi","A",30,68,73],["Tamandaré","A",26,67,71],["J.-J. Mandrichi","A",21,59,69]],
@@ -5244,7 +5244,7 @@ const STARS_D2_0506={ // L2 2005-06 — 18 par club
    ["G. Carmona","M",26,68,74],["D. Aulanier","M",32,66,71],["N. Cami","M",24,65,72],["R. Cohade","M",21,65,78],["S. Gervais","M",29,62,63],["O. Calabuig","M",33,61,66],["G. Dufrennes","M",22,56,66],
    ["K. Ouejdide","A",25,72,74],["A. Kharbouchi","A",25,64,68],["N. Raynier","A",21,57,67],["C. Rouve","A",35,56,57]],
 };
-const D1_0506=["LYO","BOR","LIL","LEN","OM","REN","AUX","MON","PSG","NIC","NAN","STE","SOC","LMN","TOU","NCY","TRO","AJA","STR","MET"];
+const D1_0506=["LYO","BOR","LIL","LEN","OM","REN","AJA","MON","PSG","NIC","NAN","STE","SOC","LMN","TOU","NCY","TRO","ACA","STR","MET"];
 const D2_0506=["VAN","SED","LOR","CAE","DIJ","BAS","LEH","CRE","GUI","GRE","IST","MTP","AMI","CHA","REI","GUE","BRE","CLE","LAV","SET"];
 const STARS_0607={ // effectifs réels 2006-07 (Transfermarkt, saison_id/2006) — 20 par club
  LYO:[["G. Coupet","G",34,83,87],["R. Vercoutre","G",26,75,80],
@@ -5275,7 +5275,7 @@ const STARS_0607={ // effectifs réels 2006-07 (Transfermarkt, saison_id/2006) �
    ["R. Afolabi","D",26,71,75],["S. Pichot","D",30,70,76],["D. Tosic","D",21,64,75],["J. Bréchet","D",27,76,83],["L. Potillon","D",32,69,75],
    ["G. N'Daw","M",22,72,82],["K. Ziani","M",24,74,82],["R. Pitau","M",29,70,75],["J. Leroy","M",32,70,83],["B. Sène","M",22,70,82],["V. Birsa","M",20,70,85],["M. Isabey","M",31,68,73],
    ["Á. Santos","A",26,71,75],["J. Quercia","A",20,67,84],["A. Le Tallec","A",22,77,85],["S. Grax","A",22,72,83],["M. Dagano","A",25,75,80],["M. Erdinç","A",19,60,84]],
- AUX:[["F. Cool","G",34,66,79],["O. Sorin","G",25,70,73],
+ AJA:[["F. Cool","G",34,66,79],["O. Sorin","G",25,70,73],
    ["B. Sagna","D",23,79,87],["Y. Kaboul","D",20,68,85],["J.-P. Mignot","D",25,73,79],["J.-S. Jaurès","D",29,70,78],["S. Grichting","D",27,72,78],["O. Kalabane","D",25,68,72],["J. Radet","D",30,70,74],
    ["Benoît Cheyrou","M",25,76,82],["B. Pedretti","M",26,79,84],["F. Thomas","M",26,68,72],["T. Kahlenberg","M",23,72,81],["L. Mathis","M",25,74,78],["A. Traoré","M",18,62,84],
    ["K. Akalé","A",25,72,78],["I. Jeleń","A",25,74,77],["D. Niculae","A",24,72,78],["L. Pieroni","A",26,73,77],["M. N'Diaye","A",27,76,81]],
@@ -5361,7 +5361,7 @@ const STARS_D2_0607={ // L2 2006-07 — 18 par club
    ["M. Baca","D",23,67,76],["A. Gauvin","D",33,65,72],["O. Davidas","D",25,64,69],["H. Bedimo","D",22,67,78],["D. Martot","D",25,69,75],["H. Medaci","D",23,67,76],["A. Soumaré","D",24,69,75],
    ["J.-M. Lesage","M",29,70,75],["J. Aït Ben Idir","M",22,68,79],["P. Ducrocq","M",30,70,80],["D. Digard","M",20,65,82],["H. Alla","M",26,66,70],
    ["K. Traoré","A",26,70,74],["A. Kharbouchi","A",26,64,68],["F. Fouret","A",32,61,66],["A. Alassane","A",23,63,71]],
- AJA:[["F. Roux","G",33,67,72],["P. Radic","G",22,63,75],
+ ACA:[["F. Roux","G",33,67,72],["P. Radic","G",22,63,75],
    ["X. Collin","D",32,64,72],["N. Dzodic","D",29,71,75],["F. Laurenti","D",23,74,81],["A. Dujeux","D",30,68,72],["Antônio Carlos","D",23,65,74],["M. Kolar","D",23,64,72],["A. Zarabi","D",27,66,70],
    ["Ferrugem","M",26,67,72],["K. Chafni","M",24,69,78],["J.-B. Pierazzi","M",21,63,75],["R. Connen","M",26,69,73],["R. Rocchi","M",25,71,78],
    ["M. Scarpelli","A",25,70,74],["S. Khiter","A",21,66,78],["J.-J. Mandrichi","A",22,61,69],["G. Lacombe","A",24,71,76]],
@@ -5410,8 +5410,8 @@ const STARS_D2_0607={ // L2 2006-07 — 18 par club
    ["D. Fleurival","M",22,68,80],["V. Doukantie","M",29,67,72],["G. Carmona","M",27,68,74],["Pape Diop","M",20,59,76],["I. Soumah","M",32,61,62],
    ["C. Collet","A",22,66,78],["C. Mandanne","A",21,64,75],["T. Vairelles","A",33,73,84],["G. Gimbert","A",21,58,70]],
 };
-const D1_0607=["LYO","OM","TOU","REN","LEN","BOR","SOC","AUX","MON","LIL","STE","LMN","NCY","LOR","PSG","NIC","VAN","TRO","SED","NAN"];
-const D2_0607=["MET","CAE","STR","GUI","BAS","AMI","REI","LEH","AJA","DIJ","NIO","MTP","BRE","GRE","CHA","LIB","GUE","CRE","IST","TRS"];
+const D1_0607=["LYO","OM","TOU","REN","LEN","BOR","SOC","AJA","MON","LIL","STE","LMN","NCY","LOR","PSG","NIC","VAN","TRO","SED","NAN"];
+const D2_0607=["MET","CAE","STR","GUI","BAS","AMI","REI","LEH","ACA","DIJ","NIO","MTP","BRE","GRE","CHA","LIB","GUE","CRE","IST","TRS"];
 const STARS_0708={ // effectifs réels 2007-08 (Transfermarkt, saison_id/2007) — 20 par club
  LYO:[["G. Coupet","G",35,81,87],["R. Vercoutre","G",27,75,80],
    ["S. Squillaci","D",27,78,85],["F. Grosso","D",30,79,80],["A. Réveillère","D",28,78,85],["F. Clerc","D",24,70,79],["Cristiano","D",30,79,84],["Anderson","D",27,73,79],["J.-A. Boumsong","D",28,76,84],
@@ -5469,7 +5469,7 @@ const STARS_0708={ // effectifs réels 2007-08 (Transfermarkt, saison_id/2007) �
    ["S. Pichot","D",31,69,76],["R. Afolabi","D",27,71,75],["D. Perquis","D",23,72,80],["J. Bréchet","D",28,76,83],["B. Jokic","D",21,67,82],["M. Josse","D",20,61,76],["B. Dramé","D",22,66,77],
    ["S. Dalmat","M",28,74,82],["M. Isabey","M",32,67,73],["G. N'Daw","M",23,73,82],["R. Pitau","M",30,69,75],["N. Maurice-Belay","M",22,65,76],["B. Sène","M",23,71,82],["V. Birsa","M",21,72,85],["L. Mathis","M",26,74,78],
    ["M. Erdinç","A",20,62,84],["F. Pancrate","A",27,68,73],["M. Dagano","A",26,75,80],["J. Quercia","A",21,69,84]],
- AUX:[["O. Sorin","G",26,70,73],["Rémy Riou","G",20,66,81],
+ AJA:[["O. Sorin","G",26,70,73],["Rémy Riou","G",20,66,81],
    ["J.-S. Jaurès","D",30,69,78],["S. Grichting","D",28,72,78],["J.-P. Mignot","D",26,73,79],["S. Traoré","D",31,67,71],["G. Tamaș","D",24,69,79],["M. António","D",24,67,77],["R. Popov","D",25,66,72],
    ["B. Pedretti","M",27,79,84],["K. Lejeune","M",22,71,86],["K. Chafni","M",25,69,78],["T. Kahlenberg","M",24,73,81],["F. Thomas","M",27,68,72],["V. Munteanu","M",26,67,73],["A. Traoré","M",19,64,84],
    ["D. Niculae","A",25,72,78],["D. Oliech","A",22,70,78],["I. Jeleń","A",26,74,77],["L. Kitambala","A",19,59,79]],
@@ -5527,7 +5527,7 @@ const STARS_D2_0708={ // L2 2007-08 — 18 par club
    ["N. Dzodic","D",30,70,75],["M. Yanga-Mbiwa","D",18,66,88],["A. Ngambi","D",25,72,77],["B. Carotti","D",35,64,75],["M. Benhamida","D",21,66,81],["L. Clément","D",31,67,71],["A. El Kaoutari","D",17,59,83],
    ["J. Saihi","M",20,70,88],["P. Delaye","M",32,75,80],["M. Ait Alia","M",30,70,76],["E. Oliseh","M",27,71,72],["D. Neumann","M",30,75,81],
    ["S. Camara","A",25,76,81],["G. Lacombe","A",25,71,76],["V. Montaño","A",23,71,78],["K. Aït-Fana","A",18,62,86]],
- AJA:[["T. Debès","G",33,61,70],["P. Radic","G",23,64,75],
+ ACA:[["T. Debès","G",33,61,70],["P. Radic","G",23,64,75],
    ["C. Medjani","D",22,71,81],["R. Fournier","D",24,71,81],["A. Dujeux","D",31,67,72],["X. Collin","D",33,62,72],["D. Angan","D",33,61,72],
    ["S. Darbion","M",23,69,79],["R. Rocchi","M",26,71,78],["J.-B. Pierazzi","M",22,64,75],["S. Dié","M",30,66,71],["T. Mangani","M",20,65,85],["L. Asuar","M",31,69,74],["C. Aubameyang","M",24,67,77],
    ["Marcos","A",28,71,74],["J.-J. Mandrichi","A",23,62,69],["L. Pereira","A",25,70,79],["R. Carbonnier","A",20,62,82]],
@@ -5576,8 +5576,8 @@ const STARS_D2_0708={ // L2 2007-08 — 18 par club
    ["P. Maurel","M",29,61,63],["A. Hauw","M",25,63,69],["S. Vincent","M",21,63,78],["A. Bertin","M",27,70,74],["F. Marty","M",23,66,76],["F. Adam","M",34,62,72],
    ["A. Kharbouchi","A",27,64,68],["W. Niflore","A",26,67,71],["F. Fouret","A",33,59,66],["M. Louhkiar","A",24,63,71]],
 };
-const D1_0708=["LYO","BOR","OM","NCY","STE","REN","LIL","NIC","LMN","LOR","CAE","MON","VAN","SOC","AUX","PSG","TOU","LEN","STR","MET"];
-const D2_0708=["LEH","NAN","GRE","SED","CLE","TRO","BRE","MTP","AJA","ANG","BAS","GUI","REI","AMI","CHA","BLG","DIJ","NIO","LIB","GUE"];
+const D1_0708=["LYO","BOR","OM","NCY","STE","REN","LIL","NIC","LMN","LOR","CAE","MON","VAN","SOC","AJA","PSG","TOU","LEN","STR","MET"];
+const D2_0708=["LEH","NAN","GRE","SED","CLE","TRO","BRE","MTP","ACA","ANG","BAS","GUI","REI","AMI","CHA","BLG","DIJ","NIO","LIB","GUE"];
 const STARS_0809={ // effectifs réels 2008-09 (Transfermarkt, saison_id/2008) — 20 par club
  LYO:[["H. Lloris","G",22,82,92],["R. Vercoutre","G",28,75,80],
    ["Cristiano","D",31,78,84],["J.-A. Boumsong","D",29,76,84],["F. Grosso","D",31,78,80],["A. Réveillère","D",29,78,85],["J. Mensah","D",26,68,74],["T. Kolodziejczak","D",17,68,92],
@@ -5635,7 +5635,7 @@ const STARS_0809={ // effectifs réels 2008-09 (Transfermarkt, saison_id/2008) �
    ["D. Perquis","D",24,73,80],["R. Afolabi","D",28,71,75],["J. Faty","D",24,72,80],["Carlão","D",22,70,81],["B. Jokic","D",22,68,82],["S. Pichot","D",32,68,76],["Y. Mikari","D",25,67,73],["O. Daf","D",31,66,74],
    ["R. Pitau","M",31,68,75],["S. Dalmat","M",29,74,82],["M. Martin","M",20,70,89],["M. Isabey","M",33,65,73],["N. Maurice-Belay","M",23,66,76],["R. Boudebouz","M",18,68,92],
    ["M. Erdinç","A",21,64,84],["V. Sverkos","A",25,70,76],["Santos","A",29,76,79],["S. Privat","A",19,66,86]],
- AUX:[["O. Sorin","G",27,70,73],["Rémy Riou","G",21,68,81],
+ AJA:[["O. Sorin","G",27,70,73],["Rémy Riou","G",21,68,81],
    ["S. Grichting","D",29,72,78],["C. Hengbart","D",28,71,75],["J.-P. Mignot","D",27,73,79],["A. Coulibaly","D",28,75,79],["J. Berthod","D",24,75,82],
    ["T. Kahlenberg","M",25,73,81],["B. Pedretti","M",28,79,84],["M. Narry","M",22,72,83],["K. Chafni","M",26,69,78],["D. Dudka","M",25,73,78],["K. Lejeune","M",23,72,86],["V. Birsa","M",22,73,85],["D. N'Dinga","M",20,67,87],
    ["I. Jeleń","A",27,74,77],["D. Niculae","A",26,72,78],["D. Oliech","A",23,71,78],["J. Quercia","A",22,70,84],["S. Langil","A",20,68,86]],
@@ -5681,7 +5681,7 @@ const STARS_D2_0809={ // L2 2008-09 — 18 par club
    ["N. Dzodic","D",31,69,75],["G. Bocaly","D",20,63,81],["X. Collin","D",34,60,72],["M. Yanga-Mbiwa","D",19,70,89],["J.-P. Sabo","D",21,70,85],["A. El Kaoutari","D",18,63,85],
    ["T. Costa","M",23,74,84],["J. Marveaux","M",26,67,73],["J. Saihi","M",21,72,88],["P. Delaye","M",33,73,80],["T. Deruda","M",22,68,79],
    ["V. Montaño","A",24,72,78],["K. Aït-Fana","A",19,64,86],["L. Compan","A",31,70,78],["S. Camara","A",26,76,81],["A. Ouadah","A",33,64,74]],
- AJA:[["T. Debès","G",34,59,70],["L. Quiévreux","G",29,67,72],
+ ACA:[["T. Debès","G",34,59,70],["L. Quiévreux","G",29,67,72],
    ["R. Fournier","D",25,71,81],["C. Medjani","D",23,72,81],["E. Dohin","D",25,67,77],["J. Martins Pereira","D",22,66,77],["Leyti N'Diaye","D",23,64,74],["A. Cantareil","D",25,69,76],
    ["L. Guerriero","M",23,72,86],["S. Darbion","M",24,70,79],["L. Asuar","M",32,68,74],["B. André","M",18,67,89],["S. Grégori","M",27,67,74],["A. Abou-Mosalem","M",27,62,68],
    ["C. Diabaté","A",20,67,86],["J. Viale","A",26,64,70],["A. Moura-Komenan","A",22,63,77],["G. Ba","A",29,67,73]],
@@ -5742,8 +5742,8 @@ const STARS_D2_0809={ // L2 2008-09 — 18 par club
    ["S. Auvray","M",27,69,74],["E. Ekobo","M",27,76,82],["L. Hervé","M",32,62,69],["F. Boudarène","M",30,73,78],["U. Chavas","M",28,65,69],
    ["F. Sammaritano","A",22,70,82],["G. Gimbert","A",23,60,70],["J. Lebouc","A",29,68,72],["K. Bourhani","A",27,65,70],["N. Diguiny","A",20,65,83]],
 };
-const D1_0809=["LYO","BOR","OM","NCY","STE","REN","LIL","NIC","LMN","LOR","CAE","MON","VAN","SOC","AUX","PSG","TOU","LEH","NAN","GRE"];
-const D2_0809=["SED","CLE","TRO","BRE","MTP","AJA","ANG","BAS","GUI","REI","AMI","CHA","BLG","DIJ","LEN","STR","MET","TRS","NIM","VNS"];
+const D1_0809=["LYO","BOR","OM","NCY","STE","REN","LIL","NIC","LMN","LOR","CAE","MON","VAN","SOC","AJA","PSG","TOU","LEH","NAN","GRE"];
+const D2_0809=["SED","CLE","TRO","BRE","MTP","ACA","ANG","BAS","GUI","REI","AMI","CHA","BLG","DIJ","LEN","STR","MET","TRS","NIM","VNS"];
 const STARS_0910={ // effectifs réels 2009-10 (Transfermarkt, saison_id/2009) — 20 par club
  LYO:[["H. Lloris","G",23,84,92],["R. Vercoutre","G",29,75,80],
    ["Cristiano","D",32,77,84],["A. Cissokho","D",22,76,86],["A. Réveillère","D",30,77,85],["J.-A. Boumsong","D",30,75,84],["D. Lovren","D",20,69,91],
@@ -5781,7 +5781,7 @@ const STARS_0910={ // effectifs réels 2009-10 (Transfermarkt, saison_id/2009) �
    ["Y. Benalouane","D",22,71,88],["P. Diakhaté","D",25,69,82],["C. Varrault","D",29,72,76],["M. Dabo","D",23,67,77],["L. Perrin","D",24,72,80],["Y. Andreu","D",20,61,77],
    ["B. Matuidi","M",22,75,88],["G. N'Daw","M",25,74,82],["G. Fernandes","M",23,71,79],["D. Payet","M",22,74,89],["C. Landrin","M",32,71,78],["A. Fernández","M",23,63,73],["J. Guilavogui","M",19,66,89],
    ["G. Bergessio","A",25,71,75],["E. Rivière","A",19,64,84],["B. Sako","A",21,70,85],["K. Mirallas","A",22,71,85],["B. Sanogo","A",27,66,70]],
- AUX:[["O. Sorin","G",28,70,73],["Rémy Riou","G",22,69,81],
+ AJA:[["O. Sorin","G",28,70,73],["Rémy Riou","G",22,69,81],
    ["C. Hengbart","D",29,71,75],["S. Grichting","D",30,71,78],["A. Coulibaly","D",29,75,79],["J.-P. Mignot","D",28,73,79],["J. Berthod","D",25,75,82],["K. Malaga","D",22,69,81],
    ["B. Pedretti","M",29,79,84],["V. Birsa","M",23,74,85],["D. N'Dinga","M",21,69,87],["K. Chafni","M",27,69,78],["D. Dudka","M",26,73,78],["A. Traoré","M",21,68,85],
    ["I. Jeleń","A",28,74,77],["D. Niculae","A",27,72,78],["D. Oliech","A",24,72,78],["R. Contout","A",24,67,76],["A. Capoue","A",27,67,76],["Y. Sanogo","A",16,60,88]],
@@ -5891,7 +5891,7 @@ const STARS_D2_0910={ // L2 2009-10 — 18 par club
    ["D. Martot","D",28,69,75],["L. Guillon","D",27,73,79],["P. Leugueun","D",28,69,76],["B. Kamissoko","D",26,71,78],["E. Quintin","D",25,70,78],["A. Faivre","D",31,64,70],
    ["L. Hervé","M",33,60,69],["V. Mézague","M",26,76,80],["C. Liabeuf","M",30,72,79],["L. Macquet","M",30,70,76],["F. Boudarène","M",31,72,78],
    ["A. Camara","A",19,64,82],["F. Sammaritano","A",23,71,82],["G. Gimbert","A",24,61,70],["V. Reset","A",24,69,77],["F. Dja Djédjé","A",23,71,82]],
- AJA:[["T. Debès","G",35,57,70],["L. Quiévreux","G",30,66,72],
+ ACA:[["T. Debès","G",35,57,70],["L. Quiévreux","G",30,66,72],
    ["J.-P. Sabo","D",22,71,85],["R. Fournier","D",26,71,81],["C. Medjani","D",24,73,81],["Leyti N'Diaye","D",24,65,74],["W. Moimbé","D",21,63,77],["E. Dohin","D",26,67,77],["J. Martins Pereira","D",23,67,77],
    ["L. Guerriero","M",24,73,86],["B. André","M",19,69,89],["C. Kinkela","M",27,66,74],["K. Diaz","M",21,63,77],["J.-B. Pierazzi","M",24,66,75],
    ["J. Viale","A",27,64,70],["J.-F. Rivière","A",32,69,75],["G. Ba","A",30,66,73],["V. Erard","A",19,58,76]],
@@ -5908,29 +5908,29 @@ const STARS_D2_0910={ // L2 2009-10 — 18 par club
    ["D. Neumann","M",32,73,81],["C. Coué","M",27,67,76],["F. Levrat","M",30,72,77],["A. Gonçalves","M",23,66,76],["L. Genest","M",22,69,83],["U. Le Pen","M",35,65,77],
    ["R. Hamouma","A",22,70,84],["S. Haguy","A",28,70,74],["J. Lebouc","A",30,67,72],["F. Do Marcolino","A",26,68,76],["F. Raddas","A",29,67,71]]
 };
-const D1_0910=["LYO","OM","BOR","LIL","PSG","TOU","REN","MON","STE","AUX","NIC","NCY","LOR","VAN","MTP","LMN","SOC","LEN","GRE","BLG"];
-const D2_0910=["NAN","CAE","LEH","MET","BRE","ANG","GUI","STR","TRS","CHA","ARL","SED","DIJ","CLE","BAS","VNS","AJA","NIM","IST","LAV"];
+const D1_0910=["LYO","OM","BOR","LIL","PSG","TOU","REN","MON","STE","AJA","NIC","NCY","LOR","VAN","MTP","LMN","SOC","LEN","GRE","BLG"];
+const D2_0910=["NAN","CAE","LEH","MET","BRE","ANG","GUI","STR","TRS","CHA","ARL","SED","DIJ","CLE","BAS","VNS","ACA","NIM","IST","LAV"];
 /* Chaque saison dit de quel PAYS elle est (code, clé de la table PAYS) ; l'absence du champ vaut "FR",
    donc une sauvegarde d'avant la v1.80 reste valide sans migration. Les clés des saisons françaises
    restent NUES ("1995-96") et tout autre pays préfixe la sienne ("ANG-1990-91") : voir CLAUDE.md. */
 const SAISONS={
  "1990-91":{ pays:"FR", an:1990, titre:"1990-91", nom:"Le bal des débutants", d1:D1_9091, d2:D2_9091, starsD1:STARS_9091, starsD2:STARS_D2_9091, euroC1:["OM"], euroC2:["MTP"], euroC3:["BOR","MON"],
    sous:"Le plus ancien plateau du jeu. Marseille écrase la France et court l'Europe jusqu'à la finale de Bari ; Papin plante vingt-trois buts et prendra le Ballon d'or, Waddle et Abedi Pelé enchantent le Vélodrome. Monaco finit deuxième et gagnera la Coupe de France. Ailleurs, des gamins débutent : Zidane a dix-huit ans à Cannes, Thuram quinze minutes en tout à Monaco, Weah en plante déjà sur le Rocher. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
- "1991-92":{ pays:"FR", an:1991, titre:"1991-92", nom:"Sur tapis vert", d1:D1_9192, d2:D2_9192, starsD1:STARS_9192, starsD2:STARS_D2_9192, euroC1:["OM"], euroC2:["MON"], euroC3:["AUX","CAN","LYO"],
+ "1991-92":{ pays:"FR", an:1991, titre:"1991-92", nom:"Sur tapis vert", d1:D1_9192, d2:D2_9192, starsD1:STARS_9192, starsD2:STARS_D2_9192, euroC1:["OM"], euroC2:["MON"], euroC3:["AJA","CAN","LYO"],
    sous:"Le quatrième titre d'affilée de l'OM, et le Ballon d'or de Papin, vingt-sept buts, meilleur buteur pour la cinquième année de suite. Waddle et Abedi Pelé règnent encore sur le Vélodrome, Weah fait ses adieux au Rocher, Ginola explose au Parc à la trêve et Cantona jette un ballon à un arbitre avant de partir pour Leeds. Bordeaux, Brest et Nice sont rétrogradés administrativement : la D1 garde ses vingt clubs sans repêcher personne, et les Girondins jouent la D2 avec Lizarazu et un Dugarry de dix-neuf ans. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
- "1992-93":{ pays:"FR", an:1992, titre:"1992-93", nom:"Le sacre et le soupçon", d1:D1_9293, d2:D2_9293, starsD1:STARS_9293, starsD2:STARS_D2_9293, euroC1:["OM"], euroC2:["MON"], euroC3:["AUX","PSG","CAE"],
+ "1992-93":{ pays:"FR", an:1992, titre:"1992-93", nom:"Le sacre et le soupçon", d1:D1_9293, d2:D2_9293, starsD1:STARS_9293, starsD2:STARS_D2_9293, euroC1:["OM"], euroC2:["MON"], euroC3:["AJA","PSG","CAE"],
    sous:"L'année où l'on gagne tout et où l'on ne garde rien. L'OM soulève la Coupe d'Europe à Munich, d'une tête de Boli, puis se voit retirer son titre de champion par la Fédération ; le PSG, deuxième, refuse de le ramasser. Bokšić plante vingt-trois buts et finit meilleur buteur, les champions du monde allemands débarquent, Völler à Marseille, Klinsmann sur le Rocher, Zidane quitte Cannes pour Bordeaux et Makélélé débute à Nantes. La D2 se jouait en DEUX groupes de dix-huit : les dix premiers de chacun tiennent les vingt clubs du jeu." },
- "1993-94":{ pays:"FR", an:1993, titre:"1993-94", nom:"Le soir du 17 novembre", d1:D1_9394, d2:D2_9394, starsD1:STARS_9394, starsD2:STARS_D2_9394, euroC1:["MON"], euroC2:["PSG"], euroC3:["BOR","AUX","NAN"],
+ "1993-94":{ pays:"FR", an:1993, titre:"1993-94", nom:"Le soir du 17 novembre", d1:D1_9394, d2:D2_9394, starsD1:STARS_9394, starsD2:STARS_D2_9394, euroC1:["MON"], euroC2:["PSG"], euroC3:["BOR","AJA","NAN"],
    sous:"La saison où Paris prend enfin le pouvoir : cinquante-neuf points, Ginola meilleur joueur de l'année, Raí en chef d'orchestre. Marseille finit deuxième et descend quand même, rétrogradé sur tapis vert le 22 avril. Djorkaeff, Roger Boli et Ouédec plantent vingt buts chacun ; Zidane, meilleur espoir, mène un Bordeaux où jouent déjà Lizarazu et Dugarry ; Vieira a dix-sept ans à Cannes, Pirès vingt à Metz, Wiltord dix-neuf à Rennes. Et le 17 novembre, au Parc, Kostadinov prive les Bleus du Mondial. La D2 devient un groupe unique de vingt-deux clubs : les vingt premiers tiennent le plateau du jeu." },
- "1994-95":{ pays:"FR", an:1994, titre:"1994-95", nom:"Une seule défaite", d1:D1_9495, d2:D2_9495, starsD1:STARS_9495, starsD2:STARS_D2_9495, euroC1:["PSG"], euroC2:["AUX"], euroC3:["OM","BOR","NAN","CAN"],
+ "1994-95":{ pays:"FR", an:1994, titre:"1994-95", nom:"Une seule défaite", d1:D1_9495, d2:D2_9495, starsD1:STARS_9495, starsD2:STARS_D2_9495, euroC1:["PSG"], euroC2:["AJA"], euroC3:["OM","BOR","NAN","CAN"],
    sous:"La saison du FC Nantes de Suaudeau : une seule défaite en trente-huit journées, un record que personne n'a égalé depuis. Loko plante vingt-deux buts, Karembeu, Makélélé et Pedros font le jeu à la nantaise. Le Paris SG de Weah, futur Ballon d'or, et de Ginola prend la Coupe de France et va en demi-finale d'Europe ; Guérin est élu meilleur joueur. Marseille purge sa relégation en D2, gagne le championnat avec Barthez et les trente et un buts de Cascarino, et y reste quand même : dépôt de bilan. Zidane porte Bordeaux et le maillot bleu, Thierry Henry débute à dix-sept ans sur le Rocher. La victoire vaut trois points pour la première fois." },
  "1995-96":{ pays:"FR", an:1995, titre:"1995-96", nom:"Retour à la case départ", d1:CLUBS.map(c=>c.id), d2:CLUBS_D2.map(c=>c.id), starsD1:STARS, starsD2:STARS_D2, euroC1:["NAN"], euroC2:["PSG"], euroC3:["BOR","LEN","MON","LYO"],
    sous:"La saison fondatrice. L'OM purge sa relégation en D2 (affaire VA-OM), à vous de le ramener dans l'élite." },
- "1996-97":{ pays:"FR", an:1996, titre:"1996-97", nom:"Ascenseur pour l'élite", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AUX"], euroC2:["GUI"], euroC3:["MON","MET","LEN"],
+ "1996-97":{ pays:"FR", an:1996, titre:"1996-97", nom:"Ascenseur pour l'élite", d1:D1_9697, d2:D2_9697, starsD1:STARS_9697, starsD2:STARS_D2_9697, euroC1:["AJA"], euroC2:["GUI"], euroC3:["MON","MET","LEN"],
    sous:"L'OM est de retour dans l'élite ; Saint-Étienne, Gueugnon et Martigues découvrent la Division 2. Henry et Trezeguet percent à Monaco." },
- "1997-98":{ pays:"FR", an:1997, titre:"1997-98", nom:"L'été sera chaud", d1:D1_9798, d2:D2_9798, starsD1:STARS_9798, starsD2:STARS_D2_9798, euroC1:["MON","PSG"], euroC2:["NIC"], euroC3:["NAN","BOR","MET","STR","AUX","LYO","BAS"],
+ "1997-98":{ pays:"FR", an:1997, titre:"1997-98", nom:"L'été sera chaud", d1:D1_9798, d2:D2_9798, starsD1:STARS_9798, starsD2:STARS_D2_9798, euroC1:["MON","PSG"], euroC2:["NIC"], euroC3:["NAN","BOR","MET","STR","AJA","LYO","BAS"],
    sous:"L'année du Mondial à domicile. Blanc et Ravanelli débarquent à l'OM ; Nice, vainqueur de la Coupe, joue la Coupe des Coupes depuis la D2. La D1 passe à 18 : Caen et Nancy sont repêchés pour tenir la vingtaine." },
- "1998-99":{ pays:"FR", an:1998, titre:"1998-99", nom:"Lendemain de fête", d1:D1_9899, d2:D2_9899, starsD1:STARS_9899, starsD2:STARS_D2_9899, euroC1:["LEN","MET"], euroC2:["PSG"], euroC3:["MON","OM","BOR","BAS","AUX","LYO"],
+ "1998-99":{ pays:"FR", an:1998, titre:"1998-99", nom:"Lendemain de fête", d1:D1_9899, d2:D2_9899, starsD1:STARS_9899, starsD2:STARS_D2_9899, euroC1:["LEN","MET"], euroC2:["PSG"], euroC3:["MON","OM","BOR","BAS","AJA","LYO"],
    sous:"L'après-Mondial : les champions du monde sont des dieux. Bordeaux et Marseille se tirent la bourre jusqu'au dernier jour, Lens découvre la Ligue des Champions, Okocha débarque au PSG pour un pont d'or. En D2, Saint-Étienne veut sortir du purgatoire, et un certain Didier Drogba, vingt ans, cire le banc du Mans." },
  "1999-00":{ pays:"FR", an:1999, titre:"1999-00", nom:"Le bug de l'an 2000", d1:D1_9900, d2:D2_9900, starsD1:STARS_9900, starsD2:STARS_D2_9900, euroC1:["BOR","OM","LYO"], euroC2:["NAN"], euroC3:["MON","LEN","MTP"],
    sous:"Le dernier championnat du siècle. Monaco reprend le titre à Bordeaux ; Sonny Anderson plante vingt-trois buts pour Lyon, Trezeguet et Simone quarante-trois à eux deux sur le Rocher. L'OM, quinzième, frôle le gouffre toute l'année. Lille écrase la D2, où Drogba et Malouda se font un nom. La D1 réelle n'ayant que dix-huit clubs, Lorient et Sochaux sont repêchés, et Red Star et Beauvais reviennent tenir les vingt de la D2." },
@@ -5938,15 +5938,15 @@ const SAISONS={
    sous:"Le premier championnat du siècle, et le huitième titre du FC Nantes : Éric Carrière est élu meilleur joueur ET meilleur passeur, Mickaël Landreau garde les buts à vingt et un ans. Sonny Anderson plante vingt-deux buts pour Lyon, Nicolas Anelka rentre du Real Madrid en janvier, et José Luis Chilavert, deux fois meilleur gardien du monde, débarque à Strasbourg. L\u2019affaire des faux passeports empoisonne tout le printemps et emporte Saint-Étienne. La Coupe des Coupes n\u2019existe plus : Gueugnon, vainqueur de la Coupe de la Ligue, joue la Coupe UEFA DEPUIS LA DEUXIÈME DIVISION. La D1 réelle n\u2019ayant que dix-huit clubs, Nancy et Le Havre sont repêchés, et Amiens et Valence reviennent tenir les vingt de la D2." },
  "2001-02":{ pays:"FR", an:2001, titre:"2001-02", nom:"Le premier des sept", d1:D1_0102, d2:D2_0102, starsD1:STARS_0102, starsD2:STARS_D2_0102, euroC1:["NAN","LYO","LIL"], euroC2:[], euroC3:["BOR","SED","STR","PSG","TRO"],
    sous:"Le dernier championnat qui s’appelle Division 1, et le premier titre de l’Olympique lyonnais : tout se joue le 4 mai 2002 à Gerland, où Lyon bat Lens 3-1 — jamais le titre ne s’était décidé sur un duel direct entre les deux premiers, et c’est le premier des sept que Lyon va enchaîner. Juninho arrive du Brésil et Ronaldinho a vingt et un ans au Parc des Princes ; Pauleta est élu meilleur joueur, et partage le titre de meilleur buteur avec Djibril Cissé, vingt ans, vingt-deux buts chacun. Strasbourg, relégué mais vainqueur de la Coupe de France, joue la Coupe UEFA DEPUIS LA DEUXIÈME DIVISION. La D1 réelle n’ayant que dix-huit clubs, Toulouse et Saint-Étienne sont repêchés, et Cannes revient tenir les vingt de la D2." },
- "2002-03":{ pays:"FR", an:2002, titre:"2002-03", nom:"Bienvenue en Ligue 1", d1:D1_0203, d2:D2_0203, starsD1:STARS_0203, starsD2:STARS_D2_0203, euroC1:["LYO","LEN","AUX"], euroC2:[], euroC3:["PSG","BOR","LOR"],
+ "2002-03":{ pays:"FR", an:2002, titre:"2002-03", nom:"Bienvenue en Ligue 1", d1:D1_0203, d2:D2_0203, starsD1:STARS_0203, starsD2:STARS_D2_0203, euroC1:["LYO","LEN","AJA"], euroC2:[], euroC3:["PSG","BOR","LOR"],
    sous:"Le premier championnat qui porte le nom de Ligue 1, et le premier à vingt clubs : Ajaccio, Strasbourg, Nice et Le Havre montent, et pour une fois personne n'est repêché. Lyon garde son titre d'un point sur Monaco, décroché le 20 mai à Montpellier. Shabani Nonda plante vingt-six buts sur le Rocher et finit meilleur buteur, Pauleta est élu meilleur joueur, Jérôme Rothen meilleur passeur avec dix-huit offrandes. À Guingamp, un attaquant de vingt-quatre ans en met dix-sept et emmène le club à une septième place inédite : Didier Drogba se fait un nom, servi par Florent Malouda. Petr Čech garde les buts de Rennes à vingt ans. Et Lorient, vainqueur de la Coupe de France mais relégué, joue la Coupe UEFA DEPUIS LA DEUXIÈME DIVISION." },
- "2003-04":{ pays:"FR", an:2003, titre:"2003-04", nom:"Le printemps des finalistes", d1:D1_0304, d2:D2_0304, starsD1:STARS_0304, starsD2:STARS_D2_0304, euroC1:["LYO","MON","OM"], euroC2:[], euroC3:["BOR","SOC","AUX","LEN"],
+ "2003-04":{ pays:"FR", an:2003, titre:"2003-04", nom:"Le printemps des finalistes", d1:D1_0304, d2:D2_0304, starsD1:STARS_0304, starsD2:STARS_D2_0304, euroC1:["LYO","MON","OM"], euroC2:[], euroC3:["BOR","SOC","AJA","LEN"],
    sous:"Le printemps où la France place deux clubs en finale européenne et n'en ramène aucune coupe : Monaco perd la Ligue des champions à Gelsenkirchen, Marseille la Coupe UEFA à Göteborg. Lyon prend son troisième titre d'affilée avec soixante-dix-neuf points, un record, et Grégory Coupet est élu meilleur gardien. Didier Drogba fait la saison de sa vie au Vélodrome — meilleur joueur du championnat, dix-neuf buts, puis Chelsea — et Djibril Cissé en plante vingt-six pour Auxerre avant de filer à Liverpool. Sur le Rocher, Didier Deschamps lance Morientes, Giuly, Rothen et un Patrice Evra élu meilleur espoir. À Rennes, Petr Čech garde les buts et un gamin de dix-sept ans entre en jeu : Yoann Gourcuff. Saint-Étienne écrase la Ligue 2 et remonte enfin ; Besançon la découvre." },
- "2004-05":{ pays:"FR", an:2004, titre:"2004-05", nom:"Quatre fois de suite", d1:D1_0405, d2:D2_0405, starsD1:STARS_0405, starsD2:STARS_D2_0405, euroC1:["LYO","PSG","MON"], euroC2:[], euroC3:["AUX","SOC","LIL","CHA"],
+ "2004-05":{ pays:"FR", an:2004, titre:"2004-05", nom:"Quatre fois de suite", d1:D1_0405, d2:D2_0405, starsD1:STARS_0405, starsD2:STARS_D2_0405, euroC1:["LYO","PSG","MON"], euroC2:[], euroC3:["AJA","SOC","LIL","CHA"],
    sous:"Le quatrième titre d'affilée de l'Olympique lyonnais, soixante-dix-neuf points comme l'année d'avant : avant lui, seuls Saint-Étienne et Marseille avaient gagné quatre championnats de suite. Michael Essien est élu meilleur joueur avant de filer à Chelsea, Grégory Coupet meilleur gardien pour la troisième fois, Paul Le Guen meilleur entraîneur pour sa dernière saison sur le banc, et Jérémy Toulalan meilleur espoir à Nantes. Alexander Frei plante vingt buts pour Rennes, Javier Saviola arrive en prêt du Barça sur le Rocher, et un Franck Ribéry de vingt et un ans fait la saison de sa vie à Metz. À Lyon, un gamin de dix-sept ans entre en jeu cent sept minutes : Karim Benzema. Lille finit deuxième et gagne l'Intertoto ; La Berrichonne de Châteauroux joue la Coupe UEFA DEPUIS LA DEUXIÈME DIVISION, pour avoir PERDU la finale de la Coupe de France." },
- "2005-06":{ pays:"FR", an:2005, titre:"2005-06", nom:"Le coup franc de Juninho", d1:D1_0506, d2:D2_0506, starsD1:STARS_0506, starsD2:STARS_D2_0506, euroC1:["LYO","LIL","MON"], euroC2:[], euroC3:["REN","AUX","STR","OM","LEN"],
+ "2005-06":{ pays:"FR", an:2005, titre:"2005-06", nom:"Le coup franc de Juninho", d1:D1_0506, d2:D2_0506, starsD1:STARS_0506, starsD2:STARS_D2_0506, euroC1:["LYO","LIL","MON"], euroC2:[], euroC3:["REN","AJA","STR","OM","LEN"],
    sous:"Le cinquième titre d'affilée de l'Olympique lyonnais, et le plus large de tous : quatre-vingt-quatre points, quinze de plus que Bordeaux. Juninho Pernambucano est élu meilleur joueur du championnat, Grégory Coupet meilleur gardien pour la quatrième fois, et Claude Puel meilleur entraîneur d'un Lille troisième qui va chercher les huitièmes de la Ligue des champions. Pauleta plante vingt et un buts pour le Paris SG et finit meilleur buteur ; Franck Ribéry, élu meilleur espoir, règne sur le Vélodrome avant le Mondial. Nancy, qui n'avait plus vu la première division depuis 1997, remonte et gagne la Coupe de la Ligue à Saint-Denis. À Nice, un gardien de dix-neuf ans fait ses premiers matchs : Hugo Lloris. Et Sète, monté du National, redescend aussitôt : une seule saison dans l'antichambre." },
- "2006-07":{ pays:"FR", an:2006, titre:"2006-07", nom:"La chute des Canaris", d1:D1_0607, d2:D2_0607, starsD1:STARS_0607, starsD2:STARS_D2_0607, euroC1:["LYO","BOR","LIL"], euroC2:[], euroC3:["LEN","PSG","NCY","OM","AUX"],
+ "2006-07":{ pays:"FR", an:2006, titre:"2006-07", nom:"La chute des Canaris", d1:D1_0607, d2:D2_0607, starsD1:STARS_0607, starsD2:STARS_D2_0607, euroC1:["LYO","BOR","LIL"], euroC2:[], euroC3:["LEN","PSG","NCY","OM","AJA"],
    sous:"Le sixième titre d'affilée de l'Olympique lyonnais, et le plus écrasant de tous : quatre-vingt-un points, dix-sept d'avance sur Marseille, le titre acquis le 22 avril à cinq journées de la fin. Florent Malouda est élu meilleur joueur du championnat, Teddy Richert meilleur gardien, Samir Nasri meilleur espoir à dix-neuf ans, Gérard Houllier meilleur entraîneur. Pauleta finit meilleur buteur avec quinze buts seulement, le plus petit total qu'on ait vu en France. Toulouse surprend tout le monde et prend la troisième place ; Sochaux gagne la Coupe de France aux tirs au but contre Marseille, Bordeaux la Coupe de la Ligue contre Lyon. Et tout en bas, le FC Nantes descend pour la première fois de son histoire, après quarante-quatre saisons d'affilée dans l'élite. Au Parc des Princes, un défenseur de seize ans entre en jeu : Mamadou Sakho." },
  "2007-08":{ pays:"FR", an:2007, titre:"2007-08", nom:"Les vingt buts de Benzema", d1:D1_0708, d2:D2_0708, starsD1:STARS_0708, starsD2:STARS_D2_0708, euroC1:["LYO","OM","TOU"], euroC2:[], euroC3:["REN","LEN","BOR","SOC"],
    sous:"Le septième titre d'affilée de l'Olympique lyonnais, et le dernier de la série : quatre points d'avance sur un Bordeaux de Laurent Blanc qui a mené la danse jusqu'au printemps. Karim Benzema, vingt ans, est élu meilleur joueur du championnat ET meilleur buteur avec vingt buts ; Hatem Ben Arfa est meilleur espoir, Steve Mandanda meilleur gardien au Vélodrome, Jérôme Leroy meilleur passeur à trente-trois ans. Le Paris SG, seizième, sauve sa saison en gagnant la Coupe de la Ligue contre Lens, et Lyon le bat en finale de Coupe de France. Toulouse, troisième l'année d'avant, finit dix-septième et joue quand même la Ligue des champions. À Lille, un Belge de seize ans entre en jeu pour la première fois : Eden Hazard. En Ligue 2, Guillaume Hoarau plante vingt-huit buts et ramène Le Havre dans l'élite ; le FC Nantes remonte dans la foulée, et Boulogne découvre le monde professionnel." },
@@ -5984,7 +5984,7 @@ function nouvellePartie(clubId, saisonKey){
   const enD1=S.d1.includes(clubId);
   const clubs=enD1?d1:d2, autre=enD1?d2:d1;
   G={
-    saison:S.titre, anBase:S.an, saisonIdx:1, pays:S.pays||"FR", monClub:clubId, clubs, autre, div: enD1?1:2,
+    saison:S.titre, anBase:S.an, saisonIdx:1, pays:S.pays||"FR", monClub:clubId, clubs, autre, div: enD1?1:2, _codes:1,
     journee:0, calendrier:berger(clubs.map(c=>c.id)),
     budget: clubs.find(c=>c.id===clubId).budget,
     tresorerie: 12e6,
@@ -12299,7 +12299,7 @@ function staffHTML(){
    la Juve. Nantes = club français déjà dans le jeu (occupe le siège français de la C1). */
 const CLUBS_EUROPE=[
   {id:"JUV",nom:"Juventus",           pays:"Italie",     pres:6, stade:"le Stadio delle Alpi",      cap:69000},
-  {id:"AJA",nom:"Ajax Amsterdam",     pays:"Pays-Bas",   pres:6, stade:"le stade olympique",         cap:31000},
+  {id:"AFC",nom:"Ajax Amsterdam",     pays:"Pays-Bas",   pres:6, stade:"le stade olympique",         cap:31000},
   {id:"RMA",nom:"Real Madrid",        pays:"Espagne",    pres:6, stade:"le Santiago-Bernabéu",        cap:75000},
   {id:"DOR",nom:"Borussia Dortmund",  pays:"Allemagne",  pres:6, stade:"le Westfalenstadion",         cap:42000},
   {id:"RAN",nom:"Glasgow Rangers",    pays:"Écosse",     pres:5, stade:"Ibrox",                       cap:50000},
@@ -12324,7 +12324,7 @@ const STARS_EUROPE={
     ["A. Del Piero","A",21,86,93],["F. Ravanelli","A",27,85,85],["G. Vialli","A",31,84,84],
     ["A. Lombardo","A",30,80,81],["M. Padovano","A",29,76,79],
   ],
-  AJA:[
+  AFC:[
     ["E. van der Sar","G",25,84,88],["F. Grim","G",30,71,71],
     ["D. Blind","D",34,79,79],["F. de Boer","D",25,84,85],["W. Bogarde","D",25,79,82],
     ["M. Reiziger","D",22,78,86],["S. Silooy","D",32,74,74],["M. Santos","D",26,76,78],
@@ -13450,12 +13450,13 @@ function aUnVestiaire(id){ return plateauEnCours().has(id) || (G.europe||[]).som
    (Nantes occupe la C1 de 95-96 tout en jouant la D1). Un pays est représenté par un de ses clubs, c'est
    le principe même ; ce qu'on interdit, c'est qu'un club du championnat serve d'ADVERSAIRE anonyme.
    LE PIÈGE, ET IL A ROUGI DU PREMIER COUP : la réconciliation se lit AU PAYS DE LA SAISON, jamais au seul
-   code. `AJA` est l'AC Ajaccio dans `CLUBS_EXTRA` depuis 98/99 ET l'Ajax Amsterdam dans le vivier de C1
-   depuis la v0.72 — deux clubs, deux pays, un seul code, et cette collision dort dans DOUZE listes de
-   saisons françaises. Comparer les codes tout seuls retirait donc l'Ajax du vivier dès qu'Ajaccio était au
-   plateau : douze saisons françaises changeaient de tableau de Coupe d'Europe. D'où `memePays` : un club du
-   vivier ne s'en va que s'il est au plateau ET du pays de la carrière. Aucun des quarante-cinq n'étant
-   français, la France ne perd jamais personne, et c'est prouvé saison par saison au harnais. */
+   code. Jusqu'à la v1.86, `AJA` était à la fois l'AC Ajaccio et l'Ajax Amsterdam, et comparer les codes
+   tout seuls retirait l'Ajax du vivier dès qu'Ajaccio était au plateau. La v1.87 a levé la collision
+   (Ajaccio = ACA, l'Ajax = AFC, et AJA est rendu à Auxerre, voir `migreCodes`), mais `memePays` reste :
+   un code de club n'est une identité qu'à l'intérieur d'un pays, et l'Italie ou l'Espagne en
+   apporteront d'autres. Un club du vivier ne s'en va que s'il est au plateau ET du pays de la carrière.
+   Aucun des quarante-cinq n'étant français, la France ne perd jamais personne, et c'est prouvé saison
+   par saison au harnais. */
 function memePays(c, code){ return !!c && c.pays===(PAYS[code]||PAYS.FR).nom; }
 function clubsDuPlateauEnEurope(ids, code){ // les clubs du vivier qui jouent AUSSI ce championnat-là
   const p=new Set(ids);
@@ -14181,7 +14182,38 @@ function classement(){
 }
 
 /* ---------- Sauvegarde ---------- */
+/* LES TROIS CODES DE LA V1.87 : Auxerre AUX → AJA (son nom d'usage), l'AC Ajaccio AJA → ACA (son nom
+   officiel), l'Ajax Amsterdam AJA → AFC. Une sauvegarde d'avant porte les anciens codes partout (fiches,
+   calendrier, classements, tableau d'Europe…), et un « AJA » y est ambigu : l'Ajax ou Ajaccio. On le
+   tranche par l'endroit où il se trouve. Dans le vivier (`G.europe`), c'est toujours l'Ajax. Dans le
+   tableau d'Europe (`G.euro`), c'est l'Ajax, sauf pour une carrière d'Ajaccio engagée en Coupe d'Europe,
+   où c'est vous (l'ancien code confondait déjà les deux clubs dans ce cas-là, il n'y a rien de mieux à
+   relire). Partout ailleurs, c'est Ajaccio s'il est au plateau, l'Ajax sinon. Les clés d'objet suivent
+   la même règle, et la passe est unique (un « AUX » devenu « AJA » n'est jamais relu comme Ajaccio).
+   Les textes déjà écrits (presse, comptes rendus) gardent leurs anciens sigles : ce sont des archives. */
+function migreCodes(){
+  if(G._codes>=1) return;
+  const plateau=(G.clubs||[]).concat(G.autre||[]);
+  const hors=plateau.some(c=>c&&c.id==="AJA")?"ACA":"AFC";
+  const enEuro=(G.monClub==="AJA" && G.euro && G.euro.enLice)?"ACA":"AFC";
+  const code=(v,aja)=>v==="AUX"?"AJA":(v==="AJA"?aja:v);
+  const passe=(o,aja)=>{
+    if(Array.isArray(o)){ for(let i=0;i<o.length;i++){ const x=o[i];
+      if(typeof x==="string") o[i]=code(x,aja); else if(x&&typeof x==="object") passe(x,aja); } return; }
+    const ent=Object.entries(o);
+    for(const [k] of ent) delete o[k];
+    for(const [k,x] of ent){
+      if(typeof x==="string") o[code(k,aja)]=code(x,aja);
+      else { if(x&&typeof x==="object") passe(x,aja); o[code(k,aja)]=x; } }
+  };
+  for(const k of Object.keys(G)){
+    const aja=k==="europe"?"AFC":(k==="euro"?enEuro:hors), x=G[k];
+    if(typeof x==="string") G[k]=code(x,aja); else if(x&&typeof x==="object") passe(x,aja);
+  }
+  G._codes=1;
+}
 function migre(){
+  migreCodes(); // v1.87 : AJA/ACA/AFC, avant tout le reste, qui lit les codes de clubs
   G.rapport=G.rapport||[]; G.sponsor=G.sponsor||null;
   G.offresSponsor=G.offresSponsor||null; G.sponsorSwitch=!!G.sponsorSwitch;
   G.prets=G.prets||[]; G.vivier=G.vivier||null;

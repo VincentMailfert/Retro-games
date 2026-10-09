@@ -60,8 +60,8 @@ try {
     // LA SINGULARITÉ DE LA SAISON : la Ligue 1 passe à VINGT clubs et la Ligue 2 en compte vingt
     // aussi. Le plateau du jeu est donc EXACTEMENT le plateau réel — aucun repêchage, aucun écarté,
     // pour la première fois du chantier français. Les deux listes se vérifient donc par égalité.
-    const REELS_D1 = ["LYO", "MON", "OM", "BOR", "SOC", "AUX", "GUI", "LEN", "NAN", "NIC",
-                      "PSG", "BAS", "STR", "LIL", "REN", "MTP", "AJA", "LEH", "TRO", "SED"];
+    const REELS_D1 = ["LYO", "MON", "OM", "BOR", "SOC", "AJA", "GUI", "LEN", "NAN", "NIC",
+                      "PSG", "BAS", "STR", "LIL", "REN", "MTP", "ACA", "LEH", "TRO", "SED"];
     const REELS_D2 = ["GRE", "CLE", "BEA", "IST", "WAS", "CRE", "VAL", "REI", "AMI", "GUE",
                       "MET", "CHA", "LMN", "CAE", "NIO", "NCY", "LOR", "LAV", "STE", "TOU"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
@@ -115,7 +115,7 @@ try {
     // 02/03 étant la dernière saison du jeu, on les a trouvés par la parade de 00/01 (lister les
     // écartés que le jeu connaît déjà) puis par les débutants dont la carrière a suivi.
     const forces = { LYO: "F. Balmont", LEN: "R. Fanni", PSG: "L. Cana", REN: "J. Briand",
-                     SOC: "G. N'Daw", AUX: "H. Yebda" };
+                     SOC: "G. N'Daw", AJA: "H. Yebda" };
     const forcesD2 = { MET: "L. Obraniak", CRE: "J. Plasil", CAE: "R. Zubar", LOR: "J. Morel",
                        TOU: "A. Romao", GUE: "M. Bougherra", LMN: "Y. Pelé" };
     const perdus = Object.entries(forces).filter(([id, nom]) => !(S.starsD1[id] || []).some(t => t[0] === nom))
@@ -133,7 +133,7 @@ try {
     else ok("Lille garde Makoun et Fortuné, Rennes Briand et Faty — deux clubs qui paient deux hommes");
 
     // celles que le temps de jeu suffisait à garder
-    const seuls = { GUI: ["D. Drogba", "F. Malouda"], MET: [], AUX: ["D. Cissé", "P. Mexès", "O. Kapo"],
+    const seuls = { GUI: ["D. Drogba", "F. Malouda"], MET: [], AJA: ["D. Cissé", "P. Mexès", "O. Kapo"],
                     MON: ["P. Evra", "S. Squillaci", "G. Givet", "S. Nonda", "J. Rothen"],
                     BAS: ["M. Essien"], REN: ["P. Cech"], LEN: ["S. Keita"], NAN: ["J. Toulalan", "M. Landreau"],
                     LEH: ["F. Sinama-Pongolle", "A. Le Tallec"], SOC: ["J. Mathieu", "B. Pedretti"],
@@ -254,9 +254,9 @@ try {
   // (4e), Bordeaux (vainqueur de la Coupe de la Ligue 2002) ET LORIENT, vainqueur de la Coupe de
   // France 2002, QUI JOUAIT LA DEUXIÈME DIVISION. Aucun club français n'a gagné l'Intertoto 2002
   // (Fulham, Málaga et Stuttgart), donc Lille, Troyes et Sochaux n'ont pas de siège à ce titre.
-  const attendu = { LYO: "C1", LEN: "C1", AUX: "C1", PSG: "C3", BOR: "C3", LOR: "C3",
+  const attendu = { LYO: "C1", LEN: "C1", AJA: "C1", PSG: "C3", BOR: "C3", LOR: "C3",
                     MON: null, OM: null, SOC: null, GUI: null, NAN: null, NIC: null, LIL: null,
-                    TRO: null, STR: null, AJA: null, MET: null, STE: null, CLE: null };
+                    TRO: null, STR: null, ACA: null, MET: null, STE: null, CLE: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
     const c = api.getG().euroCompet;

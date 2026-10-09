@@ -62,8 +62,8 @@ try {
 
     // LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA TROISIÈME FOIS DE SUITE : les deux échelons réels
     // ont vingt clubs, donc aucun repêchage, aucun écarté. On vérifie les deux listes par ÉGALITÉ.
-    const REELS_D1 = ["LYO", "LIL", "MON", "REN", "OM", "STE", "LEN", "AUX", "PSG", "SOC",
-                      "STR", "NIC", "TOU", "AJA", "BOR", "MET", "NAN", "CAE", "BAS", "IST"];
+    const REELS_D1 = ["LYO", "LIL", "MON", "REN", "OM", "STE", "LEN", "AJA", "PSG", "SOC",
+                      "STR", "NIC", "TOU", "ACA", "BOR", "MET", "NAN", "CAE", "BAS", "IST"];
     const REELS_D2 = ["NCY", "LMN", "TRO", "DIJ", "CHA", "SED", "GUI", "MTP", "BRE", "LOR",
                       "GRE", "GUE", "AMI", "LAV", "CRE", "REI", "LEH", "CLE", "NIO", "ANG"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
@@ -132,7 +132,7 @@ try {
     else ok("Jérémy Ménez, dix-sept ans à Sochaux, noté " + menez[3] + " pour un potentiel de " + menez[4]);
 
     // les gamins de 2004 : le tri au temps de jeu les écartait, la liste de forçage les rattrape
-    const forces = { LYO: "K. Benzema", LIL: "Y. Cabaye", AUX: "A. Diaby", TOU: "F. Clerc",
+    const forces = { LYO: "K. Benzema", LIL: "Y. Cabaye", AJA: "A. Diaby", TOU: "F. Clerc",
                      BAS: "C. Karembeu", NIC: "M. Djetou" };
     const forcesD2 = { GUI: "L. Koscielny", LOR: "A.-P. Gignac", TRO: "B. Matuidi", LEH: "S. Mandanda",
                        CRE: "B. Diomède", AMI: "T. Camara" };
@@ -165,7 +165,7 @@ try {
                     MON: ["P. Evra", "J. Saviola", "E. Adebayor", "S. Squillaci"],
                     OM: ["F. Barthez", "B. Lizarazu", "S. Nasri", "B. Pedretti"],
                     REN: ["A. Frei", "A. Isaksson", "Y. Gourcuff", "J. Briand"],
-                    AUX: ["B. Sagna", "Benoît Cheyrou", "Y. Kaboul"], NAN: ["M. Landreau", "J. Toulalan", "G. Yapi Yapo"],
+                    AJA: ["B. Sagna", "Benoît Cheyrou", "Y. Kaboul"], NAN: ["M. Landreau", "J. Toulalan", "G. Yapi Yapo"],
                     PSG: ["Pauleta", "J. Rothen"], BOR: ["R. Mavuba", "M. Kapsis", "J. Faubert"],
                     MET: ["F. Ribéry", "L. Obraniak"], STE: ["D. Zokora", "Z. Camara", "L. Perrin"],
                     LEN: ["S. Keita", "É. Carrière"], BAS: ["P. Chimbonda", "A. Song"],
@@ -316,9 +316,9 @@ try {
   // LILLE au titre de l'INTERTOTO 2004 — le premier club français à le gagner depuis Montpellier en
   // 1999 — et CHÂTEAUROUX, finaliste battu de la Coupe de France 2004, le Paris SG vainqueur étant
   // déjà qualifié en C1. Marseille, septième, n'a aucun siège.
-  const attendu = { LYO: "C1", PSG: "C1", MON: "C1", AUX: "C3", SOC: "C3", LIL: "C3", CHA: "C3",
+  const attendu = { LYO: "C1", PSG: "C1", MON: "C1", AJA: "C3", SOC: "C3", LIL: "C3", CHA: "C3",
                     OM: null, REN: null, STE: null, LEN: null, STR: null, NIC: null, TOU: null,
-                    AJA: null, BOR: null, MET: null, NAN: null, CAE: null, BAS: null, IST: null,
+                    ACA: null, BOR: null, MET: null, NAN: null, CAE: null, BAS: null, IST: null,
                     NCY: null, LMN: null, TRO: null, DIJ: null, SED: null, GUI: null, MTP: null,
                     BRE: null, LOR: null, GRE: null, GUE: null, AMI: null, LAV: null, CRE: null,
                     REI: null, LEH: null, CLE: null, NIO: null, ANG: null };
@@ -336,7 +336,7 @@ try {
   if (!S.d2.includes("CHA"))
     fail("Châteauroux joue la Ligue 2 en 2004-05 : c'est tout l'intérêt de son siège européen");
   else ok("Châteauroux joue la Coupe UEFA DEPUIS LA DEUXIÈME DIVISION, pour avoir perdu la finale de la Coupe de France — le sixième club du jeu dans ce cas, et le premier en tant que finaliste battu");
-  const horsL1 = ["LYO", "PSG", "MON", "AUX", "SOC", "LIL"].filter(id => !S.d1.includes(id));
+  const horsL1 = ["LYO", "PSG", "MON", "AJA", "SOC", "LIL"].filter(id => !S.d1.includes(id));
   if (horsL1.length) fail("siège européen de première division égaré : " + horsL1.join(","));
   else ok("les six autres sièges sont bien en Ligue 1");
 } catch (e) { fail("exception année/Europe : " + e.stack); }

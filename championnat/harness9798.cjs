@@ -122,7 +122,7 @@ try {
   else ok("année de base 1997 ; Mondial 98 déclenché dès l'été 1998");
   if (G.saison === "1998-99") ok("chaîne de saison correcte : 1997-98 → 1998-99");
   else fail("chaîne de saison : G.saison = " + G.saison + " (attendu 1998-99)");
-  const attendu = { MON: "C1", PSG: "C1", NIC: "C2", AUX: "C3", STR: "C3", LEN: null, CAE: null };
+  const attendu = { MON: "C1", PSG: "C1", NIC: "C2", AJA: "C3", STR: "C3", LEN: null, CAE: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);
     const c = api.getG().euroCompet;

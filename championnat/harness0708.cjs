@@ -63,8 +63,8 @@ try {
     // LE PLATEAU TOMBE JUSTE TOUT SEUL POUR LA SIXIÈME FOIS DE SUITE : les deux échelons réels
     // ont vingt clubs, donc aucun repêchage, aucun écarté. On vérifie les deux listes par ÉGALITÉ.
     const REELS_D1 = ["LYO", "BOR", "OM", "NCY", "STE", "REN", "LIL", "NIC", "LMN", "LOR",
-                      "CAE", "MON", "VAN", "SOC", "AUX", "PSG", "TOU", "LEN", "STR", "MET"];
-    const REELS_D2 = ["LEH", "NAN", "GRE", "SED", "CLE", "TRO", "BRE", "MTP", "AJA", "ANG",
+                      "CAE", "MON", "VAN", "SOC", "AJA", "PSG", "TOU", "LEN", "STR", "MET"];
+    const REELS_D2 = ["LEH", "NAN", "GRE", "SED", "CLE", "TRO", "BRE", "MTP", "ACA", "ANG",
                       "BAS", "GUI", "REI", "AMI", "CHA", "BLG", "DIJ", "NIO", "LIB", "GUE"];
     const absentsD1 = REELS_D1.filter(id => !S.d1.includes(id));
     const intrusD1 = S.d1.filter(id => !REELS_D1.includes(id));
@@ -145,7 +145,7 @@ try {
     // les gamins de 2007 : le tri au temps de jeu les écartait, la liste de forçage les rattrape.
     const forces = { LIL: "E. Hazard", BOR: "H. Saivet", NCY: "Alfred N'Diaye", MON: "C. Mongongu",
                      STR: "M. Schneiderlin", LEN: "L. Rémy", MET: "G. Bong", REN: "G. Borne",
-                     NIC: "Mahamane Traoré", LOR: "M. Benatia", AUX: "A. Traoré", SOC: "B. Dramé" };
+                     NIC: "Mahamane Traoré", LOR: "M. Benatia", AJA: "A. Traoré", SOC: "B. Dramé" };
     const forcesD2 = { BLG: "P. Baherlé", MTP: "A. El Kaoutari", CHA: "P. Cissé",
                        GUI: "Bakary Koné", NAN: "W. Vainqueur", REI: "L. Deaux" };
     const perdus = Object.entries(forces).filter(([id, nom]) => !(S.starsD1[id] || []).some(t => t[0] === nom))
@@ -171,7 +171,7 @@ try {
       fail("Medhi Benatia : vingt ans à Lorient, quatre-vingt-dix minutes, et le Bayern plus tard");
     else ok("Medhi Benatia gardé pour un seul match à Lorient, potentiel " + benatia[4]);
     // ALAIN TRAORÉ N'A JOUÉ QUE TROIS MINUTES de toute la saison : la borne basse de l'année
-    const atraore = (S.starsD1.AUX || []).find(t => t[0] === "A. Traoré");
+    const atraore = (S.starsD1.AJA || []).find(t => t[0] === "A. Traoré");
     if (!atraore || atraore[2] !== 19)
       fail("Alain Traoré : dix-neuf ans à Auxerre, TROIS minutes dans toute la saison");
     else ok("Alain Traoré gardé pour TROIS minutes à Auxerre, reconduit depuis 06/07");
@@ -198,7 +198,7 @@ try {
                     CAE: ["Y. Gouffran", "B. Costil", "N. Seube"],
                     MON: ["Nenê", "J. Ménez", "Adriano"],
                     VAN: ["S. Savidan", "Carlos Sánchez", "Mody Traoré"],
-                    SOC: ["S. Dalmat", "G. N'Daw"], AUX: ["K. Lejeune", "Rémy Riou", "B. Pedretti"],
+                    SOC: ["S. Dalmat", "G. N'Daw"], AJA: ["K. Lejeune", "Rémy Riou", "B. Pedretti"],
                     PSG: ["Pauleta", "M. Landreau", "J. Rothen", "Ceará", "S. Armand"],
                     TOU: ["A.-P. Gignac", "M. Sissoko", "J. Elmander", "A. Emaná"],
                     LEN: ["Sidi Keita", "Hilton", "V. Runje"],
@@ -208,7 +208,7 @@ try {
       if (!(S.starsD1[id] || []).some(t => t[0] === nom)) rates.push(nom + " (" + id + ")");
     for (const [id, nom] of [["LEH", "G. Hoarau"], ["MTP", "M. Yanga-Mbiwa"], ["SED", "I. Traoré"],
                              ["CLE", "M. Poté"], ["GUI", "Eduardo Ribeiro"], ["REI", "Henrique Gomes"],
-                             ["AJA", "C. Medjani"], ["GRE", "F. Dja Djédjé"]])
+                             ["ACA", "C. Medjani"], ["GRE", "F. Dja Djédjé"]])
       if (!(S.starsD2[id] || []).some(t => t[0] === nom)) rates.push(nom + " (" + id + ")");
     if (rates.length) fail("pépites passées au temps de jeu et pourtant absentes : " + rates.join(", "));
     else ok("Benzema, Ben Arfa, Mandanda, Lloris, Nasri, Cabaye, Matuidi, Gignac, Pjanić, Gervinho, Hoarau et Yanga-Mbiwa passent au temps de jeu");
@@ -302,7 +302,7 @@ try {
   // jeu porte depuis 06/07 — Alain, né en 1988 ; Abdou Traoré, né la même année et à Bordeaux,
   // avait plus de minutes et prenait donc son nom ET sa note. Il reste dehors, écarté au temps de
   // jeu, et le symptôme aurait été invisible : un homme qui prend l'héritage d'un autre.
-  const atr = (api.STARS_0708.AUX || []).find(t => t[0] === "A. Traoré");
+  const atr = (api.STARS_0708.AJA || []).find(t => t[0] === "A. Traoré");
   if (!atr) fail("« A. Traoré » doit rester au milieu d'Auxerre que le jeu porte depuis 06/07");
   else if ((api.STARS_0708.BOR || []).some(t => t[0] === "A. Traoré"))
     fail("Abdou Traoré ne peut pas prendre « A. Traoré » à Alain : c'est le club de l'ancre qui tranche");
@@ -413,9 +413,9 @@ try {
   // Sept sièges, tous en Ligue 1.
   const attendu = { LYO: "C1", OM: "C1", TOU: "C1", REN: "C3", LEN: "C3", BOR: "C3", SOC: "C3",
                     NCY: null, STE: null, LIL: null, NIC: null, LMN: null, LOR: null, CAE: null,
-                    MON: null, VAN: null, AUX: null, PSG: null, STR: null, MET: null,
+                    MON: null, VAN: null, AJA: null, PSG: null, STR: null, MET: null,
                     LEH: null, NAN: null, GRE: null, SED: null, CLE: null, TRO: null, BRE: null,
-                    MTP: null, AJA: null, ANG: null, BAS: null, GUI: null, REI: null, AMI: null,
+                    MTP: null, ACA: null, ANG: null, BAS: null, GUI: null, REI: null, AMI: null,
                     CHA: null, BLG: null, DIJ: null, NIO: null, LIB: null, GUE: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);

@@ -61,7 +61,7 @@ try {
     if (sansStade.length) fail("clubs sans stade/capacité : " + sansStade.join(","));
     else ok("aucun club neuf cette saison : les quarante étaient déjà au registre, avec stade et capacité");
     // La D1 1993-94 comptait bien vingt clubs et n'a repêché personne.
-    const D1_REELLE = ["PSG","OM","AUX","BOR","NAN","CAN","MTP","LYO","MON","LEN",
+    const D1_REELLE = ["PSG","OM","AJA","BOR","NAN","CAN","MTP","LYO","MON","LEN",
                        "STE","MET","STR","SOC","LIL","CAE","LEH","MAR","TOU","ANG"];
     const horsD1 = D1_REELLE.filter(id => !S.d1.includes(id));
     if (horsD1.length) fail("D1 93/94 : clubs réels absents — " + horsD1.join(","));
@@ -116,7 +116,7 @@ try {
     if (!perdus.length) ok("pépites conservées : Zidane (meilleur espoir 1994), Makélélé, Thuram, Pirès, Micoud, Wiltord");
     // le tri aux minutes écarte les pépites : celles-là ont été forcées à la main
     const forces = { CAN: ["P. Vieira"], STE: ["G. Coupet"], LEH: ["V. Dhorasoo"], TOU: ["L. Batlles"],
-                     AUX: ["T. West"], CAE: ["D. Sommeil"] };
+                     AJA: ["T. West"], CAE: ["D. Sommeil"] };
     for (const id in forces) for (const nom of forces[id])
       if (!(S.starsD1[id] || []).some(t => t[0] === nom)) fail("pépite forcée absente de D1 : " + nom + " (" + id + ")");
     const forcesD2 = { NIO: ["O. Tébily"], NCY: ["V. Hognon"] };
@@ -237,7 +237,7 @@ try {
   // l'UEFA (affaire VA-OM) ; le PSG, deuxième, refuse la place et joue la C2 qu'il a
   // gagnée sur le terrain (Coupe de France 1993) ; Monaco, troisième, prend la C1 ;
   // Bordeaux, Auxerre et Nantes jouent la Coupe UEFA.
-  const attendu = { MON: "C1", PSG: "C2", BOR: "C3", AUX: "C3", NAN: "C3",
+  const attendu = { MON: "C1", PSG: "C2", BOR: "C3", AJA: "C3", NAN: "C3",
                     OM: null, CAN: null, MTP: null, LYO: null, LEN: null, STE: null };
   for (const id in attendu) {
     api.nouvellePartie(id, KEY);

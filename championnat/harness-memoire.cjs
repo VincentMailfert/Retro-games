@@ -64,7 +64,7 @@ console.log("A) Les quatre actes : un découpage, et un chapitre qui se referme"
   ok(api.ACTES.length === 4 && api.ACTES[0].de === 0 && api.ACTES[3].a === 37,
     "les quatre actes couvrent les 38 journées sans trou");
 
-  let G = neuve("AUX");
+  let G = neuve("AJA");
   let actes = 0, presidents = 0, pepin = null;
   for (let d = 0; d < 38; d++) {
     try { api.jouerJournee(); } catch (e) { pepin = "J" + (d + 1) + " → " + e.message; break; }
