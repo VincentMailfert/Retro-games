@@ -538,7 +538,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.85"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.86"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -13426,11 +13426,19 @@ const SIEGES_ANG={
 };
 /* LE SIÈGE DE REPLI, PAR PAYS — celui qui prend la seizième place du tableau quand VOTRE club n'est pas
    qualifié. La France garde `COMPETS[*].siege` (Nantes en C1), figé à l'époque du vivier et inchangé
-   depuis la v0.72 : vingt harnais s'appuient dessus, et le vivier lui-même est figé en 95-96, donc son
-   siège l'est aussi. L'Angleterre prend la même époque, c'est-à-dire la ligne 1995 de la table ci-dessus
-   (Blackburn champion 94-95 en C1, Everton vainqueur de la FA Cup 1995 en C2, puis Manchester United,
-   Nottingham Forest, Liverpool et Leeds en Coupe UEFA). `null` = on retombe sur `COMPETS[*].siege`. */
-const SIEGES_PAYS={ FR:null, ANG:SIEGES_ANG[1995] };
+   depuis la v0.72 : vingt harnais s'appuient dessus. `null` = on retombe sur `COMPETS[*].siege`.
+   L'ANGLETERRE LIT LA LIGNE DE SON ANNÉE DE DÉPART (v1.86), pas celle de 1995 : la v1.85 la figeait sur
+   1995, si bien que Blackburn, alors en deuxième division, jouait la Coupe des clubs champions 1990-91,
+   et que Manchester United devenait un adversaire de Coupe UEFA en 2008, l'année où il jouait la C1.
+   Avec la ligne de l'année, les clubs anglais d'un tableau sont ceux qui ont VRAIMENT joué cette
+   coupe-là cette année-là, et 1990-91 n'a personne en C1, comme dans l'histoire. */
+const SIEGES_PAYS={ FR:null, ANG:SIEGES_ANG };
+function siegesDuPays(){ // la ligne de sièges de l'année de départ, ou null (France : siège historique)
+  const t=SIEGES_PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"]; if(!t) return null;
+  const ans=Object.keys(t).map(Number), an=Math.min(Math.max((G&&G.anBase)||1995, Math.min(...ans)), Math.max(...ans));
+  return t[an]||null;
+}
+function aUnVestiaire(id){ return plateauEnCours().has(id) || (G.europe||[]).some(c=>c.id===id); } // pas de coquille au tableau
 
 /* ---------- LE PLATEAU NE PEUT PAS ÊTRE AUSSI LE VIVIER (ANG-C, v1.85) ----------
    Un club du championnat ne peut pas être en même temps un adversaire de Coupe d'Europe : on
@@ -13466,16 +13474,16 @@ function retireClubDEurope(id){ // ceinture : un club du plateau qui traînerait
   G.europe.splice(i,1); return true;
 }
 function siegePays(compet){ // le club qui occupe le siège national quand VOTRE club n'est pas qualifié
-  const s=SIEGES_PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"];
+  const s=siegesDuPays();
   if(!s) return COMPETS[compet].siege;            // France : siège historique, inchangé
   const liste=s[compet]||[];
-  for(const id of liste) if(!G||id!==G.monClub) return id; // jamais VOTRE club : il n'est pas qualifié
+  for(const id of liste) if(id!==G.monClub && aUnVestiaire(id)) return id; // jamais VOTRE club : il n'est pas qualifié
   return null;                                    // 1990-91 en C1 : l'Angleterre n'a personne, et c'est juste
 }
 /* LE TABLEAU GARDE SES SEIZE CLUBS, quoi qu'il arrive — sinon les tours ne tombent plus juste (16 → 8 →
    4 → 2). Le vivier ayant perdu les clubs du plateau, on recomplète dans cet ordre : les AUTRES sièges du
-   pays dans cette compétition (de vrais clubs, avec de vrais effectifs, qui jouaient bien l'Europe cette
-   année-là), puis les clubs des deux viviers DORMANTS — une seule compétition se joue par carrière, donc
+   pays dans cette compétition l'année de départ (de vrais clubs, qui ont vraiment joué cette coupe-là
+   cette année-là, et jamais un club absent du plateau), puis les clubs des deux viviers DORMANTS — une seule compétition se joue par carrière, donc
    un club de C3 ne joue nulle part ailleurs quand la C1 est à l'affiche. C'est un emprunt d'époque dans un
    vivier déjà figé en 95-96, pas une invention : aucun joueur, aucun club n'est fabriqué.
    EN FRANCE, LA RECOMPLÉTION NE SE DÉCLENCHE JAMAIS : le vivier garde ses quinze, et le seizième est VOUS
@@ -13488,8 +13496,8 @@ function vivierEuro(compet, qualifie){
   if(siege) pris.add(siege);
   const pousse=id=>{ if(id && !pris.has(id) && out.length<cible){ pris.add(id); out.push(id); } };
   for(const id of COMPETS[compet].pool) if(!plateau.has(id)) pousse(id);
-  const s=SIEGES_PAYS[G.pays||"FR"];
-  if(s) for(const id of (s[compet]||[])) pousse(id);               // les autres sièges du pays
+  const s=siegesDuPays();
+  if(s) for(const id of (s[compet]||[])) if(aUnVestiaire(id)) pousse(id); // les autres engagés du pays, cette année-là
   for(const k of ["C1","C3","C2"]) if(k!==compet)
     for(const id of COMPETS[k].pool) if(!plateau.has(id)) pousse(id); // les viviers dormants
   return siege?out.concat([siege]):out;

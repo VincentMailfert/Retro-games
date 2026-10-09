@@ -98,8 +98,8 @@ console.log("A) SIEGES_ANG : vingt saisons de Coupe d'Europe anglaise, relevées
 
   // le siège de repli d'un pays
   ok(SIEGES_PAYS.FR === null, "la France n'a pas de table de sièges : elle garde son siège historique (Nantes en C1)");
-  ok(SIEGES_PAYS.ANG === SIEGES_ANG[1995],
-    "l'Angleterre prend l'époque du vivier, c'est-à-dire la ligne 1995 : Blackburn, Everton, puis Manchester United");
+  ok(SIEGES_PAYS.ANG === SIEGES_ANG,
+    "l'Angleterre lit la ligne de son année de départ (v1.86), plus la seule ligne 1995");
 }
 
 /* ===== B) non-régression française : le tableau d'avant, à l'identique ===== */
@@ -156,11 +156,12 @@ const ANG_D1 = ["ARS", "AVL", "BLB", "BOL", "CHE", "COV", "EVE", "LEE", "LIV", "
 const ANG_D2 = CLUBS_ANG.map(c => c.id).filter(id => !ANG_D1.includes(id)).slice(0, 20);
 const PARTAGES = ["BLB", "EVE", "FOR", "LIV"];
 const CLE_ANG = "ANG-1995-96";
-function ouvreAnglaise(clubId, compet) {
+function ouvreAnglaise(clubId, compet, an = 1995, sans = []) {
   SAISONS[CLE_ANG] = {
-    pays: "ANG", an: 1995, titre: "1995-96", nom: "Essai du harnais",
-    d1: ANG_D1, d2: ANG_D2, starsD1: {}, starsD2: {},
-    euroC1: SIEGES_ANG[1995].C1, euroC2: SIEGES_ANG[1995].C2, euroC3: SIEGES_ANG[1995].C3,
+    pays: "ANG", an, titre: an + "-" + String((an + 1) % 100).padStart(2, "0"), nom: "Essai du harnais",
+    d1: ANG_D1.filter(id => !sans.includes(id)), d2: CLUBS_ANG.map(c => c.id).filter(id => !ANG_D1.includes(id) && !sans.includes(id)).slice(0, 20),
+    starsD1: {}, starsD2: {},
+    euroC1: SIEGES_ANG[an].C1, euroC2: SIEGES_ANG[an].C2, euroC3: SIEGES_ANG[an].C3,
     sous: "Saison d'essai, retirée aussitôt.",
   };
   api.nouvellePartie(clubId, CLE_ANG);
@@ -211,7 +212,7 @@ try {
       const v = api.vivierEuro(compet, quali);
       const plateau = api.plateauHorsVivier();
       const siege = quali ? G.monClub : api.siegePays(compet);
-      const intrus = v.filter(id => plateau.has(id) && id !== siege && !(SIEGES_PAYS.ANG[compet] || []).includes(id));
+      const intrus = v.filter(id => plateau.has(id) && id !== siege && !(SIEGES_ANG[1995][compet] || []).includes(id));
       ok(v.length === 16, `${compet}, ${quali ? "qualifié" : "non qualifié"} : seize clubs au départ (${v.length})`);
       ok(new Set(v).size === 16, `${compet}, ${quali ? "qualifié" : "non qualifié"} : aucun club deux fois`);
       ok(intrus.length === 0, `${compet}, ${quali ? "qualifié" : "non qualifié"} : seuls les sièges anglais viennent du championnat${intrus.length ? " — " + intrus.join(", ") : ""}`);
@@ -252,24 +253,37 @@ try {
   ok(v.length === 16, "qui compte quand même ses seize clubs");
   fermeAnglaise();
 
-  // 1990-91 : aucun siège de C1, et le tableau se recomplète entièrement par le vivier
-  SAISONS[CLE_ANG] = { pays: "ANG", an: 1990, titre: "1990-91", nom: "Essai du harnais",
-    d1: ANG_D1, d2: ANG_D2, starsD1: {}, starsD2: {},
-    euroC1: SIEGES_ANG[1990].C1, euroC2: SIEGES_ANG[1990].C2, euroC3: SIEGES_ANG[1990].C3, sous: "Essai." };
-  api.nouvellePartie("WIM", CLE_ANG);
-  const I = api.getG();
-  I.pays = "ANG"; // la table de repli reste celle de 1995 : on ne teste ici que le cas « liste vide »
-  const sansSiege = api.vivierEuro.length; // présence de la fonction, pour mémoire
-  ok(sansSiege === 2, "vivierEuro prend la compétition et la qualification, rien de plus");
-  const vide = { C1: [], C2: [], C3: [] };
-  const garde = SIEGES_PAYS.ANG; SIEGES_PAYS.ANG = vide;
-  try {
-    ok(api.siegePays("C1") === null, "un pays sans engagé en C1 n'a pas de siège, et c'est le cas de l'Angleterre de 1990-91");
-    const w = api.vivierEuro("C1", false);
-    ok(w.length === 16 && new Set(w).size === 16, "le tableau se recomplète alors entièrement par les viviers, seize clubs distincts");
-    const plateau = api.plateauHorsVivier();
-    ok(w.every(id => !plateau.has(id)), "et pas un seul club anglais n'y figure : en 1990-91, l'Angleterre regardait la C1 à la télévision");
-  } finally { SIEGES_PAYS.ANG = garde; }
+  // 1990-91 : aucun siège de C1, et le tableau se recomplète entièrement par le vivier. Testé sur le VRAI
+  // jeu (v1.86) : la v1.85 remplaçait la table à la main, et le jeu donnait en fait Blackburn, alors en D2.
+  fermeAnglaise();
+  const I = ouvreAnglaise("ARS", null, 1990);
+  ok(!I.euroCompet, "Arsenal 1990-91 n'est engagé nulle part");
+  ok(api.siegePays("C1") === null, "l'Angleterre de 1990-91 n'a personne en C1 : Liverpool purge encore le Heysel");
+  ok(api.siegePays("C2") === "MUN" && api.siegePays("C3") === "AVL", "Manchester United tient la C2, Aston Villa la Coupe UEFA");
+  const w = api.vivierEuro("C1", false);
+  ok(w.length === 16 && new Set(w).size === 16, "le tableau se recomplète alors entièrement par les viviers, seize clubs distincts");
+  const plateau = api.plateauEnCours();
+  ok(w.every(id => !plateau.has(id)), "et pas un seul club anglais n'y figure : en 1990-91, l'Angleterre regardait la C1 à la télévision");
+  ok(!w.includes("BLB"), "Blackburn, en deuxième division, ne joue plus la Coupe des clubs champions");
+  fermeAnglaise();
+
+  // 2008-09 : les seuls Anglais d'un tableau sont ceux qui ont vraiment joué CETTE coupe CETTE année-là
+  for (const [compet, club] of [["C1", "ARS"], ["C3", "TOT"], ["C1", "WIM"], ["C3", "WIM"]]) {
+    const J = ouvreAnglaise(club, club === "WIM" ? null : compet, 2008, ["LEE"]);
+    const quali = J.euroCompet === compet;
+    const t = api.vivierEuro(compet, quali), pl = api.plateauEnCours();
+    const anglais = t.filter(id => pl.has(id) && id !== J.monClub);
+    const vrais = SIEGES_ANG[2008][compet];
+    ok(anglais.every(id => vrais.includes(id)),
+      `2008-09, ${compet}, ${club} : les Anglais du tableau sont de vrais engagés de l'année (${anglais.join(", ") || "aucun"})`);
+    ok(t.length === 16 && new Set(t).size === 16, `2008-09, ${compet}, ${club} : seize clubs distincts`);
+    ok(t.every(id => pl.has(id) || J.europe.some(c => c.id === id)), `2008-09, ${compet}, ${club} : aucune coquille`);
+    fermeAnglaise();
+  }
+  // un engagé absent du plateau ne prend jamais de place : Leeds, en troisième division en 2008
+  const K = ouvreAnglaise("WIM", null, 2002, ["LEE"]);
+  ok(!api.vivierEuro("C3", false).includes("LEE") && api.siegePays("C3") !== "LEE",
+    "un engagé de l'année absent du plateau (Leeds retiré) ne prend aucune place au tableau");
 } finally { fermeAnglaise(); }
 
 /* ===== F) la ceinture de migre ===== */

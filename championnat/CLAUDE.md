@@ -3728,8 +3728,12 @@ vérifiée sur les 120 tableaux des vingt saisons françaises.
 
 **Le siège national devient une propriété du pays** (`siegePays(compet)`, table `SIEGES_PAYS`). La France
 garde `COMPETS[*].siege`, c'est-à-dire **Nantes en C1**, le PSG en C2, Bordeaux en C3 : figé à l'époque du
-vivier, inchangé depuis la v0.72, et lu par vingt harnais. L'Angleterre prend **la même époque**, donc la
-ligne 1995 de la table ci-dessous. Deux garde-fous : **votre club ne peut jamais être le siège quand il
+vivier, inchangé depuis la v0.72, et lu par vingt harnais. **L'Angleterre lit la ligne de son ANNÉE DE
+DÉPART** (`siegesDuPays`, v1.86). La v1.85 la figeait sur 1995, et c'était un bug que son harnais masquait en
+remplaçant la table à la main : Blackburn, en D2, jouait la C1 1990-91, et Manchester United devenait un
+adversaire de Coupe UEFA en 2008. Désormais les clubs anglais d'un tableau (le siège, puis les autres
+engagés qui recomplètent) sont ceux qui ont **vraiment joué cette coupe cette année-là**, et un engagé
+absent du plateau ne prend jamais de place (`aUnVestiaire`, pas de coquille). Deux garde-fous : **votre club ne peut jamais être le siège quand il
 n'est pas qualifié** (on ne joue pas une coupe à laquelle on n'est pas invité), et un pays peut n'avoir
 **aucun** siège — c'est le cas de l'Angleterre en C1 1990-91, et le tableau se recomplète alors entièrement
 par le vivier. `paysEuro(id)` suit : un club hors du vivier est un club du championnat, donc du pays de la
