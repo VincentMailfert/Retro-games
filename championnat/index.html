@@ -438,10 +438,10 @@
    déjà le téléscripteur (19px), la carte doit suivre au lieu de se figer à 15. */
 .mpx{border:1px solid var(--line);background:rgba(255,255,255,.03);padding:10px;margin-top:10px}
 .mpx h3{margin:0 0 7px;font-size:.95em;letter-spacing:1px;color:var(--clair);text-align:center}
-.mpxL{display:grid;grid-template-columns:22px 1fr auto 1fr;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);max-width:540px;margin-left:auto;margin-right:auto}
+.mpxL{display:grid;grid-template-columns:22px minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);max-width:540px;margin-left:auto;margin-right:auto}
 .mpxH{text-align:right}
 .mpxR{display:flex;align-items:center;gap:6px}
-.mpxN{flex:1 1 auto;min-width:0}
+.mpxN{flex:1 1 auto;min-width:0;overflow:hidden}
 .mpxIc{flex:0 0 22px;text-align:center}
 .mpxS{font-family:var(--font-led);color:var(--jaune);flex:0 0 auto;min-width:1.7em;text-align:center;white-space:nowrap;background:#16243c;border:1px solid var(--line);padding:1px 4px 0}
 .mpxUne{border-top:1px solid var(--line);max-width:540px;margin:7px auto 0;padding-top:6px}
@@ -451,7 +451,7 @@
 .mpxT td.mvt{width:34px;text-align:center}
 /* À 390 px le mode direct écrit en 19 px : « Montpellier HSC » passe alors à la ligne et le score
    dérive d'une ligne à l'autre. On resserre la carte des stades, elle seule. */
-@media(max-width:700px){ .mpxL{font-size:.82em;gap:5px;grid-template-columns:18px 1fr auto 1fr} .mpxS{min-width:1.7em} }
+@media(max-width:700px){ .mpxL{font-size:.82em;gap:5px;grid-template-columns:18px minmax(0,1fr) auto minmax(0,1fr)} .mpxS{min-width:1.7em} }
 
 /* ---------- mode direct : le match occupe tout l'écran (immersion, surtout sur mobile) ----------
    Posé sur <body> par lanceMatch/lanceCoupe/lanceEuroLeg au coup d'envoi, retiré par abandonneDirect
@@ -546,7 +546,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.89"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.90"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -16191,9 +16191,10 @@ function mpxStades(M){
     if(voisins.indexOf(x.h)>=0||voisins.indexOf(x.a)>=0) return "🎯";
     return "";
   };
-  // un match par ligne depuis v1.89 : « Montpellier HSC 2 - 0 Toulouse FC », le vainqueur en jaune
-  const ligne=x=>`<div class="mpxL"><span class="mpxIc">${pastille(x)}</span><span class="mpxN mpxH${x.sh>x.sa?" jaune":""}">${esc(x.hn)}</span>`+
-    `<span class="mpxS">${x.sh} - ${x.sa}</span><span class="mpxN${x.sa>x.sh?" jaune":""}">${esc(x.an)}</span></div>`;
+  // un match par ligne depuis v1.89 : « Montpellier HSC 2 - 0 Toulouse FC », le vainqueur en jaune ;
+  // data-c = le code du club, qui remplace un nom trop long pour sa colonne (mpxRaccourcit, v1.90)
+  const ligne=x=>`<div class="mpxL"><span class="mpxIc">${pastille(x)}</span><span class="mpxN mpxH${x.sh>x.sa?" jaune":""}" data-c="${esc(x.h)}">${esc(x.hn)}</span>`+
+    `<span class="mpxS">${x.sh} - ${x.sa}</span><span class="mpxN${x.sa>x.sh?" jaune":""}" data-c="${esc(x.a)}">${esc(x.an)}</span></div>`;
   return `<div class="mpx"><h3>📻 TOUS LES STADES · J${M.j}</h3>
     ${M.m.filter(x=>!x.mien).map(ligne).join("")}
     ${mpxUne(M)}
@@ -16244,12 +16245,25 @@ function mpxVise(hote){ // amène le haut de la carte en haut du téléscripteur
   if(!tk || !hote || typeof hote.getBoundingClientRect!=="function" || typeof tk.getBoundingClientRect!=="function") return;
   tk.scrollTop += hote.getBoundingClientRect().top - tk.getBoundingClientRect().top;
 }
+/* Un nom qui ne tient pas sur une ligne de la carte des stades cède la place au code du club (« Paris Saint-Germain »
+   devient « PSG », consigne auteur v1.90 : jamais de nom sur deux lignes). On mesure pour de vrai, colonne par colonne :
+   le même nom tient sur ordinateur et pas sur téléphone. Sans mise en page (harnais), rien ne bouge. */
+function mpxRaccourcit(hote){
+  try{
+    if(typeof hote.querySelectorAll!=="function") return;
+    hote.querySelectorAll(".mpxN[data-c]").forEach(n=>{
+      n.style.whiteSpace="nowrap";
+      if(n.clientWidth>0 && n.scrollWidth>n.clientWidth+1){ n.title=n.textContent; n.textContent=n.dataset.c; }
+    });
+  }catch(e){}
+}
 function rendMultiplex(hote, carte, fini){
   if(!hote) return;
   const M=G.multiplex;
   hote.innerHTML = !M ? `<p class="ctr" style="margin-top:8px"><button class="big" id="bMpxNext">Prochaine journée 📆</button></p>`
     : (carte===2 ? mpxTable(M) : mpxStades(M));
   const b=hote.querySelector("#bMpxNext");
+  mpxRaccourcit(hote);
   mpxVise(hote);
   if(b) b.onclick=()=>{ if(M && carte!==2) rendMultiplex(hote,2,fini); else fini(); };
 }
