@@ -156,6 +156,14 @@ toujours « raconter quelque chose ».
   le gardent aussi. Tout nom ou montant qu'on veut faire ressortir prend la classe `.fort` (blanc gras), jamais
   `.jaune`. Vert/rouge = hausse/baisse. **Plus de cyan ni de violet** (retirés à la demande de l'auteur) ; les
   titres `h2`/`h3` sont en blanc cassé. Plancher de texte : **13 px**.
+- **Design system** : le design system « Multiplex » (artifact Claude, privé) est tiré de ce fichier et sert de
+  référence visuelle hors du jeu : couleurs, typo, logos, blasons, pictos du téléscripteur, et des aperçus des
+  écrans (effectif, fiche joueur, mercato, finances, prime à la signature, penalty, tableau d'affichage, flash de
+  but). Il nomme aussi les couleurs écrites en dur dans le CSS : encre-jaune `#16243c`, nuit-profonde `#060d18`,
+  tableau-noir `#05080d`, bord-tableau `#1d2633`, cadre-led `#2a2a2a`, led-fond `#0a0610`, nom-led `#eef2ff`,
+  jaune-eteint `#c9a63a`, bord-eteint `#6b5a22`, relief-touche `#9c7c1c`. **Si l'une de ces valeurs change dans
+  le jeu, le signaler à l'auteur** pour mettre le design system à jour. Deux signes restent sous le seuil de
+  lisibilité, assumés car décoratifs : le séparateur de score `#4d5b6e` et la pastille éteinte `#31486b`.
 - **Typographie** : trois fontes déclarées en variables `:root`, chacune avec sa pile de repli.
   `--font-texte` = **IBM Plex Sans** (tout ce qu'on lit, porté par `body` : tableaux, textes, boutons ;
   chiffres `tabular-nums`). Le rétro est réservé aux MOMENTS : `--font-ui` = **VT323** (le téléscripteur
