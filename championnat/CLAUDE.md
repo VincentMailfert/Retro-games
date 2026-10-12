@@ -3786,6 +3786,111 @@ de la coupe (ANG-D), et le harnais de plateau (ANG-E). Gardé par **`harness-eur
 section B est la vraie pièce maîtresse : c'est elle qui refait les 120 tableaux français et exige qu'aucun
 n'ait changé d'un club ni d'un rang.
 
+### LES TEXTES VUS D'ANGLETERRE (ANG-D, v1.91)
+Quatrième étape du lot structure. Toujours aucune saison anglaise jouable : on retire ici de la bouche du
+jeu tout ce qui disait « France » sans le savoir. Le principe d'ANG-A ne bouge pas (un pays est une couche
+d'affichage), mais la couche cesse d'être seulement des libellés et des montants : elle porte désormais les
+TEXTES. Six chantiers dans la journée, et un septième laissé ouvert, dit franchement plus bas.
+
+**1. L'été international se raconte du pays où l'on joue.** La table des étés vivait DANS `finDeSaison` ;
+elle est remontée au cadre des pays sous le nom **`HONNEURS_PAYS`** (`honneurEte(an)` la lit au pays de la
+carrière), et l'Angleterre a les siens, les onze étés pairs de 1992 à 2012, vérifiés tournoi par tournoi :
+le navet du tabloïd en 1992, l'absence pure et simple du Mondial 94, **l'Euro 96 à la maison** et la
+demi-finale perdue aux tirs au but au même endroit qu'en 1990, Beckham expulsé et le tir de Batty arrêté en
+1998, l'Allemagne battue pour la première fois depuis 1966 puis la sortie au premier tour en 2000, le coup
+franc de Ronaldinho par-dessus Seaman en 2002, Rooney à dix-huit ans en 2004, encore le Portugal et encore
+les tirs au but en 2006, le parapluie du sélectionneur et la non-qualification de 2008, Bloemfontein et le
+but de Lampard que l'arbitre n'a pas vu en 2010, la sixième séance perdue depuis 1990 en 2012. **Les textes
+français n'ont pas bougé d'un caractère** (le harnais compare 98 et 2000 à l'octet près).
+**Le piège était tendu d'avance, et il est désarmé** : `finDeSaison` lisait la chaîne « LA FRANCE » comme un
+sacre, et fêtait alors les internationaux du club. Chaque pays porte donc son propre marqueur
+(`PAYS[x].triomphe`), et celui de l'Angleterre est **`L'ANGLETERRE SACRÉE`** — une chaîne qu'**aucun** des
+onze étés ne porte, parce que l'Angleterre n'a rien gagné entre 1966 et 2010. La fête ne se déclenche
+jamais là-bas, et c'est l'histoire qui le veut, pas un oubli. Noter au passage que « EURO EN ANGLETERRE »
+en capitales ne déclenche rien : le marqueur porte un verbe, exprès.
+
+**2. La sélection nationale est celle du pays de la carrière.** `selections()` testait `j.nat||"FR"` : en
+Angleterre, tout le vestiaire passait donc pour sélectionnable, et un joker français signé là-bas aurait
+porté le maillot anglais. Chaque pays porte sa **nationalité locale** (`PAYS[x].nat`, lue par `natPays()`),
+`genJoueur` la pose sur les joueurs qu'il fabrique, et le filtre la compare. En France, `nat` vaut toujours
+« FR » : rien ne change, à l'octet près. **Ce que cela donne et qu'il faut savoir** : un Français du
+vestiaire anglais garde « FR », n'est donc jamais appelé par l'Angleterre, et c'est juste.
+
+**3. Les noms procéduraux ont un pays.** Les deuxièmes gardiens, les piges du plancher réglementaire, les
+villageois de la coupe et le dépannage du vivier sortaient tous de `PRENOMS`/`NOMS`, c'est-à-dire d'un
+vivier **français** : un Arsenal - Liverpool avec un « T. Dubreuil » dans les buts se voit tout de suite.
+D'où **`NOMS_ANG`** (soixante patronymes) et **`PRENOMS_ANG`** (vingt initiales, où I. et W. entrent pour
+Ian et Wayne et où Y. sort), plus une origine **`ang`** dans `ORIGINES` et `PRENOMS_GEN` (soixante-neuf
+prénoms d'époque, dix récits qui vont de Hackney Marshes au comté de Durham, de Belfast aux docks de Hull).
+**La règle de partage, et c'est elle qui rend le tout sans surprise** : la GÉNÉRATION pioche dans le pays de
+la carrière (`nomsGen`/`prenomsGen`), la LECTURE (`prenomDe`, `origineDuNom`) travaille sur l'**UNION** des
+deux viviers — un nom garde donc son prénom et son récit d'où qu'il vienne, et une sauvegarde anglaise
+relue à l'accueil ne perd rien. **Les soixante patronymes ont été contrôlés par script contre TOUS les noms
+curés du fichier** (4 542 patronymes relevés : effectifs, viviers, `PRENOMS_VRAIS`) : « Clayton » a été
+retiré pour cela, et le contrôle est refait par le harnais à chaque passage. **Piège à connaître** : un
+joueur curé venu d'Europe peut s'appeler « Rui Costa » ou « S. Keita », et « Costa » comme « Keita » sont
+dans le vivier procédural FRANÇAIS — un contrôle de noms doit donc ne juger que les joueurs **fabriqués**
+(`!j.reel`), sinon il crie au loup sur un homme réel (vu, et corrigé dans le harnais).
+
+**4. La coupe se joue contre les petits clubs du pays.** Un tour de FA Cup ne se dispute pas à Montcuq.
+**`CLUBS_AMATEURS_ANG`** aligne vingt-huit vrais clubs non professionnels anglais de la fenêtre, plusieurs
+célèbres tueurs de géants (Blyth Spartans, Sutton United, Woking, Telford United, Altrincham), aucun ne
+figurant parmi les soixante-douze clubs d'ANG-B, aucun ne portant d'esperluette ni d'apostrophe, et les
+forces reprennent **exactement** la fourchette française (41 à 50) pour que le calibrage de la coupe ne
+bouge pas. **La règle des 24 vaut par pays** (64 − 40 clubs pros = 24 petits ; sous ce compte le champ
+n'est plus une puissance de deux et `coupeTireTour` perd une équipe). Là encore le partage est net : le
+TIRAGE (`coupeInit` → `clubsAmateurs()`) ne prend que le pays de la carrière, la LECTURE (`estAmateur`,
+`amaById` → `AMATEURS_TOUS`) balaie les deux listes, et les identifiants sont uniques d'un bout à l'autre.
+
+**5. Les dépêches et la presse.** Cinq helpers de plus dans le cadre des pays — `leP()` (« la France » /
+« l'Angleterre »), `LeP()` avec sa majuscule, `duP()` (« de France » / « d'Angleterre »), `adjPaysM()`
+(« français » / « anglais ») et `titreChampion()` (« Champion de France » / « Champion d'Angleterre », qui
+sert aussi au test `startsWith` du PREMIER TITRE). **Les quatre pays du chantier sont féminins en
+français**, donc « Toute »+`leP()` et `LeP()` se construisent sans accord à tenir : « Toute la France se
+gausse » devient « Toute l'Angleterre se gausse » tout seul, et les phrases françaises sortent mot pour mot
+comme avant (le harnais les compare). Touchés : le dénouement du flacon d'after-shave, la célébration du
+berceau, la cassette du cousin dans le platane, les plombs dans le mollet, la ligne de presse du mercato,
+le club affiché d'une pépite du vivier, et le palmarès.
+
+**6. Les incidents datés ont un pays quand il le faut.** `INCIDENTS` accepte un champ **`pays`** (filtré
+par `tireIncident`, dans ses deux boucles, celle de la fraîcheur comprise), et deux cartes ne pouvaient pas
+traverser la Manche : le **Corbeau du Minitel** (`pays:"FR"`), qui a désormais son jumeau anglais, la
+**taupe du tabloïd du dimanche** — le chéquier du journal faisait exactement le même travail, et pendant
+toute la fenêtre du jeu —, et le **bac** (`pays:"FR"`), dont le jumeau passe ses **A-levels**. Les jumeaux
+ont le même poids, la même pondération des jeunes et les mêmes effets : un pays ne gagne ni ne perd rien au
+change. **Pour étendre** : une carte sans `pays` est jouée partout, et c'est le bon défaut — on ne marque
+que ce qui serait faux ailleurs. Le Loto n'a PAS été marqué : les pools anglais remplissaient le même rôle,
+et la phrase ne nomme aucune marque.
+
+**7. Les éternels seconds.** `JAMAIS_CHAMPION` et `PREMIER_TITRE` deviennent des tables par pays.
+Quarante-neuf des soixante-douze clubs anglais n'ont **jamais** été champions d'Angleterre, la liste se
+déduisant des vingt-trois qui l'ont été au moins une fois avant 2010. Trois pièges, vérifiés plutôt que
+supposés : **Bolton, Southampton et Norwich** n'ont jamais été champions malgré leurs places d'honneur ;
+**Blackburn l'a bien été** (1912 et 1914), donc son titre de 1995 n'est pas un premier ; et **Leicester
+attendra 2016**, hors de la fenêtre. D'où un `PREMIER_TITRE` anglais **VIDE** : aucun club ne décroche son
+premier titre entre 1990 et 2010, et la dépêche « LA MALÉDICTION EST MORTE » ne partira donc jamais
+là-bas.
+
+**CE QUI RESTE FRANÇAIS, DIT FRANCHEMENT, ET C'EST LA LIGNE À RETENIR DE LA JOURNÉE.** Trois tables de
+contenu n'ont pas été traduites, et ce n'est pas un oubli : ce sont des journées de curation à part
+entière, et le jeu **ne raconte rien de faux** en attendant, parce qu'il se tait.
+(a) **Le recruteur est encore un recruteur français.** `VIVIER_SAISON` liste, été par été, de vrais joueurs
+du championnat de France, et ses catégories (« Français de l'étranger », « Français en quête de come-back »,
+« Pépite de Division 2 ») sont des **clés sérialisées dans `G.vivier`** que lit `harness-recruteur` : les
+renommer casserait les sauvegardes, et les traduire mentirait, puisque David Ginola est bien un Français
+qui joue à l'étranger, même vu de Liverpool. **C'est la seule exception que le harnais admet** sur le
+contrôle « plus un France dans une carrière anglaise », et il l'admet nommément, de sorte que tout AUTRE
+« France » rougira.
+(b) **Le mot des clubs** (`MALEDICTIONS`, `MALEDICTIONS_EPOQUE`, `HISTO_EPOQUE`) ne connaît aucun club
+anglais : c'est une phrase d'histoire vérifiée par club, soixante-douze fois, et la fonction `malediction`
+rend simplement rien quand elle ne sait pas.
+(c) **Les sponsors et les équipementiers** portent de vraies marques françaises, et la liste est **arrêtée
+par l'auteur** (« ne pas en ajouter sans lui ») : une liste anglaise est une décision qui lui revient.
+Ces trois points sont entrés dans la file d'attente sous **ANG-F**.
+Gardé par **`harness-textes-ang.cjs`** (huit sections), dont les deux dernières comptent le plus : la F
+rend pour de vrai les dénouements d'incidents dans les deux pays et relit chaque phrase, et la H joue une
+saison anglaise ENTIÈRE plus une intersaison et dix journées, puis relit tout ce que la saison a écrit.
+
 
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
@@ -3821,6 +3926,12 @@ n'ait changé d'un club ni d'un rang.
    une saison anglaise d'essai, les seize clubs tenus dans les trois compétitions qualifié ou non, le
    siège du pays et son absence en C1 1990-91, la ceinture de `migre`, et trente-huit journées anglaises
    jouées pour de vrai avec leur Coupe d'Europe),
+   `harness-textes-ang.cjs` (les textes vus d'Angleterre, ANG-D v1.91 : les onze étés de chaque pays et le
+   marqueur de sacre qu'aucun été anglais ne porte, la sélection nationale qui sait de quel pays elle est,
+   les deux viviers de noms procéduraux et le contrôle des soixante patronymes anglais contre tous les noms
+   curés du fichier, les vingt-huit petits clubs de la FA Cup et le tirage qui ne mélange jamais les pays,
+   les dénouements d'incidents RENDUS dans les deux pays, les cartes propres à un pays, les quarante-neuf
+   clubs anglais jamais champions, et une saison anglaise entière jouée pour de vrai),
    `harness-codes.cjs` (les trois codes de la v1.87 : Auxerre `AJA`, Ajaccio `ACA`, l'Ajax `AFC` ; une
    sauvegarde d'avant relue identique au caractère près à la même partie lancée en v1.87, le derby corse,
    et la carrière relue qui se joue),
