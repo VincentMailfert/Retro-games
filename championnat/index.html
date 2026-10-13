@@ -546,7 +546,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.91"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.92"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -13706,7 +13706,15 @@ function vivierEuro(compet, qualifie){
   const pousse=id=>{ if(id && !pris.has(id) && out.length<cible){ pris.add(id); out.push(id); } };
   for(const id of COMPETS[compet].pool) if(!plateau.has(id)) pousse(id);
   const s=siegesDuPays();
-  if(s) for(const id of (s[compet]||[])) if(aUnVestiaire(id)) pousse(id); // les autres engagés du pays, cette année-là
+  /* Les autres engagés du pays, cette année-là — MAIS JAMAIS UN CLUB DU PLATEAU (correctif d'ANG-E).
+     `aUnVestiaire` est vrai pour un club du championnat, si bien que cette recomplétion y faisait entrer
+     les clubs qu'on joue déjà le samedi : en 1995-96, le tableau de C3 portait Forest, Liverpool ET
+     Manchester United. C'est exactement l'impossibilité qu'ANG-C venait supprimer. La France n'a
+     jamais connu le défaut (`siegesDuPays` y rend null, donc cette branche ne s'exécute pas) et sa
+     convention depuis la v0.72 est la bonne : UN SEUL club du championnat au tableau, le siège
+     national, posé à part au bout de la liste. Le tableau tient ses seize par les viviers dormants. */
+  const auChampionnat=plateauEnCours();
+  if(s) for(const id of (s[compet]||[])) if(!auChampionnat.has(id) && aUnVestiaire(id)) pousse(id);
   for(const k of ["C1","C3","C2"]) if(k!==compet)
     for(const id of COMPETS[k].pool) if(!plateau.has(id)) pousse(id); // les viviers dormants
   return siege?out.concat([siege]):out;
