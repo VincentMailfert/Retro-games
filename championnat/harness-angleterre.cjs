@@ -210,7 +210,16 @@ if (CLES.length > 1) {
 
 /* ===== E) Le mur européen ===== */
 console.log("\nE) Le mur européen : on ne joue pas un club le mardi ET le samedi");
-for (const cle of CLES) {
+/* ON ÉPROUVE PLUSIEURS ANNÉES, ET C'EST CE QUI DONNE DES DENTS À CETTE SECTION. La délégation anglaise
+   va d'aucun club (1990-91 en C1) à cinq (2005-06), et c'est seulement quand un pays engage PLUSIEURS
+   clubs dans la même coupe que la recomplétion par les sièges peut déraper. Une répétition générale
+   calée sur la seule année 1990, qui n'a qu'un siège par coupe, serait passée à côté du défaut d'ANG-E.
+   Les cinq années retenues couvrent : aucun siège, un seul, et les grosses délégations de C1 et de C3. */
+const EPREUVES = REPET ? [1990, 1995, 2000, 2005, 2008].map(an => {
+  const k = "ANG-" + an + "-" + String((an + 1) % 100).padStart(2, "0");
+  SAISONS[k] = plateauEssai(an); return k;
+}) : CLES;
+for (const cle of EPREUVES) {
   const S = SAISONS[cle];
   /* Les sièges de la saison doivent être CEUX DE SON ANNÉE, relevés par ANG-C. C'est un vrai
      recoupement entre deux tables écrites séparément — sauf en répétition générale, où le plateau
@@ -226,10 +235,15 @@ for (const cle of CLES) {
   const vus = new Set(); const croise = [];
   for (const k of ["euroC1", "euroC2", "euroC3"]) for (const id of (S[k] || [])) { if (vus.has(id)) croise.push(id); vus.add(id); }
   ok(croise.length === 0, `${cle} : aucun club dans deux compétitions${croise.length ? " — " + extrait(croise) : ""}`);
-  /* Un siège ne vaut que pour un club du plateau : un club absent n'a pas de vestiaire (règle d'ANG-C). */
+  /* Un siège ne vaut que pour un club du plateau : un engagé absent ne prend jamais de place (règle
+     d'ANG-C, `aUnVestiaire`). Sur une VRAIE saison, chaque siège relevé doit donc être au plateau de
+     son année, sans quoi le siège se perdrait en silence. En répétition générale le plateau d'essai est
+     arbitraire — Leicester en 2000-01 et Portsmouth en 2008-09 avaient bien un siège réel mais ne sont
+     pas de ce plateau-là —, donc le contrôle ne vaut rien ici et on ne le joue pas. */
   const plateau = api.plateauDeSaison(S);
   const hors = [...vus].filter(id => !plateau.has(id));
-  ok(hors.length === 0, `${cle} : chaque club à siège est au plateau, donc il a un vestiaire${hors.length ? " — " + extrait(hors) : ""}`);
+  if (REPET) idle(`${cle} : ${hors.length} siège(s) hors du plateau d'essai, sans valeur ici${hors.length ? " (" + extrait(hors) + ")" : ""}`);
+  else ok(hors.length === 0, `${cle} : chaque club à siège est au plateau, donc il a un vestiaire${hors.length ? " — " + extrait(hors) : ""}`);
 
   /* Et maintenant la vraie épreuve, en situation : on ouvre la carrière et on regarde le vivier. */
   const sel = S.d1[0];
@@ -256,14 +270,21 @@ for (const cle of CLES) {
     const t = api.vivierEuro(compet, false);
     ok(t.every(x => typeof x === "string"), `${cle} : le tableau de ${compet} est une liste d'identifiants`);
     ok(t.length === 16, `${cle} : tableau de ${compet} à seize clubs${t.length !== 16 ? " — " + t.length : ""}`);
-    const intrus = t.filter(id => enCours.has(id));
-    ok(intrus.length === 0, `${cle} : aucun club du championnat au tableau de ${compet}${intrus.length ? " — " + extrait(intrus) : ""}`);
+    /* LA RÈGLE, ET C'EST CELLE DE LA FRANCE DEPUIS LA v0.72 : un SEUL club du championnat peut figurer
+       au tableau, le SIÈGE NATIONAL, et il est posé à part au bout de la liste. Tout autre club du
+       championnat au tableau est un club qu'on affronterait le mardi soir ET le samedi après-midi.
+       C'est ce contrôle qui a trouvé le défaut de la recomplétion par les sièges du pays (ANG-E). */
+    const siege = api.siegePays(compet);
+    const intrus = t.filter(id => enCours.has(id) && id !== siege);
+    ok(intrus.length === 0, `${cle} : hors le siège national (${siege || "aucun"}), aucun club du championnat au tableau de ${compet}${intrus.length ? " — " + extrait(intrus) : ""}`);
+    ok(t.filter(id => enCours.has(id)).length <= 1, `${cle} : au plus un club du championnat au tableau de ${compet}, comme en France`);
     ok(new Set(t).size === t.length, `${cle} : aucun club deux fois au tableau de ${compet}`);
     /* Et chaque club du tableau doit avoir un vestiaire, sinon le tour se joue contre une coquille. */
     const creux = t.filter(id => !(G.europe || []).some(c => c.id === id) && !enCours.has(id));
     ok(creux.length === 0, `${cle} : chaque club du tableau de ${compet} a un vestiaire${creux.length ? " — " + extrait(creux) : ""}`);
   }
 }
+if (REPET) for (const k of EPREUVES) if (k !== CLE_ESSAI) delete SAISONS[k];
 
 /* ===== F) Le cadre du pays, en situation ===== */
 console.log("\nF) Le cadre du pays : libellés d'époque, monnaie, coupe, sélection, été international");
