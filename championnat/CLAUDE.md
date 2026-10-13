@@ -3892,6 +3892,99 @@ rend pour de vrai les dénouements d'incidents dans les deux pays et relit chaqu
 saison anglaise ENTIÈRE plus une intersaison et dix journées, puis relit tout ce que la saison a écrit.
 
 
+### LE HARNAIS DE PAYS (ANG-E, v1.92)
+Cinquième et dernière étape du lot structure. Toujours aucune saison anglaise jouable : on pose ici **le
+gardien du plateau**, c'est-à-dire le harnais que chacune des vingt saisons anglaises devra passer avant
+d'être livrée, exactement comme `harness9900.cjs` le fait pour une saison française. C'est la dernière
+pièce avant ANG 1995-96.
+
+**Il est GÉNÉRIQUE, et c'est la décision de conception de la journée.** Les vingt harnais de saison
+française sont chacun écrit pour SA saison, avec sa clé en dur (`const KEY = "1999-00"`) et ses faits à
+elle (les repêchés, les clubs neufs, les vétérans nommés). Recopier ce modèle vingt fois pour l'Angleterre
+aurait fait vingt fichiers de mille lignes à maintenir. `harness-angleterre.cjs` fait l'inverse : il
+**balaie `SAISONS` à la recherche des entrées `pays:"ANG"` et joue la batterie sur CHACUNE**. Le jour où
+« ANG-1995-96 » entre au registre, elle est prise ici **toute seule**, sans qu'on touche au harnais — et
+le jour où la vingtième entre, les vingt sont contrôlées du même coup. Ce que ce harnais ne sait pas
+faire, et qu'il ne doit pas chercher à faire, c'est vérifier les **faits** d'une saison (tel club repêché,
+tel vétéran gardé, tel siège inattendu) : ça reste le travail d'un harnais de saison, s'il en faut un.
+
+**La répétition générale, et comment elle reste honnête.** Tant qu'aucune saison anglaise n'est
+enregistrée, le harnais bâtit un **plateau d'essai** sur les vrais clubs d'ANG-B (vingt clubs de l'élite
+1995-96, vingt autres en dessous, effectifs **procéduraux** exprès — on éprouve le cadre, pas la donnée) et
+le retire en sortant. Les mêmes listes que `harness-europe-ang.cjs` et `harness-textes-ang.cjs`, pour
+qu'un écart entre les trois se voie. **Les contrôles qui ne valent que sur de la donnée curée SE TAISENT
+au lieu de mentir** : ils s'affichent en `·` avec la raison (« plateau d'essai aux effectifs procéduraux »)
+et s'allument tout seuls dès que `starsD1` n'est plus vide. C'est la règle à tenir si l'on étend ce
+harnais : **une assertion qui ne peut rien prouver doit se déclarer inactive, jamais passer au vert.**
+
+Sept sections : **A** le registre (clé préfixée du code pays, champ `pays`, titre égal au créneau daté,
+nom de saison de deux à cinq mots et trente-quatre caractères au plus, aucun tiret long) ; **B** le plateau
+(20 + 20, quarante codes uniques, tous issus de `CLUBS_ANG`, **aucun club français glissé dedans**, toutes
+métadonnées résolues, et un stade **daté de l'année** via `metaSaison` — les trente-cinq déménagements
+d'ANG-B) ; **C** les effectifs curés (postes, 15-40 ans, notes ≤ 90, potentiel ≥ note, un gardien réel par
+club, vingt hommes par club à l'élite et dix-huit en dessous, et la règle du chantier « plus de trois clubs
+sous dix hommes, la saison n'est pas mûre ») ; **D** les doublons et les prénoms, **ramenés à la saison**
+(`harness-prenoms.cjs` balaie déjà tout le fichier par une regex sur la source, donc la table anglaise y
+sera couverte toute seule ; le contrôle est repris ici pour qu'un oubli **nomme la saison anglaise** au lieu
+de se perdre dans le tas), plus le piège du prénom composé avalé et, dès qu'il y aura deux saisons
+anglaises, le contrôle d'identité d'une saison à l'autre **par l'âge**, qui doit avancer exactement du
+nombre d'années qui les sépare ; **E** le mur européen ; **F** le cadre du pays en situation (libellés
+d'époque, huit francs la livre, FA Cup et League Cup, sélection `ANG`, l'été international et son marqueur
+de sacre, les petits clubs de la FA Cup sans un village français) ; **G** six saisons de carrière.
+
+**LE DÉFAUT QU'IL A TROUVÉ, ET C'ÉTAIT SON TRAVAIL : LE TABLEAU D'EUROPE SE REMPLISSAIT DE CLUBS DU
+CHAMPIONNAT.** `vivierEuro` recomplète les seize clubs du tableau par « les autres sièges du pays », et ce
+tour-là ne regardait que **`aUnVestiaire(id)`** — or `aUnVestiaire` est vrai pour un club du championnat
+(c'est sa raison d'être : écarter les coquilles). Conséquence : tout club anglais à siège cette année-là
+entrait au tableau, **y compris ceux qu'on joue le samedi**. Mesuré : en **1995-96 la C3 portait Forest,
+Liverpool ET Manchester United**, en 2008-09 Tottenham, Aston Villa et Everton, et quatre des cinq années
+éprouvées étaient touchées. C'est **exactement l'impossibilité qu'ANG-C venait supprimer**, revenue par la
+porte de service — et `harness-europe-ang.cjs` ne pouvait pas la voir, puisque sa section D **blanchit
+nommément** les sièges du pays (« seuls les sièges anglais viennent du championnat »).
+**La France n'a jamais connu le défaut**, et c'est elle qui donne la bonne règle : `siegesDuPays()` y rend
+`null`, donc cette branche ne s'exécute pas, et sa convention depuis la v0.72 est **UN SEUL club du
+championnat au tableau, le siège national**, posé à part au bout de la liste (Nantes en C1, le PSG en C2,
+Bordeaux en C3). Corrigé en une ligne — la recomplétion par les sièges saute les clubs du plateau —, le
+tableau tenant ses seize par les viviers dormants, qui en ont largement de quoi. **Aucun effet en France**
+(branche morte là-bas), vérifié par les 120 tableaux français de `harness-europe-ang.cjs`. **Règle à
+garder : le siège national est la SEULE exception au mur européen, et il n'en faut pas une seconde.**
+
+**DEUX LEÇONS D'ÉCRITURE DE HARNAIS, payées le jour même, et elles valent pour tout le dossier.**
+(1) **`vivierEuro` rend des IDENTIFIANTS, pas des objets club** (c'est `viviersEuroDe` qui rend des
+objets). Lire `c.id` dessus donne `undefined` partout, et deux contrôles **dormaient alors les yeux
+ouverts** : `enCours.has(undefined)` est faux, donc « aucun intrus au tableau » passait **toujours**, et
+« aucun club deux fois » échouait pour la mauvaise raison. C'est le faux vert qui a failli masquer le
+défaut ci-dessus. **Un contrôle qui ne rougit jamais doit être prouvé rouge avant d'être cru.**
+(2) **Une répétition générale mal calée ne prouve rien.** Le plateau d'essai partait de 1990-91, qui n'a
+**qu'un siège par coupe** — le défaut ne s'y déclenche pas, et le harnais était vert sur le code fautif.
+La section du mur européen éprouve donc **cinq années** (1990, 1995, 2000, 2005, 2008), choisies pour
+couvrir aucun siège, un seul, et les grosses délégations de C1 et de C3. **Quand un contrôle dépend d'une
+donnée qui varie d'une année à l'autre, l'éprouver sur une seule année ne vaut rien.**
+Et le harnais est **prouvé rouge — 14 échecs — sur le code d'avant le correctif**, puis vert après.
+
+**Deux contrôles que seule une longue carrière peut faire**, et qu'aucun autre harnais ne fait. Le
+**calibrage anglais** d'abord : 2,45 buts par match sur 6 840 matchs (trois clubs, six saisons chacun), dans
+la plage du moteur français — c'est la preuve que le choix d'ANG-B de mettre les budgets anglais **au barème
+français** tient, et que l'économie n'est calibrée qu'une fois. Et surtout **la bascule des libellés EN
+PLEINE CARRIÈRE** : d'un départ en 1990-91, l'élite est la First Division les deux premières saisons et
+devient la **Premier League** à la troisième, sans qu'on touche à rien. C'est la promesse d'ANG-A vérifiée
+en situation, et il fallait jouer quatre saisons d'affilée pour la voir.
+
+**Deux imperfections connues, laissées telles quelles et dites.** Le contrôle des sièges contre
+`SIEGES_ANG` est **circulaire en répétition générale** (le plateau d'essai les recopie de cette table) : il
+est annoncé comme sans valeur, et il devient un vrai recoupement entre deux tables écrites séparément dès
+la première saison réelle. Et le contrôle « chaque club à siège est au plateau » **ne se joue pas** en
+répétition générale, le plateau d'essai étant arbitraire — Leicester en 2000-01 et Portsmouth en 2008-09
+avaient bien un siège réel mais ne sont pas de ce plateau-là. Gardé par **`harness-angleterre.cjs`**.
+
+**Le lot structure est terminé. La prochaine journée est une saison : ANG 1995-96**, choix de l'auteur,
+avec `saison_id/1995`, une entrée `"ANG-1995-96"` dans `SAISONS` portant `pays:"ANG"`, et les sièges de
+`SIEGES_ANG[1995]` (Blackburn en C1, Everton en C2, Manchester United, Forest, Liverpool et Leeds en C3).
+Deux choses à savoir avant de commencer : **la Premier League 1995-96 avait VINGT clubs** (elle en comptait
+vingt-deux de 1992 à 1995, donc la question du repêchage ne se posera qu'à partir d'ANG 1992-93), et
+**l'échelon du dessous en avait VINGT-QUATRE**, donc il faudra **en écarter quatre par le classement réel**,
+comme la file d'attente l'annonce. Le harnais du jour vérifiera les deux tout seul.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
@@ -3932,6 +4025,15 @@ saison anglaise ENTIÈRE plus une intersaison et dix journées, puis relit tout 
    curés du fichier, les vingt-huit petits clubs de la FA Cup et le tirage qui ne mélange jamais les pays,
    les dénouements d'incidents RENDUS dans les deux pays, les cartes propres à un pays, les quarante-neuf
    clubs anglais jamais champions, et une saison anglaise entière jouée pour de vrai),
+   `harness-angleterre.cjs` (**le harnais de pays**, ANG-E v1.92 : le GARDIEN DU PLATEAU que chaque
+   saison anglaise doit passer, générique — il balaie `SAISONS` à la recherche des entrées `pays:"ANG"`
+   et joue la batterie sur chacune, et tourne en répétition générale sur un plateau d'essai tant qu'il
+   n'y en a aucune, les contrôles de curation se déclarant alors inactifs au lieu de passer au vert ;
+   le registre et sa clé préfixée, le plateau 20 + 20 sans un club français ni un stade hors d'époque,
+   les effectifs curés et la règle des trois clubs muets, les doublons et les prénoms ramenés à la
+   saison, le mur européen éprouvé sur CINQ années parce qu'une seule ne prouve rien — c'est lui qui a
+   trouvé le tableau d'Europe rempli de clubs du championnat —, le cadre du pays en situation, et six
+   saisons de carrière avec le calibrage et la bascule vers la Premier League en pleine carrière),
    `harness-codes.cjs` (les trois codes de la v1.87 : Auxerre `AJA`, Ajaccio `ACA`, l'Ajax `AFC` ; une
    sauvegarde d'avant relue identique au caractère près à la même partie lancée en v1.87, le derby corse,
    et la carrière relue qui se joue),
