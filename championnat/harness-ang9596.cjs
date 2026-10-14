@@ -174,6 +174,7 @@ console.log("\n3) Les hommes : les vedettes, les pépites forcées, les deux bou
     ["M. Branch", "EVE", 17],
     ["M. Bridges", "SUN", 17],      // treize minutes
     ["S. Hughes", "ARS", 19],
+    ["J. Euell", "WIM", 18],        // 695 minutes, plus que deux hommes entrés devant lui
     ["A. Campbell", "MID", 16],     // le plus jeune du plateau
     ["W. Prunier", "MUN", 28],      // le Français des deux matchs de décembre 1995
     ["I. Stimac", "DER", 28],       // international croate, cent seize minutes relevées
@@ -186,7 +187,7 @@ console.log("\n3) Les hommes : les vedettes, les pépites forcées, les deux bou
     if (e.club !== club) pbP.push(nom + " au mauvais club (" + e.club + ")");
     else if (e.t[2] !== age) pbP.push(nom + " a " + e.t[2] + " ans (attendu " + age + ")");
   }
-  dit(pbP.length === 0, "les " + PEPITES.length + " pépites forcées sont là, au bon âge"
+  dit(pbP.length === 0, "les " + PEPITES.length + " hommes forcés sont là, au bon âge"
     + (pbP.length ? " — " + pbP.join(" ; ") : ""));
 
   /* Et ceux qui passent TOUT SEULS au temps de jeu : la preuve qu'on n'a pas forcé ce que

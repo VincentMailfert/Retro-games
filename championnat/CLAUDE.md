@@ -3977,7 +3977,140 @@ la première saison réelle. Et le contrôle « chaque club à siège est au pla
 répétition générale, le plateau d'essai étant arbitraire — Leicester en 2000-01 et Portsmouth en 2008-09
 avaient bien un siège réel mais ne sont pas de ce plateau-là. Gardé par **`harness-angleterre.cjs`**.
 
-**Le lot structure est terminé. La prochaine journée est une saison : ANG 1995-96**, choix de l'auteur,
+### ANG 1995-96 — LA PREMIÈRE SAISON ÉTRANGÈRE (v1.93)
+Le lot structure avait tout posé ; il ne restait qu'à jouer. **C'est la première saison d'un autre pays
+que la France**, choix de l'auteur du 09/10/2026, et elle est entrée sans qu'on touche au moteur : une
+entrée `"ANG-1995-96"` dans `SAISONS` avec `pays:"ANG"`, deux tables d'effectifs, deux listes de clubs.
+`harness-angleterre.cjs` l'a prise **toute seule**, comme ANG-E l'avait promis.
+
+**Le plateau tombe juste d'un côté et pas de l'autre.** La Premier League 1995-96 avait **vingt clubs pour
+la première fois** (vingt-deux de 1992 à 1995) : aucun repêchage, le seul cas du genre avant 1996. La
+division du dessous en avait **vingt-quatre**, donc quatre s'effacent, par le classement réel et rien
+d'autre : **Portsmouth (21e, 52 pts), Millwall (22e), Watford (23e, 48) et Luton Town (24e, 45)**. La
+ligne de coupe a été recoupée sur deux sources parce qu'elle décide de quatre clubs — Wolverhampton 20e
+avec 55 points, Reading 19e avec 56 — et la page Wikipédia de la division porte un bandeau d'exactitude
+contestée, ce qui valait la seconde lecture. **Aucun club neuf** : les soixante-douze d'ANG-B suffisaient,
+et les quatre écartés gardent leur fiche pour les autres saisons.
+Sièges européens, ceux de `SIEGES_ANG[1995]` relevés par ANG-C : **Blackburn en C1** (champion 94-95),
+**Everton en C2** (vainqueur de la FA Cup 1995), **Manchester United, Forest, Liverpool et Leeds en C3**.
+Le harnais du jour les recoupe contre la table : **le contrôle que l'ANG-E annonçait circulaire cesse de
+l'être**, puisque deux tables écrites des jours différents doivent maintenant dire la même chose.
+
+**L'ancrage des notes a eu une chance que les saisons françaises n'ont jamais eue, et une tuile qu'elles
+n'ont pas connue.** La chance : le jeu portait **déjà quatre effectifs anglais curés à la main par
+l'auteur** — Blackburn, Liverpool, Nottingham Forest et Everton, figés en 95-96 dans les viviers de Coupe
+d'Europe depuis la v0.72. Mêmes année, même convention d'âge : **soixante-douze ancres à distance nulle**,
+et surtout l'échelle anglaise de l'auteur lui-même au lieu d'une échelle devinée. S'y ajoutent les huit
+hommes que `VIVIER_SAISON[1995]` chiffre (Cantona 89, Shearer 90, Bergkamp 88, Schmeichel 88, Ginola 86,
+Giggs 84, Fowler 82, Beckham 72) et quelques voisins (Gullit 83 à Chelsea, Juninho 83 à Middlesbrough,
+Le Tissier 81), **ramenés à l'échelle des effectifs, qui est un cran sous celle du vivier** — c'est une
+vitrine du désir, pas une feuille de match. La tuile : il n'y avait **rien d'autre à hériter**. Là où
+93/94 reprenait 559 notes sur 759, ici **682 des 760 sont entièrement calculées**. D'où une **table
+d'ajustements à la main de 169 entrées, la plus longue du chantier**, et elle n'est pas un luxe : le calcul
+plafonne vers 79 et ne sait pas qu'un homme a été élu joueur de l'année. Distinctions vérifiées une par
+une : **Les Ferdinand joueur de l'année des joueurs (PFA)**, **Eric Cantona joueur de l'année de la presse
+(FWA)**, **Robbie Fowler meilleur espoir**, **Alan Shearer meilleur buteur** avec trente et un buts.
+Résultat collé aux saisons françaises : élite moyenne 70,3 et médiane 70 (France : 70,8 et 71), dessous
+65,3 et 65 (66,4 et 66).
+
+**LA DÉCOUVERTE DE RELEVÉ, ET ELLE CHANGE LA LECTURE DE DIX-NEUF SAISONS À VENIR : Transfermarkt ne
+documente pas les deux divisions anglaises de la même façon.** L'élite est **complète** (quarante-quatre à
+cinquante-trois matchs par club, toutes compétitions). La division du dessous ne l'est pas : **treize à
+vingt matchs relevés sur quarante-six**, soit un gros tiers. Un titulaire de D2 en ressort avec cinq cents
+minutes et un total de buts de club à dix-sept là où il en a planté soixante. **Et le piège n'est pas
+celui qu'on croit** : comme la lacune est *uniforme à l'intérieur d'un club*, elle ne déforme pas le
+classement interne, donc le tri aux minutes reste un bon arbitre et il n'y a **pas** à forcer un homme
+sous prétexte que sa division est mal servie. On l'a cru une heure, et c'est cette erreur qui a fait
+gonfler la liste des forçages. Ce que la lacune interdit, en revanche, c'est de lire les buts d'un club de
+D2 comme un fait : le sous-titre d'une saison anglaise ne doit tirer ses chiffres que de l'élite.
+
+**LE FORÇAGE N'EST PAS GRATUIT, et c'est la leçon de la journée.** Vingt places pour vingt-quatre à
+quarante-quatre hommes documentés : chaque pépite forcée met dehors le vingtième du club. Une première
+liste de vingt-sept noms chassait **Lucas Radebe de Leeds, Tony Grant et Earl Barrett d'Everton, Darko
+Kovačević de Sheffield Wednesday** — de vrais titulaires, deux internationaux — au profit d'hommes de
+moindre stature. D'où un contrôle neuf, à reprendre pour l'Italie et l'Espagne : **mesurer, club par club,
+ce qu'un forçage COÛTE** (comparer les minutes du forcé à celles du mieux-doté des écartés). La liste est
+retombée à **quatorze**, et les trois arbitrages qui restent sont assumés : Lampard et Ferdinand, dix-sept
+ans et vingt minutes à eux deux, passent devant Don Hutchison ; Kewell et Harte devant Andy Gray et
+Richard Jobson. Le reste entre par le seul temps de jeu, **Emile Heskey à dix-sept ans et Lee Bowyer à
+dix-huit compris** — on n'a pas eu à les forcer, et c'est bon signe.
+Deux forçages ne coûtent rien et valent le détour : **William Prunier** à Manchester United, le Français
+des deux matchs de décembre 1995, que le jeu connaissait depuis 90/91 ; et **Jason Kearton** à Everton, la
+doublure de Southall, qui remplit du même coup le minimum de deux gardiens (sans elle le tri prenait
+l'autre doublure à zéro minute, sur un hasard de tri alphabétique sur le prénom).
+
+**LE PIÈGE DU JOUR EST DANS LE RECRUTEUR, et aucun harnais ne le voyait.** `VIVIER_SAISON[1995]` reste
+**français** (ANG-F le reprendra) : il aligne de vrais joueurs qui jouent HORS de France, donc **huit
+hommes du championnat ANGLAIS** — Cantona, Schmeichel, Giggs, Beckham, Ginola, Bergkamp, Shearer, Fowler.
+Vus d'une carrière anglaise, ces huit-là sont sous contrat au championnat qu'on joue. `vivierDeSaison`
+sait les écarter — et c'est heureux, le moteur n'avait pas besoin d'un correctif — **mais il les écarte en
+comparant le NOM, chaîne pour chaîne**. Or Transfermarkt écrit « Éric Cantona », donc « É. Cantona », là
+où le vivier écrit « E. Cantona » sans accent : avec la graphie de la source, **le recruteur proposait
+Cantona alors que Manchester United l'avait sous contrat**, c'est-à-dire exactement l'impossibilité
+qu'ANG-C était venu supprimer, revenue par une troisième porte. **Règle à garder, et elle vaut pour
+l'Italie et l'Espagne : quand le jeu écrit déjà un nom, c'est SA graphie qui gagne, pas celle de la
+source.** Trois cas ici — `É. Cantona` → **`E. Cantona`**, `J. Paulista` → **`Juninho Paulista`**,
+`S. I. Bjørnebye` → **`S. Bjørnebye`** (ce dernier reprenait du même coup son ancre, perdue sur une
+initiale de trop). La section 4 de `harness-ang9596.cjs` lance une carrière anglaise et relit le rapport
+du recruteur pour l'exiger.
+
+**QUATORZE HOMONYMES, un record, et trois paires sans issue par le prénom.** La convention tient : celui
+que le jeu écrit **déjà** avec une initiale la garde — Duncan Ferguson, Dave Watson et Neville Southall
+d'Everton, curés dans le vivier de C2 ; **Michael Hughes**, curé à Strasbourg depuis 92/93 et que le
+relevé retrouve à West Ham —, sinon le plus utilisé la garde, et l'autre passe en toutes lettres, comme
+Jean-Michel Ferri face au J.-M. Ferri du Gazélec en 91/92. **Darren Ferguson cède donc l'initiale à Duncan
+bien qu'il ait plus joué** : « déjà connu du jeu » passe devant « le plus utilisé », et c'est la bonne
+hiérarchie, parce qu'elle garde l'ancre exacte. Trois paires portaient le **même prénom** et le prénom ne
+tranchait rien : deux **David Lee** (Chelsea et Bolton), deux **Dave Watson** (Everton et Barnsley), deux
+**Gary Jones** (Southend et Tranmere). Écrire l'un en entier suffit — on n'a eu à écarter **personne**, là
+où 91/92 avait dû remplacer un Olivier Baudry. Et deux M. Gray jouaient dans le **même club**, Michael et
+Martin à Sunderland.
+**Et un piège qu'on ne trouve qu'en relisant `PRENOMS_VRAIS` nom par nom** : deux noms courts de cette
+saison étaient **déjà pris par un autre homme**. Sans correctif, le jeu écrivait « Arthur Moses » sur la
+fiche d'**Adie Moses** (Barnsley, défenseur né en 1975, face à un attaquant né en 1973) et « Johnny
+Mølby » sur celle de **Jan Mølby** (Norwich, 32 ans, face au Johnny de 1969 qui est au vivier d'Europe).
+Les deux sont écrits en entier, et l'entrée de l'autre n'est pas touchée. Deux autres cas n'étaient que
+des variantes du même homme — « Andrei » contre « Andrey » Kanchelskis, « Matthew » contre « Matt » Le
+Tissier — et là c'est la graphie du jeu qui reste. Deux homonymes **inter-pays** se sont présentés et le
+garde-fou de l'âge les a refusés tout seuls, comme il avait protégé les jumeaux Vujović : **Isaías** de
+Coventry (né en 1963) n'est pas l'**Isaias** brésilien du jeu (1973), et **D. Regis** de Southend (1964)
+n'est pas le **D. Régis** français (1968). L'accent et la date suffisent à les distinguer.
+
+**Deux harnais ont dû suivre le préfixe de pays, et aucune assertion n'a été assouplie.**
+`harness-noms.cjs` comparait `titre` à la **clé** (`SAISONS[k].titre !== k`) : vrai pour une saison
+française, dont la clé EST le créneau daté, faux pour `"ANG-1995-96"` dont le créneau est `"1995-96"`. Le
+contrôle dit maintenant ce qu'il voulait dire — *le titre est le créneau daté* — en lisant la clé à
+travers son préfixe (`creneau(k)`), si bien qu'il est **exactement l'ancien pour les vingt saisons
+françaises**. `harness-pays.cjs`, lui, affirmait « avec un seul pays le sélecteur reste la liste plate :
+un groupe unique n'est pas un groupe ». C'était juste hier et c'est faux aujourd'hui : **le jeu a deux
+pays**, donc les `<optgroup>` sont là, et le contrôle l'exige désormais dans ce sens, en comptant les
+saisons de chaque groupe. Sa fausse saison anglaise de 1990 reste en place : elle ne sert plus à prouver
+que les groupes apparaissent, mais à montrer ce que 1995-96 ne peut pas montrer — qu'une saison d'avant
+1992 annonce « FIRST DIVISION ».
+
+**Le reste, en bref.** Le nom de la saison est **« Douze points d'avance »**, l'avance de Newcastle en
+janvier, perdue au printemps. Les minimums de poste laissent **huit effectifs incomplets** que `genJoueur`
+complète à la marge (Liverpool à trois attaquants, Forest à quatre défenseurs, Coventry à quatre milieux,
+quatre clubs à un seul gardien répertorié) — c'est la plus petite marge du chantier après 94/95, et la
+source est de loin la plus généreuse qu'on ait vue : **aucun des quarante clubs n'est sous dix hommes**,
+le plus pauvre en aligne dix-neuf, et la règle du blocage n'a jamais approché son seuil. Deux hommes que
+la source ne sait pas dater sont écartés plutôt que devinés (Martin Bowler à Sheffield Wednesday, Chris
+Jackson à Barnsley). **Quatre-vingt-quatorze doublons inter-clubs**, un record qui dit l'époque — les
+prêts anglais et le mercato de janvier —, tous tranchés **par identifiant Transfermarkt** et rangés là où
+l'homme a le plus joué. `metaSaison` date les stades : **Middlesbrough joue au Riverside**, ouvert le
+26 août 1995, en plein dans la saison, et le harnais vérifie qu'il était encore à Ayresome Park en 1994 et
+que personne ne joue dans un stade de 1997. Les deux bouts de l'échelle des âges sont de vrais hommes :
+**Andrew Campbell entre à seize ans** à Middlesbrough et **Ray Wilkins tient le milieu de QPR à
+trente-neuf**, quatre-vingt-quatre sélections anglaises derrière lui. Le calibrage anglais reste dans la
+plage du moteur (2,33 à 2,46 buts par match selon les tirages), ce qui reconduit le choix d'ANG-B de
+mettre les budgets anglais au barème français. **`HONNEURS_PAYS` n'a rien eu à apprendre** : ANG-D avait
+écrit les onze étés anglais, et partir de 1995-96 fait tomber l'**Euro 96 à domicile dès la première
+intersaison** — la demi-finale perdue aux tirs au but, déjà écrite, et qui ne porte pas le marqueur de
+sacre, puisque l'Angleterre n'a rien gagné entre 1966 et 2010. Rien à faire non plus côté recruteur :
+`VIVIER_SAISON[1995]` existait déjà. Validation dédiée : **`harness-ang9596.cjs`** (sept sections), en
+plus de `harness-angleterre.cjs` qui l'a prise sans retouche.
+
+**Le lot structure est terminé, et la première saison anglaise est livrée (ci-dessus). Ce paragraphe garde la note de cadrage écrite la veille : ANG 1995-96**, choix de l'auteur,
 avec `saison_id/1995`, une entrée `"ANG-1995-96"` dans `SAISONS` portant `pays:"ANG"`, et les sièges de
 `SIEGES_ANG[1995]` (Blackburn en C1, Everton en C2, Manchester United, Forest, Liverpool et Leeds en C3).
 Deux choses à savoir avant de commencer : **la Premier League 1995-96 avait VINGT clubs** (elle en comptait
