@@ -549,7 +549,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.98"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.99"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -1513,7 +1513,7 @@ const PRENOMS_VRAIS={
  "M. Scholl":"Mehmet","M. Schulz":"Michael","M. Serreau":"Mickaël","M. Silvestre":"Mikaël","M. Simone":"Marco","M. Śliwowski":"Maciej",
  "M. Sorin":"Michel","M. Soumah":"Morlaye","M. Stanić":"Mario","M. Stéphan":"Mickaël","M. Sternkopf":"Michaël","M. Svensson":"Magnus",
  "M. Sylla":"","M. Szczęsny":"Maciej","M. Szűcs":"Mihály","M. Tacalfred":"Mickaël","M. Tannaï":"Mario","M. Tassotti":"Mauro",
- "M. Terzian":"","M. Thomas":"Michaël","M. Titeca":"","M. Torricelli":"Moreno","M. Traoré":"Moussa","M. Trapasso":"Marcelo",
+ "M. Terzian":"","M. Thomas":"Michael","M. Titeca":"","M. Torricelli":"Moreno","M. Traoré":"Moussa","M. Trapasso":"Marcelo",
  "M. Tronche":"Michaël","M. van Bommel":"Mark","M. Varešanović":"Mirza","M. Verschuère":"Matthieu","M. Vink":"Marciano","M. Vlachos":"Michalis",
  "M. Wagner":"Martin","M. Walter":"Marc","M. Walters":"Mark","M. Wangu":"","M. Wright":"Mark","M. Yakin":"Murat",
  "M. Zanotti":"Marc","M. Zemzemi":"Majdi","M. Zorc":"Michaël","M. Zouaoui":"Mohamed","M.-V. Foé":"Marc-Vivien","N. Alexandersson":"Niclas",
@@ -12408,7 +12408,7 @@ const VIVIER_SAISON={
    (vivierDeSaison), donc une carrière française ne voit pas un nom de plus. Clubs et années vérifiés
    contre Wikidata (P54, dates de début et de fin) le 14/10/2026 ; Lineker à Nagoya (1993-94) de mémoire
    sûre, absent de la recherche. L'Écosse compte comme l'étranger : les Rangers des années 90 en vivaient.
-   Michael Thomas (Benfica 1998-99) est écarté : « M. Thomas » porte déjà le prénom Michaël dans PRENOMS_VRAIS. */
+   */
 const VIVIER_SAISON_ANG={
  1990:[
   ["C. Waddle","M",1960,86,86,"Olympique de Marseille","ANG","Chris"],
@@ -12472,6 +12472,7 @@ const VIVIER_SAISON_ANG={
  ],
  1998:[
   ["L. Sharpe","M",1971,74,76,"Sampdoria","ANG","Lee"],
+  ["M. Thomas","M",1967,76,76,"Benfica","ANG","Michael"],
  ],
  1999:[
   ["S. McManaman","M",1972,85,86,"Real Madrid","ANG","Steve"],
