@@ -237,6 +237,9 @@
     color:var(--dim);border:1px solid var(--line);cursor:pointer;font-weight:bold;white-space:nowrap;}
   .mChip.on{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
   .mChip.onD2{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
+  .accPaysRang{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .accPays{min-height:40px;padding:6px 12px;}
+  .accPays[disabled]{opacity:.55;cursor:default;}
   .mercRap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
   .mercRap .carte{background:var(--panel2);border:1px solid transparent;border-radius:6px;padding:10px 12px;
     display:flex;flex-direction:column;gap:4px;cursor:pointer;}
@@ -546,7 +549,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.93"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.94"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -15729,14 +15732,16 @@ function ecranAccueil(){
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   voitPays(S.pays||"FR", S.an, false); // à l'accueil on REGARDE un pays sans le jouer : G peut encore porter une autre carrière
   const cD1=S.d1.map(id=>metaSaison(id,S.an)), cD2=S.d2.map(id=>metaSaison(id,S.an));
-  /* Le sélecteur est groupé par pays, dans l'ordre de la table PAYS, et ne se montre groupé que s'il y a de
-     quoi : tant que SAISONS ne contient qu'un pays, on garde la liste plate d'aujourd'hui (un groupe unique
-     n'est pas un groupe). Les <optgroup> apparaissent donc tout seuls le jour où un deuxième pays entre. */
+  /* Le PAYS se choisit d'abord, par une rangée de drapeaux dans l'ordre de la table PAYS, puis la saison dans
+     ce pays seul : le <select> ne liste que les saisons du pays regardé. Un pays de la table qui n'a encore
+     aucune saison jouable reste visible, grisé (« bientôt ») : le jour où sa première saison entre dans
+     SAISONS, son bouton s'allume tout seul. */
+  const paysAcc=paysDeSaison(SAISON_ACCUEIL);
+  const clesDe=code=>Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code);
   const ligne=k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}</option>`;
-  const parPays=Object.keys(PAYS).map(code=>({code, cles:Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code)})).filter(g=>g.cles.length);
-  const opts=parPays.length>1
-    ? parPays.map(g=>`<optgroup label="${esc(PAYS[g.code].drapeau+" "+PAYS[g.code].nom)}">${g.cles.map(ligne).join("")}</optgroup>`).join("")
-    : Object.keys(SAISONS).map(ligne).join("");
+  const opts=clesDe(paysAcc).map(ligne).join("");
+  const boutonsPays=Object.keys(PAYS).map(code=>{ const P=PAYS[code], vide=!clesDe(code).length;
+    return `<button class="mChip accPays${code===paysAcc?" on":""}" data-pays="${code}"${vide?" disabled":""}>${P.drapeau} ${esc(P.nom)}${vide?' <span class="dim" style="font-weight:normal">bientôt</span>':""}</button>`; }).join("");
   const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:9px">
         ${blason(c,22)}<span style="flex:1;line-height:1.1"><b>${esc(c.nom)}</b><br><span class="sous">${esc(c.stade)} · ${FMT(c.cap)} places</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</button>`; };
   const colonne=groupes=>groupes.map(g=>`
@@ -15756,6 +15761,7 @@ function ecranAccueil(){
      </div>
    </div>`}
    <div class="panel">
+     <div class="accPaysRang" role="group" aria-label="Pays">${boutonsPays}</div>
      <label style="display:block;font-size:13px"><b>Saison de départ</b>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
      </label>
@@ -15785,6 +15791,11 @@ function ecranAccueil(){
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
   app.querySelectorAll(".startclub:not(.carGo)").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id)); // .carGo = une carrière, pas un club : son data-id n'est pas un club
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
+  // changer de pays garde l'année si ce pays l'a, sinon prend sa première saison (la saison phare pour la France)
+  app.querySelectorAll(".accPays:not([disabled])").forEach(b=>b.onclick=()=>{ const code=b.dataset.pays; if(code===paysDeSaison(SAISON_ACCUEIL)) return;
+    const cles=Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code); if(!cles.length) return;
+    const an=(SAISONS[SAISON_ACCUEIL]||{}).an;
+    SAISON_ACCUEIL=cles.find(k=>SAISONS[k].an===an)||(code==="FR"?SAISON_DEFAUT:cles[0]); ecranAccueil(); });
   const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale(br.dataset.id);
   app.querySelectorAll(".carGo").forEach(b=>b.onclick=()=>chargeLocale(b.dataset.id));
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));

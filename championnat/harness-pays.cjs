@@ -198,31 +198,38 @@ console.log("E) Le pays REGARDÉ, et non le pays joué");
 }
 
 /* ===== F) et tout cela arrive jusqu'à l'écran ===== */
-console.log("F) L'écran : sélecteur groupé par pays, bandeaux au bon libellé");
+console.log("F) L'écran : sélecteur de pays, puis de saison, bandeaux au bon libellé");
 {
   api.setAccueil(api.SAISON_DEFAUT);
   api.ecranAccueil();
   let page = APP._h;
-  /* DEPUIS LA v1.93, LE JEU A DEUX PAYS. Jusque-là ce contrôle disait l'inverse — « avec un
-     seul pays le sélecteur reste la liste plate, un groupe unique n'est pas un groupe » —
-     et c'était juste : ANG 1995-96 n'existait pas encore. Le mécanisme n'a pas changé, c'est
-     la donnée qui a changé, et le contrôle suit : les groupes DOIVENT être là maintenant. */
+  /* DEPUIS LA v1.93, LE JEU A DEUX PAYS, et depuis la v1.94 l'accueil choisit le pays avant la
+     saison : une rangée de drapeaux, puis un <select> qui ne liste que les saisons du pays regardé. */
   const clesFR = cles.filter(k => (SAISONS[k].pays || "FR") === "FR");
   const clesANG = cles.filter(k => SAISONS[k].pays === "ANG");
   ok(clesANG.length >= 1, `le registre porte ${clesANG.length} saison(s) anglaise(s) : ${clesANG.join(", ")}`);
-  ok(page.includes("<optgroup"), "deux pays au registre, donc le sélecteur se groupe : les optgroup sont là");
-  {
-    const g = [...page.matchAll(/<optgroup label="([^"]*)"/g)].map(m => m[1]);
-    ok(g.length === 2, `deux groupes, un par pays : ${g.join(" | ")}`);
-    const fr = (page.match(/<optgroup label="[^"]*France"[^>]*>([\s\S]*?)<\/optgroup>/) || ["", ""])[1];
-    const an = (page.match(/<optgroup label="[^"]*Angleterre"[^>]*>([\s\S]*?)<\/optgroup>/) || ["", ""])[1];
-    ok((fr.match(/<option/g) || []).length === clesFR.length,
-      `les ${clesFR.length} saisons françaises sont rangées sous la France`);
-    ok((an.match(/<option/g) || []).length === clesANG.length,
-      `et les ${clesANG.length} anglaises sous l'Angleterre`);
-    ok(an.includes("1995-96") && !fr.includes("Douze points"),
-      "ANG 1995-96 est sous l'Angleterre, et pas une ligne d'elle ne traîne chez les Français");
-  }
+  const btnFR = (page.match(/<button class="mChip accPays[^"]*" data-pays="FR"[^>]*>/) || [""])[0];
+  const btnANG = (page.match(/<button class="mChip accPays[^"]*" data-pays="ANG"[^>]*>/) || [""])[0];
+  ok(/accPays on"/.test(btnFR) && !/disabled/.test(btnFR), "la rangée de pays s'ouvre sur la France, allumée");
+  ok(btnANG && !/disabled/.test(btnANG) && !/accPays on"/.test(btnANG) && !page.includes("bientôt"),
+    "l'Angleterre a sa saison : son bouton est cliquable, éteint, et plus « bientôt »");
+  ok(!page.includes("<optgroup"), "le sélecteur de saison n'est plus groupé : le pays se choisit au-dessus");
+  ok((page.match(/<option /g) || []).length === clesFR.length && !page.includes('value="ANG-'),
+    `la France regardée, il liste ses ${clesFR.length} saisons et pas une anglaise`);
+  // un pays de la table sans saison reste montré, grisé : on en ajoute un faux le temps du contrôle
+  PAYS.ZZZ = Object.assign({}, PAYS.ANG, { code: "ZZZ", nom: "Pays d'essai" });
+  try {
+    api.ecranAccueil();
+    ok(/data-pays="ZZZ" disabled>[^<]*<span[^>]*>bientôt</.test(APP._h), "un pays sans saison jouable est montré grisé : « bientôt »");
+  } finally { delete PAYS.ZZZ; api.ecranAccueil(); page = APP._h; }
+  // l'Angleterre regardée : son bouton s'allume, et le sélecteur ne liste que ses saisons
+  api.setAccueil(clesANG[0]);
+  api.ecranAccueil();
+  ok(/accPays on" data-pays="ANG"/.test(APP._h) && (APP._h.match(/<option /g) || []).length === clesANG.length,
+    `l'Angleterre regardée, son bouton s'allume et le sélecteur ne liste que ses ${clesANG.length} saison(s)`);
+  api.setAccueil(api.SAISON_DEFAUT);
+  api.ecranAccueil();
+  page = APP._h;
   ok(page.includes("DIVISION 1") && page.includes("DIVISION 2"), "les deux colonnes de clubs s'annoncent « DIVISION 1 » et « DIVISION 2 »");
   ok(page.includes("Division 1 française"), "et le bandeau dit « Division 1 française », comme avant le cadre");
   ok(!/undefined/.test(page), "aucun « undefined » n'a fuité dans la page");
@@ -240,13 +247,8 @@ console.log("F) L'écran : sélecteur groupé par pays, bandeaux au bon libellé
     api.setAccueil(api.SAISON_DEFAUT);
     api.ecranAccueil();
     page = APP._h;
-    const groupes = [...page.matchAll(/<optgroup label="([^"]*)"/g)].map(m => m[1]);
-    ok(groupes.length === 2, `dès qu'un deuxième pays entre, le sélecteur se groupe tout seul : ${groupes.length} groupe(s)`);
-    ok(groupes.some(g => g.includes("France")) && groupes.some(g => g.includes("Angleterre")),
-      `et chaque groupe porte son pays : ${groupes.join(" | ")}`);
-    const dedansFR = (page.match(/<optgroup label="[^"]*France"[^>]*>([\s\S]*?)<\/optgroup>/) || ["", ""])[1];
-    ok((dedansFR.match(/<option/g) || []).length === clesFR.length,
-      `les ${clesFR.length} saisons françaises restent sous la France, et la fausse anglaise hors d'elles`);
+    ok((page.match(/<option /g) || []).length === clesFR.length && !page.includes(`value="${FAUSSE}"`),
+      `la France regardée, la fausse anglaise ne s'invite pas dans les ${clesFR.length} saisons françaises`);
     // et l'écran d'une saison anglaise parle anglais
     api.setAccueil(FAUSSE);
     api.ecranAccueil();
@@ -255,6 +257,8 @@ console.log("F) L'écran : sélecteur groupé par pays, bandeaux au bon libellé
       "choisie, la saison anglaise de 1990 annonce « FIRST DIVISION » et « SECOND DIVISION »");
     ok(page.includes("First Division anglaise"), "et le bandeau dit « First Division anglaise »");
     ok(!page.includes("DIVISION 2"), "plus une seule « DIVISION 2 » française à l'écran");
+    ok(/accPays on" data-pays="ANG"/.test(page) && (page.match(/<option /g) || []).length === clesANG.length + 1,
+      "l'Angleterre regardée, son bouton est allumé et le sélecteur ne liste que ses saisons, la fausse comprise");
   } finally {
     delete SAISONS[FAUSSE];
     api.setAccueil(api.SAISON_DEFAUT);

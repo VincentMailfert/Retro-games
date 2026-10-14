@@ -36,7 +36,7 @@ global.alert = () => {}; global.confirm = () => true; global.prompt = () => null
 global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const api = new Function(script + "\n;return {nouvellePartie,ecranAccueil,SAISONS,ARCS,SAISON_DEFAUT,esc,getG:function(){return G;}};")();
+const api = new Function(script + "\n;return {nouvellePartie,ecranAccueil,SAISONS,ARCS,SAISON_DEFAUT,esc,getG:function(){return G;},setAccueil:function(k){SAISON_ACCUEIL=k;}};")();
 const { SAISONS, ARCS } = api;
 
 let FAILS = 0;
@@ -117,10 +117,18 @@ console.log("E) Un nom bricolé ne peut pas ouvrir de balise");
 /* ===== F) et tout cela arrive jusqu'à l'écran ===== */
 console.log("F) L'écran d'accueil met le nom en avant, et garde le créneau à côté");
 {
+  /* depuis la v1.94 le menu ne liste que les saisons du pays choisi : on fait le tour des pays */
+  const pays = [...new Set(cles.map(k => SAISONS[k].pays || "FR"))];
+  const opts = [];
+  for (const code of pays) {
+    api.setAccueil(cles.find(k => (SAISONS[k].pays || "FR") === code));
+    api.ecranAccueil();
+    opts.push(...[...APP._h.matchAll(/<option[^>]*>([^<]*)<\/option>/g)].map(m => m[1]));
+  }
+  api.setAccueil(api.SAISON_DEFAUT);
   api.ecranAccueil();
   const page = APP._h;
-  const opts = [...page.matchAll(/<option[^>]*>([^<]*)<\/option>/g)].map(m => m[1]);
-  ok(opts.length === cles.length, `le menu déroulant propose les ${cles.length} saisons`);
+  ok(opts.length === cles.length, `pays par pays, le menu déroulant propose les ${cles.length} saisons`);
   const manque = cles.filter(k => !opts.some(o => o.includes(SAISONS[k].nom) && o.includes(creneau(k))));
   ok(manque.length === 0, `chaque ligne du menu porte le nom ET le créneau${manque.length ? " — sauf " + manque.join(", ") : ""}`);
   const mis = page.match(/<p class="fort"[^>]*><b>([^<]*)<\/b><\/p>/);

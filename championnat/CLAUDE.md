@@ -3577,11 +3577,13 @@ montant calculé passe par le cadre ; un montant écrit dans une phrase est du t
 **Piège à ne pas rouvrir** : `"Pépite de Division 2"` est une **clé du vivier**, sérialisée dans `G.vivier` et
 testée par `harness-recruteur.cjs`. Ce n'est pas un libellé : on n'y touche jamais.
 
-**Le sélecteur d'accueil est groupé par pays, et ne se montre groupé que s'il y a de quoi.** Tant que `SAISONS`
-ne contient qu'un pays, le `<select>` reste la liste plate d'aujourd'hui ; dès qu'un deuxième pays entre, les
-`<optgroup>` apparaissent tout seuls, drapeau et nom en tête de groupe, dans l'ordre de la table `PAYS`. Le code
-est en place et gardé par le harnais (qui enregistre une fausse saison anglaise le temps de son contrôle), mais
-l'écran d'aujourd'hui est inchangé : c'est voulu, un groupe unique n'est pas un groupe.
+**L'accueil choisit le pays, puis la saison (v1.94, demande auteur).** Au-dessus du `<select>`, une rangée de
+drapeaux (`.accPays`, style `mChip`, jaune quand allumé) liste TOUS les pays de la table `PAYS`, dans son ordre ;
+le `<select>` ne propose plus que les saisons du pays regardé (fini les `<optgroup>` de la v1.80). Le pays allumé
+se déduit de `SAISON_ACCUEIL` (`paysDeSaison`), aucune variable de plus. Un pays sans saison jouable reste montré,
+grisé et désactivé, avec « bientôt » (l'Angleterre l'a été jusqu'à sa première saison, v1.93) : sa première saison l'allumera toute seule. Changer de pays garde
+l'année si le pays l'a, sinon prend `SAISON_DEFAUT` (France) ou la première saison du pays. Gardé par la section F
+de `harness-pays.cjs` (qui ajoute un faux pays sans saison le temps du contrôle).
 
 **Ce que ce cadre ne fait PAS, et qui reste aux étapes suivantes** : les clubs anglais et leurs couleurs (ANG-B),
 la réconciliation avec `CLUBS_EUROPE` — un club anglais ne peut pas être à la fois au championnat et dans le
