@@ -42,6 +42,11 @@ const { SAISONS, ARCS } = api;
 let FAILS = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) FAILS++; };
 const cles = Object.keys(SAISONS);
+/* LE CRÉNEAU DATÉ D'UNE CLÉ. Depuis la v1.80 (ANG-A), la clé d'une saison est son créneau
+   daté PRÉFIXÉ du code pays pour tout pays autre que la France : « ANG-1995-96 » porte le
+   créneau « 1995-96 ». Les saisons françaises gardent leur clé nue, donc pour elles cette
+   fonction rend la clé elle-même et les contrôles ci-dessous sont EXACTEMENT ceux d'avant. */
+const creneau = (k) => k.replace(/^[A-Z]{2,3}-/, "");
 
 /* Les mots qu'on ne compte pas comme « marquants » : deux noms ont le droit de partager un article. */
 const VIDES = new Set(["le", "la", "les", "l", "un", "une", "des", "du", "de", "d", "au", "aux", "et",
@@ -91,8 +96,8 @@ console.log("C) Les feuilletons du club gardent leurs mots à eux");
 /* ===== D) le repère daté est intact ===== */
 console.log("D) Le nom s'ajoute au repère daté, il ne le remplace pas");
 {
-  const faux = cles.filter(k => SAISONS[k].titre !== k);
-  ok(faux.length === 0, `chaque saison garde son créneau comme titre${faux.length ? " — " + faux.join(", ") : ""}`);
+  const faux = cles.filter(k => SAISONS[k].titre !== creneau(k));
+  ok(faux.length === 0, `chaque saison garde son créneau daté comme titre${faux.length ? " — " + faux.join(", ") : ""}`);
   api.nouvellePartie("LIL");
   const G = api.getG();
   ok(G.saison === api.SAISON_DEFAUT, `une partie neuve s'ouvre sur « ${G.saison} », le créneau daté — jamais sur le nom`);
@@ -116,7 +121,7 @@ console.log("F) L'écran d'accueil met le nom en avant, et garde le créneau à 
   const page = APP._h;
   const opts = [...page.matchAll(/<option[^>]*>([^<]*)<\/option>/g)].map(m => m[1]);
   ok(opts.length === cles.length, `le menu déroulant propose les ${cles.length} saisons`);
-  const manque = cles.filter(k => !opts.some(o => o.includes(SAISONS[k].nom) && o.includes(k)));
+  const manque = cles.filter(k => !opts.some(o => o.includes(SAISONS[k].nom) && o.includes(creneau(k))));
   ok(manque.length === 0, `chaque ligne du menu porte le nom ET le créneau${manque.length ? " — sauf " + manque.join(", ") : ""}`);
   const mis = page.match(/<p class="fort"[^>]*><b>([^<]*)<\/b><\/p>/);
   ok(mis && mis[1] === SAISONS[api.SAISON_DEFAUT].nom,
