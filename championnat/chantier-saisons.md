@@ -213,10 +213,11 @@ saison anglaise ; rien d'elle n'est nécessaire pour jouer) :
 
 - [ ] **ANG-F — Le contenu qui reste français** (ouvert le 12/10/2026 par ANG-D, qui a livré les textes du
       moteur mais pas les tables de contenu : de la curation, pas une couche d'affichage).
-      (a) **Le recruteur** : `VIVIER_SAISON` liste de vrais joueurs du championnat de France été par été, et
+      (a) ✅ **FAIT EN SÉANCE le 14/10/2026 (v1.98, choix auteur)** : `VIVIER_SAISON_ANG`, vingt étés d'Anglais de l'étranger vérifiés sur Wikidata, lus seulement par une carrière anglaise ; libellé d'affichage `libProfil`, clés de sauvegarde intactes ; gardé par `harness-recruteur`. **Ne pas refaire.** Il ne reste que (b) et (c).
+      ~~(a) **Le recruteur** : `VIVIER_SAISON` liste de vrais joueurs du championnat de France été par été, et
       ses catégories sont des clés sérialisées dans `G.vivier` (« Français de l'étranger »…) que lit
       `harness-recruteur` — il faut donc un vivier anglais par été ET un libellé d'affichage séparé de la
-      clé, sans casser une seule sauvegarde. (b) **Le mot des clubs** : `MALEDICTIONS` / `HISTO_EPOQUE` ne
+      clé, sans casser une seule sauvegarde.~~ (b) **Le mot des clubs** : `MALEDICTIONS` / `HISTO_EPOQUE` ne
       connaissent aucun des soixante-douze clubs anglais, soit une phrase d'histoire vérifiée par club
       (la fonction rend `undefined` en attendant, donc le jeu se tait au lieu de mentir). (c) **Les sponsors
       et les équipementiers**, dont la liste est ARRÊTÉE PAR L'AUTEUR : une liste anglaise est sa décision,

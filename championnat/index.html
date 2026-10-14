@@ -549,7 +549,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.97"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.98"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -585,7 +585,10 @@ const PAYS={
     div1:an=>an>=1992?"Premier League":"First Division",
     div2:an=>an>=2004?"Championship":(an>=1992?"Division One":"Second Division"),
     tag1:an=>an>=1992?"PL":"D1",
-    tag2:an=>an>=2004?"CH":(an>=1992?"D1":"D2"),
+    /* « DIV1 » et non « D1 » pour la Division One de 1992-2004 : c'est son nom, mais « D1 » veut dire l'élite
+       partout ailleurs dans le jeu, et Sunderland en deuxième division ne doit pas porter l'étiquette du champion
+       (choix auteur, 14/10/2026). Avant 1992, « D1 » est bien l'élite et le reste. */
+    tag2:an=>an>=2004?"CH":(an>=1992?"DIV1":"D2"),
     coupe:"FA Cup", coupeLigue:"League Cup", champion:"champion d'Angleterre",
     /* Huit francs valaient une livre dans les années 90 : moyennes annuelles de la Réserve fédérale,
        1995 = 4,9864 FF/$ × 1,5785 $/£ = 7,87 ; 1996 = 5,1158 × 1,5607 = 7,99. Le chiffre est juste
@@ -9378,7 +9381,7 @@ function finirJournee(delta){
         nj.note0=nj.note; initTraits(nj);
         ach.joueurs.push(nj);
         retireDEurope(nj.nom); // réconciliation : s'il jouait dans un club européen, il le quitte (pas de doublon sur deux terrains)
-        G.news.unshift("MERCATO : "+ach.nom+" rafle "+nomLong(entree[0])+" ("+t+") sous votre nez. Le recruteur vous avait prévenu.");
+        G.news.unshift("MERCATO : "+ach.nom+" rafle "+nomLong(entree[0])+" ("+libProfil(t)+") sous votre nez. Le recruteur vous avait prévenu.");
         notif("🚨 "+ach.nom+" a raflé "+nomLong(entree[0])+", il figurait dans votre rapport de recruteur.");
       }
     }
@@ -12400,26 +12403,172 @@ const VIVIER_SAISON={
   ["L. Suárez","A",1987,84,89,"Ajax Amsterdam","","Luis"],
  ],
 };
+/* LES ANGLAIS DE L'ÉTRANGER (ANG-F a, v1.98, choix auteur du 14/10/2026) : le pendant anglais du drapeau "FR"
+   de VIVIER_SAISON, été par été, même format, drapeau "ANG". Ne se lit QUE dans une carrière anglaise
+   (vivierDeSaison), donc une carrière française ne voit pas un nom de plus. Clubs et années vérifiés
+   contre Wikidata (P54, dates de début et de fin) le 14/10/2026 ; Lineker à Nagoya (1993-94) de mémoire
+   sûre, absent de la recherche. L'Écosse compte comme l'étranger : les Rangers des années 90 en vivaient.
+   Michael Thomas (Benfica 1998-99) est écarté : « M. Thomas » porte déjà le prénom Michaël dans PRENOMS_VRAIS. */
+const VIVIER_SAISON_ANG={
+ 1990:[
+  ["C. Waddle","M",1960,86,86,"Olympique de Marseille","ANG","Chris"],
+  ["T. Steven","M",1963,83,83,"Glasgow Rangers","ANG","Trevor"],
+  ["M. Hateley","A",1961,82,82,"Glasgow Rangers","ANG","Mark"],
+  ["T. Butcher","D",1958,80,80,"Glasgow Rangers","ANG","Terry"],
+  ["C. Woods","G",1959,83,83,"Glasgow Rangers","ANG","Chris"],
+  ["G. Stevens","D",1963,81,81,"Glasgow Rangers","ANG","Gary"],
+  ["M. Walters","M",1964,81,82,"Glasgow Rangers","ANG","Mark"],
+  ["N. Spackman","M",1960,78,78,"Glasgow Rangers","ANG","Nigel"],
+  ["G. Hoddle","M",1957,80,80,"AS Monaco","ANG","Glenn"],
+  ["G. Rix","M",1957,74,74,"SM Caen","ANG","Graham"],
+ ],
+ 1991:[
+  ["C. Waddle","M",1960,85,85,"Olympique de Marseille","ANG","Chris"],
+  ["T. Steven","M",1963,83,83,"Olympique de Marseille","ANG","Trevor"],
+  ["D. Platt","M",1966,85,86,"Bari","ANG","David"],
+  ["M. Hateley","A",1961,83,83,"Glasgow Rangers","ANG","Mark"],
+  ["G. Stevens","D",1963,81,81,"Glasgow Rangers","ANG","Gary"],
+  ["N. Spackman","M",1960,77,77,"Glasgow Rangers","ANG","Nigel"],
+  ["G. Rix","M",1957,72,72,"Le Havre AC","ANG","Graham"],
+ ],
+ 1992:[
+  ["D. Platt","M",1966,85,85,"Juventus","ANG","David"],
+  ["P. Gascoigne","M",1967,85,88,"Lazio Rome","ANG","Paul"],
+  ["D. Walker","D",1965,85,85,"Sampdoria","ANG","Des"],
+  ["M. Hateley","A",1961,84,84,"Glasgow Rangers","ANG","Mark"],
+  ["T. Steven","M",1963,81,81,"Glasgow Rangers","ANG","Trevor"],
+  ["G. Stevens","D",1963,80,80,"Glasgow Rangers","ANG","Gary"],
+ ],
+ 1993:[
+  ["D. Platt","M",1966,84,84,"Sampdoria","ANG","David"],
+  ["P. Gascoigne","M",1967,84,86,"Lazio Rome","ANG","Paul"],
+  ["G. Lineker","A",1960,80,80,"Nagoya Grampus Eight","ANG","Gary"],
+  ["M. Hateley","A",1961,84,84,"Glasgow Rangers","ANG","Mark"],
+  ["T. Steven","M",1963,80,80,"Glasgow Rangers","ANG","Trevor"],
+  ["G. Stevens","D",1963,79,79,"Glasgow Rangers","ANG","Gary"],
+ ],
+ 1994:[
+  ["D. Platt","M",1966,83,83,"Sampdoria","ANG","David"],
+  ["P. Gascoigne","M",1967,84,84,"Lazio Rome","ANG","Paul"],
+  ["M. Hateley","A",1961,82,82,"Glasgow Rangers","ANG","Mark"],
+  ["T. Steven","M",1963,79,79,"Glasgow Rangers","ANG","Trevor"],
+ ],
+ 1995:[
+  ["P. Gascoigne","M",1967,86,86,"Glasgow Rangers","ANG","Paul"],
+  ["P. Ince","M",1967,86,86,"Inter Milan","ANG","Paul"],
+  ["T. Steven","M",1963,77,77,"Glasgow Rangers","ANG","Trevor"],
+ ],
+ 1996:[
+  ["P. Gascoigne","M",1967,85,85,"Glasgow Rangers","ANG","Paul"],
+  ["P. Ince","M",1967,86,86,"Inter Milan","ANG","Paul"],
+  ["J. Pollock","M",1974,70,76,"Osasuna","ANG","Jamie"],
+  ["T. Steven","M",1963,75,75,"Glasgow Rangers","ANG","Trevor"],
+ ],
+ 1997:[
+  ["P. Gascoigne","M",1967,81,81,"Glasgow Rangers","ANG","Paul"],
+  ["T. Dorigo","D",1965,79,79,"Torino","ANG","Tony"],
+  ["D. Dichio","A",1974,70,75,"Sampdoria","ANG","Danny"],
+  ["P. Rideout","A",1964,72,72,"Chongqing Lifan","ANG","Paul"],
+ ],
+ 1998:[
+  ["L. Sharpe","M",1971,74,76,"Sampdoria","ANG","Lee"],
+ ],
+ 1999:[
+  ["S. McManaman","M",1972,85,86,"Real Madrid","ANG","Steve"],
+ ],
+ 2000:[
+  ["S. McManaman","M",1972,85,85,"Real Madrid","ANG","Steve"],
+  ["O. Hargreaves","M",1981,70,86,"Bayern Munich","ANG","Owen"],
+ ],
+ 2001:[
+  ["S. McManaman","M",1972,84,84,"Real Madrid","ANG","Steve"],
+  ["O. Hargreaves","M",1981,75,86,"Bayern Munich","ANG","Owen"],
+  ["M. Ball","D",1979,78,81,"Glasgow Rangers","ANG","Michael"],
+ ],
+ 2002:[
+  ["S. McManaman","M",1972,83,83,"Real Madrid","ANG","Steve"],
+  ["O. Hargreaves","M",1981,79,86,"Bayern Munich","ANG","Owen"],
+  ["M. Ball","D",1979,78,80,"Glasgow Rangers","ANG","Michael"],
+ ],
+ 2003:[
+  ["D. Beckham","M",1975,88,88,"Real Madrid","ANG","David"],
+  ["O. Hargreaves","M",1981,81,86,"Bayern Munich","ANG","Owen"],
+  ["M. Ball","D",1979,77,79,"Glasgow Rangers","ANG","Michael"],
+  ["J. Bothroyd","A",1982,72,78,"Pérouse","ANG","Jay"],
+ ],
+ 2004:[
+  ["D. Beckham","M",1975,88,88,"Real Madrid","ANG","David"],
+  ["M. Owen","A",1979,87,87,"Real Madrid","ANG","Michael"],
+  ["J. Woodgate","D",1980,82,85,"Real Madrid","ANG","Jonathan"],
+  ["O. Hargreaves","M",1981,82,85,"Bayern Munich","ANG","Owen"],
+  ["M. Ball","D",1979,77,78,"Glasgow Rangers","ANG","Michael"],
+  ["J. Bothroyd","A",1982,73,78,"Pérouse","ANG","Jay"],
+ ],
+ 2005:[
+  ["D. Beckham","M",1975,87,87,"Real Madrid","ANG","David"],
+  ["J. Woodgate","D",1980,81,84,"Real Madrid","ANG","Jonathan"],
+  ["O. Hargreaves","M",1981,83,85,"Bayern Munich","ANG","Owen"],
+  ["M. Ball","D",1979,76,77,"PSV Eindhoven","ANG","Michael"],
+ ],
+ 2006:[
+  ["D. Beckham","M",1975,86,86,"Real Madrid","ANG","David"],
+  ["O. Hargreaves","M",1981,84,85,"Bayern Munich","ANG","Owen"],
+  ["M. Ball","D",1979,75,75,"PSV Eindhoven","ANG","Michael"],
+ ],
+ 2007:[
+  ["D. Beckham","M",1975,84,84,"LA Galaxy","ANG","David"],
+  ["D. Dichio","A",1974,66,66,"Toronto FC","ANG","Danny"],
+ ],
+ 2008:[
+  ["D. Beckham","M",1975,83,83,"LA Galaxy","ANG","David"],
+  ["D. Dichio","A",1974,65,65,"Toronto FC","ANG","Danny"],
+ ],
+ 2009:[
+  ["D. Beckham","M",1975,82,82,"LA Galaxy, prêté au Milan AC l'hiver","ANG","David"],
+  ["J. Pennant","M",1983,76,78,"Real Saragosse","ANG","Jermaine"],
+ ],
+};
 const VIVIER_FR=new Set(); // les Français de ces listes : nationalité FR à la signature
 for(const an in VIVIER_SAISON) for(const e of VIVIER_SAISON[an]){
   if(e[6].includes("FR")) VIVIER_FR.add(e[0]);
   if(e[7] && !Object.prototype.hasOwnProperty.call(PRENOMS_VRAIS, e[0])) PRENOMS_VRAIS[e[0]]=e[7]; // le prénom des vitrines du désir
 }
-function profilSaison(age, drapeau){
+const VIVIER_ANG=new Set(); // les Anglais de l'étranger : nationalité ANG à la signature, dans tous les pays
+for(const an in VIVIER_SAISON_ANG) for(const e of VIVIER_SAISON_ANG[an]){
+  VIVIER_ANG.add(e[0]);
+  if(e[7] && !Object.prototype.hasOwnProperty.call(PRENOMS_VRAIS, e[0])) PRENOMS_VRAIS[e[0]]=e[7];
+}
+/* La nationalité LOCALE de la carrière en cours (FR, ANG…) : celle du « compatriote de l'étranger ». */
+function natLocale(){ return (PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"]||PAYS.FR).nat; }
+/* Le libellé AFFICHÉ d'une catégorie du vivier. Les clés (« Français de l'étranger »…) sont sérialisées dans
+   G.vivier et lues par harness-recruteur : on ne les renomme jamais, on les dit dans le pays de la carrière.
+   En France, la fonction rend la clé telle quelle. */
+function libProfil(t){
+  const P=PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"]||PAYS.FR; if(P.code==="FR") return t;
+  if(t==="Pépite de Division 2") return "Pépite de "+libDiv(2);
+  const adj=P.adjM.charAt(0).toUpperCase()+P.adjM.slice(1);
+  return t.replace(/^Français /, adj+" ");
+}
+function profilSaison(age, drapeau, nat){ // nat : la nationalité locale ("FR" par défaut), celle du compatriote
   if(drapeau.includes("froid")) return "En froid avec son club, décote";
   if(age>=33) return "Vétéran en fin de carrière";
-  if(drapeau.includes("FR")) return "Français de l'étranger";
+  if(drapeau.includes(nat||"FR")) return "Français de l'étranger"; // clé de sauvegarde : libProfil la dit dans le pays
   return age<=23 ? "Jeune espoir étranger" : "International confirmé";
 }
 /* Le vivier de l'été `an`, tiré de sa liste ; null si cet été-là n'en a pas (la carrière a dépassé 2004). */
 function vivierDeSaison(an){
-  const L=VIVIER_SAISON[an]; if(!L) return null;
+  let L=VIVIER_SAISON[an]; if(!L) return null;
+  const nat=natLocale();
+  if(nat==="ANG"){ // carrière anglaise : ses expatriés à elle, et la liste de l'été sans doublon
+    const A=VIVIER_SAISON_ANG[an]||[], dejaA=new Set(A.map(e=>e[0]));
+    L=L.filter(e=>!dejaA.has(e[0])).concat(A);
+  }
   const enJeu=new Set(); // sous contrat en France cette saison (votre club compris : un joker signé ne revient pas)
   for(const c of G.clubs.concat(G.autre||[])) for(const jj of (c.joueurs||[])) enJeu.add(jj.nom);
   const v={};
   for(const e of L){
     if(enJeu.has(e[0])) continue;
-    const age=an-e[2], t=profilSaison(age, e[6]);
+    const age=an-e[2], t=profilSaison(age, e[6], nat);
     (v[t]=v[t]||[]).push([e[0],e[1],age,e[3],e[4],e[5]]);
   }
   return v;
@@ -12497,7 +12646,8 @@ function joueurDeVivier(e, t){
   const j={nom:e[0],pos:e[1],age:e[2],note:e[3],pot:e[4],lieu:e[5],
            buts:0,passes:0,matchs:0,avendre:false,fav:false,titu:false,club:"EXT",uid:uidGen(),bless:0,susp:0,
            reel:true, moral:RNDI(58,75), sansJouer:0,
-           nat:(t.includes("Division 2")||t.includes("come-back")||t==="Français de l'étranger"||VIVIER_FR.has(e[0])||["E. Cantona"].includes(e[0]))?"FR":"ETR"};
+           nat:(t.includes("Division 2")||t.includes("come-back")||t==="Français de l'étranger")?natLocale()
+              :(VIVIER_FR.has(e[0])||["E. Cantona"].includes(e[0]))?"FR":VIVIER_ANG.has(e[0])?"ANG":"ETR"};
   j.note0=j.note;
   initTraits(j);
   return j;
@@ -15363,12 +15513,14 @@ function lsEfface(k){ try{ localStorage.removeItem(k); }catch(e){} }
 function idxLit(){ try{ const a=JSON.parse(lsLit(IDXKEY)||"[]"); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
 function idxEcrit(l){ try{ localStorage.setItem(IDXKEY, JSON.stringify(l)); }catch(e){} }
 function partieNeuve(){ const id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); return {id, k:PARTPFX+id}; }
+// la division d'une carte de carrière se dit dans le pays de CETTE carrière, pas dans celui que l'accueil regarde
+function divCarte(p){ const P=PAYS[p.pays]||PAYS.FR, an=parseInt(p.saison,10); return p.div===2?P.div2(an):P.div1(an); }
 function ficheDe(o){ // carte d'identité d'une carrière, lue dans la sauvegarde
   const c=metaClub(o.monClub);
   // `enjeu` (v1.08) : la ligne « 5ᵉ, à 2 points de l'Europe · samedi, le derby », calculée ICI et rangée
   // dans l'index — l'accueil la lit sans rouvrir les 500 Ko de la sauvegarde.
   return {clubId:o.monClub, club:c?c.nom:"Club inconnu", saison:o.saison||"?",
-          journee:Math.min((o.journee||0)+1,38), div:o.div||1, titres:(o.palmares||[]).length,
+          journee:Math.min((o.journee||0)+1,38), div:o.div||1, titres:(o.palmares||[]).length, pays:o.pays||"FR",
           enjeu:ligneEnjeu(o)};
 }
 function clesParties(){ // balayage des clés du navigateur (pour récupérer une carrière absente de l'index)
@@ -15703,7 +15855,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
        <span class="repBlason">${blason(metaClub(p0.clubId)||{id:p0.clubId},56)}</span>
        <span class="repCorps">
          <span class="repClub">${esc(p0.nom||p0.club)}</span>
-         <span class="repMeta">${p0.nom&&p0.nom!==p0.club?esc(p0.club)+" · ":""}${esc(p0.saison)} · Division ${p0.div} · Journée ${p0.journee}/38${p0.titres?" · 🏆 "+p0.titres:""}</span>
+         <span class="repMeta">${p0.nom&&p0.nom!==p0.club?esc(p0.club)+" · ":""}${esc(p0.saison)} · ${esc(divCarte(p0))} · Journée ${p0.journee}/38${p0.titres?" · 🏆 "+p0.titres:""}</span>
          ${p0.enjeu?`<span class="repEnjeu">${esc(p0.enjeu)}</span>`:""}
        </span>
        <span class="repGo">▶ Reprendre</span>
@@ -18144,7 +18296,7 @@ function ecranMercato(){
     }
   };
   const carteJoker=(o,k)=>`<div class="carte click rj" data-k="${k}">
-    <span style="font-size:13px">${esc(o.type)}</span>
+    <span style="font-size:13px">${esc(libProfil(o.type))}</span>
     <b class="fort">${esc(nomLong(o.j.nom))}</b>
     <span style="font-size:13px"><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b>${o.j.note}</b></span>
     <span class="dim" style="font-size:13px">${esc(o.j.lieu)}</span>

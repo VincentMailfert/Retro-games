@@ -42,7 +42,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const api = new Function(script + "\n;return {PAYS,voitPays,paysVu,anVu,paysDeSaison,libDiv,tagDiv,libCoupeNat," +
   "libCoupeLigue,libChampion,adjPays,libEcran,MM,MMv,MMC,MMn,UU,FMT,MF_C,PALIERS_D2,SAISONS,SAISON_DEFAUT," +
-  "nouvellePartie,ecranAccueil,chrome,migre,esc,anneeJeu,EN_TEST:true," +
+  "nouvellePartie,ecranAccueil,chrome,migre,esc,anneeJeu,divCarte,EN_TEST:true," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;}};")();
 const { PAYS, SAISONS, voitPays, libDiv, tagDiv, MM, MMv, MMC, MMn, UU, FMT, MF_C } = api;
 
@@ -97,8 +97,11 @@ console.log("B) Les divisions se nomment par pays ET par année");
     "et le Championship à partir de 2004-05");
   ok(tagDiv(1, 1991) === "D1" && tagDiv(1, 1992) === "PL",
     "le bandeau d'une carrière anglaise passe donc de « D1 » à « PL » tout seul, en 1992");
-  ok(tagDiv(2, 1991) === "D2" && tagDiv(2, 1992) === "D1" && tagDiv(2, 2004) === "CH",
-    "et l'étiquette de l'antichambre suit : « D2 », puis « D1 », puis « CH »");
+  ok(tagDiv(2, 1991) === "D2" && tagDiv(2, 1992) === "DIV1" && tagDiv(2, 2004) === "CH",
+    "et l'étiquette de l'antichambre suit : « D2 », puis « DIV1 » (pas « D1 », réservé à l'élite), puis « CH »");
+  ok(api.divCarte({pays:"ANG", saison:"1995-96", div:1}) === "Premier League" && api.divCarte({pays:"ANG", saison:"1995-96", div:2}) === "Division One"
+     && api.divCarte({saison:"1995-96", div:1}) === "Division 1" && api.divCarte({pays:"FR", saison:"2005-06", div:2}) === "Division 2",
+    "la carte d'une carrière à l'accueil dit la division dans SON pays (une carte sans pays reste française)");
   // la coupe et la formule de titre suivent le pays
   ok(api.libCoupeNat() === "FA Cup" && api.libCoupeLigue() === "League Cup", "la coupe nationale anglaise est la FA Cup, la coupe de la ligue la League Cup");
   ok(api.libChampion() === "champion d'Angleterre" && api.adjPays() === "anglaise", "« champion d'Angleterre », et l'adjectif qui va avec");

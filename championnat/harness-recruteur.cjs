@@ -27,7 +27,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,anneeJeu,SAISONS,VIVIER_SAISON,genRapport,migre,nomLong,joueurDeVivier,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,anneeJeu,SAISONS,VIVIER_SAISON,genRapport,migre,nomLong,joueurDeVivier,VIVIER_SAISON_ANG,libProfil,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -38,6 +38,8 @@ const employes = (G) => { const s = new Set(); for (const c of G.clubs.concat(G.
 /* chaque entrée du vivier doit sortir, telle quelle, de la liste de l'été `an` */
 function conforme(G, an, etiquette) {
   const L = api.VIVIER_SAISON[an], par = {}; for (const e of L) par[e[0]] = e;
+  // une carrière anglaise lit aussi ses Anglais de l'étranger (VIVIER_SAISON_ANG), qui priment sur la liste de l'été
+  if (G.pays === "ANG") for (const e of (api.VIVIER_SAISON_ANG[an] || [])) par[e[0]] = e;
   const emp = employes(G), v = noms(G);
   const faux = [];
   for (const e of v) {
@@ -149,6 +151,37 @@ try {
   if (z.nat !== "FR" || h.nat !== "FR" || r.nat !== "ETR") fail("nationalités : Zidane " + z.nat + ", Henry " + h.nat + ", Ronaldo " + r.nat);
   else ok("Zidane et Henry signent Français, Ronaldo étranger");
 } catch (e) { fail("exception affichage : " + e.stack); }
+
+/* ===== Les Anglais de l'étranger (ANG-F a, v1.98) ===== */
+console.log("Les Anglais de l'étranger : vus de Liverpool, les compatriotes sont anglais");
+try {
+  const VA = api.VIVIER_SAISON_ANG, ans = Object.keys(VA).map(Number);
+  if (!(ans.length === 20 && ans.every(a => a >= 1990 && a <= 2009 && VA[a].length >= 1))) fail("il manque des étés aux Anglais de l'étranger : " + ans.join(","));
+  else ok("vingt étés, de 1990 à 2009, chacun avec au moins un Anglais de l'étranger");
+  const malForme = []; for (const a of ans) for (const e of VA[a]) if (e.length !== 8 || e[6] !== "ANG" || !e[7] || /—/.test(e[5])) malForme.push(a + " " + e[0]);
+  if (malForme.length) fail("entrées mal formées : " + malForme.join(", ")); else ok("toutes au format de VIVIER_SAISON, drapeau « ANG », prénom renseigné");
+  // carrière anglaise 1995 : la catégorie des compatriotes ne contient QUE des Anglais, dite « Anglais de l'étranger »
+  const k = Object.keys(api.SAISONS).find(c => api.SAISONS[c].pays === "ANG" && api.SAISONS[c].an === 1995);
+  api.nouvellePartie(api.SAISONS[k].d1[5], k);
+  const G = api.getG(), comp = (G.vivier["Français de l'étranger"] || []).map(e => e[0]);
+  const nomsA = new Set(VA[1995].map(e => e[0]));
+  if (!comp.length || comp.some(n => !nomsA.has(n))) fail("compatriotes d'une carrière anglaise : " + comp.join(", "));
+  else ok("carrière anglaise : la catégorie des compatriotes ne porte que des Anglais (" + comp.join(", ") + ")");
+  if (noms(G).some(e => e[0] === "D. Deschamps" || e[0] === "M. Desailly") && comp.some(n => /Deschamps|Desailly/.test(n))) fail("un Français reste compatriote en Angleterre");
+  if (api.libProfil("Français de l'étranger") !== "Anglais de l'étranger" || api.libProfil("Pépite de Division 2") !== "Pépite de Division One")
+    fail("libellés anglais : " + api.libProfil("Français de l'étranger") + " / " + api.libProfil("Pépite de Division 2"));
+  else ok("affichés « Anglais de l'étranger » et « Pépite de Division One », la clé de sauvegarde ne bouge pas");
+  const g = api.joueurDeVivier(G.vivier["Français de l'étranger"][0], "Français de l'étranger");
+  const d = (G.vivier["International confirmé"] || []).find(e => e[0] === "D. Deschamps") || (G.vivier["Français en quête de come-back"] || []).find(e => e[0] === "D. Deschamps");
+  if (g.nat !== "ANG") fail(g.nom + " signe " + g.nat + " au lieu de ANG"); else ok(g.nom + " signe Anglais");
+  if (d && api.joueurDeVivier(d, "International confirmé").nat !== "FR") fail("Deschamps ne signe plus Français vu d'Angleterre");
+  // carrière française : aucun nom propre aux Anglais de l'étranger, et le libellé reste la clé
+  api.nouvellePartie(api.SAISONS["1995-96"].d1[0], "1995-96");
+  const fr = new Set(noms(api.getG()).map(e => e[0])), seulsA = [...nomsA].filter(n => !api.VIVIER_SAISON[1995].some(e => e[0] === n));
+  if (seulsA.some(n => fr.has(n))) fail("un Anglais de l'étranger s'invite dans une carrière française : " + seulsA.filter(n => fr.has(n)).join(", "));
+  else if (api.libProfil("Français de l'étranger") !== "Français de l'étranger") fail("le libellé français a bougé");
+  else ok("carrière française : pas un nom de plus, et « Français de l'étranger » reste tel quel");
+} catch (e) { fail("exception Anglais de l'étranger : " + e.stack); }
 
 console.log(FAILS ? "\n" + FAILS + " échec(s)" : "\nTout est vert.");
 process.exit(FAILS ? 1 : 0);
