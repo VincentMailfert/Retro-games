@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MULTIPLEX · le foot français des années 90</title>
+<title>MULTIPLEX · le foot des années 90</title>
 <!-- APERÇU DU LIEN (chantier accueil, 25/09/2026) : sans ces balises, un lien envoyé par messagerie ne montrait
      qu'un titre nu. L'image vit dans le dépôt (img/partage.png) ; les réseaux exigent une adresse ABSOLUE. -->
-<meta name="description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur et président de votre club. Jeu de gestion de football rétro : 40 clubs, plus de 10 saisons et des effectifs aussi fidèles que possible.">
+<meta name="description" content="Revivez le foot des années 90, de Bollaert à Anfield, en entraîneur et président de votre club. Jeu de gestion de football rétro : 40 clubs, plus de 10 saisons et des effectifs aussi fidèles que possible.">
 <meta name="theme-color" content="#0b1626">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="Multiplex">
-<meta property="og:title" content="MULTIPLEX · le foot français des années 90, en direct">
-<meta property="og:description" content="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur et président de votre club. 40 clubs, plus de 10 saisons et des effectifs aussi fidèles que possible.">
+<meta property="og:title" content="MULTIPLEX · le foot des années 90, en direct">
+<meta property="og:description" content="Revivez le foot des années 90, de Bollaert à Anfield, en entraîneur et président de votre club. 40 clubs, plus de 10 saisons et des effectifs aussi fidèles que possible.">
 <meta property="og:url" content="https://multiplex.club/">
 <meta property="og:image" content="https://multiplex.club/img/partage.png">
 <meta property="og:image:width" content="1200">
@@ -549,7 +549,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "1.94"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "1.95"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -15591,7 +15591,7 @@ function saisie(o){ // remplace prompt()
 
 
 function majTitre(){
-  document.title="MULTIPLEX · "+(G?clubById(G.monClub).nom:"le foot français des années 90");
+  document.title="MULTIPLEX · "+(G?clubById(G.monClub).nom:"le foot des années 90");
 }
 
 function statutClub(c){
@@ -15726,7 +15726,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
 let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
-const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert au Vélodrome, en entraîneur et président de votre club.";
+const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
 function ecranAccueil(){
   const parties=partiesListe();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
