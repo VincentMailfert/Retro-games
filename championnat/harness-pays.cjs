@@ -203,13 +203,34 @@ console.log("F) L'écran : sélecteur groupé par pays, bandeaux au bon libellé
   api.setAccueil(api.SAISON_DEFAUT);
   api.ecranAccueil();
   let page = APP._h;
-  ok(!page.includes("<optgroup"), "avec un seul pays, le sélecteur reste la liste plate d'avant : un groupe unique n'est pas un groupe");
+  /* DEPUIS LA v1.93, LE JEU A DEUX PAYS. Jusque-là ce contrôle disait l'inverse — « avec un
+     seul pays le sélecteur reste la liste plate, un groupe unique n'est pas un groupe » —
+     et c'était juste : ANG 1995-96 n'existait pas encore. Le mécanisme n'a pas changé, c'est
+     la donnée qui a changé, et le contrôle suit : les groupes DOIVENT être là maintenant. */
+  const clesFR = cles.filter(k => (SAISONS[k].pays || "FR") === "FR");
+  const clesANG = cles.filter(k => SAISONS[k].pays === "ANG");
+  ok(clesANG.length >= 1, `le registre porte ${clesANG.length} saison(s) anglaise(s) : ${clesANG.join(", ")}`);
+  ok(page.includes("<optgroup"), "deux pays au registre, donc le sélecteur se groupe : les optgroup sont là");
+  {
+    const g = [...page.matchAll(/<optgroup label="([^"]*)"/g)].map(m => m[1]);
+    ok(g.length === 2, `deux groupes, un par pays : ${g.join(" | ")}`);
+    const fr = (page.match(/<optgroup label="[^"]*France"[^>]*>([\s\S]*?)<\/optgroup>/) || ["", ""])[1];
+    const an = (page.match(/<optgroup label="[^"]*Angleterre"[^>]*>([\s\S]*?)<\/optgroup>/) || ["", ""])[1];
+    ok((fr.match(/<option/g) || []).length === clesFR.length,
+      `les ${clesFR.length} saisons françaises sont rangées sous la France`);
+    ok((an.match(/<option/g) || []).length === clesANG.length,
+      `et les ${clesANG.length} anglaises sous l'Angleterre`);
+    ok(an.includes("1995-96") && !fr.includes("Douze points"),
+      "ANG 1995-96 est sous l'Angleterre, et pas une ligne d'elle ne traîne chez les Français");
+  }
   ok(page.includes("DIVISION 1") && page.includes("DIVISION 2"), "les deux colonnes de clubs s'annoncent « DIVISION 1 » et « DIVISION 2 »");
   ok(page.includes("Division 1 française"), "et le bandeau dit « Division 1 française », comme avant le cadre");
   ok(!/undefined/.test(page), "aucun « undefined » n'a fuité dans la page");
 
-  /* On enregistre une FAUSSE saison anglaise le temps du contrôle : c'est le seul moyen de prouver
-     aujourd'hui que les groupes apparaissent le jour où l'Angleterre entrera pour de vrai. */
+  /* On enregistre en plus une FAUSSE saison anglaise de 1990 le temps du contrôle. Elle ne sert
+     plus à prouver que les groupes apparaissent — la vraie ANG 1995-96 le fait désormais — mais
+     elle prouve ce que 1995-96 ne peut pas montrer : qu'une saison anglaise d'AVANT 1992 annonce
+     « FIRST DIVISION », puisque la Premier League n'existait pas encore. */
   const FAUSSE = "ANG-1990-91";
   SAISONS[FAUSSE] = { pays: "ANG", an: 1990, titre: "1990-91", nom: "Essai du harnais",
     d1: SAISONS[api.SAISON_DEFAUT].d1, d2: SAISONS[api.SAISON_DEFAUT].d2,
@@ -224,8 +245,8 @@ console.log("F) L'écran : sélecteur groupé par pays, bandeaux au bon libellé
     ok(groupes.some(g => g.includes("France")) && groupes.some(g => g.includes("Angleterre")),
       `et chaque groupe porte son pays : ${groupes.join(" | ")}`);
     const dedansFR = (page.match(/<optgroup label="[^"]*France"[^>]*>([\s\S]*?)<\/optgroup>/) || ["", ""])[1];
-    ok((dedansFR.match(/<option/g) || []).length === cles.length,
-      `les ${cles.length} saisons françaises sont rangées sous la France, et la fausse anglaise hors d'elles`);
+    ok((dedansFR.match(/<option/g) || []).length === clesFR.length,
+      `les ${clesFR.length} saisons françaises restent sous la France, et la fausse anglaise hors d'elles`);
     // et l'écran d'une saison anglaise parle anglais
     api.setAccueil(FAUSSE);
     api.ecranAccueil();
