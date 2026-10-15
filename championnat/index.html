@@ -367,7 +367,7 @@
      ("trésorerie insuffisante") puisse s'afficher par-dessus la fenêtre d'où part le clic — l'embauche
      d'un coach, typiquement — sans l'effacer ni toucher au verrou _penEnCours, qui appartient à #fiche. */
   #msgbox{position:fixed; inset:0; background:rgba(4,9,18,.72); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
-  #msgbox input[type=text]{display:block; width:100%; margin-top:8px; background:#0b1626; color:#dfe9ff;
+  #msgbox input[type=text],#msgbox input[type=email],#msgbox input[type=password]{display:block; width:100%; margin-top:8px; background:#0b1626; color:#dfe9ff;
      border:1px solid #38507a; border-radius:4px; font-family:inherit; font-size:14px; padding:9px;}
   .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px;}
   /* LE BANDEAU D'ACCUEIL (chantier accueil) : pour qui arrive sans carrière, ce qu'est le jeu en une phrase, et deux
@@ -9707,7 +9707,7 @@ function finirJournee(delta){
   euroTick();  // tour de Ligue des Champions en semaine, s'il est à l'heure
   if(G.journee>=38) finDeSaison();
   assureCapitaine(); // si le capitaine est parti (transfert, blessure longue, incident), on en renomme un
-  sauvegardeLocale(true); // sauvegarde auto en fin de journée
+  if(sauvegardeLocale(true)) nuagePlanifie("journee"); // sauvegarde auto en fin de journée, et sa copie en ligne (au plus toutes les deux minutes)
 }
 
 /* ---------- Moral & sélections nationales ---------- */
@@ -15790,6 +15790,22 @@ function migre(){
     finirJournee(r&&r.moment?autoMoment(r.moment):null);
   }
 }
+/* UNE CARRIÈRE RAPATRIÉE DU SERVEUR VIENT DE L'EXTÉRIEUR : rien n'empêche d'y avoir bricolé un nom de club
+   ou de joueur. Ces noms ressortent ensuite dans du HTML — téléscripteur, dépêches, incidents, fiches —
+   par une bonne centaine de points d'écriture, et tous ne passent pas par esc(). Plutôt que de parier
+   sur l'exhaustivité d'un audit, on coupe à la RACINE, à l'entrée : les chevrons sont retirés de toutes
+   les chaînes. Aucun nom de club n'en a jamais contenu, et sans eux il ne reste plus de balise à ouvrir.
+   (Née pour l'import de fichier, retiré en v1.61 ; nuageRapatrie() en a toujours besoin.) */
+function assainit(o, prof){
+  prof=prof||0;
+  if(prof>24 || o==null || typeof o!=="object") return o;
+  for(const k in o){
+    const v=o[k];
+    if(typeof v==="string"){ if(v.indexOf("<")>=0 || v.indexOf(">")>=0) o[k]=v.replace(/[<>]/g,""); }
+    else if(v && typeof v==="object") assainit(v, prof+1);
+  }
+  return o;
+}
 /* ---------- Sauvegarde rapide en 1 clic (localStorage, sans fichier) ---------- */
 /* PLUSIEURS CARRIÈRES cohabitent dans le navigateur : chacune a sa propre clé, et un petit index
    (IDXKEY) garde leur carte d'identité (club, saison, journée, date) pour dresser la liste de
@@ -15846,6 +15862,7 @@ function partiesListe(){ // la liste de l'accueil, la plus récente d'abord — 
 }
 function placeDispo(){ // reste-t-il de la place pour une carrière de plus ?
   if(partiesListe().length<MAX_PARTIES) return true;
+  if(nuageLibere()) return true; // connecté : la plus ancienne, à jour en ligne, quitte le navigateur (elle reste en ligne)
   message("Vous avez déjà "+MAX_PARTIES+" carrières en cours : c'est tout ce que le navigateur peut retenir.\n\nSupprimez-en une sur l'accueil pour en commencer une nouvelle.", {titre:"💾 L'ÉTAGÈRE EST PLEINE"});
   return false;
 }
@@ -15894,16 +15911,36 @@ function chargeLocale(id){ // reprendre une carrière (sans argument : la plus r
     return true;
   }catch(e){ message("Impossible de relire cette carrière : les données sont corrompues.", {titre:"💾 CARRIÈRE ILLISIBLE", coul:"#ff6f61"}); return false; }
 }
+async function ouvreCarriere(id){
+  if(OUVRE_EN_COURS) return; OUVRE_EN_COURS=true;
+  try{
+    const r=await nuagePrepare(id);
+    if(!r.ok && !partiesListe().some(e=>e.id===id)){
+      const T={place:"Ce navigateur garde déjà "+MAX_PARTIES+" carrières qui ne sont pas encore en ligne. Laissez-les partir (il faut du réseau), ou supprimez-en une.",
+        reseau:"Pas de connexion : cette carrière est en ligne, elle reviendra dès que le réseau sera là.",
+        illisible:"Cette carrière en ligne est illisible.", absente:"Cette carrière n'existe plus en ligne.",
+        plein:"La mémoire du navigateur est pleine. Supprimez une vieille carrière."};
+      return message(T[r.code]||texteErreur(r.code), {titre:"☁️ CARRIÈRE EN LIGNE", coul:"#ff6f61", onOk:ecranAccueil});
+    }
+    chargeLocale(id);
+  } finally { OUVRE_EN_COURS=false; }
+}
+let OUVRE_EN_COURS=false; // deux clics rapides n'ouvrent pas deux rapatriements
 function supprimePartie(id){
-  const p=partiesListe().find(e=>e.id===id); if(!p) return;
+  const p=carrieresAffichees().find(e=>e.id===id); if(!p) return; // celles du navigateur, et celles qui ne vivent qu'en ligne
+  // connecté, une carrière de ce compte part aussi en ligne (choix de l'auteur, 29/09/2026)
+  const s=compteLit(), x=nuageEtatLit()[id], enLigne=!!(s && (p.enLigne || (x && x.uid===s.uid)));
   // le nom de carrière vient du joueur (saisie libre) : corpsMessage l'échappe avant de l'écrire
   confirme({
     titre:"🗑️ SUPPRIMER CETTE CARRIÈRE ?",
-    texte:"\u00ab "+(p.nom||p.club)+" \u00bb, "+p.saison+", J"+p.journee+"/38.\nElle sera perdue pour de bon.",
+    texte:"\u00ab "+(p.nom||p.club)+" \u00bb, "+p.saison+", J"+p.journee+"/38.\n"+(enLigne
+      ?(p.enLigne?"Elle sera effacée en ligne, pour de bon.":"Elle sera effacée de ce navigateur et en ligne, pour de bon.")
+      :"Elle sera perdue pour de bon."),
     oui:"Supprimer définitivement", non:"La garder",
     onOui:()=>{
-      lsEfface(p.k);
+      if(p.k) lsEfface(p.k);
       idxEcrit(idxLit().filter(e=>e&&e.id!==id));
+      nuageOublie(id);
       if(PARTIE && PARTIE.id===id){ PARTIE=null; G=null; }
       ecranAccueil();
     }
@@ -15921,7 +15958,7 @@ function renommePartie(id){
   });
 }
 function retourAccueil(){ // quitter la carrière en cours pour la liste — en la sauvegardant au passage
-  if(G){ abandonneDirect(); sauvegardeLocale(true); } // abandonneDirect() lève le verrou : la fermeture ci-dessous est franche
+  if(G){ abandonneDirect(); sauvegardeLocale(true); nuagePlanifie("quitte"); } // abandonneDirect() lève le verrou : la fermeture ci-dessous est franche
   videMessage(); // et aucun message ne reste posé au-dessus de l'accueil
   if(fiche && fiche.style) fiche.style.display="none";
   G=null; VUECLUB=null; ECRAN="calendrier"; majTitre(); ecranAccueil();
@@ -15938,6 +15975,393 @@ function ilYA(ts){ // « il y a trois jours » : le repère le plus parlant pour
   if(j<14) return "il y a une semaine";
   if(j<61) return "il y a "+Math.floor(j/7)+" semaines";
   return "il y a "+Math.floor(j/30)+" mois";
+}
+
+/* ---------- La copie en ligne des carrières (compte joueur) ----------
+   LA SAUVEGARDE LOCALE RESTE LA PREMIÈRE LIGNE, le nuage n'en est que la copie. Il ne sérialise jamais G :
+   il relit ce que sauvegardeLocale vient d'écrire, donc le verrou du match en cours (G._pend) protège les
+   deux copies d'un coup, et ce qui part en ligne est exactement ce qui dort dans le navigateur.
+   Sans compte, rien ici ne s'exécute : zéro requête, zéro écriture, le jeu d'avant.
+   On parle aux deux services de Supabase (la connexion /auth/v1, la base /rest/v1) par fetch, sans leur
+   bibliothèque : pas de dépendance dans la logique de jeu, et le harnais remplace fetch par un faux serveur.
+   Seule la clé PUBLIQUE figure ici. Ce que chacun peut lire ou écrire est tranché par les règles de la
+   base (chacun ses carrières), jamais par ce code : le dépôt est public.
+   La sauvegarde voyage compressée (gzip natif du navigateur) : ~780 Ko deviennent ~90 Ko.
+   Gardé par harness-compte.cjs. */
+// le projet Supabase « multiplex » (région Paris) et sa clé PUBLIQUE, faite pour être vue ; vide = nuage éteint
+const NUAGE={url:"https://hemedkhebhllymdgvuka.supabase.co", cle:"sb_publishable_0wPT6Ao-wVGsS9HSASveSg_XCS07vEB"};
+const COMPTEKEY="d1manager_compte_v1";  // la session du joueur connecté : {at, rt, exp, uid, email}
+const NUAGEKEY="d1manager_nuage_v1";    // l'état de synchro par carrière : {pid:{uid, base, envoye, nom, refus}}
+const NUAGE_MAX=10;                     // carrières gardées en ligne par compte (le serveur le fait respecter)
+const NUAGE_DELAI=120000;               // en fin de journée, pas plus d'un envoi toutes les deux minutes
+const NUAGE_ATTENTE=20000;              // au-delà, une requête est abandonnée (réseau qui traîne)
+let NUAGE_ETAT="aucun";                 // aucun (pas de compte) | ok | attente (réseau) | refus (serveur)
+let NUAGE_DERNIER=0, NUAGE_EN_COURS=null, NUAGE_ENCORE=false, NUAGE_REFRESH=null;
+const NUAGE_AVIS=[];                    // ce que le joueur doit apprendre (conflit, refus) : lu par l'interface
+
+function compteLit(){ try{ const s=JSON.parse(lsLit(COMPTEKEY)||"null"); return s&&s.rt?s:null; }catch(e){ return null; } }
+function compteEcrit(s){ try{ if(s) localStorage.setItem(COMPTEKEY, JSON.stringify(s)); else localStorage.removeItem(COMPTEKEY); }catch(e){} }
+function nuageEtatLit(){ try{ const o=JSON.parse(lsLit(NUAGEKEY)||"{}"); return o&&typeof o==="object"&&!Array.isArray(o)?o:{}; }catch(e){ return {}; } }
+function nuageEtatEcrit(o){ try{ localStorage.setItem(NUAGEKEY, JSON.stringify(o)); }catch(e){} }
+function nuageAllume(){ return !!(NUAGE.url && NUAGE.cle && compteLit()); }
+function nuageAvis(txt){ NUAGE_AVIS.push(txt); if(NUAGE_AVIS.length>10) NUAGE_AVIS.shift(); }
+// L'AVANCEMENT d'une carrière, pour trancher un conflit : la saison d'abord, la journée ensuite. La date
+// seule (_maj) tromperait : une vieille copie rejouée hier serait « plus récente » qu'une carrière avancée.
+function avanceDe(o){ return (+o.saisonIdx||1)*100+Math.min(+o.journee||0, 99); }
+
+function sessionDe(d){
+  return {at:d.access_token, rt:d.refresh_token, exp:Date.now()+(+d.expires_in||3600)*1000,
+          uid:d.user&&d.user.id, email:d.user&&d.user.email};
+}
+async function nuageFetch(chemin, init){ // ne lève jamais : {ok, statut (0 = pas de réseau), donnees}
+  let minuteur=null;
+  try{
+    const ac=typeof AbortController!=="undefined"?new AbortController():null;
+    if(ac){ init.signal=ac.signal; minuteur=setTimeout(()=>ac.abort(), NUAGE_ATTENTE); }
+    const r=await fetch(NUAGE.url+chemin, init);
+    const t=await r.text(); let d=null;
+    try{ d=t?JSON.parse(t):null; }catch(e){ d=t; }
+    return {ok:r.ok, statut:r.status, donnees:d};
+  }catch(e){ return {ok:false, statut:0, donnees:null}; }
+  finally{ if(minuteur) clearTimeout(minuteur); }
+}
+async function nuageAppel(chemin, methode, corps, avecJeton){
+  if(!NUAGE.url) return {ok:false, statut:0, donnees:null};
+  const init=()=>{ const h={apikey:NUAGE.cle, "Content-Type":"application/json"};
+    if(avecJeton) h.Authorization="Bearer "+compteLit().at;
+    return {method:methode, headers:h, body:corps==null?undefined:JSON.stringify(corps)}; };
+  if(avecJeton){
+    let s=compteLit(); if(!s) return {ok:false, statut:401, donnees:null};
+    if(!s.exp || Date.now()>s.exp-60000){ s=await compteRafraichit(); if(!s) return {ok:false, statut:compteLit()?0:401, donnees:null}; }
+  }
+  const r=await nuageFetch(chemin, init());
+  if(r.statut!==401 || !avecJeton) return r;
+  // jeton refusé avant son heure (révoqué, horloge du téléphone fausse) : on le renouvelle une fois
+  if(!await compteRafraichit()) return compteLit()?{ok:false, statut:0, donnees:null}:r;
+  return nuageFetch(chemin, init());
+}
+function compteRafraichit(){ // un seul renouvellement à la fois, même si trois appels le demandent
+  if(NUAGE_REFRESH) return NUAGE_REFRESH;
+  NUAGE_REFRESH=(async()=>{
+    const s=compteLit(); if(!s) return null;
+    const r=await nuageFetch("/auth/v1/token?grant_type=refresh_token",
+      {method:"POST", headers:{apikey:NUAGE.cle, "Content-Type":"application/json"}, body:JSON.stringify({refresh_token:s.rt})});
+    if(r.ok && r.donnees && r.donnees.access_token){ const n=sessionDe(r.donnees); compteEcrit(n); return n; }
+    // pas de réseau : la session reste, on réessaiera. Refus net du serveur : la session est morte.
+    if(r.statut>=400 && r.statut<500){ compteEcrit(null); NUAGE_ETAT="aucun"; }
+    return null;
+  })().finally(()=>{ NUAGE_REFRESH=null; });
+  return NUAGE_REFRESH;
+}
+function codeErreur(r){ // le motif d'un refus de la connexion, en un mot
+  const d=r.donnees||{};
+  if(r.statut===0) return "reseau";
+  return String(d.error_code||d.code||d.error||d.msg||r.statut);
+}
+function adresseRetour(){ // où ramènent les liens des emails (confirmation, mot de passe oublié)
+  try{ return location.origin+location.pathname; }catch(e){ return ""; }
+}
+async function compteInscription(email, mdp){
+  const r=await nuageAppel("/auth/v1/signup?redirect_to="+encodeURIComponent(adresseRetour()), "POST", {email, password:mdp}, false);
+  if(!r.ok) return {ok:false, code:codeErreur(r)};
+  if(r.donnees && r.donnees.access_token){ compteEcrit(sessionDe(r.donnees)); return {ok:true}; }
+  return {ok:true, confirmer:true}; // l'adresse doit être confirmée par le lien reçu
+}
+async function compteConnexion(email, mdp){
+  const r=await nuageAppel("/auth/v1/token?grant_type=password", "POST", {email, password:mdp}, false);
+  if(!r.ok || !r.donnees || !r.donnees.access_token) return {ok:false, code:codeErreur(r)};
+  compteEcrit(sessionDe(r.donnees)); NUAGE_ETAT="attente";
+  return {ok:true};
+}
+async function compteOubli(email){
+  const r=await nuageAppel("/auth/v1/recover?redirect_to="+encodeURIComponent(adresseRetour()), "POST", {email}, false);
+  return r.ok?{ok:true}:{ok:false, code:codeErreur(r)};
+}
+async function compteNouveauMdp(mdp){ // après le lien « mot de passe oublié », qui a ouvert une session
+  const r=await nuageAppel("/auth/v1/user", "PUT", {password:mdp}, true);
+  return r.ok?{ok:true}:{ok:false, code:codeErreur(r)};
+}
+/* LE RETOUR D'UN LIEN REÇU PAR EMAIL (confirmation d'inscription, mot de passe oublié, et plus tard Google
+   ou Apple) : Supabase ramène le joueur ici avec la session dans l'ancre de l'adresse
+   (#access_token=…&refresh_token=…&type=signup), ou le motif d'un échec (#error_code=otp_expired).
+   On la lit SANS requête : qui est connecté est écrit dans le jeton lui-même. Rend null s'il n'y a rien
+   à lire, sinon {type} ou {erreur}. L'appelant efface l'ancre, pour qu'un rechargement ne la relise pas. */
+function compteDepuisLien(ancre){
+  if(!ancre || ancre.length<2) return null;
+  let p; try{ p=new URLSearchParams(ancre.replace(/^#/, "")); }catch(e){ return null; }
+  if(p.get("error") || p.get("error_code")) return {erreur:p.get("error_code")||p.get("error")};
+  const at=p.get("access_token"), rt=p.get("refresh_token");
+  if(!at || !rt) return null;
+  let qui=null;
+  try{ const b=at.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"); qui=JSON.parse(decodeURIComponent(escape(atob(b+"===".slice((b.length+3)%4))))); }catch(e){ qui=null; }
+  if(!qui || !qui.sub) return {erreur:"jeton"};
+  compteEcrit({at, rt, exp:Date.now()+(+p.get("expires_in")||3600)*1000, uid:qui.sub, email:qui.email||""});
+  NUAGE_ETAT="attente";
+  return {type:p.get("type")||"connexion"};
+}
+function texteErreur(code){ // le motif d'un refus, dit au joueur
+  const T={invalid_credentials:"Email ou mot de passe incorrect.",
+    email_not_confirmed:"Cette adresse n'est pas encore confirmée : cliquez le lien reçu par email.",
+    user_already_exists:"Un compte existe déjà avec cette adresse. Connectez-vous.",
+    email_exists:"Un compte existe déjà avec cette adresse. Connectez-vous.",
+    weak_password:"Mot de passe trop court : 6 caractères au moins.",
+    same_password:"C'est déjà votre mot de passe actuel.",
+    email_address_invalid:"Cette adresse email ne semble pas valide.", validation_failed:"Cette adresse email ne semble pas valide.",
+    over_email_send_rate_limit:"Trop d'emails envoyés à la suite. Réessayez dans quelques minutes.",
+    over_request_rate_limit:"Trop de tentatives. Réessayez dans quelques minutes.", "429":"Trop de tentatives. Réessayez dans quelques minutes.",
+    otp_expired:"Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.",
+    reseau:"Pas de connexion internet. Le jeu continue, sans compte pour l'instant.",
+    deconnecte:"Vous n'êtes plus connecté.",
+    unexpected_failure:"L'email n'a pas pu partir. Réessayez dans quelques minutes."}; // l'envoi de l'email a échoué côté serveur (SMTP)
+  return T[code]||("Le serveur a refusé ("+code+"). Réessayez un peu plus tard.");
+}
+async function compteDeconnexion(){
+  // on prévient le serveur si on peut, mais on se déconnecte même sans réseau. L'état de synchro reste :
+  // il retient à quel compte appartient chaque carrière, pour qu'un autre compte ne les emporte pas.
+  if(compteLit()) await nuageAppel("/auth/v1/logout", "POST", null, true);
+  compteEcrit(null); NUAGE_ETAT="aucun";
+}
+async function compteSupprime(){ // le compte ET ses carrières en ligne ; celles du navigateur restent
+  const s=compteLit(); if(!s) return {ok:false, code:"deconnecte"};
+  const r=await nuageAppel("/rest/v1/rpc/supprime_mon_compte", "POST", {}, true);
+  if(!r.ok) return {ok:false, code:codeErreur(r)};
+  const et=nuageEtatLit(); for(const id in et) if(et[id] && et[id].uid===s.uid) delete et[id];
+  delete et._suppr; NUAGE_LISTE=null;
+  nuageEtatEcrit(et); compteEcrit(null); NUAGE_ETAT="aucun";
+  return {ok:true};
+}
+
+async function nuageCompresse(txt){ // "gz:" + base64 du gzip ; "js:" + texte brut si le navigateur ne sait pas compresser
+  if(typeof CompressionStream==="undefined") return "js:"+txt;
+  const cs=new CompressionStream("gzip"), w=cs.writable.getWriter();
+  w.write(new TextEncoder().encode(txt)).catch(()=>{}); w.close().catch(()=>{});
+  const b=new Uint8Array(await new Response(cs.readable).arrayBuffer());
+  let bin=""; for(let i=0;i<b.length;i+=0x8000) bin+=String.fromCharCode.apply(null, b.subarray(i, i+0x8000));
+  return "gz:"+btoa(bin);
+}
+async function nuageDecompresse(s){ // lève si le paquet est illisible : l'appelant n'écrit alors rien
+  if(typeof s!=="string") throw new Error("paquet vide");
+  if(s.slice(0,3)==="js:") return s.slice(3);
+  if(s.slice(0,3)!=="gz:") throw new Error("paquet inconnu");
+  const bin=atob(s.slice(3)), b=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) b[i]=bin.charCodeAt(i);
+  const ds=new DecompressionStream("gzip"), w=ds.writable.getWriter();
+  w.write(b).catch(()=>{}); w.close().catch(()=>{});
+  return await new Response(ds.readable).text();
+}
+
+/* Change l'identifiant d'une carrière du navigateur, sans toucher à sa clé : index, sauvegarde, partie en
+   cours et état de synchro suivent. Sert à deux cas : la carrière ADOPTÉE de l'ancienne clé SAVEKEY, dont
+   l'identifiant « adopt_… » serait le même sur deux appareils (deux carrières distinctes se prendraient en
+   ligne pour la même), et la version perdante d'un conflit, qui continue à part. */
+function renommeId(e, o, nid, nom){
+  o.pid=nid;
+  try{ localStorage.setItem(e.k, JSON.stringify(o)); }catch(err){ return false; }
+  const l=idxLit(), i=l.findIndex(x=>x&&x.id===e.id);
+  if(i>=0){ l[i].id=nid; if(nom!==undefined) l[i].nom=nom; idxEcrit(l); }
+  if(PARTIE && PARTIE.id===e.id){ PARTIE.id=nid; if(G) G.pid=nid; }
+  const et=nuageEtatLit(); if(et[e.id]){ et[nid]=et[e.id]; delete et[e.id]; nuageEtatEcrit(et); }
+  e.id=nid; if(nom!==undefined) e.nom=nom;
+  return true;
+}
+function pousse(e, o, donnees, attendu, copie){
+  return nuageAppel("/rest/v1/rpc/pousse_carriere", "POST", {
+    p_id:e.id, p_attendu:attendu, p_maj:+o._maj||0,
+    p_fiche:Object.assign(ficheDe(o), {nom:e.nom||null, av:avanceDe(o)}),
+    p_donnees:donnees, p_version:VERSION, p_copie:copie||null}, true);
+}
+/* Envoie UNE carrière si elle a changé depuis son dernier envoi. Rend "ok", "attente" (réseau, à
+   reprendre), "refus" (le serveur a dit non : on n'insiste pas tant qu'elle ne change pas) ou "autre"
+   (elle appartient à un autre compte de ce navigateur). */
+async function nuageEnvoie(e, s){
+  let et=nuageEtatLit(), x=et[e.id]||{};
+  if(x.uid && x.uid!==s.uid) return "autre";
+  if(x.envoye===e.maj && (x.nom||null)===(e.nom||null)) return "ok";
+  if(x.refus===e.maj) return "refus";
+  const txt=lsLit(e.k); if(txt==null) return "ok";
+  let o; try{ o=JSON.parse(txt); }catch(err){ return "refus"; }
+  if(!o || !o.monClub) return "refus";
+  if(o._pend) return "ok"; // sauvegarde d'avant v1.05 prise en plein match : elle partira une fois rouverte (migre finit la journée)
+  if(/^adopt_/.test(e.id) && !renommeId(e, o, partieNeuve().id)) return "attente";
+  const donnees=await nuageCompresse(lsLit(e.k));
+  let r=await pousse(e, o, donnees, x.base||0);
+  if(r.ok && r.donnees && r.donnees.conflit){
+    // LA MÊME CARRIÈRE A AVANCÉ AILLEURS depuis notre dernier envoi. On garde la plus avancée à sa place,
+    // et l'autre continue à part sous le nom « … (autre version) » : rien n'est jamais détruit.
+    const d=r.donnees, f=d.fiche||{}, nom=(e.nom||f.nom||ficheDe(o).club)+" (autre version)";
+    const ici=avanceDe(o), la=+f.av||0;
+    if(ici>la || (ici===la && (+o._maj||0)>=(+d.maj||0))){
+      r=await pousse(e, o, donnees, +d.maj||0, {id:partieNeuve().id, nom});
+      if(r.ok && r.donnees && r.donnees.ok)
+        nuageAvis("« "+(e.nom||ficheDe(o).club)+" » avait aussi avancé sur un autre appareil. On garde la version la plus avancée, celle-ci. L'autre reste en ligne sous le nom « "+nom+" ».");
+    } else {
+      delete et[e.id]; nuageEtatEcrit(et); // la version en ligne garde sa place et son identifiant
+      if(!renommeId(e, o, partieNeuve().id, nom)) return "attente";
+      const et2=nuageEtatLit(); et2[e.id]={uid:s.uid}; nuageEtatEcrit(et2);
+      nuageAvis("« "+(f.nom||f.club||"Cette carrière")+" » est allée plus loin sur un autre appareil : c'est elle qui garde sa place en ligne. La version de ce navigateur continue à part, sous le nom « "+nom+" ».");
+      return nuageEnvoie(e, s); // la perdante part en ligne comme une carrière de plus
+    }
+  }
+  et=nuageEtatLit(); x=et[e.id]||{};
+  if(!r.ok){
+    if(r.statut===0 || r.statut===401 || r.statut===408 || r.statut===429 || r.statut>=500) return "attente";
+    x.refus=e.maj; et[e.id]=x; nuageEtatEcrit(et); return "refus";
+  }
+  const d=r.donnees||{};
+  if(d.ok){ et[e.id]={uid:s.uid, base:+o._maj||0, envoye:e.maj, nom:e.nom||null}; nuageEtatEcrit(et); return "ok"; }
+  if(d.conflit) return "attente"; // quelqu'un a encore écrit entre-temps : on retentera
+  x.refus=e.maj; x.uid=x.uid||null; et[e.id]=x; nuageEtatEcrit(et);
+  if(d.refus==="plein") nuageAvis("Vous avez déjà "+NUAGE_MAX+" carrières en ligne. « "+(e.nom||ficheDe(o).club)+" » reste sauvegardée dans ce navigateur seulement.");
+  return "refus";
+}
+/* Envoie tout ce qui attend. Une seule passe à la fois ; une demande qui tombe pendant une passe en
+   relance une autre juste après, pour ne pas laisser filer une sauvegarde faite entre-temps. */
+function nuageSynchronise(){
+  if(!nuageAllume()){ NUAGE_ETAT="aucun"; return Promise.resolve(NUAGE_ETAT); }
+  if(NUAGE_EN_COURS){ NUAGE_ENCORE=true; return NUAGE_EN_COURS; }
+  NUAGE_EN_COURS=(async()=>{
+    do{
+      NUAGE_ENCORE=false;
+      let etat="ok";
+      if(nuageEtatLit()._suppr && await nuageVideSuppr()==="attente"){ NUAGE_ETAT=compteLit()?"attente":"aucun"; break; } // les suppressions d'abord
+      for(const e of partiesListe()){
+        const s=compteLit(); if(!s){ etat="aucun"; break; }
+        const r=await nuageEnvoie(e, s);
+        if(r==="attente"){ etat=compteLit()?"attente":"aucun"; break; } // pas de réseau : inutile d'insister sur les suivantes
+        if(r==="refus") etat="refus";
+      }
+      NUAGE_ETAT=etat;
+    } while(NUAGE_ENCORE && NUAGE_ETAT!=="attente");
+    return NUAGE_ETAT;
+  })().finally(()=>{ NUAGE_EN_COURS=null; majIndicateur(); montreAvis(); });
+  return NUAGE_EN_COURS;
+}
+// L'INDICATEUR vit dans le bouton du compte, au pied de page : « ☁️ Sauvegardé en ligne » ou « ☁️ En attente
+// de connexion ». Sans compte, il reste « ☁️ Compte » : rien à surveiller. Mis à jour sur place, sans redessiner l'écran.
+function libIndicateur(){ return "☁️ "+((compteLit() && libEtatNuage()) || "Compte"); }
+function majIndicateur(){
+  if(EN_TEST() || typeof document==="undefined") return;
+  const b=document.getElementById("bCompte"); if(b) b.textContent=libIndicateur();
+}
+// Ce que le joueur doit apprendre (un conflit tranché, une carrière refusée) : dit une fois, jamais en plein match
+// ni par-dessus une autre fenêtre ; sinon ça attend la prochaine passe.
+function montreAvis(){
+  if(EN_TEST() || !NUAGE_AVIS.length || MSG_ANNUL || (typeof document!=="undefined" && document.body && document.body.classList.contains("mode-direct"))) return;
+  message(NUAGE_AVIS.shift(), {titre:"☁️ VOS CARRIÈRES EN LIGNE", onOk:()=>{ if(G) rafraichir(); else ecranAccueil(); }});
+}
+// Le rythme : en fin de journée, au plus un envoi toutes les deux minutes (la carrière reste marquée et
+// partira au prochain déclencheur) ; en quittant la carrière, en passant en arrière-plan et au retour
+// du réseau, tout de suite.
+function nuagePlanifie(raison){
+  if(!nuageAllume()) return null;
+  const t=Date.now();
+  if(raison==="journee" && t-NUAGE_DERNIER<NUAGE_DELAI) return null;
+  NUAGE_DERNIER=t;
+  return nuageSynchronise();
+}
+async function nuageListe(){ // les carrières en ligne, sans leurs données : de quoi dresser la liste
+  const r=await nuageAppel("/rest/v1/carrieres?select=id,maj,fiche,version&order=maj.desc", "GET", null, true);
+  return r.ok && Array.isArray(r.donnees)?r.donnees:null;
+}
+/* Ramène une carrière en ligne dans le navigateur. Elle vient de l'extérieur, comme un fichier importé :
+   elle passe par assainit() ici, et par migre() à son ouverture (chargeLocale). Rien n'est écrit si le
+   paquet est illisible ou si ce n'est pas une sauvegarde MULTIPLEX. */
+async function nuageRapatrie(id){
+  const s=compteLit(); if(!s) return {ok:false, code:"deconnecte"};
+  // jamais sous la carrière ouverte : la partie en mémoire, restée ancienne, la réécrirait au prochain enregistrement
+  if(PARTIE && PARTIE.id===id && G) return {ok:false, code:"ouverte"};
+  const r=await nuageAppel("/rest/v1/carrieres?id=eq."+encodeURIComponent(id)+"&select=id,maj,fiche,donnees", "GET", null, true);
+  if(!r.ok) return {ok:false, code:r.statut===0?"reseau":"refus"};
+  const ligne=Array.isArray(r.donnees)?r.donnees[0]:null;
+  if(!ligne) return {ok:false, code:"absente"};
+  let o=null;
+  try{ o=JSON.parse(await nuageDecompresse(ligne.donnees)); }catch(err){ o=null; }
+  if(!o || typeof o!=="object" || !o.monClub || !Array.isArray(o.clubs)) return {ok:false, code:"illisible"};
+  o=assainit(o); o.pid=id;
+  const l=partiesListe(), deja=l.find(e=>e.id===id);
+  if(!deja && l.length>=MAX_PARTIES && !nuageLibere()) return {ok:false, code:"place"}; // on fait de la place, sans rien perdre
+  // la copie du navigateur a des journées jamais envoyées : on ne l'écrase pas (c'est à l'envoi de trancher)
+  if(deja){ const x=nuageEtatLit()[id]; if(!x || x.envoye!==deja.maj) return {ok:false, code:"modifiee"}; }
+  const k=deja?deja.k:PARTPFX+id, txt=JSON.stringify(o);
+  try{ localStorage.setItem(k, txt); }catch(err){ return {ok:false, code:"plein"}; }
+  const f=ligne.fiche||{}, maj=+o._maj||0;
+  const l2=idxLit().filter(e=>e&&e.id!==id);
+  l2.unshift(Object.assign({id, k, nom:f.nom||null}, ficheDe(o), {maj}));
+  idxEcrit(l2);
+  const et=nuageEtatLit(); et[id]={uid:s.uid, base:maj, envoye:maj, nom:f.nom||null}; nuageEtatEcrit(et);
+  return {ok:true, id};
+}
+/* CONNECTÉ, LE NAVIGATEUR N'EST PLUS QU'UNE MÉMOIRE DE TRAVAIL : il garde les MAX_PARTIES carrières les plus
+   récentes, les autres vivent en ligne (jusqu'à NUAGE_MAX) et reviennent quand on les ouvre. Fini le mur des 5 Mo.
+   La règle absolue : on ne retire du navigateur qu'une carrière de CE compte dont la copie en ligne est à jour,
+   et jamais celle qui est ouverte. Hors connexion avec quatre carrières jamais envoyées, rien n'est retiré. */
+function nuageEvincable(){
+  const s=compteLit(); if(!s) return null;
+  const et=nuageEtatLit();
+  const l=partiesListe().filter(e=>{ const x=et[e.id];
+    return x && x.uid===s.uid && x.envoye===e.maj && (x.nom||null)===(e.nom||null) && !(PARTIE && PARTIE.id===e.id && G); });
+  return l.length?l[l.length-1]:null; // la liste est rangée de la plus récente à la plus ancienne
+}
+function nuageLibere(){ // retire la plus ancienne carrière à jour en ligne ; faux s'il n'y en a aucune
+  const e=nuageEvincable(); if(!e) return false;
+  lsEfface(e.k); idxEcrit(idxLit().filter(x=>x&&x.id!==e.id));
+  return true;
+}
+/* SUPPRIMER EN LIGNE. La demande entre dans une file gardée dans le navigateur (_suppr) : hors connexion, elle
+   part au prochain envoi. Une carrière encore présente sur un AUTRE appareil y reste, et renaîtra en ligne
+   si cet appareil la rejoue : on n'efface jamais rien à distance. */
+function nuageOublie(id){ // la carrière vient d'être supprimée du navigateur : sa copie en ligne suit, si elle est à nous
+  const s=compteLit(), et=nuageEtatLit(), x=et[id];
+  const aNous=s && ((x && x.uid===s.uid) || (NUAGE_LISTE||[]).some(l=>l.id===id));
+  delete et[id];
+  if(aNous){ et._suppr=(et._suppr||[]).filter(y=>y!==id).concat([id]); }
+  nuageEtatEcrit(et);
+  if(NUAGE_LISTE) NUAGE_LISTE=NUAGE_LISTE.filter(l=>l.id!==id);
+  return aNous?nuageSynchronise():Promise.resolve(NUAGE_ETAT);
+}
+async function nuageVideSuppr(){ // "ok" ou "attente"
+  const q=(nuageEtatLit()._suppr||[]).slice();
+  for(const id of q){
+    const r=await nuageAppel("/rest/v1/carrieres?id=eq."+encodeURIComponent(id), "DELETE", null, true);
+    if(!r.ok && (r.statut===0 || r.statut===401 || r.statut===429 || r.statut>=500)) return "attente";
+    const et=nuageEtatLit(); et._suppr=(et._suppr||[]).filter(y=>y!==id); if(!et._suppr.length) delete et._suppr; nuageEtatEcrit(et);
+  }
+  return "ok";
+}
+let NUAGE_LISTE=null, NUAGE_LISTE_T=0;  // les carrières en ligne (sans leurs données), relues à l'accueil
+async function nuageRafraichitListe(){
+  if(!nuageAllume()){ NUAGE_LISTE=null; return null; }
+  const l=await nuageListe();
+  if(l){ const q=nuageEtatLit()._suppr||[]; NUAGE_LISTE=l.filter(x=>!q.includes(x.id)); NUAGE_LISTE_T=Date.now(); }
+  return NUAGE_LISTE;
+}
+/* LA LISTE DE « MES CARRIÈRES » : celles du navigateur, plus celles qui ne vivent qu'en ligne (enLigne), et une
+   carrière qui a avancé sur un autre appareil se montre à son dernier état (ailleurs) : elle sera rapatriée
+   à l'ouverture. Rangée de la plus récente à la plus ancienne. */
+function carrieresAffichees(){
+  const out=partiesListe().map(e=>Object.assign({}, e)), s=compteLit();
+  if(!s || !NUAGE_LISTE) return out;
+  const et=nuageEtatLit();
+  for(const l of NUAGE_LISTE){
+    const f=l.fiche||{}, i=out.findIndex(e=>e.id===l.id), maj=+l.maj||0;
+    const vue={id:l.id, nom:f.nom||null, clubId:f.clubId, club:f.club||"?", saison:f.saison||"?", journee:f.journee||1,
+               div:f.div||1, titres:f.titres||0, enjeu:f.enjeu||null, maj};
+    if(i<0) out.push(Object.assign(vue, {enLigne:true}));
+    else { const x=et[l.id];
+      if(x && x.envoye===out[i].maj && x.base!==maj && maj>(out[i].maj||0)) out[i]=Object.assign(vue, {k:out[i].k, ailleurs:true}); }
+  }
+  return out.sort((a,b)=>(b.maj||0)-(a.maj||0));
+}
+/* AVANT D'OUVRIR une carrière, la version la plus avancée doit être dans le navigateur : on rapatrie celle qui
+   ne vit qu'en ligne, et celle qui a avancé ailleurs si la copie locale n'a rien de neuf. Une copie locale qui
+   a des journées jamais envoyées est ouverte telle quelle : c'est l'envoi qui tranchera le conflit. */
+async function nuagePrepare(id){
+  if(!nuageAllume() || !NUAGE_LISTE) return {ok:true};
+  const loc=partiesListe().find(e=>e.id===id), srv=NUAGE_LISTE.find(l=>l.id===id);
+  if(!srv) return loc?{ok:true}:{ok:false, code:"absente"};
+  if(loc){ const x=nuageEtatLit()[id];
+    if(!x || x.envoye!==loc.maj || x.base===(+srv.maj||0)) return {ok:true}; }
+  return nuageRapatrie(id);
 }
 
 /* =====================================================================
@@ -16141,7 +16565,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
      <h2>Reprendre une carrière</h2>
      <p class="dim" style="font-size:13px">Aucune carrière sauvegardée dans ce navigateur, choisissez un club plus bas.</p>
    </div>`;
-  const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}`;
+  const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}${p.enLigne?" · ☁️ en ligne":""}`;
   const p0=parties[0], reste=parties.slice(1);
   /* LE BANDEAU DE REPRISE (25/09/2026, « c'est la première chose qu'on voit quand on reprend une partie ») : le blason
      en grand, le club, où en est la saison, l'enjeu du moment, et l'action en jaune. Toute la carte se clique. */
@@ -16151,23 +16575,23 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
        <span class="repBlason">${blason(metaClub(p0.clubId)||{id:p0.clubId},56)}</span>
        <span class="repCorps">
          <span class="repClub">${esc(p0.nom||p0.club)}</span>
-         <span class="repMeta">${p0.nom&&p0.nom!==p0.club?esc(p0.club)+" · ":""}${esc(p0.saison)} · ${esc(divCarte(p0))} · Journée ${p0.journee}/38${p0.titres?" · 🏆 "+p0.titres:""}</span>
+         <span class="repMeta">${p0.nom&&p0.nom!==p0.club?esc(p0.club)+" · ":""}${esc(p0.saison)} · ${esc(divCarte(p0))} · Journée ${p0.journee}/38${p0.titres?" · 🏆 "+p0.titres:""}${p0.enLigne?" · ☁️ en ligne":""}</span>
          ${p0.enjeu?`<span class="repEnjeu">${esc(p0.enjeu)}</span>`:""}
        </span>
        <span class="repGo">▶ Reprendre</span>
      </button>
      <p class="carSous"><span class="dim" style="flex:1">${esc(ilYA(p0.maj))}</span>
-       <button class="act carRen" data-id="${esc(p0.id)}">✏️ Renommer</button>
+       ${p0.enLigne?"":`<button class="act carRen" data-id="${esc(p0.id)}">✏️ Renommer</button>`}
        <button class="act carDel" data-id="${esc(p0.id)}">🗑️ Supprimer</button></p>
      ${reste.length?`<p class="dim" style="font-size:13px;margin:12px 0 4px">Vos autres carrières :</p>`:""}
      ${reste.map(p=>`<div class="carLigne">
        <button class="startclub carGo" data-id="${esc(p.id)}" style="display:flex;align-items:center;gap:9px">
          ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span>${p.enjeu?`<br><span class="sous fort">${esc(p.enjeu)}</span>`:""}</span><span class="dim">▶</span>
        </button>
-       <button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>
+       ${p.enLigne?"":`<button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>`}
        <button class="act carDel" data-id="${esc(p.id)}" title="Supprimer">🗑️</button>
      </div>`).join("")}
-     <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:13px">${parties.length>=MAX_PARTIES
+     <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:13px">${partiesListe().length>=MAX_PARTIES && !nuageEvincable()
        ? "Maximum de "+MAX_PARTIES+" carrières atteint : supprimez-en une pour en commencer une autre."
        : `<button class="lien" id="bMagie" style="padding-left:0">✨ Nouvelle carrière au hasard</button>`}</span></p>
    </div>`;
@@ -16176,7 +16600,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
 let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
 const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
 function ecranAccueil(){
-  const parties=partiesListe();
+  const parties=carrieresAffichees();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   voitPays(S.pays||"FR", S.an, false); // à l'accueil on REGARDE un pays sans le jouer : G peut encore porter une autre carrière
   const cD1=S.d1.map(id=>metaSaison(id,S.an)), cD2=S.d2.map(id=>metaSaison(id,S.an));
@@ -16233,7 +16657,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a></p>`;
+   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bCompteAcc">☁️ ${compteLit()?"Mon compte":"Se connecter"}</button> · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a></p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
@@ -16244,11 +16668,16 @@ function ecranAccueil(){
     const cles=Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code); if(!cles.length) return;
     const an=(SAISONS[SAISON_ACCUEIL]||{}).an;
     SAISON_ACCUEIL=cles.find(k=>SAISONS[k].an===an)||(code==="FR"?SAISON_DEFAUT:cles[0]); ecranAccueil(); });
-  const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>chargeLocale(br.dataset.id);
-  app.querySelectorAll(".carGo").forEach(b=>b.onclick=()=>chargeLocale(b.dataset.id));
+  const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>ouvreCarriere(br.dataset.id);
+  app.querySelectorAll(".carGo").forEach(b=>b.onclick=()=>ouvreCarriere(b.dataset.id));
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
   app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
   document.getElementById("bAproposAcc").onclick=ecranApropos;
+  const bca=document.getElementById("bCompteAcc"); if(bca) bca.onclick=fenetreCompte;
+  // connecté : on relit la liste en ligne (au plus toutes les trente secondes), puis on redessine si l'on est
+  // toujours sur l'accueil. Sur un nouvel appareil, c'est ce qui fait apparaître les carrières des autres.
+  if(compteLit() && NUAGE.url && Date.now()-NUAGE_LISTE_T>30000){ NUAGE_LISTE_T=Date.now();
+    nuageRafraichitListe().then(l=>{ if(l && !G && document.getElementById("bCompteAcc")) ecranAccueil(); }); }
   const t1=document.getElementById("tabD1"), t2=document.getElementById("tabD2");
   if(t1) t1.onclick=()=>{ ACCUEIL_DIV=1; ecranAccueil(); };
   if(t2) t2.onclick=()=>{ ACCUEIL_DIV=2; ecranAccueil(); };
@@ -16293,12 +16722,14 @@ function chrome(actif, corps){
    <div id="corps">${corps}</div>
    <p class="footer">MULTIPLEX · v${VERSION} ·
      <button class="act" id="bMenu">📁 Mes carrières</button>
+     <button class="act" id="bCompte">${esc(libIndicateur())}</button>
      <button class="act" id="bApropos">À propos</button>
      ${SAVE_KO?`<br><b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Supprimez une vieille carrière depuis l'accueil.</b>`:""}
    </p>`;
   // la sauvegarde est automatique à chaque changement d'écran : plus de bouton, et plus de fichier
   app.querySelectorAll("nav button, .sousNav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
   document.getElementById("bApropos").onclick=()=>montre("apropos");
+  document.getElementById("bCompte").onclick=fenetreCompte;
   document.getElementById("bMenu").onclick=retourAccueil;
 }
 
@@ -16360,6 +16791,138 @@ function ecranApropos(){
       etat.className="rouge"; etat.innerHTML=`L'envoi n'est pas passé. Réessayez, ou écrivez à <b>${CONTACT_MAIL}</b>.`;
     }
   };
+}
+
+/* ---------- La fenêtre du compte (☁️) ----------
+   Un plus, jamais une porte d'entrée : on la trouve au pied de l'accueil et du jeu, on la ferme, on joue.
+   Elle vit dans le calque des fenêtres maison (#msgbox) et suit leurs règles (Échap, clic à côté).
+   Google et Apple : les boutons n'apparaissent que pour les fournisseurs listés ici, une fois réglés côté
+   Supabase (Authentication → Providers). Apple deviendra obligatoire sur l'App Store dès que Google y est. */
+const FOURNISSEURS=[]; // "google", "apple"
+const NOM_FOURN={google:"Google", apple:"Apple"};
+let COMPTE_ONGLET="connexion"; // connexion | inscription
+function libEtatNuage(){
+  return {ok:"Sauvegardé en ligne", attente:"En attente de connexion", refus:"Sauvegarde en ligne refusée"}[NUAGE_ETAT]||"";
+}
+function apresCompte(){ // on vient de se connecter, de se déconnecter ou de supprimer le compte : l'écran suit
+  if(EN_TEST()) return;
+  if(G) rafraichir(); else { ecranAccueil(); if(window.scrollTo) window.scrollTo(0,0); } // à l'accueil : on remonte voir « Vos carrières »
+}
+function fenetreCompte(){
+  if(EN_TEST()||!msgbox||!msgbox.style) return;
+  const s=compteLit(), cadre=`max-width:420px;width:100%;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px`;
+  const pied=`<p class="dim" style="font-size:13px;margin-top:12px;text-align:center"><a href="confidentialite.html" target="_blank" rel="noopener" style="color:inherit">Confidentialité</a> · <button class="lien" id="cFerme">Fermer</button></p>`;
+  if(s){
+    ouvreMsg(`<div class="fbox" style="${cadre}">
+      <h2>☁️ VOTRE COMPTE</h2>
+      <p style="margin-top:8px" class="fort">${esc(s.email||"")}</p>
+      <p class="dim" style="font-size:13px;margin-top:3px">${esc(libEtatNuage())}</p>
+      <p style="margin-top:14px"><button class="big" id="cOk" style="display:block;width:100%">Retour au jeu</button></p>
+      <p style="margin-top:8px;text-align:center"><button class="lien" id="cDeco">Se déconnecter</button> · <button class="lien" id="cSuppr">Supprimer mon compte</button></p>
+      <p class="dim" style="font-size:13px;margin-top:12px;text-align:center"><a href="confidentialite.html" target="_blank" rel="noopener" style="color:inherit">Confidentialité</a></p></div>`);
+    msgbox.querySelector("#cOk").onclick=fermeMessage;
+    msgbox.querySelector("#cDeco").onclick=async()=>{ await nuageSynchronise(); await compteDeconnexion(); videMessage(); apresCompte(); };
+    msgbox.querySelector("#cSuppr").onclick=()=>confirme({
+      titre:"🗑️ SUPPRIMER VOTRE COMPTE ?",
+      texte:"Votre compte et toutes vos carrières en ligne seront effacés pour de bon.\nLes carrières de ce navigateur restent jouables.",
+      oui:"Supprimer mon compte", non:"Garder mon compte",
+      onNon:fenetreCompte,
+      onOui:async()=>{ const r=await compteSupprime();
+        if(r.ok) message("Votre compte et ses carrières en ligne sont effacés.", {titre:"🗑️ COMPTE SUPPRIMÉ", onOk:apresCompte});
+        else message(texteErreur(r.code), {titre:"🗑️ SUPPRESSION IMPOSSIBLE", coul:"#ff6f61", onOk:fenetreCompte}); }});
+    return;
+  }
+  const insc=COMPTE_ONGLET==="inscription";
+  const fourn=FOURNISSEURS.map(f=>`<button class="porte2" data-f="${f}" style="display:block;width:100%;margin-top:6px">Continuer avec ${NOM_FOURN[f]}</button>`).join("");
+  ouvreMsg(`<div class="fbox" style="${cadre}">
+    <h2>☁️ ${insc?"CRÉER UN COMPTE":"SE CONNECTER"}</h2>
+    <p class="dim" style="font-size:13px;margin-top:4px">Retrouvez vos carrières sur tous vos appareils.</p>
+    <form id="cForm" novalidate>
+      <label style="display:block;font-size:13px;margin-top:10px">Email
+        <input type="email" id="cEmail" autocomplete="email" maxlength="120" required></label>
+      <label style="display:block;font-size:13px;margin-top:8px">Mot de passe${insc?" (6 caractères au moins)":""}
+        <input type="password" id="cMdp" autocomplete="${insc?"new-password":"current-password"}" maxlength="72" required></label>
+      <p id="cErr" class="rouge" role="alert" style="font-size:13px;margin-top:8px;min-height:1em"></p>
+      <button class="big" id="cGo" type="submit" style="display:block;width:100%;margin-top:4px">${insc?"Créer mon compte":"Se connecter"}</button>
+    </form>
+    ${fourn}
+    <p style="margin-top:8px;text-align:center"><button class="lien" id="cBascule">${insc?"J'ai déjà un compte":"Créer un compte"}</button>${insc?"":` · <button class="lien" id="cOubli">Mot de passe oublié</button>`}</p>
+    ${pied}</div>`);
+  const $=id=>msgbox.querySelector(id), err=t=>{ $("#cErr").textContent=t||""; };
+  const email=()=>$("#cEmail").value.trim(), mdp=()=>$("#cMdp").value;
+  $("#cFerme").onclick=fermeMessage;
+  $("#cBascule").onclick=()=>{ const e=email(); COMPTE_ONGLET=insc?"connexion":"inscription"; fenetreCompte(); $("#cEmail").value=e; };
+  if($("#cOubli")) $("#cOubli").onclick=async()=>{
+    const e=email(); if(!/^\S+@\S+\.\S+$/.test(e)){ err("Tapez d'abord votre adresse email, puis recliquez ici."); $("#cEmail").focus(); return; }
+    err(""); const r=await compteOubli(e);
+    if(r.ok) message("Si un compte existe pour "+e+", un lien pour choisir un nouveau mot de passe vient de partir.\nPensez à regarder dans les indésirables.", {titre:"📬 REGARDEZ VOS EMAILS"});
+    else err(texteErreur(r.code));
+  };
+  msgbox.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{
+    location.href=NUAGE.url+"/auth/v1/authorize?provider="+b.dataset.f+"&redirect_to="+encodeURIComponent(adresseRetour()); });
+  $("#cForm").onsubmit=async ev=>{
+    ev.preventDefault();
+    const e=email(), m=mdp(), go=$("#cGo");
+    if(!/^\S+@\S+\.\S+$/.test(e)) return err(texteErreur("email_address_invalid"));
+    if(m.length<6) return err(texteErreur(insc?"weak_password":"invalid_credentials"));
+    go.disabled=true; go.textContent="Un instant…"; err("");
+    const r=insc?await compteInscription(e, m):await compteConnexion(e, m);
+    if(!msgbox.querySelector("#cGo")) return; // fenêtre refermée pendant l'attente
+    if(!r.ok){ go.disabled=false; go.textContent=insc?"Créer mon compte":"Se connecter"; return err(texteErreur(r.code)); }
+    if(r.confirmer){ COMPTE_ONGLET="connexion";
+      return message("Un lien de confirmation est parti vers "+e+".\nCliquez-le : vous reviendrez ici, connecté. Pensez à regarder dans les indésirables.", {titre:"📬 REGARDEZ VOS EMAILS"}); }
+    videMessage(); nuagePlanifie("connexion"); apresCompte();
+  };
+  const ch=$("#cEmail"); if(ch.focus) ch.focus();
+}
+/* LA PROPOSITION DE COMPTE (lot 6) : une ligne en bas du debrief, après un match, pour qui joue sans compte.
+   Discrète et refusable : trois fois au plus, et « Non merci » la fait taire pour de bon dans ce navigateur.
+   Tutoyée, au mot près de la consigne de l'auteur (29/09/2026). */
+const PROPKEY="d1manager_compte_prop_v1"; // {vues, non}
+function propLit(){ try{ const o=JSON.parse(lsLit(PROPKEY)||"{}"); return o&&typeof o==="object"?o:{}; }catch(e){ return {}; } }
+function propEcrit(o){ try{ localStorage.setItem(PROPKEY, JSON.stringify(o)); }catch(e){} }
+function propAMontrer(){ const o=propLit(); return !!(NUAGE.url && !compteLit() && !o.non && (o.vues||0)<3 && G && (G.journee||0)>=1); }
+function propCompte(){ // le HTML de la ligne, et elle compte comme vue ; "" s'il n'y a rien à proposer
+  if(!propAMontrer()) return "";
+  const o=propLit(); o.vues=(o.vues||0)+1; propEcrit(o);
+  return `<p id="propCompte" class="dim" style="font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid #27466e">☁️ Crée ton compte pour retrouver ta carrière sur tous tes appareils.<br>
+    <button class="lien" id="bPropOui" style="padding-left:0">Créer mon compte</button> · <button class="lien" id="bPropNon">Non merci</button></p>`;
+}
+function cablePropCompte(racine, fermer){
+  const oui=racine.querySelector("#bPropOui"), non=racine.querySelector("#bPropNon"); if(!oui||!non) return;
+  oui.onclick=()=>{ fermer(); COMPTE_ONGLET="inscription"; fenetreCompte(); };
+  non.onclick=()=>{ const o=propLit(); o.non=true; propEcrit(o); const l=racine.querySelector("#propCompte"); if(l) l.remove(); };
+}
+// Au démarrage : le joueur revient d'un lien reçu par email (ou de Google, d'Apple). Rien à lire, rien à faire.
+function retourDeLien(){
+  let r=null;
+  try{ r=compteDepuisLien(location.hash); }catch(e){ r=null; }
+  if(!r) return;
+  try{ history.replaceState(null, "", location.pathname+location.search); }catch(e){} // un rechargement ne la relit pas
+  if(r.erreur) return message(texteErreur(r.erreur), {titre:"☁️ LIEN INUTILISABLE", coul:"#ff6f61"});
+  if(r.type==="recovery") return saisieMdp();
+  nuagePlanifie("connexion");
+  message(r.type==="signup"?"Votre adresse est confirmée. Vos carrières vont vous suivre sur tous vos appareils.":"Vous êtes connecté.", {titre:"☁️ BIENVENUE"});
+}
+function saisieMdp(){ // le lien « mot de passe oublié » ramène ici : on choisit le nouveau
+  if(EN_TEST()||!msgbox||!msgbox.style) return;
+  ouvreMsg(`<div class="fbox" style="max-width:420px;width:100%;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2>☁️ NOUVEAU MOT DE PASSE</h2>
+    <form id="cForm" novalidate>
+      <label style="display:block;font-size:13px;margin-top:10px">Mot de passe (6 caractères au moins)
+        <input type="password" id="cMdp" autocomplete="new-password" maxlength="72" required></label>
+      <p id="cErr" class="rouge" role="alert" style="font-size:13px;margin-top:8px;min-height:1em"></p>
+      <button class="big" id="cGo" type="submit" style="display:block;width:100%;margin-top:4px">Enregistrer</button>
+    </form></div>`);
+  const f=msgbox.querySelector("#cForm");
+  f.onsubmit=async ev=>{ ev.preventDefault();
+    const m=msgbox.querySelector("#cMdp").value, go=msgbox.querySelector("#cGo"), e=msgbox.querySelector("#cErr");
+    if(m.length<6){ e.textContent=texteErreur("weak_password"); return; }
+    go.disabled=true;
+    const r=await compteNouveauMdp(m);
+    if(r.ok) message("Votre nouveau mot de passe est enregistré. Vous êtes connecté.", {titre:"☁️ C'EST FAIT"});
+    else { go.disabled=false; e.textContent=texteErreur(r.code); } };
+  const ch=msgbox.querySelector("#cMdp"); if(ch.focus) ch.focus();
 }
 
 let ECRAN="calendrier", VUECLUB=null;
@@ -16546,9 +17109,10 @@ function ecranCalendrier(){
       <h2>📋 LE DEBRIEF</h2>
       <p class="dim">Ce qu'il ne fallait pas rater cette semaine :</p>
       ${lst.map(n=>`<p style="margin-top:6px">${esc(n)}</p>`).join("")}
-      <p style="margin-top:12px"><button class="big" id="bDebOk">Compris</button></p></div>`;
+      <p style="margin-top:12px"><button class="big" id="bDebOk">Compris</button></p>${propCompte()}</div>`;
     fiche.style.display="flex";
     fiche.querySelector("#bDebOk").onclick=()=>{ fermeFiche(); suite(); };
+    cablePropCompte(fiche, ()=>{ fermeFiche(); suite(); });
   };
   // promo billets : avant un match à domicile qui s'annonce à guichets clairsemés, on peut faire venir les scolaires
   // pour remplir les tribunes (ambiance + perf du 12e homme via la ferveur), au prix d'une recette bradée.
@@ -20146,6 +20710,16 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   // qui vit au-dessus de #fiche, se dépile d'abord.
   document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(fermeMessage()) return; fermeFiche(); });
   ecranAccueil();
+  retourDeLien(); // retour d'un lien reçu par email : lu dans l'adresse, sans requête
+  /* LA COPIE EN LIGNE SUIT EN ARRIÈRE-PLAN. Onglet caché (on change d'appli, on verrouille le téléphone, on
+     ferme) : on sauvegarde et on envoie tout de suite. L'envoi n'a peut-être pas le temps de finir (le
+     navigateur coupe, et une sauvegarde dépasse les 64 Ko qu'il laisse partir à la fermeture) : ce n'est pas
+     grave, la carrière reste marquée et part au prochain lancement ou au retour du réseau. Sans compte,
+     nuagePlanifie ne fait rien. */
+  document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="hidden") return;
+    if(G) sauvegardeLocale(true); nuagePlanifie("cache"); });
+  window.addEventListener("online",()=>nuagePlanifie("reseau"));
+  if(compteLit()) setTimeout(()=>nuagePlanifie("demarrage"), 1500); // un joueur connecté : ce qui attendait depuis la dernière fois
 }
 </script>
 </body>

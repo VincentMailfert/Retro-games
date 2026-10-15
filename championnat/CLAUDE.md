@@ -121,6 +121,58 @@ toujours « raconter quelque chose ».
   à la racine, à l'entrée, plutôt que de parier sur l'exhaustivité d'un audit. Le `localStorage` ne porte PAS de logique de
   jeu — juste la sérialisation de `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne
   pas peser sur le harnais (`harness-sauvegardes.cjs` lève le drapeau le temps de l'appel pour les tester).
+- **COMPTES JOUEURS ET COPIE EN LIGNE DES CARRIÈRES (v1.58, 30/09/2026 ; emails envoyés par Resend depuis `noreply@mail.multiplex.club`, domaine `multiplex.club` acheté chez OVH par l'auteur)** :
+  un compte est un PLUS, jamais une porte d'entrée. **Sans compte, le jeu ne fait aucune requête** (ni au démarrage,
+  ni jamais) et n'écrit rien de plus dans le navigateur : c'est gardé par la section A de `harness-compte.cjs`.
+  **Le serveur** : un projet Supabase « multiplex » (offre gratuite, région Paris `eu-west-3`, ref
+  `hemedkhebhllymdgvuka`) dans l'organisation perso « Multiplex » de l'auteur. Sa base tient dans
+  **`supabase/schema.sql`**, rejouable tel quel sur un projet neuf : une table `carrieres` (une ligne par carrière :
+  `id`=`G.pid`, `maj`=`G._maj`, `fiche` = la carte d'identité de l'index + `nom` + `av`, `donnees` = la sauvegarde),
+  des règles de sécurité **chacun ne lit et n'efface que ses lignes**, et **aucune écriture directe** : tout envoi
+  passe par la fonction `pousse_carriere()` (10 carrières par compte, 2 Mo au plus, détection des conflits), et
+  `supprime_mon_compte()` efface le compte avec ses carrières (`on delete cascade`). **Seule la clé PUBLIQUE**
+  (`sb_publishable_…`) est dans `index.html` (constante `NUAGE`) ; rien de secret dans le dépôt, qui est public.
+  **Pas de bibliothèque Supabase** : le module « La copie en ligne des carrières » (juste sous `ilYA`) parle aux
+  deux services par `fetch` (`/auth/v1` pour la connexion, `/rest/v1` pour la base) ; `nuageFetch` ne lève jamais
+  (`statut` 0 = pas de réseau) et `nuageAppel` renouvelle le jeton d'accès (une heure) tout seul.
+  **LE NUAGE NE SÉRIALISE JAMAIS `G`** : il relit la chaîne que `sauvegardeLocale` vient d'écrire. Le verrou du
+  match en cours (`G._pend`) protège donc les deux copies d'un coup, et ce qui est en ligne est exactement ce qui
+  dort dans le navigateur. La sauvegarde voyage **compressée** (`CompressionStream` gzip natif, préfixe `gz:` +
+  base64 ; repli `js:` + texte brut sur un vieux navigateur) : 516-777 Ko deviennent 54-87 Ko (~85 Ko mesurés en ligne).
+  **Ce qui revient du serveur passe par `assainit()`** (dans `nuageRapatrie`) **puis `migre()`** (à l'ouverture,
+  par `chargeLocale`), exactement comme un import de fichier.
+  **Le rythme** (`nuagePlanifie(raison)`) : fin de journée au plus toutes les deux minutes (`NUAGE_DELAI`) ; tout de
+  suite en quittant la carrière (`retourAccueil`), quand l'onglet passe en arrière-plan (`visibilitychange`, avec une
+  sauvegarde locale d'abord), au retour du réseau (`online`), à la connexion, et 1,5 s après le lancement pour un
+  joueur connecté. Une carrière est « à envoyer » tant que la `maj` de l'index diffère de `envoye` dans l'état de
+  synchro (`NUAGEKEY` = `d1manager_nuage_v1`, une entrée par carrière `{uid, base, envoye, nom, refus}` + la file
+  `_suppr`) : la marque survit donc à un rechargement, et rien ne se perd hors connexion.
+  **Le conflit** (la même carrière a avancé sur deux appareils) : le serveur ne remplace une ligne que si sa `maj`
+  est celle que l'appareil a vue en dernier (`base`, concurrence optimiste) ; sinon il répond `{conflit}`. **La plus
+  AVANCÉE garde sa place** (`avanceDe` : saison puis journée, et `_maj` seulement pour départager, car la date seule
+  tromperait : une vieille copie rejouée hier serait « plus récente »), **l'autre continue à part sous « … (autre
+  version) »** (choix de l'auteur : rien n'est jamais détruit), et le joueur est prévenu (`NUAGE_AVIS` → `montreAvis`,
+  jamais en plein match).
+  **Connecté, le navigateur n'est plus qu'une mémoire de travail** : il garde les `MAX_PARTIES` (4) plus récentes,
+  les autres vivent en ligne (`NUAGE_MAX` = 10) et sont rapatriées à l'ouverture (`ouvreCarriere` → `nuagePrepare`).
+  `nuageLibere` ne retire **qu'une carrière de ce compte, à jour en ligne, et pas celle qui est ouverte** ; hors
+  connexion avec quatre carrières jamais envoyées, rien n'est retiré. « Vos carrières » (`carrieresAffichees`) fusionne
+  le navigateur et la liste en ligne (`NUAGE_LISTE`, relue à l'accueil au plus toutes les 30 s) : `enLigne` = pas
+  dans le navigateur, `ailleurs` = a avancé sur un autre appareil. **Supprimer une carrière, connecté, l'efface aussi
+  en ligne** (choix de l'auteur ; file `_suppr` hors connexion). Limite assumée : si la même carrière est encore sur
+  un autre appareil et qu'on y rejoue, elle renaît en ligne (on n'efface jamais rien à distance).
+  **L'interface** : « ☁️ Se connecter » / « ☁️ Mon compte » au pied de l'accueil, et au pied du jeu le bouton du compte
+  qui **sert d'indicateur** (« ☁️ Sauvegardé en ligne » / « ☁️ En attente de connexion » ; « ☁️ Compte » sans compte).
+  `fenetreCompte` (dans `#msgbox`) : connexion, création, mot de passe oublié ; connecté, déconnexion et **suppression
+  du compte** (exigée par l'App Store et le RGPD). Le retour d'un lien reçu par email (`#access_token=…&type=signup`
+  ou `recovery`) est lu **sans requête** par `compteDepuisLien` (l'identité est dans le jeton), puis l'ancre est effacée.
+  Google et Apple : la place est prête (`FOURNISSEURS`, vide) ; un bouton n'apparaît qu'une fois le fournisseur réglé
+  côté Supabase. **La proposition de compte** : une ligne tutoyée (consigne de l'auteur) en bas du debrief, pour qui
+  joue sans compte, **trois fois au plus**, et « Non merci » la fait taire pour de bon (`PROPKEY`). Page
+  `confidentialite.html` à côté du jeu. La session vit dans `COMPTEKEY` (`d1manager_compte_v1`).
+  **Réglages faits à la main dans le tableau de bord Supabase** (le connecteur ne sait pas les faire) : Authentication →
+  URL Configuration (Site URL et Redirect URLs = l'adresse du jeu), et un SMTP à soi (Resend) dans Authentication →
+  Emails : **le SMTP intégré de Supabase n'écrit qu'aux membres de l'équipe du projet, deux emails par heure.**
 - Numéro de version centralisé dans la constante `const VERSION` (en tête de script) et recopié aux **deux**
   pieds de page — l'accueil (`Multiplex · prototype vX.Y ·`) et le jeu (`MULTIPLEX · vX.Y ·`). L'incrémenter à
   chaque livraison **à un seul endroit** (la constante) pour que les testeurs sachent sur quelle version ils
@@ -4295,6 +4347,17 @@ l'a prise sans retouche.
    argent, livraison et entretien, les trois époques, le château refusé puis livré, chaque effet à zéro et au maximum
    pour votre club seulement avec le plafond de soin 0,70, le calibrage en différentiel, vingt états de rendu sans NaN ni
    tiret long, et une carrière de six saisons où le campus monte),
+   `harness-compte.cjs` (le compte et la copie en ligne, **contre un faux Supabase en mémoire** qui imite
+   `pousse_carriere` et les règles de la base : invité muet, compression, invité puis compte, hors connexion puis retour
+   même après un rechargement, rythme des envois, deux appareils en conflit dans les deux sens, serveur qui refuse,
+   ce qui revient du serveur assaini et migré, match en cours jamais envoyé, navigateur partagé entre deux comptes,
+   suppression du compte, retour d'un lien reçu par email, nouvel appareil, navigateur qui ne garde que les quatre
+   récentes, suppression en ligne). **Le faux serveur doit rester d'accord avec `supabase/schema.sql`** : qui change
+   l'un change l'autre. Trois essais au navigateur (Playwright, hors dépôt : `npm i playwright` dans un dossier à part)
+   dans `supabase/` : `essai-navigateur.cjs` (déclencheurs et indicateur), `essai-nouvel-appareil.cjs`,
+   `essai-proposition.cjs`. Et `supabase/essai-reel.cjs` fait jouer le vrai moteur contre le VRAI projet, avec deux
+   comptes d'essai créés par SQL (mode d'emploi en tête du fichier) **et supprimés juste après** : leurs mots de passe
+   sont écrits dans le dépôt public.
    `harness-sauvegardes.cjs` (poids des sauvegardes, plusieurs carrières, adoption de la clé historique,
    index qui se répare, mémoire pleine), `harness-repetitions.cjs` (téléscripteur : anti-répétition
    des lignes et des motifs narratifs en championnat, en coupe et après un changement de consigne ;
@@ -4390,6 +4453,28 @@ l'a prise sans retouche.
   ajoute une saison à la main, cocher sa ligne dans ce fichier.
 
 ## Pièges connus (déjà corrigés, ne pas réintroduire)
+- **LA COPIE EN LIGNE : SEPT PIÈGES TROUVÉS EN LA CONSTRUISANT (29/09/2026).** (1) **On ne rapatrie jamais sous la
+  carrière ouverte** : la partie en mémoire, restée ancienne, réécrirait la version rapatriée au prochain
+  enregistrement, et les journées jouées sur l'autre appareil seraient perdues (`nuageRapatrie` → code `ouverte`) ;
+  ni par-dessus une copie locale qui a des journées jamais envoyées (code `modifiee` : c'est l'envoi qui tranche).
+  (2) **La carrière ADOPTÉE de la clé historique porte un identifiant fabriqué** (`adopt_d1manager_sauvegarde_v1`),
+  le MÊME sur tous les appareils : envoyées telles quelles, deux carrières distinctes se prendraient pour une seule.
+  Avant son premier envoi, `renommeId` lui donne un vrai `pid` en gardant sa clé `SAVEKEY`. (3) **Un envoi lancé à la
+  fermeture de l'onglet est plafonné à 64 Ko** par le navigateur (`keepalive`), et une sauvegarde compressée pèse
+  plus : l'envoi de dernière seconde n'est qu'un bonus, c'est la marque « à envoyer » gardée dans le navigateur qui
+  garantit que rien ne se perd. (4) **Un navigateur partagé** : chaque entrée de l'état de synchro retient le compte
+  (`uid`) ; les carrières d'un compte ne partent jamais sur un autre qui se connecte ensuite, et la déconnexion ne vide
+  pas cet état. (5) **`_maj` seul trompe pour trancher un conflit** : c'est la date du dernier jeu, pas l'avancement
+  (`avanceDe`). (6) **Après « Se connecter » en bas de l'accueil, la page restait en bas** : les carrières rapatriées
+  apparaissaient tout en haut, hors de vue ; `apresCompte` remonte la page. (7) **Le debrief ne s'ouvre que s'il a
+  quelque chose à dire** (`G.notifs`) et la chaîne de l'entre-match passe d'abord par l'écran d'ouverture de saison,
+  les incidents, la presse : un essai au navigateur doit cliquer « Coup d'envoi » et répondre aux fenêtres, sinon il
+  ne voit jamais la proposition de compte.
+  **Deux pièges d'outillage** : le connecteur Supabase de claude.ai ne voit une organisation créée après son
+  autorisation qu'une fois **réautorisé** (Paramètres → Connecteurs) ; et sous Windows, `open(…, "w")` de Python
+  réécrit tout le fichier en fins de ligne CRLF. `index.html` est en LF dans le dépôt (Git convertit au commit, le
+  diff reste propre), mais une ancre multiligne cherchée avec un simple saut de ligne ne se retrouve plus : lire et
+  écrire en binaire.
 - **UN DÉPANNEUR JOUE DANS LA LIGNE QU'IL BOUCHE (v1.12)** — trouvé par `harness-formations.cjs` avant livraison.
   Quand un effectif décimé ne peut pas remplir une ligne, `onze()` complète avec le meilleur joueur de champ restant.
   Compté dans la zone de son **vrai** poste (comme l'ancien moteur le faisait sans dommage, ses deux blocs ne
