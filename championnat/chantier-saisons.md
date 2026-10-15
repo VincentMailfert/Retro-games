@@ -226,9 +226,9 @@ saison anglaise ; rien d'elle n'est nécessaire pour jouer) :
       `harness-recruteur` — il faut donc un vivier anglais par été ET un libellé d'affichage séparé de la
       clé, sans casser une seule sauvegarde.~~ (b) **Le mot des clubs** : `MALEDICTIONS` / `HISTO_EPOQUE` ne
       connaissent aucun des soixante-douze clubs anglais, soit une phrase d'histoire vérifiée par club
-      (la fonction rend `undefined` en attendant, donc le jeu se tait au lieu de mentir). (c) **Les sponsors
+      (la fonction rend `undefined` en attendant, donc le jeu se tait au lieu de mentir). (c) ✅ **FAIT EN SÉANCE le 15/10/2026 (v2.01, liste validée par l'auteur, sans Umbro)** : `SPONSORS_*_ANG` et `EQUIPEMENTIERS_ANG`, lus par `sponsorsDe`, gardés par `harness-sponsors.cjs`. **Ne pas refaire, ne rien y ajouter sans l'auteur.** ~~(c) **Les sponsors
       et les équipementiers**, dont la liste est ARRÊTÉE PAR L'AUTEUR : une liste anglaise est sa décision,
-      pas celle de la routine.
+      pas celle de la routine.~~
 
 ---
 

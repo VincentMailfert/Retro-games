@@ -549,7 +549,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.00"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.01"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -13176,16 +13176,48 @@ const SPONSORS_SULFUREUX=[
  {nom:"BetCash", rep:-14, de:2010, moderne:true, ere:"Les paris sportifs en ligne, tout juste légalisés, frappent à la porte."},
  {nom:"Kachkar.biz", rep:-12, de:2006, a:2009, defaut:0.50, ere:"Un milliardaire venu de nulle part promet des millions. Les virements, eux, se font attendre."},
 ];
+/* LES SPONSORS ANGLAIS (v2.01, liste validée par l'auteur le 15/10/2026, sans Umbro) : mêmes familles, mêmes
+   champs, mêmes dates de/a que la liste française, et lus SEULEMENT par une carrière anglaise (sponsorsDe).
+   Vraies marques d'époque et quelques pastiches (Trotters Independent Traders, Spice Telecom, Leeson Futures,
+   Paddy's Odds, Sunday League Kits). Les vraies faillites sont gardées par choix de l'auteur, comme Enron. */
+const SPONSORS_RINGARDS_ANG=[
+ {nom:"HP Sauce", rep:+6, ere:"La sauce brune du petit-déjeuner anglais. Elle tache le maillot, et le public en redemande."},
+ {nom:"Bovril", rep:+7, ere:"Le bouillon de bœuf qu'on boit brûlant dans les tribunes en décembre."},
+ {nom:"Colman's", rep:+6, ere:"La moutarde jaune de Norwich. Un maillot qui pique."},
+ {nom:"Vimto", rep:+6, ere:"Le sirop violet de Manchester, celui des goûters d'après-match."},
+ {nom:"Hovis", rep:+6, ere:"Le pain complet des publicités sépia, une rue pavée et un vélo de livreur."},
+ {nom:"Walkers", rep:+6, ere:"Les chips de Leicester. Un paquet à la main, un œil sur le terrain."},
+ {nom:"Marmite", rep:+5, ere:"On l'adore ou on la déteste. Comme le club."},
+];
+const SPONSORS_PROPRES_ANG=[
+ {nom:"Rumbelows", a:1995}, {nom:"Woolworths", a:2008}, {nom:"Dixons", a:2012}, {nom:"Comet", a:2012},
+ {nom:"Ceefax", a:2012}, {nom:"Our Price", a:2004}, {nom:"Cellnet", de:1993, a:2002}, {nom:"One2One", de:1993, a:2002},
+ {nom:"Orange", de:1994}, {nom:"Dreamcast", de:1999, a:2002}, {nom:"Phones 4u", de:1996}, {nom:"Spice Telecom", de:1997, a:2003},
+ {nom:"Trotters Independent Traders"},
+];
+const SPONSORS_SULFUREUX_ANG=[
+ {nom:"Polly Peck", rep:-10, a:1990, defaut:0.45, ere:"Un empire des fruits et de l'électronique qui grossit à vue d'œil. Son patron garde un billet pour Chypre dans la poche."},
+ {nom:"BCCI", rep:-12, a:1991, defaut:0.45, ere:"Une banque internationale aux clients très discrets. Les régulateurs commencent à poser des questions."},
+ {nom:"Maxwell Communications", rep:-10, a:1991, defaut:0.50, ere:"Le magnat de la presse signe d'un trait de plume. La caisse de retraite de ses salariés paiera la note."},
+ {nom:"Barings", rep:-8, a:1995, defaut:0.40, ere:"La plus vieille banque d'Angleterre, celle de la Reine. Un jeune trader à Singapour s'occupe de tout."},
+ {nom:"Leeson Futures", rep:-10, de:1992, a:1995, defaut:0.35, ere:"Des produits dérivés venus de Singapour, des gains à couper le souffle. Les pertes dorment dans un compte numéro 88888."},
+ {nom:"Embassy", rep:-15, a:2002, ere:"Des cigarettes sur le maillot, avant que la loi ne s'en mêle."},
+ {nom:"News of the World", rep:-12, a:2011, ere:"Le tabloïd du dimanche paie rubis sur l'ongle. Il écoute aussi aux portes."},
+ {nom:"Northern Rock", rep:-9, de:1997, a:2008, defaut:0.40, ere:"La banque de Newcastle prête à tout le monde, et beaucoup. Les files d'attente devant ses guichets ne sont pas encore là."},
+ {nom:"Paddy's Odds", rep:-14, de:2007, moderne:true, ere:"Les paris en ligne ont désormais le droit de passer à la télévision, et ils frappent à la porte."},
+];
+/* La liste d'une famille de sponsors dans le pays de la carrière : la française partout ailleurs qu'en Angleterre. */
+function sponsorsDe(fr, ang){ return ((typeof G!=="undefined"&&G&&G.pays)==="ANG")?ang:fr; }
 function datedDispo(liste){
   const an=anneeJeu();
   const ok=liste.filter(s=>(!s.de||an>=s.de) && (!s.a||an<=s.a));
   return ok.length?ok:liste; // filet : jamais d'offre vide, même dans une année creuse
 }
-function sponsorsDispo(){ return datedDispo(SPONSORS_SULFUREUX); }
+function sponsorsDispo(){ return datedDispo(sponsorsDe(SPONSORS_SULFUREUX, SPONSORS_SULFUREUX_ANG)); }
 function genSponsors(mult){
   const ech=clubById(G.monClub).pres*0.09+0.55;
-  const propres=datedDispo(SPONSORS_PROPRES).map(p=>p.nom).sort(()=>Math.random()-.5);
-  const ring=PICK(datedDispo(SPONSORS_RINGARDS));
+  const propres=datedDispo(sponsorsDe(SPONSORS_PROPRES, SPONSORS_PROPRES_ANG)).map(p=>p.nom).sort(()=>Math.random()-.5);
+  const ring=PICK(datedDispo(sponsorsDe(SPONSORS_RINGARDS, SPONSORS_RINGARDS_ANG)));
   const sulf=PICK(sponsorsDispo());
   return [
     {nom:ring.nom, fixe:Math.round(95000*ech*mult), prime:0, rep:ring.rep,
@@ -13222,11 +13254,23 @@ const EQUIPEMENTIERS=[
  {nom:"Baliston",              min:1,   max:4,  cachet:0.28, de:2000, note:"barre de céréales non incluse"},
  {nom:"Le Grand Échalas",      min:0,   max:2,  cachet:0.14, note:"l'atelier du village, floqué à la maison le samedi"},
 ];
+/* Les équipementiers anglais (v2.01, liste de l'auteur sans Umbro ; phrases proposées, à valider). Même échelle que
+   la liste française ; après 2000 il n'y a pas de quatrième marque, un petit club retombe sur l'atelier du pub. */
+const EQUIPEMENTIERS_ANG=[
+ {nom:"Admiral",               min:7,   max:13, cachet:1.00, a:1999, note:"le premier à vendre la réplique du maillot aux gamins"},
+ {nom:"Pony",                  min:5,   max:9.5,cachet:0.78, a:1999, note:"le petit cheval qui trotte sur la poitrine"},
+ {nom:"Matchwinner",           min:3,   max:7,  cachet:0.55, a:1999, note:"le nom promet beaucoup, le palmarès un peu moins"},
+ {nom:"Bukta",                 min:1,   max:4,  cachet:0.28, a:1999, note:"la doyenne de Stockport, plus vieille que la Football League"},
+ {nom:"Hummel",                min:7,   max:13, cachet:1.00, de:2000, note:"les chevrons danois, souvenir du Danemark de 1986"},
+ {nom:"Le Coq Sportif",        min:5,   max:9.5,cachet:0.78, de:2000, note:"le coq français s'invite chez l'ennemi héréditaire"},
+ {nom:"Patrick",               min:3,   max:7,  cachet:0.55, de:2000, note:"le voisin belge, discret mais fidèle"},
+ {nom:"Sunday League Kits",    min:0,   max:2,  cachet:0.14, note:"floqué au fer à repasser dans l'arrière-salle du pub"},
+];
 /* offres d'équipementier selon la notoriété — comme les sponsors : rien tant qu'on n'a pas signé */
 function genEquip(){
   const c=clubById(G.monClub);
   const standing=c.pres + Math.max(-1.5, Math.min(1.5, ((G.reput==null?75:G.reput)-75)/20));
-  const liste=datedDispo(EQUIPEMENTIERS); // les marques de l'époque
+  const liste=datedDispo(sponsorsDe(EQUIPEMENTIERS, EQUIPEMENTIERS_ANG)); // les marques de l'époque, et du pays
   const elig=liste.filter(e=>standing>=e.min && standing<=e.max).sort((a,b)=>b.cachet-a.cachet);
   const ordre=elig.length?elig:[liste[liste.length-1]];
   const base=120000*(0.65+0.05*c.pres), rnd=x=>Math.round(x/1000)*1000;
@@ -15550,7 +15594,7 @@ function intersaison(){
   // une nouvelle ère de sponsoring s'ouvre-t-elle cette saison ?
   G.nouvelleEre=null;
   const an=anneeJeu(); // (était 1994+saisonIdx : faux dès qu'on ne partait pas en 1995)
-  const modernesActifs=SPONSORS_SULFUREUX.filter(s=>s.moderne && s.de===an);
+  const modernesActifs=sponsorsDe(SPONSORS_SULFUREUX, SPONSORS_SULFUREUX_ANG).filter(s=>s.moderne && s.de===an);
   if(modernesActifs.length) G.nouvelleEre=modernesActifs[0];
   G.confiance=65;
   G.objectif=objectifPour(presObjectif(clubById(G.monClub)));
