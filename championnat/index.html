@@ -549,7 +549,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.01"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.02"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -13254,8 +13254,8 @@ const EQUIPEMENTIERS=[
  {nom:"Baliston",              min:1,   max:4,  cachet:0.28, de:2000, note:"barre de céréales non incluse"},
  {nom:"Le Grand Échalas",      min:0,   max:2,  cachet:0.14, note:"l'atelier du village, floqué à la maison le samedi"},
 ];
-/* Les équipementiers anglais (v2.01, liste de l'auteur sans Umbro ; phrases proposées, à valider). Même échelle que
-   la liste française ; après 2000 il n'y a pas de quatrième marque, un petit club retombe sur l'atelier du pub. */
+/* Les équipementiers anglais (v2.01, liste de l’auteur sans Umbro ; phrases validées par lui le 15/10/2026). Même échelle que
+   la liste française ; après 2000, Mitre (phrase de l'auteur, reprise de la liste française) tient la place d'Umbro. */
 const EQUIPEMENTIERS_ANG=[
  {nom:"Admiral",               min:7,   max:13, cachet:1.00, a:1999, note:"le premier à vendre la réplique du maillot aux gamins"},
  {nom:"Pony",                  min:5,   max:9.5,cachet:0.78, a:1999, note:"le petit cheval qui trotte sur la poitrine"},
@@ -13264,6 +13264,7 @@ const EQUIPEMENTIERS_ANG=[
  {nom:"Hummel",                min:7,   max:13, cachet:1.00, de:2000, note:"les chevrons danois, souvenir du Danemark de 1986"},
  {nom:"Le Coq Sportif",        min:5,   max:9.5,cachet:0.78, de:2000, note:"le coq français s'invite chez l'ennemi héréditaire"},
  {nom:"Patrick",               min:3,   max:7,  cachet:0.55, de:2000, note:"le voisin belge, discret mais fidèle"},
+ {nom:"Mitre",                 min:1,   max:4,  cachet:0.28, de:2000, note:"le vétéran anglais, aussi vieux que le foot"},
  {nom:"Sunday League Kits",    min:0,   max:2,  cachet:0.14, note:"floqué au fer à repasser dans l'arrière-salle du pub"},
 ];
 /* offres d'équipementier selon la notoriété — comme les sponsors : rien tant qu'on n'a pas signé */

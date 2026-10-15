@@ -62,7 +62,8 @@ for (const cle of Object.keys(api.SAISONS).filter(k => api.SAISONS[k].pays === "
   const intrus = [...vus].filter(n => !AN.has(n));
   ok(!intrus.length, cle + " : " + vus.size + " noms tirés, tous anglais" + (intrus.length ? " — intrus : " + intrus.join(", ") : ""));
 }
-ok(!AN.has("Umbro") && ![...AN].some(n => FR.has(n) && n !== "Le Coq Sportif"), "pas d'Umbro, et aucune marque partagée avec la liste française");
+ok(!AN.has("Umbro") && ![...AN].some(n => FR.has(n) && n !== "Mitre"), "pas d'Umbro, et une seule marque partagée avec la liste française : Mitre, qui y finit en 1999 et revient ici en 2000");
+ok(api.EQUIPEMENTIERS_ANG.filter(e => e.de === 2000).length === 4, "après 2000, quatre équipementiers anglais, Mitre à la place d'Umbro");
 // les anglais à chaque époque : jamais d'offre vide ni de repli sur une autre liste
 for (const an of [1990, 1995, 2000, 2005, 2009]) {
   const dans = l => l.filter(s => (!s.de || an >= s.de) && (!s.a || an <= s.a)).length;
