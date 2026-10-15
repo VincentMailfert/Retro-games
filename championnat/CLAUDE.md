@@ -4121,6 +4121,115 @@ vingt-deux de 1992 à 1995, donc la question du repêchage ne se posera qu'à pa
 **l'échelon du dessous en avait VINGT-QUATRE**, donc il faudra **en écarter quatre par le classement réel**,
 comme la file d'attente l'annonce. Le harnais du jour vérifiera les deux tout seul.
 
+### ANG 1990-91 — LA FIN DE L'EXIL (v2.00)
+Deuxième saison anglaise, la plus ancienne du pays, et la première à remonter le temps côté anglais :
+1995-96 était devant, il a fallu **rajeunir** ses notes au lieu de les vieillir, exactement comme 1990-91
+l'avait fait côté français. Elle s'appelle **« La fin de l'exil »** : cinq ans après le Heysel, les clubs
+anglais retrouvent l'Europe, mais Liverpool purge une année de plus. **760 vrais joueurs**, 40 clubs,
+**aucun club neuf** (les soixante-douze d'ANG-B suffisent toujours).
+
+**LE PLATEAU, ET IL A DEMANDÉ UNE RÈGLE NEUVE.** La First Division 1990-91 avait ses **vingt clubs** :
+aucun repêchage, comme en 1995-96. L'échelon du dessous en comptait **vingt-quatre**, donc quatre
+s'effacent — mais, pour la première fois du chantier, **ce ne sont pas les quatre derniers**. Deux le
+sont (West Bromwich Albion 23e et Hull City 24e, les deux relégués) ; les deux autres tombent sur la
+**jurisprudence Saint-Seurin** : Transfermarkt ne connaît que **dix-sept joueurs à Brighton** (6e,
+finaliste des barrages) et **quinze à Bristol Rovers** (13e), pour dix-huit places. Dix-sept pour
+dix-huit, c'est au joueur près le cas de l'AS Saint-Seurin en 90/91 côté français, et il se tranche
+pareil.
+**Mais les deux repêchés ne sont PAS les deux suivants du classement, et c'est la découverte du jour.**
+Swindon (21e) et Leicester (22e) auraient dû entrer. Les faire entrer coûtait un homme à deux clubs
+**déjà au plateau** : Paul Bodin est passé de Crystal Palace à Swindon en mars 1991 (900 minutes contre
+436) et Alan Paris de Notts County à Leicester (456 contre 180). Le dédoublonnage par identifiant
+Transfermarkt les range **là où ils ont le plus joué** — règle de 99/00, la plus sûre —, si bien que
+Crystal Palace tombait à **dix-neuf** hommes pour vingt places à l'élite, et Notts County à
+**dix-sept** pour dix-huit. L'élite n'est pas négociable, ses vingt clubs sont ceux du classement ; la
+division du dessous, elle, peut choisir son vingtième club. D'où la règle, à reprendre pour l'Italie et
+l'Espagne : **un club n'entre au plateau que si son entrée ne laisse pas un autre club du plateau à
+court.** West Brom et Hull ne coûtent personne à personne, et c'est pour cela qu'ils entrent.
+Le harnais du jour exige les deux listes par **égalité**, et vérifie que les quatre écartés gardent leur
+fiche dans `CLUBS_ANG` — Leicester et Swindon joueront d'autres années.
+
+**LES SIÈGES EUROPÉENS, ET LA SEULE ANNÉE DU CHANTIER OÙ UN PAYS N'A PERSONNE DANS UNE COUPE.**
+`SIEGES_ANG[1990]` donne **aucun club en C1**, **Manchester United en C2** et **Aston Villa en C3** :
+deux clubs en tout, la plus petite délégation anglaise des vingt saisons. ANG-C l'avait relevé et
+expliqué ; c'est aujourd'hui qu'on le joue. Le harnais en fait ce que la répétition générale d'ANG-E ne
+pouvait pas faire : il ouvre une carrière et vérifie que **le tableau d'Europe tient ses seize clubs
+même sans siège national**, en se recomplétant entièrement par les viviers dormants, et qu'aucun club du
+championnat n'y entre par la bande. Manchester United ira gagner cette Coupe des Coupes à Rotterdam, deux
+buts de Mark Hughes contre le Barça, et le sous-titre de la saison le dit.
+
+**LES NOTES : TOUT EST RAJEUNI, ET LE VIVIER DU RECRUTEUR VAUT DE L'OR.** 311 des 760 noms sont ancrés,
+et presque tous sur ANG 1995-96, donc **à cinq ans de distance** : on applique la parade de 90/91 côté
+français, moyenne à parts égales entre la **note rajeunie** (l'inverse de la règle d'âge, année par
+année) et une **note calculée sur la saison elle-même** (médiane 70,5 à l'élite et 67,5 en dessous,
+modulée par le rang réel du club, par le rang de temps de jeu dans l'effectif et par une courbe d'âge).
+La chance de cette saison-là : **`VIVIER_SAISON[1990]` chiffre six hommes du championnat anglais à
+distance NULLE** — Lineker, Gascoigne, Barnes, Rush, Southall et Robson —, ramenés d'un cran à l'échelle
+des effectifs comme en 95-96. Puis une **table d'ajustements à la main de 84 entrées**, sans laquelle le
+calcul plafonne vers 79 et ne sait pas qu'un homme a été élu joueur de l'année. Distinctions vérifiées
+une par une : **Mark Hughes joueur de l'année des joueurs (PFA)**, son deuxième titre ; **Gordon Strachan
+joueur de l'année de la presse (FWA)** à trente-trois ans ; **Lee Sharpe meilleur espoir** à dix-neuf ;
+**Alan Smith meilleur buteur** avec vingt-deux buts ; et **Teddy Sheringham meilleur buteur de tout le
+pays depuis la deuxième division** (les sources disent 37 ou 38 buts selon qu'on compte comme la fiche du
+joueur ou comme la page de la Football League — le sous-titre ne donne donc **aucun chiffre**, il dit le
+fait). Résultat collé aux saisons voisines : élite moyenne 70,0 et médiane 70, dessous 66,2 et 66,5.
+
+**LE FORÇAGE EST RESTÉ À CINQ, ET C'EST LA LEÇON DE 95-96 QUI TIENT.** Chaque pépite forcée met dehors
+le vingtième de son club, donc on mesure ce qu'elle coûte avant de la forcer. **Ryan Giggs** (dix-sept
+ans, cent minutes) sort Mark Bosnich (180) ; **Andrei Kanchelskis**, arrivé du Chakhtior en mars, sort
+Darren Ferguson (348) ; **Ray Parlour** ne coûte rien du tout (Martin Hayes, zéro minute comme lui) ;
+**Chris Sutton** prend la place que libère le David Smith de Norwich, écarté pour une autre raison (plus
+bas) ; **Gunnar Halle**, arrivé en février, sort Paul Moulden de vingt-sept minutes. **Trois candidats
+ont été refusés après mesure**, et c'est le contrôle qui compte : **Terry Butcher** (585 minutes,
+entraîneur-joueur de Coventry) aurait chassé Steve Livingstone et ses 960 minutes ; **Jamie Redknapp**
+(zéro minute, signé en janvier) aurait chassé Steve McManaman, à trente-deux minutes mais plus grand nom
+encore ; **Steve Howey** (507 minutes) passait derrière Srnicek dans un effectif de Newcastle que la
+source documente à trente-sept hommes. Tous les autres entrent par le seul temps de jeu, **Steve Watson
+à SEIZE ans et deux mille minutes compris** — plus jeune joueur de l'histoire de Newcastle.
+
+**LE CONTRÔLE D'IDENTITÉ D'UNE SAISON À L'AUTRE S'ALLUME, et c'est lui qui a dicté la moitié du travail
+sur les noms.** `harness-angleterre.cjs` dormait depuis ANG-E faute d'une seconde saison anglaise : il
+exige maintenant qu'un **même nom court désigne le même homme**, l'âge devant avancer **exactement de
+cinq ans** entre 1990-91 et 1995-96. Il a donc fallu passer en revue, avant de livrer, les
+**vingt-neuf** noms courts que les deux saisons partagent sans partager l'homme, plus les trente qui
+auraient contredit un prénom déjà écrit dans `PRENOMS_VRAIS`. La règle est celle du chantier : *celui que
+le jeu écrit déjà garde l'initiale, l'autre passe en toutes lettres* — **trente-six noms en entier**, un
+record, dont **Mark Hughes** et **Mark Ward**, que 95-96 écrivait déjà ainsi (« M. Hughes » y est Michael
+et « M. Ward » Mitch), et **Jan Mølby**, face au Johnny du vivier d'Europe. **Douze paires** sont des
+homonymes de la saison elle-même, Craig et Chris Short dans le même club compris, et les **trois
+Williams** (Geraint à Derby, Gareth à Aston Villa, Gary à Watford) ont demandé deux écritures en entier.
+**Deux hommes ont dû être écartés plutôt que renommés**, faute d'issue : le **David Smith de Norwich**
+(270 minutes) portait le même prénom ET le même nom que le David Smith de Coventry (3 291 minutes), et
+le **Paul Williams de West Bromwich** (172 minutes) était le troisième Paul Williams du plateau. C'est
+la jurisprudence Olivier Baudry de 91/92, et elle n'a servi que deux fois.
+**Et le mur du recruteur, piège de 95-96, est vérifié en situation** : les six hommes de
+`VIVIER_SAISON[1990]` qui jouent le championnat anglais portent au plateau le nom EXACT du vivier, et la
+section 4 du harnais lance une carrière pour relire le rapport du recruteur.
+
+**Le reste, en bref.** **Peter Shilton gardait les buts de Derby à quarante et un ans** : il tombe hors
+des bornes du moteur (15-40) et il est écarté plutôt que rajeuni — le harnais le dit nommément, pour
+qu'on ne le cherche pas. **Phil Parkes tient les buts d'Ipswich à quarante**, ce qui est le plus vieux du
+plateau. Dix-huit effectifs sont incomplets de poste et `genJoueur` complète à la marge, treize d'entre
+eux parce que la source ne connaît **qu'un seul gardien** au club : 1990 est bien moins bien documenté
+que 1995, et c'est ce qu'il faut attendre en remontant encore. **Quarante-trois doublons inter-clubs**,
+tranchés par identifiant Transfermarkt. **Un relevé sans anti-robot** : contrairement à 1990 côté
+français, `curl` avec un User-Agent de navigateur a suffi sur les quatre-vingts pages, mais **la page de
+compétition de Transfermarkt ignore `saison_id`** et sert toujours la saison en cours — les
+identifiants des quarante clubs se relèvent donc par la recherche rapide, puis se **vérifient un par un
+sur l'en-tête « Squad X - Season 90/91 »** de la page d'effectif, faute de quoi on récupère Valencia au
+lieu de Bristol Rovers. Wimbledon demande un détour : son club d'époque est **« Wimbledon FC (- 2004) »**
+(id 114309), distinct de MK Dons et de l'AFC Wimbledon, et seule la recherche par onglet « clubs » le
+montre.
+**Deux harnais ont dû suivre, et aucune assertion n'a été assouplie.** `harness-pays.cjs` enregistrait
+une **fausse** saison anglaise de 1990 le temps d'un contrôle, pour prouver qu'une saison d'avant 1992
+annonce « FIRST DIVISION » ; sa clé `"ANG-1990-91"` est désormais celle d'une vraie saison, qu'elle
+écrasait. Le faux plateau disparaît et le contrôle se joue sur la vraie donnée : il est plus fort qu'hier.
+`harness-textes-ang.cjs` a trouvé ce qu'il cherche depuis ANG-D : **« Llewellyn », nom procédural
+anglais, est devenu le nom d'un vrai joueur curé** (Andy Llewellyn, Bristol City) — il cède sa place à
+**« Pritchard »**, et le vivier procédural garde ses soixante noms et sa couleur galloise.
+Validation dédiée : **`harness-ang9091.cjs`** (sept sections), en plus de `harness-angleterre.cjs` qui
+l'a prise sans retouche.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`

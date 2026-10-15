@@ -237,33 +237,23 @@ console.log("F) L'écran : sélecteur de pays, puis de saison, bandeaux au bon l
   ok(page.includes("Division 1 française"), "et le bandeau dit « Division 1 française », comme avant le cadre");
   ok(!/undefined/.test(page), "aucun « undefined » n'a fuité dans la page");
 
-  /* On enregistre en plus une FAUSSE saison anglaise de 1990 le temps du contrôle. Elle ne sert
-     plus à prouver que les groupes apparaissent — la vraie ANG 1995-96 le fait désormais — mais
-     elle prouve ce que 1995-96 ne peut pas montrer : qu'une saison anglaise d'AVANT 1992 annonce
-     « FIRST DIVISION », puisque la Premier League n'existait pas encore. */
-  const FAUSSE = "ANG-1990-91";
-  SAISONS[FAUSSE] = { pays: "ANG", an: 1990, titre: "1990-91", nom: "Essai du harnais",
-    d1: SAISONS[api.SAISON_DEFAUT].d1, d2: SAISONS[api.SAISON_DEFAUT].d2,
-    starsD1: SAISONS[api.SAISON_DEFAUT].starsD1, starsD2: SAISONS[api.SAISON_DEFAUT].starsD2,
-    euroC1: [], euroC2: [], euroC3: [], sous: "Saison d'essai, retirée aussitôt." };
-  try {
-    api.setAccueil(api.SAISON_DEFAUT);
-    api.ecranAccueil();
-    page = APP._h;
-    ok((page.match(/<option /g) || []).length === clesFR.length && !page.includes(`value="${FAUSSE}"`),
-      `la France regardée, la fausse anglaise ne s'invite pas dans les ${clesFR.length} saisons françaises`);
-    // et l'écran d'une saison anglaise parle anglais
-    api.setAccueil(FAUSSE);
+  /* AVANT 1992, L'ÉLITE ANGLAISE S'APPELLE « FIRST DIVISION », et c'est le détail d'époque
+     d'ANG-A. La v1.93 l'éprouvait sur une FAUSSE saison de 1990 enregistrée le temps du
+     contrôle, parce que 1995-96 ne pouvait pas le montrer. Depuis la v2.00, ANG 1990-91 est
+     une VRAIE saison du registre : le contrôle se joue sur elle, le faux plateau disparaît,
+     et ce qu'on prouve ici n'est plus un montage mais ce que le joueur voit. */
+  const AVANT92 = clesANG.filter(k => SAISONS[k].an < 1992);
+  ok(AVANT92.length >= 1, `le registre porte ${AVANT92.length} saison(s) anglaise(s) d'avant 1992 : ${AVANT92.join(", ") || "aucune"}`);
+  if (AVANT92.length) {
+    api.setAccueil(AVANT92[0]);
     api.ecranAccueil();
     page = APP._h;
     ok(page.includes("FIRST DIVISION") && page.includes("SECOND DIVISION"),
-      "choisie, la saison anglaise de 1990 annonce « FIRST DIVISION » et « SECOND DIVISION »");
+      `choisie, ${AVANT92[0]} annonce « FIRST DIVISION » et « SECOND DIVISION »`);
     ok(page.includes("First Division anglaise"), "et le bandeau dit « First Division anglaise »");
     ok(!page.includes("DIVISION 2"), "plus une seule « DIVISION 2 » française à l'écran");
-    ok(/accPays on" data-pays="ANG"/.test(page) && (page.match(/<option /g) || []).length === clesANG.length + 1,
-      "l'Angleterre regardée, son bouton est allumé et le sélecteur ne liste que ses saisons, la fausse comprise");
-  } finally {
-    delete SAISONS[FAUSSE];
+    ok(/accPays on" data-pays="ANG"/.test(page) && (page.match(/<option /g) || []).length === clesANG.length,
+      `l'Angleterre regardée, son bouton est allumé et le sélecteur ne liste que ses ${clesANG.length} saisons`);
     api.setAccueil(api.SAISON_DEFAUT);
     api.ecranAccueil();
   }
