@@ -121,7 +121,7 @@ toujours « raconter quelque chose ».
   à la racine, à l'entrée, plutôt que de parier sur l'exhaustivité d'un audit. Le `localStorage` ne porte PAS de logique de
   jeu — juste la sérialisation de `G` ; et les helpers court-circuitent en mode test (`EN_TEST`) pour ne
   pas peser sur le harnais (`harness-sauvegardes.cjs` lève le drapeau le temps de l'appel pour les tester).
-- **COMPTES JOUEURS ET COPIE EN LIGNE DES CARRIÈRES (v1.58, 30/09/2026 ; emails envoyés par Resend depuis `noreply@mail.multiplex.club`, domaine `multiplex.club` acheté chez OVH par l'auteur)** :
+- **COMPTES JOUEURS ET COPIE EN LIGNE DES CARRIÈRES (écrits en v1.58 le 30/09/2026 mais restés sur leur branche, **en ligne seulement en v2.03, le 16/10/2026** ; emails envoyés par Resend depuis `noreply@mail.multiplex.club`, domaine `multiplex.club` acheté chez OVH par l'auteur)** :
   un compte est un PLUS, jamais une porte d'entrée. **Sans compte, le jeu ne fait aucune requête** (ni au démarrage,
   ni jamais) et n'écrit rien de plus dans le navigateur : c'est gardé par la section A de `harness-compte.cjs`.
   **Le serveur** : un projet Supabase « multiplex » (offre gratuite, région Paris `eu-west-3`, ref
