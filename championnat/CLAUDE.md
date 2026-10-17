@@ -4283,6 +4283,194 @@ anglais, est devenu le nom d'un vrai joueur curé** (Andy Llewellyn, Bristol Cit
 Validation dédiée : **`harness-ang9091.cjs`** (sept sections), en plus de `harness-angleterre.cjs` qui
 l'a prise sans retouche.
 
+### ANG 1991-92 — LA DERNIÈRE FIRST DIVISION (v2.04)
+Troisième saison anglaise, et la **dernière First Division de l'histoire** : l'été suivant, l'élite
+devient la Premier League. Leeds United de Howard Wilkinson la gagne, et c'est **Eric Cantona,
+débarqué de Nîmes en février, qui fait basculer le printemps** ; Manchester United, deuxième, se
+console avec la Coupe de la Ligue. **760 vrais joueurs**, 40 clubs, **aucun club neuf** (les
+quarante-sept clubs traversés étaient déjà dans `CLUBS_ANG`). Les notes héritent de ANG 1990-91 **à
+un an de distance**, donc par la règle éprouvée et dans le bon sens : **501 des 760 noms reprennent
+leur note 1990-91 vieillie d'un an**, 94 passent par la moyenne rajeunie/calculée depuis ANG 1995-96
+et **165 seulement sont calculés**. Distribution collée à celle de 1990-91 (élite : moyenne 70,5 et
+médiane 70, contre 70,0 et 70 ; dessous : 65,7 et 66, contre 66,2 et 66,5).
+
+**LE CRITÈRE DU PLATEAU A CHANGÉ, ET C'EST L'APPORT DE LA JOURNÉE : ce n'est pas « combien d'hommes
+la source documente », c'est « la source peut-elle REMPLIR l'effectif ».** Le harnais de pays exige
+quarante effectifs **pleins** (400 et 360 vrais noms) et « aucun joueur inventé sur une saison
+réelle » interdit de compléter une table avec un nom procédural : un club n'est donc éligible que si
+la source lui connaît vingt hommes à l'élite et dix-huit en dessous, **en comptant les remplaçants
+jamais utilisés qu'on ajoute en comblement** (déjà fait en 90/91 côté français). La First Division
+comptait **vingt-deux clubs** et les vingt-deux peuvent remplir, donc la documentation n'impose
+rien : s'effacent les **deux derniers du classement réel**, Notts County (21e) et West Ham (22e),
+deux des trois relégués — Luton, vingtième et relégué lui aussi, reste au plateau. Mais l'échelon du
+dessous comptait **vingt-quatre clubs et la source ne sait en remplir que dix-neuf**. Cinq
+s'effacent, et comme en 1990-91 **ce ne sont pas les derniers** : Brighton (23e, vingt hommes) et
+Port Vale (24e, dix-neuf) sont mieux servis que **Blackburn (6e, quinze hommes), Southend (12e,
+quinze), Barnsley (16e, dix-sept), Oxford (21e, dix-sept) et Plymouth (22e, dix-sept)**. Perdre
+Blackburn coûte cher — vainqueur des barrages, l'équipe de Dalglish et de l'argent de Jack Walker,
+celle qui gagnera la Premier League en 1995 — mais la remplir demandait **trois joueurs inventés**,
+ce qu'on ne fait pas. **Middlesbrough, deuxième et promu, est sauvé d'un cheveu** par Brian Marwood,
+que la source place à Sheffield United alors qu'il y était **prêté à Middlesbrough** pendant la
+saison (vérifié sur Wikipedia ; ses 294 minutes sur quarante-cinq matchs relevés à Sheffield, soit
+7 % du temps, sont exactement la trace d'un homme prêté). Il manquait alors un club, et c'est la
+**règle de repêchage du chantier, mot pour mot** : les meilleurs relégués de la saison précédente
+montent pour compléter. Les deux relégués de la division du dessous en 1990-91 étaient West Bromwich
+Albion (23e) et Hull City (24e) ; le meilleur des deux, **West Bromwich Albion**, est repêché. Il
+jouait la Third Division en 1991-92, mais la source le documente (vingt hommes), exactement comme
+Louhans-Cuiseaux et Martigues en 98/99 et Red Star et Beauvais en 99/00, et contrairement au cas
+Toulon 98/99.
+Sièges européens, et ils racontent l'année : **Arsenal, champion, en Coupe des clubs champions**,
+**Tottenham (vainqueur de la FA Cup 1991) ET Manchester United (tenant du titre) en Coupe des
+Coupes**, et **Liverpool en Coupe UEFA — il rentre d'exil un an après les autres**, ayant purgé une
+année de plus en 1990-91. Quatre sièges, tous à l'élite. Et le contrôle que le harnais garde parce
+que c'est l'erreur la plus facile : **Leeds, qui va gagner le championnat, part sans Europe** — les
+sièges se gagnent l'année d'avant.
+`HONNEURS_PAYS` n'a rien eu à apprendre : partir de 1991-92 fait tomber l'**Euro 92 dès la première
+intersaison** (le Danemark repêché et sacré, l'Angleterre sortie au premier tour et le navet du
+tabloïd, déjà écrits par ANG-D), et l'été 1993 est muet.
+
+**LE PIÈGE DU JOUR EST LE PLUS GRAVE DE LA SAISON ANGLAISE : TRANSFERMARKT NE COUVRE PAS LES DEUX
+DIVISIONS DE LA MÊME FAÇON, ET LE DÉDOUBLONNAGE AUX MINUTES BRUTES S'Y TROMPE SYSTÉMATIQUEMENT.**
+L'élite est **complète** (42 à 58 matchs relevés par club, toutes compétitions, soit 100 à 138 % de
+la saison). La division du dessous va de **DEUX matchs sur quarante-six à Barnsley** à cinquante à
+Newcastle, la seule exception. ANG 1995-96 avait noté la lacune (« treize à vingt matchs sur
+quarante-six ») ; elle est ici **bien pire**. Comme elle est uniforme **à l'intérieur** d'un club, le
+tri aux minutes reste un bon arbitre du classement interne — le constat de 1995-96 tient. Mais elle
+fausse entièrement l'arbitrage d'un doublon **ENTRE** deux clubs : « là où il a le plus joué », lu
+sur les minutes brutes, envoie l'homme vers le club le mieux couvert. **Dix-sept arbitrages étaient
+faux**, et quatre coûtaient Blackburn, qui tombait de dix-huit hommes à douze. **La parade, à
+reprendre pour l'Italie et l'Espagne : mesurer la part de temps de jeu RAPPORTÉE À LA COUVERTURE du
+club.** Vérifié sur Wikipedia pour les trois cas qui décidaient du club — **Colin Hendry**
+(Manchester City jusqu'en 1991, Blackburn de 1991 à 1998), **Gordon Cowans** (Aston Villa jusqu'en
+1991, Blackburn 1991-1993) et **Mike Newell** (Everton jusqu'en 1991, Blackburn 1991-1996) — et deux
+hommes marginaux vont dans l'autre sens, arbitrés **à la main** : Chris Price (Aston Villa en 91-92)
+et Lee Nogan (Watford de 1991 à 1995). *Note pour la suite : Blackburn ayant finalement été écarté du
+plateau, ces trois hommes retournent à leur club d'août, ce qui est de toute façon la bonne réponse
+pour un coup d'envoi de saison — mais la règle, elle, reste nécessaire dès qu'un club du dessous est
+au plateau.*
+
+**DEUX AUTRES PIÈGES DE LECTURE, ET LE PREMIER EST UN CONTRÔLE QUI DORMAIT LES YEUX OUVERTS.**
+(1) Le relevé rendait **136 hommes sans poste** et mon contrôle annonçait pourtant « tous les
+libellés sont reconnus » : un libellé **inconnu** et une cellule **absente** laissaient tous deux le
+champ vide, donc le contrôle ne pouvait rien prouver. C'est exactement l'avertissement de 91/92 côté
+français — *contrôler les libellés non reconnus avant de conclure qu'un club est mal documenté* — et
+il a fallu relever le libellé **tel quel, sans le filtrer par la table de traduction**, pour voir les
+deux coupables : **`Mittelstürmer`** (132 hommes) et **`Hängende Spitze`** (4). Et la cause est un
+détail d'encodage à garder : **le « ß » allemand n'est PAS un signe diacritique**, `NFD` le laisse
+tel quel, donc « Linksaußen » ne rejoignait jamais « linksaussen » dans la table. Sans ce correctif,
+Brian Deane et Alan Cork sortaient sans poste.
+(2) **Les colonnes de la page de temps de jeu se repèrent par rapport à la cellule de POSTE, jamais
+par leur rang absolu** : « première cellule `zentriert` numérique » lisait **l'ÂGE** et le prenait
+pour un nombre de matchs, si bien que Kevin Moran ressortait à « 35 matchs pour 180 minutes ». Le
+symptôme à reconnaître est l'absurdité arithmétique. L'ordre réel est : #, image, nom, poste, âge,
+drapeau, dans le groupe, matchs, …, PPG, minutes.
+
+**LES IDENTIFIANTS DE CLUB NE SE DEVINENT PAS, ET LA RECHERCHE RAPIDE EST UN CHAMP DE MINES.** Trois
+choses, à reprendre telles quelles. (a) **La page de compétition IGNORE `saison_id`** et sert
+toujours la saison en cours (`tabelle/wettbewerb/GB1?saison_id=1991` rend la Premier League
+d'aujourd'hui, vingt clubs) : ANG 1990-91 l'avait noté, et c'est vrai sous les **deux** formes
+d'URL. (b) Sur la page de recherche, il faut lire **la seule table des résultats « Clubs »** :
+balayer la page entière pour `/verein/<id>` rend d'abord les liens de menu et de colonne latérale,
+et Leeds (399) arrivait en **quinzième** position, après quatorze candidats inutiles. La recherche
+rend aussi les équipes de **jeunes** juste après le club premier (« Leeds United U21 », « Leeds
+United Youth ») et des clubs entièrement étrangers si l'on ne vérifie pas le nom — **Everton →
+FC Turin**, **Sunderland → Burrin Celtic**, **Aston Villa → Club Sportivo Villa Cubas**. *Vérifier
+que la page 91/92 existe NE SUFFIT PAS* : il faut que le titre porte le nom du club, sans marqueur
+de jeunes, et que l'effectif ne soit pas vide. (c) **Le contrôle de saison doit être insensible à la
+casse et couvrir les trois langues** : seize clubs étaient servis en anglais (« Detailed squad
+91/92 ») et passaient pour absents face à un motif calé sur l'allemand. Et l'esperluette de
+« Brighton & Hove Albion » casse la recherche : on cherche « Brighton ». Wimbledon est bien
+**114309, « Wimbledon FC (- 2004) »**, ce que ANG 1990-91 avait déjà relevé — un bon recoupement
+entre deux journées.
+
+**CANTONA EST DANS LES DEUX SAISONS 1991-92, ET IL AFFINE LA RÈGLE DE 1995-96.** Il joue le premier
+semestre à Nîmes et le second à Leeds, donc il est au plateau français **et** au plateau anglais de
+la même année — ce n'est pas un doublon, on ne joue qu'un championnat à la fois. Mais les tables
+françaises l'écrivent **« É. Cantona »** et les anglaises **« E. Cantona »**, et c'est là que le
+piège de 1995-96 se rejoue : `vivierDeSaison` écarte du vivier un homme sous contrat **en comparant
+le nom chaîne pour chaîne**. D'où la règle, plus précise que celle d'alors : **quand le jeu porte
+déjà un homme, c'est la graphie du JEU qui gagne — et pour un homme du championnat anglais, ce sont
+les TABLES ANGLAISES qui disent la graphie**, avant les françaises. Le croisement avec
+`VIVIER_SAISON[1991]` est fait et rend cinq hommes du championnat anglais — **Ian Wright, Peter
+Schmeichel, Ryan Giggs, Andrei Kanchelskis et Dean Saunders** — tous portés au plateau sous le nom
+exact du vivier, donc tous écartés par le moteur ; la section 4 du harnais lance une carrière et
+relit le rapport du recruteur pour l'exiger.
+
+**TROIS CESSIONS, ET LA RÈGLE DE L'HOMONYMIE PARFAITE VAUT AUSSI D'UNE SAISON À L'AUTRE.** Prénom
+ET patronyme identiques, aucune forme ne les sépare : le plus marginal cède sa place à un autre vrai
+joueur de son club (jurisprudence Olivier Baudry). **Deux Mark Hughes** — l'attaquant de Manchester
+United (4 573 minutes) et un défenseur de Tranmere (480) : le Tranmérien cède. **Deux Paul
+Williams**, dont celui de West Bromwich, déjà écarté en 1990-91 pour la même raison. Et **« Mark
+Smith » est au défenseur de Barnsley que le jeu porte depuis ANG 1990-91** (identifiant Transfermarkt
+499223, né en 1960) : l'attaquant de Grimsby de 91-92 est un **autre homme** (identifiant 1015277, né
+en 1961), et **c'est l'identifiant qui tranche l'identité, jamais l'âge**. Six paires d'homonymes
+cohabitent par ailleurs, toutes par la règle de 00/01 (celui que le jeu connaît déjà garde
+l'initiale) : **Michael Hughes** face à Mark, **Mitch Ward** face à Mark, **Ray Wilkins** —
+trente-cinq ans à QPR — face à Richard, Paul Reid face à Peter, David White face à Devon, Danny
+Wilson face à David.
+**Le contrôle d'identité d'une saison anglaise à l'autre a trouvé son régime** : **496 noms sont
+partagés avec ANG 1990-91 et tous ont vieilli d'exactement un an.**
+
+**QUATRE PÉPITES FORCÉES SEULEMENT, ET C'EST UN CHOIX.** Le contrôle de 09/10 — *un forçage ne se
+juge pas sur la carrière du forcé, mais sur la différence entre sa carrière et celle de l'homme qu'il
+sort*, les deux lues dans les tables du jeu — a fait tomber **six noms d'une première liste de dix** :
+Carruthers sortait Neil Cox (que le jeu note 73 en 1995-96), Dean Gordon sortait Richard Shaw pour la
+**même** note, Frank Sinclair sortait Andy Myers que le jeu note **plus haut** (67 contre 65),
+Widdrington sortait Jon Gittens et ses 1 213 minutes, Andy Johnson sortait Daryl Sutch, et Lee Makel
+sortait Alan Neilson pour un point. Restent **Jamie Redknapp** (dix-huit ans, 700 minutes à
+Liverpool, que le jeu note 80 en 1995-96 contre 72 à Harkness qu'il sort), **Mitch Ward**, **Gary
+Rowett** (dix-sept ans) et **Robbie Elliott** (dix-huit ans). Et **Andy Cole reste dehors** : onze
+minutes à Arsenal, il aurait sorti Ray Parlour et ses 299 minutes, que le jeu porte déjà — c'est le
+précédent Hugo Lloris de 04/05, *la source fait foi dans les deux sens*. Les quatre Liverpuldiens
+que le tri écarte (Venison, Whelan, Hysén, Redknapp) ont **vraiment** moins joué que vingt
+coéquipiers dans une saison de cinquante-cinq matchs.
+Table d'ajustements à la main de **quarante entrées** : les quatre distinctions d'abord, vérifiées
+une par une sur « 1991-92 in English football » — **Gary Pallister joueur de l'année des joueurs
+(PFA) 83**, **Gary Lineker joueur de l'année de la presse (FWA) 85** pour sa dernière saison à
+Tottenham avant Nagoya, **Ryan Giggs meilleur espoir 72/91** à dix-huit ans et 4 035 minutes,
+**Ian Wright meilleur buteur 82** avec vingt-neuf buts —, puis les hommes que le calcul ne peut pas
+connaître (**Cantona 82/88**, qui n'a que 762 minutes à Leeds et vaut sa valeur et non son temps de
+jeu, jurisprudence Stojković ; **Mark Hughes 85**, **Alan Shearer 78/90** à vingt et un ans, record
+britannique pour Blackburn l'été suivant ; **Roy Keane 76/88** à vingt ans) et les gamins que rien
+dans un classement ne trahit (**Darren Anderton 66/86**, **Chris Sutton 65/87**, **Dwight Yorke
+70/86**, **Steve Watson 60/81** à seize ans).
+**Ian Wright n'est PAS resté à Crystal Palace** : il a signé à Arsenal dès septembre 1991, et c'est
+le dédoublonnage par identifiant qui l'y met — le harnais l'exige nommément.
+
+**TROIS ABSENCES QUI SONT TOUTES DES BONNES RÉPONSES.** **Paul Gascoigne n'est nulle part** : le
+genou brisé en finale de FA Cup en mai 1991, il ne joue **pas une minute** de 1991-92 et part à la
+Lazio l'été suivant — la source et l'histoire disent la même chose. **David Platt** non plus : il
+jouait à Bari. Et **Peter Shilton gardait les buts de Derby à QUARANTE-DEUX ans**, hors des bornes du
+moteur (15-40) : il est **écarté plutôt que rajeuni**, comme à quarante et un ans en 1990-91, et le
+harnais le dit nommément pour qu'on ne le cherche pas.
+Les deux bouts de l'échelle sont de vrais hommes : **Paul Pettinger, SEIZE ANS**, gardien de réserve
+de Leeds — et il entre par le **comblement**, pas par le temps de jeu —, et **Steve Sherwood,
+TRENTE-HUIT ans** dans les buts de Grimsby. **Trevor Francis joue encore à trente-sept ans** à
+Sheffield Wednesday, dont il est l'entraîneur-joueur. Quatre vétérans de trente-six ans et plus.
+
+**1991-92 EST LA SAISON OÙ LE DÉMÉNAGEMENT DE WIMBLEDON PREND EFFET**, et `metaSaison` le sait sans
+qu'on y touche : le club quitte **Plough Lane pour Selhurst Park**, qu'il partage avec Crystal
+Palace. **Charlton** passe de Selhurst Park à **Upton Park** et ne rentrera à The Valley qu'en
+décembre 1992 ; **Middlesbrough** est encore à **Ayresome Park**, le Riverside n'ouvrant qu'en 1995.
+Les trente-cinq déménagements datés d'ANG-B paient une deuxième fois.
+
+**La source est généreuse, à la réserve du piège de couverture près** : **aucun joueur que la source
+ne sache dater**, **aucun libellé de poste inconnu** après correctif, **aucun club sous dix hommes**
+(le plus pauvre en aligne quinze), **soixante-deux doublons inter-clubs** tranchés par identifiant
+Transfermarkt sur le plateau final, et le relevé des quatre-vingt-quatorze pages s'est fait sur le
+domaine **`.de`**, les trois autres répondant 405 à l'anti-robot AWS.
+**160 prénoms neufs dans `PRENOMS_VRAIS`, dont aucun vide** — pour la huitième fois de suite. Trois
+écarts avec la table existante, tous des variantes du même homme, et la table garde la sienne (règle
+de 02/03) : « A. Kanchelskis » dit Andrei quand la source dit Andrey, « M. Le Tissier » Matthew
+contre Matt, et **« M. Hughes » dit `Michaël`**. *Ce dernier est une faute du même tonneau que le
+« Michaël Thomas » corrigé en v1.99 — Michael Hughes est nord-irlandais — mais l'entrée précède cette
+journée et sert deux autres saisons : elle est signalée à l'auteur plutôt que corrigée en passant.*
+**Vingt et un postes incomplets que `genJoueur` complète à la marge**, dont **douze clubs à un seul
+gardien répertorié** : c'est la même marge qu'en 91/92 côté français (quinze deuxièmes gardiens), et
+elle vient de ce que la source marque la doublure « pas dans l'effectif cette saison ».
+Validation dédiée : **`harness-ang9192.cjs`** (sept sections), en plus de `harness-angleterre.cjs`
+qui l'a prise **sans retouche**, comme ANG-E l'avait promis.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
