@@ -29,3 +29,20 @@ AUCUN : les quarante-six clubs des deux divisions sont deja dans `CLUBS_ANG` (72
 `SIEGES_ANG[1991]` est deja releve par ANG-C :
 C1 Arsenal (champion 90-91) · C2 Tottenham (FA Cup 1991) + Manchester United
 (tenant de la Coupe des Coupes) · C3 Liverpool (2e, rentre d'exil cette annee-la).
+
+## Identifiants Transfermarkt — releves et verifies un par un
+Dans `ids-transfermarkt.json`. Trois pieges payes aujourd'hui :
+1. **La page de competition ignore `saison_id`** et sert toujours la saison en cours
+   (`tabelle/wettbewerb/GB1?saison_id=1991` rend la Premier League d'aujourd'hui, vingt
+   clubs). Deja note par ANG 1990-91 ; verifie de nouveau sous les DEUX formes d'URL.
+2. **Sur la page de recherche, il faut lire la SEULE table des clubs.** Balayer la page
+   entiere pour `/verein/<id>` rend d'abord les liens de menu et de colonne laterale :
+   Leeds (399) arrivait en quinzieme position et l'on epuisait ses candidats avant. La
+   recherche rend aussi les equipes de JEUNES juste apres le club premier, et des clubs
+   entierement etrangers (Everton -> FC Turin, Sunderland -> Burrin Celtic) si l'on ne
+   verifie pas le nom. **Verifier que la page 91/92 existe NE SUFFIT PAS.**
+3. **Le controle de saison doit etre insensible a la casse et couvrir les trois langues** :
+   seize clubs etaient servis en anglais (« Detailed squad 91/92 ») et passaient pour
+   absents face a un motif cale sur l'allemand.
+Et l'esperluette de « Brighton & Hove Albion » casse la recherche : on cherche « Brighton ».
+Wimbledon est bien **114309, « Wimbledon FC (- 2004) »**, ce que ANG 1990-91 avait deja releve.
