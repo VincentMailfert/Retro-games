@@ -4471,6 +4471,195 @@ elle vient de ce que la source marque la doublure « pas dans l'effectif cette s
 Validation dédiée : **`harness-ang9192.cjs`** (sept sections), en plus de `harness-angleterre.cjs`
 qui l'a prise **sans retouche**, comme ANG-E l'avait promis.
 
+### ANG 1992-93 — LA PREMIÈRE PREMIER LEAGUE (v2.05)
+Quatrième saison anglaise, sous le nom **« Cantona change de camp »**. L'élite change de nom cet
+été-là et le cadre d'ANG-A le sait tout seul : la First Division devient la **Premier League**, et
+**Manchester United y prend le titre qui lui échappait depuis vingt-six ans**. **760 vrais joueurs**,
+40 clubs, **aucun club neuf** (les quarante-six clubs traversés étaient déjà dans `CLUBS_ANG`).
+L'héritage n'a jamais autant porté : ANG 1991-92 est à un an derrière, si bien que **598 des 760 noms
+reprennent leur note vieillie d'un an**, 62 passent par la moyenne rajeunie/calculée depuis ANG
+1995-96 et **100 seulement sont calculés** — 87 %, le meilleur taux du chantier. Distribution collée
+à celle de 1991-92 (élite : moyenne 70,7 et médiane 71, contre 70,5 et 70 ; dessous : 66,6 et 67,
+contre 65,7 et 66).
+
+**LE PLATEAU, ET LES QUATRE ÉCARTÉS DU DESSOUS NE SONT NI LES QUATRE DERNIERS NI ÉCARTÉS POUR LA MÊME
+RAISON.** La Premier League comptait **vingt-deux clubs** et les vingt-deux pouvaient remplir, donc le
+plateau se décide au seul classement : s'effacent **Middlesbrough (21e)** et **Nottingham Forest
+(22e)**, deux des trois relégués, Crystal Palace restant au plateau bien que vingtième et relégué lui
+aussi. L'échelon du dessous en comptait **vingt-quatre**, et quatre s'effacent :
+
+| Club | Rang | Pourquoi |
+|---|---|---|
+| **Tranmere Rovers** | **4e** | dix-sept hommes pour dix-huit places (jurisprudence Saint-Seurin) |
+| **Grimsby Town** | **9e** | dix-huit hommes, mais **l'un d'eux n'a aucun NOM LIBRE** |
+| **Southend United** | 18e | seize hommes |
+| **Bristol Rovers** | 24e | le dernier des remplissables |
+
+Perdre Tranmere coûte cher (quatrième, demi-finaliste des barrages), mais le remplir demandait un
+joueur inventé. **Cambridge United (23e) et Brentford (22e), tous deux relégués, sont SAUVÉS** parce
+que la source leur connaît largement de quoi remplir. Le remplissage a été éprouvé **dans le cas le
+plus généreux** pour chaque club (plateau réduit à l'élite retenue plus ce club seul, tous les autres
+écartés, donc tous les hommes disputés rendus), comme la règle de 1990-91 l'exige.
+
+**LA DÉCOUVERTE DU JOUR, ET C'EST UNE JURISPRUDENCE NEUVE : UN CLUB PEUT NE PAS POUVOIR REMPLIR FAUTE
+DE NOM LIBRE, ET PAS SEULEMENT FAUTE D'HOMMES.** Grimsby a ses dix-huit hommes. Mais l'un d'eux,
+**Mark Smith né en 1961** (identifiant Transfermarkt 1015277), est le **troisième Mark Smith de la
+fenêtre du jeu**, et les deux formes qu'il pourrait porter sont prises : **`M. Smith` est à Martin
+Smith**, né en 1974, que le jeu porte à Sunderland depuis ANG 1995-96, et **`Mark Smith` au défenseur
+né en 1960**, que le jeu porte depuis ANG 1990-91 et qui joue justement à Notts County cette année-là.
+Transfermarkt ne lui donne aucun deuxième prénom, et on n'invente pas un nom. ANG 1990-91 avait déjà
+écarté deux hommes innommables (le David Smith de Norwich, le Paul Williams de West Bromwich) — mais
+**leurs clubs avaient un homme de plus à promouvoir**, et Grimsby n'en a pas. Le contrôle a été fait
+sur les sept cent soixante hommes d'un coup : **759 nommables sur 760**, une seule impasse.
+**À retenir : tenir le compte des noms LIBRES comme on tient le compte des hommes, et faire le
+contrôle sur tout le plateau avant d'arrêter le plateau.**
+
+**L'AUTRE APPORT EST UNE MÉTHODE, ET ELLE CORRIGE LES DEUX RÈGLES PRÉCÉDENTES : LES DOUBLONS
+S'ARBITRENT AU COUP D'ENVOI, PAR LA COLONNE « IM TEAM SEIT ».** Le chantier arbitrait un homme listé
+dans deux clubs « là où il a le plus joué » (99/00), règle qu'ANG 1991-92 avait dû corriger en
+rapportant les minutes à la **couverture** du club, la source ne documentant pas les deux divisions de
+la même façon. Les deux se trompent ici, et dans des sens opposés : la couverture du dessous descend
+jusqu'à **trois matchs relevés sur quarante-six**, si bien qu'un homme à trois matchs y pèse une part
+de 1,00 et bat un titulaire de douze matchs ailleurs (**Andy Cole** partait à Bristol City par les
+parts et à Newcastle par les minutes brutes, et **Kerry Dixon** à Luton par les parts alors qu'il a
+joué douze matchs à Southampton). La parade : la page d'effectif porte une colonne **« Im Team seit »**,
+la date d'arrivée au club. CLAUDE.md avertit depuis 97/98 qu'elle ne donne que la DERNIÈRE arrivée et
+qu'elle ne date donc pas un transfert — c'est vrai, et c'est sans importance pour la seule question
+qui décide d'un effectif de **coup d'envoi** : *cet homme est-il arrivé EN COURS de saison ?* On note
+donc 2 une arrivée antérieure au 15 août 1992, **0 une arrivée dans la saison** (il n'était pas là au
+coup d'envoi), et **1 une arrivée POSTÉRIEURE à la saison**, qui masque un passage antérieur et ne dit
+rien — c'est exactement le piège « Membre depuis », et le cas **Ken Charlery**, que Transfermarkt date
+de 1996 à Peterborough alors qu'il y était bien en août 1992. À égalité, les parts tranchent.
+**Vingt-neuf arbitrages sur soixante et un changent**, et les douze cas décisifs ont été vérifiés un à
+un contre l'histoire : tous sortent justes.
+
+**CONSÉQUENCE LA PLUS VISIBLE, ET IL FAUT LA CONNAÎTRE AVANT DE LA PRENDRE POUR UN DÉFAUT : ERIC
+CANTONA EST À LEEDS.** Il a quitté Leeds pour Old Trafford **le 26 novembre 1992** (Leeds
+`Im Team seit` 06.02.1992, Manchester United 26.11.1992) : au coup d'envoi d'août, il est encore
+champion en titre avec Leeds, et c'est là que le jeu le place, à 83 de note et 88 de potentiel. Le nom
+de la saison raconte exactement ce mouvement. Même logique pour **Scott Sellars** (Leeds, pas
+Newcastle), **Micky Quinn** (Newcastle, pas Coventry), **Stan Collymore** (Crystal Palace, pas
+Southend) et **Steve Claridge** (Luton, pas Cambridge). **Et la graphie : les tables anglaises écrivent
+« E. Cantona » sans accent là où Transfermarkt sert « Éric Cantona »** — la règle de 1991-92 tient, la
+graphie du JEU gagne, et pour un homme du championnat anglais ce sont les tables ANGLAISES qui la
+disent. C'est ce qui fait que le recruteur l'écarte : `vivierDeSaison` compare le nom chaîne pour
+chaîne, et `VIVIER_SAISON[1992]`, qui reste français, aligne **cinq hommes du championnat anglais**
+(Cantona, Shearer, Wright, Adams, Hirst), tous portés au plateau sous le nom exact du vivier.
+**Roy Keane et Stuart Pearce sont au vivier et PAS au plateau** : ils jouaient Nottingham Forest,
+écarté — le vivier peut donc les proposer sans contredire le championnat, et c'est une cohérence.
+
+Sièges européens réels, ceux de `SIEGES_ANG[1992]` relevés par ANG-C : **Leeds en Coupe des clubs
+champions** (champion de la dernière First Division), **Liverpool en Coupe des Coupes** (vainqueur de
+la FA Cup 1992), **Manchester United et Sheffield Wednesday en Coupe UEFA**. Quatre sièges, tous à
+l'élite, et les trois listes sont **disjointes** (`nouvellePartie` y lit la compétition d'un club).
+**Et le contrôle que le harnais garde, parce que c'est l'erreur la plus facile : MANCHESTER UNITED, QUI
+VA GAGNER LE TITRE, N'EST PAS EN C1** — les sièges se gagnent l'année d'AVANT, et il n'était que
+deuxième en 1991-92. Aston Villa, qui finira deuxième, part sans Europe.
+`HONNEURS_PAYS` n'a rien eu à apprendre : partir de 1992-93 laisse l'**été 1993 MUET** et porte le
+**Mondial 94 à la DEUXIÈME intersaison**, celui où l'Angleterre n'était pas qualifiée, dépêche déjà
+écrite par ANG-D et qui ne porte pas le marqueur de sacre.
+
+Table d'ajustements à la main de **vingt-trois notes et quinze potentiels**, courte parce que
+l'héritage d'un an fait le travail. Les cinq distinctions d'abord, vérifiées une par une sur
+« 1992-93 in English football » : **Paul McGrath 84**, joueur de l'année des joueurs (PFA) à
+trente-trois ans et 4 522 minutes (l'héritage seul le laissait à **74**) ; **Chris Waddle 86**, joueur
+de l'année de la presse (FWA), rentré de Marseille à Sheffield Wednesday, qu'il emmène aux **deux**
+finales de coupe, perdues l'une et l'autre contre Arsenal ; **Teddy Sheringham 82**, meilleur buteur
+du championnat avec vingt-deux buts, dont vingt et un sous le maillot de Tottenham ; **Ryan Giggs
+79/91**, meilleur espoir **pour la deuxième année de suite**, et le plus haut potentiel du plateau ;
+**Guy Whittingham 80**, qui plante **quarante-deux buts de championnat pour Portsmouth**, un record du
+club, en deuxième division. Puis les révélations que le vieillissement laisse en arrière (**Chris
+Sutton 70/87** à dix-neuf ans, **Darren Anderton 71/86**, **Nick Barmby 71/82** à dix-huit ans,
+**Andy Cole 76/88**, **Les Ferdinand 79/86**, **Paul Warhurst 75**), et **sept corrections EN SENS
+INVERSE**, la règle de 06/07 se reconduisant pour la cinquième saison : **Kevin Bartlett ressortait à
+75** pour 181 minutes à trente ans sur une ancre de deux ans, ramené à **69** ; Pearson, Pardew,
+Bright, Kruszyński, Sterland et Thomas redescendus eux aussi.
+
+**SEIZE PÉPITES FORCÉES, ET LE PRIX DE CHACUNE A ÉTÉ MESURÉ AVANT DE LA FORCER.** Deux critères tenus
+à la lettre : une pépite (potentiel ≥ 75) entre quand la perte de note est ≤ 8 (jurisprudence
+Panucci-Contreras 00/01), un homme que le jeu connaît déjà quand sa note dépasse de ≥ 4 celle de
+l'homme qu'il sort (règle de 09/10 : on juge la DIFFÉRENCE). **DAVID BECKHAM, DIX-SEPT ANS ET DIX-HUIT
+MINUTES** ouvre la liste, sa première saison professionnelle, potentiel 90 ; avec lui **GARY NEVILLE,
+DIX-SEPT ANS ET TROIS MINUTES**, **Sol Campbell** (dix-huit ans, vingt-deux minutes, potentiel 86),
+**Stan Collymore** (vingt-deux minutes, potentiel 84), **Steve Watson** (dix-huit ans, déjà forcé à
+seize en ANG 1990-91), **Alan Thompson**, **Dean Sturridge**, **Ian Hendon**, puis huit hommes que le
+jeu porte déjà (**Michael Thomas**, Mel Sterland, Richard Harvey, Steve Wood, Paul Stephenson, Zbigniew
+Kruszyński, Paul McGee, **Dmitri Kharin**).
+**MAIS LA CLASS OF '92 NE TIENT PAS TOUT ENTIÈRE, ET C'EST LA LEÇON : le vingtième de Manchester United
+est un 75.** Forcer un troisième et un quatrième gamin (**Nicky Butt** et **Keith Gillespie**) sortait
+**BRYAN ROBSON** et Mike Phelan ; ils restent dehors. Même arbitrage à Chelsea, où **Ian Pearce** et
+**Neil Shipperley** auraient coûté **Tony Cascarino** et **Graeme Le Saux** — c'est le piège de Giuly
+(01/02), *la réparation des postes peut coûter un international là où le tri aux minutes ne l'aurait
+jamais touché*. Trois autres refus mesurés : Nick Tanner (un seul point sur Bjørnebye), David Unsworth
+(douze points sous Martin Keown), et **Jan Mølby comme Bruce Grobbelaar**, sous le seuil des quatre
+points malgré 1 092 et 894 minutes à Liverpool. **ROBBIE FOWLER N'EST PAS AU PLATEAU** : dix-sept ans
+à Liverpool et **zéro minute** en 1992-93, son premier match est en septembre 1993 — la source fait foi
+dans les deux sens (jurisprudence Lloris 04/05), et il en va de même pour Mark Kennedy et Chris Perry.
+Beckham a coûté Lee Martin (71) et Gary Neville **Neil Webb (75)**, dont la carrière mancunienne était
+finie (325 minutes, quatre matchs, retour à Nottingham Forest l'été suivant) : c'est le seul titulaire
+à 74 et plus que la journée ait payé.
+
+**LES TROIS FRÈRES WALLACE SONT AU PLATEAU LA MÊME ANNÉE, une première** : **Danny** (1964) à
+Manchester United, et les **jumeaux Rod et Ray** (1969) tous deux à Leeds. Rod, que le jeu porte sous
+« R. Wallace » depuis 1991-92, le garde ; Ray passe en toutes lettres **et perd du même coup
+l'héritage de cette ancre** — c'est la règle de 07/08 (*aucune ancre ne doit servir deux fois, et le
+perdant perd le nom ET l'héritage*), et les deux jumeaux, nés la même année dans le même club, en sont
+le cas d'école. Trois replis en toutes lettres au total : **Ray Wallace**, **Jamie Robinson** (face au
+John Robinson de Charlton) et **David Smith** de Norwich, face au David Smith de Coventry — **prénom
+ET patronyme identiques**, et là on suit ANG 1995-96 (les deux David Lee, les deux Dave Watson :
+*écrire l'un en entier suffit*) plutôt qu'ANG 1990-91, qui avait écarté le Norvicien faute de
+dix-neuvième homme. **Cinq noms courts doivent rester ABSENTS** : « M. Hughes » (Michael jouait
+Strasbourg), « M. Smith », « R. Fowler », « N. Butt » et « K. Gillespie ». Deux vrais mononymes,
+**Nayim** (Tottenham) et **Preki** (Everton), restent tels quels. **503 noms partagés avec ANG 1991-92,
+tous vieillis d'exactement un an, et 361 avec ANG 1995-96, tous à trois ans d'écart.**
+
+**Le relevé.** Les quatre-vingt-douze pages (quarante-six clubs × deux) sont passées **sans un seul
+échec et sans un seul anti-robot**, toutes sur le domaine **`.de`**. Trois identifiants de club étaient
+neufs (Peterborough 1072, Birmingham City 337, Brentford 1148) et le **piège des équipes de JEUNES** a
+resservi, la recherche rapide proposant « Peterborough United U18 », « Birmingham City U18 » et
+« FC Brentford U18 » juste derrière le club premier : chacun a été **vérifié sur l'en-tête « Kader im
+Detail 92/93 »** de la page d'effectif, et les quarante-six titres ont été relus d'un coup pour écarter
+toute confusion (la page de temps de jeu, elle, ne porte pas la saison dans son titre : elle est dans
+l'URL `reldata`). Les quarante-six clubs ont été servis **en allemand**, seize libellés de poste
+distincts, tous reconnus — `Mittelstürmer` et `Hängende Spitze` compris, les deux qui avaient coûté
+cent trente-six postes en 1991-92. **Un seul joueur que la source ne sache pas dater** (Chris Jackson,
+Barnsley), écarté plutôt que deviné. La table du dessous se lit par le **troisième format** signalé par
+ANG-B, un `team_order=` dans « 1992–93 Football League », l'article « 1992–93 Football League First
+Division » n'étant qu'une redirection : s'arrêter au premier format laissait les vingt-quatre clubs
+dehors. **97 prénoms neufs dans `PRENOMS_VRAIS`, dont aucun vide** — pour la neuvième fois de suite ;
+trois écarts de graphie avec la table existante, tous des variantes du même homme (Andrei/Andrey
+Kanchelskis, Bjørn/Björn Kristensen, Matthew/Matt Le Tissier), et la table garde la sienne.
+
+**Les stades de 1992, et les trente-cinq déménagements datés d'ANG-B paient une troisième fois** :
+**Charlton rentre à The Valley** après deux exils, à Selhurst Park puis à Upton Park ; **Millwall est
+encore à The Den**, le New Den n'ouvrant qu'en août 1993 ; et **Wimbledon et Crystal Palace partagent
+Selhurst Park**, tous deux au plateau. Les deux bouts de l'échelle des âges sont de vrais hommes :
+**Gary Neville à dix-sept ans pour trois minutes** et **Mervyn Day, trente-sept ans**, dans les buts de
+Leeds. Sept vétérans de trente-six ans et plus, dont **Ray Wilkins** à QPR (trente-six, comme
+trente-cinq en 1991-92), **Peter Reid**, entraîneur-joueur de Manchester City, et **Viv Anderson** à
+Sheffield Wednesday. Deux hommes entrent par le **comblement** et non par le temps de jeu, comme Paul
+Pettinger en 1991-92 : Andy Marshall, dix-sept ans, troisième gardien de Norwich, et Rod Thomas à
+Watford.
+
+**UN VRAI DÉFAUT TROUVÉ PAR UN AUTRE HARNAIS, ET C'ÉTAIT SON TRAVAIL.** `harness-textes-ang.cjs`
+vérifie depuis ANG-D qu'aucun des soixante patronymes procéduraux anglais (`NOMS_ANG`) ne porte le nom
+d'un joueur curé — le contrôle qui avait déjà fait céder « Llewellyn » en ANG 1990-91. Il a rougi sur
+**trois noms d'un coup** : **Heathcote** (Mick Heathcote, Cambridge), **Quigley** (Mike Quigley,
+Manchester City) et **Rowbotham** (Darran Rowbotham, Birmingham), tous trois devenus de vrais joueurs
+par cette saison. Ils cèdent leur place à **Hindle, Openshaw et Rishworth**, vérifiés libres contre les
+onze mille patronymes du fichier ; le vivier garde ses soixante noms et sa couleur du Nord.
+**À retenir : chaque saison anglaise neuve peut transformer un nom procédural en vrai joueur, et c'est
+ce harnais-là qui le dit.**
+
+Validation dédiée : **`harness-ang9293.cjs`** (sept sections), en plus de `harness-angleterre.cjs`
+qui l'a prise **sans retouche**, comme ANG-E l'avait promis. Trois assertions de ce nouveau harnais
+avaient été écrites fausses et ont été corrigées sur pièces, non assouplies : Crystal Palace est bien
+au plateau, le plus haut potentiel est celui de Giggs (91) et non de Beckham (90), et les quatre
+prénoms vides du plateau (« R. Jones », « M. Jackson », « C. Coleman », « C. Short ») **précèdent cette
+saison** et sont volontaires (consigne v1.46), le contrôle les nommant pour qu'un cinquième rougisse.
+Les **52 harnais du dossier** sont verts, les quatre historiquement capricieux
+(`harness-recruteur`, `harness-effectif`, `harness-formations`, `harness-hdm`) six fois sur six.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
