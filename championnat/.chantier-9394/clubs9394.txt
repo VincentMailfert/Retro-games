@@ -44,3 +44,6 @@ D WBA 984 west-bromwich-albion
 D BIR 337 birmingham-city
 D OXF 988 oxford-united
 D PET 1072 peterborough-united
+D BTF 1148 fc-brentford
+D CAM 986 cambridge-united
+D BSR 2455 bristol-rovers
