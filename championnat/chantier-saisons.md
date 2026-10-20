@@ -64,6 +64,15 @@ livre pas, on écrit le blocage au journal, et on laisse la saison à demain.
   comptait 18 ou 24, on applique la règle de repêchage déjà documentée : les **meilleurs relégués de la
   saison précédente** montent pour compléter, les derniers de l'échelon du dessous s'effacent, et on écarte
   en priorité les clubs que la source documente le plus mal (le cas Toulon 98/99 fait jurisprudence).
+- **Diversifier les sources** (consigne de l'auteur, 20/10/2026). Transfermarkt est la source de
+  référence, pas la seule, et une saison ne bloque plus parce qu'elle est muette sur un point. **Un club
+  à zéro n'est pas un club mal documenté** : interroger les saisons encadrantes, et si la source sert
+  l'année d'avant et celle d'après, c'est un **trou**, qui se répare au lieu de se contourner. Le montage
+  éprouvé : l'appartenance à l'effectif d'un côté, la naissance et le poste de l'autre, et un recoupement
+  qui **prouve** la jointure sur un homme que le jeu connaît déjà. Une source seconde comble un trou
+  borné, corroborée par une troisième quand c'est possible — elle ne remplace jamais la source de
+  référence sur une saison entière, et elle n'autorise aucun joueur inventé. La liste des sources
+  éprouvées, ce que chacune donne et leurs pièges : « DIVERSIFIER LES SOURCES » dans `CLAUDE.md`.
 - **Vérifier, ne jamais supposer** — les couleurs d'un club, le format d'un championnat, le vainqueur d'une
   coupe. Créteil a d'abord été fait en bleu et blanc, à tort.
 - **La validation d'abord, la livraison ensuite.** Rien ne part avec un harnais rouge — et en livraison

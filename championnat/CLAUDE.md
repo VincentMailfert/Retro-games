@@ -4660,6 +4660,82 @@ saison** et sont volontaires (consigne v1.46), le contrôle les nommant pour qu'
 Les **52 harnais du dossier** sont verts, les quatre historiquement capricieux
 (`harness-recruteur`, `harness-effectif`, `harness-formations`, `harness-hdm`) six fois sur six.
 
+### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
+
+**Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
+mourir parce qu'elle est muette sur un point.** La consigne est venue de la nuit où la source a perdu
+**deux clubs entiers** de la deuxième division anglaise 1993-94 (Barnsley et Southend : zéro ligne, sur
+les trois domaines et sur les deux pages), au point que le vingtième club du plateau n'existait plus
+qu'en troisième division. Il n'a pas fallu un intrus, il a fallu d'autres sources.
+
+**Un club à zéro n'est pas un club mal documenté — interroger les saisons encadrantes avant de conclure.**
+Si la source sert 1992-93 et 1994-95 et rien en 1993-94, ce n'est pas une pauvreté, c'est un **trou**, et
+un trou se répare. C'est le test à faire devant tout club vide ou anormalement maigre, et il coûte deux
+requêtes.
+
+**Le montage qui marche : l'appartenance d'un côté, les attributs de l'autre, et un recoupement qui prouve
+la jointure.** Pour les deux clubs perdus : l'**appartenance à l'effectif du coup d'envoi** est venue de
+l'historique de transferts de Transfermarkt (dates exactes) corroboré par la base neilbrown et par
+Wikipedia ; la **naissance et le poste** des fiches de joueur et des pages des saisons encadrantes ; et la
+jointure a été **prouvée** par un homme que le jeu connaissait déjà — Viv Anderson, né en 1956 d'après sa
+fiche, concordant exactement avec l'âge que le jeu lui donne en 1992-93. **Toujours chercher ce
+contrôle-là** : sans lui, on recoupe deux sources sans savoir qu'on parle du même homme.
+
+**Les sources éprouvées, et ce que chacune donne.**
+
+| Source | Ce qu'elle donne | Ce qu'elle ne donne pas |
+|---|---|---|
+| TM, pages de club (`kader` + `leistungsdaten`) | tout : naissance, poste, minutes, nom court | rien quand elle a un trou |
+| TM, `/ceapi/transferHistory/list/<id>` | **les dates exactes de transfert** — le meilleur arbitre du coup d'envoi, bien meilleur que « Im Team seit » | les saisons sans transfert enregistré |
+| TM, fiche de joueur (`/spieler/profil/spieler/<id>`) | naissance (`itemprop="birthDate"`), lieu, poste | les stats des vieilles saisons manquantes |
+| Base **neilbrown** (`http://www.neilbrown.newcastlefans.com/<club>/<club>_files/sheet001.html`) | par club : nom, poste, **saisons au club**, matchs, club d'origine | aucune date de naissance ; matchs **cumulés**, pas par saison |
+| **Wikipedia**, article de saison de club | l'effectif nommé quand l'article existe, les classements | existe pour certains clubs seulement |
+| **Soccerbase** (`team_id`, `season_id` ; 1993-94 = 123) | naissance, carrière **datée** club par club | aucune apparition avant 1996-97 |
+| `englishfootballleaguetables.co.uk` | les classements, troisième division comprise | pas d'effectifs |
+| 11v11, worldfootball | la bonne donnée, mais **défi Cloudflare** | — ne pas chercher à le contourner |
+
+**Deux pièges de source, vérifiés à leurs dépens.** (1) Sur Wikipedia, les noms de divisions changent en
+1992 : « First Division » devient le DEUXIÈME niveau et « Second Division » le troisième. Deux requêtes sur
+trois ont rendu le mauvais tableau, et une seule a été repérée parce que les clubs ne collaient pas. **Lire
+les clubs du tableau avant de croire son titre.** (2) Le nom d'un club chez Transfermarkt est servi en
+plusieurs langues et les **formats de date suivent** (`08.02.1960` en allemand, `08/02/1960` en anglais) :
+un parseur mono-format rend des clubs à zéro homme avec vingt lignes relevées. Le signal d'alarme est
+toujours le même — **des lignes lues mais aucun homme exploitable**.
+
+**Et le garde-fou qui ne bouge pas.** Une source seconde sert à **combler un trou borné**, corroborée par
+une troisième quand c'est possible ; elle ne remplace jamais la source de référence sur une saison
+entière, et elle n'autorise aucun joueur inventé. Un homme que deux sources ne placent pas au club reste
+dehors, et un homme qu'aucune source ne sait **dater** reste dehors aussi (Chris Jackson, écarté en
+1992-93 comme en 1993-94). Quand l'ordre d'un effectif ne peut pas se faire sur les minutes de la saison
+— le cas des deux clubs reconstitués, dont aucune source ne les a —, il se fait sur un **chiffre
+documenté** (les matchs par saison au club), jamais sur une estimation, et l'écart s'écrit ici.
+
+### LES DEUX MARQUEURS DE TRANSFERMARKT, À NE JAMAIS CONFONDRE (20/10/2026)
+
+La source écrit deux phrases qui se ressemblent et qui disent le contraire :
+
+- « Stand in dieser Spielzeit **nicht im Kader** » / « not in squad » : **il n'était pas au club** cette
+  saison-là. C'est le marqueur de la règle de 97/98 (le cas Lamouchi, listé à Monaco deux ans trop tôt) :
+  **on l'écarte du vivier du club**, et il ne doit jamais gagner un arbitrage de doublon pour ce club.
+- « Wurde in dieser Spielzeit **nicht eingesetzt** » : **il y était et n'a pas joué**. On le **garde** :
+  c'est par lui que se fait le comblement d'un effectif, et ce sont exactement Andy Marshall (Norwich) et
+  Rod Thomas (Watford) en 1992-93.
+
+Le chantier ne lisait que la première depuis 97/98 sans savoir que la seconde existait, et le relevé du
+19/10/2026 ne relevait ni l'une ni l'autre : il comptait **107 hommes qui n'étaient pas là**, et son
+plateau était faux. **Règle générale : avant de traiter une mention de statut comme un drapeau unique,
+relever TOUTES ses variantes dans la source.**
+
+**Et le réflexe qui a tranché, à refaire au début de chaque saison :** éprouver ses filtres contre les
+effectifs **réellement livrés** par la saison précédente. Quatre pages de 1992-93 ont suffi à prouver la
+règle — Rob Lee, marqué « nicht im Kader », est bien absent du Charlton livré ; Marshall et Thomas sont
+bien présents par le comblement, comme ce fichier les nomme. **Les données déjà livrées sont le test de
+non-régression de la curation**, et il coûte deux minutes.
+
+**Le test d'acceptation d'une page n'est pas sa taille.** Le relevé du 19/10 acceptait tout HTTP 200 de
+plus de 40 Ko : une page anti-robot et une page dans la mauvaise langue passaient toutes deux. Le bon
+test est **« contient-elle des lignes de joueurs »**.
+
 ## Validation AVANT toute livraison (non négociable)
 1. Extraire le JS et vérifier la syntaxe :
    `python3 -c "import re; open('game.js','w').write(re.search(r'<script>(.*)</script>', open('index.html').read(), re.S).group(1))" && node --check game.js`
