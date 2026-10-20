@@ -1,0 +1,553 @@
+[
+ {
+  "nom": "ALLON Joe",
+  "pos": "F",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "On loan from Brentford",
+  "parti": "",
+  "apps": "3",
+  "buts": "0"
+ },
+ {
+  "nom": "ANGELL Brett",
+  "pos": "F",
+  "sais": "90-94",
+  "debut": 1990,
+  "fin": 1993,
+  "source": "Stockport County",
+  "parti": "Everton",
+  "apps": "115",
+  "buts": "47",
+  "tm": {
+   "92": {
+    "sid": "177256",
+    "nais": 1968,
+    "poste": "A",
+    "min": 90,
+    "complet": "Brett Angell",
+    "court": "B. Angell"
+   }
+  }
+ },
+ {
+  "nom": "ANSAH Andy",
+  "pos": "W",
+  "sais": "89-96",
+  "debut": 1989,
+  "fin": 1995,
+  "source": "Brentford",
+  "parti": "Peterborough United",
+  "apps": "157",
+  "buts": "33",
+  "tm": {
+   "92": {
+    "sid": "994567",
+    "nais": 1969,
+    "poste": "M",
+    "min": 180,
+    "complet": "Andy Ansah",
+    "court": "A. Ansah"
+   },
+   "94": {
+    "sid": "994567",
+    "nais": 1969,
+    "poste": "M",
+    "min": 90,
+    "complet": "Andy Ansah",
+    "court": "A. Ansah"
+   }
+  }
+ },
+ {
+  "nom": "BEADLE Peter",
+  "pos": "F",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "On loan from Tottenham Hotspur",
+  "parti": "",
+  "apps": "8",
+  "buts": "1"
+ },
+ {
+  "nom": "BODLEY Mick",
+  "pos": "CD",
+  "sais": "93-96",
+  "debut": 1993,
+  "fin": 1995,
+  "source": "Barnet",
+  "parti": "Peterborough United",
+  "apps": "67",
+  "buts": "2",
+  "tm": {
+   "94": {
+    "sid": "481517",
+    "nais": 1967,
+    "poste": "D",
+    "min": 90,
+    "complet": "Mick Bodley",
+    "court": "M. Bodley"
+   }
+  }
+ },
+ {
+  "nom": "BRESSINGTON Graham",
+  "pos": "M",
+  "sais": "93-95",
+  "debut": 1993,
+  "fin": 1994,
+  "source": "Lincoln City",
+  "parti": "Slough Town",
+  "apps": "48",
+  "buts": "5",
+  "tm": {
+   "94": {
+    "sid": "1228171",
+    "nais": 1966,
+    "poste": "M",
+    "min": 161,
+    "complet": "Graham Bressington",
+    "court": "G. Bressington"
+   }
+  }
+ },
+ {
+  "nom": "EDWARDS Andy (1st spell)",
+  "pos": "CD",
+  "sais": "88-95",
+  "debut": 1988,
+  "fin": 1994,
+  "source": "YT",
+  "parti": "Birmingham City",
+  "apps": "147",
+  "buts": "5",
+  "tm": {
+   "92": {
+    "sid": "252229",
+    "nais": 1971,
+    "poste": "D",
+    "min": 180,
+    "complet": "Andy Edwards",
+    "court": "A. Edwards"
+   },
+   "94": {
+    "sid": "252229",
+    "nais": 1971,
+    "poste": "D",
+    "min": 109,
+    "complet": "Andy Edwards",
+    "court": "A. Edwards"
+   }
+  }
+ },
+ {
+  "nom": "GRIDELET Phil",
+  "pos": "M",
+  "sais": "93-98",
+  "debut": 1993,
+  "fin": 1997,
+  "source": "Barnsley",
+  "parti": "Stevenage Borough",
+  "apps": "176",
+  "buts": "10",
+  "tm": {
+   "94": {
+    "sid": "1001306",
+    "nais": 1967,
+    "poste": "D",
+    "min": 99,
+    "complet": "Phil Gridelet",
+    "court": "P. Gridelet"
+   }
+  }
+ },
+ {
+  "nom": "HARDING Paul",
+  "pos": "M",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "On loan from Notts County",
+  "parti": "",
+  "apps": "5",
+  "buts": "0"
+ },
+ {
+  "nom": "HOWELL David",
+  "pos": "CD",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "Barnet",
+  "parti": "P/Coach Birmingham City",
+  "apps": "6",
+  "buts": "0"
+ },
+ {
+  "nom": "HUNT Jonathan",
+  "pos": "W",
+  "sais": "93-95",
+  "debut": 1993,
+  "fin": 1994,
+  "source": "Barnet",
+  "parti": "Birmingham City",
+  "apps": "49",
+  "buts": "6",
+  "tm": {
+   "94": {
+    "sid": "107811",
+    "nais": 1971,
+    "poste": "A",
+    "min": 90,
+    "complet": "Jonathan Hunt",
+    "court": "J. Hunt"
+   }
+  }
+ },
+ {
+  "nom": "JONES Gary",
+  "pos": "F",
+  "sais": "93-96",
+  "debut": 1993,
+  "fin": 1995,
+  "source": "Boston United(ex Doncaster Rvs.)",
+  "parti": "Notts County",
+  "apps": "70",
+  "buts": "16",
+  "tm": {
+   "92": {
+    "sid": "176810",
+    "nais": 1965,
+    "poste": "M",
+    "min": 270,
+    "complet": "Keith Jones",
+    "court": "K. Jones"
+   },
+   "94": {
+    "sid": "994846",
+    "nais": 1969,
+    "poste": "A",
+    "min": 90,
+    "complet": "Gary Jones",
+    "court": "G. Jones"
+   }
+  }
+ },
+ {
+  "nom": "JONES Keith",
+  "pos": "M",
+  "sais": "91-95",
+  "debut": 1991,
+  "fin": 1994,
+  "source": "Brentford",
+  "parti": "Charlton Athletic",
+  "apps": "90",
+  "buts": "11",
+  "tm": {
+   "92": {
+    "sid": "176810",
+    "nais": 1965,
+    "poste": "M",
+    "min": 270,
+    "complet": "Keith Jones",
+    "court": "K. Jones"
+   },
+   "94": {
+    "sid": "994846",
+    "nais": 1969,
+    "poste": "A",
+    "min": 90,
+    "complet": "Gary Jones",
+    "court": "G. Jones"
+   }
+  }
+ },
+ {
+  "nom": "LEE Jason",
+  "pos": "F",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "Lincoln City",
+  "parti": "Nottingham Forest",
+  "apps": "24",
+  "buts": "3"
+ },
+ {
+  "nom": "LOCKE Adam",
+  "pos": "M",
+  "sais": "90-94",
+  "debut": 1990,
+  "fin": 1993,
+  "source": "(Crystal Palace)",
+  "parti": "Colchester United",
+  "apps": "73",
+  "buts": "4",
+  "tm": {
+   "92": {
+    "sid": "977845",
+    "nais": 1970,
+    "poste": "D",
+    "min": 135,
+    "complet": "Adam Locke",
+    "court": "A. Locke"
+   }
+  }
+ },
+ {
+  "nom": "MARTIN Jae",
+  "pos": "M",
+  "sais": "93-95",
+  "debut": 1993,
+  "fin": 1994,
+  "source": "YT",
+  "parti": "Birmingham City",
+  "apps": "8",
+  "buts": "0",
+  "tm": {
+   "92": {
+    "sid": "728124",
+    "nais": 1963,
+    "poste": "M",
+    "min": 270,
+    "complet": "Dave Martin",
+    "court": "D. Martin"
+   }
+  }
+ },
+ {
+  "nom": "MOONEY Tommy",
+  "pos": "F",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "Scarborough",
+  "parti": "Watford",
+  "apps": "14",
+  "buts": "5"
+ },
+ {
+  "nom": "NOGAN Lee (2nd spell)",
+  "pos": "F",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "On loan from Watford",
+  "parti": "",
+  "apps": "5",
+  "buts": "0"
+ },
+ {
+  "nom": "OTTO Ricky",
+  "pos": "W",
+  "sais": "93-95",
+  "debut": 1993,
+  "fin": 1994,
+  "source": "Leyton Orient",
+  "parti": "Birmingham City",
+  "apps": "64",
+  "buts": "17",
+  "tm": {
+   "94": {
+    "sid": "643523",
+    "nais": 1967,
+    "poste": "A",
+    "min": 90,
+    "complet": "Ricky Otto",
+    "court": "R. Otto"
+   }
+  }
+ },
+ {
+  "nom": "PAYNE Derek",
+  "pos": "M",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "Barnet",
+  "parti": "Watford",
+  "apps": "35",
+  "buts": "0"
+ },
+ {
+  "nom": "POOLE Gary",
+  "pos": "FB",
+  "sais": "93-95",
+  "debut": 1993,
+  "fin": 1994,
+  "source": "Plymouth Argyle",
+  "parti": "Birmingham City",
+  "apps": "44",
+  "buts": "2",
+  "tm": {
+   "94": {
+    "sid": "643520",
+    "nais": 1967,
+    "poste": "D",
+    "min": 29,
+    "complet": "Gary Poole",
+    "court": "G. Poole"
+   }
+  }
+ },
+ {
+  "nom": "POWELL Chris",
+  "pos": "FB",
+  "sais": "90-96",
+  "debut": 1990,
+  "fin": 1995,
+  "source": "Crystal Palace",
+  "parti": "Derby County",
+  "apps": "248",
+  "buts": "3",
+  "tm": {
+   "92": {
+    "sid": "4100",
+    "nais": 1969,
+    "poste": "D",
+    "min": 270,
+    "complet": "Chris Powell",
+    "court": "C. Powell"
+   },
+   "94": {
+    "sid": "4100",
+    "nais": 1969,
+    "poste": "D",
+    "min": 270,
+    "complet": "Chris Powell",
+    "court": "C. Powell"
+   }
+  }
+ },
+ {
+  "nom": "ROYCE Simon",
+  "pos": "G",
+  "sais": "91-98",
+  "debut": 1991,
+  "fin": 1997,
+  "source": "Heybridge Swifts",
+  "parti": "Charlton Athletic",
+  "apps": "149",
+  "buts": "0",
+  "tm": {
+   "94": {
+    "sid": "5162",
+    "nais": 1971,
+    "poste": "G",
+    "min": 90,
+    "complet": "Simon Royce",
+    "court": "S. Royce"
+   }
+  }
+ },
+ {
+  "nom": "SANSOME Paul",
+  "pos": "G",
+  "sais": "87-97",
+  "debut": 1987,
+  "fin": 1996,
+  "source": "Millwall",
+  "parti": "Gravesend & Northfleet",
+  "apps": "308",
+  "buts": "0",
+  "tm": {
+   "92": {
+    "sid": "673031",
+    "nais": 1961,
+    "poste": "G",
+    "min": 270,
+    "complet": "Paul Sansome",
+    "court": "P. Sansome"
+   },
+   "94": {
+    "sid": "673031",
+    "nais": 1961,
+    "poste": "G",
+    "min": 180,
+    "complet": "Paul Sansome",
+    "court": "P. Sansome"
+   }
+  }
+ },
+ {
+  "nom": "SCULLY Pat",
+  "pos": "CD",
+  "sais": "90-94",
+  "debut": 1990,
+  "fin": 1993,
+  "source": "(Arsenal)",
+  "parti": "Huddersfield Town",
+  "apps": "115",
+  "buts": "6",
+  "tm": {
+   "92": {
+    "sid": "176756",
+    "nais": 1970,
+    "poste": "D",
+    "min": 270,
+    "complet": "Pat Scully",
+    "court": "P. Scully"
+   }
+  }
+ },
+ {
+  "nom": "SUSSEX Andy",
+  "pos": "M",
+  "sais": "91-96",
+  "debut": 1991,
+  "fin": 1995,
+  "source": "Crewe Alexandra",
+  "parti": "Canvey Island",
+  "apps": "76",
+  "buts": "14",
+  "tm": {
+   "92": {
+    "sid": "800735",
+    "nais": 1964,
+    "poste": "A",
+    "min": 135,
+    "complet": "Andy Sussex",
+    "court": "A. Sussex"
+   },
+   "94": {
+    "sid": "800735",
+    "nais": 1964,
+    "poste": "A",
+    "min": 90,
+    "complet": "Andy Sussex",
+    "court": "A. Sussex"
+   }
+  }
+ },
+ {
+  "nom": "TILSON Steve (1st spell)",
+  "pos": "M",
+  "sais": "88-97",
+  "debut": 1988,
+  "fin": 1996,
+  "source": "Witham Town",
+  "parti": "Canvey Island",
+  "apps": "239",
+  "buts": "26",
+  "tm": {
+   "92": {
+    "sid": "994566",
+    "nais": 1966,
+    "poste": "M",
+    "min": 45,
+    "complet": "Steve Tilson",
+    "court": "S. Tilson"
+   },
+   "94": {
+    "sid": "994566",
+    "nais": 1966,
+    "poste": "M",
+    "min": 180,
+    "complet": "Steve Tilson",
+    "court": "S. Tilson"
+   }
+  }
+ }
+]
