@@ -20306,5 +20306,1733 @@
 "hors": false
 }
 }
+},
+"PTV": {
+"div": "D",
+"vid": "1211",
+"kader": {
+"45632": {
+"nom": "Paul Musselwhite",
+"nais": 1968,
+"poste": "G",
+"libpos": "Torwart",
+"seit": "03.01.2007"
+},
+"330211": {
+"nom": "Trevor Wood",
+"nais": 1968,
+"poste": "G",
+"libpos": "Torwart",
+"seit": "01.07.1988"
+},
+"994365": {
+"nom": "Dean Stokes",
+"nais": 1970,
+"poste": "D",
+"libpos": "Abwehr",
+"seit": null
+},
+"222503": {
+"nom": "Dean Glover",
+"nais": 1963,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "03.02.1989"
+},
+"625927": {
+"nom": "Neil Aspin",
+"nais": 1965,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "28.07.1989"
+},
+"642688": {
+"nom": "Peter Swan",
+"nais": 1966,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "16.08.1991"
+},
+"1006796": {
+"nom": "Bradley Sandeman",
+"nais": 1970,
+"poste": "D",
+"libpos": "Rechter Verteidiger",
+"seit": null
+},
+"222515": {
+"nom": "Paul Kerr",
+"nais": 1964,
+"poste": "M",
+"libpos": "Mittelfeld",
+"seit": "01.07.1992"
+},
+"255321": {
+"nom": "Andy Porter",
+"nais": 1968,
+"poste": "M",
+"libpos": "Mittelfeld",
+"seit": "17.11.2004"
+},
+"3667": {
+"nom": "Ian Taylor",
+"nais": 1968,
+"poste": "M",
+"libpos": "Zentrales Mittelfeld",
+"seit": "13.07.1992"
+},
+"107826": {
+"nom": "Robin van der Laan",
+"nais": 1968,
+"poste": "M",
+"libpos": "Offensives Mittelfeld",
+"seit": "01.02.1991"
+},
+"744095": {
+"nom": "John Jeffers",
+"nais": 1968,
+"poste": "A",
+"libpos": "Linksaußen",
+"seit": "11.12.1988"
+},
+"228023": {
+"nom": "David Lowe",
+"nais": 1965,
+"poste": "A",
+"libpos": "Rechtsaußen",
+"seit": "18.02.1994"
+},
+"1006797": {
+"nom": "Kevin Kent",
+"nais": 1965,
+"poste": "A",
+"libpos": "Rechtsaußen",
+"seit": "01.07.1991"
+},
+"104112": {
+"nom": "Bernie Slaven",
+"nais": 1960,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.03.1993"
+},
+"176776": {
+"nom": "Joe Allon",
+"nais": 1966,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "24.03.1994"
+},
+"466676": {
+"nom": "Martin Foyle",
+"nais": 1963,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.07.1991"
+},
+"506427": {
+"nom": "Nicky Cross",
+"nais": 1961,
+"poste": "A",
+"libpos": "Sturm",
+"seit": "01.07.1989"
+}
+},
+"perf": {
+"45632": {
+"complet": "Paul Musselwhite",
+"court": "P. Musselwhite",
+"kader": 3,
+"matchs": 3,
+"min": 270,
+"hors": false
+},
+"330211": {
+"complet": "Trevor Wood",
+"court": "T. Wood",
+"kader": 3,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"994365": {
+"complet": "Dean Stokes",
+"court": "D. Stokes",
+"kader": 3,
+"matchs": 3,
+"min": 270,
+"hors": false
+},
+"1006796": {
+"complet": "Bradley Sandeman",
+"court": "B. Sandeman",
+"kader": 1,
+"matchs": 1,
+"min": 18,
+"hors": false
+},
+"222503": {
+"complet": "Dean Glover",
+"court": "D. Glover",
+"kader": 3,
+"matchs": 3,
+"min": 270,
+"hors": false
+},
+"642688": {
+"complet": "Peter Swan",
+"court": "P. Swan",
+"kader": 3,
+"matchs": 3,
+"min": 270,
+"hors": false
+},
+"625927": {
+"complet": "Neil Aspin",
+"court": "N. Aspin",
+"kader": 3,
+"matchs": 3,
+"min": 270,
+"hors": false
+},
+"3667": {
+"complet": "Ian Taylor",
+"court": "I. Taylor",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"107826": {
+"complet": "Robin van der Laan",
+"court": "R. van der Laan",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"222515": {
+"complet": "Paul Kerr",
+"court": "Paul Kerr",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"255321": {
+"complet": "Andy Porter",
+"court": "A. Porter",
+"kader": 3,
+"matchs": 3,
+"min": 270,
+"hors": false
+},
+"1006797": {
+"complet": "Kevin Kent",
+"court": "K. Kent",
+"kader": 3,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"176776": {
+"complet": "Joe Allon",
+"court": "Joe Allon",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"228023": {
+"complet": "David Lowe",
+"court": "D. Lowe",
+"kader": 1,
+"matchs": 1,
+"min": 72,
+"hors": false
+},
+"466676": {
+"complet": "Martin Foyle",
+"court": "M. Foyle",
+"kader": 2,
+"matchs": 2,
+"min": 162,
+"hors": false
+},
+"506427": {
+"complet": "Nicky Cross",
+"court": "N. Cross",
+"kader": 3,
+"matchs": 3,
+"min": 198,
+"hors": false
+},
+"744095": {
+"complet": "John Jeffers",
+"court": "J. Jeffers",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"104112": {
+"complet": "Bernie Slaven",
+"court": "B. Slaven",
+"kader": 2,
+"matchs": 1,
+"min": 90,
+"hors": false
+}
+}
+},
+"SWA": {
+"div": "D",
+"vid": "2288",
+"kader": {
+"176800": {
+"nom": "Roger Freestone",
+"nais": 1968,
+"poste": "G",
+"libpos": "Torwart",
+"seit": "01.09.1991"
+},
+"578994": {
+"nom": "Mark Harris",
+"nais": 1963,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "01.08.1989"
+},
+"578996": {
+"nom": "Keith Walker",
+"nais": 1966,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": null
+},
+"13703": {
+"nom": "Steve Jenkins",
+"nais": 1972,
+"poste": "D",
+"libpos": "Rechter Verteidiger",
+"seit": "01.07.1990"
+},
+"1131085": {
+"nom": "Mark Clode",
+"nais": 1973,
+"poste": "D",
+"libpos": "Rechter Verteidiger",
+"seit": null
+},
+"261756": {
+"nom": "John Cornforth",
+"nais": 1967,
+"poste": "M",
+"libpos": "Mittelfeld",
+"seit": "02.08.1991"
+},
+"579004": {
+"nom": "Shaun Chapple",
+"nais": 1973,
+"poste": "M",
+"libpos": "Zentrales Mittelfeld",
+"seit": "01.07.1991"
+},
+"863942": {
+"nom": "Jonathan Coates",
+"nais": 1975,
+"poste": "M",
+"libpos": "Zentrales Mittelfeld",
+"seit": "27.03.2003"
+},
+"181598": {
+"nom": "Colin Pascoe",
+"nais": 1965,
+"poste": "M",
+"libpos": "Linkes Mittelfeld",
+"seit": "01.08.1993"
+},
+"12686": {
+"nom": "Jason Bowen",
+"nais": 1972,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.07.1990"
+},
+"49545": {
+"nom": "Steve Torpey",
+"nais": 1970,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.07.1993"
+},
+"1131086": {
+"nom": "Darren Perrett",
+"nais": 1969,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.07.1993"
+}
+},
+"perf": {
+"176800": {
+"complet": "Roger Freestone",
+"court": "R. Freestone",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"13703": {
+"complet": "Steve Jenkins",
+"court": "S. Jenkins",
+"kader": 1,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"1131085": {
+"complet": "Mark Clode",
+"court": "M. Clode",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"578994": {
+"complet": "Mark Harris",
+"court": "M. Harris",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"578996": {
+"complet": "Keith Walker",
+"court": "K. Walker",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"863942": {
+"complet": "Jonathan Coates",
+"court": "J. Coates",
+"kader": 1,
+"matchs": 1,
+"min": 0,
+"hors": false
+},
+"181598": {
+"complet": "Colin Pascoe",
+"court": "C. Pascoe",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"261756": {
+"complet": "John Cornforth",
+"court": "J. Cornforth",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"579004": {
+"complet": "Shaun Chapple",
+"court": "S. Chapple",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"12686": {
+"complet": "Jason Bowen",
+"court": "J. Bowen",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"49545": {
+"complet": "Steve Torpey",
+"court": "S. Torpey",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"1131086": {
+"complet": "Darren Perrett",
+"court": "D. Perrett",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+}
+}
+},
+"LEY": {
+"div": "D",
+"vid": "1150",
+"kader": {
+"176513": {
+"nom": "Chris Turner",
+"nais": 1958,
+"poste": "G",
+"libpos": "Torwart",
+"seit": "01.10.1991"
+},
+"1112495": {
+"nom": "Paul Newell",
+"nais": 1969,
+"poste": "G",
+"libpos": "Torwart",
+"seit": null
+},
+"761684": {
+"nom": "Warren Hackett",
+"nais": 1971,
+"poste": "D",
+"libpos": "Abwehr",
+"seit": "01.07.1990"
+},
+"969205": {
+"nom": "Marvin Harriott",
+"nais": 1974,
+"poste": "D",
+"libpos": "Abwehr",
+"seit": null
+},
+"3106": {
+"nom": "Darren Purse",
+"nais": 1977,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "22.02.1994"
+},
+"10374": {
+"nom": "Kevin Austin",
+"nais": 1973,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "01.07.1993"
+},
+"1003241": {
+"nom": "Gary Bellamy",
+"nais": 1962,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "10.09.1992"
+},
+"939028": {
+"nom": "Dominic Ludden",
+"nais": 1974,
+"poste": "D",
+"libpos": "Linker Verteidiger",
+"seit": "01.07.1992"
+},
+"49598": {
+"nom": "Ian Hendon",
+"nais": 1971,
+"poste": "D",
+"libpos": "Rechter Verteidiger",
+"seit": "09.08.1993"
+},
+"454599": {
+"nom": "Trevor Putney",
+"nais": 1960,
+"poste": "M",
+"libpos": "Mittelfeld",
+"seit": "01.07.1993"
+},
+"481136": {
+"nom": "Ian Bogie",
+"nais": 1967,
+"poste": "M",
+"libpos": "Mittelfeld",
+"seit": "14.10.1993"
+},
+"638786": {
+"nom": "Danny Carter",
+"nais": 1969,
+"poste": "M",
+"libpos": "Mittelfeld",
+"seit": "01.07.1988"
+},
+"985647": {
+"nom": "Martin Thomas",
+"nais": 1973,
+"poste": "M",
+"libpos": "Zentrales Mittelfeld",
+"seit": "24.03.1994"
+},
+"373612": {
+"nom": "Vaughan Ryan",
+"nais": 1968,
+"poste": "M",
+"libpos": "Rechtes Mittelfeld",
+"seit": "01.07.1992"
+},
+"224058": {
+"nom": "Gary Barnett",
+"nais": 1963,
+"poste": "M",
+"libpos": "Offensives Mittelfeld",
+"seit": "20.08.1993"
+},
+"1131353": {
+"nom": "Stephen Okai",
+"nais": 1973,
+"poste": "A",
+"libpos": "Rechtsaußen",
+"seit": null
+},
+"175899": {
+"nom": "Robert Taylor",
+"nais": 1971,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.10.1991"
+},
+"301469": {
+"nom": "Colin West",
+"nais": 1962,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.07.1993"
+},
+"1007205": {
+"nom": "Mark Cooper",
+"nais": 1967,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.01.1989"
+}
+},
+"perf": {
+"1112495": {
+"complet": "Paul Newell",
+"court": "P. Newell",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"176513": {
+"complet": "Chris Turner",
+"court": "C. Turner",
+"kader": 1,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"3106": {
+"complet": "Darren Purse",
+"court": "D. Purse",
+"kader": 1,
+"matchs": 1,
+"min": 13,
+"hors": false
+},
+"10374": {
+"complet": "Kevin Austin",
+"court": "K. Austin",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"939028": {
+"complet": "Dominic Ludden",
+"court": "D. Ludden",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"49598": {
+"complet": "Ian Hendon",
+"court": "I. Hendon",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"969205": {
+"complet": "Marvin Harriott",
+"court": "M. Harriott",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"1003241": {
+"complet": "Gary Bellamy",
+"court": "G. Bellamy",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"761684": {
+"complet": "Warren Hackett",
+"court": "W. Hackett",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"985647": {
+"complet": "Martin Thomas",
+"court": "M. Thomas",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"224058": {
+"complet": "Gary Barnett",
+"court": "G. Barnett",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"373612": {
+"complet": "Vaughan Ryan",
+"court": "V. Ryan",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"454599": {
+"complet": "Trevor Putney",
+"court": "T. Putney",
+"kader": 2,
+"matchs": 2,
+"min": 167,
+"hors": false
+},
+"481136": {
+"complet": "Ian Bogie",
+"court": "Ian Bogie",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"638786": {
+"complet": "Danny Carter",
+"court": "D. Carter",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"1007205": {
+"complet": "Mark Cooper",
+"court": "M. Cooper",
+"kader": 2,
+"matchs": 2,
+"min": 173,
+"hors": false
+},
+"1131353": {
+"complet": "Stephen Okai",
+"court": "S. Okai",
+"kader": 1,
+"matchs": 1,
+"min": 7,
+"hors": false
+},
+"175899": {
+"complet": "Robert Taylor",
+"court": "R. Taylor",
+"kader": 1,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"301469": {
+"complet": "Colin West",
+"court": "C. West",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+}
+}
+},
+"BRD": {
+"div": "D",
+"vid": "1027",
+"kader": {
+"358690": {
+"nom": "Ian Bowling",
+"nais": 1965,
+"poste": "G",
+"libpos": "Goalkeeper",
+"seit": "28.07.1993"
+},
+"1007929": {
+"nom": "Paul Tomlinson",
+"nais": 1965,
+"poste": "G",
+"libpos": "Goalkeeper",
+"seit": null
+},
+"15898": {
+"nom": "Colin Hoyle",
+"nais": 1972,
+"poste": "D",
+"libpos": "Defender",
+"seit": null
+},
+"3829": {
+"nom": "Dean Richards",
+"nais": 1974,
+"poste": "D",
+"libpos": "Centre-Back",
+"seit": "01.07.1992"
+},
+"226955": {
+"nom": "Lee Sinnott",
+"nais": 1965,
+"poste": "D",
+"libpos": "Centre-Back",
+"seit": "26.03.1998"
+},
+"481730": {
+"nom": "Noel Blake",
+"nais": 1962,
+"poste": "D",
+"libpos": "Centre-Back",
+"seit": "20.07.1992"
+},
+"499225": {
+"nom": "Gavin Oliver",
+"nais": 1962,
+"poste": "D",
+"libpos": "Centre-Back",
+"seit": "01.11.1985"
+},
+"177618": {
+"nom": "Gary Williams",
+"nais": 1960,
+"poste": "D",
+"libpos": "Right-Back",
+"seit": "01.12.1991"
+},
+"1130679": {
+"nom": "Wayne Heseltine",
+"nais": 1969,
+"poste": "D",
+"libpos": "Right-Back",
+"seit": null
+},
+"277196": {
+"nom": "Lee Duxbury",
+"nais": 1969,
+"poste": "M",
+"libpos": "Defensive Midfield",
+"seit": "15.11.1995"
+},
+"552202": {
+"nom": "Gary Robson",
+"nais": 1965,
+"poste": null,
+"libpos": null,
+"seit": "01.07.1993"
+},
+"1126354": {
+"nom": "Paul Showler",
+"nais": 1966,
+"poste": null,
+"libpos": null,
+"seit": null
+},
+"1130680": {
+"nom": "Craig Lawford",
+"nais": 1972,
+"poste": null,
+"libpos": null,
+"seit": null
+},
+"1015967": {
+"nom": "Tim Steele",
+"nais": 1967,
+"poste": "M",
+"libpos": "Central Midfield",
+"seit": "01.07.1993"
+},
+"867663": {
+"nom": "Paul Reid",
+"nais": 1968,
+"poste": "M",
+"libpos": "Left Midfield",
+"seit": "27.07.1992"
+},
+"104116": {
+"nom": "Frank Stapleton",
+"nais": 1956,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": "01.12.1991"
+},
+"150468": {
+"nom": "Graeme Tomlinson",
+"nais": 1975,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": "29.10.1993"
+},
+"222519": {
+"nom": "Sean McCarthy",
+"nais": 1967,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": "04.07.1990"
+},
+"226595": {
+"nom": "Neil Tolson",
+"nais": 1973,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": "02.12.1993"
+},
+"947159": {
+"nom": "Paul Jewell",
+"nais": 1964,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": "01.07.1988"
+}
+},
+"perf": {
+"1007929": {
+"complet": "Paul Tomlinson",
+"court": "P. Tomlinson",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"358690": {
+"complet": "Ian Bowling",
+"court": "I. Bowling",
+"kader": 1,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"3829": {
+"complet": "Dean Richards",
+"court": "D. Richards",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"15898": {
+"complet": "Colin Hoyle",
+"court": "C. Hoyle",
+"kader": 1,
+"matchs": 1,
+"min": 13,
+"hors": false
+},
+"1130679": {
+"complet": "Wayne Heseltine",
+"court": "W. Heseltine",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"177618": {
+"complet": "Gary Williams",
+"court": "G. Williams",
+"kader": 2,
+"matchs": 2,
+"min": 167,
+"hors": false
+},
+"226955": {
+"complet": "Lee Sinnott",
+"court": "L. Sinnott",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"481730": {
+"complet": "Noel Blake",
+"court": "N. Blake",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"499225": {
+"complet": "Gavin Oliver",
+"court": "G. Oliver",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"867663": {
+"complet": "Paul Reid",
+"court": "Paul Reid",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"1015967": {
+"complet": "Tim Steele",
+"court": "T. Steele",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"1126354": {
+"complet": "Paul Showler",
+"court": "P. Showler",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"1130680": {
+"complet": "Craig Lawford",
+"court": "C. Lawford",
+"kader": 1,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"277196": {
+"complet": "Lee Duxbury",
+"court": "L. Duxbury",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"552202": {
+"complet": "Gary Robson",
+"court": "G. Robson",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"947159": {
+"complet": "Paul Jewell",
+"court": "P. Jewell",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"150468": {
+"complet": "Graeme Tomlinson",
+"court": "G. Tomlinson",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"222519": {
+"complet": "Sean McCarthy",
+"court": "S. McCarthy",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"226595": {
+"complet": "Neil Tolson",
+"court": "N. Tolson",
+"kader": 1,
+"matchs": 1,
+"min": 7,
+"hors": false
+},
+"104116": {
+"complet": "Frank Stapleton",
+"court": "F. Stapleton",
+"kader": 2,
+"matchs": 2,
+"min": 83,
+"hors": false
+}
+}
+},
+"FUL": {
+"div": "D",
+"vid": "931",
+"kader": {
+"40000": {
+"nom": "Lee Harrison",
+"nais": 1971,
+"poste": "G",
+"libpos": "Torwart",
+"seit": "18.12.1992"
+},
+"222472": {
+"nom": "Jim Stannard",
+"nais": 1962,
+"poste": "G",
+"libpos": "Torwart",
+"seit": "14.08.1987"
+},
+"1003218": {
+"nom": "James Power",
+"nais": null,
+"poste": "G",
+"libpos": "Torwart",
+"seit": null
+},
+"175934": {
+"nom": "Simon Morgan",
+"nais": 1966,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "12.10.1990"
+},
+"224055": {
+"nom": "Terry Angus",
+"nais": 1966,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "01.07.1993"
+},
+"225946": {
+"nom": "Glen Thomas",
+"nais": 1967,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "01.07.1986"
+},
+"227335": {
+"nom": "Jeff Eckhardt",
+"nais": 1965,
+"poste": "D",
+"libpos": "Innenverteidiger",
+"seit": "01.07.1987"
+},
+"223300": {
+"nom": "Robbie Herrera",
+"nais": 1970,
+"poste": "D",
+"libpos": "Linker Verteidiger",
+"seit": "01.02.1994"
+},
+"225937": {
+"nom": "Martin Pike",
+"nais": 1964,
+"poste": "D",
+"libpos": "Linker Verteidiger",
+"seit": "01.02.1990"
+},
+"39702": {
+"nom": "Duncan Jupp",
+"nais": 1975,
+"poste": "D",
+"libpos": "Rechter Verteidiger",
+"seit": "01.07.1993"
+},
+"227832": {
+"nom": "John Marshall",
+"nais": 1964,
+"poste": "D",
+"libpos": "Rechter Verteidiger",
+"seit": "01.07.1983"
+},
+"222866": {
+"nom": "Udo Onwere",
+"nais": 1971,
+"poste": "M",
+"libpos": "Defensives Mittelfeld",
+"seit": "01.07.1990"
+},
+"737359": {
+"nom": "Paul Kelly",
+"nais": 1974,
+"poste": "M",
+"libpos": "Defensives Mittelfeld",
+"seit": "01.07.1992"
+},
+"975084": {
+"nom": "Michael Mison",
+"nais": 1975,
+"poste": "M",
+"libpos": "Defensives Mittelfeld",
+"seit": "25.02.1994"
+},
+"1003220": {
+"nom": "Lee Tierling",
+"nais": 1972,
+"poste": "M",
+"libpos": "Mittelfeld",
+"seit": "01.07.1992"
+},
+"224062": {
+"nom": "Ara Bedrossian",
+"nais": 1967,
+"poste": "M",
+"libpos": "Zentrales Mittelfeld",
+"seit": "01.03.1993"
+},
+"737355": {
+"nom": "Martin Ferney",
+"nais": 1971,
+"poste": "M",
+"libpos": "Zentrales Mittelfeld",
+"seit": "01.07.1990"
+},
+"1001829": {
+"nom": "Mark Cooper",
+"nais": 1968,
+"poste": "M",
+"libpos": "Zentrales Mittelfeld",
+"seit": "01.11.1992"
+},
+"737580": {
+"nom": "Julian Hails",
+"nais": 1967,
+"poste": "M",
+"libpos": "Rechtes Mittelfeld",
+"seit": "29.08.1990"
+},
+"224057": {
+"nom": "Peter Baah",
+"nais": 1973,
+"poste": "A",
+"libpos": "Linksaußen",
+"seit": "01.07.1992"
+},
+"224064": {
+"nom": "Gary Brazil",
+"nais": 1962,
+"poste": "A",
+"libpos": "Hängende Spitze",
+"seit": "01.09.1990"
+},
+"229827": {
+"nom": "Paul Mahorn",
+"nais": 1973,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "23.09.1993"
+},
+"373503": {
+"nom": "Sean Farrell",
+"nais": 1969,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "19.12.1991"
+},
+"768136": {
+"nom": "Rob Haworth",
+"nais": 1975,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.07.1993"
+},
+"999059": {
+"nom": "Carl Bartley",
+"nais": 1976,
+"poste": "A",
+"libpos": "Mittelstürmer",
+"seit": "01.07.1995"
+}
+},
+"perf": {
+"40000": {
+"complet": "Lee Harrison",
+"court": "L. Harrison",
+"kader": 56,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"1003218": {
+"complet": "James Power",
+"court": "J. Power",
+"kader": 1,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"222472": {
+"complet": "Jim Stannard",
+"court": "J. Stannard",
+"kader": 55,
+"matchs": 54,
+"min": 4920,
+"hors": false
+},
+"39702": {
+"complet": "Duncan Jupp",
+"court": "D. Jupp",
+"kader": 41,
+"matchs": 40,
+"min": 3322,
+"hors": false
+},
+"175934": {
+"complet": "Simon Morgan",
+"court": "S. Morgan",
+"kader": 42,
+"matchs": 42,
+"min": 3735,
+"hors": false
+},
+"223300": {
+"complet": "Robbie Herrera",
+"court": "R. Herrera",
+"kader": 25,
+"matchs": 25,
+"min": 2176,
+"hors": false
+},
+"224055": {
+"complet": "Terry Angus",
+"court": "T. Angus",
+"kader": 51,
+"matchs": 44,
+"min": 3358,
+"hors": false
+},
+"225937": {
+"complet": "Martin Pike",
+"court": "M. Pike",
+"kader": 39,
+"matchs": 39,
+"min": 3380,
+"hors": false
+},
+"225946": {
+"complet": "Glen Thomas",
+"court": "G. Thomas",
+"kader": 45,
+"matchs": 45,
+"min": 4020,
+"hors": false
+},
+"227335": {
+"complet": "Jeff Eckhardt",
+"court": "J. Eckhardt",
+"kader": 41,
+"matchs": 41,
+"min": 3555,
+"hors": false
+},
+"227832": {
+"complet": "John Marshall",
+"court": "J. Marshall",
+"kader": 24,
+"matchs": 24,
+"min": 2007,
+"hors": false
+},
+"975084": {
+"complet": "Michael Mison",
+"court": "M. Mison",
+"kader": 7,
+"matchs": 5,
+"min": 164,
+"hors": false
+},
+"1001829": {
+"complet": "Mark Cooper",
+"court": "M. Cooper",
+"kader": 8,
+"matchs": 7,
+"min": 460,
+"hors": false
+},
+"1003220": {
+"complet": "Lee Tierling",
+"court": "L. Tierling",
+"kader": 33,
+"matchs": 17,
+"min": 539,
+"hors": false
+},
+"222866": {
+"complet": "Udo Onwere",
+"court": "U. Onwere",
+"kader": 29,
+"matchs": 29,
+"min": 2325,
+"hors": false
+},
+"224062": {
+"complet": "Ara Bedrossian",
+"court": "A. Bedrossian",
+"kader": 38,
+"matchs": 35,
+"min": 2744,
+"hors": false
+},
+"737355": {
+"complet": "Martin Ferney",
+"court": "M. Ferney",
+"kader": 33,
+"matchs": 30,
+"min": 2410,
+"hors": false
+},
+"737359": {
+"complet": "Paul Kelly",
+"court": "P. Kelly",
+"kader": 10,
+"matchs": 7,
+"min": 276,
+"hors": false
+},
+"737580": {
+"complet": "Julian Hails",
+"court": "J. Hails",
+"kader": 45,
+"matchs": 45,
+"min": 4008,
+"hors": false
+},
+"999059": {
+"complet": "Carl Bartley",
+"court": "C. Bartley",
+"kader": 1,
+"matchs": 0,
+"min": 0,
+"hors": false
+},
+"224057": {
+"complet": "Peter Baah",
+"court": "P. Baah",
+"kader": 43,
+"matchs": 39,
+"min": 2914,
+"hors": false
+},
+"224064": {
+"complet": "Gary Brazil",
+"court": "G. Brazil",
+"kader": 56,
+"matchs": 56,
+"min": 5100,
+"hors": false
+},
+"229827": {
+"complet": "Paul Mahorn",
+"court": "P. Mahorn",
+"kader": 4,
+"matchs": 4,
+"min": 245,
+"hors": false
+},
+"373503": {
+"complet": "Sean Farrell",
+"court": "S. Farrell",
+"kader": 44,
+"matchs": 43,
+"min": 3713,
+"hors": false
+},
+"768136": {
+"complet": "Rob Haworth",
+"court": "R. Haworth",
+"kader": 12,
+"matchs": 12,
+"min": 444,
+"hors": false
+}
+}
+},
+"BHA": {
+"div": "D",
+"vid": "1237",
+"kader": {
+"997165": {
+"nom": "Nicky Rust",
+"nais": 1974,
+"poste": "G",
+"libpos": "Goalkeeper",
+"seit": "01.07.1993"
+},
+"13673": {
+"nom": "Paul McCarthy",
+"nais": 1971,
+"poste": "D",
+"libpos": "Defender",
+"seit": "01.07.1989"
+},
+"1003231": {
+"nom": "Stuart Munday",
+"nais": 1972,
+"poste": "D",
+"libpos": "Defender",
+"seit": "01.07.1990"
+},
+"130318": {
+"nom": "Steve Foster",
+"nais": 1957,
+"poste": "D",
+"libpos": "Centre-Back",
+"seit": "01.07.1992"
+},
+"396930": {
+"nom": "Stuart Tuck",
+"nais": 1974,
+"poste": "D",
+"libpos": "Centre-Back",
+"seit": "01.07.1993"
+},
+"644713": {
+"nom": "Ian Chapman",
+"nais": 1970,
+"poste": "D",
+"libpos": "Left-Back",
+"seit": "01.07.1987"
+},
+"644715": {
+"nom": "John Crumplin",
+"nais": 1967,
+"poste": "D",
+"libpos": "Right-Back",
+"seit": "01.02.1987"
+},
+"350895": {
+"nom": "Dean Wilkins",
+"nais": 1962,
+"poste": null,
+"libpos": null,
+"seit": "01.07.1987"
+},
+"1003232": {
+"nom": "Stuart Myall",
+"nais": 1974,
+"poste": "M",
+"libpos": "Defensive Midfield",
+"seit": "01.07.1993"
+},
+"1003233": {
+"nom": "Darron Wilkinson",
+"nais": 1969,
+"poste": null,
+"libpos": null,
+"seit": "01.07.1992"
+},
+"1131712": {
+"nom": "Danny Simmonds",
+"nais": 1974,
+"poste": null,
+"libpos": null,
+"seit": null
+},
+"1131713": {
+"nom": "Mark Fox",
+"nais": 1975,
+"poste": null,
+"libpos": null,
+"seit": null
+},
+"176085": {
+"nom": "Jimmy Case",
+"nais": 1954,
+"poste": "M",
+"libpos": "Right Midfield",
+"seit": "30.12.1993"
+},
+"302301": {
+"nom": "Matthew Edwards",
+"nais": 1971,
+"poste": "M",
+"libpos": "Attacking Midfield",
+"seit": "01.07.1992"
+},
+"9221": {
+"nom": "Paul Dickov",
+"nais": 1972,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": "23.03.1994"
+},
+"400076": {
+"nom": "Kurt Nogan",
+"nais": 1970,
+"poste": null,
+"libpos": null,
+"seit": "01.07.1992"
+},
+"644717": {
+"nom": "Robert Codner",
+"nais": 1965,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": "08.09.1988"
+},
+"1131714": {
+"nom": "Simon Fox",
+"nais": 1977,
+"poste": "A",
+"libpos": "Centre-Forward",
+"seit": null
+}
+},
+"perf": {
+"997165": {
+"complet": "Nicky Rust",
+"court": "N. Rust",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"13673": {
+"complet": "Paul McCarthy",
+"court": "P. McCarthy",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"1003231": {
+"complet": "Stuart Munday",
+"court": "S. Munday",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"644715": {
+"complet": "John Crumplin",
+"court": "J. Crumplin",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"396930": {
+"complet": "Stuart Tuck",
+"court": "S. Tuck",
+"kader": 1,
+"matchs": 1,
+"min": 0,
+"hors": false
+},
+"644713": {
+"complet": "Ian Chapman",
+"court": "I. Chapman",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"130318": {
+"complet": "Steve Foster",
+"court": "S. Foster",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"1003233": {
+"complet": "Darron Wilkinson",
+"court": "D. Wilkinson",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"1003232": {
+"complet": "Stuart Myall",
+"court": "S. Myall",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"1131713": {
+"complet": "Mark Fox",
+"court": "Mark Fox",
+"kader": 1,
+"matchs": 1,
+"min": 78,
+"hors": false
+},
+"1131712": {
+"complet": "Danny Simmonds",
+"court": "D. Simmonds",
+"kader": 1,
+"matchs": 1,
+"min": 12,
+"hors": false
+},
+"176085": {
+"complet": "Jimmy Case",
+"court": "J. Case",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"302301": {
+"complet": "Matthew Edwards",
+"court": "M. Edwards",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"350895": {
+"complet": "Dean Wilkins",
+"court": "D. Wilkins",
+"kader": 1,
+"matchs": 1,
+"min": 90,
+"hors": false
+},
+"9221": {
+"complet": "Paul Dickov",
+"court": "P. Dickov",
+"kader": 1,
+"matchs": 1,
+"min": 85,
+"hors": false
+},
+"400076": {
+"complet": "Kurt Nogan",
+"court": "K. Nogan",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+},
+"1131714": {
+"complet": "Simon Fox",
+"court": "Simon Fox",
+"kader": 1,
+"matchs": 1,
+"min": 5,
+"hors": false
+},
+"644717": {
+"complet": "Robert Codner",
+"court": "R. Codner",
+"kader": 2,
+"matchs": 2,
+"min": 180,
+"hors": false
+}
+}
 }
 }
