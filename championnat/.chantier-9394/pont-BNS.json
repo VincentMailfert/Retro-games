@@ -8,7 +8,12 @@
   "source": "Sheffield Wednesday",
   "parti": "Asst.P/Mgr.Middlesbrough",
   "apps": "20",
-  "buts": "3"
+  "buts": "3",
+  "sid": "117188",
+  "nais": null,
+  "complet": "Viv Anderson",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "ARCHDEACON Owen",
@@ -29,7 +34,12 @@
     "complet": "Owen Archdeacon",
     "court": "O. Archdeacon"
    }
-  }
+  },
+  "sid": "120519",
+  "nais": 1966,
+  "complet": "Owen Archdeacon",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "BIGGINS Wayne",
@@ -50,7 +60,12 @@
     "complet": "Wayne Biggins",
     "court": "W. Biggins"
    }
-  }
+  },
+  "sid": "561300",
+  "nais": 1961,
+  "complet": "Wayne Biggins",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "BISHOP Charlie",
@@ -79,7 +94,12 @@
     "complet": "Charlie Bishop",
     "court": "C. Bishop"
    }
-  }
+  },
+  "sid": "1014488",
+  "nais": 1968,
+  "complet": "Charlie Bishop",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "BODEN Chris",
@@ -90,7 +110,12 @@
   "source": "On loan from Aston Villa",
   "parti": "",
   "apps": "4",
-  "buts": "0"
+  "buts": "0",
+  "sid": "227856",
+  "nais": null,
+  "complet": "Chris Boden",
+  "au_coup": "aston villa",
+  "present": false
  },
  {
   "nom": "BRYSON Ian",
@@ -101,7 +126,12 @@
   "source": "Sheffield United",
   "parti": "Preston North End",
   "apps": "16",
-  "buts": "3"
+  "buts": "3",
+  "sid": "226554",
+  "nais": null,
+  "complet": "Ian Bryson",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "BULLOCK Martin",
@@ -122,7 +152,12 @@
     "complet": "Martin Bullock",
     "court": "M. Bullock"
    }
-  }
+  },
+  "sid": "49698",
+  "nais": 1975,
+  "complet": "Martin Bullock",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "BUTLER Lee",
@@ -143,7 +178,12 @@
     "complet": "Lee Butler",
     "court": "L. Butler"
    }
-  }
+  },
+  "sid": "170660",
+  "nais": 1966,
+  "complet": "Lee Butler",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "CURRIE David (2nd spell)",
@@ -164,7 +204,12 @@
     "complet": "David Currie",
     "court": "D. Currie"
    }
-  }
+  },
+  "sid": "373780",
+  "nais": 1962,
+  "complet": "David Currie",
+  "au_coup": "rotherham",
+  "present": false
  },
  {
   "nom": "DAVIS Steve",
@@ -185,7 +230,12 @@
     "complet": "Steve Davis",
     "court": "S. Davis"
    }
-  }
+  },
+  "sid": "245298",
+  "nais": 1965,
+  "complet": "Steve Davis",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "EADEN Nicky",
@@ -206,7 +256,12 @@
     "complet": "Nicky Eaden",
     "court": "N. Eaden"
    }
-  }
+  },
+  "sid": "13514",
+  "nais": 1972,
+  "complet": "Nicky Eaden",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "FLEMING Gary",
@@ -235,7 +290,12 @@
     "complet": "Gary Fleming",
     "court": "G. Fleming"
    }
-  }
+  },
+  "sid": "177109",
+  "nais": 1967,
+  "complet": "Gary Fleming",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "GRAHAM Deiniol",
@@ -256,7 +316,12 @@
     "complet": "Deiniol Graham",
     "court": "D. Graham"
    }
-  }
+  },
+  "sid": "1015259",
+  "nais": 1969,
+  "complet": "Deiniol Graham",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "JACKSON Chris",
@@ -285,7 +350,12 @@
     "complet": "Chris Jackson",
     "court": "C. Jackson"
    }
-  }
+  },
+  "sid": "1015260",
+  "nais": null,
+  "complet": "Chris Jackson",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "LIDDELL Andy",
@@ -314,7 +384,12 @@
     "complet": "Andy Liddell",
     "court": "A. Liddell"
    }
-  }
+  },
+  "sid": "13527",
+  "nais": 1973,
+  "complet": "Andy Liddell",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "O'CONNELL Brendan",
@@ -343,7 +418,12 @@
     "complet": "Brendan O'Connell",
     "court": "B. O'Connell"
    }
-  }
+  },
+  "sid": "678594",
+  "nais": 1966,
+  "complet": "Brendan O'connell",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "PAYTON Andy",
@@ -364,7 +444,12 @@
     "complet": "Andy Payton",
     "court": "A. Payton"
    }
-  }
+  },
+  "sid": "268064",
+  "nais": 1967,
+  "complet": "Andy Payton",
+  "au_coup": "celtic glasgow",
+  "present": false
  },
  {
   "nom": "RAMMELL Andy",
@@ -393,7 +478,12 @@
     "complet": "Andy Rammell",
     "court": "A. Rammell"
    }
-  }
+  },
+  "sid": "321539",
+  "nais": 1967,
+  "complet": "Andy Rammell",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "REDFEARN Neil",
@@ -422,7 +512,12 @@
     "complet": "Neil Redfearn",
     "court": "N. Redfearn"
    }
-  }
+  },
+  "sid": "195179",
+  "nais": 1965,
+  "complet": "Neil Redfearn",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "ROBINSON Jamie",
@@ -443,7 +538,12 @@
     "complet": "Mark Robinson",
     "court": "M. Robinson"
    }
-  }
+  },
+  "sid": "229833",
+  "nais": 1968,
+  "complet": "Jamie Robinson",
+  "au_coup": "newcastle",
+  "present": false
  },
  {
   "nom": "SHERIDAN Darren",
@@ -464,7 +564,12 @@
     "complet": "Darren Sheridan",
     "court": "D. Sheridan"
    }
-  }
+  },
+  "sid": "22759",
+  "nais": 1967,
+  "complet": "Darren Sheridan",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "SNODIN Glynn",
@@ -485,7 +590,12 @@
     "complet": "Glynn Snodin",
     "court": "G. Snodin"
    }
-  }
+  },
+  "sid": "203661",
+  "nais": 1960,
+  "complet": "Glynn Snodin",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "TAGGART Gerry",
@@ -514,7 +624,12 @@
     "complet": "Gerry Taggart",
     "court": "G. Taggart"
    }
-  }
+  },
+  "sid": "4264",
+  "nais": 1970,
+  "complet": "Gerry Taggart",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "WATSON David",
@@ -535,7 +650,12 @@
     "complet": "Dave Watson",
     "court": "D. Watson"
    }
-  }
+  },
+  "sid": "195616",
+  "nais": 1973,
+  "complet": "David Watson",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "WILLIAMS Gareth",
@@ -556,7 +676,12 @@
     "complet": "Gareth Williams",
     "court": "G. Williams"
    }
-  }
+  },
+  "sid": "222649",
+  "nais": 1967,
+  "complet": "Gareth Williams",
+  "au_coup": "fc barnsley",
+  "present": true
  },
  {
   "nom": "WILSON Danny",
@@ -577,6 +702,11 @@
     "complet": "Danny Wilson",
     "court": "D. Wilson"
    }
-  }
+  },
+  "sid": "223317",
+  "nais": 1960,
+  "complet": "Danny Wilson",
+  "au_coup": "fc barnsley",
+  "present": true
  }
 ]

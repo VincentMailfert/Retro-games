@@ -8,7 +8,12 @@
   "source": "On loan from Brentford",
   "parti": "",
   "apps": "3",
-  "buts": "0"
+  "buts": "0",
+  "sid": "176776",
+  "nais": null,
+  "complet": "Joe Allon",
+  "au_coup": "fc brentford",
+  "present": false
  },
  {
   "nom": "ANGELL Brett",
@@ -29,7 +34,12 @@
     "complet": "Brett Angell",
     "court": "B. Angell"
    }
-  }
+  },
+  "sid": "177256",
+  "nais": 1968,
+  "complet": "Brett Angell",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "ANSAH Andy",
@@ -58,7 +68,12 @@
     "complet": "Andy Ansah",
     "court": "A. Ansah"
    }
-  }
+  },
+  "sid": "994567",
+  "nais": 1969,
+  "complet": "Andy Ansah",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "BEADLE Peter",
@@ -69,7 +84,12 @@
   "source": "On loan from Tottenham Hotspur",
   "parti": "",
   "apps": "8",
-  "buts": "1"
+  "buts": "1",
+  "sid": "313289",
+  "nais": null,
+  "complet": "Peter Beadle",
+  "au_coup": "tottenham",
+  "present": false
  },
  {
   "nom": "BODLEY Mick",
@@ -90,7 +110,12 @@
     "complet": "Mick Bodley",
     "court": "M. Bodley"
    }
-  }
+  },
+  "sid": "481517",
+  "nais": 1967,
+  "complet": "Mick Bodley",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "BRESSINGTON Graham",
@@ -111,7 +136,12 @@
     "complet": "Graham Bressington",
     "court": "G. Bressington"
    }
-  }
+  },
+  "sid": "1228171",
+  "nais": 1966,
+  "complet": "Graham Bressington",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "EDWARDS Andy (1st spell)",
@@ -140,7 +170,12 @@
     "complet": "Andy Edwards",
     "court": "A. Edwards"
    }
-  }
+  },
+  "sid": "252229",
+  "nais": 1971,
+  "complet": "Andy Edwards",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "GRIDELET Phil",
@@ -161,7 +196,12 @@
     "complet": "Phil Gridelet",
     "court": "P. Gridelet"
    }
-  }
+  },
+  "sid": "1001306",
+  "nais": 1967,
+  "complet": "Phil Gridelet",
+  "au_coup": "rotherham",
+  "present": false
  },
  {
   "nom": "HARDING Paul",
@@ -172,7 +212,12 @@
   "source": "On loan from Notts County",
   "parti": "",
   "apps": "5",
-  "buts": "0"
+  "buts": "0",
+  "sid": "373989",
+  "nais": null,
+  "complet": "Paul Harding",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "HOWELL David",
@@ -183,7 +228,12 @@
   "source": "Barnet",
   "parti": "P/Coach Birmingham City",
   "apps": "6",
-  "buts": "0"
+  "buts": "0",
+  "sid": null,
+  "nais": null,
+  "complet": "David Howell",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "HUNT Jonathan",
@@ -204,7 +254,12 @@
     "complet": "Jonathan Hunt",
     "court": "J. Hunt"
    }
-  }
+  },
+  "sid": "107811",
+  "nais": 1971,
+  "complet": "Jonathan Hunt",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "JONES Gary",
@@ -233,7 +288,12 @@
     "complet": "Gary Jones",
     "court": "G. Jones"
    }
-  }
+  },
+  "sid": "176810",
+  "nais": 1965,
+  "complet": "Gary Jones",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "JONES Keith",
@@ -262,7 +322,12 @@
     "complet": "Gary Jones",
     "court": "G. Jones"
    }
-  }
+  },
+  "sid": "176810",
+  "nais": 1965,
+  "complet": "Keith Jones",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "LEE Jason",
@@ -273,7 +338,12 @@
   "source": "Lincoln City",
   "parti": "Nottingham Forest",
   "apps": "24",
-  "buts": "3"
+  "buts": "3",
+  "sid": "14624",
+  "nais": null,
+  "complet": "Jason Lee",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "LOCKE Adam",
@@ -294,7 +364,12 @@
     "complet": "Adam Locke",
     "court": "A. Locke"
    }
-  }
+  },
+  "sid": "977845",
+  "nais": 1970,
+  "complet": "Adam Locke",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "MARTIN Jae",
@@ -315,7 +390,12 @@
     "complet": "Dave Martin",
     "court": "D. Martin"
    }
-  }
+  },
+  "sid": "728124",
+  "nais": 1963,
+  "complet": "Jae Martin",
+  "au_coup": "bristol city",
+  "present": false
  },
  {
   "nom": "MOONEY Tommy",
@@ -326,7 +406,12 @@
   "source": "Scarborough",
   "parti": "Watford",
   "apps": "14",
-  "buts": "5"
+  "buts": "5",
+  "sid": "10410",
+  "nais": null,
+  "complet": "Tommy Mooney",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "NOGAN Lee (2nd spell)",
@@ -337,7 +422,12 @@
   "source": "On loan from Watford",
   "parti": "",
   "apps": "5",
-  "buts": "0"
+  "buts": "0",
+  "sid": "239343",
+  "nais": null,
+  "complet": "Lee Nogan",
+  "au_coup": "fc watford",
+  "present": false
  },
  {
   "nom": "OTTO Ricky",
@@ -358,7 +448,12 @@
     "complet": "Ricky Otto",
     "court": "R. Otto"
    }
-  }
+  },
+  "sid": "643523",
+  "nais": 1967,
+  "complet": "Ricky Otto",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "PAYNE Derek",
@@ -369,7 +464,12 @@
   "source": "Barnet",
   "parti": "Watford",
   "apps": "35",
-  "buts": "0"
+  "buts": "0",
+  "sid": "901428",
+  "nais": null,
+  "complet": "Derek Payne",
+  "au_coup": null,
+  "present": false
  },
  {
   "nom": "POOLE Gary",
@@ -390,7 +490,12 @@
     "complet": "Gary Poole",
     "court": "G. Poole"
    }
-  }
+  },
+  "sid": "643520",
+  "nais": 1967,
+  "complet": "Gary Poole",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "POWELL Chris",
@@ -419,7 +524,12 @@
     "complet": "Chris Powell",
     "court": "C. Powell"
    }
-  }
+  },
+  "sid": "4100",
+  "nais": 1969,
+  "complet": "Chris Powell",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "ROYCE Simon",
@@ -440,7 +550,12 @@
     "complet": "Simon Royce",
     "court": "S. Royce"
    }
-  }
+  },
+  "sid": "5162",
+  "nais": 1971,
+  "complet": "Simon Royce",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "SANSOME Paul",
@@ -469,7 +584,12 @@
     "complet": "Paul Sansome",
     "court": "P. Sansome"
    }
-  }
+  },
+  "sid": "673031",
+  "nais": 1961,
+  "complet": "Paul Sansome",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "SCULLY Pat",
@@ -490,7 +610,12 @@
     "complet": "Pat Scully",
     "court": "P. Scully"
    }
-  }
+  },
+  "sid": "176756",
+  "nais": 1970,
+  "complet": "Pat Scully",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "SUSSEX Andy",
@@ -519,7 +644,12 @@
     "complet": "Andy Sussex",
     "court": "A. Sussex"
    }
-  }
+  },
+  "sid": "800735",
+  "nais": 1964,
+  "complet": "Andy Sussex",
+  "au_coup": "southend united",
+  "present": true
  },
  {
   "nom": "TILSON Steve (1st spell)",
@@ -548,6 +678,11 @@
     "complet": "Steve Tilson",
     "court": "S. Tilson"
    }
-  }
+  },
+  "sid": "994566",
+  "nais": 1966,
+  "complet": "Steve Tilson",
+  "au_coup": null,
+  "present": false
  }
 ]
