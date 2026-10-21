@@ -28,6 +28,32 @@ const bloc = html.slice(html.indexOf("const CLUBS_ANG=["), html.indexOf("];", ht
 const CODES_ANG = new Set([...bloc.matchAll(/id:"([A-Z]+)"/g)].map(m => m[1]));
 if (CODES_ANG.size < 50) err(`registre CLUBS_ANG illisible (${CODES_ANG.size} codes trouvés)`);
 
+// Identifiants Transfermarkt vérifiés des clubs (releves/clubs-tm.json).
+const TABLE_TM = JSON.parse(fs.readFileSync(path.join(__dirname, "clubs-tm.json"), "utf8")).clubs;
+
+// Effectifs connus, pour le contrôle d'identité : ceux du jeu (STARS_ANGxxxx) et ceux des
+// autres relevés posés à côté de celui-ci. Clé : année du coup d'envoi → code → noms courts.
+const connus = {};
+for (const m of html.matchAll(/const STARS_(?:D2_)?ANG(\d{2})(\d{2})=\{([\s\S]*?)\n\};/g)) {
+  const a = (+m[1] < 50 ? 2000 : 1900) + +m[1];
+  connus[a] = connus[a] || {};
+  for (const c of m[3].matchAll(/\n ([A-Z]{3}):\[([\s\S]*?)\]\],?/g))
+    connus[a][c[1]] = new Set([...c[2].matchAll(/\["([^"]+)"/g)].map(x => x[1]));
+}
+const dossierReleves = path.dirname(path.resolve(dossier));
+for (const k of fs.readdirSync(dossierReleves)) {
+  const mk = /^ANG-(\d{4})-\d{2}$/.exec(k);
+  if (!mk || k === path.basename(path.resolve(dossier))) continue;
+  try {
+    const p2 = JSON.parse(fs.readFileSync(path.join(dossierReleves, k, "plateau.json"), "utf8"));
+    const j2 = JSON.parse(fs.readFileSync(path.join(dossierReleves, k, "joueurs.json"), "utf8"));
+    const a = +mk[1];
+    connus[a] = connus[a] || {};
+    for (const c of [...(p2.d1 || []), ...(p2.d2 || [])])
+      if (!connus[a][c]) connus[a][c] = new Set((j2[c] || []).filter(j => j.retenu).map(j => j.court));
+  } catch (e) { /* relevé voisin illisible : on l'ignore ici, il a son propre contrôle */ }
+}
+
 const cleDossier = path.basename(path.resolve(dossier));
 const mCle = /^ANG-(\d{4})-(\d{2})$/.exec(cleDossier);
 if (!mCle) err(`le dossier doit s'appeler ANG-AAAA-AA (trouvé : ${cleDossier})`);
@@ -78,6 +104,19 @@ if (P) {
   const ecartes = P.ecartes || [];
   if (nbClassés - 40 !== ecartes.length) err(`${nbClassés} clubs classés, 40 retenus : il faut ${nbClassés - 40} écartés justifiés, il y en a ${ecartes.length}`);
   ecartes.forEach(e => { if (!e.raison || e.raison.length < 10) err(`écarté ${e.code || e.club} sans raison écrite`); });
+  ecartes.forEach(e => {
+    if (/anti-?robot|inaccessible|bloqu|human verification|403|405/i.test(e.raison || ""))
+      err(`écarté ${e.code || e.club} parce que la source a bloqué : ce n'est pas une raison, réessayer ou s'arrêter`);
+  });
+  const tete = (P.classementD2 || []).slice(0, 3).map(r => r.code);
+  ecartes.forEach(e => { if (tete.includes(e.code)) err(`écarté ${e.code} alors qu'il finit dans les trois premiers de l'échelon du dessous`); });
+  // Chaque club retenu doit avoir été relevé sous SON identifiant Transfermarkt.
+  const tmClubs = P.tm_clubs || {};
+  tous.forEach(c => {
+    const attendu = TABLE_TM[c] && TABLE_TM[c].tm;
+    if (tmClubs[c] == null) err(`tm_clubs : identifiant Transfermarkt du club ${c} manquant (attendu ${attendu})`);
+    else if (+tmClubs[c] !== attendu) err(`tm_clubs : ${c} relevé sous l'identifiant ${tmClubs[c]}, or c'est ${attendu} (${TABLE_TM[c].nom_tm}) : mauvais club`);
+  });
   const noms = P.noms_proposes || [];
   if (noms.length < 1 || noms.length > 3) err("noms_proposes : de un à trois noms");
   noms.forEach(nm => {
@@ -130,6 +169,26 @@ if (J && P) {
     }
     if (liste.some(j => j.retenu && j.invente)) err(`${code} : joueur inventé, interdit`);
   });
+  // Identité : un vrai club garde une partie de ses hommes d'une saison à l'autre.
+  [...d1, ...d2].forEach(code => {
+    const ici = new Set((J[code] || []).filter(j => j.retenu).map(j => j.court));
+    let meilleur = -1, ref = null;
+    for (const v of [an - 1, an + 1, an - 2, an + 2]) {
+      const e = connus[v] && connus[v][code];
+      if (!e) continue;
+      const o = [...ici].filter(x => e.has(x)).length;
+      if (o > meilleur) { meilleur = o; ref = v; }
+    }
+    if (meilleur === -1) alerte(`${code} : aucune saison voisine connue, identité du club non contrôlée`);
+    else if (meilleur < 3) err(`${code} : ${meilleur} joueur(s) en commun avec ${ref}-${String(ref + 1).slice(2)}, ce n'est sans doute pas le bon club`);
+  });
+  // Aucune donnée estimée : ni minutes fabriquées, ni effectifs sans Transfermarkt en masse.
+  const tousRetenus = [...d1, ...d2].flatMap(c => (J[c] || []).filter(j => j.retenu));
+  const avecMin = tousRetenus.filter(j => j.minutes > 0);
+  const mult85 = avecMin.filter(j => j.minutes % 85 === 0).length;
+  if (avecMin.length && mult85 / avecMin.length > 0.25) err(`${mult85}/${avecMin.length} minutes sont des multiples de 85 : minutes estimées, interdit (laisser null si inconnues)`);
+  const sansTM = tousRetenus.filter(j => j.tm == null).length;
+  if (sansTM > 40) err(`${sansTM} retenus sans identifiant Transfermarkt : la source principale a manqué, s'arrêter au lieu de tout prendre ailleurs`);
   for (const div of ["d1", "d2"]) if (maigres[div] > 3) err(`${div} : ${maigres[div]} clubs à moins de dix joueurs documentés, la saison n'est pas mûre`);
   const nbRetenus = [...d1, ...d2].reduce((s, c) => s + ((J[c] || []).filter(j => j.retenu).length), 0);
   if (nbRetenus !== 760) err(`${nbRetenus} joueurs retenus au total, attendu 760`);

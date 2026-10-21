@@ -60,7 +60,16 @@ Tout est en ligne. Aucune donnée d'effectif n'est dans le dépôt, sauf les sai
 | Classements finaux | le classement réel des deux divisions | Wikipedia anglaise, « 1994–95 FA Premier League » et « 1994–95 Football League First Division » (« Football League Championship » à partir de 2004-05) |
 | Base neilbrown, Wikidata, Wikipedia | recoupements quand Transfermarkt a un trou | voir la section « DIVERSIFIER LES SOURCES » de `championnat/CLAUDE.md` |
 
-`<AAAA>` est l'année du coup d'envoi (1994 pour 1994-95). `<id>` est l'identifiant Transfermarkt du club.
+`<AAAA>` est l'année du coup d'envoi (1994 pour 1994-95). `<id>` est l'identifiant Transfermarkt du club,
+**à prendre obligatoirement dans `releves/clubs-tm.json`** (les 72 clubs anglais du jeu, vérifiés). Ne le
+cherche jamais ailleurs : en 2003-04, une session a relevé Bologne sous le nom de West Bromwich et un club
+espagnol sous celui de Wigan, parce qu'elle avait deviné les identifiants.
+
+**L'anti-robot de Transfermarkt.** Laisse au moins 3 secondes entre deux pages. Si une page répond
+« Human Verification » (ou 403, 405), attends dix minutes et reprends là où tu en étais ; essaie aussi
+`.com` et `.de`. Après trois reprises sans succès, **arrête-toi** : livre ce qui est sûr et termine par
+« RELEVÉ INCOMPLET ». **Ne remplace jamais Transfermarkt en bloc par une autre source**, et **n'estime
+jamais une donnée** : une minute inconnue s'écrit `null`, pas « matchs × 85 ».
 Requêtes : `curl` avec un User-Agent de navigateur, pages décodées en UTF-8 (repli cp1252). Si un domaine
 renvoie une page anti-robot, essaie `.com` puis `.de`. **Une page est valable si elle contient des lignes
 de joueurs**, pas parce qu'elle est grosse.
@@ -150,6 +159,7 @@ Le dossier `releves/ANG-1994-95/` contient trois fichiers.
   "classementD2": [ "… les 24 clubs de l'échelon du dessous, même forme …" ],
   "d1": ["BLB", "MUN", "…  20 codes, dans l'ordre du classement réel"],
   "d2": ["…  20 codes"],
+  "tm_clubs": {"BLB": 164, "MUN": 985, "…": "l'identifiant Transfermarkt utilisé pour chaque club retenu, copié de releves/clubs-tm.json"},
   "ecartes": [{"code": "XXX", "club": "Nom du club", "raison": "rang, nombre d'hommes, et pourquoi lui"}],
   "noms_proposes": ["Premier nom", "Deuxième nom"]
 }
@@ -207,6 +217,11 @@ Il doit finir par **« RELEVÉ VERT »**. Il contrôle, entre autres :
 - **cohérence des classements** : victoires + nuls + défaites = matchs ; points = 3 × victoires + nuls
   − pénalité ; rangs dans l'ordre des points ; autant de victoires que de défaites et autant de buts
   marqués qu'encaissés sur toute la division ;
+- **identité des clubs** : chaque club retenu a été relevé sous l'identifiant de `releves/clubs-tm.json`,
+  et partage au moins trois joueurs avec le même club dans une saison voisine (déjà dans le jeu ou déjà
+  relevée). Si ce contrôle est rouge, tu as lu la page d'un autre club : relève-le à nouveau ;
+- **pas de données inventées** : pas de minutes estimées, pas plus de 40 joueurs sans identifiant
+  Transfermarkt, aucun club de tête écarté, aucun club écarté parce que la source a bloqué ;
 - **effectifs** : 20 / 18 retenus par club, minimums 2-5-5-4, 760 en tout, aucun identifiant
   Transfermarkt retenu deux fois, aucun arrivé en cours de saison parmi les retenus, prénoms cohérents
   avec l'initiale, et pas plus de trois clubs par division à moins de dix joueurs documentés.

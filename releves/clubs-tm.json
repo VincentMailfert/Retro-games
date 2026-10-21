@@ -1,0 +1,365 @@
+{
+ "_note": "Identifiants Transfermarkt des 72 clubs anglais du jeu (code CLUBS_ANG -> verein). Relevés sur les classements Transfermarkt le 22/10/2026. Toute page de club se demande avec CET identifiant.",
+ "clubs": {
+  "ARS": {
+   "tm": 11,
+   "nom": "Arsenal",
+   "nom_tm": "Arsenal FC"
+  },
+  "AVL": {
+   "tm": 405,
+   "nom": "Aston Villa",
+   "nom_tm": "Aston Villa"
+  },
+  "BNS": {
+   "tm": 349,
+   "nom": "Barnsley",
+   "nom_tm": "Barnsley FC"
+  },
+  "BIR": {
+   "tm": 337,
+   "nom": "Birmingham City",
+   "nom_tm": "Birmingham City"
+  },
+  "BLB": {
+   "tm": 164,
+   "nom": "Blackburn Rovers",
+   "nom_tm": "Blackburn Rovers"
+  },
+  "BLP": {
+   "tm": 1181,
+   "nom": "Blackpool",
+   "nom_tm": "Blackpool FC"
+  },
+  "BOL": {
+   "tm": 355,
+   "nom": "Bolton Wanderers",
+   "nom_tm": "Bolton Wanderers"
+  },
+  "BRD": {
+   "tm": 1027,
+   "nom": "Bradford City",
+   "nom_tm": "Bradford City"
+  },
+  "BTF": {
+   "tm": 1148,
+   "nom": "Brentford",
+   "nom_tm": "Brentford FC"
+  },
+  "BHA": {
+   "tm": 1237,
+   "nom": "Brighton & Hove Albion",
+   "nom_tm": "Brighton & Hove Albion"
+  },
+  "BSC": {
+   "tm": 698,
+   "nom": "Bristol City",
+   "nom_tm": "Bristol City"
+  },
+  "BSR": {
+   "tm": 2455,
+   "nom": "Bristol Rovers",
+   "nom_tm": "Bristol Rovers"
+  },
+  "BUR": {
+   "tm": 1132,
+   "nom": "Burnley",
+   "nom_tm": "Burnley FC"
+  },
+  "BRY": {
+   "tm": 2413,
+   "nom": "Bury",
+   "nom_tm": "Bury FC"
+  },
+  "CAM": {
+   "tm": 986,
+   "nom": "Cambridge United",
+   "nom_tm": "Cambridge United"
+  },
+  "CAR": {
+   "tm": 603,
+   "nom": "Cardiff City",
+   "nom_tm": "Cardiff City"
+  },
+  "CHL": {
+   "tm": 358,
+   "nom": "Charlton Athletic",
+   "nom_tm": "Charlton Athletic"
+  },
+  "CHE": {
+   "tm": 631,
+   "nom": "Chelsea",
+   "nom_tm": "Chelsea FC"
+  },
+  "COL": {
+   "tm": 1060,
+   "nom": "Colchester United",
+   "nom_tm": "Colchester United"
+  },
+  "COV": {
+   "tm": 990,
+   "nom": "Coventry City",
+   "nom_tm": "Coventry City"
+  },
+  "CRW": {
+   "tm": 1042,
+   "nom": "Crewe Alexandra",
+   "nom_tm": "Crewe Alexandra"
+  },
+  "CPL": {
+   "tm": 873,
+   "nom": "Crystal Palace",
+   "nom_tm": "Crystal Palace"
+  },
+  "DER": {
+   "tm": 22,
+   "nom": "Derby County",
+   "nom_tm": "Derby County"
+  },
+  "DON": {
+   "tm": 2454,
+   "nom": "Doncaster Rovers",
+   "nom_tm": "Doncaster Rovers"
+  },
+  "EVE": {
+   "tm": 29,
+   "nom": "Everton",
+   "nom_tm": "Everton FC"
+  },
+  "FUL": {
+   "tm": 931,
+   "nom": "Fulham",
+   "nom_tm": "Fulham FC"
+  },
+  "GIL": {
+   "tm": 2814,
+   "nom": "Gillingham",
+   "nom_tm": "Gillingham FC"
+  },
+  "GRI": {
+   "tm": 1034,
+   "nom": "Grimsby Town",
+   "nom_tm": "Grimsby Town"
+  },
+  "HUD": {
+   "tm": 1110,
+   "nom": "Huddersfield Town",
+   "nom_tm": "Huddersfield Town"
+  },
+  "HUL": {
+   "tm": 3008,
+   "nom": "Hull City",
+   "nom_tm": "Hull City"
+  },
+  "IPS": {
+   "tm": 677,
+   "nom": "Ipswich Town",
+   "nom_tm": "Ipswich Town"
+  },
+  "LEE": {
+   "tm": 399,
+   "nom": "Leeds United",
+   "nom_tm": "Leeds United"
+  },
+  "LEI": {
+   "tm": 1003,
+   "nom": "Leicester City",
+   "nom_tm": "Leicester City"
+  },
+  "LIV": {
+   "tm": 31,
+   "nom": "Liverpool",
+   "nom_tm": "Liverpool FC"
+  },
+  "LUT": {
+   "tm": 1031,
+   "nom": "Luton Town",
+   "nom_tm": "Luton Town"
+  },
+  "MCI": {
+   "tm": 281,
+   "nom": "Manchester City",
+   "nom_tm": "Manchester City"
+  },
+  "MUN": {
+   "tm": 985,
+   "nom": "Manchester United",
+   "nom_tm": "Manchester United"
+  },
+  "MID": {
+   "tm": 641,
+   "nom": "Middlesbrough",
+   "nom_tm": "Middlesbrough FC"
+  },
+  "MIW": {
+   "tm": 1028,
+   "nom": "Millwall",
+   "nom_tm": "Millwall FC"
+  },
+  "NEW": {
+   "tm": 762,
+   "nom": "Newcastle United",
+   "nom_tm": "Newcastle United"
+  },
+  "NOR": {
+   "tm": 1123,
+   "nom": "Norwich City",
+   "nom_tm": "Norwich City"
+  },
+  "FOR": {
+   "tm": 703,
+   "nom": "Nottingham Forest",
+   "nom_tm": "Nottingham Forest"
+  },
+  "NTC": {
+   "tm": 1045,
+   "nom": "Notts County",
+   "nom_tm": "Notts County"
+  },
+  "OLD": {
+   "tm": 1078,
+   "nom": "Oldham Athletic",
+   "nom_tm": "Oldham Athletic"
+  },
+  "OXF": {
+   "tm": 988,
+   "nom": "Oxford United",
+   "nom_tm": "Oxford United"
+  },
+  "PET": {
+   "tm": 1072,
+   "nom": "Peterborough United",
+   "nom_tm": "Peterborough United"
+  },
+  "PLY": {
+   "tm": 2262,
+   "nom": "Plymouth Argyle",
+   "nom_tm": "Plymouth Argyle"
+  },
+  "PTV": {
+   "tm": 1211,
+   "nom": "Port Vale",
+   "nom_tm": "Port Vale FC"
+  },
+  "POR": {
+   "tm": 1020,
+   "nom": "Portsmouth",
+   "nom_tm": "Portsmouth FC"
+  },
+  "PNE": {
+   "tm": 466,
+   "nom": "Preston North End",
+   "nom_tm": "Preston North End"
+  },
+  "QPR": {
+   "tm": 1039,
+   "nom": "Queens Park Rangers",
+   "nom_tm": "Queens Park Rangers"
+  },
+  "RDG": {
+   "tm": 1032,
+   "nom": "Reading",
+   "nom_tm": "Reading FC"
+  },
+  "ROT": {
+   "tm": 1194,
+   "nom": "Rotherham United",
+   "nom_tm": "Rotherham United"
+  },
+  "SCU": {
+   "tm": 2964,
+   "nom": "Scunthorpe United",
+   "nom_tm": "Scunthorpe United"
+  },
+  "SHU": {
+   "tm": 350,
+   "nom": "Sheffield United",
+   "nom_tm": "Sheffield United"
+  },
+  "SHW": {
+   "tm": 1035,
+   "nom": "Sheffield Wednesday",
+   "nom_tm": "Sheffield Wednesday"
+  },
+  "SOU": {
+   "tm": 180,
+   "nom": "Southampton",
+   "nom_tm": "Southampton FC"
+  },
+  "SND": {
+   "tm": 2793,
+   "nom": "Southend United",
+   "nom_tm": "Southend United"
+  },
+  "SKP": {
+   "tm": 1098,
+   "nom": "Stockport County",
+   "nom_tm": "Stockport County"
+  },
+  "STK": {
+   "tm": 512,
+   "nom": "Stoke City",
+   "nom_tm": "Stoke City"
+  },
+  "SUN": {
+   "tm": 289,
+   "nom": "Sunderland",
+   "nom_tm": "Sunderland AFC"
+  },
+  "SWA": {
+   "tm": 2288,
+   "nom": "Swansea City",
+   "nom_tm": "Swansea City"
+  },
+  "SWI": {
+   "tm": 352,
+   "nom": "Swindon Town",
+   "nom_tm": "Swindon Town"
+  },
+  "TOT": {
+   "tm": 148,
+   "nom": "Tottenham Hotspur",
+   "nom_tm": "Tottenham Hotspur"
+  },
+  "TRM": {
+   "tm": 1074,
+   "nom": "Tranmere Rovers",
+   "nom_tm": "Tranmere Rovers"
+  },
+  "WAL": {
+   "tm": 899,
+   "nom": "Walsall",
+   "nom_tm": "Walsall FC"
+  },
+  "WAT": {
+   "tm": 1010,
+   "nom": "Watford",
+   "nom_tm": "Watford FC"
+  },
+  "WBA": {
+   "tm": 984,
+   "nom": "West Bromwich Albion",
+   "nom_tm": "West Bromwich Albion"
+  },
+  "WHU": {
+   "tm": 379,
+   "nom": "West Ham United",
+   "nom_tm": "West Ham United"
+  },
+  "WIG": {
+   "tm": 1071,
+   "nom": "Wigan Athletic",
+   "nom_tm": "Wigan Athletic"
+  },
+  "WIM": {
+   "tm": 114309,
+   "nom": "Wimbledon",
+   "nom_tm": "Wimbledon FC (- 2004)"
+  },
+  "WOL": {
+   "tm": 543,
+   "nom": "Wolverhampton Wanderers",
+   "nom_tm": "Wolverhampton Wanderers"
+  }
+ }
+}
