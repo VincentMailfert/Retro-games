@@ -51,7 +51,7 @@
     {
       "tm": null,
       "nom": "Ole Gunnar Solskjær",
-      "court": "O. Gunnar Solskjær",
+      "court": "O. Solskjær",
       "prenom": "Ole",
       "poste": "A",
       "naissance": "1973",
@@ -1369,7 +1369,7 @@
     {
       "tm": null,
       "nom": "Stig Inge Bjørnebye",
-      "court": "S. Inge Bjørnebye",
+      "court": "S. I. Bjørnebye",
       "prenom": "Stig",
       "poste": "D",
       "naissance": "1969",
@@ -1378,7 +1378,7 @@
       "arrivee": 2,
       "retenu": true,
       "force": false,
-      "deja_au_jeu": false,
+      "deja_au_jeu": true,
       "source": "wikipedia",
       "remarque": ""
     },
@@ -1577,7 +1577,7 @@
     {
       "tm": null,
       "nom": "Bjørn Tore Kvarme",
-      "court": "B. Tore Kvarme",
+      "court": "B. T. Kvarme",
       "prenom": "Bjørn",
       "poste": "D",
       "naissance": "1972",
@@ -10738,9 +10738,9 @@
     },
     {
       "tm": null,
-      "nom": "Jan Age Fjortoft",
-      "court": "J. Age Fjortoft",
-      "prenom": "Jan",
+      "nom": "Jan Åge Fjørtoft",
+      "court": "J. Å. Fjørtoft",
+      "prenom": "Jan Åge",
       "poste": "A",
       "naissance": "1967",
       "matchs": 0,
@@ -10748,7 +10748,7 @@
       "arrivee": 2,
       "retenu": true,
       "force": false,
-      "deja_au_jeu": false,
+      "deja_au_jeu": true,
       "source": "wikipedia",
       "remarque": "pas de stats d'apparitions sur Wikipedia"
     },
@@ -14460,7 +14460,7 @@
       "arrivee": 2,
       "retenu": true,
       "force": false,
-      "deja_au_jeu": true,
+      "deja_au_jeu": false,
       "source": "wikipedia",
       "remarque": "pas de stats d'apparitions sur Wikipedia"
     },
@@ -18083,7 +18083,7 @@
     {
       "tm": null,
       "nom": "Ole Bjorn Sundgot",
-      "court": "O. Bjorn Sundgot",
+      "court": "O. Sundgot",
       "prenom": "Ole",
       "poste": "A",
       "naissance": "1974",
