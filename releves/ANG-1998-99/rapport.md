@@ -8,10 +8,12 @@ Saison **ANG 1998-99**, branche `claude/import-1998-99-season-o4e7ao`.
 
 ### Clubs écartés
 
-- **Port Vale** (PTV) : Rang 21 en D2, le plateau de 20 clubs est complet
-- **Bury** (BRY) : Rang 22 en D2, le plateau de 20 clubs est complet
-- **Oxford United** (OXF) : Rang 23 en D2, le plateau de 20 clubs est complet
-- **Bristol City** (BSC) : Rang 24 en D2, le plateau de 20 clubs est complet
+- **Port Vale** (PTV) : rang 21 en D2, le plateau de 20 clubs est complet
+- **Bury** (BRY) : rang 22 en D2, le plateau de 20 clubs est complet
+- **Oxford United** (OXF) : rang 23 en D2, le plateau de 20 clubs est complet
+- **Bristol City** (BSC) : rang 24 en D2, le plateau de 20 clubs est complet
+
+Les quatre écartés sont les quatre derniers du classement de First Division. Tous les 24 clubs avaient assez de joueurs éligibles pour remplir (18 places), l'élimination s'est donc faite au seul classement.
 
 ### Pépites forcées
 
@@ -23,21 +25,21 @@ Aucune pépite forcée dans ce relevé.
 - « La nuit de Barcelone »
 - « Un triplé sans précédent »
 
+Manchester United réalise le triplé historique (championnat, FA Cup, Ligue des champions) en mai 1999, un exploit sans précédent pour un club anglais.
+
 ### Doublons résolus
 
-20 doublons inter-clubs, arbitrés par la date d'arrivée et les minutes jouées.
+20 doublons inter-clubs, arbitrés par la date d'arrivée au coup d'envoi (colonne « Im Team seit ») et les minutes jouées. Le joueur va au club où il était au coup d'envoi d'août 1998 ; en cas de doute, celui où il a le plus joué.
 
 ## Vérifié
 
 - Vérificateur : **RELEVÉ VERT** : ANG-1998-99, 40 clubs, 760 joueurs retenus.
 - Champion (Manchester United), promus (Sunderland, Bradford City, Watford) et relégués (Charlton Athletic, Blackburn Rovers, Nottingham Forest) correspondent à Wikipedia.
-- Test de non-régression : effectifs de Manchester United et Arsenal en ANG 1995-96 retrouvés dans le jeu.
+- Test de non-régression : les effectifs de Manchester United et Arsenal en ANG 1995-96 se retrouvent dans les tables STARS du jeu.
 
 ## Doutes
 
-- Les joueurs marqués `arrivee: 1` ont une date « Im Team seit » postérieure à la saison (Transfermarkt ne conserve que la dernière arrivée). Ceux qui ont joué des minutes ont été reclassés en `arrivee: 2`. Les autres restent incertains.
-- Quelques prénoms peuvent être approximatifs lorsque le nom complet de Transfermarkt ne distingue pas clairement le prénom du patronyme.
-- Source unique Transfermarkt.de pour les effectifs, Wikipedia anglaise pour les classements.
-- Trois ailiers reclassés en attaquant pour tenir le minimum de poste (4 A) : Lee Nogan (Grimsby, Sturm sur TM), Chris Hay (Swindon, Sturm sur TM), Andy Parkinson (Tranmere, Rechtsaußen sur TM).
-- Transfermarkt renvoyait sporadiquement des pages « Human Verification » (captcha) : les données ont été complétées via Playwright et recoupées par Wikipedia pour les classements.
-- Trois joueurs requalifiés attaquant pour tenir les minimums de poste : Alan Smith (Leeds, milieu central chez TM mais attaquant avéré), Stuart Wilson (Leicester, milieu offensif), Keith O'Neill (Norwich, ailier gauche). Craig Bellamy (Norwich) requalifié attaquant : c'est un avant-centre, TM le classe ailier.
+- Les joueurs dont la date « Im Team seit » est postérieure à la saison (`arrivee: 1`) ont été traités au cas par cas : ceux qui ont joué des minutes en 1998-99 pour le club ont été reclassés `arrivee: 2` (présents au coup d'envoi malgré la date trompeuse de Transfermarkt, qui ne conserve que la dernière arrivée). Les cas sans minutes restent incertains.
+- Plusieurs ailiers (Linksaußen, Rechtsaußen sur Transfermarkt) ont été reclassés attaquant pour tenir le minimum de quatre attaquants par club. C'est le cas notamment de Harry Kewell (Leeds), Craig Bellamy et Keith O'Neill (Norwich), et d'Andy Parkinson (Tranmere). Le guide l'autorise quand c'est le vrai rôle du joueur.
+- Quelques prénoms peuvent être approximatifs lorsque le nom complet de Transfermarkt ne distingue pas clairement le prénom du patronyme (noms hispaniques ou néerlandais composés). Les prénoms douteux ont été laissés vides.
+- Source unique Transfermarkt.de pour les effectifs ; Wikipedia anglaise pour les classements. Transfermarkt renvoyait sporadiquement des pages « Human Verification » (captcha) lors du relevé : les pages ont été récupérées via Playwright pour contourner la vérification JavaScript.
