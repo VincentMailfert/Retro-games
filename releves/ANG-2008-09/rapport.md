@@ -2,51 +2,66 @@
 
 ## Importé
 
-Saison **2008-09** du championnat d'Angleterre (Premier League et Football League Championship).
-Branche : `claude/import-english-season-2008-up4mzm`
+**Saison** : ANG-2008-09, championnat d'Angleterre 2008-09.
+**Branche** : `claude/import-english-season-2008-up4mzm`
 
-**D1 (20 clubs)** : MUN, LIV, CHE, ARS, EVE, AVL, FUL, TOT, WHU, MCI, WIG, STK, BOL, POR, BLB, SUN, HUL, NEW, MID, WBA
+**D1 (Premier League, 20 clubs)** :
+MUN, LIV, CHE, ARS, EVE, AVL, FUL, TOT, WHU, MCI, WIG, STK, BOL, POR, BLB, SUN, HUL, NEW, MID, WBA
 
-**D2 (20 clubs)** : WOL, BIR, SHU, RDG, BUR, PNE, CAR, SWA, IPS, BSC, QPR, SHW, WAT, DON, CPL, BLP, COV, DER, FOR, BNS
+**D2 (Championship, 20 clubs retenus sur 24)** :
+WOL, BIR, SHU, RDG, BUR, CAR, SWA, PNE, QPR, IPS, BSC, WAT, SHW, DER, DON, CPL, BLP, COV, FOR, BNS
 
-**Écartés (4 clubs, les quatre derniers du Championship)** :
-- **Plymouth Argyle** (PLY) : rang 21 sur 24, 27 joueurs éligibles, les quatre derniers s'effacent
-- **Norwich City** (NOR) : rang 22 sur 24, 26 joueurs éligibles, les quatre derniers s'effacent
-- **Southampton** (SOU) : rang 23 sur 24, 31 joueurs éligibles, les quatre derniers s'effacent
-- **Charlton Athletic** (CHL) : rang 24 sur 24, 32 joueurs éligibles, les quatre derniers s'effacent
+**Écartés (4 derniers du Championship)** :
+- PLY (Plymouth Argyle) : 21e du Championship (51 pts), 27 joueurs éligibles, écarté par le classement
+- NOR (Norwich City) : 22e du Championship (46 pts), 26 joueurs éligibles, écarté par le classement
+- SOU (Southampton) : 23e du Championship (45 pts), 31 joueurs éligibles, écarté par le classement
+- CHL (Charlton Athletic) : 24e du Championship (39 pts), 32 joueurs éligibles, écarté par le classement
 
-**Joueurs retenus** : 760 (20 par club de D1, 18 par club de D2)
+Les quatre clubs écartés avaient assez de joueurs pour remplir. L'élimination se fait au seul classement.
 
-**Pépites forcées** : aucune. Gareth Bale, Theo Walcott, Aaron Ramsey, Jack Wilshere, Adam Lallana, Joe Allen et les autres jeunes notables passent tous par le seul temps de jeu.
+**Joueurs retenus** : 760 (20 x 20 en D1, 20 x 18 en D2)
+**Pépites forcées** : aucune.
 
-**Reclassifications de poste** (ailiers reclassés attaquants pour tenir le minimum de 4 attaquants) :
-- Florent Malouda (CHE), Luís Boa Morte (WHU), Daniël de Ridder (WIG), Jonathan Walters (IPS), Mark Gower (SWA)
+**Reclassifications de poste** (ailiers ou milieux offensifs passés attaquant pour tenir le minimum 2G-5D-5M-4A) :
+- CHE : F. Malouda (ailier gauche), S. Kalou (ailier gauche)
+- WHU : L. Boa Morte (ailier gauche), C. Bellamy (ailier gauche, attaquant naturel)
+- WIG : O. Kapo (milieu offensif), D. de Ridder (ailier gauche)
+- SWA : M. Gower (milieu offensif)
 
-**Doublons résolus** (3 joueurs dans deux clubs, arbitrés par les minutes et l'historique de transferts) :
-- Tony McMahon : Sheffield Wednesday (retenu) / Middlesbrough
-- Alan Lee : Crystal Palace (retenu) / Ipswich Town
-- Adam Hammill : Blackpool (retenu) / Barnsley
+**Doublons inter-clubs résolus** : Michael Chopra (SUN/CAR), Alan Lee (IPS/CPL), Lee Camp (QPR/FOR), Adam Hammill (BNS/BUR), chacun retenu au club où il a le plus de minutes et une arrivée antérieure au coup d'envoi.
 
-**Homonymes** : Maik Taylor / Martin Taylor (BIR), et 30 autres paires résolues par nom complet.
+**Joueurs déjà au jeu** : 62 noms courts retrouvés dans les saisons anglaises existantes.
 
 **Noms de saison proposés** :
-1. Le triplé de Fergie
-2. Ronaldo fait ses adieux
-3. Les tigres au festin
+1. Le triplé de Sir Alex
+2. Ronaldo avant Madrid
+3. Trois couronnes de rang
 
 ## Vérifié
 
-- **Vérificateur** : `RELEVÉ VERT : ANG-2008-09, 40 clubs, 760 joueurs retenus.`
-- **Champion D1** : Manchester United (90 pts), conforme à Wikipedia
-- **Promus en D1** : Wolverhampton Wanderers (champion), Birmingham City (2e), Burnley (playoffs), conforme à Wikipedia
-- **Relégués de D1** : Newcastle United (34 pts), Middlesbrough (32 pts), West Bromwich Albion (32 pts), conforme à Wikipedia
-- **Relégués de D2** : Norwich City, Southampton, Charlton Athletic, conforme à Wikipedia
-- **Test de non-régression** : R. Giggs (MUN) correctement identifié `deja_au_jeu=true` (présent depuis ANG 1990-91). S. Gerrard (LIV) correctement `deja_au_jeu=false`. 62 joueurs retenus sur 760 existent déjà dans le jeu.
+**Vérificateur** : `node releves/verifie-releve.cjs releves/ANG-2008-09` : **RELEVÉ VERT : ANG-2008-09, 40 clubs, 760 joueurs retenus.**
+
+**Contrôle 1 : champion, promus et relégués.**
+- Champion de Premier League : Manchester United (90 pts), conforme à Wikipedia.
+- Relégués de Premier League : Newcastle United (18e, 34 pts), Middlesbrough (19e, 32 pts), West Bromwich Albion (20e, 32 pts), conforme.
+- Champion du Championship : Wolverhampton Wanderers (90 pts), conforme.
+- Promus : Wolverhampton, Birmingham City, Burnley (via barrages contre Sheffield United), conforme.
+- Relégués du Championship : Norwich City (22e), Southampton (23e), Charlton Athletic (24e), conforme.
+- Crystal Palace : 1 point retiré (administration), conforme.
+
+**Contrôle 2 : test de non-régression** sur ANG 1992-93 (Manchester United et Liverpool).
+- MUN 1992-93 : 15/20 correspondances exactes. Les 5 écarts sont des différences de format de nom (Mark Hughes vs M. Hughes, Paul Ince vs P. Ince) et deux pépites forcées (D. Beckham, G. Neville).
+- LIV 1992-93 : 15/20 correspondances exactes. Écarts : format de nom (I. Rush vs Ian Rush, R. Jones vs Rob Jones) et cas d'arrivée en cours de saison.
+- Le taux de 75 % est conforme aux saisons précédentes.
 
 ## Doutes
 
-- **David Cornell** (SWA, gardien, arrivée=1) : Transfermarkt date son entrée au 01/07/2009 (promotion du centre de formation), mais il figure dans l'effectif 2008-09. Gardé avec arrivée=1 pour le minimum de deux gardiens.
-- **Crystal Palace** : pénalité d'un point (administration), vérifiée sur Wikipedia.
-- Cinq ailiers reclassés attaquants pour tenir le minimum de quatre par club : Malouda (CHE), Boa Morte (WHU), de Ridder (WIG), Walters (IPS), Gower (SWA).
-- 127 joueurs avec arrivée=1 recoupés par `ceapi/transferHistory` : 41 corrigés, le reste gardé tel quel.
-- Cristiano Ronaldo : TM date « Im Team seit » après la saison (transfert à Madrid en 07/2009), historique confirme sa présence à Man Utd dès 2003, arrivée fixée à 2.
+1. **Arrivées recoupées par les minutes et l'historique de transferts.** L'API ceapi/transferHistory de Transfermarkt a pu être interrogée pour 54 des 129 cas d'arrivée postérieure, puis les 42 suivants ont été résolus par la logique des minutes jouées. 22 joueurs identifiés comme arrivées en cours de saison ont été correctement exclus. 11 cas restent incertains (jeunes à 0 minute), dont un seul retenu : **D. Cornell** (gardien de SWA, nicht eingesetzt).
+
+2. **Arrivées en cours de saison à forte contribution**, exclues des retenus conformément à la règle : Hérita Ilunga (WHU, 3 481 min, arrivé le 1er septembre 2008), Michael Chopra (CAR, 1 848 min), DJ Campbell (BLP, 1 754 min), Lee Bowyer (BIR, 1 500 min), Marc-Antoine Fortuné (WBA, 1 519 min), Wayne Routledge (QPR, 1 665 min).
+
+3. **Aucune pépite forcée.** Jack Wilshere (Arsenal, 16 ans, 0 minute en championnat), Daniel Sturridge (prêté à Derby), Aaron Ramsey (transfert de Cardiff à Arsenal en cours de saison) n'ont pas été forcés faute de minutes significatives dans leur club au coup d'envoi.
+
+4. **Prénoms** : tous renseignés d'après le nom complet Transfermarkt. Aucun vide parmi les retenus.
+
+5. **Homonymes inter-clubs** : les collisions de noms courts ont été résolues par le prénom en entier pour le joueur absent du jeu.
