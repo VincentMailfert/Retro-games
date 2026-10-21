@@ -57,12 +57,12 @@
       "naissance": "1978-03-11",
       "matchs": 0,
       "minutes": 3793,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 5461,
@@ -441,12 +441,12 @@
       "naissance": "1988-08-01",
       "matchs": 0,
       "minutes": 66,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 52119,
@@ -651,12 +651,12 @@
       "naissance": "1974-11-16",
       "matchs": 0,
       "minutes": 2677,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3516,
@@ -683,12 +683,12 @@
       "naissance": "1988-01-03",
       "matchs": 0,
       "minutes": 2517,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 33706,
@@ -2015,12 +2015,12 @@
       "naissance": "1989-07-16",
       "matchs": 0,
       "minutes": 2719,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 27992,
@@ -2367,12 +2367,12 @@
       "naissance": "1989-11-14",
       "matchs": 0,
       "minutes": 1,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 132098,
@@ -2865,12 +2865,12 @@
       "naissance": "1990-11-28",
       "matchs": 0,
       "minutes": 465,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 12063,
@@ -2945,12 +2945,12 @@
       "naissance": "1991-05-01",
       "matchs": 0,
       "minutes": 105,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 3190,
@@ -3475,12 +3475,12 @@
       "naissance": "1989-09-26",
       "matchs": 0,
       "minutes": 90,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": true,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 61560,
@@ -4037,12 +4037,12 @@
       "naissance": "1993-09-01",
       "matchs": 0,
       "minutes": 3,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 57071,
@@ -4119,12 +4119,12 @@
       "naissance": "1982-03-17",
       "matchs": 0,
       "minutes": 3327,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3356,
@@ -4391,12 +4391,12 @@
       "naissance": "1982-03-04",
       "matchs": 0,
       "minutes": 887,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 39532,
@@ -4471,12 +4471,12 @@
       "naissance": "1992-01-01",
       "matchs": 0,
       "minutes": 162,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 4277,
@@ -4905,12 +4905,12 @@
       "naissance": "1986-11-25",
       "matchs": 0,
       "minutes": 912,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3866,
@@ -6495,12 +6495,12 @@
       "naissance": "1982-02-25",
       "matchs": 0,
       "minutes": 4277,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 18324,
@@ -6591,12 +6591,12 @@
       "naissance": "1983-03-09",
       "matchs": 0,
       "minutes": 3258,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 14011,
@@ -6639,12 +6639,12 @@
       "naissance": "1979-01-02",
       "matchs": 0,
       "minutes": 2349,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 4056,
@@ -7473,12 +7473,12 @@
       "naissance": "1986-01-07",
       "matchs": 0,
       "minutes": 118,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 33489,
@@ -7859,12 +7859,12 @@
       "naissance": "1980-01-29",
       "matchs": 0,
       "minutes": 1566,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 4067,
@@ -8293,12 +8293,12 @@
       "naissance": "1988-01-08",
       "matchs": 0,
       "minutes": 2246,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 42048,
@@ -8405,12 +8405,12 @@
       "naissance": "1987-08-19",
       "matchs": 0,
       "minutes": 1305,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 36123,
@@ -8469,12 +8469,12 @@
       "naissance": "1985-11-12",
       "matchs": 0,
       "minutes": 591,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 38763,
@@ -8727,12 +8727,12 @@
       "naissance": "1983-05-02",
       "matchs": 0,
       "minutes": 3358,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 22165,
@@ -8807,12 +8807,12 @@
       "naissance": "1980-03-11",
       "matchs": 0,
       "minutes": 2701,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 62275,
@@ -8903,12 +8903,12 @@
       "naissance": "1985-05-24",
       "matchs": 0,
       "minutes": 1423,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 54162,
@@ -9353,12 +9353,12 @@
       "naissance": "1983-10-12",
       "matchs": 0,
       "minutes": 2442,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 61592,
@@ -9641,12 +9641,12 @@
       "naissance": "1983-08-23",
       "matchs": 0,
       "minutes": 270,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3091,
@@ -10091,12 +10091,12 @@
       "naissance": "1989-06-25",
       "matchs": 0,
       "minutes": 773,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 4065,
@@ -10781,12 +10781,12 @@
       "naissance": "1992-04-21",
       "matchs": 0,
       "minutes": 218,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 45607,
@@ -11231,12 +11231,12 @@
       "naissance": "1978-10-03",
       "matchs": 0,
       "minutes": 933,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3133,
@@ -11375,12 +11375,12 @@
       "naissance": "1989-09-10",
       "matchs": 0,
       "minutes": 81,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 33963,
@@ -11471,12 +11471,12 @@
       "naissance": "1992-02-12",
       "matchs": 0,
       "minutes": 0,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": true,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: joueur de formation Portsmouth, 0 minutes en 2009-10"
     },
     {
       "tm": 10642,
@@ -11665,12 +11665,12 @@
       "naissance": "1989-01-06",
       "matchs": 0,
       "minutes": 3057,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3768,
@@ -12017,12 +12017,12 @@
       "naissance": "1991-10-31",
       "matchs": 0,
       "minutes": 90,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 3259,
@@ -12307,12 +12307,12 @@
       "naissance": "1983-11-09",
       "matchs": 0,
       "minutes": 2318,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 26898,
@@ -12451,12 +12451,12 @@
       "naissance": "1981-03-10",
       "matchs": 0,
       "minutes": 827,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3748,
@@ -12691,12 +12691,12 @@
       "naissance": "1993-01-04",
       "matchs": 0,
       "minutes": 3,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 141337,
@@ -12885,12 +12885,12 @@
       "naissance": "1985-09-03",
       "matchs": 0,
       "minutes": 3405,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 28491,
@@ -12933,12 +12933,12 @@
       "naissance": "1986-12-15",
       "matchs": 0,
       "minutes": 2949,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 12707,
@@ -13527,12 +13527,12 @@
       "naissance": "1988-05-30",
       "matchs": 0,
       "minutes": 950,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 121831,
@@ -13913,12 +13913,12 @@
       "naissance": "1990-01-23",
       "matchs": 0,
       "minutes": 2748,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 3668,
@@ -14523,12 +14523,12 @@
       "naissance": "1981-11-12",
       "matchs": 0,
       "minutes": 1451,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 68390,
@@ -14603,12 +14603,12 @@
       "naissance": "1982-12-05",
       "matchs": 0,
       "minutes": 750,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 27969,
@@ -14941,12 +14941,12 @@
       "naissance": "1982-09-16",
       "matchs": 0,
       "minutes": 3268,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 28957,
@@ -15021,12 +15021,12 @@
       "naissance": "1984-01-23",
       "matchs": 0,
       "minutes": 1851,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 4676,
@@ -15101,12 +15101,12 @@
       "naissance": "1990-03-14",
       "matchs": 0,
       "minutes": 1114,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 9506,
@@ -15647,12 +15647,12 @@
       "naissance": "1980-10-11",
       "matchs": 0,
       "minutes": 1705,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 9217,
@@ -15727,12 +15727,12 @@
       "naissance": "1991-05-22",
       "matchs": 0,
       "minutes": 963,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 57064,
@@ -15823,12 +15823,12 @@
       "naissance": "1979-04-03",
       "matchs": 0,
       "minutes": 630,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 20960,
@@ -16047,12 +16047,12 @@
       "naissance": "1986-02-05",
       "matchs": 0,
       "minutes": 90,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 30938,
@@ -16321,12 +16321,12 @@
       "naissance": "1979-03-17",
       "matchs": 0,
       "minutes": 2268,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 37304,
@@ -16337,12 +16337,12 @@
       "naissance": "1987-01-22",
       "matchs": 0,
       "minutes": 2195,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 9885,
@@ -16433,12 +16433,12 @@
       "naissance": "1981-10-06",
       "matchs": 0,
       "minutes": 1074,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 40614,
@@ -17509,12 +17509,12 @@
       "naissance": "1982-09-10",
       "matchs": 0,
       "minutes": 1440,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 3266,
@@ -17829,12 +17829,12 @@
       "naissance": "1993-06-11",
       "matchs": 0,
       "minutes": 222,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 47839,
@@ -18103,12 +18103,12 @@
       "naissance": "1986-02-05",
       "matchs": 0,
       "minutes": 3039,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 48072,
@@ -18135,12 +18135,12 @@
       "naissance": "1979-02-09",
       "matchs": 0,
       "minutes": 2811,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 21421,
@@ -18183,12 +18183,12 @@
       "naissance": "1986-01-01",
       "matchs": 0,
       "minutes": 1981,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 11756,
@@ -18295,12 +18295,12 @@
       "naissance": "1985-11-06",
       "matchs": 0,
       "minutes": 892,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 13702,
@@ -18649,12 +18649,12 @@
       "naissance": "1989-05-24",
       "matchs": 0,
       "minutes": 2873,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 28801,
@@ -18681,12 +18681,12 @@
       "naissance": "1985-01-07",
       "matchs": 0,
       "minutes": 2556,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 13993,
@@ -18873,12 +18873,12 @@
       "naissance": "1977-01-02",
       "matchs": 0,
       "minutes": 568,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 13734,
@@ -19659,12 +19659,12 @@
       "naissance": "1988-06-27",
       "matchs": 0,
       "minutes": 347,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 46262,
@@ -19819,12 +19819,12 @@
       "naissance": "1992-10-08",
       "matchs": 0,
       "minutes": 7,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 122940,
@@ -19851,12 +19851,12 @@
       "naissance": "1992-01-13",
       "matchs": 0,
       "minutes": 1,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 110357,
@@ -19949,12 +19949,12 @@
       "naissance": "1983-09-20",
       "matchs": 0,
       "minutes": 4026,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 40567,
@@ -20013,12 +20013,12 @@
       "naissance": "1989-10-24",
       "matchs": 0,
       "minutes": 3091,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 14165,
@@ -20157,12 +20157,12 @@
       "naissance": "1983-03-15",
       "matchs": 0,
       "minutes": 1356,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 12716,
@@ -20237,12 +20237,12 @@
       "naissance": "1977-11-05",
       "matchs": 0,
       "minutes": 1105,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 16107,
@@ -20477,12 +20477,12 @@
       "naissance": "1991-10-21",
       "matchs": 0,
       "minutes": 58,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 118137,
@@ -20591,12 +20591,12 @@
       "naissance": "1986-10-03",
       "matchs": 0,
       "minutes": 4455,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 58647,
@@ -20703,12 +20703,12 @@
       "naissance": "1989-08-12",
       "matchs": 0,
       "minutes": 3062,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 110356,
@@ -20815,12 +20815,12 @@
       "naissance": "1989-02-06",
       "matchs": 0,
       "minutes": 1035,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 95699,
@@ -21071,12 +21071,12 @@
       "naissance": "1992-10-14",
       "matchs": 0,
       "minutes": 5,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 120593,
@@ -21441,12 +21441,12 @@
       "naissance": "1991-07-22",
       "matchs": 0,
       "minutes": 1555,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 12798,
@@ -21569,12 +21569,12 @@
       "naissance": "1983-04-07",
       "matchs": 0,
       "minutes": 621,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 17890,
@@ -21697,12 +21697,12 @@
       "naissance": "1992-03-25",
       "matchs": 0,
       "minutes": 12,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 148280,
@@ -21875,12 +21875,12 @@
       "naissance": "1988-01-25",
       "matchs": 0,
       "minutes": 3021,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 13452,
@@ -22211,12 +22211,12 @@
       "naissance": "1990-09-19",
       "matchs": 0,
       "minutes": 202,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 53360,
@@ -22291,12 +22291,12 @@
       "naissance": "1993-08-16",
       "matchs": 0,
       "minutes": 26,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 104410,
@@ -22323,12 +22323,12 @@
       "naissance": "1991-09-13",
       "matchs": 0,
       "minutes": 9,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 41730,
@@ -22661,12 +22661,12 @@
       "naissance": "1982-12-26",
       "matchs": 0,
       "minutes": 1331,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 39518,
@@ -22677,12 +22677,12 @@
       "naissance": "1988-08-21",
       "matchs": 0,
       "minutes": 1277,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 10029,
@@ -22901,12 +22901,12 @@
       "naissance": "1990-08-24",
       "matchs": 0,
       "minutes": 50,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 123674,
@@ -22933,12 +22933,12 @@
       "naissance": "1992-02-27",
       "matchs": 0,
       "minutes": 14,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 28797,
@@ -23015,12 +23015,12 @@
       "naissance": "1983-09-20",
       "matchs": 0,
       "minutes": 4452,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 49548,
@@ -23031,12 +23031,12 @@
       "naissance": "1986-04-08",
       "matchs": 0,
       "minutes": 3806,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 3655,
@@ -23063,12 +23063,12 @@
       "naissance": "1985-04-18",
       "matchs": 0,
       "minutes": 3624,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 44291,
@@ -23095,12 +23095,12 @@
       "naissance": "1982-04-26",
       "matchs": 0,
       "minutes": 3356,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (historique TM vérifié)"
     },
     {
       "tm": 25840,
@@ -23223,12 +23223,12 @@
       "naissance": "1981-10-03",
       "matchs": 0,
       "minutes": 2226,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 50770,
@@ -23383,12 +23383,12 @@
       "naissance": "1985-02-13",
       "matchs": 0,
       "minutes": 225,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 77544,
@@ -23705,12 +23705,12 @@
       "naissance": "1991-04-05",
       "matchs": 0,
       "minutes": 2347,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 33829,
@@ -23977,12 +23977,12 @@
       "naissance": "1992-11-10",
       "matchs": 0,
       "minutes": 10,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 137150,
@@ -24605,12 +24605,12 @@
       "naissance": "1985-07-05",
       "matchs": 0,
       "minutes": 2790,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 42249,
@@ -24653,12 +24653,12 @@
       "naissance": "1982-03-20",
       "matchs": 0,
       "minutes": 2352,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 57400,
@@ -25215,12 +25215,12 @@
       "naissance": "1984-02-25",
       "matchs": 0,
       "minutes": 3756,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 40061,
@@ -25247,12 +25247,12 @@
       "naissance": "1985-10-02",
       "matchs": 0,
       "minutes": 3243,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 45631,
@@ -25263,12 +25263,12 @@
       "naissance": "1983-05-25",
       "matchs": 0,
       "minutes": 3071,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 44561,
@@ -25295,12 +25295,12 @@
       "naissance": "1986-05-31",
       "matchs": 0,
       "minutes": 2657,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 67331,
@@ -25359,12 +25359,12 @@
       "naissance": "1990-03-06",
       "matchs": 0,
       "minutes": 1862,
-      "arrivee": 1,
+      "arrivee": 2,
       "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "arrivee rectifiée: TM montre la dernière arrivée, joueur présent (minutes > 0, historique TM inaccessible)"
     },
     {
       "tm": 66842,
