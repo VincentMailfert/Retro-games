@@ -35,6 +35,8 @@ seulement elle.** La phase 2 ne se fait que si la demande dit explicitement « a
 
 1. Pars de `main` à jour : `git checkout main && git pull`.
 2. Crée la branche **`import/<championnat>-<saison>`**, par exemple `import/angleterre-1994-95`.
+   Si la plateforme cloud t'a déjà placé sur une branche `claude/…`, garde-la : c'est la seule où tu
+   as le droit de pousser.
 3. **N'écris que dans `releves/ANG-AAAA-AA/`** (par exemple `releves/ANG-1994-95/`). Tu peux LIRE tout
    le dépôt, mais tu ne modifies **rien d'autre** : ni `championnat/index.html`, ni `CLAUDE.md`, ni
    `championnat/chantier-saisons.md`, ni les harnais, ni la constante `VERSION`.
@@ -89,7 +91,15 @@ Elles contiennent les pièges qui ont déjà coûté des livraisons. Cherche-les
 2. **Les effectifs de chaque club classé** (les deux divisions entières, 42 à 46 clubs), avec les deux
    pages Transfermarkt. Tu gardes les hommes **présents au coup d'envoi** : `arrivee` vaut 2 si
    « Im Team seit » est antérieure au début de la saison, 0 s'il est arrivé en cours de saison, 1 si la
-   date est postérieure à la saison (elle masque un passage antérieur, à recouper).
+   date est postérieure à la saison.
+   **Une date postérieure est fréquente et ne prouve rien** (Transfermarkt ne garde que la DERNIÈRE
+   arrivée : Sheringham, Klinsmann ou Fowler en 1994-95). Recoupe chaque cas avec l'historique de
+   transferts (`ceapi/transferHistory/list/<idJoueur>`) : s'il était au club au coup d'envoi, écris 2 ;
+   s'il est arrivé pendant la saison, écris 0. Garde `1` seulement si le recoupement est impossible, et
+   dis-le dans `remarque`.
+   **Les postes** : Goalkeeper → `G` ; Centre-Back, Left-Back, Right-Back, Sweeper → `D` ; tous les
+   Midfield **et les ailiers (Left Winger, Right Winger)** → `M` ; Centre-Forward, Second Striker → `A`.
+   Transfermarkt range les ailiers parmi les attaquants : ne le suis pas.
 3. **Les trous.** Un club à zéro joueur ou presque est un trou de la source, pas un club pauvre :
    interroge les saisons voisines et les autres sources avant de conclure.
 4. **Les doublons.** Un homme listé dans deux clubs se règle **par l'identifiant Transfermarkt**, et il
@@ -102,6 +112,16 @@ Elles contiennent les pièges qui ont déjà coûté des livraisons. Cherche-les
    avec au moins **2 gardiens, 5 défenseurs, 5 milieux, 4 attaquants**. Les **pépites** que le tri aux
    minutes écarte (un futur international qui a peu joué cette année-là) sont forcées à la main, avec
    `"force": true`.
+   Si un minimum de poste n'est pas tenu, un ailier ou un milieu offensif peut passer en `A` (ou un
+   attaquant de couloir en `M`), à condition que ce soit son vrai rôle : écris-le dans `remarque`.
+   **Un club à qui il manque un ou deux hommes se comble, il ne s'abandonne pas.** Avant de conclure
+   qu'il est incomplet, cherche dans cet ordre : les joueurs marqués « nicht eingesetzt » (présents mais
+   jamais utilisés : ils comptent), les cas `arrivee` 1 ou `null` recoupés par l'historique de
+   transferts, la liste d'effectif de la page Wikipedia de la saison du club (« 1994–95 Reading F.C.
+   season »), la base neilbrown, puis les pages Transfermarkt des saisons voisines, avec à chaque fois
+   l'historique de transferts pour prouver la présence au coup d'envoi. C'est ainsi qu'ANG 1993-94 a
+   retrouvé Barnsley et Southend. Ne déclare un club incomplet qu'après ces cinq recherches, et dis
+   dans `## Doutes` lesquelles ont été faites.
 7. **Les noms.** Si un joueur est **déjà dans le jeu** (cherche son nom court dans `index.html`), reprends
    **exactement** la graphie du jeu. Si deux vrais joueurs portent le même nom, préfixe l'initiale du
    prénom (« Alan Smith » pour l'un, « A. Smith » pour l'autre, selon ce que le jeu utilise déjà).
@@ -163,7 +183,8 @@ retirés par la ligue (0 le plus souvent).
 voisines. N'ajoute jamais un joueur inventé.
 
 **`rapport.md`** : le résumé final (voir plus bas), avec trois sections titrées exactement
-`## Importé`, `## Vérifié` et `## Doutes`.
+`## Importé`, `## Vérifié` et `## Doutes`. Écris-le en vrai français, **avec tous ses accents**
+(« écartés », « vérifié », « Walker a payé »), comme les noms de saison proposés.
 
 **À quoi ressemble une saison une fois assemblée** (pour comprendre, pas pour l'écrire) : ANG 1992-93 dans
 `championnat/index.html`, cherche `const D1_ANG9293`, `const STARS_ANG9293` et `"ANG-1992-93":` dans la
