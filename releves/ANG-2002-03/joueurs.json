@@ -23381,22 +23381,6 @@
       "remarque": ""
     },
     {
-      "tm": 10384,
-      "nom": "Dave Beasant",
-      "court": "D. Beasant",
-      "prenom": "Dave",
-      "poste": "G",
-      "naissance": "1959-03-20",
-      "matchs": 16,
-      "minutes": 1440,
-      "arrivee": 0,
-      "retenu": false,
-      "force": false,
-      "deja_au_jeu": true,
-      "source": "tm",
-      "remarque": ""
-    },
-    {
       "tm": 7434,
       "nom": "Ívar Ingimarsson",
       "court": "Ívar Ingimarsson",
