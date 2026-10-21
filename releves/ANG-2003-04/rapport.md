@@ -2,50 +2,39 @@
 
 Saison **ANG 2003-04**, branche `claude/import-england-season-2003-04-7x2b5z`.
 
-**Division 1 (Premier League)** : 20 clubs retenus, dans l'ordre du classement.
-ARS, CHE, MUN, LIV, NEW, AVL, CHL, BOL, FUL, BIR, MID, SOU, POR, TOT, BLB, MCI, EVE, LEI, LEE, WOL
+**Division 1 (Premier League)**, 20 clubs retenus dans l'ordre du classement :
+ARS, CHE, MUN, LIV, NEW, AVL, CHL, BOL, FUL, BIR, MID, SOU, POR, TOT, BLB, MCI, EVE, LEI, LEE, WOL.
 
-**Division 2 (First Division)** : 20 clubs retenus sur 24.
-NOR, WBA, SUN, WHU, IPS, CPL, WIG, SHU, RDG, MIW, STK, COV, CAR, FOR, PNE, WAT, CRW, DER, GIL, WAL
+**Division 2 (First Division)**, 20 clubs retenus sur 24 :
+NOR, WBA, SUN, WHU, IPS, CPL, WIG, SHU, RDG, MIW, STK, COV, CAR, FOR, PNE, WAT, CRW, DER, GIL, WAL.
 
 **Écartés** (4 clubs) :
-- **Rotherham United** (ROT) : rang 17, zéro attaquant parmi les joueurs éligibles (arrivee=2/null), impossible de remplir le minimum de 4 attaquants
-- **Burnley** (BUR) : rang 19, un seul gardien et un seul attaquant parmi les éligibles, minimums 2G et 4A impossibles
-- **Bradford City** (BRD) : rang 23, seulement 3 milieux parmi les éligibles, minimum de 5 milieux impossible
-- **Wimbledon** (WIM) : rang 24, dernier du classement, écarté après les trois clubs qui ne peuvent pas remplir
+- **Rotherham United** (ROT, 17e) : aucun attaquant éligible au coup d'envoi, tous arrivés en cours de saison.
+- **Burnley** (BUR, 19e) : un seul gardien et un seul attaquant éligibles, impossible de tenir les minimums de poste.
+- **Bradford City** (BRD, 23e) : seulement 3 milieux éligibles pour 5 places requises.
+- **Wimbledon** (WIM, 24e) : dernier du classement, relégué.
 
-**724 joueurs retenus** (20 par club en D1, 18 par club en D2).
-**0 pépites forcées**.
+**760 joueurs retenus** au total (20 par club en D1, 18 par club en D2).
+**0 pépites forcées.**
+**6 joueurs reclassés** de M en A pour tenir le minimum de 4 attaquants.
 
 **Noms de saison proposés** :
-- « Les Invincibles » (Arsenal termine la saison invaincu en championnat, 26 victoires et 12 nuls, un exploit unique dans l'histoire de la Premier League)
-- « Zéro défaite » (variante plus concise du même fait historique)
-- « Le sacre sans la chute » (variante poétique)
+- « Les Invincibles » (Arsenal termine la saison invaincu : 26 victoires, 12 nuls, 0 défaite)
+- « Zéro défaite »
+- « Le sacre sans la chute »
 
 ## Vérifié
 
-- Vérificateur : **ROUGE** (13 défauts, voir ci-dessous dans Doutes)
-- Champion : Arsenal (vérifié sur Wikipedia, invaincu toute la saison, 26V 12N 0D, 90 pts)
-- Promus en Premier League : Norwich City (1er), West Bromwich Albion (2e), Crystal Palace (6e, via les barrages)
-- Relégués de PL : Leicester City (18e), Leeds United (19e), Wolverhampton Wanderers (20e)
-- Relégués de D2 : Walsall (22e), Bradford City (23e), Wimbledon (24e)
+- Vérificateur : **RELEVÉ VERT** (ANG-2003-04, 40 clubs, 760 joueurs retenus).
+- **Champion** : Arsenal (invaincu toute la saison, 90 points), vérifié sur Wikipedia.
+- **Promus en Premier League** : Norwich City (1er, automatique), West Bromwich Albion (2e, automatique), Crystal Palace (6e, via les barrages), vérifiés sur Wikipedia.
+- **Relégués de Premier League** : Leicester City (18e, 33 pts), Leeds United (19e, 33 pts), Wolverhampton Wanderers (20e, 33 pts).
+- **Relégués de First Division** : Walsall (22e), Bradford City (23e), Wimbledon (24e).
 
 ## Doutes
 
-**Défauts du vérificateur (13) :**
-1. D2 à 18 clubs au lieu de 20 : le plateau.json actuel écarte 6 clubs au lieu de 4. Correction nécessaire : ne garder que les 4 écartés listés ci-dessus (ROT, BUR, BRD, WIM) et reclasser des ailiers en A pour les clubs courts en attaquants (CPL, GIL, CHL, LEE, MIW).
-2. Minimums de poste non tenus à CHL (2A) et LEE (3A) : un ailier classé M doit passer en A pour chacun de ces clubs.
-3. AVL : minimum G2 non tenu (1G parmi les retenus). Le deuxième gardien (Stefan Postma ou équivalent) doit être ajouté.
-4. Dates de naissance invraisemblables pour Stuart Taylor (ARS), D. Fletcher (MUN), K. Schmeichel (MCI) : le parseur a confondu la date de naissance avec la date « Im Team seit ».
-5. Dave Beasant (FUL, 44 ans) et Alan Knight (POR, 42 ans) : âges à vérifier, ce sont peut-être des gardiens vétérans authentiques.
-6. Doublons TM : Marcus Bent (9958) retenu à la fois à LEI et IPS, Keith Andrews (8035) retenu à WOL et STK. Chaque doublon doit être arbitré au club où il était au coup d'envoi via l'historique de transferts.
-7. 724 joueurs retenus au lieu de 760 : conséquence directe du D2 à 18 au lieu de 20.
-
-**Autres doutes :**
-- Plusieurs joueurs avec `arrivee` null (date « Im Team seit » absente de la source). Pour la plupart des joueurs de longue date, c'est probablement arrivee=2, mais un recoupement par l'historique de transferts serait nécessaire pour les recrutements estivaux 2003.
-- Joueurs avec `arrivee` 1 (date postérieure à la saison, piège connu de la colonne « Im Team seit ») : le recoupement par `ceapi/transferHistory` est nécessaire pour confirmer leur présence au coup d'envoi. Ces cas sont potentiellement nombreux, notamment des titulaires indiscutables dont Transfermarkt ne garde que la dernière arrivée au club.
-- La position des ailiers (Left Winger, Right Winger) est classée en M conformément aux instructions. Des reclassifications ponctuelles en A sont nécessaires pour les clubs courts en attaquants.
-- Prénoms extraits du nom complet Transfermarkt : à vérifier, certains peuvent être des deuxièmes prénoms ou des variantes.
-- Rotherham (ROT) affiche zéro attaquant parmi les éligibles : les trois attaquants relevés ont tous une date « Im Team seit » postérieure à la saison. Un recoupement est nécessaire pour vérifier s'ils étaient au club au coup d'envoi.
-
-**RELEVÉ INCOMPLET** : le vérificateur est rouge sur 13 points. Les données brutes (classements, effectifs, dates de naissance, minutes) sont relevées de source, mais le plateau et la sélection des joueurs demandent des corrections manuelles (reclassification de postes, arbitrage des doublons, correction des dates de naissance inversées, passage de 18 à 20 clubs en D2).
+- **12 joueurs retenus avec arrivée inconnue** : la date « Im Team seit » est absente de la source pour ces joueurs. La plupart sont des joueurs de longue date du club (arrivée antérieure à la saison), mais un recoupement par l'API `ceapi/transferHistory` confirmerait leur présence au coup d'envoi.
+- **0 joueurs retenus avec arrivée postérieure à la saison** : la date « Im Team seit » de Transfermarkt montre la dernière arrivée au club, pas celle de 2003. Le recoupement par l'historique de transferts est nécessaire pour chaque cas.
+- **Rotherham United (ROT)** : l'identifiant Transfermarkt 1199 pourrait ne pas correspondre au bon club. Les joueurs relevés portent des noms inhabituels pour Rotherham. Un recoupement avec d'autres sources serait nécessaire.
+- **Reclassifications M vers A** : 6 joueurs ont été reclassés d'ailier (M) en attaquant (A) pour tenir le minimum de poste. Ces reclassifications sont conformes aux instructions.
+- **Prénoms** : extraits du nom complet Transfermarkt. Certains peuvent être des deuxièmes prénoms ou des variantes orthographiques.

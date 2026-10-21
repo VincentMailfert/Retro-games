@@ -611,6 +611,7 @@
     "SUN",
     "WHU",
     "IPS",
+    "CPL",
     "WIG",
     "SHU",
     "RDG",
@@ -620,41 +621,32 @@
     "CAR",
     "FOR",
     "PNE",
+    "WAT",
     "CRW",
     "DER",
-    "WAL",
-    "WIM"
+    "GIL",
+    "WAL"
   ],
   "ecartes": [
     {
-      "code": "CPL",
-      "club": "Crystal Palace",
-      "raison": "rang 6, seulement 3 attaquant(s)"
-    },
-    {
-      "code": "WAT",
-      "club": "Watford",
-      "raison": "rang 16, seulement 3 attaquant(s)"
-    },
-    {
       "code": "ROT",
       "club": "Rotherham United",
-      "raison": "rang 17, seulement 0 attaquant(s)"
+      "raison": "rang 17, aucun attaquant éligible (tous arrivée en cours de saison)"
     },
     {
       "code": "BUR",
       "club": "Burnley",
-      "raison": "rang 19, seulement 1 gardien(s); seulement 1 attaquant(s)"
-    },
-    {
-      "code": "GIL",
-      "club": "Gillingham",
-      "raison": "rang 21, seulement 3 attaquant(s)"
+      "raison": "rang 19, un seul gardien et un seul attaquant éligibles"
     },
     {
       "code": "BRD",
       "club": "Bradford City",
-      "raison": "rang 23, seulement 3 milieu(x)"
+      "raison": "rang 23, seulement 3 milieux éligibles pour 5 places"
+    },
+    {
+      "code": "WIM",
+      "club": "Wimbledon",
+      "raison": "rang 24, dernier du classement"
     }
   ],
   "noms_proposes": [
