@@ -1,0 +1,712 @@
+[
+ {
+  "nom": "ANDERSON Viv",
+  "pos": "FB",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "Sheffield Wednesday",
+  "parti": "Asst.P/Mgr.Middlesbrough",
+  "apps": "20",
+  "buts": "3",
+  "sid": "117188",
+  "nais": null,
+  "complet": "Viv Anderson",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "ARCHDEACON Owen",
+  "pos": "W",
+  "sais": "89-96",
+  "debut": 1989,
+  "fin": 1995,
+  "source": "Celtic",
+  "parti": "Carlisle United",
+  "apps": "233",
+  "buts": "23",
+  "tm": {
+   "92": {
+    "sid": "120519",
+    "nais": 1966,
+    "poste": "D",
+    "min": 480,
+    "complet": "Owen Archdeacon",
+    "court": "O. Archdeacon"
+   }
+  },
+  "sid": "120519",
+  "nais": 1966,
+  "complet": "Owen Archdeacon",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "BIGGINS Wayne",
+  "pos": "F",
+  "sais": "92-94",
+  "debut": 1992,
+  "fin": 1993,
+  "source": "Stoke City",
+  "parti": "Celtic",
+  "apps": "47",
+  "buts": "16",
+  "tm": {
+   "92": {
+    "sid": "561300",
+    "nais": 1961,
+    "poste": "A",
+    "min": 474,
+    "complet": "Wayne Biggins",
+    "court": "W. Biggins"
+   }
+  },
+  "sid": "561300",
+  "nais": 1961,
+  "complet": "Wayne Biggins",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "BISHOP Charlie",
+  "pos": "D",
+  "sais": "91-96",
+  "debut": 1991,
+  "fin": 1995,
+  "source": "Bury",
+  "parti": "Wigan Athletic",
+  "apps": "130",
+  "buts": "1",
+  "tm": {
+   "92": {
+    "sid": "1014488",
+    "nais": 1968,
+    "poste": "D",
+    "min": 570,
+    "complet": "Charlie Bishop",
+    "court": "C. Bishop"
+   },
+   "94": {
+    "sid": "1014488",
+    "nais": 1968,
+    "poste": "D",
+    "min": 180,
+    "complet": "Charlie Bishop",
+    "court": "C. Bishop"
+   }
+  },
+  "sid": "1014488",
+  "nais": 1968,
+  "complet": "Charlie Bishop",
+  "au_coup": null,
+  "present": false
+ },
+ {
+  "nom": "BODEN Chris",
+  "pos": "FB",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "On loan from Aston Villa",
+  "parti": "",
+  "apps": "4",
+  "buts": "0",
+  "sid": "227856",
+  "nais": null,
+  "complet": "Chris Boden",
+  "au_coup": "aston villa",
+  "present": false
+ },
+ {
+  "nom": "BRYSON Ian",
+  "pos": "W",
+  "sais": "93-94",
+  "debut": 1993,
+  "fin": 1993,
+  "source": "Sheffield United",
+  "parti": "Preston North End",
+  "apps": "16",
+  "buts": "3",
+  "sid": "226554",
+  "nais": null,
+  "complet": "Ian Bryson",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "BULLOCK Martin",
+  "pos": "M",
+  "sais": "93-01",
+  "debut": 1993,
+  "fin": 2000,
+  "source": "Eastwood Town",
+  "parti": "Blackpool",
+  "apps": "185",
+  "buts": "4",
+  "tm": {
+   "94": {
+    "sid": "49698",
+    "nais": 1975,
+    "poste": "M",
+    "min": 25,
+    "complet": "Martin Bullock",
+    "court": "M. Bullock"
+   }
+  },
+  "sid": "49698",
+  "nais": 1975,
+  "complet": "Martin Bullock",
+  "au_coup": null,
+  "present": false
+ },
+ {
+  "nom": "BUTLER Lee",
+  "pos": "G",
+  "sais": "91-96",
+  "debut": 1991,
+  "fin": 1995,
+  "source": "Aston Villa",
+  "parti": "Wigan Athletic",
+  "apps": "120",
+  "buts": "0",
+  "tm": {
+   "92": {
+    "sid": "170660",
+    "nais": 1966,
+    "poste": "G",
+    "min": 480,
+    "complet": "Lee Butler",
+    "court": "L. Butler"
+   }
+  },
+  "sid": "170660",
+  "nais": 1966,
+  "complet": "Lee Butler",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "CURRIE David (2nd spell)",
+  "pos": "F",
+  "sais": "91-94",
+  "debut": 1991,
+  "fin": 1993,
+  "source": "Oldham Athletic",
+  "parti": "Carlisle United",
+  "apps": "75",
+  "buts": "12",
+  "tm": {
+   "92": {
+    "sid": "373780",
+    "nais": 1962,
+    "poste": "A",
+    "min": 480,
+    "complet": "David Currie",
+    "court": "D. Currie"
+   }
+  },
+  "sid": "373780",
+  "nais": 1962,
+  "complet": "David Currie",
+  "au_coup": "rotherham",
+  "present": false
+ },
+ {
+  "nom": "DAVIS Steve",
+  "pos": "CD",
+  "sais": "91-97",
+  "debut": 1991,
+  "fin": 1996,
+  "source": "Burnley",
+  "parti": "Oxford United",
+  "apps": "107",
+  "buts": "10",
+  "tm": {
+   "94": {
+    "sid": "245298",
+    "nais": 1965,
+    "poste": "D",
+    "min": 270,
+    "complet": "Steve Davis",
+    "court": "S. Davis"
+   }
+  },
+  "sid": "245298",
+  "nais": 1965,
+  "complet": "Steve Davis",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "EADEN Nicky",
+  "pos": "FB",
+  "sais": "92-00",
+  "debut": 1992,
+  "fin": 1999,
+  "source": "Jnrs.",
+  "parti": "Birmingham City",
+  "apps": "293",
+  "buts": "10",
+  "tm": {
+   "94": {
+    "sid": "13514",
+    "nais": 1972,
+    "poste": "D",
+    "min": 180,
+    "complet": "Nicky Eaden",
+    "court": "N. Eaden"
+   }
+  },
+  "sid": "13514",
+  "nais": 1972,
+  "complet": "Nicky Eaden",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "FLEMING Gary",
+  "pos": "FB",
+  "sais": "89-96",
+  "debut": 1989,
+  "fin": 1995,
+  "source": "Manchester City",
+  "parti": "Retired (injury)",
+  "apps": "239",
+  "buts": "0",
+  "tm": {
+   "92": {
+    "sid": "177109",
+    "nais": 1967,
+    "poste": "D",
+    "min": 494,
+    "complet": "Gary Fleming",
+    "court": "G. Fleming"
+   },
+   "94": {
+    "sid": "177109",
+    "nais": 1967,
+    "poste": "D",
+    "min": 200,
+    "complet": "Gary Fleming",
+    "court": "G. Fleming"
+   }
+  },
+  "sid": "177109",
+  "nais": 1967,
+  "complet": "Gary Fleming",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "GRAHAM Deiniol",
+  "pos": "F",
+  "sais": "91-94",
+  "debut": 1991,
+  "fin": 1993,
+  "source": "Manchester United",
+  "parti": "Stockport County",
+  "apps": "38",
+  "buts": "2",
+  "tm": {
+   "92": {
+    "sid": "1015259",
+    "nais": 1969,
+    "poste": "A",
+    "min": 45,
+    "complet": "Deiniol Graham",
+    "court": "D. Graham"
+   }
+  },
+  "sid": "1015259",
+  "nais": 1969,
+  "complet": "Deiniol Graham",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "JACKSON Chris",
+  "pos": "F",
+  "sais": "92-96",
+  "debut": 1992,
+  "fin": 1995,
+  "source": "YT",
+  "parti": "Retired (car crash injury)",
+  "apps": "23",
+  "buts": "2",
+  "tm": {
+   "92": {
+    "sid": "1015260",
+    "nais": null,
+    "poste": "A",
+    "min": 45,
+    "complet": "Chris Jackson",
+    "court": "C. Jackson"
+   },
+   "94": {
+    "sid": "1015260",
+    "nais": null,
+    "poste": "A",
+    "min": 45,
+    "complet": "Chris Jackson",
+    "court": "C. Jackson"
+   }
+  },
+  "sid": "1015260",
+  "nais": null,
+  "complet": "Chris Jackson",
+  "au_coup": null,
+  "present": false
+ },
+ {
+  "nom": "LIDDELL Andy",
+  "pos": "F",
+  "sais": "91-99",
+  "debut": 1991,
+  "fin": 1998,
+  "source": "YT",
+  "parti": "Wigan Athletic",
+  "apps": "198",
+  "buts": "34",
+  "tm": {
+   "92": {
+    "sid": "13527",
+    "nais": 1973,
+    "poste": "A",
+    "min": 111,
+    "complet": "Andy Liddell",
+    "court": "A. Liddell"
+   },
+   "94": {
+    "sid": "13527",
+    "nais": 1973,
+    "poste": "A",
+    "min": 149,
+    "complet": "Andy Liddell",
+    "court": "A. Liddell"
+   }
+  },
+  "sid": "13527",
+  "nais": 1973,
+  "complet": "Andy Liddell",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "O'CONNELL Brendan",
+  "pos": "M",
+  "sais": "89-96",
+  "debut": 1989,
+  "fin": 1995,
+  "source": "Burnley",
+  "parti": "Charlton Athletic",
+  "apps": "240",
+  "buts": "35",
+  "tm": {
+   "92": {
+    "sid": "678594",
+    "nais": 1966,
+    "poste": "M",
+    "min": 570,
+    "complet": "Brendan O'Connell",
+    "court": "B. O'Connell"
+   },
+   "94": {
+    "sid": "678594",
+    "nais": 1966,
+    "poste": "M",
+    "min": 270,
+    "complet": "Brendan O'Connell",
+    "court": "B. O'Connell"
+   }
+  },
+  "sid": "678594",
+  "nais": 1966,
+  "complet": "Brendan O'connell",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "PAYTON Andy",
+  "pos": "F",
+  "sais": "93-96",
+  "debut": 1993,
+  "fin": 1995,
+  "source": "Celtic",
+  "parti": "Huddersfield Town",
+  "apps": "108",
+  "buts": "41",
+  "tm": {
+   "94": {
+    "sid": "268064",
+    "nais": 1967,
+    "poste": "A",
+    "min": 270,
+    "complet": "Andy Payton",
+    "court": "A. Payton"
+   }
+  },
+  "sid": "268064",
+  "nais": 1967,
+  "complet": "Andy Payton",
+  "au_coup": "celtic glasgow",
+  "present": false
+ },
+ {
+  "nom": "RAMMELL Andy",
+  "pos": "F",
+  "sais": "90-96",
+  "debut": 1990,
+  "fin": 1995,
+  "source": "(Manchester United)",
+  "parti": "Southend United",
+  "apps": "185",
+  "buts": "44",
+  "tm": {
+   "92": {
+    "sid": "321539",
+    "nais": 1967,
+    "poste": "A",
+    "min": 420,
+    "complet": "Andy Rammell",
+    "court": "A. Rammell"
+   },
+   "94": {
+    "sid": "321539",
+    "nais": 1967,
+    "poste": "A",
+    "min": 141,
+    "complet": "Andy Rammell",
+    "court": "A. Rammell"
+   }
+  },
+  "sid": "321539",
+  "nais": 1967,
+  "complet": "Andy Rammell",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "REDFEARN Neil",
+  "pos": "M",
+  "sais": "91-98",
+  "debut": 1991,
+  "fin": 1997,
+  "source": "Oldham Athletic",
+  "parti": "Charlton Athletic",
+  "apps": "292",
+  "buts": "72",
+  "tm": {
+   "92": {
+    "sid": "195179",
+    "nais": 1965,
+    "poste": "M",
+    "min": 570,
+    "complet": "Neil Redfearn",
+    "court": "N. Redfearn"
+   },
+   "94": {
+    "sid": "195179",
+    "nais": 1965,
+    "poste": "M",
+    "min": 270,
+    "complet": "Neil Redfearn",
+    "court": "N. Redfearn"
+   }
+  },
+  "sid": "195179",
+  "nais": 1965,
+  "complet": "Neil Redfearn",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "ROBINSON Jamie",
+  "pos": "CD",
+  "sais": "92-94",
+  "debut": 1992,
+  "fin": 1993,
+  "source": "(Liverpool)",
+  "parti": "Carlisle United",
+  "apps": "9",
+  "buts": "0",
+  "tm": {
+   "92": {
+    "sid": "229833",
+    "nais": 1968,
+    "poste": "D",
+    "min": 210,
+    "complet": "Mark Robinson",
+    "court": "M. Robinson"
+   }
+  },
+  "sid": "229833",
+  "nais": 1968,
+  "complet": "Jamie Robinson",
+  "au_coup": "newcastle",
+  "present": false
+ },
+ {
+  "nom": "SHERIDAN Darren",
+  "pos": "M",
+  "sais": "93-99",
+  "debut": 1993,
+  "fin": 1998,
+  "source": "Winsford United",
+  "parti": "Wigan Athletic",
+  "apps": "171",
+  "buts": "5",
+  "tm": {
+   "94": {
+    "sid": "22759",
+    "nais": 1967,
+    "poste": "M",
+    "min": 90,
+    "complet": "Darren Sheridan",
+    "court": "D. Sheridan"
+   }
+  },
+  "sid": "22759",
+  "nais": 1967,
+  "complet": "Darren Sheridan",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "SNODIN Glynn",
+  "pos": "M",
+  "sais": "93-95",
+  "debut": 1993,
+  "fin": 1994,
+  "source": "Hearts",
+  "parti": "Gainsborough Trinity",
+  "apps": "25",
+  "buts": "0",
+  "tm": {
+   "94": {
+    "sid": "203661",
+    "nais": 1960,
+    "poste": "D",
+    "min": 90,
+    "complet": "Glynn Snodin",
+    "court": "G. Snodin"
+   }
+  },
+  "sid": "203661",
+  "nais": 1960,
+  "complet": "Glynn Snodin",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "TAGGART Gerry",
+  "pos": "CD",
+  "sais": "89-95",
+  "debut": 1989,
+  "fin": 1994,
+  "source": "Manchester City",
+  "parti": "Bolton Wanderers",
+  "apps": "212",
+  "buts": "16",
+  "tm": {
+   "92": {
+    "sid": "4264",
+    "nais": 1970,
+    "poste": "D",
+    "min": 570,
+    "complet": "Gerry Taggart",
+    "court": "G. Taggart"
+   },
+   "94": {
+    "sid": "4264",
+    "nais": 1970,
+    "poste": "D",
+    "min": 180,
+    "complet": "Gerry Taggart",
+    "court": "G. Taggart"
+   }
+  },
+  "sid": "4264",
+  "nais": 1970,
+  "complet": "Gerry Taggart",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "WATSON David",
+  "pos": "G",
+  "sais": "92-99",
+  "debut": 1992,
+  "fin": 1998,
+  "source": "YT",
+  "parti": "Retired (injury)",
+  "apps": "178",
+  "buts": "0",
+  "tm": {
+   "94": {
+    "sid": "195616",
+    "nais": 1973,
+    "poste": "G",
+    "min": 270,
+    "complet": "Dave Watson",
+    "court": "D. Watson"
+   }
+  },
+  "sid": "195616",
+  "nais": 1973,
+  "complet": "David Watson",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "WILLIAMS Gareth",
+  "pos": "M",
+  "sais": "91-94",
+  "debut": 1991,
+  "fin": 1993,
+  "source": "Aston Villa",
+  "parti": "Bournemouth",
+  "apps": "34",
+  "buts": "6",
+  "tm": {
+   "92": {
+    "sid": "222649",
+    "nais": 1967,
+    "poste": "M",
+    "min": 16,
+    "complet": "Gareth Williams",
+    "court": "G. Williams"
+   }
+  },
+  "sid": "222649",
+  "nais": 1967,
+  "complet": "Gareth Williams",
+  "au_coup": "fc barnsley",
+  "present": true
+ },
+ {
+  "nom": "WILSON Danny",
+  "pos": "M",
+  "sais": "93-95",
+  "debut": 1993,
+  "fin": 1994,
+  "source": "Sheffield Wednesday",
+  "parti": "Mgr. Barnsley",
+  "apps": "77",
+  "buts": "2",
+  "tm": {
+   "94": {
+    "sid": "223317",
+    "nais": 1960,
+    "poste": "M",
+    "min": 250,
+    "complet": "Danny Wilson",
+    "court": "D. Wilson"
+   }
+  },
+  "sid": "223317",
+  "nais": 1960,
+  "complet": "Danny Wilson",
+  "au_coup": "fc barnsley",
+  "present": true
+ }
+]
