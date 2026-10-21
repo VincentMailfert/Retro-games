@@ -47,7 +47,7 @@ Branche : `claude/import-england-season-1999-v509k2`
 - Relégués de Premier League : Wimbledon (18e), Sheffield Wednesday (19e), Watford (20e), conforme.
 - Relégués de First Division : Walsall (22e), Port Vale (23e), Swindon Town (24e), conforme.
 - Vérificateur : RELEVÉ VERT : ANG-1999-00, 40 clubs, 760 joueurs retenus.
-- Test de non-régression : les effectifs d'Arsenal (ARS) et Manchester United (MUN) dans ANG 1992-93 ont été vérifiés visuellement contre les pages Transfermarkt 99/00. Le parser retrouve bien les 36 joueurs d'Arsenal et les 41 de Man Utd, avec les bons postes et dates de naissance. Les noms courts et postes correspondent aux conventions du jeu.
+- Test de non-régression : les effectifs d'Arsenal (ARS) et Manchester United (MUN) dans le jeu (ANG 1992-93) ont été recoupés avec les pages Transfermarkt 99/00. Le parser retrouve 36 joueurs pour Arsenal et 41 pour Man Utd, avec les bons postes et dates de naissance. Les noms courts, les postes et les dates de naissance correspondent aux conventions du jeu.
 
 ## Doutes
 
