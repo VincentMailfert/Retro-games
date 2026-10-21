@@ -4660,6 +4660,134 @@ saison** et sont volontaires (consigne v1.46), le contrôle les nommant pour qu'
 Les **52 harnais du dossier** sont verts, les quatre historiquement capricieux
 (`harness-recruteur`, `harness-effectif`, `harness-formations`, `harness-hdm`) six fois sur six.
 
+### ANG 1993-94 — SHEARER CONTRE COLE (v2.06)
+Cinquième saison anglaise, sous le nom **« Shearer contre Cole »**. Manchester United garde son
+titre avec huit points d'avance sur Blackburn et va chercher la FA Cup par-dessus : **le premier
+doublé de son histoire**, et il aurait pu être triple si Aston Villa ne l'avait pas battu en finale
+de la Coupe de la Ligue. **760 vrais joueurs**, 40 clubs, **aucun club neuf**. L'héritage porte
+encore mieux qu'en 1992-93 : **512 des 760 noms sont partagés avec la saison d'avant**, tous
+vieillis d'exactement un an, 594 notes sont héritées, 94 passent par la moyenne rajeunie et **72
+seulement sont calculées**. Distribution collée à celle de 1992-93 (élite : moyenne 70,3 et médiane
+70, contre 70,7 et 71 ; dessous : 66,9 et 67, contre 66,6 et 67).
+
+**LE PLATEAU, ET C'EST LA JOURNÉE LA PLUS DURE DU CHANTIER : IL A FALLU DEUX SÉANCES ET UNE
+DÉCISION DE L'AUTEUR.** L'élite tombe juste : vingt-deux clubs, tous remplissables, donc s'effacent
+les deux derniers, **Oldham (21e) et Swindon (22e)** ; Sheffield United, vingtième et relégué lui
+aussi, reste. L'échelon du dessous bloquait, lui, à un club près : la source ne remplissait que
+dix-huit des vingt-quatre, le vivier de repêchage documenté n'en rendait qu'un seul, et le vingtième
+n'existait plus qu'en **troisième division** (Leyton Orient, Fulham). La question a été posée à
+l'auteur, qui a tranché net : *« mets le vrai club présent lors de cette saison, va chercher
+d'autres sources »*. C'était la bonne réponse, et elle était atteignable. Les quatre écartés :
+
+| Club | Rang | Pourquoi |
+|---|---|---|
+| **Tranmere Rovers** | **5e** | dix-sept hommes pour dix-huit places, Liam O'Brien étant à Newcastle au coup d'envoi |
+| **Middlesbrough** | **9e** | treize hommes seulement chez la source |
+| Oxford United | 23e | dix-sept hommes |
+| Peterborough United | 24e | remplissable, mais il ferme la marche |
+
+**AUCUN REPÊCHAGE, AUCUN CLUB DE TROISIÈME DIVISION : le plateau est vingt VRAIS clubs de deuxième
+division**, et c'est ce que la réparation a permis.
+
+**L'APPORT DU JOUR, ET IL VAUT POUR TOUTE LA SUITE : QUAND LA SOURCE PERD UN CLUB-SAISON, ON LE
+RECONSTITUE AU LIEU DE LE REMPLACER.** **Barnsley et Southend sont un trou de Transfermarkt sur
+cette seule saison** : elle les sert en 1992-93 et en 1994-95, et rend **zéro ligne** en 1993-94,
+sur les trois domaines et sur les deux pages. Les deux effectifs ont été refaits, **dix-huit vrais
+hommes chacun**, par trois sources recoupées — l'**appartenance au club le 14 août 1993** vient de
+l'historique de transferts de Transfermarkt (`/ceapi/transferHistory/list/<id>`, **dates exactes, et
+c'est un bien meilleur arbitre que « Im Team seit » : à retenir pour la suite**), corroborée par la
+**base neilbrown** et par **Wikipedia** ; **naissance et poste** viennent des fiches de joueur et
+des pages des saisons encadrantes. La jointure est **prouvée** par un homme que le jeu connaissait
+déjà : **Viv Anderson, né en 1956, concorde exactement avec l'âge que le jeu lui donnait en
+1992-93**, et le harnais garde ce contrôle. Les deux effectifs tombent juste sur les minimums de
+poste (Barnsley G2-D7-M5-A4 ; Southend G2-D6-M5-A5), et trois hommes sont **écartés plutôt que
+devinés** : Chris Jackson, que la source ne sait pas plus dater qu'en 1992-93, Gary Jones et David
+Howell, sans identité sûre. **L'écart assumé, borné à ces deux clubs** : faute de la moindre minute
+de 1993-94, l'ordre de l'effectif se fait sur un **chiffre documenté**, les matchs par saison au
+club de la base neilbrown, les minutes des saisons encadrantes tranchant les égalités.
+
+**LA GRAPHIE DU JEU GAGNE, ET CETTE FOIS ELLE COÛTAIT UNE NOTE.** Transfermarkt sert **« Éric
+Cantona »** avec son accent là où les tables ANGLAISES du jeu écrivent **« E. Cantona »**. La règle
+de 1991-92 le disait déjà, mais on n'avait pas mesuré ce qu'elle emporte : sous la graphie accentuée,
+Cantona ne se reconnaissait plus dans l'ancre de 1992-93 et **ressortait recalculé à 77 au lieu de
+son héritage à 83** — et le recruteur, qui compare les noms chaîne pour chaîne, l'aurait proposé
+alors qu'il joue. La parade est générale et tient en trois lignes : **les formes candidates d'un nom
+comprennent sa version repliée** (accents retirés), la graphie exacte d'abord, la repliée ensuite,
+de sorte que la table du jeu gagne toujours sans qu'on perde les hommes que le jeu porte VRAIMENT
+avec leurs accents (Kruszyński, Rösler, Örlygsson, tous trois inchangés). **ERIC CANTONA EST À
+MANCHESTER UNITED cette fois**, à 86 de note, et c'est le pendant exact du contrôle de 1992-93 : il
+y est arrivé le 26 novembre 1992.
+
+Table d'ajustements à la main de **vingt-trois notes**. Les quatre distinctions d'abord, vérifiées
+une par une sur « 1993-94 in English football » : **Eric Cantona 86**, joueur de l'année des joueurs
+(PFA), dix-huit buts de championnat et deux penalties en finale de Coupe, **le mieux noté des sept
+cent soixante** ; **Alan Shearer 85/91**, joueur de l'année de la presse (FWA) avec trente et un
+buts ; **Andy Cole 83/90**, qui plante **trente-quatre buts** pour le Newcastle tout juste remonté
+et repart avec le titre de meilleur buteur **ET** celui de meilleur espoir ; **John McGinlay 75**,
+meilleur buteur de la division du dessous avec vingt-cinq buts pour Bolton. Puis la table des
+buteurs du championnat, relevée ligne par ligne (**Matt Le Tissier 83** et ses vingt-cinq buts,
+troisième du championnat ; **Chris Sutton 78/88**, quatrième buteur et transfert record de l'été
+suivant ; **Peter Beardsley 79**, vingt et un buts à trente-deux ans ; **Dean Holdsworth 77**,
+**Tony Cottee 75**, **Mark Bright 74**), l'équipe type PFA (**Gary Kelly 75/82**, arrière droit de
+Leeds **à dix-neuf ans et dès sa première saison**, que l'héritage laissait à 67 ; **Denis Irwin
+79**), quatre révélations que le vieillissement laissait en arrière (**Ruel Fox 74**, **Nick Barmby
+75**, **Darren Anderton 76**, **Jason McAteer 73**), et **sept corrections EN SENS INVERSE**, la
+règle de 06/07 se reconduisant pour la sixième saison : Mike Phelan ressortait à 75 pour 7 % du
+temps de jeu de Manchester United, ramené à 70, et Pearson, Ratcliffe, Foster, Crosby, Stewart et
+Walters redescendus eux aussi.
+
+**ONZE PÉPITES FORCÉES, ET LA MÉTHODE DE MESURE A ÉTÉ CORRIGÉE EN COURS DE ROUTE — C'EST LE SECOND
+APPORT DU JOUR.** Le prix d'un forçage se mesure contre **l'homme qu'il sort réellement, c'est-à-dire
+le DERNIER de l'effectif trié aux minutes** (en 1992-93, « Beckham a coûté Lee Martin »), et **non
+le plus faible à la note**. Deux montages ont été essayés et jetés sur preuve : mesurer contre le
+plus faible à la note **s'auto-amplifie** (chaque homme forcé pousse dehors un bon joueur, qui
+devient à son tour candidat), et il refaisait l'effectif **à la note plutôt qu'au temps de jeu — il
+sortait David White de Manchester City, douzième aux minutes**. Avec la bonne mesure, le critère des
+hommes « que le jeu connaît déjà » (note supérieure de quatre points au moins) ne rend plus que des
+échanges latéraux contre des hommes qui ont JOUÉ DAVANTAGE : **il n'a donc servi aucun forçage cette
+saison, et c'est écrit ici exprès** — la règle est un garde-fou qu'on applique à un homme qu'on a
+choisi, pas un générateur. **DWIGHT YORKE** est la plus belle prise, vingt-deux ans, potentiel 86,
+que le tri aux minutes écartait d'Aston Villa pour rien ; avec lui **Gary Neville** et **NICKY BUTT,
+que 1992-93 avait REFUSÉ** parce qu'il sortait Bryan Robson et qui entre cette fois à prix nul,
+**Stephen Carr à dix-sept ans** (sa seule apparition de la saison, contre Ipswich), **Michael
+Duberry** (son unique match pour Chelsea), **Chris Perry** et **Mark Kennedy**, tous deux écartés en
+1992-93 faute d'une minute, **Ade Akinbiyi**, **Gary Rowett**, **Adie Mike**, **Stefan Beinlich** et
+**Matthias Breitkreutz**. **Deux refus mesurés** : **Ben Thornley** (prix de neuf points, au-delà des
+huit admis) et **Colin McKee**, dont le prix était **le deuxième gardien du champion** pour un
+potentiel tout juste au seuil — la leçon de 1992-93 reconduite.
+
+**ROBBIE FOWLER ENTRE AU PLATEAU**, et c'est le pendant de son absence de l'an passé : zéro minute
+en 1992-93, son premier match en septembre 1993, et la source fait foi dans les deux sens
+(jurisprudence Lloris 04/05). **UN SEUL INNOMMABLE SUR 760** : **Paul Williams**, défenseur de
+Coventry né en 1969, troisième du nom dans la fenêtre du jeu, dont les deux formes sont prises ;
+Coventry avait vingt-six hommes pour vingt places et promeut le suivant (jurisprudence ANG 1990-91),
+là où Grimsby s'était effacé tout entier en 1992-93 faute de dix-neuvième. **64 prénoms neufs, aucun
+vide, pour la dixième fois de suite** ; trois écarts de graphie avec la table existante, les mêmes
+qu'en 1992-93 (Andrei/Andrey Kanchelskis, Bjørn/Björn Kristensen, Matthew/Matt Le Tissier), et la
+table garde la sienne. **Les cinq prénoms vides du plateau précèdent tous cette saison** et sont
+volontaires ; le harnais les nomme pour qu'un sixième rougisse.
+
+Sièges européens réels, ceux de `SIEGES_ANG[1993]` relevés par ANG-C : **Manchester United en Coupe
+des clubs champions**, **Arsenal en Coupe des Coupes** (vainqueur de la FA Cup 1993), **Aston Villa
+et Norwich en Coupe UEFA** — et pour Norwich c'est **la première campagne européenne de son
+histoire**. **Le contrôle que le harnais garde : BLACKBURN, QUI VA FINIR DEUXIÈME, PART SANS EUROPE**,
+et Newcastle, qui finira troisième, non plus, puisqu'il sortait de la deuxième division. **Les stades
+de 1993, et les déménagements datés d'ANG-B paient une quatrième fois : MILLWALL EMMÉNAGE AU NEW
+DEN**, qui ouvre en août 1993, juste à temps ; Charlton est rentré à The Valley et y reste ; Wimbledon
+et Crystal Palace partagent toujours Selhurst Park. **Trois hommes de dix-sept ans et quatre de
+trente-sept** aux deux bouts de l'échelle, tous de vrais joueurs. Et **Nayim quitte le plateau** :
+Tottenham l'a vendu au Real Saragosse à l'été 1993, la source ne le liste plus du tout, et c'est un
+départ et non un oubli — il ne reste qu'un vrai mononyme, Preki, à Everton.
+
+Validation dédiée : **`harness-ang9394.cjs`** (sept sections), en plus de `harness-angleterre.cjs`
+qui l'a prise **sans retouche**. **Une assertion de ce nouveau harnais avait été écrite fausse et a
+été corrigée sur pièces, non assouplie** : elle attendait Nayim à Tottenham, et c'est le harnais qui
+avait tort. **Et `harness-angleterre.cjs` a trouvé un vrai défaut dans le texte livré** : le
+sous-titre portait un **tiret long**, que la consigne de l'auteur du 25/09/2026 interdit dans le
+texte du jeu. Corrigé, pas contourné. Les **53 harnais du dossier** sont verts, les quatre
+historiquement capricieux (`harness-recruteur`, `harness-effectif`, `harness-formations`,
+`harness-hdm`) six fois sur six, comme le nouveau et comme celui du pays.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
