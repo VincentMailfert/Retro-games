@@ -53,10 +53,10 @@ Tout est en ligne. Aucune donnée d'effectif n'est dans le dépôt, sauf les sai
 
 | Source | Ce qu'elle donne | Adresse |
 |---|---|---|
-| **Transfermarkt**, page d'effectif | naissance, poste, colonne « Im Team seit » (date d'arrivée) | `https://www.transfermarkt.co.uk/x/kader/verein/<id>/saison_id/<AAAA>/plus/1` |
-| **Transfermarkt**, temps de jeu | matchs, minutes, nom court, mentions de statut | `https://www.transfermarkt.co.uk/x/leistungsdaten/verein/<id>/reldata/%26<AAAA>/plus/1` |
-| Transfermarkt, historique de transferts | dates exactes de transfert | `https://www.transfermarkt.co.uk/ceapi/transferHistory/list/<idJoueur>` |
-| Transfermarkt, fiche de joueur | naissance, poste | `https://www.transfermarkt.co.uk/x/profil/spieler/<idJoueur>` |
+| **Transfermarkt**, page d'effectif | naissance, poste, colonne « Im Team seit » (date d'arrivée) | `https://www.transfermarkt.com/a/kader/verein/<id>/saison_id/<AAAA>/plus/1` |
+| **Transfermarkt**, temps de jeu | matchs, minutes, nom court, mentions de statut | `https://www.transfermarkt.com/a/leistungsdaten/verein/<id>/reldata/%26<AAAA>/plus/1` |
+| Transfermarkt, historique de transferts | dates exactes de transfert | `https://www.transfermarkt.com/ceapi/transferHistory/list/<idJoueur>` |
+| Transfermarkt, fiche de joueur | naissance, poste | `https://www.transfermarkt.com/a/profil/spieler/<idJoueur>` |
 | Classements finaux | le classement réel des deux divisions | Wikipedia anglaise, « 1994–95 FA Premier League » et « 1994–95 Football League First Division » (« Football League Championship » à partir de 2004-05) |
 | Base neilbrown, Wikidata, Wikipedia | recoupements quand Transfermarkt a un trou | voir la section « DIVERSIFIER LES SOURCES » de `championnat/CLAUDE.md` |
 
