@@ -42,7 +42,7 @@ Relevé fait en séance, sur le poste de l'auteur, le 22/10/2026 (pas en session
 
 ## Doutes
 
-- **Crewe Alexandra (CRW)** : l'alerte du vérificateur vient de ce, qu'aucune saison voisine relevée ne contient, donc son identité n'est contrôlée que par l'identifiant Transfermarkt.
+- **Crewe Alexandra (CRW)** : aucune saison voisine relevée ne contient ce club, d'où l'alerte du vérificateur : son identité n'est contrôlée que par l'identifiant Transfermarkt.
 - **Burnley écarté bien que 19e** : un seul gardien et deux attaquants présents au coup d'envoi.
 - Dave Beasant (FUL) : 44 ans, retiré de la liste
 - Alan Knight (POR) : 42 ans, retiré de la liste
