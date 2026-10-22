@@ -4665,8 +4665,8 @@ Cinquième saison anglaise, sous le nom **« Shearer contre Cole »**. Mancheste
 titre avec huit points d'avance sur Blackburn et va chercher la FA Cup par-dessus : **le premier
 doublé de son histoire**, et il aurait pu être triple si Aston Villa ne l'avait pas battu en finale
 de la Coupe de la Ligue. **760 vrais joueurs**, 40 clubs, **aucun club neuf**. L'héritage porte
-encore mieux qu'en 1992-93 : **512 des 760 noms sont partagés avec la saison d'avant**, tous
-vieillis d'exactement un an, 594 notes sont héritées, 94 passent par la moyenne rajeunie et **72
+encore mieux qu'en 1992-93 : **513 des 760 noms sont partagés avec la saison d'avant**, tous
+vieillis d'exactement un an, 595 notes sont héritées, 94 passent par la moyenne rajeunie et **71
 seulement sont calculées**. Distribution collée à celle de 1992-93 (élite : moyenne 70,3 et médiane
 70, contre 70,7 et 71 ; dessous : 66,9 et 67, contre 66,6 et 67).
 
@@ -4718,6 +4718,22 @@ avec leurs accents (Kruszyński, Rösler, Örlygsson, tous trois inchangés). **
 MANCHESTER UNITED cette fois**, à 86 de note, et c'est le pendant exact du contrôle de 1992-93 : il
 y est arrivé le 26 novembre 1992.
 
+**ET LA MÊME RÈGLE A UN SECOND VERSANT, TROUVÉ EN RELECTURE LE 22/10/2026, LA VEILLE DE LA
+LIVRAISON : LE REPLI DOIT IGNORER LA CASSE AUTANT QUE LES ACCENTS.** La parade écrite pour Cantona
+ne repliait que les accents, si bien que **« B. O'connell » et « B. O'Connell » restaient deux
+hommes** pour le relevé comme pour le harnais. Brendan O'Connell, le milieu de Barnsley que le jeu
+porte depuis 1991-92, **changeait donc de nom d'une saison de départ à l'autre et perdait son
+héritage** : il ressortait recalculé à 69/70 au lieu de ses 71/74. Le défaut vient de ce que Barnsley
+est l'un des deux clubs RECONSTITUÉS, dont les noms arrivent d'une autre source que Transfermarkt, et
+il est **invisible pour les harnais** : le contrôle d'identité d'une saison à l'autre compare les
+chaînes, donc deux graphies ne se rencontrent jamais. **Le contrôle à refaire à chaque saison, et il
+coûte dix lignes** : replier TOUS les noms de la saison (accents retirés, minuscules, espaces
+normalisées) et les comparer aux six mille trois cent soixante noms de joueurs du fichier ; tout
+groupe qui rend deux graphies est un défaut, sauf les deux divergences VOULUES que le jeu documente —
+« É. Cantona » côté français contre « E. Cantona » côté anglais, et « D. Régis » contre « D. Regis »,
+qui sont deux hommes différents (ANG 1995-96). Sur les 760 noms, le contrôle n'a rendu que ces trois
+groupes, dont un seul défaut.
+
 Table d'ajustements à la main de **vingt-trois notes**. Les quatre distinctions d'abord, vérifiées
 une par une sur « 1993-94 in English football » : **Eric Cantona 86**, joueur de l'année des joueurs
 (PFA), dix-huit buts de championnat et deux penalties en finale de Coupe, **le mieux noté des sept
@@ -4761,7 +4777,7 @@ en 1992-93, son premier match en septembre 1993, et la source fait foi dans les 
 (jurisprudence Lloris 04/05). **UN SEUL INNOMMABLE SUR 760** : **Paul Williams**, défenseur de
 Coventry né en 1969, troisième du nom dans la fenêtre du jeu, dont les deux formes sont prises ;
 Coventry avait vingt-six hommes pour vingt places et promeut le suivant (jurisprudence ANG 1990-91),
-là où Grimsby s'était effacé tout entier en 1992-93 faute de dix-neuvième. **64 prénoms neufs, aucun
+là où Grimsby s'était effacé tout entier en 1992-93 faute de dix-neuvième. **63 prénoms neufs, aucun
 vide, pour la dixième fois de suite** ; trois écarts de graphie avec la table existante, les mêmes
 qu'en 1992-93 (Andrei/Andrey Kanchelskis, Bjørn/Björn Kristensen, Matthew/Matt Le Tissier), et la
 table garde la sienne. **Les cinq prénoms vides du plateau précèdent tous cette saison** et sont
@@ -4778,6 +4794,12 @@ et Crystal Palace partagent toujours Selhurst Park. **Trois hommes de dix-sept a
 trente-sept** aux deux bouts de l'échelle, tous de vrais joueurs. Et **Nayim quitte le plateau** :
 Tottenham l'a vendu au Real Saragosse à l'été 1993, la source ne le liste plus du tout, et c'est un
 départ et non un oubli — il ne reste qu'un vrai mononyme, Preki, à Everton.
+
+**Deux séances pour la bâtir, une troisième pour la livrer** : la saison a été montée le 21/10/2026
+et la session s'est éteinte avant de pousser sur `main` (quatrième nuit de suite), si bien que la
+livraison est du 22/10, après relecture complète, le défaut de graphie ci-dessus et une validation
+repassée d'un bout à l'autre. C'est la branche `secours/2026-10-21` qui a sauvé la journée, et elle
+dit à elle seule pourquoi la consigne de sauvegarde du 12/10 existe.
 
 Validation dédiée : **`harness-ang9394.cjs`** (sept sections), en plus de `harness-angleterre.cjs`
 qui l'a prise **sans retouche**. **Une assertion de ce nouveau harnais avait été écrite fausse et a
