@@ -14758,7 +14758,7 @@
       "matchs": 18,
       "minutes": 1103,
       "arrivee": 2,
-      "retenu": true,
+      "retenu": false,
       "force": false,
       "deja_au_jeu": true,
       "source": "tm",
@@ -14933,12 +14933,12 @@
       "naissance": "1982-04-06",
       "matchs": 2,
       "minutes": 91,
-      "arrivee": 1,
-      "retenu": false,
+      "arrivee": 2,
+      "retenu": true,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
-      "remarque": ""
+      "remarque": "Wikipedia confirme sa présence au squad (#12 GK) ; transfert professionnel en juillet 2001 après passage par l'académie"
     },
     {
       "tm": 106484,
@@ -17248,7 +17248,7 @@
       "matchs": 8,
       "minutes": 690,
       "arrivee": 2,
-      "retenu": true,
+      "retenu": false,
       "force": false,
       "deja_au_jeu": false,
       "source": "tm",
@@ -17461,6 +17461,22 @@
       "deja_au_jeu": false,
       "source": "tm",
       "remarque": ""
+    },
+    {
+      "tm": 195616,
+      "nom": "Dave Watson",
+      "court": "D. Watson",
+      "prenom": "Dave",
+      "poste": "G",
+      "naissance": "1973-11-10",
+      "matchs": 0,
+      "minutes": 0,
+      "arrivee": 2,
+      "retenu": true,
+      "force": true,
+      "deja_au_jeu": true,
+      "source": "tm+ceapi",
+      "remarque": "Marqué 'not in squad' sur leistungsdaten mais ceapi prouve présence (Barnsley 1992 à juin 2001) ; Wikipedia le confirme"
     }
   ],
   "SHW": [

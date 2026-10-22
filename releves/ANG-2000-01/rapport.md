@@ -23,7 +23,7 @@ Saison **2000-01** du championnat d'Angleterre, branche `claude/import-england-2
 
 ## Vérifié
 
-- Vérificateur : 3 défauts (minimums G2 non tenus pour SHU, FOR, BNS), voir Doutes
+- Vérificateur : 1 défaut (minimum G2 non tenu pour SHU), voir Doutes
 - Champion : Manchester United (80 pts), confirmé Wikipedia
 - Promus de D2 vers la Premier League : Fulham (champion, 101 pts) et Bolton Wanderers (play-offs), confirmé Wikipedia
 - Relégués de D1 : Manchester City (34 pts), Coventry City (34 pts), Bradford City (26 pts), confirmé Wikipedia
@@ -36,12 +36,11 @@ Saison **2000-01** du championnat d'Angleterre, branche `claude/import-england-2
 
 **Dave Beasant** (FOR, gardien, 41 ans au coup d'envoi) : joueur réel ayant disputé 4319 minutes cette saison. Conservé malgré son âge.
 
-**Clubs avec minimums de poste non tenus :**
-- **SHU** : G=1 D=8 M=5 A=4 (G=1<2). Un seul gardien présent au coup d'envoi sur Transfermarkt.
-- **FOR** : G=1 D=7 M=6 A=4 (G=1<2). Un seul gardien présent au coup d'envoi sur Transfermarkt.
-- **BNS** : G=1 D=8 M=5 A=4 (G=1<2). Un seul gardien présent au coup d'envoi sur Transfermarkt.
+**SHU : minimum G2 non tenu (G=1).** Le seul gardien suppléant présent au coup d'envoi est Kevin Blackwell (né le 21/12/1958, soit 42 ans), rejeté par le vérificateur qui plafonne à 41. Frank Talia n'a rejoint SHU que le 26/09/2000 (ceapi) et Matt Duke est parti à Burton Albion le 01/07/2000. Wikipedia confirme les quatre GK (Tracey, Talia, Blackwell, Duke), aucun autre. Le déficit est structurel, aucun joueur n'a été inventé.
 
-Ces déficits reflètent le manque réel de joueurs dans ce poste présents au coup d'envoi dans les données Transfermarkt. Aucun joueur n'a été inventé.
+**FOR : corrigé.** Barry Roche (GK, TM 9989) était marqué arrivee=1 car le ceapi ne recense que son contrat professionnel (01/07/2001). Wikipedia le place au squad (#12 GK, 2 matchs), produit de l'académie de Leeds prêté à Forest. Arrivee corrigé à 2, retenu comme 2e gardien. Gareth Williams perd sa place dans les 18.
+
+**BNS : corrigé.** Dave Watson (GK, TM 195616) était marqué "not in squad" sur la leistungsdaten mais le ceapi prouve sa présence (Barnsley de 1992 à juin 2001, formé au club). Wikipedia le confirme. Ajouté comme 2e gardien (0 matchs, nicht eingesetzt de fait). Janne Salli perd sa place dans les 18.
 
 **Carl Asaba** (SHU) : arrivee=0, il était à Gillingham en 2000-01 et n'est arrivé à Sheffield United qu'en juillet 2001.
 
