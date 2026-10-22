@@ -5,9 +5,9 @@
   "sources": [
     "https://en.wikipedia.org/wiki/1997%E2%80%9398_FA_Premier_League",
     "https://en.wikipedia.org/wiki/1997%E2%80%9398_Football_League_First_Division",
-    "https://www.transfermarkt.com/premier-league/startseite/wettbewerb/GB1/saison_id/1997",
-    "https://www.transfermarkt.com/ (kader + leistungsdaten pour les 44 clubs)",
-    "https://query.wikidata.org/ (dates de naissance via P2446)"
+    "https://www.transfermarkt.com/x/kader/verein/<id>/saison_id/1997/plus/1",
+    "https://www.transfermarkt.com/x/leistungsdaten/verein/<id>/reldata/%261997/plus/1",
+    "https://query.wikidata.org/sparql (dates de naissance P2446, postes MUN/LIV P413)"
   ],
   "classementD1": [
     {
@@ -631,28 +631,28 @@
   ],
   "ecartes": [
     {
-      "code": "RDG",
-      "club": "Reading",
-      "raison": "24e du classement, dernier des remplissables (36 joueurs eligibles)"
-    },
-    {
-      "code": "STK",
-      "club": "Stoke City",
-      "raison": "23e du classement, dernier des remplissables (32 joueurs eligibles)"
+      "code": "QPR",
+      "club": "Queens Park Rangers",
+      "raison": "21e au classement, parmi les quatre derniers"
     },
     {
       "code": "MCI",
       "club": "Manchester City",
-      "raison": "22e du classement, dernier des remplissables (32 joueurs eligibles)"
+      "raison": "22e au classement, parmi les quatre derniers"
     },
     {
-      "code": "QPR",
-      "club": "Queens Park Rangers",
-      "raison": "21e du classement, dernier des remplissables (29 joueurs eligibles)"
+      "code": "STK",
+      "club": "Stoke City",
+      "raison": "23e au classement, parmi les quatre derniers"
+    },
+    {
+      "code": "RDG",
+      "club": "Reading",
+      "raison": "24e au classement, parmi les quatre derniers"
     }
   ],
   "noms_proposes": [
-    "Wenger prend les commandes",
-    "Le double d'Arsene"
+    "Wenger pose ses valises",
+    "Le doublé des Gunners"
   ]
 }
