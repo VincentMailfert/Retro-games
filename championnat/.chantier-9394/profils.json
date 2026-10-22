@@ -1,0 +1,79 @@
+{
+ "1014488": {
+  "nom": "Charlie Bishop",
+  "nais": 1968,
+  "lieu": null,
+  "libpos": "Abwehr",
+  "poste": "D"
+ },
+ "1015260": {
+  "nom": "Chris Jackson",
+  "nais": null,
+  "lieu": null,
+  "libpos": "Attack - Centre-Forward",
+  "poste": null
+ },
+ "117188": {
+  "nom": "Viv Anderson",
+  "nais": 1956,
+  "lieu": "Nottingham",
+  "libpos": "Abwehr - Rechter Verteidiger",
+  "poste": null
+ },
+ "14624": {
+  "nom": "Jason Lee",
+  "nais": 1971,
+  "lieu": "London",
+  "libpos": "Sturm - Mittelstürmer",
+  "poste": null
+ },
+ "176810": {
+  "nom": "Keith Jones",
+  "nais": 1965,
+  "lieu": "London",
+  "libpos": "Midfield - Central Midfield",
+  "poste": null
+ },
+ "226554": {
+  "nom": "Ian Bryson",
+  "nais": 1962,
+  "lieu": "Kilmarnock",
+  "libpos": "Sturm - Linksaußen",
+  "poste": null
+ },
+ "49698": {
+  "nom": "Martin Bullock",
+  "nais": 1975,
+  "lieu": "Derby",
+  "libpos": "Mittelfeld - Defensives Mittelfeld",
+  "poste": null
+ },
+ "901428": {
+  "nom": "Derek Payne",
+  "nais": 1967,
+  "lieu": "Edgware",
+  "libpos": "Mittelfeld",
+  "poste": "M"
+ },
+ "977845": {
+  "nom": "Adam Locke",
+  "nais": 1970,
+  "lieu": null,
+  "libpos": "Abwehr",
+  "poste": "D"
+ },
+ "994566": {
+  "nom": "Steve Tilson",
+  "nais": 1966,
+  "lieu": "Wickford",
+  "libpos": "Mittelfeld",
+  "poste": "M"
+ },
+ "994567": {
+  "nom": "Andy Ansah",
+  "nais": 1969,
+  "lieu": null,
+  "libpos": "Mittelfeld",
+  "poste": "M"
+ }
+}
