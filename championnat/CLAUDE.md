@@ -4857,6 +4857,31 @@ sous Tottenham, n'y arrive que le 9 septembre et n'est pas au plateau.
 
 `harness-ang9495.cjs` garde tout cela, et `harness-angleterre.cjs` prend la saison tout seul.
 
+### ANG 1996-97 — QUARANTE-TROIS SECONDES (v2.08)
+Septième saison anglaise, assemblée en séance le 23/10/2026 à partir de `releves/ANG-1996-97` (le relevé refait
+le 22/10, tout Transfermarkt). Manchester United champion, sept points devant Newcastle ; **Shearer à
+Newcastle**, record du monde de l'été, joueur de l'année PFA et meilleur buteur (89) ; Cantona capitaine pour
+sa dernière saison. Le nom vient du but de Roberto Di Matteo en finale de la FA Cup, le plus rapide de
+l'histoire de Wembley. Premier League à vingt, aucun écarté ; l'échelon du dessous perd ses quatre derniers.
+
+**Notes** : 528 héritées de 1995-96, 86 d'une saison plus lointaine, 5 du recruteur de l'été 1996,
+141 calculées — plus que pour 1994-95, parce que 1997-98 n'est pas encore au jeu pour servir d'ancre.
+Distribution : élite 70.7 / 70, dessous 65.5 / 65. Ajustements : Shearer 89, **Zola absent** (il arrive de Parme
+en novembre, la règle du coup d'envoi l'emporte sur son titre de joueur de l'année), Beckham 80 (meilleur
+espoir), Cantona 85.
+
+**Les pépites forcées à la main, et pourquoi.** Transfermarkt date la MONTÉE d'un jeune chez les pros, pas
+son arrivée au club : Michael Owen et Jamie Carragher apparaissent « arrivés en cours de saison » alors qu'ils
+sont à Liverpool depuis l'enfance. `releves/outils/ajust-9697.json` porte donc une clé `_forcer` (club, nom,
+raison) : **Owen** (17 ans, potentiel 92), **Carragher** et **Frank Lampard** (West Ham). À refaire à chaque
+saison : chercher les grands noms de la saison suivante qui jouent peu cette année-là.
+
+**Deux corrections d'outil, à garder.** (1) Les lettres ø, æ, ð, ł ne se décomposent pas comme les accents :
+« Solskjaer » ne se reconnaissait pas dans « Solskjær » ; elles se lisent maintenant ae, o, d, l.
+(2) **Un prénom composé prend une initiale par prénom**, comme le jeu le fait déjà : « J. Å. Fjørtoft »,
+« L. E. Andersen », « L. O. Sigurdsson » (le harnais de pays refuse « L. Erik Andersen »). Et la note calculée
+ne descend plus sous 55, plancher du harnais de pays.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
