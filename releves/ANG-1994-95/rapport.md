@@ -61,3 +61,10 @@ que la source documente. Le comblement devra se faire a l'assemblage.
 - **John Burridge** (NEW) : ecarte, 43 ans au coup d'envoi.
 - Joueurs avec arrivee=1 (date TM posterieure a la saison) : gardes comme eligibles
   car la date TM reflete la derniere arrivee au club, pas celle de 1994-95.
+
+## Complété à l'assemblage (23/10/2026)
+
+- Six hommes absents des pages Transfermarkt de 1994-95 ajoutés depuis la base neilbrown (au club plusieurs saisons de part et d'autre, donc présents au coup d'envoi), naissance sur Wikipedia : Jamie Lambert (RDG), Dave Higgins (TRM), Lee Butler et Owen Archdeacon (BNS), Craig Fleming (OLD), Brian Atkinson (SUN).
+- Paul Cook (COV) retenu : arrivé le 18/08/1994, deux jours avant le coup d'envoi de la Premier League (20/08). Paul Williams (COV) non retenu, aucun nom libre.
+- Chris Jackson (BNS) retiré : aucune date de naissance.
+- Restent des minimums de poste non tenus (QPR, RDG, BNS, WAT, LUT, BSC) : le jeu les tolère, rien n'est inventé.

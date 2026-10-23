@@ -272,4 +272,9 @@ Ton dernier message, et la même chose dans `rapport.md` :
    saison choisi parmi les propositions (ou un autre si un mot est déjà pris), entrées `PRENOMS_VRAIS`,
    ligne dans `SAISONS`, harnais `harness-angAAAA.cjs` calqué sur `harness-ang9293.cjs`, puis **tous les
    harnais** du dossier `championnat/` jusqu'à « TOUT EST VERT ».
-3. Une saison, une version, un commit. Un harnais rouge arrête l'assemblage : on ne l'assouplit jamais.
+3. Les outils de la première saison assemblée (1994-95) sont dans `releves/outils/` : `assemble.cjs`
+   (notes héritées, graphie du jeu, homonymes départagés par la naissance ET le poste, prénoms), une table
+   d'ajustements par saison, et un script d'insertion à adapter. Lire la section « ANG 1994-95 » de
+   `championnat/CLAUDE.md` : un effectif incomplet se comble par la base neilbrown, et la Premier League
+   ne commence pas le même jour que la Division One.
+4. Une saison, une version, un commit. Un harnais rouge arrête l'assemblage : on ne l'assouplit jamais.

@@ -4810,6 +4810,53 @@ texte du jeu. Corrigé, pas contourné. Les **53 harnais du dossier** sont verts
 historiquement capricieux (`harness-recruteur`, `harness-effectif`, `harness-formations`,
 `harness-hdm`) six fois sur six, comme le nouveau et comme celui du pays.
 
+### ANG 1994-95 — WALKER A PAYÉ (v2.07)
+Sixième saison anglaise, sous le nom **« Walker a payé »** : Blackburn Rovers est champion pour la première
+fois depuis 1914, avec l'argent de Jack Walker, un point devant Manchester United le dernier jour. **760
+vrais joueurs**, 40 clubs, aucun club neuf. **C'est la première saison ASSEMBLÉE EN SÉANCE à partir d'un
+relevé** (`releves/ANG-1994-95`, fait en session cloud le 21/10 selon `IMPORT_SAISON.md`) et non relevée la
+nuit même : la collecte et l'assemblage sont désormais deux métiers séparés.
+
+**LE PLATEAU.** La Premier League comptait vingt-deux clubs pour la dernière fois : Leicester et Ipswich, les
+deux derniers, s'effacent ; Crystal Palace et Norwich, relégués, restent. L'échelon du dessous en comptait
+vingt-quatre, et les quatre écartés ne sont pas les quatre derniers : **Stoke, onzième**, ne remplit pas son
+effectif en vrais joueurs présents au coup d'envoi, pas plus que Notts County, Swindon et Port Vale. Grimsby,
+que Transfermarkt perd sur cette seule saison, est reconstitué (saisons encadrantes, neilbrown, Wikipedia).
+Sièges de 1994 : United en C1, Chelsea et Arsenal (tenant) en C2, Blackburn, Newcastle et Aston Villa en C3.
+
+**LES EFFECTIFS INCOMPLETS SE COMBLENT À LA BASE NEILBROWN, ET C'EST LA MÉTHODE À GARDER.** Le relevé laissait
+Reading, Tranmere, Barnsley, Oldham et Sunderland à dix-sept hommes (seize pour Barnsley) : Transfermarkt n'a
+PERSONNE de plus pour eux en 1994-95, même parmi les « pas utilisés ». La base neilbrown donne par club les
+saisons de chaque homme : un joueur **au club plusieurs saisons de part et d'autre** de 1994-95 y était
+forcément au coup d'envoi. Six hommes entrent ainsi, naissance prise sur Wikipedia : **Jamie Lambert**
+(Reading, 1992-1999), **Dave Higgins** (Tranmere, 1987-1997), **Lee Butler** et **Owen Archdeacon** (Barnsley),
+**Craig Fleming** (Oldham, 1991-1997), **Brian Atkinson** (Sunderland, 1988-1996). Cinq d'entre eux ont
+déjà une note dans le jeu à une autre saison et en héritent. Le relevé les porte avec `"source":
+"neilbrown+wikipedia"`. **Et le coup d'envoi n'est pas le même pour les deux divisions** : la Division One a
+commencé le 13 août 1994, la Premier League le **20 août** ; Paul Cook, arrivé à Coventry le 18, y était donc
+(il remplace Paul Williams, sans nom libre, jurisprudence 1992-93).
+
+**LES NOTES**, reconstruites d'après la méthode écrite ici (les scripts des saisons précédentes n'avaient
+jamais été gardés) : 522 héritées de 1993-94 vieillies d'un an (+2 jusqu'à 21 ans, +1 jusqu'à 24, 0 jusqu'à
+29, -1 jusqu'à 32, -2 au-delà), 122 par la moyenne à parts égales entre la note 1995-96 rajeunie et la note
+calculée, 45 depuis une saison plus lointaine (même moyenne), 2 depuis le recruteur de l'été 1994
+ramené d'un cran (-2), et 69 calculées (médiane 70,5 / 67,5, rang du club, rang aux minutes, courbe d'âge).
+Le potentiel se reprend à l'ancre. Cinq ajustements à la main : **Shearer 88** (joueur de l'année PFA, 34
+buts), **Klinsmann 86** (joueur de l'année de la presse), **Fowler 79** (meilleur espoir), Flowers 81, Sutton 81.
+Distribution : élite moyenne 70.9 et médiane 71, dessous 66.2 et 66, collée à 1993-94.
+
+**LA GRAPHIE DU JEU GAGNE, ET LE POSTE DÉPARTAGE LES HOMONYMES.** 61 noms du relevé changent de
+graphie pour reprendre celle du jeu, en préférant le recruteur de l'été puis les tables ANGLAISES les plus
+proches : « É. Cantona » (graphie des saisons françaises) devient **« E. Cantona »**, « Andy Cole » **« A.
+Cole »**, « Roy Keane » **« R. Keane »**. Le piège du jour : **Kevin Scott** (Tottenham, défenseur, né en
+1966) prenait le nom « K. Scott » que le jeu donne en 1995-96 à **Keith Scott**, attaquant né en 1967 — un an
+d'écart ne départage pas deux hommes. **Règle : même homme = naissance à un an près ET poste compatible**
+(un gardien reste gardien, un défenseur ne devient pas avant-centre) ; Kevin porte son nom entier. Craig
+Fleming (Oldham) et C. Fleming (Curtis, Middlesbrough) sont distingués de même. **Popescu**, au vivier 1994
+sous Tottenham, n'y arrive que le 9 septembre et n'est pas au plateau.
+
+`harness-ang9495.cjs` garde tout cela, et `harness-angleterre.cjs` prend la saison tout seul.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
