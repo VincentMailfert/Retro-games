@@ -55,7 +55,8 @@ const PRIS = new Map(); // nom retenu -> tm
 function resoudre(j) {
   if (!/^[0-9]{4}/.test(j.naissance || "")) return null;
   const by = +j.naissance.slice(0, 4);
-  const formes = [...new Set([j.court, formeInitiale(j.nom), formeInitiales(j.nom), j.nom])];
+  const t0 = j.nom.trim().split(/\s+/), formeCourte = t0.length > 2 ? t0[0][0].toUpperCase() + ". " + t0[t0.length - 1] : formeInitiale(j.nom);
+  const formes = [...new Set([j.court, formeInitiale(j.nom), formeInitiales(j.nom), formeCourte, j.nom])];
   // toutes les graphies que le jeu donne à CE même homme (à l'accent près), la plus proche d'abord :
   // le recruteur de l'été, puis les tables anglaises par proximité d'année, puis le reste
   const cands = [];

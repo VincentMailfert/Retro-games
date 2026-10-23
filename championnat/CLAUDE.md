@@ -4909,6 +4909,29 @@ générés, ne doit porter aucun nom de joueur curé (`harness-textes-ang.cjs`).
 avec Port Vale : « Ainsworth » sort de la liste et laisse sa place à « Hebblethwaite ». À refaire à chaque
 saison si ce harnais rougit.
 
+### ANG 1998-99 — LA NUIT DE BARCELONE (v2.10)
+Neuvième saison anglaise, assemblée en séance le 23/10/2026. Le triplé de Manchester United, la finale de
+Barcelone gagnée dans le temps additionnel (Sheringham, Solskjær). Ginola joueur de l'année PFA et FWA (87),
+Anelka meilleur espoir (83), Yorke, Owen et Hasselbaink co-meilleurs buteurs. **Yorke est à Aston Villa** :
+au coup d'envoi du 15 août il y est encore, il signe à United le 20. Notes : 530 héritées de 1997-98, 85
+plus lointaines, 2 du recruteur, 143 calculées ; distribution 70.5 / 66.
+Cinq hommes sortent faute de nom libre ou d'âge (Alan Smith à Leeds, Paul Robinson à Watford, Fernando,
+Marcelo, et Steve Ogrizovic à 41 ans) et cinq hommes présents au coup d'envoi les remplacent (Lee Sharpe,
+Wallemme, Gibbs, Froggatt, Dellas). Quatre pépites formées au club : **Lee Marshall** (Norwich, 4 150
+minutes, que le relevé avait écarté à tort), Langley, Lunt, Butterfield ; cinq candidats tombent à
+l'historique de transferts (Ljungberg arrivé en septembre, Domi en janvier, McCann en novembre…).
+
+**UN HOMME, UN NOM, D'UNE SAISON À L'AUTRE — ET MES PROPRES SAISONS EN AVAIENT TROIS FAUX.** Le relevé écrit
+les prénoms composés en entier (« Ole Gunnar Solskjaer ») ; l'assemblage ne cherchait pas la forme « initiale
+du premier prénom + nom de famille » que le jeu emploie, si bien que 1996-97 et 1997-98 avaient livré
+**« O. G. Solskjaer », « S. I. Bjørnebye » et « B. T. Kvarme »** à côté de « O. Solskjær », « S. Bjørnebye » et
+« B. Kvarme » des saisons voisines — deux noms pour un homme, ce qu'aucun harnais ne voyait. Corrigé dans les
+tables et dans `PRENOMS_VRAIS`, et l'assemblage essaie désormais cette forme. **`releves/outils/controle-graphies.cjs`**
+liste toutes les paires suspectes du fichier, à relire avant chaque livraison : la plupart sont de vrais
+homonymes (les jumeaux Wallace et Holdsworth, Darren et Duncan Ferguson, Kevin et Keith Scott), mais la liste
+contient aussi des paires plus anciennes des saisons de la routine (Perry Groves, Tony Cascarino, Rod
+Wallace en 1993-94…) qui restent à trancher.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
