@@ -4882,6 +4882,33 @@ saison : chercher les grands noms de la saison suivante qui jouent peu cette ann
 « L. E. Andersen », « L. O. Sigurdsson » (le harnais de pays refuse « L. Erik Andersen »). Et la note calculée
 ne descend plus sous 55, plancher du harnais de pays.
 
+### ANG 1997-98 — WENGER POSE SES VALISES (v2.09)
+Huitième saison anglaise, assemblée en séance le 23/10/2026 à partir de `releves/ANG-1997-98`. Arsenal fait le
+doublé pour la première saison pleine d'Arsène Wenger, un point devant United ; Bergkamp joueur de l'année
+deux fois (89), Owen meilleur espoir et co-meilleur buteur à dix-huit ans (82, potentiel 92). L'échelon du
+dessous perd ses quatre derniers, dont Manchester City. Notes : 461 héritées de 1996-97, 68 plus lointaines,
+4 du recruteur, 227 calculées ; distribution 70.6 / 66. Dix ajustements, dont des titulaires que le calcul
+laissait trop bas parce qu'ils jouaient peu la saison d'avant (Rio Ferdinand 74, Lampard 70, Kewell 73).
+
+**UN RELEVÉ SE CORRIGE, ET L'HISTORIQUE DE TRANSFERTS EST LE JUGE.** Le relevé de la première nuit avait retenu
+**Neil Maddison à Middlesbrough**, où il n'arrive que le 28 octobre 1997 : il est remis à Southampton, où il était
+au coup d'envoi. `ajust-AAAA.json` porte pour cela deux listes, `_retirer` et `_ajouter` (club, nom, raison), que
+l'assemblage applique avant tout le reste. Anthony Ormerod (formé à Middlesbrough) et Jan Åge Fjørtoft (Sheffield
+United, de janvier 1997 à janvier 1998) complètent ; Andy Williams et Marcelo n'ont aucun nom libre.
+**Toute pépite forcée se vérifie à l'historique de transferts** : sur sept candidats titulaires la saison
+suivante, trois étaient arrivés en cours de saison (Andy Griffin à Newcastle en janvier, Danny Mills à Charlton
+en mars, Matt Jansen à Crystal Palace) ; restent Babayaro, Dunne, Woodhouse et Naylor. Les relevés notent
+l'arrivée des retenus, presque jamais celle des autres.
+
+**L'âge suit le jeu.** John Aldridge a 37 ans en 1996-97 dans le jeu (naissance 1959) et Transfermarkt le fait
+naître en 1958 ; le harnais de pays exige qu'un homme vieillisse d'un an exactement. L'assemblage reprend donc
+l'âge de la saison d'avant plus un dès qu'il trouve l'homme dans la saison précédente.
+
+**Les noms des joueurs fictifs reculent devant les vrais.** `NOMS_ANG`, les soixante patronymes des joueurs
+générés, ne doit porter aucun nom de joueur curé (`harness-textes-ang.cjs`). Gareth Ainsworth entre au plateau
+avec Port Vale : « Ainsworth » sort de la liste et laisse sa place à « Hebblethwaite ». À refaire à chaque
+saison si ce harnais rougit.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus

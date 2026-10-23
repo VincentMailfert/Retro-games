@@ -1,0 +1,108 @@
+{
+ "D. Bergkamp": [
+  89,
+  89,
+  "joueur de l'année PFA et de la presse, le doublé d'Arsenal"
+ ],
+ "M. Owen": [
+  82,
+  92,
+  "meilleur espoir PFA et co-meilleur buteur (18 buts) à dix-huit ans"
+ ],
+ "D. Seaman": [
+  83,
+  84,
+  "gardien du champion"
+ ],
+ "_forcer": [
+  [
+   "CHE",
+   "Celestine Babayaro",
+   "arrivé d'Anderlecht le 20/06/1997 (historique de transferts), 1035 minutes, titulaire la saison suivante"
+  ],
+  [
+   "EVE",
+   "Richard Dunne",
+   "formé au club, pro depuis octobre 1996, titulaire la saison suivante"
+  ],
+  [
+   "SHU",
+   "Curtis Woodhouse",
+   "formé au club, titulaire la saison suivante"
+  ],
+  [
+   "WOL",
+   "Lee Naylor",
+   "formé au club, pro depuis août 1997, 1677 minutes"
+  ]
+ ],
+ "_retirer": [
+  [
+   "MID",
+   "Neil Maddison",
+   "arrivé de Southampton le 28/10/1997 (historique de transferts) : au coup d'envoi il est à Southampton"
+  ],
+  [
+   "SOU",
+   "Andy Williams",
+   "aucun nom libre dans le jeu (« A. Williams » et « Andy Williams » sont à d'autres hommes)"
+  ],
+  [
+   "SHU",
+   "Marcelo",
+   "aucun nom libre dans le jeu (« Marcelo » est à un autre homme)"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "SOU",
+   "Neil Maddison",
+   "au club depuis 1988, parti le 28/10/1997 : présent au coup d'envoi"
+  ],
+  [
+   "MID",
+   "Anthony Ormerod",
+   "formé au club, pro depuis 1996, 1265 minutes"
+  ],
+  [
+   "SHU",
+   "Jan Åge Fjørtoft",
+   "arrivé de Middlesbrough en janvier 1997, parti à Barnsley en janvier 1998 : présent au coup d'envoi, 1438 minutes"
+  ]
+ ],
+ "R. Ferdinand": [
+  74,
+  88,
+  "titulaire à dix-neuf ans, première sélection en novembre 1997"
+ ],
+ "F. Lampard": [
+  70,
+  86,
+  "titulaire à West Ham"
+ ],
+ "H. Kewell": [
+  73,
+  86,
+  "titulaire à Leeds à dix-neuf ans"
+ ],
+ "P. Vieira": [
+  80,
+  89,
+  "le doublé d'Arsenal"
+ ],
+ "M. Overmars": [
+  82,
+  84,
+  "douze buts, le but du titre à Old Trafford"
+ ],
+ "D. Dublin": [
+  80,
+  80,
+  "co-meilleur buteur (18 buts), appelé en sélection"
+ ],
+ "P. Di Canio": [
+  80,
+  80,
+  "arrivé du Celtic, douze buts"
+ ]
+}

@@ -12,7 +12,11 @@ const AJUST_BRUT = JSON.parse(fs.readFileSync(path.join(__dirname, `ajust-${SUF}
 const FORCER = AJUST_BRUT._forcer || []; const AJUST = Object.fromEntries(Object.entries(AJUST_BRUT).filter(([k]) => !k.startsWith("_")));
 const html = fs.readFileSync(`${R}/championnat/index.html`, "utf8");
 const strip = s => s.replace(/æ/g, "ae").replace(/Æ/g, "Ae").replace(/[øØ]/g, "o").replace(/ß/g, "ss").replace(/[łŁ]/g, "l").replace(/[đĐðÐ]/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z. -]/g, "");
-const journal = { graphie: [], homonymes: [], innommables: [], forces: [], ajust: [], herit: { prec: 0, suiv: 0, loin: 0, vivier: 0, calc: 0 } };
+const journal = { corrections: [], graphie: [], homonymes: [], innommables: [], forces: [], ajust: [], herit: { prec: 0, suiv: 0, loin: 0, vivier: 0, calc: 0 } };
+
+// corrections à la main du relevé (ajust-AAAA.json) : _retirer / _ajouter, [club, nom entier, raison], chacune vérifiée
+for (const [c, n, r] of (AJUST_BRUT._retirer || [])) { const j = (J[c] || []).find(x => x.nom === n); if (!j) throw new Error("_retirer : " + n + " absent de " + c); j.retenu = false; journal.corrections.push(`retiré de ${c} : ${n} (${r})`); }
+for (const [c, n, r] of (AJUST_BRUT._ajouter || [])) { const j = (J[c] || []).find(x => x.nom === n); if (!j) throw new Error("_ajouter : " + n + " absent de " + c); j.retenu = true; j.arrivee = 2; journal.corrections.push(`ajouté à ${c} : ${n} (${r})`); }
 
 // ---------- toutes les tables STARS du jeu ----------
 const TABLES = {}; // nom -> {an, pays, clubs:{code:[[nom,poste,age,note,pot]]}}
@@ -134,7 +138,9 @@ for (const [div, codes, rangs] of [[1, P.d1, P.classementD1], [2, P.d2, P.classe
       const aj = AJUST[nom] || AJUST[j.nom];
       if (aj) { journal.ajust.push(`${nom} : ${n}/${p} → ${aj[0]}/${aj[1]} (${aj[2]})`); [n, p] = aj; }
       n = Math.max(55, Math.min(90, n)); p = Math.min(92, Math.max(p, n));
-      lignes.push({ nom, poste: j.poste, age, n, p, prenom: j.prenom, nomEntier: j.nom });
+      // cohérence avec le jeu : un homme connu la saison d'avant garde son âge de l'an passé plus un
+      const Aprec = ancre(nom, age).prec; let ageJeu = age; if (Aprec && Aprec.age + 1 !== age) { journal.ages = journal.ages || []; journal.ages.push(`${nom} : ${age} → ${Aprec.age + 1} (âge du jeu la saison d'avant + 1)`); ageJeu = Aprec.age + 1; }
+      lignes.push({ nom, poste: j.poste, age: ageJeu, n, p, prenom: j.prenom, nomEntier: j.nom });
     });
     lignes.sort((a, b) => ordre.indexOf(a.poste) - ordre.indexOf(b.poste) || b.n - a.n);
     (div === 1 ? sortie.stars1 : sortie.stars2)[c] = lignes;
