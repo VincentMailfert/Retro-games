@@ -174,10 +174,11 @@ for (const cle of CLES) {
   ok(dup.length === 0, `${cle} : aucun joueur dans deux clubs${dup.length ? " — " + extrait(dup.map(([n, s]) => n + " (" + s.join("+") + ")")) : ""}`);
   /* Piège de 98/99 : un prénom composé resté collé au patronyme (« J. Arne Riise »). Les particules
      font partie du patronyme et sont légitimes — la liste est celle des harnais de saison française,
-     plus « Mio » et « Sarr » blanchis en 90/91 et « Aït » en 00/01. */
+     plus « Mio » et « Sarr » blanchis en 90/91, « Aït » en 00/01, et « Dalla » en ANG 1999-00
+     (Samuele Dalla Bona, la même particule italienne que « Della »). */
   const PARTICULES = new Set(["Le", "La", "Les", "De", "Del", "Della", "Da", "Das", "Dos", "Di", "Du",
     "Van", "Von", "Der", "Ten", "Ter", "El", "Al", "Ben", "Bin", "Mac", "Mc", "O", "Saint", "San",
-    "Mio", "Sarr", "Aït"]);
+    "Mio", "Sarr", "Aït", "Dalla"]);
   const suspects = Object.keys(ou).filter(n => {
     const m = /^[A-ZÀ-Þ]\.(-[A-ZÀ-Þ]\.)? ([A-ZÀ-Þ][a-zà-ÿ']+) [A-ZÀ-Þ]/.exec(n);
     return m && !PARTICULES.has(m[2]);

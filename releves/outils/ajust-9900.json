@@ -1,0 +1,81 @@
+{
+ "R. Keane": [
+  88,
+  88,
+  "joueur de l'année PFA et FWA"
+ ],
+ "H. Kewell": [
+  82,
+  88,
+  "meilleur espoir PFA"
+ ],
+ "K. Phillips": [
+  83,
+  85,
+  "trente buts, Soulier d'or européen"
+ ],
+ "T. Henry": [
+  83,
+  92,
+  "arrivé de la Juventus en août, dix-sept buts"
+ ],
+ "M. Carrick": [
+  64,
+  88,
+  "formé au club, la saison suivante titulaire"
+ ],
+ "L. King": [
+  66,
+  88,
+  "formé au club"
+ ],
+ "J. Terry": [
+  66,
+  90,
+  "formé au club, capitaine de l'avenir"
+ ],
+ "D. Yorke": [
+  85,
+  85,
+  "vingt buts pour le champion"
+ ],
+ "A. Cole": [
+  82,
+  82,
+  "dix-neuf buts pour le champion"
+ ],
+ "_retirer": [
+  [
+   "CHE",
+   "Mikael Forssell",
+   "le moins utilisé de Chelsea (180 minutes), laisse sa place à Terry"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "CHE",
+   "John Terry",
+   "formé au club, au club au coup d'envoi, prêté à Forest en mars 2000"
+  ],
+  [
+   "LEE",
+   "Danny Hay",
+   "au club au coup d'envoi (remplace Alan Smith, sans nom libre)"
+  ],
+  [
+   "NEW",
+   "Steve Howey",
+   "au club au coup d'envoi (remplace Paul Robinson, sans nom libre)"
+  ],
+  [
+   "WAT",
+   "Darren Ward",
+   "au club au coup d'envoi (remplace Paul Robinson, sans nom libre)"
+  ],
+  [
+   "SHU",
+   "Axel Smeets",
+   "au club au coup d'envoi (remplace Marcelo, sans nom libre)"
+  ]
+ ]
+}

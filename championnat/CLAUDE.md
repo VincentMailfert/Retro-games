@@ -4932,6 +4932,21 @@ homonymes (les jumeaux Wallace et Holdsworth, Darren et Duncan Ferguson, Kevin e
 contient aussi des paires plus anciennes des saisons de la routine (Perry Groves, Tony Cascarino, Rod
 Wallace en 1993-94…) qui restent à trancher.
 
+### ANG 1999-00 — LE SOULIER D'OR DE PHILLIPS (v2.11)
+Dixième saison anglaise, la dernière des années 90, assemblée en séance le 23/10/2026 à partir du relevé fait en
+séance le 22/10. Manchester United champion avec dix-huit points d'avance ; Keane joueur de l'année (88), Kevin
+Phillips trente buts et le Soulier d'or européen pour Sunderland promu (83), Henry arrivé en août (potentiel 92),
+Kewell meilleur espoir (82). Notes : 534 héritées de 1998-99, 77 plus lointaines, 147 calculées. John Terry,
+que le relevé avait laissé hors des retenus, est ajouté à Chelsea (formé au club, prêté à Forest en mars).
+
+**LES PARTICULES SE GARDENT ENTIÈRES.** Un nom à plusieurs mots ne prend une initiale par prénom que jusqu'à la
+particule : « Samuele Dalla Bona » donne **« S. Dalla Bona »**, pas « S. D. Bona » ; « Raimond van der Gouw »
+donne **« R. van der Gouw »**. Mes trois saisons précédentes avaient livré « R. V. D. Gouw », « L. T. Heuvel » et
+« J. V. Blerk » : corrigés dans les tables et dans `PRENOMS_VRAIS`. **« Dalla » entre dans la liste des
+particules de `harness-angleterre.cjs`**, à côté de « Della » qui y était déjà, avec sa note, comme « Mio » et
+« Sarr » en 1990-91 et « Aït » en 2000-01. Et **« Haslam » quitte `NOMS_ANG`** pour « Sowerby » : Steve Haslam entre
+au plateau, comme Gareth Ainsworth en 1997-98.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus

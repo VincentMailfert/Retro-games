@@ -50,7 +50,14 @@ function formeInitiale(nom) {
   return t[0][0].toUpperCase() + ". " + t.slice(1).join(" ");
 }
 // prénom composé : une initiale par prénom (« Lars Erik Andersen » → « L. E. Andersen »)
-function formeInitiales(nom) { const t = nom.trim().split(/\s+/); if (t.length < 3) return formeInitiale(nom); return t.slice(0, -1).map(x => x[0].toUpperCase() + ".").join(" ") + " " + t[t.length - 1]; }
+// une particule (« Dalla », « Van », « De »…) se garde entière : « Samuele Dalla Bona » → « S. Dalla Bona »
+const PARTICULE = /^(van|von|de|da|di|du|le|la|mac|mc|el|al|ben|der|den|ten|ter|saint|san|dalla|della|del|dos|das|dei|do)$/i;
+function formeInitiales(nom) {
+  const t = nom.trim().split(/\s+/); if (t.length < 3) return formeInitiale(nom);
+  const i = t.findIndex((x, k) => k > 0 && PARTICULE.test(x));
+  if (i > 0) return t[0][0].toUpperCase() + ". " + t.slice(i).join(" ");
+  return t.slice(0, -1).map(x => x[0].toUpperCase() + ".").join(" ") + " " + t[t.length - 1];
+}
 const PRIS = new Map(); // nom retenu -> tm
 function resoudre(j) {
   if (!/^[0-9]{4}/.test(j.naissance || "")) return null;
@@ -64,7 +71,7 @@ function resoudre(j) {
     cands.push({ g, rang: e.tab === "VIVIER" ? 0 : (/ANG/.test(e.tab) ? 1 + Math.abs(e.an - AN) : 50 + Math.abs(e.an - AN)) });
   cands.sort((x, y) => x.rang - y.rang);
   for (const c of cands) if (!autreHommeIci(c.g, j.tm)) { if (c.g !== j.court) journal.graphie.push(`${j.nom} : « ${j.court} » → « ${c.g} » (graphie du jeu)`); return c.g; }
-  for (const f of [formeInitiales(j.nom), formeInitiale(j.nom), j.court, j.nom].filter(f => !/^[A-ZÀ-Þ]\. [A-ZÀ-Þ][a-zà-ÿ']+ [A-ZÀ-Þ]/.test(f) || /^[A-ZÀ-Þ]\. (Van|Von|De|Da|Di|Du|Le|La|Mac|Mc|O|El|Al|Ben|Der|Ten|Ter|Saint|San) /.test(f))) if (!autreHomme(NOMS_JEU.get(f), by, j.poste) && !autreHommeIci(f, j.tm)) { if (f === j.nom && f !== j.court) journal.homonymes.push(`${j.nom} porte son nom entier (« ${formeInitiale(j.nom)} » est à un autre homme)`); return f; }
+  for (const f of [formeInitiales(j.nom), formeInitiale(j.nom), j.court, j.nom].filter(f => !/^[A-ZÀ-Þ]\. [A-ZÀ-Þ][a-zà-ÿ']+ [A-ZÀ-Þ]/.test(f) || /^[A-ZÀ-Þ]\. (Van|Von|De|Da|Di|Du|Le|La|Mac|Mc|O|El|Al|Ben|Der|Ten|Ter|Saint|San|Dalla|Della|Del|Dos|Das|Dei) /.test(f))) if (!autreHomme(NOMS_JEU.get(f), by, j.poste) && !autreHommeIci(f, j.tm)) { if (f === j.nom && f !== j.court) journal.homonymes.push(`${j.nom} porte son nom entier (« ${formeInitiale(j.nom)} » est à un autre homme)`); return f; }
   return null;
 }
 function autreHommeIci(n, tm) { return PRIS.has(n) && PRIS.get(n) !== tm; }
