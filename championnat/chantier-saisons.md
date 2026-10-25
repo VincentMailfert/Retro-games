@@ -1,5 +1,9 @@
 # Chantier — une saison par jour
 
+> **Depuis le 25/10/2026, la tâche planifiée ASSEMBLE à partir des relevés** (`releves/ANG-AAAA-AA`) au lieu de
+> relever elle-même : sa consigne complète est `championnat/routine-consigne.md`. La « journée type » ci-dessous
+> reste la référence pour les saisons sans relevé.
+
 Une routine cloud (« MULTIPLEX 95 — une saison par jour », tous les jours à 4h du matin) ajoute **une
 seule** saison de départ au jeu et la **livre sur le champ**. Ce fichier est sa mémoire : la file
 d'attente, les règles du métier, et le journal de ce qui s'est passé. L'agent le lit avant tout le reste,
