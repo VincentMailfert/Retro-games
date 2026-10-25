@@ -86,7 +86,7 @@ La saison du jour est la **première ligne non cochée** de la section « Anglet
 - **Un harnais rouge arrête la livraison.** Il ne se contourne pas, ne s'assouplit pas, et on ne modifie pas
   une assertion pour la faire passer. Seule exception, déjà jugée par l'auteur : compléter une liste de
   référence d'un cas réel (une particule comme « Dalla », un patronyme de `NOMS_ANG`), avec une note.
-- **Si tu bloques** (relevé faux, Transfermarkt injoignable pour vérifier une pépite, harnais rouge) : ne livre
+- **Si tu bloques** (relevé faux, effectif impossible à compléter en vrais joueurs, harnais rouge) : ne livre
   rien de la saison, laisse la ligne non cochée, et pousse **uniquement une ligne de journal** qui explique
   franchement le blocage. Sans accès à Transfermarkt, n'ajoute aucune pépite non vérifiée : livre sans elles
   et dis-le au journal.
