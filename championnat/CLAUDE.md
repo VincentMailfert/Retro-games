@@ -4947,6 +4947,45 @@ particules de `harness-angleterre.cjs`**, à côté de « Della » qui y était 
 « Sarr » en 1990-91 et « Aït » en 2000-01. Et **« Haslam » quitte `NOMS_ANG`** pour « Sowerby » : Steve Haslam entre
 au plateau, comme Gareth Ainsworth en 1997-98.
 
+### ANG 2000-01 — LIVERPOOL RAFLE LES COUPES (v2.12)
+Onzième saison anglaise, **la première assemblée par la tâche planifiée** (26/10/2026) à partir de
+`releves/ANG-2000-01`. Manchester United champion pour la troisième fois de suite ; Liverpool, troisième, gagne
+la Coupe de la Ligue, la FA Cup et la Coupe UEFA. Sheringham joueur de l'année PFA et FWA (85), Gerrard meilleur
+espoir (80, potentiel 92), Hasselbaink meilleur buteur (85), Marcus Stewart dix-neuf buts pour Ipswich cinquième
+(78). Premier League à vingt ; l'échelon du dessous perd ses quatre derniers. Rio Ferdinand est à West Ham : il
+ne rejoint Leeds qu'en novembre. Notes : 508 héritées de 1999-00, 91 plus lointaines, 2 du recruteur, 159
+calculées ; distribution élite 70.3 / 70, dessous 66.2 / 67.
+
+**UN RELEVÉ PEUT OUBLIER LES TITULAIRES : COMPARER LES MINUTES DES ÉCARTÉS À CELLES DU DERNIER RETENU.** Le
+vérificateur ne rougissait que pour Sheffield United, et pourtant le relevé laissait dehors **Henry (4 069
+minutes), Fowler, Joe Cole, Hislop, Solano, Gravesen, Dunn, Boa Morte, Seth Johnson, Riggott, Lunt…** : tous
+portent `arrivee: 1` (Transfermarkt ne garde que la dernière arrivée, et la date tombait après la saison), et le
+relevé n'avait recoupé que quelques cas. Le contrôle à faire avant tout assemblage : **lister, club par club,
+les non-retenus qui ne sont pas marqués « arrivé en cours de saison » et ont plus de minutes que le dernier
+retenu**, puis passer chacun à l'historique de transferts (club au coup d'envoi = destination du dernier
+transfert daté d'avant le coup d'envoi). Quarante et un hommes sont ainsi remis, à la place du moins utilisé de
+leur effectif (minimums de poste gardés), par `_ajouter` / `_retirer` d'`ajust-0001.json`, chaque ligne avec sa
+preuve. Sans historique, deux preuves ont été admises : **l'homme est au même club la saison d'avant dans le
+jeu** et y joue cette saison sans transfert relevé entre les deux (Sorvel, Lee Marshall, Adie Moses,
+Perpetuini, Lawson), ou **son seul transfert est la montée de l'équipe de jeunes du club** après la saison
+(Bromby, Lee Cook). Paul Weller (Burnley, 3 858 minutes), sans l'un ni l'autre, reste dehors faute de preuve.
+Restent dehors aussi, à raison, les arrivés après le coup d'envoi : Bartlett, Ekoku, Edu, Jess, Terry Cooke,
+Stuart Taylor (prêté à Palace le 9 août, dix jours avant la Premier League), Paul Ritchie.
+
+**Les remplacés et les pépites.** Alan Smith (Leeds), Marcelo (Birmingham) et Paul Robinson (Watford) n'ont aucun
+nom libre ; Dave Beasant a 41 ans : McPhail, Burrows et Steve Collis (arrivé à Forest de Barnet le 1er août)
+entrent. Trois pépites forcées et vérifiées : **O'Shea** (réserve de United, prêté à Anvers en janvier),
+**Defoe** (West Ham, prêté à Bournemouth le 25 octobre), **Jenas** (formé à Forest). Sheffield United n'a qu'un
+gardien : le seul autre présent au coup d'envoi, Kevin Blackwell, avait 42 ans ; le jeu le tolère.
+
+**Un homme, un nom : « Phil Gray » devient « P. Gray ».** `controle-graphies.cjs` montrait l'attaquant nord-
+irlandais (né en 1968) sous « Phil Gray » à Luton en 1991-92 et 1992-93 et sous « P. Gray » partout ailleurs, y
+compris à Burnley cette saison : corrigé dans les deux tables anciennes. **« L. B. Morte »** (Luís Boa Morte),
+qui devrait sans doute s'écrire « L. Boa Morte », est laissé tel quel : c'est la graphie du jeu dans les trois
+saisons précédentes, et la changer est une décision de l'auteur, pas de la routine.
+
+`harness-ang0001.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
