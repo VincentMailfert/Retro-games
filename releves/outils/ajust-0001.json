@@ -1,0 +1,483 @@
+{
+ "T. Sheringham": [
+  85,
+  85,
+  "joueur de l'année PFA et FWA, quinze buts en championnat"
+ ],
+ "S. Gerrard": [
+  80,
+  92,
+  "meilleur espoir PFA, du triplé des coupes de Liverpool"
+ ],
+ "J. F. Hasselbaink": [
+  85,
+  86,
+  "meilleur buteur de la Premier League, vingt-trois buts"
+ ],
+ "Marcus Stewart": [
+  78,
+  79,
+  "dix-neuf buts pour Ipswich, cinquième"
+ ],
+ "R. Fowler": [
+  86,
+  86,
+  "en rotation avec Owen et Heskey, buteur en finale de la Coupe de la Ligue et de la Coupe UEFA"
+ ],
+ "D. Dunn": [
+  71,
+  80,
+  "titulaire de la montée de Blackburn, futur international"
+ ],
+ "J. O'Shea": [
+  66,
+  86,
+  "pépite, titulaire dès la saison suivante"
+ ],
+ "J. Defoe": [
+  60,
+  88,
+  "pépite, dix-huit buts en prêt à Bournemouth"
+ ],
+ "J. Jenas": [
+  60,
+  88,
+  "pépite, formé au club, futur international"
+ ],
+ "S. Wright-Phillips": [
+  63,
+  86,
+  "formé au club, futur international"
+ ],
+ "_forcer": [
+  [
+   "MUN",
+   "John O'Shea",
+   "réserve de Manchester United au coup d'envoi (prêté à Anvers en janvier 2001), titulaire dès la saison suivante"
+  ],
+  [
+   "WHU",
+   "Jermain Defoe",
+   "au club au coup d'envoi (prêté à Bournemouth le 25 octobre), dix-huit buts en prêt"
+  ],
+  [
+   "FOR",
+   "Jermaine Jenas",
+   "formé au club, débute à dix-sept ans, international anglais"
+  ]
+ ],
+ "_retirer": [
+  [
+   "ARS",
+   "Christopher Wreh",
+   "31 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "LIV",
+   "Titi Camara",
+   "0 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "LEE",
+   "Alan Smith",
+   "aucun nom libre"
+  ],
+  [
+   "SUN",
+   "Paul Thirlwell",
+   "227 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "SUN",
+   "Éric Roy",
+   "149 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "CHL",
+   "Greg Shields",
+   "205 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "CHL",
+   "Charlie MacDonald",
+   "88 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "NEW",
+   "Stephen Glass",
+   "652 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "LEI",
+   "Steve Walsh",
+   "8 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "WHU",
+   "Scott Minto",
+   "89 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "WHU",
+   "Christian Bassila",
+   "79 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "EVE",
+   "Alessandro Pistone",
+   "437 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "EVE",
+   "Richard Dunne",
+   "270 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "DER",
+   "Steve Elliott",
+   "534 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "DER",
+   "Dean Sturridge",
+   "481 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "MCI",
+   "Terry Dunfield",
+   "58 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "MCI",
+   "Gareth Taylor",
+   "0 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "COV",
+   "Calum Davenport",
+   "45 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "BRD",
+   "Aidan Davison",
+   "495 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "FUL",
+   "Eddie Lewis",
+   "590 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "BLB",
+   "Christian Dailly",
+   "557 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "PNE",
+   "Brian Barry-Murphy",
+   "535 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "BIR",
+   "Marcelo",
+   "aucun nom libre"
+  ],
+  [
+   "WIM",
+   "Dean Blackwell",
+   "672 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "WAT",
+   "Paul Robinson",
+   "aucun nom libre"
+  ],
+  [
+   "WAT",
+   "Allan Smart",
+   "156 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "WAT",
+   "Dominic Foley",
+   "149 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "WAT",
+   "Jóhann Gudmundsson",
+   "27 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "FOR",
+   "Dave Beasant",
+   "41 ans au coup d'envoi, au-delà de ce que le jeu accepte"
+  ],
+  [
+   "GIL",
+   "Junior Lewis",
+   "1349 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "CRW",
+   "Paul Tait",
+   "769 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "CRW",
+   "Peter Smith",
+   "219 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "CRW",
+   "Jamie Collins",
+   "204 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "CRW",
+   "Phil Trainer",
+   "0 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "NOR",
+   "Jean-Yves De Blasiis",
+   "222 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "NOR",
+   "Raymond de Waard",
+   "183 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "NOR",
+   "Craig Bellamy",
+   "90 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "BNS",
+   "Mateo Corbo",
+   "882 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "SHW",
+   "Richard Cresswell",
+   "254 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "GRI",
+   "Kingsley Black",
+   "386 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ],
+  [
+   "SKP",
+   "Alan Bailey",
+   "157 minutes, laisse sa place à un homme présent au coup d'envoi qui a plus joué"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "ARS",
+   "Thierry Henry",
+   "4069 minutes ; au club au coup d'envoi (historique de transferts : Juventus → club le 03/08/1999)"
+  ],
+  [
+   "LIV",
+   "Robbie Fowler",
+   "2906 minutes ; au club au coup d'envoi (historique de transferts : Liverpool U18 → club le 23/04/1992)"
+  ],
+  [
+   "LEE",
+   "Stephen McPhail",
+   "445 minutes ; au club au coup d'envoi (historique de transferts : Leeds U18 → club le 01/07/1997)"
+  ],
+  [
+   "SUN",
+   "Stanislav Varga",
+   "1137 minutes ; au club au coup d'envoi (historique de transferts : Slo. Bratislava → club le 01/07/2000)"
+  ],
+  [
+   "SUN",
+   "George McCartney",
+   "257 minutes ; au club au coup d'envoi (historique de transferts : Sunderland U18 → club le 01/07/1998)"
+  ],
+  [
+   "CHL",
+   "Chris Powell",
+   "2859 minutes ; au club au coup d'envoi (historique de transferts : Derby → club le 01/07/1998)"
+  ],
+  [
+   "CHL",
+   "John Salako",
+   "478 minutes ; au club au coup d'envoi (historique de transferts : Fulham → club le 20/08/1999)"
+  ],
+  [
+   "NEW",
+   "Nolberto Solano",
+   "2985 minutes ; au club au coup d'envoi (historique de transferts : Boca Juniors → club le 12/08/1998)"
+  ],
+  [
+   "LEI",
+   "Steve Guppy",
+   "2255 minutes ; au club au coup d'envoi (historique de transferts : Port Vale → club le 28/02/1997)"
+  ],
+  [
+   "WHU",
+   "Shaka Hislop",
+   "3555 minutes ; au club au coup d'envoi (historique de transferts : Newcastle → club le 06/07/1998)"
+  ],
+  [
+   "WHU",
+   "Joe Cole",
+   "2566 minutes ; au club au coup d'envoi (historique de transferts : West Ham U18 → club le 01/08/1998)"
+  ],
+  [
+   "EVE",
+   "Thomas Gravesen",
+   "2842 minutes ; au club au coup d'envoi (historique de transferts : Hamburg → club le 01/07/2000)"
+  ],
+  [
+   "EVE",
+   "Francis Jeffers",
+   "890 minutes ; au club au coup d'envoi (historique de transferts : Everton U18 → club le 01/08/1997)"
+  ],
+  [
+   "DER",
+   "Chris Riggott",
+   "2895 minutes ; au club au coup d'envoi (historique de transferts : Derby U18 → club le 01/07/1999)"
+  ],
+  [
+   "DER",
+   "Seth Johnson",
+   "2840 minutes ; au club au coup d'envoi (historique de transferts : Crewe Alexandra → club le 01/07/1999)"
+  ],
+  [
+   "MCI",
+   "Shaun Wright-Phillips",
+   "1184 minutes ; au club au coup d'envoi (historique de transferts : Man City U18 → club le 01/07/1999)"
+  ],
+  [
+   "MCI",
+   "Paul Dickov",
+   "1718 minutes ; au club au coup d'envoi (historique de transferts : Arsenal → club le 23/08/1996)"
+  ],
+  [
+   "COV",
+   "Marcus Hall",
+   "1958 minutes ; au club au coup d'envoi (historique de transferts : Coventry U18 → club le 01/07/1994)"
+  ],
+  [
+   "BRD",
+   "Dean Windass",
+   "2705 minutes ; au club au coup d'envoi (historique de transferts : Oxford United → club le 04/03/1999)"
+  ],
+  [
+   "FUL",
+   "Luís Boa Morte",
+   "2706 minutes ; au club au coup d'envoi (historique de transferts : Southampton → club le 01/07/2000)"
+  ],
+  [
+   "BLB",
+   "David Dunn",
+   "4324 minutes ; au club au coup d'envoi (historique de transferts : Blackburn U18 → club le 01/07/1998)"
+  ],
+  [
+   "PNE",
+   "Graham Alexander",
+   "3099 minutes ; au club au coup d'envoi (historique de transferts : Luton → club le 25/03/1999)"
+  ],
+  [
+   "BIR",
+   "David Burrows",
+   "729 minutes ; au club au coup d'envoi (historique de transferts : Coventry → club le 04/07/2000)"
+  ],
+  [
+   "WIM",
+   "Mark Williams",
+   "4590 minutes ; au club au coup d'envoi (historique de transferts : Watford → club le 01/08/2000)"
+  ],
+  [
+   "WAT",
+   "Darren Ward",
+   "3922 minutes ; au club au coup d'envoi (historique de transferts : QPR → club le 01/03/2000)"
+  ],
+  [
+   "WAT",
+   "Lee Cook",
+   "210 minutes ; formé au club (moins de 18 ans de Watford jusqu'en 2001)"
+  ],
+  [
+   "WAT",
+   "Tommy Smith",
+   "3605 minutes ; au club au coup d'envoi (historique de transferts : Watford U18 → club le 01/07/1997)"
+  ],
+  [
+   "WAT",
+   "Heidar Helguson",
+   "2142 minutes ; au club au coup d'envoi (historique de transferts : Lillestrøm → club le 14/01/2000)"
+  ],
+  [
+   "FOR",
+   "Steve Collis",
+   "0 minutes ; au club au coup d'envoi (historique de transferts : Barnet → club le 01/08/2000)"
+  ],
+  [
+   "GIL",
+   "Nicky Southall",
+   "4088 minutes ; au club au coup d'envoi (historique de transferts : Grimsby Town → club le 01/12/1997)"
+  ],
+  [
+   "CRW",
+   "Kenny Lunt",
+   "4549 minutes ; au club au coup d'envoi (historique de transferts : Crewe U18 → club le 01/07/1997)"
+  ],
+  [
+   "CRW",
+   "Neil Sorvel",
+   "4354 minutes ; au club en 1999-00 dans le jeu, aucun transfert jusqu'en 2005 : au club au coup d'envoi"
+  ],
+  [
+   "CRW",
+   "Mark Rivers",
+   "3277 minutes ; au club au coup d'envoi (historique de transferts : Crewe U18 → club le 01/07/1994)"
+  ],
+  [
+   "CRW",
+   "Rodney Jack",
+   "2616 minutes ; au club au coup d'envoi (historique de transferts : Torquay → club le 01/07/1998)"
+  ],
+  [
+   "NOR",
+   "Darel Russell",
+   "3438 minutes ; au club au coup d'envoi (historique de transferts : Norwich U18 → club le 01/07/1998)"
+  ],
+  [
+   "NOR",
+   "Lee Marshall",
+   "3280 minutes ; formé au club, au club en 1998-99 et 1999-00 dans le jeu, vendu à Leicester en mars 2001"
+  ],
+  [
+   "NOR",
+   "Paul McVeigh",
+   "548 minutes ; au club au coup d'envoi (historique de transferts : Tottenham → club le 01/03/2000)"
+  ],
+  [
+   "BNS",
+   "Adie Moses",
+   "1136 minutes ; au club en 1998-99 et 1999-00 dans le jeu, vendu à Huddersfield en décembre 2000"
+  ],
+  [
+   "SHW",
+   "Leigh Bromby",
+   "1587 minutes ; formé au club (équipe de jeunes de Sheffield Wednesday jusqu'en 2001)"
+  ],
+  [
+   "GRI",
+   "Menno Willems",
+   "1682 minutes ; au club au coup d'envoi (historique de transferts : Vitesse → club le 01/07/2000)"
+  ],
+  [
+   "SKP",
+   "Ian Lawson",
+   "252 minutes ; au club en 1999-00 dans le jeu, aucun transfert relevé"
+  ]
+ ]
+}
