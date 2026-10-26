@@ -4984,6 +4984,8 @@ compris à Burnley cette saison : corrigé dans les deux tables anciennes. **« 
 qui devrait sans doute s'écrire « L. Boa Morte », est laissé tel quel : c'est la graphie du jeu dans les trois
 saisons précédentes, et la changer est une décision de l'auteur, pas de la routine.
 
+Et **« Cartwright » quitte `NOMS_ANG` pour « Ackroyd »** : Lee Cartwright entre au plateau avec Preston.
+
 `harness-ang0001.cjs` garde tout cela.
 
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
