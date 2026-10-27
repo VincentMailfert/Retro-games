@@ -2892,8 +2892,29 @@ toujours « raconter quelque chose ».
   `retourné` = geste, `coup-franc` = coupfranc) **uniquement pour régénérer** — le jeu ne les charge pas. Pipeline
   d'ajout : redimensionner ~360px côté max + quantifier la palette (~64 couleurs, renforce le pixel et allège) via
   Pillow, encoder en base64, ajouter à la bonne clé d'`IMG_MOMENT`. **Ne pas** mettre d'images brutes 1 Mo en
-  data: URI (poids HTML — l'index.html pèse déjà ~545 Ko avec ces 5 vignettes). Mêmes contraintes que les autres
+  data: URI (chaque vignette pèse 55 à 80 Ko encodée). Mêmes contraintes que les autres
   overlays : flash nettoyé par `abandonneDirect()`, tout court-circuité en `EN_TEST`.
+- **HUIT VIGNETTES DE PLUS, ET DEUX MOMENTS NEUFS (v2.14, 27/10/2026)** : l'auteur a photographié six pages d'un
+  beau livre de foot ; elles ont été **redessinées en pixel art anonyme** avec Higgsfield (modèle `gpt_image_2_5`),
+  visages génériques, maillots unis, aucun nom, numéro, sponsor ni logo, ballon à pentagones des années 90.
+  `IMG_MOMENT` tient désormais : `cagade` ×3 (+ `cagade-poteau`), `coupfranc` ×4 (+ `cf-pluie`, `cf-profil`,
+  `cf-mur`), **`gesteTete`** (la tête plongeante, montrée seulement quand le geste tiré est « une TÊTE PLONGEANTE
+  au ras du gazon », ajouté à la liste des gestes), **`parade`** ×2 (`arret-claquette`, `arret-poing`) et
+  **`corner`**. Au passage, le geste était pioché DEUX fois (une pour `mo.geste`, une pour l'annonce) : un seul
+  tirage désormais, et le harnais le garde. **Leçon de fabrication, payée trois fois ce soir-là** : décrire une
+  scène en mots donne une géométrie fausse (drapeau de corner hors du coin, gardien qui plonge vers son filet
+  depuis l'extérieur) ; il faut **partir de la photo elle-même** en référence et ne changer que les gens et les
+  marques. Et **redresser la photo d'abord** : celles du téléphone arrivent couchées (EXIF orientation 6), le
+  modèle redessine alors la scène de travers, tête du gardien à l'envers.
+  Les deux moments neufs prennent chacun **3 % des temps forts de la 90ᵉ, sur la tranche du tacle** (choix de
+  l'auteur : 0,52 → 0,55 corner, 0,55 → 0,58 parade, le tacle garde 0,58 → 0,64) :
+  • **`corner`** (interactif, `momentCorner`) : le tireur est `tireurDuXI`, la « tête » le meilleur D ou A
+  restant (`mo.uid`), et l'on choisit premier poteau, second poteau ou en retrait (le meilleur milieu frappe).
+  Une chance sur dix environ, bornée à [4 % ; 25 %] ; un but sur corner ne porte ni (cf) ni (sp). Sur un but,
+  `mo.uid` passe au vrai buteur pour que la biographie suive.
+  • **`parade`** (flash, non interactif) : l'arrêt miracle de VOTRE gardien face au meilleur M/A adverse. Le score
+  ne bouge jamais, le gardien gagne +6 de moral, et l'arrêt entre dans sa biographie si l'on n'a pas perdu.
+  Gardés par la **section B quater de `harness.cjs`**.
 - **Montée de tension** (`MONTEE_BUT` + `MONTEE_FRAPPE`, en direct seulement) : avant un but du téléscripteur **MAIS
   AUSSI avant certaines grosses occasions ratées**, l'action se construit en **deux temps**, chacun suivi d'un
   battement (`Math.max(650, tickerDelai)`) AVANT la résolution et son flash. 1er temps = l'action s'installe (ambiance
