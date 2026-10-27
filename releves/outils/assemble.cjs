@@ -16,6 +16,8 @@ const journal = { corrections: [], graphie: [], homonymes: [], innommables: [], 
 
 // corrections à la main du relevé (ajust-AAAA.json) : _retirer / _ajouter, [club, nom entier, raison], chacune vérifiée
 for (const [c, n, r] of (AJUST_BRUT._retirer || [])) { const j = (J[c] || []).find(x => x.nom === n); if (!j) throw new Error("_retirer : " + n + " absent de " + c); j.retenu = false; journal.corrections.push(`retiré de ${c} : ${n} (${r})`); }
+// _corriger : [club, nom entier, {champ: valeur}, raison], pour une naissance ou un poste faux du relevé (preuve dans la raison)
+for (const [c, n, ch, r] of (AJUST_BRUT._corriger || [])) { const j = (J[c] || []).find(x => x.nom === n); if (!j) throw new Error("_corriger : " + n + " absent de " + c); Object.assign(j, ch); journal.corrections.push(`corrigé à ${c} : ${n} ${JSON.stringify(ch)} (${r})`); }
 for (const [c, n, r] of (AJUST_BRUT._ajouter || [])) { const j = (J[c] || []).find(x => x.nom === n); if (!j) throw new Error("_ajouter : " + n + " absent de " + c); j.retenu = true; j.arrivee = 2; journal.corrections.push(`ajouté à ${c} : ${n} (${r})`); }
 
 // ---------- toutes les tables STARS du jeu ----------
