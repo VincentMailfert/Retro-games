@@ -148,6 +148,55 @@ try {
   if (!pb) ok("tirages : " + DECOR.map(t => t + " " + (vus[t] || 0)).join(" · "));
 } catch (e) { fail("exception décor : " + e.stack); }
 
+/* ===== B quater) le corner et l'arrêt miracle (v2.15) =====
+   Deux tranches neuves, prises sur celle du tacle (0,52 → 0,55 corner, 0,55 → 0,58 arrêt). Le corner est
+   interactif et nomme un tireur ET une tête distincts ; l'arrêt miracle ne touche jamais au score, il ne fait
+   que regonfler son gardien. Les deux ont leur image, et le geste « tête plongeante » a la sienne. */
+console.log("B quater) Corner de la dernière chance et arrêt miracle");
+try {
+  api.nouvellePartie(api.CLUBS[2].id);
+  const G = api.getG();
+  const moi = G.clubs.find(c => c.id === G.monClub);
+  const adv = G.clubs.find(c => c.id !== moi.id && c.id !== "OM" && c.id !== "PSG");
+  const vraiRandom = Math.random;
+  const force = (t) => { let premier = true; Math.random = () => { if (premier) { premier = false; return t; } return vraiRandom(); }; };
+  let pb = null, buts = 0, nC = 0;
+  try {
+    for (let i = 0; i < 2000 && !pb; i++) {
+      force(0.53); const mo = api.tireMoment(moi, adv); Math.random = vraiRandom;
+      if (!mo || mo.type !== "corner") { pb = "t=0,53 doit tirer un corner, pas " + (mo && mo.type); break; }
+      if (!api.byUid(mo.uid) || !api.byUid(mo.tir)) { pb = "corner : tireur ou tête introuvable"; break; }
+      if (mo.uid === mo.tir) { pb = "corner : le tireur ne peut pas reprendre son propre centre"; break; }
+      if (/—/.test(mo.annonce)) { pb = "corner : tiret long dans l'annonce"; break; }
+      const d = api.autoMoment(mo); if (d !== 0 && d !== 1) { pb = "corner delta=" + d; break; }
+      buts += d; nC++;
+    }
+    const taux = buts / Math.max(1, nC);
+    if (!pb && (taux < 0.06 || taux > 0.20)) pb = "corner : taux de réussite hors de [6 % ; 20 %] (" + (100 * taux).toFixed(1) + " %)";
+    if (!pb) ok("corner : tireur et tête distincts, " + (100 * taux).toFixed(1) + " % de buts sur " + nC + " corners");
+    for (let i = 0; i < 500 && !pb; i++) {
+      force(0.565); const mo = api.tireMoment(moi, adv); Math.random = vraiRandom;
+      if (!mo || mo.type !== "parade") { pb = "t=0,565 doit tirer un arrêt miracle, pas " + (mo && mo.type); break; }
+      const g = api.byUid(mo.gk);
+      if (!g || g.pos !== "G" || g.club !== moi.id) { pb = "arrêt miracle : ce n'est pas votre gardien"; break; }
+      g.moral = 50; const d = api.autoMoment(mo);
+      if (d !== 0) { pb = "arrêt miracle : delta=" + d + ", il ne doit jamais toucher au score"; break; }
+      if (g.moral !== 56) { pb = "arrêt miracle : le moral du gardien devrait gagner 6 points"; break; }
+      if (/—/.test(mo.annonce)) { pb = "arrêt miracle : tiret long dans l'annonce"; break; }
+    }
+    if (!pb) ok("arrêt miracle : toujours votre gardien, score intact, +6 de moral");
+    force(0.60); const tac = api.tireMoment(moi, adv); Math.random = vraiRandom;
+    if (!pb && tac && tac.type !== "tacle" && tac.type !== "provoc" && tac.type !== "but50") pb = "t=0,60 devrait rester dans la tranche du tacle, pas " + tac.type;
+    // le geste : une seule pioche, l'annonce dit le geste retenu
+    for (let i = 0; i < 400 && !pb; i++) {
+      force(0.78); const mo = api.tireMoment(moi, adv); Math.random = vraiRandom;
+      if (mo && mo.type === "geste" && !mo.annonce.includes(mo.geste)) pb = "geste : l'annonce ne dit pas le geste tiré (" + mo.geste + ")";
+    }
+    if (!pb) ok("but d'anthologie : l'annonce et le geste tiré concordent (l'image de la tête plongeante peut suivre)");
+  } finally { Math.random = vraiRandom; }
+  if (pb) fail(pb);
+} catch (e) { fail("exception corner / arrêt : " + e.stack); }
+
 /* ===== B bis) tactique en direct SUR UN MATCH À MOMENT (v1.04) =====
    Depuis v1.04 on peut changer de consigne même quand un moment attend à la 90e : le recollage doit donc
    rendre un fil qui tient encore debout — moment présent une seule fois, sifflet en dernier, score = lignes-but. */
