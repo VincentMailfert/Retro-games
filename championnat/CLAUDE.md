@@ -4988,6 +4988,42 @@ Et **« Cartwright » quitte `NOMS_ANG` pour « Ackroyd »** : Lee Cartwright en
 
 `harness-ang0001.cjs` garde tout cela.
 
+### ANG 2001-02 — WILTORD ÉTEINT OLD TRAFFORD (v2.13)
+Douzième saison anglaise, assemblée par la tâche planifiée le 27/10/2026 à partir de `releves/ANG-2001-02`,
+**sans aucun accès au réseau** : le proxy de la machine refusait Transfermarkt, Wikipedia et neilbrown. Arsenal fait
+le doublé, le titre gagné à Old Trafford sur un but de Wiltord, sept points devant Liverpool ; Henry meilleur buteur
+(90), Pirès joueur de l'année de la presse (87), van Nistelrooy joueur de l'année PFA pour sa première saison (88),
+Bellamy meilleur espoir (80, potentiel 86). Premier League à vingt ; l'échelon du dessous perd ses quatre derniers
+(Rotherham, Crewe, Barnsley, Stockport). Notes : 510 héritées de 2000-01, 79 plus lointaines, 3 du recruteur, 168
+calculées ; distribution élite 70.4 / 70, dessous 66.2 / 67. **Aucune pépite forcée** : sans historique de
+transferts, aucune ne pouvait se vérifier (règle de la consigne).
+
+**SANS RÉSEAU, LES RELEVÉS VOISINS SONT LA PREUVE.** Les relevés 2000-01 et 2002-03, déjà sur `main`, sont du
+Transfermarkt : un homme **au club au coup d'envoi 2000 (relevé 2000-01, `arrivee` 2) et au même club en 2002-03**
+y était au coup d'envoi 2001, c'est la méthode neilbrown des saisons encadrantes. La saison 2000-01 du jeu et les
+historiques de transferts écrits dans `ajust-0001.json` servent de même. Chaque ligne d'`ajust-0102.json` porte sa preuve.
+
+**PRESTON ÉTAIT FAUX DANS LE RELEVÉ.** Faute de Transfermarkt, le relevé l'avait reconstitué de Wikipedia, sans minutes,
+et cela se voit hors ligne : **Rob Edwards** prenait l'identifiant et la naissance d'un homonyme né en 1982 (le
+défenseur de Preston est né en 1973, au jeu en 2000-01), **O'Hanlon** naissait en 1982 au lieu de 1962, **Moilanen** en
+1971 au lieu de 1973, **Etuhu** était retenu deux fois (aussi à Manchester City, où il était au coup d'envoi),
+**Ainsworth** était à Wimbledon au coup d'envoi d'après le même relevé, et le capitaine **Graham Alexander** restait dehors.
+Preston est refait avec les seuls hommes prouvés au club de part et d'autre : dix-huit pile, et quatre attaquants
+parce qu'**Iain Anderson** reprend le poste d'attaquant du relevé 2000-01 et du jeu. Gallacher, Wijnhard, Healy et
+Lucketti sortent faute de preuve. « Michael Jackson » reprend la graphie du jeu, **« Mike Jackson »**. Pour cela,
+`assemble.cjs` gagne une liste **`_corriger`** (club, nom, champs, raison), appliquée avant `_retirer` et `_ajouter`.
+
+**Deux arrivées « corrigées de mémoire » sortent.** Le relevé a passé une soixantaine d'`arrivee` de 1 à 2 « par
+connaissance de la source », sans historique. **Dickov** (Leicester) était à Manchester City la saison d'avant
+(historique relevé en 2000-01) et n'a à Leicester que les minutes d'une demi-saison ; **Carbone** (Derby) était à
+Bradford, et son arrivée est « par défaut », sans date : tous deux arrivent en cours de saison, ils sortent pour
+Gunnlaugsson et Adam Murray, au club la saison d'avant. Alan Smith, Marcelo, Paul Robinson (Watford) et Gareth Williams
+(Forest) n'ont aucun nom libre : Burns, Furlong, Panayi et Gary Jones les remplacent. **Restent à revoir quand
+Transfermarkt répondra** les autres arrivées corrigées de mémoire et sans preuve hors ligne, Darren Ward (Millwall),
+Cadamarteri (Bradford) et Ilic (Portsmouth) en tête : ils pourraient être arrivés en cours de saison.
+
+`harness-ang0102.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus

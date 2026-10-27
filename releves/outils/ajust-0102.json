@@ -1,0 +1,44 @@
+{
+ "R. van Nistelrooy": [88, 89, "joueur de l'année PFA, vingt-trois buts en championnat pour sa première saison"],
+ "R. Pirès": [87, 87, "joueur de l'année FWA, du doublé d'Arsenal malgré sa blessure au genou de mars"],
+ "C. Bellamy": [80, 86, "meilleur espoir PFA, arrivé de Coventry pendant l'été"],
+ "T. Henry": [90, 92, "meilleur buteur de la Premier League, vingt-quatre buts, du doublé d'Arsenal"],
+ "_forcer": [],
+ "_corriger": [
+  ["PNE", "Michael Jackson", {"court": "Mike Jackson"}, "même homme (né le 04/12/1973) que « Mike Jackson », à Preston au jeu en 2000-01 : la graphie du jeu gagne"],
+  ["PNE", "Rob Edwards", {"tm": 15812, "naissance": "1973-07-01"}, "le relevé (Preston reconstitué de Wikipedia) a pris l'identifiant et la naissance d'un homonyme né en 1982 ; le défenseur de Preston est l'id 15812, né le 01/07/1973, dans les relevés Transfermarkt 2000-01 et 2002-03 et au jeu en 2000-01 (« R. Edwards », 27 ans)"],
+  ["PNE", "Tepi Moilanen", {"tm": 12585, "naissance": "1973-12-12"}, "id 12585, né le 12/12/1973 dans les relevés Transfermarkt 2000-01 et 2002-03 et au jeu en 2000-01 (27 ans) ; le relevé disait 1971"],
+  ["PNE", "Iain Anderson", {"poste": "A"}, "attaquant dans le relevé Transfermarkt 2000-01 et au jeu en 2000-01 ; il donne le quatrième attaquant de Preston"],
+  ["LEI", "Arnar Gunnlaugsson", {"poste": "A"}, "attaquant dans le relevé Transfermarkt 2000-01 et au jeu ; il remplace l'attaquant Dickov"]
+ ],
+ "_retirer": [
+  ["LEE", "Alan Smith", "aucun nom libre"],
+  ["BIR", "Marcelo", "aucun nom libre"],
+  ["WAT", "Paul Robinson", "aucun nom libre"],
+  ["FOR", "Gareth Williams", "aucun nom libre (« Gareth Williams » et « G. Williams » sont à deux autres hommes)"],
+  ["LEI", "Paul Dickov", "à Manchester City la saison d'avant (historique de transferts relevé en 2000-01) ; son arrivée à Leicester, corrigée de mémoire dans le relevé, n'est pas prouvée et ses 963 minutes sont celles d'une demi-saison : il y arrive en février 2002"],
+  ["DER", "Benny Carbone", "à Bradford la saison d'avant (relevé 2000-01) ; son arrivée à Derby est « par défaut » dans le relevé, sans date : il y est prêté en octobre 2001"],
+  ["PNE", "Kelham O'Hanlon", "présence non prouvée : le relevé (Wikipedia) le fait naître en 1982, Transfermarkt en 1962"],
+  ["PNE", "Chris Lucketti", "présence au coup d'envoi non prouvée hors ligne (Preston reconstitué de Wikipedia, absent du relevé 2000-01)"],
+  ["PNE", "Gareth Ainsworth", "à Wimbledon au coup d'envoi d'après le même relevé (Transfermarkt, arrivée d'avant la saison) : Preston ne l'a qu'en prêt, en cours de saison"],
+  ["PNE", "Dickson Etuhu", "retenu deux fois par le relevé : il est aussi à Manchester City (1 000 minutes), où il était au coup d'envoi ; Preston le prend en cours de saison"],
+  ["PNE", "Clyde Wijnhard", "présence au coup d'envoi non prouvée hors ligne (Preston reconstitué de Wikipedia, absent des relevés 2000-01 et 2002-03 à Preston)"],
+  ["PNE", "David Healy", "présence au coup d'envoi non prouvée hors ligne (Preston reconstitué de Wikipedia, absent du relevé 2000-01 à Preston)"],
+  ["PNE", "Kevin Gallacher", "présence au coup d'envoi non prouvée hors ligne (Preston reconstitué de Wikipedia, absent des relevés 2000-01 et 2002-03 à Preston)"]
+ ],
+ "_ajouter": [
+  ["LEE", "Jacob Burns", "au club en 2000-01 dans le jeu, date d'arrivée Transfermarkt d'avant le coup d'envoi"],
+  ["BIR", "Paul Furlong", "au club au coup d'envoi 2000 (relevé Transfermarkt 2000-01), 375 minutes cette saison, date d'arrivée d'avant le coup d'envoi"],
+  ["WAT", "James Panayi", "au club en 2000-01 dans le jeu, 173 minutes cette saison, date d'arrivée d'avant le coup d'envoi"],
+  ["FOR", "Gary Jones", "au club en 2000-01 dans le jeu, 183 minutes cette saison, date d'arrivée d'avant le coup d'envoi"],
+  ["LEI", "Arnar Gunnlaugsson", "au club en 2000-01 dans le jeu, 69 minutes cette saison, date d'arrivée d'avant le coup d'envoi"],
+  ["DER", "Adam Murray", "au club en 2000-01 dans le jeu, 387 minutes cette saison, date d'arrivée d'avant le coup d'envoi"],
+  ["PNE", "David Lucas", "à Preston dans les relevés Transfermarkt 2000-01 (coup d'envoi) et 2002-03, et au jeu en 2000-01 : au club de part et d'autre"],
+  ["PNE", "Graham Alexander", "historique de transferts relevé en 2000-01 (Luton → Preston le 25/03/1999), à Preston dans le relevé 2002-03"],
+  ["PNE", "Brian Barry-Murphy", "à Preston dans les relevés Transfermarkt 2000-01 (coup d'envoi) et 2002-03 : au club de part et d'autre"],
+  ["PNE", "Iain Anderson", "à Preston dans les relevés Transfermarkt 2000-01 (coup d'envoi) et 2002-03, et au jeu en 2000-01 : au club de part et d'autre"],
+  ["PNE", "Jon Macken", "à Preston au coup d'envoi 2000 (relevé Transfermarkt 2000-01) et au jeu en 2000-01, de l'effectif 2001-02 (Wikipedia) ; vendu à Manchester City en mars 2002"],
+  ["PNE", "Pawel Abbott", "arrivé à Preston pendant la saison 2000-01 (relevé Transfermarkt 2000-01), à Preston dans le relevé 2002-03 : au club au coup d'envoi 2001"],
+  ["PNE", "Michael Keane", "à Preston dans les relevés Transfermarkt 2000-01 (37 minutes, coup d'envoi) et 2002-03 : au club de part et d'autre"]
+ ]
+}
