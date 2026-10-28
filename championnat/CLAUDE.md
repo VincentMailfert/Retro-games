@@ -2934,6 +2934,27 @@ toujours « raconter quelque chose ».
   site), ce qui touche au principe « zéro requête réseau » et mérite une décision de l'auteur.
   **Piège payé au passage** : lancer les 61 harnais en parallèle avec un fichier de 4,7 Mo épuise la mémoire de la
   machine ; un harnais est tué (code 137) sans avoir échoué. Les relancer par petits paquets.
+- **LES IMAGES SORTENT DU FICHIER, ET LES CÉRÉMONIES ENTRENT EN JEU (v2.17, 28/10/2026)** : décision de l'auteur,
+  « dossier à part ». `IMG_MOMENT` ne porte plus d'URI `data:` mais des **chemins** vers `img/moments/<clé>-<n>.png`
+  (360 px au plus, 64 couleurs, extraites telles quelles) ; `index.html` retombe de 4,7 à ~2,2 Mo. Le workflow de
+  publication copie tout `championnat/` sauf `.*`, `*.cjs`, `*.md`, `*.json`, `audit/` et `docs/` : le dossier `img/`
+  part donc en ligne. **Le jeu n'est plus « zéro requête »** : quatre secondes après l'accueil, un préchargeur tire les
+  vignettes une à une (60 ms entre deux) pour qu'un flash de but n'attende jamais son image ; il ne tourne pas au harnais.
+  **Pour ajouter une vignette** : déposer le PNG dans `img/moments/`, ajouter son chemin à la clé. La **section D de
+  `harness-sponsors.cjs`** vérifie que chaque chemin d'`IMG_MOMENT` existe sur le disque.
+  **Dix-sept cérémonies hors du terrain**, toutes par `ceremonie(cle, titre, texte, bouton, suite)` (vignette, titre,
+  deux lignes, un bouton ; neutre au harnais, qui enchaîne directement sur `suite`) sauf mention :
+  • la **signature du sponsor** (`choisirSponsor`) : `familleSponsor(s)` range l'offre en **`sp_terroir`** (ringard à
+  image positive), **`sp_decale`** (ringard à image négative, et tout Minitel « 36xx »), **`sp_national`**, **`sp_louche`**
+  (celui qui a un `defaut`, ou un sulfureux qui n'est pas un vice) et **`sp_vice`** (tabac, apéritif : lu dans `ere`) ;
+  • l'**équipementier** (`choisirEquip`) : **`eq_gros`**, **`eq_pari`** (l'offre à prime), **`eq_atelier`** (l'atelier local, `rep>0`) ;
+  • l'**arrivée au club** : vignette posée dans `ecranIntro` au tout premier mot d'ouverture de la carrière, **`arr_grand`**
+  (D1 et `pres` ≥ 7) ou **`arr_petit`** ;
+  • la **présentation de la recrue** (`presenteRecrue`, après `finaliseAchat` ET `signeJoker`) : **`rec_jeune`** (21 ans
+  ou moins), **`rec_veteran`** (31 ou plus), **`rec_star`** sinon ;
+  • **`adieu`** en tête de l'écran d'intersaison s'il porte un jubilé ou une retraite de VOTRE club ; **`mallette`** quand
+  on accepte l'affaire ; **`stade`** (l'inauguration) après la carte de livraison d'une **tribune** ou des **virages**
+  seulement ; **`finale`** en tête du rendez-vous de semaine d'une finale (Coupe de France ou Europe).
 - **Montée de tension** (`MONTEE_BUT` + `MONTEE_FRAPPE`, en direct seulement) : avant un but du téléscripteur **MAIS
   AUSSI avant certaines grosses occasions ratées**, l'action se construit en **deux temps**, chacun suivi d'un
   battement (`Math.max(650, tickerDelai)`) AVANT la résolution et son flash. 1er temps = l'action s'installe (ambiance

@@ -4,6 +4,8 @@
    A) une carrière française ne voit QUE la liste française, à l'identique
    B) une carrière anglaise ne voit QUE la liste anglaise, à chaque époque, et jamais Umbro
    C) les deux listes se tiennent : champs, dates, aucun tiret long, aucun chevron
+   D) la cérémonie de signature (v2.17) : chaque sponsor tombe dans une famille qui a sa vignette, et chaque vignette
+      du jeu existe bien dans img/moments/
    Usage : node harness-sponsors.cjs                                                                   */
 const fs = require("fs");
 const path = require("path");
@@ -34,7 +36,7 @@ global.alert = () => {}; global.confirm = () => true; global.prompt = () => null
 const api = new Function(script + "\n;return {SAISONS,nouvellePartie,genSponsors,genEquip,sponsorsDispo," +
   "SPONSORS_RINGARDS,SPONSORS_PROPRES,SPONSORS_SULFUREUX,EQUIPEMENTIERS," +
   "SPONSORS_RINGARDS_ANG,SPONSORS_PROPRES_ANG,SPONSORS_SULFUREUX_ANG,EQUIPEMENTIERS_ANG," +
-  "getG:function(){return G;}};")();
+  "familleSponsor,IMG_MOMENT,getG:function(){return G;}};")();
 let FAILS = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) FAILS++; };
 const noms = l => new Set(l.map(x => x.nom));
@@ -76,6 +78,20 @@ console.log("C) Les listes se tiennent");
   ok(tout.every(s => !/[—<>&]/.test(JSON.stringify(s))), "aucun tiret long, aucun chevron dans les marques et leurs phrases");
   ok(api.SPONSORS_RINGARDS_ANG.every(s => s.rep > 0 && s.ere) && api.SPONSORS_SULFUREUX_ANG.every(s => s.rep < 0 && s.ere), "le terroir rapporte de l'image, les sulfureux en coûtent, et tous ont leur phrase");
   ok(api.EQUIPEMENTIERS_ANG[api.EQUIPEMENTIERS_ANG.length - 1].nom === "Sunday League Kits", "l'atelier du pub ferme la liste des équipementiers, comme Le Grand Échalas");
+}
+console.log("D) La cérémonie de signature (v2.17)");
+{
+  const fam = api.familleSponsor;
+  const tous = [...api.SPONSORS_RINGARDS, ...api.SPONSORS_RINGARDS_ANG].map(s => Object.assign({ ringard: true }, s))
+    .concat(api.SPONSORS_PROPRES, api.SPONSORS_PROPRES_ANG, api.SPONSORS_SULFUREUX, api.SPONSORS_SULFUREUX_ANG);
+  ok(tous.every(s => api.IMG_MOMENT[fam(s)]), "chaque sponsor des deux pays a une cérémonie avec sa vignette");
+  ok(fam({ nom: "Gauloises", rep: -15, ere: "Une marque de tabac sur le maillot" }) === "sp_vice", "le tabac signe dans le salon enfumé");
+  ok(fam({ nom: "Madoff Consulting", rep: -10, defaut: 0.4 }) === "sp_louche", "l'escroc qui peut ne jamais payer sable le champagne");
+  ok(fam({ nom: "3615 Ulla", rep: -12 }) === "sp_decale", "le Minitel rose signe sous les néons roses");
+  ok(fam({ nom: "Rillettes du Mans", ringard: true, rep: 8 }) === "sp_terroir" && fam({ nom: "X", ringard: true, rep: -3 }) === "sp_decale", "le terroir et le décalé se séparent sur le signe de l'image");
+  ok(fam({ nom: "Orange", rep: 1 }) === "sp_national", "la marque nationale signe en salle de réunion");
+  const manque = [].concat(...Object.values(api.IMG_MOMENT)).filter(f => !fs.existsSync(path.join(__dirname, f)));
+  ok(!manque.length, "toutes les vignettes du jeu sont dans img/moments/" + (manque.length ? " (manque : " + manque.join(", ") + ")" : ""));
 }
 console.log(FAILS === 0 ? "\n✅ SPONSORS PAR PAYS : TOUT EST VERT" : "\n❌ SPONSORS PAR PAYS : " + FAILS + " ÉCHEC(S)");
 process.exit(FAILS ? 1 : 0);
