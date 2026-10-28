@@ -3517,6 +3517,58 @@ deux à cinq mots, trente-quatre caractères au plus, français d'époque, ton l
 partagé avec une autre saison ni avec le titre d'un feuilleton** (`ARCS` : le diamant, le sac, le sortilège
 et la buvette sont pris). `harness-noms.cjs` refuse tout le reste.
 
+### LES SAISONS VERROUILLÉES (v2.22, consigne de l'auteur du 28/10/2026)
+Le joueur doit avoir une raison de s'investir : la plupart des saisons de départ démarrent **fermées**, et il les
+ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« LES SAISONS VERROUILLÉES »).
+- **Ouvertes d'office** : la constante **`SAISONS_OUVERTES`**, six saisons, une par époque et par championnat
+  (France 1990-91, 1995-96, 2005-06 ; Angleterre `ANG-1990-91`, `ANG-1995-96`, `ANG-2000-01`). L'Angleterre est
+  ouverte comme la France. C'est la seule liste à toucher pour changer la donne de départ.
+- **Une saison gagnée** = un titre de **D1** remporté dans la **première année** de la carrière (`saisonIdx===1`),
+  donc dans la saison de départ, avec le vrai plateau. Ni les titres des années suivantes, ni un titre de D2.
+  Elle rapporte **une clé dans son championnat** (FR ou ANG, `chDeSaison` lit le préfixe de la clé), et **une
+  seule**, même regagnée dans une autre carrière. La saison de départ d'une carrière se **déduit** de `G.pays` et
+  `G.anBase` (`cleDepart`) : aucun champ de plus dans `G`.
+- **Le nombre de clés n'est jamais stocké** : `clesDispo(ch)` = saisons gagnées − saisons ouvertes avec une clé,
+  dans ce championnat, jamais sous zéro. `ouvreSaison(k)` dépense une clé ; une saison ouverte le reste pour toujours.
+- **Ce qu'on ne casse jamais** : les cadenas ne jouent **qu'au lancement depuis l'accueil** (`ficheClubAccueil`,
+  `tirageMagie`). `nouvellePartie` ne vérifie rien (les harnais l'appellent sur toutes les saisons), une carrière
+  commencée, rapatriée ou importée s'ouvre toujours.
+- **La saison de la semaine** : la constante **`SAISON_SEMAINE` = {cle, fin}**, que l'auteur change à la main chaque
+  vendredi. Jouable par tous jusqu'au soir de `fin` inclus (date du joueur, `AAAA-MM-JJ`), mention « saison de la
+  semaine » dans le sélecteur. Une carrière lancée dessus reste jouable après, et sa victoire rapporte sa clé (la
+  saison se referme quand même : il faut une clé pour l'ouvrir pour de bon).
+- **Le rattrapage** (`progRattrape`, une fois par navigateur, drapeau `ratt`) : au premier chargement, les carrières
+  du navigateur dont le palmarès porte « Champion de France 1995-96 » (ou d'Angleterre) pour leur saison de départ
+  créditent leur clé. `chargeLocale` refait le constat à chaque ouverture (`progConstate`) : une carrière venue d'un
+  autre appareil ou d'un fichier compte aussi. **Piège** : le titre de D2 s'écrit « Champion de Division 2 … », d'où
+  le test sur `PAYS[pays].titre` exact suivi de l'année, jamais sur « Champion de ».
+- **À l'écran** : cadenas 🔒 devant les saisons fermées du `#selSaison` (elles restent visibles, leurs clubs aussi),
+  `🔑 n` discret à droite de « Saison de départ » (le championnat regardé), une ligne « 🔒 Aucune clé en poche. » ou
+  « 🔒 1 clé en poche. 🔑 Ouvrir » sous le sélecteur, `confirme` quand on choisit une saison fermée avec une clé
+  (`proposeOuverture`), et « 🔒 SAISON FERMÉE » grisé à la place de « PRENDRE LES RÊNES » dans la fiche d'un club.
+  Changer de drapeau tombe d'abord sur une saison ouverte. Le hasard ne tire que des saisons ouvertes. L'almanach
+  de fin de saison dit « 🔑 Titre dès la première saison : une clé de plus au trousseau. » (`cleDuBilan` : la clé a
+  été créditée à CETTE carrière).
+- **Où elle vit** : sous **`PROGKEY`** (`d1manager_progression_v1`), à part ; ni `SAVEKEY`, ni `IDXKEY`, ni le format
+  des carrières ne bougent. Le magasin garde **une progression par compte** (`par[uid]`) et une pour l'invité
+  (`par[""]`) : au premier compte qui se connecte, celle de l'invité devient la sienne ; un second compte sur le même
+  navigateur part de zéro ; déconnecté, on voit celle du dernier compte (`der`) ; supprimer le compte rend sa
+  progression du navigateur à l'invité. Au harnais (`EN_TEST`) le magasin ne lit ni n'écrit le navigateur.
+- **En ligne** : table **`progression`** de `supabase/schema.sql` (une ligne par compte, lecture de sa seule ligne,
+  aucune écriture directe, tout par **`pousse_progression(p_attendu, p_maj, p_donnees, p_version)`**, 200 Ko au plus,
+  cascade à la suppression du compte). `progSynchronise` lit la ligne, **fusionne** (`progFusionne` : réunion des
+  saisons gagnées, la plus ancienne victoire faisant foi, des saisons ouvertes et des résultats) et ne renvoie que si
+  la fusion apporte quelque chose ; concurrence optimiste comme les carrières (`{conflit}` → on relit, on refusionne).
+  Elle part après les carrières dans `nuageSynchronise` (sans toucher à l'indicateur), à l'accueil avec la liste
+  en ligne, et après chaque changement. **Sans compte, toujours aucune requête.** **La table doit exister sur le
+  projet Supabase avant la mise en ligne** (rejouer la fin de `schema.sql`) ; sans elle, la progression reste
+  simplement dans le navigateur.
+- **Les résultats pour un futur classement** : à chaque `finDeSaison`, toutes années, `progFinDeSaison` range
+  `{pid, ch, dep, an, s, club, div, rang, coupes:["CN"|"C1"|"C2"|"C3"], t}` dans la progression (400 au plus, une saison
+  rejouée remplace son résultat). Les finales (Coupe J36, Europe J33) sont jouées à ce moment. Rien ne s'affiche.
+- Gardé par **`harness-cadenas.cjs`** (sections A à J) et la **section N de `harness-compte.cjs`** (le faux serveur
+  imite `pousse_progression`).
+
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
 
 La 90ᵉ tire parfois une respiration comique qui ne touche à rien : ni au score, ni à un joueur, ni à une
@@ -5288,7 +5340,12 @@ test est **« contient-elle des lignes de joueurs »**.
    même après un rechargement, rythme des envois, deux appareils en conflit dans les deux sens, serveur qui refuse,
    ce qui revient du serveur assaini et migré, match en cours jamais envoyé, navigateur partagé entre deux comptes,
    suppression du compte, retour d'un lien reçu par email, nouvel appareil, navigateur qui ne garde que les quatre
-   récentes, suppression en ligne). **Le faux serveur doit rester d'accord avec `supabase/schema.sql`** : qui change
+   récentes, suppression en ligne ; section N depuis v2.22 : la progression des saisons verrouillées, héritée par
+   le premier compte, fusionnée entre deux appareils, jamais partagée entre deux comptes).
+   `harness-cadenas.cjs` (les saisons verrouillées, v2.22 : six saisons ouvertes, la clé du titre de première année
+   et pas des autres, une seule clé par saison, une clé pour une saison, la carrière commencée sur une saison fermée
+   qui se rejoue, le rattrapage, la saison de la semaine, la fusion, l'écran et le bilan, les résultats structurés).
+   **Le faux serveur doit rester d'accord avec `supabase/schema.sql`** : qui change
    l'un change l'autre. Trois essais au navigateur (Playwright, hors dépôt : `npm i playwright` dans un dossier à part)
    dans `supabase/` : `essai-navigateur.cjs` (déclencheurs et indicateur), `essai-nouvel-appareil.cjs`,
    `essai-proposition.cjs`. Et `supabase/essai-reel.cjs` fait jouer le vrai moteur contre le VRAI projet, avec deux

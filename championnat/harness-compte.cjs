@@ -16,6 +16,8 @@
    L) le retour d'un lien reçu par email (confirmation, mot de passe oublié), lu sans requête
    M) le nouvel appareil : les carrières en ligne dans la liste, rapatriées à l'ouverture, le navigateur qui ne
       garde que les quatre plus récentes (sans jamais retirer une carrière pas encore en ligne), la suppression
+   N) la progression des saisons verrouillées (v2.22) : muette pour l'invité, héritée par le premier compte, deux
+      appareils qui fusionnent, un envoi qui en croise un autre, un navigateur partagé, la suppression du compte
    Usage : node harness-compte.cjs                                                           */
 const fs = require("fs");
 const path = require("path");
@@ -68,6 +70,8 @@ global.location = { origin: "https://vincentmailfert.github.io", pathname: "/Ret
 const URL_SB = "https://faux-projet.supabase.co", CLE = "sb_publishable_FAUSSE";
 const SRV = {
   users: {}, parEmail: {}, jetons: {}, rafraich: {}, lignes: [],
+  prog: {},          // la table progression : une ligne par compte {maj, donnees, version}
+  avantProg: null,   // un autre appareil qui écrit pile entre la lecture et l'envoi (une fois)
   panne: false,      // plus de réseau : fetch lève, comme un navigateur hors ligne
   force: null,       // un statut HTTP imposé aux appels de la base (500, 413…)
   confirmer: false,  // l'adresse doit-elle être confirmée par email avant la première connexion ?
@@ -95,6 +99,20 @@ function pousse(uid, p) { // la fonction pousse_carriere telle que la base la ti
     SRV.lignes.push({ uid, id: p.p_copie.id, maj: l.maj, fiche: Object.assign({}, l.fiche, { nom: p.p_copie.nom }), donnees: l.donnees, version: l.version });
   }
   Object.assign(l, { maj: p.p_maj, fiche: p.p_fiche, donnees: p.p_donnees, version: p.p_version });
+  return { ok: true };
+}
+function pousseProg(uid, p) { // la fonction pousse_progression telle que la tient supabase/schema.sql
+  if (!p.p_donnees || typeof p.p_donnees !== "object" || Array.isArray(p.p_donnees)) return { refus: "forme" };
+  if (JSON.stringify(p.p_donnees).length > 200000) return { refus: "lourd" };
+  if (SRV.avantProg) { const f = SRV.avantProg; SRV.avantProg = null; f(); }
+  const l = SRV.prog[uid];
+  if (!l) {
+    if ((p.p_attendu || 0) !== 0) return { conflit: true, maj: 0 };
+    SRV.prog[uid] = { maj: p.p_maj || 0, donnees: p.p_donnees, version: p.p_version };
+    return { ok: true };
+  }
+  if (l.maj !== p.p_attendu) return { conflit: true, maj: l.maj };
+  Object.assign(l, { maj: p.p_maj || 0, donnees: p.p_donnees, version: p.p_version });
   return { ok: true };
 }
 global.fetch = async (url, init) => {
@@ -136,8 +154,12 @@ global.fetch = async (url, init) => {
   if (!uid) return rep(401, { message: "JWT expired" });
   if (SRV.force) return rep(SRV.force, { message: "forcé" });
   if (p === "/rest/v1/rpc/pousse_carriere") { SRV.pousses++; return rep(200, pousse(uid, corps)); }
+  if (p === "/rest/v1/rpc/pousse_progression") return rep(200, pousseProg(uid, corps));
+  if (p === "/rest/v1/progression" && init.method === "GET") { // les règles de la base : chacun ne lit que sa ligne
+    const l = SRV.prog[uid]; return rep(200, l ? [{ maj: l.maj, donnees: JSON.parse(JSON.stringify(l.donnees)) }] : []);
+  }
   if (p === "/rest/v1/rpc/supprime_mon_compte") {
-    SRV.lignes = SRV.lignes.filter((l) => l.uid !== uid);
+    SRV.lignes = SRV.lignes.filter((l) => l.uid !== uid); delete SRV.prog[uid]; // on delete cascade
     delete SRV.parEmail[SRV.users[uid].email]; delete SRV.users[uid];
     for (const t in SRV.jetons) if (SRV.jetons[t] === uid) delete SRV.jetons[t];
     return rep(200, null);
@@ -163,6 +185,7 @@ const epilogue = "\n;return {nouvellePartie,jouerJournee,sauvegardeLocale,charge
   "nuageEvincable,nuageLibere,nuageOublie,nuageRafraichitListe,carrieresAffichees,nuagePrepare,placeDispo,supprimePartie,MAX_PARTIES," +
   "compteInscription,compteConnexion,compteDepuisLien,compteNouveauMdp,texteErreur,compteDeconnexion,compteSupprime,compteOubli,compteLit," +
   "nuageSynchronise,nuagePlanifie,nuageListe,nuageRapatrie,nuageCompresse,nuageDecompresse,nuageEtatLit,avanceDe," +
+  "progGagne,ouvreSaison,clesDispo,saisonOuverte,progSynchronise," +
   "getG:function(){return G;},setG:function(x){G=x;},getPARTIE:function(){return PARTIE;}," +
   "getEtat:function(){return NUAGE_ETAT;},setDernier:function(v){NUAGE_DERNIER=v;}};";
 function appareil(nom, ls) {
@@ -544,6 +567,47 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   apiI.nouvellePartie(apiI.CLUBS[1].id); joue(apiI, 1); const avI = SRV.appels;
   apiI.supprimePartie(apiI.getPARTIE().id); await apiI.nuageSynchronise();
   ok(SRV.appels === avI && apiI.partiesListe().length === 0, "un invité qui supprime : zéro requête");
+
+  /* ===== N) la progression des saisons verrouillées ===== */
+  console.log("\nN) La progression des saisons verrouillées suit le compte");
+  const gk = (d) => (d.gagnees || []).map((g) => g.k).sort().join(",");
+  const P1 = appareil("salon des clés"); let k1 = sur(P1); allume(k1);
+  const av0 = SRV.appels;
+  k1.progGagne("1995-96", "pA"); k1.progGagne("ANG-1995-96", "pB"); k1.ouvreSaison("1993-94");
+  await k1.nuageSynchronise(); await k1.progSynchronise();
+  ok(SRV.appels === av0 && k1.clesDispo("FR") === 0 && k1.clesDispo("ANG") === 1, "invité : deux saisons gagnées, une ouverte, et pas une requête");
+  await k1.compteInscription("cles@exemple.fr", "motdepasse"); await k1.nuageSynchronise();
+  const uidK = SRV.parEmail["cles@exemple.fr"];
+  ok(SRV.prog[uidK] && gk(SRV.prog[uidK].donnees) === "1995-96,ANG-1995-96" && SRV.prog[uidK].donnees.ouvertes.includes("1993-94"),
+    "le premier compte qui se connecte hérite de la progression de l'invité, et elle part en ligne");
+  const P2 = appareil("portable des clés"); let k2 = sur(P2); allume(k2);
+  await k2.compteConnexion("cles@exemple.fr", "motdepasse"); await k2.nuageRafraichitListe();
+  ok(k2.clesDispo("ANG") === 1 && k2.saisonOuverte("1993-94"), "un nouvel appareil retrouve ses clés et ses saisons ouvertes");
+  SRV.panne = true; // chacun avance de son côté, sans réseau
+  k2.ouvreSaison("ANG-1997-98"); k2.progGagne("2005-06", "pC"); await k2.nuageSynchronise();
+  k1 = sur(P1); k1.progGagne("1990-91", "pD"); await k1.nuageSynchronise();
+  ok(gk(SRV.prog[uidK].donnees) === "1995-96,ANG-1995-96", "hors connexion, rien ne part, et rien ne casse");
+  SRV.panne = false;
+  await k1.nuageSynchronise(); k2 = sur(P2); await k2.nuageSynchronise(); k1 = sur(P1); await k1.nuageRafraichitListe();
+  const ser = SRV.prog[uidK].donnees;
+  ok(gk(ser) === "1990-91,1995-96,2005-06,ANG-1995-96" && ser.ouvertes.slice().sort().join(",") === "1993-94,ANG-1997-98",
+    "au retour du réseau, la ligne en ligne garde le meilleur des deux appareils");
+  ok(k1.clesDispo("FR") === 2 && k1.clesDispo("ANG") === 0 && sur(P2).clesDispo("FR") === 2 && k1.saisonOuverte("ANG-1997-98"), "et les deux appareils comptent pareil : deux clés en France, zéro en Angleterre");
+  k1 = sur(P1);
+  SRV.avantProg = () => { const l = SRV.prog[uidK]; l.donnees = Object.assign({}, l.donnees, { ouvertes: l.donnees.ouvertes.concat(["1994-95"]) }); l.maj += 1; };
+  k1.progGagne("ANG-2002-03", "pE"); await k1.progSynchronise();
+  ok(SRV.prog[uidK].donnees.ouvertes.includes("1994-95") && gk(SRV.prog[uidK].donnees).includes("ANG-2002-03") && k1.saisonOuverte("1994-95"),
+    "un envoi qui croise celui d'un autre appareil : refusé, relu, refusionné, rien de perdu");
+  await k1.compteDeconnexion();
+  ok(k1.clesDispo("FR") === 1 && k1.saisonOuverte("1994-95"), "déconnecté, le navigateur garde la progression de son dernier compte");
+  await k1.compteInscription("frere@exemple.fr", "motdepasse"); await k1.nuageSynchronise();
+  const uidF = SRV.parEmail["frere@exemple.fr"];
+  ok(k1.clesDispo("FR") === 0 && !k1.saisonOuverte("1994-95") && !SRV.prog[uidF], "un autre compte sur le même navigateur part de zéro : les clés du premier ne passent pas chez lui");
+  await k1.compteDeconnexion(); await k1.compteConnexion("cles@exemple.fr", "motdepasse"); await k1.nuageSynchronise();
+  ok(k1.clesDispo("FR") === 1 && k1.clesDispo("ANG") === 1, "de retour sur le premier compte, ses clés sont là");
+  r = await k1.compteSupprime();
+  ok(r.ok && !SRV.prog[uidK], "supprimer le compte efface sa progression en ligne");
+  ok(k1.clesDispo("FR") === 1 && k1.saisonOuverte("1994-95"), "celle du navigateur reste, rendue à l'invité comme ses carrières");
 
   console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS COMPTE : TOUT EST VERT");
   process.exit(FAILS ? 1 : 0);

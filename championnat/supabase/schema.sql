@@ -123,3 +123,74 @@ revoke all on function public.pousse_carriere(text, bigint, bigint, jsonb, text,
 grant execute on function public.pousse_carriere(text, bigint, bigint, jsonb, text, text, jsonb) to authenticated;
 revoke all on function public.supprime_mon_compte() from public, anon;
 grant execute on function public.supprime_mon_compte() to authenticated;
+
+-- LA PROGRESSION DU JOUEUR (v2.22) : les saisons gagnées, les saisons ouvertes avec une clé, et les
+-- résultats de chaque fin de saison (pour un futur classement entre joueurs). Une ligne par compte.
+-- Mêmes protections que les carrières : chacun ne lit que sa ligne, personne n'écrit en direct, tout
+-- passe par pousse_progression(). La FUSION entre deux appareils se fait dans le jeu (la réunion des
+-- deux, rien ne se perd) ; la base ne fait que refuser d'écraser une ligne qui a bougé depuis sa lecture.
+create table if not exists public.progression (
+  user_id     uuid        not null default auth.uid() references auth.users(id) on delete cascade,
+  maj         bigint      not null default 0,            -- date de la version envoyée (détection des conflits)
+  donnees     jsonb       not null default '{}'::jsonb,  -- {gagnees:[{k,pid,t}], ouvertes:[k], resultats:[…]}
+  version     text,                                      -- version du jeu qui l'a envoyée
+  maj_serveur timestamptz not null default now(),
+  primary key (user_id),
+  constraint progression_poids check (octet_length(donnees::text) <= 200000)
+);
+
+alter table public.progression enable row level security;
+
+drop policy if exists "chacun lit sa progression" on public.progression;
+create policy "chacun lit sa progression" on public.progression
+  for select to authenticated using ((select auth.uid()) = user_id);
+
+-- ni insert, ni update, ni delete en direct : seulement par pousse_progression() (et la cascade du compte)
+revoke all on public.progression from anon, authenticated;
+grant select on public.progression to authenticated;
+
+-- ENVOYER SA PROGRESSION. Réponses : {ok}, {conflit, maj}, {refus: lourd|forme}.
+-- p_attendu = la date de la ligne que l'appareil vient de lire (0 s'il n'y en avait pas). Si elle a bougé
+-- depuis, un autre appareil a écrit : on ne touche à rien, l'appareil relit, refusionne et renvoie.
+create or replace function public.pousse_progression(
+  p_attendu bigint, p_maj bigint, p_donnees jsonb, p_version text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid    uuid := auth.uid();
+  v_ligne  public.progression%rowtype;
+begin
+  if v_uid is null then
+    raise exception 'connexion requise' using errcode = '28000';
+  end if;
+  if p_donnees is null or jsonb_typeof(p_donnees) <> 'object' then return jsonb_build_object('refus', 'forme'); end if;
+  if octet_length(p_donnees::text) > 200000 then return jsonb_build_object('refus', 'lourd'); end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('progression:' || v_uid::text, 0));
+
+  select * into v_ligne from public.progression where user_id = v_uid for update;
+  if not found then
+    if coalesce(p_attendu, 0) <> 0 then
+      return jsonb_build_object('conflit', true, 'maj', 0);
+    end if;
+    insert into public.progression (user_id, maj, donnees, version)
+    values (v_uid, coalesce(p_maj, 0), p_donnees, p_version);
+    return jsonb_build_object('ok', true);
+  end if;
+
+  if v_ligne.maj is distinct from p_attendu then
+    return jsonb_build_object('conflit', true, 'maj', v_ligne.maj);
+  end if;
+
+  update public.progression
+     set maj = coalesce(p_maj, 0), donnees = p_donnees, version = p_version, maj_serveur = now()
+   where user_id = v_uid;
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke all on function public.pousse_progression(bigint, bigint, jsonb, text) from public, anon;
+grant execute on function public.pousse_progression(bigint, bigint, jsonb, text) to authenticated;

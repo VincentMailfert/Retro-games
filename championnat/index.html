@@ -550,7 +550,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.21"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.22"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -17693,6 +17693,7 @@ function finDeSaison(){
     if(G.div===1 && rang>=n-5 && rang<=n-3) G.palmares.push("Maintien arraché en "+tagDiv(1)+" "+G.saison+" ("+rang+"ᵉ)");
     if(G.coupe && G.coupe.elimine && G.coupe.tourSortie==="Finale") G.palmares.push("Finaliste de la "+libCoupeNat()+" "+G.saison);
   }
+  progFinDeSaison(rang); // la clé d'un titre de première année, et le résultat de la saison (cf. les saisons verrouillées)
   soldeBio(); // la saison entre dans la fiche de vie de chacun AVANT que razStatsClub ne remette tout à zéro
   // verdict du président : être relégué ne licencie plus (on continue en D2) ; seul un objectif manqué de loin coûte la place
   if(rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
@@ -17934,6 +17935,7 @@ function ecranBilan(){
      <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
      ${imgBilan?`<img class="momImg" style="max-height:240px;margin-top:6px" src="${imgBilan}" alt="">`:""}
      <p style="font-size:17px">Vous terminez à la <b class="jaune">${B.rang}ᵉ place</b>. ${esc(verdict)}</p>
+     ${cleDuBilan()?`<p class="fort" style="margin-top:4px">🔑 Titre dès la première saison : une clé de plus au trousseau.</p>`:""}
      ${moi?`<p class="dim" style="margin-top:4px">${moi.g} victoires · ${moi.n} nuls · ${moi.p} défaites, ${moi.bp} buts marqués, ${moi.bc} encaissés (${moi.bp-moi.bc>0?"+":""}${moi.bp-moi.bc}).</p>`:""}
      <p class="dim" style="margin-top:2px">Champion de ${esc(libDiv(B.div))} : <b>${esc(B.champion?B.champion.nom:"")}</b> avec ${B.champion?B.champion.pts:0} points.</p>
    </div>
@@ -18386,6 +18388,7 @@ function chargeLocale(id){ // reprendre une carrière (sans argument : la plus r
   try{ const s=lsLit(p.k); if(s==null) return false;
     G=JSON.parse(s); PARTIE={id:p.id, k:p.k}; G.pid=p.id;
     migre(); majTitre();
+    progConstate(G, p.id); // un titre de première année gagné ailleurs (autre appareil, fichier importé) compte aussi
     /* « OÙ EN ÉTIONS-NOUS ? » (v1.08) : une carrière laissée de côté plus d'un jour ne se reprend pas
        froidement. On repose le décor — rang, écart au palier le plus proche, forme, phrase de l'almanach,
        arc en cours, prêté qui rentre, chantier, et le match de samedi avec la raison pour laquelle il
@@ -18485,7 +18488,7 @@ let NUAGE_DERNIER=0, NUAGE_EN_COURS=null, NUAGE_ENCORE=false, NUAGE_REFRESH=null
 const NUAGE_AVIS=[];                    // ce que le joueur doit apprendre (conflit, refus) : lu par l'interface
 
 function compteLit(){ try{ const s=JSON.parse(lsLit(COMPTEKEY)||"null"); return s&&s.rt?s:null; }catch(e){ return null; } }
-function compteEcrit(s){ try{ if(s) localStorage.setItem(COMPTEKEY, JSON.stringify(s)); else localStorage.removeItem(COMPTEKEY); }catch(e){} }
+function compteEcrit(s){ PROG_TIRE=false; try{ if(s) localStorage.setItem(COMPTEKEY, JSON.stringify(s)); else localStorage.removeItem(COMPTEKEY); }catch(e){} }
 function nuageEtatLit(){ try{ const o=JSON.parse(lsLit(NUAGEKEY)||"{}"); return o&&typeof o==="object"&&!Array.isArray(o)?o:{}; }catch(e){ return {}; } }
 function nuageEtatEcrit(o){ try{ localStorage.setItem(NUAGEKEY, JSON.stringify(o)); }catch(e){} }
 function nuageAllume(){ return !!(NUAGE.url && NUAGE.cle && compteLit()); }
@@ -18612,7 +18615,10 @@ async function compteSupprime(){ // le compte ET ses carrières en ligne ; celle
   if(!r.ok) return {ok:false, code:codeErreur(r)};
   const et=nuageEtatLit(); for(const id in et) if(et[id] && et[id].uid===s.uid) delete et[id];
   delete et._suppr; NUAGE_LISTE=null;
-  nuageEtatEcrit(et); compteEcrit(null); NUAGE_ETAT="aucun";
+  // sa progression en ligne part avec lui ; celle du navigateur reste, rendue à l'invité comme ses carrières
+  { const M=progMag(); if(M.par[s.uid]){ M.par[""]=progFusionne(M.par[""]||progVide(), M.par[s.uid]); delete M.par[s.uid]; }
+    if(M.der===s.uid) M.der=""; }
+  nuageEtatEcrit(et); compteEcrit(null); NUAGE_ETAT="aucun"; progSauve(true);
   return {ok:true};
 }
 
@@ -18717,6 +18723,7 @@ function nuageSynchronise(){
       }
       NUAGE_ETAT=etat;
     } while(NUAGE_ENCORE && NUAGE_ETAT!=="attente");
+    if(NUAGE_ETAT!=="attente" && compteLit()) await progSynchronise(); // la progression suit les carrières (sans peser sur l'indicateur)
     return NUAGE_ETAT;
   })().finally(()=>{ NUAGE_EN_COURS=null; majIndicateur(); montreAvis(); });
   return NUAGE_EN_COURS;
@@ -18817,7 +18824,8 @@ let NUAGE_LISTE=null, NUAGE_LISTE_T=0;  // les carrières en ligne (sans leurs d
 async function nuageRafraichitListe(){
   if(!nuageAllume()){ NUAGE_LISTE=null; return null; }
   const l=await nuageListe();
-  if(l){ const q=nuageEtatLit()._suppr||[]; NUAGE_LISTE=l.filter(x=>!q.includes(x.id)); NUAGE_LISTE_T=Date.now(); }
+  if(l){ const q=nuageEtatLit()._suppr||[]; NUAGE_LISTE=l.filter(x=>!q.includes(x.id)); NUAGE_LISTE_T=Date.now();
+    PROG_TIRE=false; await progSynchronise(); } // à l'accueil, les clés gagnées sur un autre appareil arrivent avec la liste
   return NUAGE_LISTE;
 }
 /* LA LISTE DE « MES CARRIÈRES » : celles du navigateur, plus celles qui ne vivent qu'en ligne (enLigne), et une
@@ -18848,6 +18856,159 @@ async function nuagePrepare(id){
     if(!x || x.envoye!==loc.maj || x.base===(+srv.maj||0)) return {ok:true}; }
   return nuageRapatrie(id);
 }
+
+/* =====================================================================
+   LES SAISONS VERROUILLÉES (v2.22)
+   =====================================================================
+   La plupart des saisons de départ sont fermées. Un titre de D1 remporté dès la PREMIÈRE année d'une
+   carrière (la saison de départ elle-même, avec le vrai plateau) donne une clé dans son championnat ;
+   une même saison n'en donne qu'une, même regagnée dans une autre carrière. La clé ouvre la saison
+   fermée de son choix, dans le même championnat, et pour toujours. Le nombre de clés n'est jamais
+   stocké : il se DÉDUIT (saisons gagnées − saisons ouvertes, par championnat), si bien que la fusion de
+   deux appareils n'est qu'une réunion d'ensembles. Les cadenas ne jouent qu'au lancement d'une carrière
+   depuis l'accueil : une carrière commencée, rapatriée ou importée s'ouvre toujours (nouvellePartie, que
+   les harnais appellent sur toutes les saisons, ne vérifie rien).
+   La progression vit à part (PROGKEY), jamais dans une sauvegarde de carrière : une entrée par compte
+   (son uid) et une pour l'invité (""), pour qu'un navigateur partagé ne donne pas les clés d'un compte à
+   un autre. Au premier compte qui s'y connecte, la progression de l'invité devient la sienne. Elle porte
+   aussi les RÉSULTATS de chaque fin de saison (pour un futur classement entre joueurs), que rien
+   n'affiche encore. Connecté, elle part en ligne (table `progression`, fonction pousse_progression). */
+const SAISONS_OUVERTES=["1990-91","1995-96","2005-06","ANG-1990-91","ANG-1995-96","ANG-2000-01"]; // ouvertes d'office : une par époque et par championnat
+const SAISON_SEMAINE={cle:"1998-99", fin:"2026-11-05"}; // à changer chaque vendredi : jouable par tous jusqu'au soir de `fin` (inclus, heure du joueur)
+const PROGKEY="d1manager_progression_v1"; // {der, ratt, par:{"" ou uid:{gagnees:[{k,pid,t}], ouvertes:[k], resultats:[…], maj, envoye}}}
+const PROG_RES_MAX=400;                   // résultats de fin de saison gardés au plus (~40 Ko)
+let PROG_MAG=null, PROG_TIRE=false, PROG_EN_COURS=null;
+
+function chDeSaison(k){ const m=/^([A-Z]+)-\d/.exec(String(k||"")); return m?m[1]:"FR"; } // "ANG-1995-96" → ANG, "1995-96" → FR
+function cleDepart(o){ // la clé de la saison de départ d'une carrière (G ou une sauvegarde relue)
+  const pays=o.pays||"FR", an=+o.anBase||1995;
+  return Object.keys(SAISONS).find(k=>SAISONS[k].an===an && (SAISONS[k].pays||"FR")===pays)||null;
+}
+function progVide(){ return {gagnees:[], ouvertes:[], resultats:[], maj:0, envoye:0}; }
+function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde que la forme attendue
+  const o=progVide(); if(!p || typeof p!=="object") return o;
+  const cle=k=>typeof k==="string" && k.length<=24 && /^[A-Z0-9-]+$/.test(k);
+  o.gagnees=(Array.isArray(p.gagnees)?p.gagnees:[]).filter(g=>g && cle(g.k))
+    .map(g=>({k:g.k, pid:typeof g.pid==="string"?g.pid.slice(0,64):null, t:+g.t||0}));
+  o.ouvertes=(Array.isArray(p.ouvertes)?p.ouvertes:[]).filter(cle);
+  o.resultats=(Array.isArray(p.resultats)?p.resultats:[]).filter(r=>r && typeof r==="object" && !Array.isArray(r)).slice(-PROG_RES_MAX);
+  o.maj=+p.maj||0; o.envoye=+p.envoye||0;
+  return o;
+}
+function progMag(){ // le magasin du navigateur, relu une fois ; au harnais il ne quitte jamais la mémoire
+  if(!PROG_MAG){ let o=null;
+    if(!EN_TEST()) try{ o=JSON.parse(lsLit(PROGKEY)||"null"); }catch(e){ o=null; }
+    PROG_MAG={der:(o && typeof o.der==="string")?o.der:"", ratt:o&&o.ratt?1:0, par:{}};
+    if(o && o.par && typeof o.par==="object") for(const u in o.par) PROG_MAG.par[u]=progNette(o.par[u]); }
+  return PROG_MAG;
+}
+function prog(){ // la progression du joueur d'ici : le compte connecté, sinon le dernier connecté, sinon l'invité
+  const M=progMag(), s=compteLit();
+  if(s){
+    if(!M.par[s.uid]){ // premier passage de ce compte : il hérite de l'invité si personne ne l'a fait avant lui
+      if(!M.der && M.par[""]){ M.par[s.uid]=M.par[""]; delete M.par[""]; } else M.par[s.uid]=progVide(); }
+    M.der=s.uid; return M.par[s.uid];
+  }
+  const u=M.der||""; return M.par[u]||(M.par[u]=progVide());
+}
+function progSauve(change){
+  const p=prog(); if(change) p.maj=Date.now();
+  if(EN_TEST()) return;
+  try{ localStorage.setItem(PROGKEY, JSON.stringify(progMag())); }catch(e){}
+}
+function dateLocale(t){ const d=new Date(t); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function estSaisonSemaine(k, t){ return !!(SAISON_SEMAINE && SAISON_SEMAINE.cle===k && SAISONS[k] && dateLocale(t==null?Date.now():t)<=SAISON_SEMAINE.fin); }
+function saisonOuverte(k, t){ return SAISONS_OUVERTES.includes(k) || prog().ouvertes.includes(k) || estSaisonSemaine(k, t); }
+function clesDispo(ch){
+  const p=prog(), dans=k=>chDeSaison(k)===ch;
+  return Math.max(0, new Set(p.gagnees.map(g=>g.k).filter(dans)).size - new Set(p.ouvertes.filter(dans)).size);
+}
+function ouvreSaison(k){ // dépense une clé du championnat de k : vrai si la saison s'ouvre
+  if(!SAISONS[k] || SAISONS_OUVERTES.includes(k) || prog().ouvertes.includes(k)) return false;
+  if(clesDispo(chDeSaison(k))<1) return false;
+  prog().ouvertes.push(k); progSauve(true); progPlanifie();
+  return true;
+}
+function progGagne(k, pid){ // une saison gagnée : vrai si elle ne l'était pas encore (la clé est créditée)
+  const p=prog(); if(!k || !SAISONS[k] || p.gagnees.some(g=>g.k===k)) return false;
+  p.gagnees.push({k, pid:pid||null, t:Date.now()}); progSauve(true);
+  return true;
+}
+function titrePremiereAnnee(o){ // le mur du club porte-t-il le titre de D1 de la saison de départ ? (sa clé, sinon null)
+  const k=cleDepart(o), S=k&&SAISONS[k], P=PAYS[o.pays||"FR"]||PAYS.FR; if(!S) return null;
+  const t=P.titre+" "+S.titre; // « Champion de France 1995-96 » ; celui de D2 s'écrit « Champion de Division 2 … »
+  return (o.palmares||[]).some(x=>typeof x==="string" && (x===t || x.indexOf(t+" ")===0)) ? k : null;
+}
+function progConstate(o, pid){ const k=titrePremiereAnnee(o); return k?progGagne(k, pid||o.pid):false; }
+function progRattrape(){ // au premier chargement de cette version : les titres déjà remportés dans les carrières du navigateur
+  const M=progMag(); if(M.ratt) return 0;
+  let n=0;
+  for(const e of partiesListe()){ const s=lsLit(e.k); if(s==null) continue;
+    try{ const o=JSON.parse(s); if(o && o.monClub && progConstate(o, o.pid||e.id)) n++; }catch(err){} }
+  M.ratt=1; progSauve(n>0); if(n) progPlanifie();
+  return n;
+}
+function cleDuBilan(){ // la saison qui s'achève vient-elle de rapporter sa clé à CETTE carrière ?
+  const k=cleDepart(G);
+  return (G.saisonIdx||1)===1 && !!prog().gagnees.find(g=>g.k===k && g.pid===G.pid);
+}
+/* LA FIN DE SAISON (appelée par finDeSaison, dans toutes les années) : la clé d'un titre de première
+   année, et le résultat structuré de la saison. Les finales de coupe (J36) et d'Europe (J33) sont jouées. */
+function progFinDeSaison(rang){
+  const k=cleDepart(G), an=G.saisonIdx||1;
+  if(an===1 && G.div===1 && rang===1) progGagne(k, G.pid);
+  const coupes=[];
+  if(G.coupe && G.coupe.vainqueur===G.monClub) coupes.push("CN");
+  if(G.euro && G.euro.vainqueur===G.monClub && G.euro.compet) coupes.push(G.euro.compet);
+  const p=prog(), r={pid:G.pid||null, ch:G.pays||"FR", dep:k, an, s:G.saison, club:G.monClub, div:G.div, rang, coupes, t:Date.now()};
+  p.resultats=p.resultats.filter(x=>!(x.pid===r.pid && x.an===an)).concat([r]).slice(-PROG_RES_MAX); // une saison rejouée remplace la précédente
+  progSauve(true); progPlanifie();
+}
+/* LA FUSION DE DEUX APPAREILS : le meilleur des deux, c'est-à-dire la réunion des saisons gagnées (la plus
+   ancienne victoire fait foi), des saisons ouvertes et des résultats. Rien ne se perd jamais. */
+function progFusionne(a, b){
+  const o=progVide(), g={}, r={};
+  for(const x of a.gagnees.concat(b?b.gagnees:[])){ const y=g[x.k]; if(!y || (x.t && (!y.t || x.t<y.t))) g[x.k]=x; }
+  o.gagnees=Object.values(g).sort((x,y)=>(x.t||0)-(y.t||0));
+  o.ouvertes=[...new Set(a.ouvertes.concat(b?b.ouvertes:[]))];
+  for(const x of a.resultats.concat(b?b.resultats:[])) r[x.pid+"|"+x.an]=x;
+  o.resultats=Object.values(r).sort((x,y)=>(x.t||0)-(y.t||0)).slice(-PROG_RES_MAX);
+  return o;
+}
+function progEmpreinte(p){ // deux progressions qui disent la même chose ont la même empreinte
+  return JSON.stringify([p.gagnees.map(g=>g.k).sort(), p.ouvertes.slice().sort(), p.resultats.map(x=>x.pid+"|"+x.an).sort()]);
+}
+/* LA PROGRESSION EN LIGNE : on lit la ligne du compte, on fusionne, et l'on ne renvoie que si la fusion
+   apporte quelque chose au serveur. Concurrence optimiste comme les carrières : pousse_progression ne
+   remplace la ligne que si sa `maj` est celle qu'on vient de lire, sinon {conflit} et l'on recommence. */
+function progSynchronise(){
+  if(!nuageAllume()) return Promise.resolve("aucun");
+  if(PROG_EN_COURS) return PROG_EN_COURS;
+  PROG_EN_COURS=(async()=>{
+    for(let essai=0; essai<3; essai++){
+      const s=compteLit(); if(!s) return "aucun";
+      let p=prog(); if(PROG_TIRE && p.envoye===p.maj) return "ok";
+      const r=await nuageAppel("/rest/v1/progression?select=maj,donnees", "GET", null, true);
+      if(!r.ok || !Array.isArray(r.donnees)) return "attente";
+      if(!compteLit() || compteLit().uid!==s.uid) return "aucun"; // déconnecté (ou changé de compte) entre-temps
+      const ligne=r.donnees[0]||null, dist=ligne?progNette(assainit(ligne.donnees)):null, mDist=ligne?+ligne.maj||0:0;
+      p=prog(); const f=progFusionne(p, dist), neuf=progEmpreinte(f)!==progEmpreinte(p);
+      Object.assign(p, {gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats});
+      if(progEmpreinte(f)===progEmpreinte(dist||progVide())){ // le serveur sait déjà tout (ou il n'y a rien à dire)
+        p.maj=mDist; p.envoye=mDist; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
+      const maj=Math.max(Date.now(), mDist+1);
+      const e=await nuageAppel("/rest/v1/rpc/pousse_progression", "POST",
+        {p_attendu:mDist, p_maj:maj, p_donnees:{gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats}, p_version:VERSION}, true);
+      if(!e.ok) return "attente";
+      const d=e.donnees||{};
+      if(d.ok){ p.maj=maj; p.envoye=maj; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
+      if(!d.conflit) return "refus"; // conflit : un autre appareil a écrit entre notre lecture et notre envoi, on relit
+    }
+    return "attente";
+  })().finally(()=>{ PROG_EN_COURS=null; });
+  return PROG_EN_COURS;
+}
+function progPlanifie(){ if(nuageAllume()) progSynchronise(); }
 
 /* =====================================================================
    INTERFACE
@@ -18993,21 +19154,31 @@ function ficheClubAccueil(id){
         <table class="fit" style="font-size:13px;margin-top:4px">${stars.map(s=>`<tr><td class="pos-${s[1]}">${s[1]}</td><td>${esc(nomLong(s[0]))}</td><td class="num dim">${s[2]} ans</td><td class="num"><b>${s[3]}</b></td></tr>`).join("")}</table>`;
     })()}
     <p class="ficheActions">
-      <button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${esc(("DE "+c.nom).toUpperCase())}</button>
+      ${saisonOuverte(SAISON_ACCUEIL)
+        ? `<button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${esc(("DE "+c.nom).toUpperCase())}</button>`
+        : `<button class="big" id="bLance" disabled style="display:block;width:100%;margin-bottom:6px">🔒 SAISON FERMÉE</button>`}
       <button class="act" id="bRetour" style="display:block;width:100%">← Choisir un autre club</button>
     </p></div>`;
   fiche.style.display="flex";
   document.getElementById("bLance").onclick=()=>{
+    if(!saisonOuverte(SAISON_ACCUEIL)) return; // revérifié au clic : la saison de la semaine a pu se refermer
     if(!placeDispo()) return; // le navigateur ne peut pas retenir une carrière de plus
     fermeFiche(); nouvellePartie(id, SAISON_ACCUEIL);
   };
   document.getElementById("bRetour").onclick=fermeFiche;
 }
+function proposeOuverture(k){ // dépenser une clé, avec la confirmation habituelle
+  const S=SAISONS[k], n=clesDispo(chDeSaison(k)); if(!S || saisonOuverte(k) || n<1) return;
+  confirme({titre:"🔑 OUVRIR "+S.titre+" ?", coul:"#ffd24a",
+    texte:"« "+S.nom+" » s'ouvre pour de bon. "+(n>1?"Il vous restera "+(n-1)+" clé"+(n>2?"s":"")+".":"C'est votre seule clé."),
+    oui:"Ouvrir la saison", non:"Pas maintenant",
+    onOui:()=>{ if(ouvreSaison(k)) ecranAccueil(); }});
+}
 /* LA MAGIE (v1.45) : le hasard tire une saison, puis un club de cette saison, et les montre défiler comme une
    roue de loterie qui ralentit avant de s'arrêter. Un clic ou le mouvement réduit sautent droit à la fiche ;
    Échap (fermeFiche) annule le tirage. */
 function tirageMagie(){
-  const saisons=Object.keys(SAISONS), sk=PICK(saisons), T=SAISONS[sk], clubs=T.d1.concat(T.d2), id=PICK(clubs);
+  const saisons=Object.keys(SAISONS).filter(k=>saisonOuverte(k)), sk=PICK(saisons), T=SAISONS[sk], clubs=T.d1.concat(T.d2), id=PICK(clubs); // le hasard ne tire que des saisons ouvertes
   const conclut=()=>{ SAISON_ACCUEIL=sk; ecranAccueil(); ficheClubAccueil(id); };
   if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return conclut();
   const fiche=document.getElementById("fiche");
@@ -19095,7 +19266,8 @@ function ecranAccueil(){
      SAISONS, son bouton s'allume tout seul. */
   const paysAcc=paysDeSaison(SAISON_ACCUEIL);
   const clesDe=code=>Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code);
-  const ligne=k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}</option>`;
+  const ligne=k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${saisonOuverte(k)?"":"🔒 "}${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}${estSaisonSemaine(k)?" · saison de la semaine":""}</option>`;
+  const ferme=!saisonOuverte(SAISON_ACCUEIL), cles=clesDispo(paysAcc);
   const opts=clesDe(paysAcc).map(ligne).join("");
   const boutonsPays=Object.keys(PAYS).map(code=>{ const P=PAYS[code], vide=!clesDe(code).length;
     return `<button class="mChip accPays${code===paysAcc?" on":""}" data-pays="${code}"${vide?" disabled":""}>${P.drapeau} ${esc(P.nom)}${vide?' <span class="dim" style="font-weight:normal">bientôt</span>':""}</button>`; }).join("");
@@ -19119,9 +19291,10 @@ function ecranAccueil(){
    </div>`}
    <div class="panel">
      <div class="accPaysRang" role="group" aria-label="Pays">${boutonsPays}</div>
-     <label style="display:block;font-size:13px"><b>Saison de départ</b>
+     <label style="display:block;font-size:13px"><span style="display:flex;justify-content:space-between"><b>Saison de départ</b><span class="dim" id="accCles" title="Clés">🔑 ${cles}</span></span>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
      </label>
+     ${ferme?`<p id="accFerme" style="margin-top:8px;font-size:14px">🔒 <span class="dim">${cles?`${cles} clé${cles>1?"s":""} en poche.`:"Aucune clé en poche."}</span>${cles?` <button class="act" id="bOuvreSaison">🔑 Ouvrir</button>`:""}</p>`:""}
      <p class="fort" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
      <p class="dim" style="margin-top:3px;font-size:13px">${esc(S.sous)}</p>
    </div>
@@ -19147,12 +19320,16 @@ function ecranAccueil(){
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
   app.querySelectorAll(".startclub:not(.carGo)").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id)); // .carGo = une carrière, pas un club : son data-id n'est pas un club
-  const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil(); };
-  // changer de pays garde l'année si ce pays l'a, sinon prend sa première saison (la saison phare pour la France)
+  // une saison fermée se regarde (ses clubs restent affichés) ; choisie avec une clé en poche, on propose de l'ouvrir
+  const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil();
+    if(!saisonOuverte(SAISON_ACCUEIL) && clesDispo(paysDeSaison(SAISON_ACCUEIL))>0) proposeOuverture(SAISON_ACCUEIL); };
+  { const bo=document.getElementById("bOuvreSaison"); if(bo) bo.onclick=()=>proposeOuverture(SAISON_ACCUEIL); }
+  // changer de pays garde l'année si ce pays l'a, sinon prend sa première saison (la saison phare pour la France) ;
+  // une saison ouverte d'abord, pour qu'un changement de drapeau ne tombe pas sur un cadenas
   app.querySelectorAll(".accPays:not([disabled])").forEach(b=>b.onclick=()=>{ const code=b.dataset.pays; if(code===paysDeSaison(SAISON_ACCUEIL)) return;
     const cles=Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code); if(!cles.length) return;
-    const an=(SAISONS[SAISON_ACCUEIL]||{}).an;
-    SAISON_ACCUEIL=cles.find(k=>SAISONS[k].an===an)||(code==="FR"?SAISON_DEFAUT:cles[0]); ecranAccueil(); });
+    const an=(SAISONS[SAISON_ACCUEIL]||{}).an, ouv=cles.filter(k=>saisonOuverte(k));
+    SAISON_ACCUEIL=ouv.find(k=>SAISONS[k].an===an)||(code==="FR"&&ouv.includes(SAISON_DEFAUT)?SAISON_DEFAUT:ouv[0])||cles[0]; ecranAccueil(); });
   const br=document.getElementById("bReprendre"); if(br) br.onclick=()=>ouvreCarriere(br.dataset.id);
   app.querySelectorAll(".carGo").forEach(b=>b.onclick=()=>ouvreCarriere(b.dataset.id));
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
@@ -23274,6 +23451,7 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   // On passe donc par fermeFiche(), seule porte qui respecte le verrou — et un message maison (#msgbox),
   // qui vit au-dessus de #fiche, se dépile d'abord.
   document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(fermeMessage()) return; fermeFiche(); });
+  progRattrape(); // une fois : les titres de première année déjà gagnés dans les carrières du navigateur rapportent leur clé
   ecranAccueil();
   retourDeLien(); // retour d'un lien reçu par email : lu dans l'adresse, sans requête
   // LES VIGNETTES SE PRÉCHARGENT EN DOUCE (v2.17) : sorties du fichier, elles arriveraient sinon avec un temps de
