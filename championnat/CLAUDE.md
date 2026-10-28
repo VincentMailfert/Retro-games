@@ -3523,10 +3523,11 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
 - **Ouvertes d'office** : la constante **`SAISONS_OUVERTES`**, six saisons, une par époque et par championnat
   (France 1990-91, 1995-96, 2005-06 ; Angleterre `ANG-1990-91`, `ANG-1995-96`, `ANG-2000-01`). L'Angleterre est
   ouverte comme la France. C'est la seule liste à toucher pour changer la donne de départ.
-- **Une saison gagnée** = un titre de **D1** remporté dans la **première année** de la carrière (`saisonIdx===1`),
-  donc dans la saison de départ, avec le vrai plateau. Ni les titres des années suivantes, ni un titre de D2.
-  Elle rapporte **une clé dans son championnat** (FR ou ANG, `chDeSaison` lit le préfixe de la clé), et **une
-  seule**, même regagnée dans une autre carrière. La saison de départ d'une carrière se **déduit** de `G.pays` et
+- **Une saison gagnée** = un titre de **D1** remporté par une carrière partie de cette saison, **à n'importe quelle
+  année** (v2.24, choix de l'auteur : « on peut prendre un club de 2e division, le faire monter, et c'est quand on est
+  champion en première division ensuite qu'on gagne la clé » ; la v2.22 n'acceptait que la première année). Un titre
+  de D2 ne compte jamais. La clé va au **championnat de la saison de départ** (FR ou ANG, `chDeSaison` lit le préfixe
+  de la clé), et **une seule** par saison de départ, même regagnée plus tard ou dans une autre carrière. La saison de départ d'une carrière se **déduit** de `G.pays` et
   `G.anBase` (`cleDepart`) : aucun champ de plus dans `G`.
 - **Le nombre de clés n'est jamais stocké** : `clesDispo(ch)` = saisons gagnées − saisons ouvertes avec une clé,
   dans ce championnat, jamais sous zéro. `ouvreSaison(k)` dépense une clé ; une saison ouverte le reste pour toujours.
@@ -3535,22 +3536,25 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
   commencée, rapatriée ou importée s'ouvre toujours.
 - **Pas de « saison de la semaine »** : prévue dans la consigne d'origine (une saison fermée ouverte à tous
   pendant une semaine), puis **écartée par l'auteur le 28/10/2026**. Ne pas la réintroduire sans lui.
-- **Le rattrapage** (`progRattrape`, une fois par navigateur, drapeau `ratt`) : au premier chargement, les carrières
-  du navigateur dont le palmarès porte « Champion de France 1995-96 » (ou d'Angleterre) pour leur saison de départ
-  créditent leur clé. `chargeLocale` refait le constat à chaque ouverture (`progConstate`) : une carrière venue d'un
+- **Le rattrapage** (`progRattrape`, une fois par navigateur, drapeau `ratt` = 2 depuis la v2.24 pour repasser sur
+  les navigateurs rattrapés sous l'ancienne règle) : au premier chargement, les carrières du navigateur dont le
+  palmarès porte un « Champion de France AAAA-AA » (ou d'Angleterre), quelle que soit l'année (`titreElite`),
+  créditent la clé de leur saison de départ. `chargeLocale` refait le constat à chaque ouverture (`progConstate`) : une carrière venue d'un
   autre appareil ou d'un fichier compte aussi. **Piège** : le titre de D2 s'écrit « Champion de Division 2 … », d'où
   le test sur `PAYS[pays].titre` exact suivi de l'année, jamais sur « Champion de ».
-- **À l'écran** : cadenas 🔒 devant les saisons fermées du `#selSaison` (elles restent visibles, leurs clubs aussi),
-  `🔑 n` discret à droite de « Saison de départ » (le championnat regardé), une ligne « 🔒 Aucune clé en poche. Soyez champion de l'élite dès la première saison d'une carrière pour en gagner
-  une. » (la seconde phrase demandée par l'auteur en v2.23 : sans elle, on ne comprenait pas comment gagner une clé) ou
+- **À l'écran** : cadenas 🔒 devant les saisons fermées du `#selSaison` (elles restent visibles, leurs clubs aussi)
+  et **coche ✅ devant les saisons jouables** (v2.24, demande de l'auteur : « on comprend qu'on peut les jouer »),
+  `🔑 n` discret à droite de « Saison de départ » (le championnat regardé), une ligne « 🔒 Aucune clé en poche. Gagnez
+  un titre de champion en première division pour en gagner une. » (seconde phrase demandée par l'auteur en v2.23,
+  reformulée par lui en v2.24 : sans elle, on ne comprenait pas comment gagner une clé) ou
   « 🔒 1 clé en poche. 🔑 Ouvrir » sous le sélecteur, `confirme` quand on choisit une saison fermée avec une clé
   (`proposeOuverture`), et « 🔒 SAISON FERMÉE » grisé à la place de « PRENDRE LES RÊNES » dans la fiche d'un club.
   Le sélecteur range les saisons de chaque pays **par année** (v2.23 : elles entrent dans `SAISONS` dans l'ordre où
   on les ajoute, et les anglaises 1990-94, arrivées après, s'affichaient en bas). Le bandeau de l'accueil, en haut à
   droite, dit « Rétro football management » (v2.23, choix de l'auteur) au lieu de la division du pays regardé.
   Changer de drapeau tombe d'abord sur une saison ouverte. Le hasard ne tire que des saisons ouvertes. L'almanach
-  de fin de saison dit « 🔑 Titre dès la première saison : une clé de plus au trousseau. » (`cleDuBilan` : la clé a
-  été créditée à CETTE carrière).
+  de fin de saison dit « 🔑 Champion : une clé de plus au trousseau. » (`cleDuBilan` : la clé a été créditée à CETTE
+  carrière et CETTE année, d'où le champ `an` de chaque saison gagnée).
 - **Où elle vit** : sous **`PROGKEY`** (`d1manager_progression_v1`), à part ; ni `SAVEKEY`, ni `IDXKEY`, ni le format
   des carrières ne bougent. Le magasin garde **une progression par compte** (`par[uid]`) et une pour l'invité
   (`par[""]`) : au premier compte qui se connecte, celle de l'invité devient la sienne ; un second compte sur le même
@@ -5344,8 +5348,8 @@ test est **« contient-elle des lignes de joueurs »**.
    suppression du compte, retour d'un lien reçu par email, nouvel appareil, navigateur qui ne garde que les quatre
    récentes, suppression en ligne ; section N depuis v2.22 : la progression des saisons verrouillées, héritée par
    le premier compte, fusionnée entre deux appareils, jamais partagée entre deux comptes).
-   `harness-cadenas.cjs` (les saisons verrouillées, v2.22 : six saisons ouvertes, la clé du titre de première année
-   et pas des autres, une seule clé par saison, une clé pour une saison, la carrière commencée sur une saison fermée
+   `harness-cadenas.cjs` (les saisons verrouillées, v2.22 : six saisons ouvertes, la clé d'un titre de D1 à toute année,
+   même après une montée, et pas d'un titre de D2, une seule clé par saison, une clé pour une saison, la carrière commencée sur une saison fermée
    qui se rejoue, le rattrapage, la fusion, l'écran et le bilan, les résultats structurés).
    **Le faux serveur doit rester d'accord avec `supabase/schema.sql`** : qui change
    l'un change l'autre. Trois essais au navigateur (Playwright, hors dépôt : `npm i playwright` dans un dossier à part)

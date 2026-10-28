@@ -1,8 +1,9 @@
-/* Harnais headless — LES SAISONS VERROUILLÉES (v2.22)
-   La plupart des saisons de départ sont fermées ; un titre de D1 dès la première année d'une carrière
-   rapporte une clé dans son championnat, et la clé ouvre une saison fermée du même championnat.
+/* Harnais headless — LES SAISONS VERROUILLÉES (v2.22, règle élargie en v2.24)
+   La plupart des saisons de départ sont fermées ; un titre de D1, à n'importe quelle année d'une carrière,
+   rapporte une clé dans le championnat de sa saison de départ, et la clé ouvre une saison fermée du même
+   championnat.
    A) une partie neuve ne voit ouvertes que les six saisons de départ
-   B) un titre de D1 en première année crédite une clé ; en deuxième année ou en D2, non
+   B) un titre de D1 crédite une clé, même en deuxième année après une montée ; un titre de D2, non
    C) regagner la même saison ne crédite pas une deuxième clé
    D) une clé ouvre une saison, et une seule (et jamais dans l'autre championnat)
    E) une carrière existante sur une saison fermée se recharge et se joue
@@ -50,7 +51,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,classement,clubById,sauvegardeLocale,chargeLocale,partiesListe," +
   "ecranAccueil,ficheClubAccueil,ecranBilan,SAISONS,CLUBS,CLUBS_D2,PROGKEY,SAVEKEY,SAISONS_OUVERTES," +
   "saisonOuverte,clesDispo,ouvreSaison,progGagne,progRattrape,progFusionne,progEmpreinte,progNette,prog,progMag," +
-  "titrePremiereAnnee,cleDepart,cleDuBilan,chDeSaison,progVide," +
+  "titreElite,cleDepart,cleDuBilan,chDeSaison,progVide," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 function reel(fn) { global.window.__TEST__ = false; try { return fn(); } finally { global.window.__TEST__ = true; } }
@@ -83,8 +84,8 @@ let LS = nouveauLS(), api = appareil(LS);
   ok(Object.keys(LS._m).length === 0, "rien n'est écrit dans le navigateur au simple fait de regarder");
 }
 
-/* ===== B) le titre de première année ===== */
-console.log("\nB) Un titre de D1 en première année crédite une clé ; en deuxième année ou en D2, non");
+/* ===== B) le titre de D1 ===== */
+console.log("\nB) Un titre de D1 crédite une clé, même après une montée ; un titre de D2, non");
 let pidChampion;
 {
   api.nouvellePartie(api.CLUBS[0].id, "1995-96");
@@ -95,24 +96,29 @@ let pidChampion;
   ok(api.clesDispo("FR") === 1 && api.clesDispo("ANG") === 0, "une clé en France, aucune en Angleterre");
   ok(api.prog().gagnees.length === 1 && api.prog().gagnees[0].k === "1995-96" && api.prog().gagnees[0].pid === G.pid, "la saison 1995-96 est gagnée, au nom de cette carrière");
   ok(api.cleDuBilan(), "le bilan de cette saison saura dire qu'une clé est tombée");
-  ok(api.titrePremiereAnnee(G) === "1995-96", "le mur du club porte bien le titre de la saison de départ");
-  // deuxième année : un nouveau titre ne rapporte rien
+  ok(api.titreElite(G) === "1995-96", "le mur du club porte bien un titre de D1");
+  // deuxième année : un nouveau titre de la même carrière ne rapporte rien de plus
   G.vire = null; api.intersaison();
   ok(G.saisonIdx === 2 && !api.cleDuBilan(), "deuxième saison : le bilan ne parle plus de clé");
   const r2 = finitSaison(api, true);
-  ok(r2 === 1 && G.div === 1, "champion de D1 en deuxième année");
-  ok(api.clesDispo("FR") === 1 && api.prog().gagnees.length === 1, "toujours une seule clé : la deuxième année ne compte pas");
-  // en D2 dès la première année
-  const omId = (api.CLUBS_D2.find(c => /marseille/i.test(c.nom)) || api.CLUBS_D2[0]).id;
-  api.nouvellePartie(omId, "1995-96");
-  const G2 = api.getG();
-  ok(G2.div === 2, "une carrière qui part de D2 (" + api.clubById(omId).nom + ")");
-  ok(finitSaison(api, true) === 1, "champion de D2 en première année");
-  ok(G2.palmares.some(p => /^Champion de /.test(p)) && api.titrePremiereAnnee(G2) === null, "le titre de D2 est au mur, mais ce n'est pas celui qui compte");
-  ok(api.clesDispo("FR") === 1, "aucune clé de plus");
-  // un club qui finit loin du titre en première année
+  ok(r2 === 1 && G.div === 1, "champion de D1 une deuxième fois");
+  ok(api.clesDispo("FR") === 1 && api.prog().gagnees.length === 1 && !api.cleDuBilan(), "toujours une seule clé : la saison de départ l'a déjà rapportée");
+  // un club qui finit loin du titre
   api.nouvellePartie(api.SAISONS["2005-06"].d1[7], "2005-06");
-  ok(finitSaison(api, false) > 1 && api.prog().gagnees.length === 1, "une première saison sans titre ne crédite rien");
+  ok(finitSaison(api, false) > 1 && api.prog().gagnees.length === 1, "une saison sans titre ne crédite rien");
+  // partir de D2, monter, puis être champion de D1 : la clé tombe (un appareil à part, pour garder les comptes ci-dessous)
+  const a = appareil(nouveauLS()), k = "2005-06";
+  a.nouvellePartie(a.SAISONS[k].d2[0], k);
+  const G2 = a.getG();
+  ok(G2.div === 2, "une carrière qui part de D2 (" + a.clubById(G2.monClub).nom + ", " + k + ")");
+  ok(finitSaison(a, true) === 1, "championne de D2 en première année");
+  ok(G2.palmares.some(p => /^Champion de /.test(p)) && a.titreElite(G2) === null && a.clesDispo("FR") === 0 && !a.cleDuBilan(),
+    "le titre de D2 est au mur, mais il ne rapporte rien");
+  G2.vire = null; a.intersaison();
+  ok(G2.div === 1 && G2.saisonIdx === 2, "montée en D1");
+  ok(finitSaison(a, true) === 1 && a.titreElite(G2) === k, "championne de D1 l'année d'après");
+  ok(a.clesDispo("FR") === 1 && a.prog().gagnees[0].k === k && a.prog().gagnees[0].an === 2 && a.cleDuBilan(),
+    "la clé tombe, au nom de la saison de départ, et le bilan de cette deuxième saison l'annonce");
 }
 
 /* ===== C) regagner la même saison ===== */
@@ -165,38 +171,43 @@ console.log("\nF) Le rattrapage crédite les titres déjà gagnés");
 {
   const ls = nouveauLS(), a = appareil(ls);
   const ecrit = (o) => reel(() => { a.setG(o); return a.sauvegardeLocale(true); });
-  // trois carrières « d'avant » : un vrai titre de première année en 1990-91, un titre de deuxième année, un titre de D2
+  // quatre carrières « d'avant » : un titre de D1 en première année, un titre de D1 en deuxième année, un titre de D2, un titre anglais
   a.nouvellePartie(a.SAISONS["1990-91"].d1[1], "1990-91"); finitSaison(a, true);
   const g1 = a.getG(); a.prog().gagnees = []; // on oublie ce que la fin de saison vient de créditer : c'est la version d'avant
-  ok(a.titrePremiereAnnee(g1) === "1990-91", "une carrière 1990-91 championne dès la première année");
+  ok(a.titreElite(g1) === "1990-91", "une carrière 1990-91 championne de D1 dès la première année");
   ok(reel(() => a.sauvegardeLocale(true)), "sauvegardée");
-  a.nouvellePartie(a.SAISONS["1990-91"].d1[3], "1990-91");
-  const g2 = a.getG(); g2.palmares = ["Champion de France 1991-92"]; g2.saisonIdx = 2; g2.saison = "1991-92";
-  ok(ecrit(g2) && a.titrePremiereAnnee(g2) === null, "une carrière 1990-91 championne seulement en deuxième année");
+  a.nouvellePartie(a.SAISONS["1995-96"].d1[3], "1995-96");
+  const g2 = a.getG(); g2.palmares = ["Montée en Division 1 1995-96", "Champion de France 1996-97"]; g2.saisonIdx = 2; g2.saison = "1996-97";
+  ok(ecrit(g2) && a.titreElite(g2) === "1995-96", "une carrière 1995-96 championne de D1 en deuxième année : elle compte aussi");
   a.nouvellePartie(a.SAISONS["2005-06"].d2[0], "2005-06");
   const g3 = a.getG(); g3.palmares = ["Champion de " + "Ligue 2 2005-06", "Montée en Ligue 1 2005-06"];
-  ok(ecrit(g3) && a.titrePremiereAnnee(g3) === null, "une carrière 2005-06 championne de deuxième division");
+  ok(ecrit(g3) && a.titreElite(g3) === null, "une carrière 2005-06 seulement championne de deuxième division : elle ne compte pas");
   // une carrière anglaise « d'avant » : relue dans une sauvegarde bricolée sur une partie anglaise
   a.nouvellePartie(a.SAISONS["ANG-1990-91"].d1[0], "ANG-1990-91");
   const g4 = a.getG(); g4.palmares = ["Champion d'Angleterre 1990-91 : PREMIER TITRE DE L'HISTOIRE"];
-  ok(ecrit(g4) && a.titrePremiereAnnee(g4) === "ANG-1990-91", "une carrière anglaise championne dès 1990-91 (avec la mention du premier titre)");
+  ok(ecrit(g4) && a.titreElite(g4) === "ANG-1990-91", "une carrière anglaise championne en 1990-91 (avec la mention du premier titre)");
   ok(a.partiesListe().length === 4, "quatre carrières dans le navigateur");
   const b = appareil(ls); // la nouvelle version se charge pour la première fois
   ok(b.clesDispo("FR") === 0 && b.clesDispo("ANG") === 0, "au chargement, aucune clé encore");
   const n = reel(() => b.progRattrape());
-  ok(n === 2, "le rattrapage trouve deux titres de première année (" + n + ")");
-  ok(b.clesDispo("FR") === 1 && b.clesDispo("ANG") === 1, "une clé en France, une en Angleterre");
-  ok(b.prog().gagnees.map(g => g.k).sort().join(",") === "1990-91,ANG-1990-91", "1990-91 et ANG-1990-91 sont gagnées");
+  ok(n === 3, "le rattrapage trouve trois titres de D1 (" + n + ")");
+  ok(b.clesDispo("FR") === 2 && b.clesDispo("ANG") === 1, "deux clés en France, une en Angleterre");
+  ok(b.prog().gagnees.map(g => g.k).sort().join(",") === "1990-91,1995-96,ANG-1990-91", "1990-91, 1995-96 et ANG-1990-91 sont gagnées");
   ok(reel(() => b.progRattrape()) === 0, "un second passage ne fait rien");
-  ok(ls.getItem(b.PROGKEY) && JSON.parse(ls.getItem(b.PROGKEY)).ratt === 1, "la progression est rangée à part, sous sa propre clé");
+  ok(ls.getItem(b.PROGKEY) && JSON.parse(ls.getItem(b.PROGKEY)).ratt === 2, "la progression est rangée à part, sous sa propre clé");
   const c = appareil(ls); // rechargée encore : la progression a survécu, le rattrapage ne repasse pas
-  ok(reel(() => c.clesDispo("FR") === 1 && c.clesDispo("ANG") === 1 && c.progRattrape() === 0), "après un rechargement : les deux clés sont là, et le rattrapage ne repasse pas");
+  ok(reel(() => c.clesDispo("FR") === 2 && c.clesDispo("ANG") === 1 && c.progRattrape() === 0), "après un rechargement : les clés sont là, et le rattrapage ne repasse pas");
+  // un navigateur passé par la v2.22 (rattrapage de l'ancienne règle déjà fait) repasse une fois avec la nouvelle
+  const ls3 = nouveauLS(); for (const k of Object.keys(ls._m)) if (k !== b.PROGKEY) ls3.setItem(k, ls._m[k]);
+  ls3.setItem(b.PROGKEY, JSON.stringify({ der: "", ratt: 1, par: { "": { gagnees: [{ k: "1990-91", t: 1 }], ouvertes: [], resultats: [] } } }));
+  const v = appareil(ls3);
+  ok(reel(() => v.progRattrape() === 2 && v.clesDispo("FR") === 2 && v.progRattrape() === 0), "un navigateur rattrapé sous l'ancienne règle repasse une fois : le titre de deuxième année compte");
   // une carrière en ligne rapatriée plus tard : son titre compte à l'ouverture
   const d = appareil(nouveauLS());
   d.nouvellePartie(d.SAISONS["1990-91"].d1[1], "1990-91"); finitSaison(d, true); d.prog().gagnees = [];
   const txt = JSON.stringify(d.getG()), ls2 = nouveauLS(); ls2.setItem("d1manager_partie_x1", txt);
   const e = appareil(ls2); e.chargeLocale(e.partiesListe()[0].id);
-  ok(e.clesDispo("FR") === 1, "une carrière ouverte qui porte un titre de première année crédite sa clé (autre appareil, fichier importé)");
+  ok(e.clesDispo("FR") === 1, "une carrière ouverte qui porte un titre de D1 crédite sa clé (autre appareil, fichier importé)");
 }
 
 /* ===== G) la fusion ===== */
@@ -230,7 +241,9 @@ console.log("\nH) À l'écran");
   const option = (h, k) => (h.match(new RegExp('<option value="' + k + '"[^>]*>([^<]*)</option>')) || [])[1] || "";
   a.setAccueil("1995-96"); a.ecranAccueil();
   let h = APP.innerHTML;
-  ok(/🔒/.test(option(h, "1993-94")) && !/🔒/.test(option(h, "1995-96")) && !/🔒/.test(option(h, "1990-91")), "les saisons fermées sont dans le sélecteur, avec un cadenas ; les ouvertes sans");
+  ok(/^🔒 /.test(option(h, "1993-94")) && /^✅ /.test(option(h, "1995-96")) && /^✅ /.test(option(h, "1990-91")) && !/🔒/.test(option(h, "1995-96")),
+    "dans le sélecteur, un cadenas devant les saisons fermées et une coche devant les saisons jouables");
+  ok([...h.matchAll(/<option value="[^"]+"[^>]*>([^<]*)</g)].every(m => /^(✅|🔒) /.test(m[1])), "chaque saison porte l'un ou l'autre, tout à gauche");
   ok(!/semaine/.test(h.match(/<select id="selSaison"[^]*?<\/select>/)[0]), "aucune saison de la semaine dans le sélecteur");
   for (const k0 of ["1995-96", "ANG-1995-96"]) { // le sélecteur range les saisons par année, dans les deux pays
     a.setAccueil(k0); a.ecranAccueil();
@@ -242,7 +255,7 @@ console.log("\nH) À l'écran");
   ok(!/id="accFerme"/.test(h), "sur une saison ouverte, pas de ligne de cadenas");
   a.setAccueil("1993-94"); a.ecranAccueil(); h = APP.innerHTML;
   const ligne = (h.match(/<p id="accFerme"[^]*?<\/p>/) || [""])[0];
-  ok(/Aucune clé en poche/.test(ligne) && !/bOuvreSaison/.test(ligne), "sur une saison fermée sans clé : une seule ligne, qui dit les clés, sans bouton");
+  ok(/Aucune clé en poche\. Gagnez un titre de champion en première division pour en gagner une\./.test(ligne) && !/bOuvreSaison/.test(ligne), "sur une saison fermée sans clé : une seule ligne, qui dit les clés, sans bouton");
   ok((h.match(/class="startclub"/g) || []).length >= 36, "les clubs de la saison fermée restent visibles");
   a.ficheClubAccueil(a.SAISONS["1993-94"].d1[0]);
   ok(/disabled[^>]*>🔒 SAISON FERMÉE</.test(FICHE.innerHTML) && !/PRENDRE LES RÊNES/.test(FICHE.innerHTML), "la fiche d'un club d'une saison fermée ne laisse pas lancer la carrière");
@@ -254,7 +267,7 @@ console.log("\nH) À l'écran");
   ok(/PRENDRE LES RÊNES/.test(FICHE.innerHTML), "sur une saison ouverte, le bouton de lancement est là");
   // le bilan de fin de saison
   a.nouvellePartie(a.SAISONS["1990-91"].d1[0], "1990-91"); finitSaison(a, true); a.ecranBilan();
-  ok(/🔑 Titre dès la première saison : une clé de plus au trousseau\./.test(APP.innerHTML), "le bilan annonce la clé en une ligne");
+  ok(/🔑 Champion : une clé de plus au trousseau\./.test(APP.innerHTML), "le bilan annonce la clé en une ligne");
   a.nouvellePartie(a.SAISONS["1990-91"].d1[1], "1990-91"); finitSaison(a, true); a.ecranBilan();
   ok(!/trousseau/.test(APP.innerHTML), "et se tait quand la saison avait déjà rapporté sa clé");
   // aucun tiret long dans ce que le système écrit

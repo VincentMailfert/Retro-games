@@ -550,7 +550,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.23"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.24"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -17693,7 +17693,7 @@ function finDeSaison(){
     if(G.div===1 && rang>=n-5 && rang<=n-3) G.palmares.push("Maintien arraché en "+tagDiv(1)+" "+G.saison+" ("+rang+"ᵉ)");
     if(G.coupe && G.coupe.elimine && G.coupe.tourSortie==="Finale") G.palmares.push("Finaliste de la "+libCoupeNat()+" "+G.saison);
   }
-  progFinDeSaison(rang); // la clé d'un titre de première année, et le résultat de la saison (cf. les saisons verrouillées)
+  progFinDeSaison(rang); // la clé d'un titre de D1, et le résultat de la saison (cf. les saisons verrouillées)
   soldeBio(); // la saison entre dans la fiche de vie de chacun AVANT que razStatsClub ne remette tout à zéro
   // verdict du président : être relégué ne licencie plus (on continue en D2) ; seul un objectif manqué de loin coûte la place
   if(rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
@@ -17935,7 +17935,7 @@ function ecranBilan(){
      <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
      ${imgBilan?`<img class="momImg" style="max-height:240px;margin-top:6px" src="${imgBilan}" alt="">`:""}
      <p style="font-size:17px">Vous terminez à la <b class="jaune">${B.rang}ᵉ place</b>. ${esc(verdict)}</p>
-     ${cleDuBilan()?`<p class="fort" style="margin-top:4px">🔑 Titre dès la première saison : une clé de plus au trousseau.</p>`:""}
+     ${cleDuBilan()?`<p class="fort" style="margin-top:4px">🔑 Champion : une clé de plus au trousseau.</p>`:""}
      ${moi?`<p class="dim" style="margin-top:4px">${moi.g} victoires · ${moi.n} nuls · ${moi.p} défaites, ${moi.bp} buts marqués, ${moi.bc} encaissés (${moi.bp-moi.bc>0?"+":""}${moi.bp-moi.bc}).</p>`:""}
      <p class="dim" style="margin-top:2px">Champion de ${esc(libDiv(B.div))} : <b>${esc(B.champion?B.champion.nom:"")}</b> avec ${B.champion?B.champion.pts:0} points.</p>
    </div>
@@ -18388,7 +18388,7 @@ function chargeLocale(id){ // reprendre une carrière (sans argument : la plus r
   try{ const s=lsLit(p.k); if(s==null) return false;
     G=JSON.parse(s); PARTIE={id:p.id, k:p.k}; G.pid=p.id;
     migre(); majTitre();
-    progConstate(G, p.id); // un titre de première année gagné ailleurs (autre appareil, fichier importé) compte aussi
+    progConstate(G, p.id); // un titre de D1 gagné ailleurs (autre appareil, fichier importé) compte aussi
     /* « OÙ EN ÉTIONS-NOUS ? » (v1.08) : une carrière laissée de côté plus d'un jour ne se reprend pas
        froidement. On repose le décor — rang, écart au palier le plus proche, forme, phrase de l'almanach,
        arc en cours, prêté qui rentre, chantier, et le match de samedi avec la raison pour laquelle il
@@ -18860,9 +18860,10 @@ async function nuagePrepare(id){
 /* =====================================================================
    LES SAISONS VERROUILLÉES (v2.22)
    =====================================================================
-   La plupart des saisons de départ sont fermées. Un titre de D1 remporté dès la PREMIÈRE année d'une
-   carrière (la saison de départ elle-même, avec le vrai plateau) donne une clé dans son championnat ;
-   une même saison n'en donne qu'une, même regagnée dans une autre carrière. La clé ouvre la saison
+   La plupart des saisons de départ sont fermées. Un titre de D1, à N'IMPORTE QUELLE année d'une carrière
+   (on peut partir de D2, monter, puis être sacré : v2.24, choix de l'auteur), donne une clé dans le
+   championnat de sa saison de départ ; une même saison de départ n'en donne qu'une, même regagnée plus
+   tard ou dans une autre carrière. La clé ouvre la saison
    fermée de son choix, dans le même championnat, et pour toujours. Le nombre de clés n'est jamais
    stocké : il se DÉDUIT (saisons gagnées − saisons ouvertes, par championnat), si bien que la fusion de
    deux appareils n'est qu'une réunion d'ensembles. Les cadenas ne jouent qu'au lancement d'une carrière
@@ -18874,7 +18875,7 @@ async function nuagePrepare(id){
    aussi les RÉSULTATS de chaque fin de saison (pour un futur classement entre joueurs), que rien
    n'affiche encore. Connecté, elle part en ligne (table `progression`, fonction pousse_progression). */
 const SAISONS_OUVERTES=["1990-91","1995-96","2005-06","ANG-1990-91","ANG-1995-96","ANG-2000-01"]; // ouvertes d'office : une par époque et par championnat
-const PROGKEY="d1manager_progression_v1"; // {der, ratt, par:{"" ou uid:{gagnees:[{k,pid,t}], ouvertes:[k], resultats:[…], maj, envoye}}}
+const PROGKEY="d1manager_progression_v1"; // {der, ratt, par:{"" ou uid:{gagnees:[{k,pid,t,an}], ouvertes:[k], resultats:[…], maj, envoye}}}
 const PROG_RES_MAX=400;                   // résultats de fin de saison gardés au plus (~40 Ko)
 let PROG_MAG=null, PROG_TIRE=false, PROG_EN_COURS=null;
 
@@ -18888,7 +18889,7 @@ function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde
   const o=progVide(); if(!p || typeof p!=="object") return o;
   const cle=k=>typeof k==="string" && k.length<=24 && /^[A-Z0-9-]+$/.test(k);
   o.gagnees=(Array.isArray(p.gagnees)?p.gagnees:[]).filter(g=>g && cle(g.k))
-    .map(g=>({k:g.k, pid:typeof g.pid==="string"?g.pid.slice(0,64):null, t:+g.t||0}));
+    .map(g=>({k:g.k, pid:typeof g.pid==="string"?g.pid.slice(0,64):null, t:+g.t||0, an:+g.an||0}));
   o.ouvertes=(Array.isArray(p.ouvertes)?p.ouvertes:[]).filter(cle);
   o.resultats=(Array.isArray(p.resultats)?p.resultats:[]).filter(r=>r && typeof r==="object" && !Array.isArray(r)).slice(-PROG_RES_MAX);
   o.maj=+p.maj||0; o.envoye=+p.envoye||0;
@@ -18897,7 +18898,7 @@ function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde
 function progMag(){ // le magasin du navigateur, relu une fois ; au harnais il ne quitte jamais la mémoire
   if(!PROG_MAG){ let o=null;
     if(!EN_TEST()) try{ o=JSON.parse(lsLit(PROGKEY)||"null"); }catch(e){ o=null; }
-    PROG_MAG={der:(o && typeof o.der==="string")?o.der:"", ratt:o&&o.ratt?1:0, par:{}};
+    PROG_MAG={der:(o && typeof o.der==="string")?o.der:"", ratt:o?+o.ratt||0:0, par:{}};
     if(o && o.par && typeof o.par==="object") for(const u in o.par) PROG_MAG.par[u]=progNette(o.par[u]); }
   return PROG_MAG;
 }
@@ -18926,34 +18927,34 @@ function ouvreSaison(k){ // dépense une clé du championnat de k : vrai si la s
   prog().ouvertes.push(k); progSauve(true); progPlanifie();
   return true;
 }
-function progGagne(k, pid){ // une saison gagnée : vrai si elle ne l'était pas encore (la clé est créditée)
+function progGagne(k, pid, an){ // une saison gagnée : vrai si elle ne l'était pas encore (la clé est créditée) ; an = l'année de carrière du titre
   const p=prog(); if(!k || !SAISONS[k] || p.gagnees.some(g=>g.k===k)) return false;
-  p.gagnees.push({k, pid:pid||null, t:Date.now()}); progSauve(true);
+  p.gagnees.push({k, pid:pid||null, t:Date.now(), an:an||0}); progSauve(true);
   return true;
 }
-function titrePremiereAnnee(o){ // le mur du club porte-t-il le titre de D1 de la saison de départ ? (sa clé, sinon null)
-  const k=cleDepart(o), S=k&&SAISONS[k], P=PAYS[o.pays||"FR"]||PAYS.FR; if(!S) return null;
-  const t=P.titre+" "+S.titre; // « Champion de France 1995-96 » ; celui de D2 s'écrit « Champion de Division 2 … »
-  return (o.palmares||[]).some(x=>typeof x==="string" && (x===t || x.indexOf(t+" ")===0)) ? k : null;
+function titreElite(o){ // le mur du club porte-t-il un titre de D1, quelle que soit l'année ? (la clé de la saison de départ, sinon null)
+  const k=cleDepart(o), P=PAYS[o.pays||"FR"]||PAYS.FR; if(!k) return null;
+  const t=P.titre+" "; // « Champion de France 1997-98 » ; celui de D2 s'écrit « Champion de Division 2 … », jamais confondu
+  return (o.palmares||[]).some(x=>typeof x==="string" && x.indexOf(t)===0 && /^\d{4}-\d{2}/.test(x.slice(t.length))) ? k : null;
 }
-function progConstate(o, pid){ const k=titrePremiereAnnee(o); return k?progGagne(k, pid||o.pid):false; }
+function progConstate(o, pid){ const k=titreElite(o); return k?progGagne(k, pid||o.pid):false; }
 function progRattrape(){ // au premier chargement de cette version : les titres déjà remportés dans les carrières du navigateur
-  const M=progMag(); if(M.ratt) return 0;
+  const M=progMag(); if(M.ratt>=2) return 0; // 2 : depuis la v2.24 un titre de D1 compte à toute année, on repasse donc une fois
   let n=0;
   for(const e of partiesListe()){ const s=lsLit(e.k); if(s==null) continue;
     try{ const o=JSON.parse(s); if(o && o.monClub && progConstate(o, o.pid||e.id)) n++; }catch(err){} }
-  M.ratt=1; progSauve(n>0); if(n) progPlanifie();
+  M.ratt=2; progSauve(n>0); if(n) progPlanifie();
   return n;
 }
 function cleDuBilan(){ // la saison qui s'achève vient-elle de rapporter sa clé à CETTE carrière ?
-  const k=cleDepart(G);
-  return (G.saisonIdx||1)===1 && !!prog().gagnees.find(g=>g.k===k && g.pid===G.pid);
+  const k=cleDepart(G), an=G.saisonIdx||1;
+  return !!prog().gagnees.find(g=>g.k===k && g.pid===G.pid && g.an===an);
 }
-/* LA FIN DE SAISON (appelée par finDeSaison, dans toutes les années) : la clé d'un titre de première
-   année, et le résultat structuré de la saison. Les finales de coupe (J36) et d'Europe (J33) sont jouées. */
+/* LA FIN DE SAISON (appelée par finDeSaison, dans toutes les années) : la clé d'un titre de D1, et le
+   résultat structuré de la saison. Les finales de coupe (J36) et d'Europe (J33) sont jouées. */
 function progFinDeSaison(rang){
   const k=cleDepart(G), an=G.saisonIdx||1;
-  if(an===1 && G.div===1 && rang===1) progGagne(k, G.pid);
+  if(G.div===1 && rang===1) progGagne(k, G.pid, an);
   const coupes=[];
   if(G.coupe && G.coupe.vainqueur===G.monClub) coupes.push("CN");
   if(G.euro && G.euro.vainqueur===G.monClub && G.euro.compet) coupes.push(G.euro.compet);
@@ -19263,7 +19264,7 @@ function ecranAccueil(){
      SAISONS, son bouton s'allume tout seul. */
   const paysAcc=paysDeSaison(SAISON_ACCUEIL);
   const clesDe=code=>Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code).sort((a,b)=>SAISONS[a].an-SAISONS[b].an); // par année : les saisons entrent dans SAISONS dans l'ordre où on les a ajoutées
-  const ligne=k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${saisonOuverte(k)?"":"🔒 "}${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}</option>`;
+  const ligne=k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${saisonOuverte(k)?"✅ ":"🔒 "}${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}</option>`;
   const ferme=!saisonOuverte(SAISON_ACCUEIL), cles=clesDispo(paysAcc);
   const opts=clesDe(paysAcc).map(ligne).join("");
   const boutonsPays=Object.keys(PAYS).map(code=>{ const P=PAYS[code], vide=!clesDe(code).length;
@@ -19291,7 +19292,7 @@ function ecranAccueil(){
      <label style="display:block;font-size:13px"><span style="display:flex;justify-content:space-between"><b>Saison de départ</b><span class="dim" id="accCles" title="Clés">🔑 ${cles}</span></span>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
      </label>
-     ${ferme?`<p id="accFerme" style="margin-top:8px;font-size:14px">🔒 <span class="dim">${cles?`${cles} clé${cles>1?"s":""} en poche.`:"Aucune clé en poche. Soyez champion de l'élite dès la première saison d'une carrière pour en gagner une."}</span>${cles?` <button class="act" id="bOuvreSaison">🔑 Ouvrir</button>`:""}</p>`:""}
+     ${ferme?`<p id="accFerme" style="margin-top:8px;font-size:14px">🔒 <span class="dim">${cles?`${cles} clé${cles>1?"s":""} en poche.`:"Aucune clé en poche. Gagnez un titre de champion en première division pour en gagner une."}</span>${cles?` <button class="act" id="bOuvreSaison">🔑 Ouvrir</button>`:""}</p>`:""}
      <p class="fort" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
      <p class="dim" style="margin-top:3px;font-size:13px">${esc(S.sous)}</p>
    </div>
@@ -23448,7 +23449,7 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   // On passe donc par fermeFiche(), seule porte qui respecte le verrou — et un message maison (#msgbox),
   // qui vit au-dessus de #fiche, se dépile d'abord.
   document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(fermeMessage()) return; fermeFiche(); });
-  progRattrape(); // une fois : les titres de première année déjà gagnés dans les carrières du navigateur rapportent leur clé
+  progRattrape(); // une fois : les titres de D1 déjà gagnés dans les carrières du navigateur rapportent leur clé
   ecranAccueil();
   retourDeLien(); // retour d'un lien reçu par email : lu dans l'adresse, sans requête
   // LES VIGNETTES SE PRÉCHARGENT EN DOUCE (v2.17) : sorties du fichier, elles arriveraient sinon avec un temps de
