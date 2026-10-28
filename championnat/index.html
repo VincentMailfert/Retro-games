@@ -550,7 +550,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.24"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.25"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -18912,7 +18912,9 @@ function prog(){ // la progression du joueur d'ici : le compte connecté, sinon 
   const u=M.der||""; return M.par[u]||(M.par[u]=progVide());
 }
 function progSauve(change){
-  const p=prog(); if(change) p.maj=Date.now();
+  // toujours PLUS RÉCENT que la marque précédente : après un envoi, `maj` peut être en avance sur l'horloge (cf.
+  // progSynchronise), et un changement daté de la même milliseconde passerait pour déjà envoyé
+  const p=prog(); if(change) p.maj=Math.max(Date.now(), (+p.maj||0)+1);
   if(EN_TEST()) return;
   try{ localStorage.setItem(PROGKEY, JSON.stringify(progMag())); }catch(e){}
 }
@@ -19252,6 +19254,9 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
 let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
+// LES COMPTES DU JEU (v2.25) : liens aux deux pieds de page, accueil et jeu
+const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"}, {nom:"X (Twitter)", url:"https://x.com/Multiplexclub"}];
+function liensReseaux(){ return RESEAUX.map(r=>`<a href="${r.url}" target="_blank" rel="noopener" style="color:inherit">${esc(r.nom)}</a>`).join(" · "); }
 const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
 function ecranAccueil(){
   const parties=carrieresAffichees();
@@ -19313,7 +19318,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bCompteAcc">☁️ ${compteLit()?"Mon compte":"Se connecter"}</button> · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a></p>`;
+   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bCompteAcc">☁️ ${compteLit()?"Mon compte":"Se connecter"}</button> · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a> · ${liensReseaux()}</p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
@@ -19384,6 +19389,7 @@ function chrome(actif, corps){
      <button class="act" id="bMenu">📁 Mes carrières</button>
      <button class="act" id="bCompte">${esc(libIndicateur())}</button>
      <button class="act" id="bApropos">À propos</button>
+     · ${liensReseaux()}
      ${SAVE_KO?`<br><b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Supprimez une vieille carrière depuis l'accueil.</b>`:""}
    </p>`;
   // la sauvegarde est automatique à chaque changement d'écran : plus de bouton, et plus de fichier

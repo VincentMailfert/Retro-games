@@ -181,6 +181,8 @@ toujours « raconter quelque chose ».
   sans JWT) qui range le message dans `public.messages_contact` (RLS sans règle : clé de service seule) puis le mail à
   l'auteur par Resend si le secret `RESEND_API_KEY` existe. Plafond 30 messages / 10 min, champ piège `ctcPiege` anti-robot.
   L'ancien `mailto:` ne faisait rien sans logiciel de messagerie. Le bouton devient « ✅ Message envoyé, merci ! ».
+- **Les comptes du jeu (v2.25)** : la constante `RESEAUX` (Instagram `multiplex.club`, X `Multiplexclub`, les comptes que
+  Buffer publie) et `liensReseaux()` mettent les deux liens aux DEUX pieds de page, accueil et jeu, en nouvel onglet.
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
   compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
   Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte
