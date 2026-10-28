@@ -550,7 +550,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.20"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.21"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -10507,7 +10507,7 @@ function tirsAuBut(home, away, verbeux, ev){
     const dom=cote===home, liste=dom?tirH:tirA, gk=dom?gkA:gkH, t=liste[k%liste.length];
     const dedans=Math.random()<probaPenalty(t,gk);
     if(dedans){ if(dom) h++; else a++; }
-    if(verbeux&&ev) ev.push({m:120,t:dedans?"but":"occ",ic:dedans?"but":"arret",
+    if(verbeux&&ev) ev.push({m:120,t:dedans?"but":"occ",ic:dedans?"but":"arret", tab:{tireur:dom?home.id:away.id, dedans},
       x:(t.nom||"le tireur")+(dedans?" prend le gardien à contre-pied. AU FOND. ":" se fait repousser sa frappe ! ")+"("+tagAff(home)+" "+h+"-"+a+" t.a.b.)"});
     return dedans;
   };
@@ -10522,6 +10522,8 @@ function tirsAuBut(home, away, verbeux, ev){
   for(let mort=0; h===a && mort<50; mort++){ k++; const ph=frappe(home), pa=frappe(away); if(ph!==pa) break; }
   // et si l'impossible arrivait quand même, on ne laisse pas le hasard d'un `>` trancher en silence
   const win = h>a ? home.id : (a>h ? away.id : (Math.random()<0.5 ? home.id : away.id));
+  // la dernière frappe de la séance : si c'est un arrêt du gardien qui qualifie, le direct lui fait un flash (v2.18)
+  if(verbeux&&ev){ const der=ev.length&&ev[ev.length-1]; if(der&&der.tab&&!der.tab.dedans&&der.tab.tireur!==win) der.tab.decisif=win; }
   return {h, a, win};
 }
 function simuleMatch(home,away,verbeux,opts){
@@ -11547,7 +11549,7 @@ const IMG_MOMENT={
   penAvant:["img/moments/penPour-1.png"],     // le tireur face au gardien : la seule vignette d'un penalty pas encore tiré (v2.20)
   penBut:["img/moments/penPour-2.png"],       // les vignettes du résultat, montrées une fois la zone choisie
   penEncaisse:["img/moments/penContre-1.png"],
-  penArret:["img/moments/penContre-2.png"],
+  penArret:["img/moments/penContre-2.png","img/moments/penArret-1.png"], // v2.21 : + l'arrêt vu à travers le filet
   rouge:["img/moments/rouge-1.png","img/moments/rouge-2.png"],
   chapeau:["img/moments/chapeau-1.png","img/moments/chapeau-2.png"],
   blessure:["img/moments/blessure-1.png","img/moments/blessure-2.png"],
@@ -11570,7 +11572,10 @@ const IMG_MOMENT={
   arr_grand:["img/moments/arr_grand-1.png"], arr_petit:["img/moments/arr_petit-1.png"],
   rec_star:["img/moments/rec_star-1.png"], rec_jeune:["img/moments/rec_jeune-1.png"], rec_veteran:["img/moments/rec_veteran-1.png"],
   adieu:["img/moments/adieu-1.png"], mallette:["img/moments/mallette-1.png"],
-  stade:["img/moments/stade-1.png"], finale:["img/moments/finale-1.png"]
+  stade:["img/moments/stade-1.png"], finale:["img/moments/finale-1.png"],
+  // v2.18 : l'issue d'un penalty raté, le coup de sang contre la porte
+  penRate:["img/moments/penRate-1.png"], tabArret:["img/moments/tabArret-1.png"],
+  inc_porte:["img/moments/inc_porte-1.png"]
 };
 /* LA CÉRÉMONIE (v2.17) : une vignette, un titre, deux lignes et un bouton, puis la suite. Pour les moments qui se
    passent hors du terrain (une signature, une présentation, un ruban qu'on coupe). Neutre au harnais. */
@@ -20178,6 +20183,13 @@ function lanceCoupe(H, A, ed){
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
+    if(lg && lg.tab && lg.tab.decisif){ // l'arrêt qui qualifie, au bout de la séance de tirs au but (v2.18)
+      const nous=lg.tab.decisif===G.monClub;
+      celebreFlash({classe:nous?"":"contre", gros:nous?"🧤 L'ARRÊT QUI QUALIFIE !":"🧤 ARRÊTÉ, C'EST FINI...", img:IMG_MOMENT.tabArret?PICK(IMG_MOMENT.tabArret):null,
+        sub:`<b class="jaune">${esc(nous?"Votre gardien":"Le gardien d'en face")}</b> sort le dernier tir au but`,
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
+    }
     tickerTimer=setTimeout(tic,tickerDelai);
   };
   tickerDelai=2300; tic();
@@ -20323,6 +20335,13 @@ function lanceEuroLeg(H, A, ed, legScore){
       const contre=lg.c.cote===G.monClub;
       celebreFlash({classe:"contre", gros:"🟥 CARTON ROUGE", img:PICK(IMG_MOMENT.rouge),
         sub:`<b class="jaune">${esc(lg.c.nom)}</b> · ${lg.m}'${contre?", un des vôtres&nbsp;!":""}`,
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+      return;
+    }
+    if(lg && lg.tab && lg.tab.decisif){ // l'arrêt qui qualifie, au bout de la séance de tirs au but (v2.18)
+      const nous=lg.tab.decisif===G.monClub;
+      celebreFlash({classe:nous?"":"contre", gros:nous?"🧤 L'ARRÊT QUI QUALIFIE !":"🧤 ARRÊTÉ, C'EST FINI...", img:IMG_MOMENT.tabArret?PICK(IMG_MOMENT.tabArret):null,
+        sub:`<b class="jaune">${esc(nous?"Votre gardien":"Le gardien d'en face")}</b> sort le dernier tir au but`,
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
@@ -21080,6 +21099,13 @@ function zoneGardien(){
   for(const k in poids){ r-=poids[k]; if(r<=0){ zg=k; break; } }
   return zg;
 }
+/* L'ISSUE D'UN PENALTY RATÉ A SA PROPRE IMAGE (v2.21) : la vignette du haut cède la place au plongeon gagnant du
+   gardien, ou au ballon qui file à côté du poteau. Un penalty transformé garde la sienne, le flash du but suit. */
+function vignetteIssuePen(fiche, dedans, arret){
+  if(dedans) return;
+  const im=fiche&&fiche.querySelector&&fiche.querySelector(".momImg"), l=IMG_MOMENT[arret?"penArret":"penRate"];
+  if(im && l) im.src=PICK(l);
+}
 function finMoment(fiche, html, onOk, choisi){
   const div=fiche.querySelector("#penRes");
   // on fige les choix : le bouton retenu s'inverse et reçoit une coche ✅, les autres s'effacent —
@@ -21165,6 +21191,7 @@ function momentPenPour(mo,moi,adv,resoudre,suite){
     }
     const lib=ZONES_PEN.find(x=>x[0]===z)[1].toLowerCase();
     if(marque) fiche.querySelector(".momImg").src=PICK(IMG_MOMENT.penBut);
+    vignetteIssuePen(fiche, marque, arret); // raté : l'arrêt du gardien ou le ballon à côté (v2.21)
     finMoment(fiche,
       `<p style="margin-top:8px">${esc(gk.nom)} plonge ${zg===z?"du bon côté":"à l'opposé"}...</p>
        <p class="${marque?"vert":"rouge"}" style="font-size:18px;margin-top:4px">${marque?"⚽ BUUUT !!!":(arret?"🧤 ARRÊT DU GARDIEN !":"✗ À CÔTÉ !")}</p>`,
@@ -21278,7 +21305,8 @@ function momentPenContre(mo,moi,adv,resoudre,suite){
     }
     if(arret){ gk.moral=Math.min(100,(gk.moral||65)+10); }
     const libT=ZONES_PEN.find(x=>x[0]===zt)[1].toLowerCase();
-    if(but||arret) fiche.querySelector(".momImg").src=PICK(IMG_MOMENT[but?"penEncaisse":"penArret"]);
+    if(but) fiche.querySelector(".momImg").src=PICK(IMG_MOMENT.penEncaisse);
+    vignetteIssuePen(fiche, but, arret); // arrêté ou à côté (v2.21)
     finMoment(fiche,
       `<p style="margin-top:8px">${esc(t.nom)} frappe ${libT}${z===zt?", vous plongez du bon côté !":", vous êtes parti de l'autre côté..."}</p>
        <p class="${but?"rouge":"vert"}" style="font-size:18px;margin-top:4px">${but?(z===zt?"💔 BUT QUAND MÊME : la frappe était trop pure !":"💔 BUT ENCAISSÉ À LA 90ᵉ..."):(arret?"🧤 ARRÊT DE "+esc(gk.nom).toUpperCase()+" !!!":"✗ À CÔTÉ ! Le poteau vous sauve !")}</p>`,

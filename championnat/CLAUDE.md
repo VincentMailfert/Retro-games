@@ -2964,6 +2964,15 @@ toujours « raconter quelque chose ».
   • **`adieu`** en tête de l'écran d'intersaison s'il porte un jubilé ou une retraite de VOTRE club ; **`mallette`** quand
   on accepte l'affaire ; **`stade`** (l'inauguration) après la carte de livraison d'une **tribune** ou des **virages**
   seulement ; **`finale`** en tête du rendez-vous de semaine d'une finale (Coupe de France ou Europe).
+- **L'ISSUE DES PENALTYS EN IMAGE (v2.21, 28/10/2026)** : quatre vignettes de plus. **`penArret`** (la v2.20 y avait mis
+  `penContre-2` ; s'y ajoute l'arrêt vu à travers le filet, tiré de la photo de l'auteur) et **`penRate`** (le ballon à côté du poteau) remplacent l'image du haut des
+  fenêtres de penalty de la 90ᵉ, pour et contre, quand le tir ne rentre pas (`vignetteIssuePen`). **`tabArret`** (tirée
+  de sa photo du gardien qui court, suivi de ses coéquipiers) illustre un **flash neuf** des directs de coupe et
+  d'Europe : `tirsAuBut` marque désormais chaque ligne de la séance (`tab:{tireur, dedans}`) et pose `tab.decisif`
+  (= le qualifié) sur la dernière frappe quand c'est un ARRÊT qui qualifie ; le téléscripteur lance alors
+  « 🧤 L'ARRÊT QUI QUALIFIE ! » (ou, contre nous, « ARRÊTÉ, C'EST FINI... »). **`inc_porte`** illustre l'incident
+  « 🚪 COUP DE SANG AUX VESTIAIRES ». Envoi des photos : l'espace de travail ne joint pas `upload.higgsfield.ai`, il faut
+  passer par le cadre d'envoi Higgsfield (`media_upload_widget`), seul outil du tour.
 - **Montée de tension** (`MONTEE_BUT` + `MONTEE_FRAPPE`, en direct seulement) : avant un but du téléscripteur **MAIS
   AUSSI avant certaines grosses occasions ratées**, l'action se construit en **deux temps**, chacun suivi d'un
   battement (`Math.max(650, tickerDelai)`) AVANT la résolution et son flash. 1er temps = l'action s'installe (ambiance
