@@ -61,7 +61,11 @@ function formeInitiales(nom) {
   return t.slice(0, -1).map(x => x[0].toUpperCase() + ".").join(" ") + " " + t[t.length - 1];
 }
 const PRIS = new Map(); // nom retenu -> tm
+// _graphie : [club, nom entier, graphie, raison], quand le jeu donne à CE même homme un nom que le résolveur
+// écarte parce qu'un autre homme le porte ailleurs (preuve dans la raison : même naissance, même poste, âge suivi)
+const GRAPHIE = new Map((AJUST_BRUT._graphie || []).map(([c, n, g, r]) => { journal.corrections.push(`graphie forcée à ${c} : ${n} → « ${g} » (${r})`); return [c + "|" + n, g]; }));
 function resoudre(j) {
+  if (GRAPHIE.has(j.club + "|" + j.nom)) return GRAPHIE.get(j.club + "|" + j.nom);
   if (!/^[0-9]{4}/.test(j.naissance || "")) return null;
   const by = +j.naissance.slice(0, 4);
   const t0 = j.nom.trim().split(/\s+/), formeCourte = t0.length > 2 ? t0[0][0].toUpperCase() + ". " + t0[t0.length - 1] : formeInitiale(j.nom);
@@ -138,7 +142,7 @@ for (const [div, codes, rangs] of [[1, P.d1, P.classementD1], [2, P.d2, P.classe
     retenus.sort((a, b) => b.minutes - a.minutes);
     const lignes = [];
     retenus.forEach((j, i) => {
-      let nom = resoudre(j);
+      let nom = resoudre({ ...j, club: c });
       if (!nom && !/^\d{4}/.test(j.naissance || "")) { journal.innommables.push(`${j.nom} (${c}) : aucune date de naissance, non retenu`); return; }
       const age = AN - +j.naissance.slice(0, 4);
       if (!nom) { journal.innommables.push(`${j.nom} (${c}) : aucun nom libre`); return; }
