@@ -223,7 +223,8 @@ console.log("F) L'écran : sélecteur de pays, puis de saison, bandeaux au bon l
   PAYS.ZZZ = Object.assign({}, PAYS.ANG, { code: "ZZZ", nom: "Pays d'essai" });
   try {
     api.ecranAccueil();
-    ok(/data-pays="ZZZ" disabled>[^<]*<span[^>]*>bientôt</.test(APP._h), "un pays sans saison jouable est montré grisé : « bientôt »");
+    // le drapeau est un petit dessin (<svg>) posé avant le nom : on cherche « bientôt » dans le bouton, dessin compris
+    ok(/data-pays="ZZZ" disabled>(?:(?!<\/button>)[\s\S])*<span[^>]*>bientôt</.test(APP._h), "un pays sans saison jouable est montré grisé : « bientôt »");
   } finally { delete PAYS.ZZZ; api.ecranAccueil(); page = APP._h; }
   // l'Angleterre regardée : son bouton s'allume, et le sélecteur ne liste que ses saisons
   api.setAccueil(clesANG[0]);
@@ -277,13 +278,20 @@ console.log("G) Aucun libellé ne peut ouvrir une balise");
   const tous = [];
   for (const c of Object.keys(PAYS)) {
     const p = PAYS[c];
-    tous.push(p.nom, p.adj, p.drapeau, p.coupe, p.coupeLigue, p.champion, p.unite, p.millions, p.monNom);
+    tous.push(p.nom, p.adj, p.coupe, p.coupeLigue, p.champion, p.unite, p.millions, p.monNom);
     for (const a of [1990, 1992, 2004, 2009]) tous.push(p.div1(a), p.div2(a), p.tag1(a), p.tag2(a));
   }
   const sales = tous.filter(t => /[<>&"]/.test(String(t)));
   ok(sales.length === 0, `aucun des ${tous.length} libellés ne porte de chevron, d'esperluette ni de guillemet${sales.length ? " — " + sales.join(", ") : ""}`);
   const vides = tous.filter(t => !String(t).trim());
   ok(vides.length === 0, "et aucun n'est vide");
+  /* LE DRAPEAU N'EST PAS UN LIBELLÉ : depuis qu'il est dessiné (un <svg> écrit dans le fichier, rendu tel quel
+     à l'accueil), il porte forcément des chevrons. Ce qu'on garde, c'est qu'il ne soit QUE un dessin : une
+     seule balise <svg> fermée, des formes simples, ni script, ni lien, ni attribut « on… ». */
+  const drapeaux = Object.keys(PAYS).map(c => [c, String(PAYS[c].drapeau || "")]);
+  const louches = drapeaux.filter(([, d]) => !/^<svg [^>]*>[\s\S]*<\/svg>$/.test(d) || (d.match(/<svg/g) || []).length !== 1
+    || /<(?!\/?(svg|rect|path|circle|polygon|g)\b)/.test(d) || /\son\w+\s*=|javascript:|href/i.test(d));
+  ok(louches.length === 0, `les ${drapeaux.length} drapeaux sont de simples dessins, sans rien d'exécutable${louches.length ? " — " + louches.map(x => x[0]).join(", ") : ""}`);
 }
 
 console.log(FAILS === 0 ? "\n✅ CADRE DES PAYS : TOUT EST VERT" : "\n❌ CADRE DES PAYS : " + FAILS + " ÉCHEC(S)");

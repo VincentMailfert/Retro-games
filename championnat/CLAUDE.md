@@ -3533,10 +3533,8 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
 - **Ce qu'on ne casse jamais** : les cadenas ne jouent **qu'au lancement depuis l'accueil** (`ficheClubAccueil`,
   `tirageMagie`). `nouvellePartie` ne vérifie rien (les harnais l'appellent sur toutes les saisons), une carrière
   commencée, rapatriée ou importée s'ouvre toujours.
-- **La saison de la semaine** : la constante **`SAISON_SEMAINE` = {cle, fin}**, que l'auteur change à la main chaque
-  vendredi. Jouable par tous jusqu'au soir de `fin` inclus (date du joueur, `AAAA-MM-JJ`), mention « saison de la
-  semaine » dans le sélecteur. Une carrière lancée dessus reste jouable après, et sa victoire rapporte sa clé (la
-  saison se referme quand même : il faut une clé pour l'ouvrir pour de bon).
+- **Pas de « saison de la semaine »** : prévue dans la consigne d'origine (une saison fermée ouverte à tous
+  pendant une semaine), puis **écartée par l'auteur le 28/10/2026**. Ne pas la réintroduire sans lui.
 - **Le rattrapage** (`progRattrape`, une fois par navigateur, drapeau `ratt`) : au premier chargement, les carrières
   du navigateur dont le palmarès porte « Champion de France 1995-96 » (ou d'Angleterre) pour leur saison de départ
   créditent leur clé. `chargeLocale` refait le constat à chaque ouverture (`progConstate`) : une carrière venue d'un
@@ -3566,7 +3564,7 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
 - **Les résultats pour un futur classement** : à chaque `finDeSaison`, toutes années, `progFinDeSaison` range
   `{pid, ch, dep, an, s, club, div, rang, coupes:["CN"|"C1"|"C2"|"C3"], t}` dans la progression (400 au plus, une saison
   rejouée remplace son résultat). Les finales (Coupe J36, Europe J33) sont jouées à ce moment. Rien ne s'affiche.
-- Gardé par **`harness-cadenas.cjs`** (sections A à J) et la **section N de `harness-compte.cjs`** (le faux serveur
+- Gardé par **`harness-cadenas.cjs`** (sections A à I) et la **section N de `harness-compte.cjs`** (le faux serveur
   imite `pousse_progression`).
 
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
@@ -5344,7 +5342,7 @@ test est **« contient-elle des lignes de joueurs »**.
    le premier compte, fusionnée entre deux appareils, jamais partagée entre deux comptes).
    `harness-cadenas.cjs` (les saisons verrouillées, v2.22 : six saisons ouvertes, la clé du titre de première année
    et pas des autres, une seule clé par saison, une clé pour une saison, la carrière commencée sur une saison fermée
-   qui se rejoue, le rattrapage, la saison de la semaine, la fusion, l'écran et le bilan, les résultats structurés).
+   qui se rejoue, le rattrapage, la fusion, l'écran et le bilan, les résultats structurés).
    **Le faux serveur doit rester d'accord avec `supabase/schema.sql`** : qui change
    l'un change l'autre. Trois essais au navigateur (Playwright, hors dépôt : `npm i playwright` dans un dossier à part)
    dans `supabase/` : `essai-navigateur.cjs` (déclencheurs et indicateur), `essai-nouvel-appareil.cjs`,

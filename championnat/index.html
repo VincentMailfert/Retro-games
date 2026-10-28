@@ -18874,7 +18874,6 @@ async function nuagePrepare(id){
    aussi les RÉSULTATS de chaque fin de saison (pour un futur classement entre joueurs), que rien
    n'affiche encore. Connecté, elle part en ligne (table `progression`, fonction pousse_progression). */
 const SAISONS_OUVERTES=["1990-91","1995-96","2005-06","ANG-1990-91","ANG-1995-96","ANG-2000-01"]; // ouvertes d'office : une par époque et par championnat
-const SAISON_SEMAINE={cle:"1998-99", fin:"2026-11-05"}; // à changer chaque vendredi : jouable par tous jusqu'au soir de `fin` (inclus, heure du joueur)
 const PROGKEY="d1manager_progression_v1"; // {der, ratt, par:{"" ou uid:{gagnees:[{k,pid,t}], ouvertes:[k], resultats:[…], maj, envoye}}}
 const PROG_RES_MAX=400;                   // résultats de fin de saison gardés au plus (~40 Ko)
 let PROG_MAG=null, PROG_TIRE=false, PROG_EN_COURS=null;
@@ -18916,9 +18915,7 @@ function progSauve(change){
   if(EN_TEST()) return;
   try{ localStorage.setItem(PROGKEY, JSON.stringify(progMag())); }catch(e){}
 }
-function dateLocale(t){ const d=new Date(t); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function estSaisonSemaine(k, t){ return !!(SAISON_SEMAINE && SAISON_SEMAINE.cle===k && SAISONS[k] && dateLocale(t==null?Date.now():t)<=SAISON_SEMAINE.fin); }
-function saisonOuverte(k, t){ return SAISONS_OUVERTES.includes(k) || prog().ouvertes.includes(k) || estSaisonSemaine(k, t); }
+function saisonOuverte(k){ return SAISONS_OUVERTES.includes(k) || prog().ouvertes.includes(k); }
 function clesDispo(ch){
   const p=prog(), dans=k=>chDeSaison(k)===ch;
   return Math.max(0, new Set(p.gagnees.map(g=>g.k).filter(dans)).size - new Set(p.ouvertes.filter(dans)).size);
@@ -19161,7 +19158,7 @@ function ficheClubAccueil(id){
     </p></div>`;
   fiche.style.display="flex";
   document.getElementById("bLance").onclick=()=>{
-    if(!saisonOuverte(SAISON_ACCUEIL)) return; // revérifié au clic : la saison de la semaine a pu se refermer
+    if(!saisonOuverte(SAISON_ACCUEIL)) return; // revérifié au clic
     if(!placeDispo()) return; // le navigateur ne peut pas retenir une carrière de plus
     fermeFiche(); nouvellePartie(id, SAISON_ACCUEIL);
   };
@@ -19266,7 +19263,7 @@ function ecranAccueil(){
      SAISONS, son bouton s'allume tout seul. */
   const paysAcc=paysDeSaison(SAISON_ACCUEIL);
   const clesDe=code=>Object.keys(SAISONS).filter(k=>(SAISONS[k].pays||"FR")===code);
-  const ligne=k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${saisonOuverte(k)?"":"🔒 "}${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}${estSaisonSemaine(k)?" · saison de la semaine":""}</option>`;
+  const ligne=k=>`<option value="${k}"${k===SAISON_ACCUEIL?" selected":""}>${saisonOuverte(k)?"":"🔒 "}${esc(SAISONS[k].nom)} · ${esc(SAISONS[k].titre)}</option>`;
   const ferme=!saisonOuverte(SAISON_ACCUEIL), cles=clesDispo(paysAcc);
   const opts=clesDe(paysAcc).map(ligne).join("");
   const boutonsPays=Object.keys(PAYS).map(code=>{ const P=PAYS[code], vide=!clesDe(code).length;

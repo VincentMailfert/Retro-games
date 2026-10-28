@@ -1,16 +1,15 @@
 /* Harnais headless — LES SAISONS VERROUILLÉES (v2.22)
    La plupart des saisons de départ sont fermées ; un titre de D1 dès la première année d'une carrière
    rapporte une clé dans son championnat, et la clé ouvre une saison fermée du même championnat.
-   A) une partie neuve ne voit ouvertes que les six saisons de départ (la saison de la semaine à part)
+   A) une partie neuve ne voit ouvertes que les six saisons de départ
    B) un titre de D1 en première année crédite une clé ; en deuxième année ou en D2, non
    C) regagner la même saison ne crédite pas une deuxième clé
    D) une clé ouvre une saison, et une seule (et jamais dans l'autre championnat)
    E) une carrière existante sur une saison fermée se recharge et se joue
    F) le rattrapage crédite les titres déjà gagnés dans les carrières du navigateur, une seule fois
-   G) la saison de la semaine : jouable avant sa date de fin, refermée après, et sa victoire compte
-   H) la fusion entre deux appareils garde le meilleur des deux
-   I) l'écran : cadenas, clés, mention de la semaine, bouton de lancement fermé, la ligne du bilan
-   J) le résultat structuré de chaque fin de saison
+   G) la fusion entre deux appareils garde le meilleur des deux
+   H) l'écran : cadenas, clés, bouton de lancement fermé, la ligne du bilan
+   I) le résultat structuré de chaque fin de saison
    Usage : node harness-cadenas.cjs                                                           */
 const fs = require("fs");
 const path = require("path");
@@ -49,8 +48,8 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,classement,clubById,sauvegardeLocale,chargeLocale,partiesListe," +
-  "ecranAccueil,ficheClubAccueil,ecranBilan,SAISONS,CLUBS,CLUBS_D2,PROGKEY,SAVEKEY,SAISONS_OUVERTES,SAISON_SEMAINE," +
-  "saisonOuverte,estSaisonSemaine,clesDispo,ouvreSaison,progGagne,progRattrape,progFusionne,progEmpreinte,progNette,prog,progMag," +
+  "ecranAccueil,ficheClubAccueil,ecranBilan,SAISONS,CLUBS,CLUBS_D2,PROGKEY,SAVEKEY,SAISONS_OUVERTES," +
+  "saisonOuverte,clesDispo,ouvreSaison,progGagne,progRattrape,progFusionne,progEmpreinte,progNette,prog,progMag," +
   "titrePremiereAnnee,cleDepart,cleDuBilan,chDeSaison,progVide," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
@@ -58,8 +57,6 @@ function reel(fn) { global.window.__TEST__ = false; try { return fn(); } finally
 
 let FAILS = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) FAILS++; };
-const AVANT = new Date(2026, 10, 5, 22, 0).getTime();  // le jeudi 5 novembre 2026 au soir : la saison de la semaine court encore
-const APRES = new Date(2026, 10, 6, 0, 30).getTime();  // le vendredi d'après, minuit et demie : elle est refermée
 
 /* Joue une saison jusqu'à la 37e journée, pose le club du joueur en tête ou non, puis la 38e (finDeSaison). */
 function finitSaison(api, enTete) {
@@ -76,14 +73,13 @@ console.log("A) Une partie neuve ne voit ouvertes que les six saisons de départ
 let LS = nouveauLS(), api = appareil(LS);
 {
   const S = api.SAISONS, cles = Object.keys(S);
-  const ouv = cles.filter(k => api.saisonOuverte(k, APRES));
+  const ouv = cles.filter(k => api.saisonOuverte(k));
   ok(ouv.length === 6 && ["1990-91", "1995-96", "2005-06", "ANG-1990-91", "ANG-1995-96", "ANG-2000-01"].every(k => ouv.includes(k)),
     "six saisons ouvertes, trois par championnat : " + ouv.join(", "));
   ok(api.SAISONS_OUVERTES.every(k => S[k]), "les six saisons de la constante existent toutes dans SAISONS");
   ok(["FR", "ANG"].every(ch => api.SAISONS_OUVERTES.filter(k => api.chDeSaison(k) === ch).length === 3), "trois en France, trois en Angleterre");
   ok(cles.length - ouv.length >= 20, (cles.length - ouv.length) + " saisons fermées sur " + cles.length);
   ok(api.clesDispo("FR") === 0 && api.clesDispo("ANG") === 0, "zéro clé dans chaque championnat");
-  ok(api.saisonOuverte(api.SAISON_SEMAINE.cle, AVANT) && api.saisonOuverte("1995-96"), "la saison de la semaine s'ajoute tant qu'elle court");
   ok(Object.keys(LS._m).length === 0, "rien n'est écrit dans le navigateur au simple fait de regarder");
 }
 
@@ -133,12 +129,12 @@ console.log("\nC) Regagner la même saison ne crédite pas une deuxième clé");
 /* ===== D) une clé, une saison ===== */
 console.log("\nD) Une clé ouvre une saison, et une seule");
 {
-  ok(!api.saisonOuverte("1993-94", APRES), "1993-94 est fermée");
+  ok(!api.saisonOuverte("1993-94"), "1993-94 est fermée");
   ok(!api.ouvreSaison("1995-96") && api.clesDispo("FR") === 1, "une saison déjà ouverte ne consomme pas la clé");
   ok(!api.ouvreSaison("ANG-1993-94") && api.clesDispo("FR") === 1, "une clé française n'ouvre pas une saison anglaise");
   ok(api.ouvreSaison("1993-94"), "la clé ouvre 1993-94");
-  ok(api.saisonOuverte("1993-94", APRES) && api.clesDispo("FR") === 0, "1993-94 est ouverte, il ne reste aucune clé");
-  ok(!api.ouvreSaison("1994-95") && !api.saisonOuverte("1994-95", APRES), "sans clé, 1994-95 reste fermée");
+  ok(api.saisonOuverte("1993-94") && api.clesDispo("FR") === 0, "1993-94 est ouverte, il ne reste aucune clé");
+  ok(!api.ouvreSaison("1994-95") && !api.saisonOuverte("1994-95"), "sans clé, 1994-95 reste fermée");
   ok(!api.ouvreSaison("1993-94") && api.prog().ouvertes.length === 1, "rouvrir 1993-94 ne fait rien");
   ok(!api.ouvreSaison("1888-89"), "une saison inconnue ne s'ouvre pas");
   api.progGagne("ANG-1995-96", "pANG");
@@ -150,7 +146,7 @@ console.log("\nD) Une clé ouvre une saison, et une seule");
 console.log("\nE) Une carrière existante sur une saison fermée se recharge et se joue");
 {
   const ls = nouveauLS(), a = appareil(ls);
-  ok(!a.saisonOuverte("1997-98", APRES), "1997-98 est fermée pour ce navigateur neuf");
+  ok(!a.saisonOuverte("1997-98"), "1997-98 est fermée pour ce navigateur neuf");
   a.nouvellePartie(a.SAISONS["1997-98"].d1[2], "1997-98"); // une carrière d'avant les cadenas
   for (let i = 0; i < 3; i++) a.jouerJournee();
   ok(reel(() => a.sauvegardeLocale(true)), "elle est sauvegardée");
@@ -159,7 +155,7 @@ console.log("\nE) Une carrière existante sur une saison fermée se recharge et 
   ok(b.chargeLocale(id) && b.getG().journee === 3 && b.cleDepart(b.getG()) === "1997-98", "elle se recharge, à sa journée, sur sa saison");
   let erreur = null; try { for (let i = 0; i < 4; i++) b.jouerJournee(); } catch (e) { erreur = e; }
   ok(!erreur && b.getG().journee === 7, "et elle se joue" + (erreur ? " (" + erreur.message + ")" : ""));
-  ok(!b.saisonOuverte("1997-98", APRES), "la saison reste fermée pour une NOUVELLE carrière");
+  ok(!b.saisonOuverte("1997-98"), "la saison reste fermée pour une NOUVELLE carrière");
   const fiche = JSON.parse(ls.getItem(Object.keys(ls._m).find(k => k.indexOf("d1manager_partie_") === 0)));
   ok(!("cadenas" in fiche) && !Object.keys(fiche).some(k => /prog|cle/i.test(k)), "la sauvegarde de carrière ne porte aucun champ de plus");
 }
@@ -203,21 +199,8 @@ console.log("\nF) Le rattrapage crédite les titres déjà gagnés");
   ok(e.clesDispo("FR") === 1, "une carrière ouverte qui porte un titre de première année crédite sa clé (autre appareil, fichier importé)");
 }
 
-/* ===== G) la saison de la semaine ===== */
-console.log("\nG) La saison de la semaine");
-{
-  const a = appareil(nouveauLS()), k = a.SAISON_SEMAINE.cle;
-  ok(a.SAISONS[k] && /^\d{4}-\d{2}-\d{2}$/.test(a.SAISON_SEMAINE.fin), "la constante nomme une vraie saison (" + k + ") et une date (" + a.SAISON_SEMAINE.fin + ")");
-  ok(!a.SAISONS_OUVERTES.includes(k), "c'est une saison fermée");
-  ok(a.estSaisonSemaine(k, AVANT) && a.saisonOuverte(k, AVANT), "jouable par tous le dernier soir");
-  ok(!a.estSaisonSemaine(k, APRES) && !a.saisonOuverte(k, APRES), "refermée le lendemain");
-  a.nouvellePartie(a.SAISONS[k].d1[0], k);
-  ok(finitSaison(a, true) === 1 && a.clesDispo("FR") === 1, "une victoire sur la saison de la semaine rapporte sa clé");
-  ok(!a.saisonOuverte(k, APRES) && a.ouvreSaison(k) && a.saisonOuverte(k, APRES), "après la date, la saison est refermée, mais la clé peut l'ouvrir pour de bon");
-}
-
-/* ===== H) la fusion ===== */
-console.log("\nH) La fusion entre deux appareils garde le meilleur des deux");
+/* ===== G) la fusion ===== */
+console.log("\nG) La fusion entre deux appareils garde le meilleur des deux");
 {
   const a = appareil(nouveauLS());
   const salon = a.progNette({ gagnees: [{ k: "1995-96", pid: "p1", t: 100 }, { k: "ANG-1995-96", pid: "p2", t: 300 }], ouvertes: ["1993-94"],
@@ -235,20 +218,20 @@ console.log("\nH) La fusion entre deux appareils garde le meilleur des deux");
   ok(a.clesDispo("FR") === 0 && a.clesDispo("ANG") === 0, "deux saisons gagnées, deux ouvertes en France : zéro clé ; une et une en Angleterre : zéro");
   // une même victoire dépensée sur les deux appareils, pour deux saisons différentes : on garde les deux
   M.par[""] = a.progFusionne(a.progNette({ gagnees: [{ k: "1995-96", t: 1 }], ouvertes: ["1993-94"] }), a.progNette({ gagnees: [{ k: "1995-96", t: 1 }], ouvertes: ["1994-95"] }));
-  ok(a.saisonOuverte("1993-94", APRES) && a.saisonOuverte("1994-95", APRES) && a.clesDispo("FR") === 0, "la même clé dépensée deux fois sur deux appareils : les deux saisons restent ouvertes, et le compte ne passe jamais sous zéro");
+  ok(a.saisonOuverte("1993-94") && a.saisonOuverte("1994-95") && a.clesDispo("FR") === 0, "la même clé dépensée deux fois sur deux appareils : les deux saisons restent ouvertes, et le compte ne passe jamais sous zéro");
   const sale = a.progNette({ gagnees: [{ k: "<img onerror=x>" }, { k: "1995-96" }], ouvertes: ["1993-94", 42, "<b>"], resultats: [1, null, { pid: "p" }] });
   ok(sale.gagnees.length === 1 && sale.ouvertes.length === 1 && sale.resultats.length === 1, "ce qui n'a pas la forme attendue est écarté");
 }
 
-/* ===== I) l'écran ===== */
-console.log("\nI) À l'écran");
+/* ===== H) l'écran ===== */
+console.log("\nH) À l'écran");
 {
   const a = appareil(nouveauLS());
   const option = (h, k) => (h.match(new RegExp('<option value="' + k + '"[^>]*>([^<]*)</option>')) || [])[1] || "";
   a.setAccueil("1995-96"); a.ecranAccueil();
   let h = APP.innerHTML;
   ok(/🔒/.test(option(h, "1993-94")) && !/🔒/.test(option(h, "1995-96")) && !/🔒/.test(option(h, "1990-91")), "les saisons fermées sont dans le sélecteur, avec un cadenas ; les ouvertes sans");
-  ok(/saison de la semaine/.test(option(h, a.SAISON_SEMAINE.cle)) === a.estSaisonSemaine(a.SAISON_SEMAINE.cle), "la saison de la semaine porte sa mention tant qu'elle court");
+  ok(!/semaine/.test(h.match(/<select id="selSaison"[^]*?<\/select>/)[0]), "aucune saison de la semaine dans le sélecteur");
   ok(/id="accCles"[^>]*>🔑 0</.test(h), "le nombre de clés s'affiche près du sélecteur");
   ok(!/id="accFerme"/.test(h), "sur une saison ouverte, pas de ligne de cadenas");
   a.setAccueil("1993-94"); a.ecranAccueil(); h = APP.innerHTML;
@@ -274,8 +257,8 @@ console.log("\nI) À l'écran");
   ok(bout.length > 1000 && !/—/.test(chaines), "aucun tiret long dans les textes du jeu");
 }
 
-/* ===== J) les résultats ===== */
-console.log("\nJ) Le résultat structuré de chaque fin de saison");
+/* ===== I) les résultats ===== */
+console.log("\nI) Le résultat structuré de chaque fin de saison");
 {
   const a = appareil(nouveauLS());
   a.nouvellePartie(a.SAISONS["2005-06"].d1[2], "2005-06"); const G = a.getG();
