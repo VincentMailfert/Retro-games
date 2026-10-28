@@ -2915,6 +2915,25 @@ toujours « raconter quelque chose ».
   • **`parade`** (flash, non interactif) : l'arrêt miracle de VOTRE gardien face au meilleur M/A adverse. Le score
   ne bouge jamais, le gardien gagne +6 de moral, et l'arrêt entre dans sa biographie si l'on n'a pas perdu.
   Gardés par la **section B quater de `harness.cjs`**.
+- **VINGT-CINQ VIGNETTES DE PLUS (v2.16, 28/10/2026)** : cette fois **sans photo de départ**, générées par
+  Higgsfield (`gpt_image_2_5`, quelques retouches à la demande de l'auteur avec `nano_banana_2`) en décrivant la
+  géométrie élément par élément (gardien SUR sa ligne, ENTRE ses poteaux ; c'est ce qui manquait aux premiers
+  essais). Toutes vivent dans `IMG_MOMENT`, une clé par usage :
+  • fenêtres de choix (`<img class="momImg">` en tête) : **`penPour`** ×2 (`momentPenPour`), **`penContre`** ×2
+  (`momentPenContre`), **`tacle`** (`momentTacle`, « L'ARBITRE HÉSITE »), **`provoc`** (`momentProvoc`) ;
+  • flashs (`o.img` de `celebreFlash`) : **`rouge`** ×2 (les TROIS flashs du carton rouge : championnat, coupe,
+  Europe), **`blessure`** ×2, **`chapeau`** ×2 (le coup du chapeau d'après-match), **`streaker`**, **`banderole`**,
+  et pour les moments-buts **`gkbut`** et **`cadeau`**, servis tout seuls par `IMG_MOMENT[lg.mo]` (le cadeau a donc
+  enfin une image) ;
+  • **l'écran de bilan** (`ecranBilan`, `imgBilan`) : **`titre`** ×2 si champion de D1, **`montee`** ×2 si
+  champion ou promu de D2, **`releg`** ×2 si relégué ; rien sinon (une saison moyenne reste en texte) ;
+  • **trois incidents de vestiaire** (`ouvreIncident`) : les clés **`inc_<id>`** (`inc_marabout`,
+  `inc_minitel_corbeau`, `inc_barbecue`). Pour en illustrer un autre, il suffit d'ajouter `inc_<son id>`.
+  **Le poids** : `index.html` passe à **~4,7 Mo**. C'est la limite raisonnable d'un fichier qui embarque ses
+  images en `data:` ; **la prochaine fournée devra sortir les images du fichier** (dossier `img/` publié avec le
+  site), ce qui touche au principe « zéro requête réseau » et mérite une décision de l'auteur.
+  **Piège payé au passage** : lancer les 61 harnais en parallèle avec un fichier de 4,7 Mo épuise la mémoire de la
+  machine ; un harnais est tué (code 137) sans avoir échoué. Les relancer par petits paquets.
 - **Montée de tension** (`MONTEE_BUT` + `MONTEE_FRAPPE`, en direct seulement) : avant un but du téléscripteur **MAIS
   AUSSI avant certaines grosses occasions ratées**, l'action se construit en **deux temps**, chacun suivi d'un
   battement (`Math.max(650, tickerDelai)`) AVANT la résolution et son flash. 1er temps = l'action s'installe (ambiance
