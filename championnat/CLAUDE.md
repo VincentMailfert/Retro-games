@@ -2756,7 +2756,16 @@ toujours « raconter quelque chose ».
     meilleur classement, plus large victoire, plus longue série sans défaite (`G.serieInv`, compteur qui
     traverse les saisons), record d'affluence, meilleur buteur sur une saison, plus jeune buteur (`v` comparé
     **à l'envers**). **Le PREMIER record se pose EN SILENCE** — en saison 1 tout est un record, ça n'a aucune
-    valeur ; c'est celui qui en fait **tomber** un qui part au debrief et à la presse. Le **palmarès** retient
+    valeur ; c'est celui qui en fait **tomber** un qui part au debrief et à la presse. **Ce sont VOS records (v2.15)** : le jeu ne
+    compte qu'à partir de la 1re saison de la carrière, donc tout se dit « **depuis votre arrivée** », jamais
+    « record du club » (un buteur de dix-huit ans n'est pas le plus jeune de l'histoire du PSG). **« De l'histoire
+    du club »** ne se dit que pour le plus jeune buteur, et seulement si le VRAI record tombe : `HISTO_JEUNE`
+    (73 clubs sourcés en octobre 2026, `[nom, ans, jours, an, portée]`, portée `""` toutes compétitions / `"D1"`
+    première division seulement / `"L"` championnat), lu par `histoJeune(age)`. Les âges du jeu étant en années
+    pleines, il faut **strictement moins d'années** que le détenteur ; un record `"D1"` se tait en D2 ; le
+    détenteur n'est nommé que si son but est antérieur à `anneeJeu()`. Un club absent de la table : on se tait.
+    Cette annonce part même en saison 1 et marque le record `h:1` (« histoire du club » sur l'écran Club et le
+    bilan de saison). Ne JAMAIS ajouter un club à la table sans source lue. Le **palmarès** retient
     désormais aussi la **montée**, la **finale de Coupe** (`G.coupe.tourSortie==="Finale"`), le **maintien
     arraché** (D1, entre n−5 et n−3) et le **jubilé** d'une légende — le mur du club que lit le mot d'ouverture
     a enfin quelque chose à afficher. Affiché sur l'écran Club (panneau « Direction & mémoire »).

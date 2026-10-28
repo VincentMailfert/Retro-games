@@ -45,7 +45,7 @@ global.requestAnimationFrame = cb => setTimeout(cb, 0); global.cancelAnimationFr
 
 const api = new Function(script + "\n;return {nouvellePartie,jouerJournee,intersaison,finDeSaison,vieillirClub," +
   "ACTES,acteDe,enjeuDe,ligneEnjeu,raisonsMatch,prochainMatchDe,rangDe,motDuPresident,bilanActe," +
-  "RECORDS,poseRecord,crieRecord,recordsTenus,resumeRecords," +
+  "RECORDS,poseRecord,crieRecord,recordsTenus,resumeRecords,histoJeune,HISTO_JEUNE,anneeJeu," +
   "ouvreBio,cumulBio,soldeBio,ajouteMoment,enfantDuClub,quitteMaison,blocBio,BIO_MODES," +
   "noteSuivis,debriefSuivis,veilleAffluence,baroTribunes,moyAffSaison," +
   "pointDeSituation,ecranReprise,panneauActe,ecranCalendrier,ecranClub,ecranClassement," +
@@ -173,7 +173,7 @@ console.log("\nD) Les records du club : le premier se pose en silence, celui qui
   ok(G.records.large.v === 300, "le record tient bon (" + G.records.large.v + ")");
   const crie = api.crieRecord("large", 500, "5-0 contre Z");
   ok(crie === true, "celui qui FAIT TOMBER le record, lui, se crie");
-  ok((G.notifs || []).some(t => /RECORD DU CLUB/.test(t)), "et le debrief le porte : « " + (G.notifs.find(t => /RECORD/.test(t)) || "").slice(0, 60) + "… »");
+  ok((G.notifs || []).some(t => /RECORD DEPUIS VOTRE ARRIVÉE/.test(t)), "et le debrief le porte, comme un record de VOTRE ère : « " + (G.notifs.find(t => /RECORD/.test(t)) || "").slice(0, 60) + "… »");
   ok(G.records.large.anc === 300, "l'ancienne marque est retenue (" + G.records.large.anc + ")");
   // le plus JEUNE buteur se bat vers le bas
   api.poseRecord("jeune", 21, "A, 21 ans", true);
@@ -181,6 +181,34 @@ console.log("\nD) Les records du club : le premier se pose en silence, celui qui
   ok(G.records.jeune.v === 21, "le plus jeune buteur se compare à l'envers : 23 ans ne bat pas 21");
   ok(api.poseRecord("jeune", 18, "C, 18 ans", true) === "battu", "…et 18 ans, si");
   ok(api.RECORDS.length === 6, "six lignes au mur du club, pas une de plus");
+  ok(!(G.notifs || []).some(t => /HISTOIRE DU CLUB/.test(t)), "aucun record du jeu ne se fait passer pour l'histoire du club");
+}
+console.log("\nD ter) « De l'histoire du club » : seulement quand le VRAI record tombe");
+{
+  // PSG : Zaïre-Emery, 16 ans et 330 jours (2023), toutes compétitions
+  let G = neuve("PSG"); G.notifs = []; G.div = 1;
+  ok(api.histoJeune(18) === null, "18 ans au PSG : pas un record d'histoire (le vrai est à 16 ans)");
+  ok(api.histoJeune(16) === null, "16 ans non plus : en années pleines, on ne peut pas jurer qu'il est plus jeune");
+  const h15 = api.histoJeune(15);
+  ok(h15 && /plus jeune buteur de l'histoire du club\./.test(h15), "15 ans, si : « " + h15 + " »");
+  ok(h15 && !/Zaïre-Emery/.test(h15), "et on ne cite pas un détenteur qui n'a pas encore marqué en " + api.anneeJeu());
+  // Saint-Étienne : Roussey, 16 ans, 1978 : antérieur à la partie, on peut le nommer
+  G = neuve("STE"); G.notifs = []; G.div = 1;
+  const hs = api.histoJeune(15);
+  ok(hs && /Il efface Laurent Roussey, qui avait 16 ans en 1978\./.test(hs), "le détenteur d'avant la partie est nommé : « " + hs + " »");
+  // la première fois, même en saison 1, l'histoire se crie
+  ok(api.crieRecord("jeune", 15, "Le gamin, 15 ans, contre Nantes", true, hs) === true, "le vrai record tombe en saison 1 : on le crie quand même");
+  ok(G.notifs.some(t => /HISTOIRE DU CLUB/.test(t)), "« " + (G.notifs.find(t => /HISTOIRE/.test(t)) || "").slice(0, 90) + "… »");
+  ok(G.records.jeune.h === 1, "le record porte la marque de l'histoire");
+  // un record d'histoire qui ne vaut qu'en première division se tait en D2 (Bordeaux : record L1 seulement)
+  G = neuve("BOR"); G.div = 2;
+  ok(api.histoJeune(15) === null, "Bordeaux en D2 : le record connu n'est que celui de première division, on se tait");
+  G.div = 1;
+  ok(/en première division/.test(api.histoJeune(15) || ""), "en D1, on le dit, avec la précision qui le rend vrai");
+  // un club sans donnée : jamais d'histoire
+  G = neuve("GUE"); G.div = 1;
+  ok(api.histoJeune(10) === null, "Gueugnon, pas de vrai record connu : on se tait, même à dix ans");
+  ok(Object.keys(api.HISTO_JEUNE).length >= 70, Object.keys(api.HISTO_JEUNE).length + " clubs ont leur vrai plus jeune buteur");
 }
 console.log("\nD bis) Le palmarès retient la montée, la finale de Coupe et le maintien arraché");
 {
@@ -303,7 +331,7 @@ console.log("\nF) Le baromètre des tribunes : l'affluence enfin vue dans le tem
   const h = api.baroTribunes();
   ok(/baromètre des tribunes/.test(h) && /<svg/.test(h), "le baromètre se rend (histogramme + moyenne + conseil)");
   api.ecranClub();
-  ok(/baromètre des tribunes/.test(APP.innerHTML) && /Les records du club/.test(APP.innerHTML),
+  ok(/baromètre des tribunes/.test(APP.innerHTML) && /Vos records depuis votre arrivée/.test(APP.innerHTML),
     "l'écran Club porte le baromètre ET le mur des records");
 }
 
