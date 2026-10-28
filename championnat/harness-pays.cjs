@@ -235,7 +235,8 @@ console.log("F) L'écran : sélecteur de pays, puis de saison, bandeaux au bon l
   api.ecranAccueil();
   page = APP._h;
   ok(page.includes("DIVISION 1") && page.includes("DIVISION 2"), "les deux colonnes de clubs s'annoncent « DIVISION 1 » et « DIVISION 2 »");
-  ok(page.includes("Division 1 française"), "et le bandeau dit « Division 1 française », comme avant le cadre");
+  // depuis la v2.23 (choix de l'auteur), le bandeau de l'accueil porte la devise du jeu et non plus la division
+  ok(/class="r">Rétro football management</.test(page), "et le bandeau de l'accueil dit « Rétro football management »");
   ok(!/undefined/.test(page), "aucun « undefined » n'a fuité dans la page");
 
   /* AVANT 1992, L'ÉLITE ANGLAISE S'APPELLE « FIRST DIVISION », et c'est le détail d'époque
@@ -251,7 +252,7 @@ console.log("F) L'écran : sélecteur de pays, puis de saison, bandeaux au bon l
     page = APP._h;
     ok(page.includes("FIRST DIVISION") && page.includes("SECOND DIVISION"),
       `choisie, ${AVANT92[0]} annonce « FIRST DIVISION » et « SECOND DIVISION »`);
-    ok(page.includes("First Division anglaise"), "et le bandeau dit « First Division anglaise »");
+    ok(/class="r">Rétro football management</.test(page), "et le bandeau de l'accueil garde « Rétro football management », quel que soit le pays");
     ok(!page.includes("DIVISION 2"), "plus une seule « DIVISION 2 » française à l'écran");
     ok(/accPays on" data-pays="ANG"/.test(page) && (page.match(/<option /g) || []).length === clesANG.length,
       `l'Angleterre regardée, son bouton est allumé et le sélecteur ne liste que ses ${clesANG.length} saisons`);

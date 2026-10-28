@@ -232,6 +232,12 @@ console.log("\nH) À l'écran");
   let h = APP.innerHTML;
   ok(/🔒/.test(option(h, "1993-94")) && !/🔒/.test(option(h, "1995-96")) && !/🔒/.test(option(h, "1990-91")), "les saisons fermées sont dans le sélecteur, avec un cadenas ; les ouvertes sans");
   ok(!/semaine/.test(h.match(/<select id="selSaison"[^]*?<\/select>/)[0]), "aucune saison de la semaine dans le sélecteur");
+  for (const k0 of ["1995-96", "ANG-1995-96"]) { // le sélecteur range les saisons par année, dans les deux pays
+    a.setAccueil(k0); a.ecranAccueil();
+    const ans = [...APP.innerHTML.matchAll(/<option value="([^"]+)"/g)].map(m => a.SAISONS[m[1]].an);
+    ok(ans.length > 5 && ans.every((x, i) => !i || ans[i - 1] < x), `${a.chDeSaison(k0)} : les ${ans.length} saisons du sélecteur vont de ${ans[0]} à ${ans[ans.length - 1]}, dans l'ordre`);
+  }
+  a.setAccueil("1995-96"); a.ecranAccueil(); h = APP.innerHTML;
   ok(/id="accCles"[^>]*>🔑 0</.test(h), "le nombre de clés s'affiche près du sélecteur");
   ok(!/id="accFerme"/.test(h), "sur une saison ouverte, pas de ligne de cadenas");
   a.setAccueil("1993-94"); a.ecranAccueil(); h = APP.innerHTML;

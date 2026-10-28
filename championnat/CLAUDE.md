@@ -3541,9 +3541,13 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
   autre appareil ou d'un fichier compte aussi. **Piège** : le titre de D2 s'écrit « Champion de Division 2 … », d'où
   le test sur `PAYS[pays].titre` exact suivi de l'année, jamais sur « Champion de ».
 - **À l'écran** : cadenas 🔒 devant les saisons fermées du `#selSaison` (elles restent visibles, leurs clubs aussi),
-  `🔑 n` discret à droite de « Saison de départ » (le championnat regardé), une ligne « 🔒 Aucune clé en poche. » ou
+  `🔑 n` discret à droite de « Saison de départ » (le championnat regardé), une ligne « 🔒 Aucune clé en poche. Soyez champion de l'élite dès la première saison d'une carrière pour en gagner
+  une. » (la seconde phrase demandée par l'auteur en v2.23 : sans elle, on ne comprenait pas comment gagner une clé) ou
   « 🔒 1 clé en poche. 🔑 Ouvrir » sous le sélecteur, `confirme` quand on choisit une saison fermée avec une clé
   (`proposeOuverture`), et « 🔒 SAISON FERMÉE » grisé à la place de « PRENDRE LES RÊNES » dans la fiche d'un club.
+  Le sélecteur range les saisons de chaque pays **par année** (v2.23 : elles entrent dans `SAISONS` dans l'ordre où
+  on les ajoute, et les anglaises 1990-94, arrivées après, s'affichaient en bas). Le bandeau de l'accueil, en haut à
+  droite, dit « Rétro football management » (v2.23, choix de l'auteur) au lieu de la division du pays regardé.
   Changer de drapeau tombe d'abord sur une saison ouverte. Le hasard ne tire que des saisons ouvertes. L'almanach
   de fin de saison dit « 🔑 Titre dès la première saison : une clé de plus au trousseau. » (`cleDuBilan` : la clé a
   été créditée à CETTE carrière).
