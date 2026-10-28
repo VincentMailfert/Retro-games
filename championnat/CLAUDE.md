@@ -5024,6 +5024,46 @@ Cadamarteri (Bradford) et Ilic (Portsmouth) en tête : ils pourraient être arri
 
 `harness-ang0102.cjs` garde tout cela.
 
+### ANG 2002-03 — LE GAMIN D'EVERTON (v2.14)
+Treizième saison anglaise, assemblée par la tâche planifiée le 28/10/2026 à partir de `releves/ANG-2002-03`, **à
+nouveau sans accès au réseau** (Transfermarkt et Wikipedia refusés par le proxy). Manchester United reprend le titre,
+cinq points devant Arsenal ; van Nistelrooy meilleur buteur avec vingt-cinq buts (89), Henry joueur de l'année PFA et
+FWA (90), Jenas meilleur espoir (78, potentiel 88), Beattie vingt-trois buts pour Southampton (81), Zola quatorze pour
+sa dernière saison à Chelsea (79). Le nom vient de Wayne Rooney, qui met fin à trente matchs d'Arsenal sans défaite
+cinq jours avant ses dix-sept ans (70, potentiel 92). Premier League à vingt ; l'échelon du dessous perd ses quatre
+derniers (Stoke, Sheffield Wednesday, Brighton, Grimsby). Notes : 520 héritées de 2001-02, 76 plus lointaines, 1 du
+recruteur, 163 calculées ; distribution élite 70.7 / 70, dessous 66.0 / 66. **Aucune pépite forcée.**
+
+**LES PÉPITES DU RELEVÉ NE SONT PAS DES PREUVES.** Le relevé arrivait avec deux hommes déjà forcés, `force: true` :
+**Stephen Warnock** (Liverpool, zéro minute, prêté à Bradford en cours de saison, absent du relevé 2001-02 à Liverpool)
+et **Mat Sadler** (Birmingham, arrivée « recoupement nécessaire »). Une pépite se vérifie à l'historique de
+transferts, quel que soit celui qui l'a proposée : sans réseau, les deux sortent par `_retirer`. De même **Doriva**
+(Middlesbrough, à l'étranger la saison d'avant, 340 minutes) et **Paul Ritchie** (Portsmouth, à Manchester City au coup
+d'envoi 2001), retenus avec une arrivée non datée : rien ne les met au club au coup d'envoi.
+
+**LE CONTRÔLE DES MINUTES, ENCORE.** Contrairement à 2000-01, les hommes laissés dehors ici portent presque tous
+`arrivee: 2` : le relevé les avait écartés à son tri, pas à sa date. Le contrôle de 2000-01 a été refait (non-retenus
+arrivés avant le coup d'envoi, au moins 500 minutes, plus que le moins utilisé de leur effectif, minimums de poste
+gardés) et remet onze hommes : **Fortune** (à la place de Ricardo, troisième gardien), **Pistone**, **Doherty** (pour
+Ziege), **Womé**, **Minto**, **Doig**, **Heckingbottom**, **Leon Johnson** (pour Marlon King), **Mears**, **Vernazza** et
+**Mahon** (pour Foley et Noel-Williams). Chaque ligne d'`ajust-0203.json` cite sa date Transfermarkt et, quand il
+existe, le relevé voisin qui met l'homme au club. Babbel, Michael Johnson, Wilkshire et Carl Robinson remplacent les
+quatre sortants sans preuve ; McPhail, Heath, Gary Jones, Bull et Norville les cinq hommes sans nom libre (Alan Smith,
+Tommy Wright, Gareth Williams, les deux Paul Robinson).
+
+**UNE GRAPHIE QUE LE RÉSOLVEUR NE PEUT PAS TROUVER SEUL.** « A. Cissé » est, dans les tables françaises, Aliou Cissé
+(Lille, PSG, Montpellier en 2001-02 à vingt-cinq ans) MAIS aussi un attaquant de Nîmes et de Niort né sept ans plus
+tôt : le résolveur, qui refuse un nom porté par un autre homme, donnait « Aliou Cissé ». `assemble.cjs` gagne donc
+une liste **`_graphie`** (club, nom entier, graphie, raison) qui impose la graphie du jeu quand la preuve (naissance,
+poste, âge suivi) est écrite. Le cas inverse est laissé : **Michael Svensson** (Southampton) est le « M. Svensson » de
+Troyes en 2001-02, mais `PRENOMS_VRAIS` donne « Magnus » à ce nom, et Mathias Svensson (Charlton) porte déjà son nom
+entier ; il garde le sien, à trancher par l'auteur.
+
+**Restent à revoir quand Transfermarkt répondra** : Darren Garner (Rotherham) et Simon Francis (Bradford), retenus avec
+une arrivée non datée sans contre-preuve, et les vingt arrivées que le relevé a « déduites des minutes jouées ».
+
+`harness-ang0203.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
