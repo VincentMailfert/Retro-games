@@ -549,7 +549,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.17"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.18"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11763,7 +11763,7 @@ function finirJournee(delta){
       else if(mesB===ses){ G.serieInv=(+G.serieInv||0)+1; }
       else G.serieInv=0;
       if(G.serieInv>=3 && poseRecord("invaincu", G.serieInv, G.serieInv+" matchs sans défaite")==="battu")
-        notif("🛡️ RECORD DU CLUB : "+G.serieInv+" matchs sans défaite. On n'avait jamais fait mieux ici.");
+        notif("🛡️ RECORD DEPUIS VOTRE ARRIVÉE : "+G.serieInv+" matchs sans défaite. Vous n'aviez jamais fait mieux ici.");
     }
     momentsDuMatch(faitsMoi, r, h, a, hid, delta);
     G.hdm=designeHdm(h,a,r.sh,r.sa,faitsMoi,r.gk);
@@ -12685,7 +12685,7 @@ function raisonsMatch(o){
   }
   const Rc=o.records||{}, si=+o.serieInv||0;
   if(Rc.invaincu && si>0 && si+1>=(Rc.invaincu.v||0))
-    out.push({ico:"🏛️", court:"un record à portée", txt:"Un match sans défaite de plus et le record du club tombe ("+Rc.invaincu.v+" matchs, "+(Rc.invaincu.s||"?")+")."});
+    out.push({ico:"🏛️", court:"un record à portée", txt:"Un match sans défaite de plus et votre record tombe ("+Rc.invaincu.v+" matchs, "+(Rc.invaincu.s||"?")+")."});
   return out;
 }
 /* La ligne d'enjeu de la carte d'accueil : « 5ᵉ, à 2 points de l'Europe · samedi, le derby ».
@@ -12701,9 +12701,14 @@ function ligneEnjeu(o){
 }
 
 /* ---------- LES RECORDS DU CLUB ----------
-   Six lignes dans G.records, pas une de plus : {v (valeur comparable), t (texte), s (saison), j (journée)}.
+   Six lignes dans G.records, pas une de plus : {v (valeur comparable), t (texte), s (saison), j (journée), h}.
+   ATTENTION, ce sont VOS records : le jeu ne les compte qu'à partir de la première saison de la carrière, pas
+   depuis la fondation du club. On les annonce donc comme « depuis votre arrivée », jamais comme « de l'histoire
+   du club » : un gamin de dix-huit ans n'est pas le plus jeune buteur de l'histoire du PSG.
    Le PREMIER record se pose EN SILENCE — en saison 1, tout est un record, ça n'a aucune valeur ; c'est
-   celui qui en fait TOMBER un qui devient un moment dont on parle. */
+   celui qui en fait TOMBER un qui devient un moment dont on parle.
+   « DE L'HISTOIRE DU CLUB » ne se dit que si l'on a le VRAI record, sourcé (HISTO_JEUNE plus bas), et qu'il
+   tombe pour de bon : alors l'annonce part même en saison 1, et le record porte h:1. */
 const RECORDS=[
   {id:"rang",     ico:"🥇", nom:"Meilleur classement"},
   {id:"large",    ico:"💥", nom:"Plus large victoire"},
@@ -12712,6 +12717,100 @@ const RECORDS=[
   {id:"buteur",   ico:"⚽", nom:"Meilleur buteur sur une saison"},
   {id:"jeune",    ico:"👶", nom:"Plus jeune buteur"},
 ];
+/* LE VRAI PLUS JEUNE BUTEUR DE CHAQUE CLUB, relevé en octobre 2026 (ligue1.com, Transfermarkt, Wikipédia,
+   sites officiels). [nom, ans, jours, année du but, portée]. Portée "" = toutes compétitions ; "D1" = en
+   première division seulement (la source ne couvre que la L1 : un plus jeune a pu marquer en D2 ou en
+   coupe) ; "L" = en championnat seulement. On garde le record d'AUJOURD'HUI : c'est le plus exigeant, donc
+   le battre veut dire battre aussi celui de l'époque du jeu. Un club absent = on ne sait pas = on se tait.
+   Écartés faute de preuve solide : Hull (âge introuvable), Notts County et Sheffield United (historique
+   Transfermarkt trop court pour des clubs centenaires). */
+const HISTO_JEUNE={
+ ACA:["Moussa Soumano",17,206,2022,"D1"],
+ AJA:["Jean-Marc Ferreri",18,29,1980,"D1"],
+ AMI:["Jack Lahne",18,36,2019,"D1"],
+ ANG:["Mohamed Ali Cho",17,223,2021,"D1"],
+ BAS:["Alain Santucci",17,197,1972,"D1"],
+ BOR:["Jean-Marc Ferratge",17,297,1977,"D1"],
+ BRE:["André Pennec",19,14,1979,"D1"],
+ CAE:["M'Baye Niang",16,140,2011,"D1"],
+ CHA:["Stéphane Dalmat",18,362,1997,"D1"],
+ CLE:["Lucas Da Cunha",20,227,2021,"D1"],
+ GUI:["Ludovic Blas",18,33,2015,"D1"],
+ LEH:["Florent Sinama-Pongolle",17,302,2002,"D1"],
+ LEN:["Richard Krawczyk",16,106,1963,"D1"],
+ LIL:["Kevin Mirallas",17,214,2005,""],
+ LMN:["Sébastien Corchia",19,41,2009,"D1"],
+ LOR:["Eli Junior Kroupi",17,93,2023,"D1"],
+ LYO:["Rayan Cherki",16,140,2020,""],
+ MET:["Bernard Zénier",16,361,1974,"D1"],
+ MON:["Kylian Mbappé",17,62,2016,""],
+ MTP:["Abdoulaye Cissé",17,null,2001,"D1"],
+ NAN:["Salomon Olembé",17,250,1998,""],
+ NCY:["Philippe Jeannol",17,227,1975,"D1"],
+ NIC:["Neal Maupay",16,123,2012,"D1"],
+ NIM:["Jacky Novi",17,324,1963,"D1"],
+ OM:["Michel Flos",16,199,1981,""],
+ PSG:["Warren Zaïre-Emery",16,330,2023,""],
+ REI:["Francis Méano",18,97,1949,"D1"],
+ REN:["Eduardo Camavinga",17,35,2019,"D1"],
+ SOC:["Thierry Ferrier",16,237,1981,"D1"],
+ STE:["Laurent Roussey",16,74,1978,""],
+ STR:["Raymond Fenus",17,252,1973,"D1"],
+ TON:["Cyril Cassèse",16,173,1989,"D1"],
+ TOU:["Jean Albin",17,285,1949,"D1"],
+ TRO:["Corentin Jean",17,235,2013,"D1"],
+ VAN:["Didier Six",18,26,1972,"D1"],
+ ARS:["Max Dowman",16,73,2026,""],
+ AVL:["Andy Hunter",15,134,1879,""],
+ BNS:["Glyn Riley",16,272,1975,""],
+ BIR:["Jude Bellingham",16,63,2019,""],
+ BLB:["Joe Lofthouse",16,303,1882,""],
+ BOL:["Francis Lee",16,190,1960,""],
+ BTF:["Richard Poole",16,291,1974,"L"],
+ BSR:["Ronnie Dix",15,180,1928,""],
+ CAR:["John Toshack",16,236,1965,""],
+ CHL:["Jonjo Shelvey",16,311,2009,""],
+ CHE:["Ian Hamilton",16,138,1967,""],
+ COL:["Vic Keeble",17,66,1947,""],
+ CRW:["Joel Ewusi",16,79,2026,""],
+ CPL:["Steve Kember",17,31,1966,""],
+ DER:["Mason Bennett",16,174,2013,""],
+ EVE:["James Vaughan",16,270,2005,""],
+ GRI:["Louis Boyd",15,null,2020,""],
+ IPS:["Jason Dozzell",16,57,1984,""],
+ LEE:["James Milner",16,356,2002,""],
+ LEI:["Jeremy Monga",16,37,2025,""],
+ LIV:["Rio Ngumoha",16,361,2025,""],
+ LUT:["Fin Evans",16,271,2025,""],
+ MCI:["Rony Lopes",17,8,2013,""],
+ MUN:["Norman Whiteside",17,8,1982,""],
+ MID:["Arthur Horsfield",17,64,1963,""],
+ NEW:["Jock Rutherford",17,139,1902,""],
+ OXF:["Slavi Spasov",16,247,2018,""],
+ PET:["Ricky-Jade Jones",17,4,2019,""],
+ PLY:["Seb Campbell",16,279,2025,""],
+ PTV:["Jack Shorrock",16,242,2023,""],
+ ROT:["Harry Gray",17,111,2026,""],
+ SHW:["Arthur Hukin",17,36,1954,""],
+ SOU:["Theo Walcott",16,216,2005,""],
+ SKP:["Joe Astles",16,105,2025,""],
+ STK:["Peter Bullock",16,163,1958,""],
+ SUN:["Chris Rigg",16,51,2023,""],
+ SWI:["Paul Rideout",16,107,1980,""],
+ TOT:["Alfie Devine",16,163,2021,""],
+};
+/* Le joueur bat-il le VRAI record ? Les âges du jeu sont en années pleines : « 16 ans » peut vouloir dire
+   16 ans et 364 jours. On ne crie donc que s'il a STRICTEMENT moins d'années que le détenteur. Renvoie la
+   ligne d'histoire à dire, ou null. */
+function histoJeune(age){
+  const h=HISTO_JEUNE[G&&G.monClub]; if(!h || !Number.isFinite(age)) return null;
+  const [nom, ans, , an, portee]=h;
+  if(!(age<ans)) return null;
+  if(portee==="D1" && G.div!==1) return null;           // record connu en première division seulement
+  const ou=portee==="D1"?" en première division":(portee==="L"?" en championnat":"");
+  const prec=(an<=anneeJeu()) ? " Il efface "+nom+", qui avait "+ans+" ans en "+an+"." : "";
+  return "le plus jeune buteur de l'histoire du club"+ou+"."+prec;
+}
 function poseRecord(id, v, txt, plusPetit){
   if(!G || !Number.isFinite(v)) return null;
   const R=G.records=G.records||{};
@@ -12720,11 +12819,22 @@ function poseRecord(id, v, txt, plusPetit){
   R[id]={v, t:String(txt), s:G.saison, j:Math.min((G.journee||0)+1,38), anc:anc?anc.v:null};
   return anc?"battu":"neuf";
 }
-function crieRecord(id, v, txt, plusPetit){
-  const r=poseRecord(id, v, txt, plusPetit); if(r!=="battu") return false;
-  const d=RECORDS.find(x=>x.id===id)||{ico:"🏛️", nom:"Record du club"};
-  notif(d.ico+" RECORD DU CLUB : "+d.nom.toLowerCase()+" : "+txt+". Les archives viennent de perdre une page.");
-  G.presse.unshift("« RECORD DU CLUB : "+txt+". On a ressorti les vieux registres, et ils ont rendu les armes. »");
+/* histo : la ligne « de l'histoire du club » quand le vrai record tombe (sinon null). */
+function crieRecord(id, v, txt, plusPetit, histo){
+  const anc=G&&G.records&&G.records[id];
+  const r=poseRecord(id, v, txt, plusPetit); if(!r) return false;
+  // déjà plus bas que le vrai record (h) : le battre, c'est encore battre l'histoire
+  const hist=histo || (r==="battu" && anc && anc.h ? "nouveau record de l'histoire du club. L'ancien (« "+anc.t+" ») avait déjà été établi sous vos ordres." : null);
+  const d=RECORDS.find(x=>x.id===id)||{ico:"🏛️", nom:"Record"};
+  if(hist){
+    G.records[id].h=1;
+    notif("🏛️ HISTOIRE DU CLUB : "+txt+". "+hist.charAt(0).toUpperCase()+hist.slice(1));
+    G.presse.unshift("« "+txt+" : "+hist+" On a ressorti les vieux registres, et ils ont rendu les armes. »");
+    return true;
+  }
+  if(r!=="battu") return false;
+  notif(d.ico+" RECORD DEPUIS VOTRE ARRIVÉE : "+d.nom.toLowerCase()+" : "+txt+". Personne n'avait fait mieux depuis que vous êtes sur le banc.");
+  G.presse.unshift("« "+txt+" : du jamais-vu depuis l'arrivée de l'entraîneur. »");
   return true;
 }
 function recordsTenus(){ return RECORDS.filter(d=>G.records && G.records[d.id]).map(d=>Object.assign({}, d, {r:G.records[d.id]})); }
@@ -12820,7 +12930,7 @@ function momentsDuMatch(faits, r, h, a, hid, delta){
     const j=byUid(u); if(!j || j.club!==G.monClub || j.pretIn) continue;
     ouvreBio(j);
     const c=cumulBio(j), nb=buts[u];
-    crieRecord("jeune", j.age, j.nom+", "+j.age+" ans, contre "+advC.nom, true);
+    crieRecord("jeune", j.age, j.nom+", "+j.age+" ans, contre "+advC.nom, true, histoJeune(j.age));
     if(c.b<=nb && j.age<=21) ajouteMoment(j, "Son premier but en professionnel, contre "+advC.nom, 10);
     if(derby)  ajouteMoment(j, "Un but dans le derby contre "+advC.nom, 8);
     if(nb>=3)  ajouteMoment(j, "Un triplé contre "+advC.nom, 7);
@@ -12951,7 +13061,7 @@ function baroTribunes(){
       <p class="dim" style="font-size:13px;margin-top:2px">${L.length} match${L.length>1?"s":""} à domicile cette saison, moyenne <b class="fort">${FMT(Math.round(moy))}</b> spectateurs.</p>`
      :`<p class="dim" style="font-size:13px">Aucun match à domicile joué cette saison.</p>`}
     ${der?`<p class="dim" style="font-size:13px">Saison ${esc(der.s)} : ${FMT(der.moy)} de moyenne · <span class="${delta>=0?"vert":"rouge"}">${delta>=0?"▲ +":"▼ "}${FMT(Math.abs(Math.round(delta)))}</span> cette année.</p>`:""}
-    ${rec?`<p class="dim" style="font-size:13px">🎟️ Record du club : ${esc(rec.t)} <span style="font-size:13px">(${esc(rec.s)})</span>.</p>`:""}`;
+    ${rec?`<p class="dim" style="font-size:13px">🎟️ Votre record depuis votre arrivée : ${esc(rec.t)} <span style="font-size:13px">(${esc(rec.s)})</span>.</p>`:""}`;
 }
 
 /* ---------- « OÙ EN ÉTIONS-NOUS ? » ----------
@@ -17726,7 +17836,7 @@ function introSaison(){
   }
   if(G.tresorerie<0) puces.push("🔴 Les caisses sont dans le rouge : avant les rêves de grandeur, le président veut un budget à l'équilibre.");
   if(G.palmares && G.palmares.length) puces.push("🏆 Au mur du club : "+esc(G.palmares.join(", "))+".");
-  { const rr=resumeRecords(); if(rr) puces.push("🏛️ Dans les archives : "+esc(rr)+". Des records faits pour tomber."); }
+  { const rr=resumeRecords(); if(rr) puces.push("🏛️ Vos records depuis votre arrivée : "+esc(rr)+". Des records faits pour tomber."); }
   return {an, titre:e.titre, txt:e.txt, puces};
 }
 function ecranIntro(){
@@ -17842,9 +17952,9 @@ function ecranBilan(){
       // saison 1 tout est un record, et un record sans prédécesseur ne raconte rien.
       const l=recordsTenus().filter(d=>d.r.s===B.saison && d.r.anc!=null);
       if(!l.length) return "";
-      return `<div class="panel" style="border-color:#5fd98f"><h2 style="color:#5fd98f">🏛️ LES RECORDS TOMBÉS CETTE SAISON</h2>`
-        +l.map(d=>`<p style="margin:4px 0">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)} <span class="dim">(journée ${d.r.j})</span></p>`).join("")
-        +`<p class="dim" style="font-size:13px;margin-top:6px">Les archives du club ont perdu ${l.length>1?"plusieurs pages":"une page"} cette saison.</p></div>`;
+      return `<div class="panel" style="border-color:#5fd98f"><h2 style="color:#5fd98f">🏛️ VOS RECORDS TOMBÉS CETTE SAISON</h2>`
+        +l.map(d=>`<p style="margin:4px 0">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)}${d.r.h?' <span class="jaune">· histoire du club</span>':""} <span class="dim">(journée ${d.r.j})</span></p>`).join("")
+        +`<p class="dim" style="font-size:13px;margin-top:6px">Votre mur des records a perdu ${l.length>1?"plusieurs pages":"une page"} cette saison.</p></div>`;
     })()}
    <div class="panel"><h2>🔥 LE MATCH DE L'ANNÉE</h2>
      ${M?`<p class="scoreline" style="text-align:center;font-size:18px">${esc(nomC(M.h))} <span class="jaune">${M.sh}</span> - <span class="jaune">${M.sa}</span> ${esc(nomC(M.a))}</p>
@@ -23106,10 +23216,10 @@ function ecranClub(){
      ${RIVAL[c.id]&&clubById(RIVAL[c.id])?`<p>Rival historique : <b class="rouge">${esc(clubById(RIVAL[c.id]).nom)}</b> · ${esc(nomRivalite(c.id,RIVAL[c.id]))}.</p>`:""}
      <p>Bête noire : <b class="fort">${esc(clubById(c.beteNoire)?clubById(c.beteNoire).nom:"-")}</b>${c.bnBattue?' <span class="vert">signe indien brisé cette saison ✓</span>':' <span class="dim">signe indien à briser</span>'}</p>
      ${malediction(c.id,G.anBase||1995)?`<p class="dim" style="font-style:italic">« ${esc(malediction(c.id,G.anBase||1995))} »</p>`:""}
-     <h3 style="margin-top:12px">Les records du club</h3>
+     <h3 style="margin-top:12px">Vos records depuis votre arrivée</h3>
      ${(()=>{ const l=recordsTenus();
         if(!l.length) return `<p class="dim" style="font-size:13px">Rien dans les archives pour l'instant.</p>`;
-        return l.map(d=>`<p class="dim" style="font-size:13px">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)} <span style="font-size:13px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join(""); })()}
+        return l.map(d=>`<p class="dim" style="font-size:13px">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)}${d.r.h?' <span class="jaune">· histoire du club</span>':""} <span style="font-size:13px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join(""); })()}
    </div></div>`);
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>{ lanceProjet(b.dataset.id); cableChoixStyle(); });
   { const bT=document.getElementById("bToitRet"); if(bT) bT.onclick=()=>{ G.stade.ferme=G.stade.ferme?0:1; montre("club"); }; }
