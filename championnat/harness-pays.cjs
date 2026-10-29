@@ -153,22 +153,23 @@ console.log("D) Les montants : rien ne change en France, tout se convertit en An
   const ecarts = [];
   for (const v of SOMMES) {
     for (const d of [0, 1, 2]) {
-      if (MM(v, d) !== (v / 1e6).toFixed(d) + " MF") ecarts.push(`MM(${v},${d})`);
+      // depuis le 29/10/2026 MM et MMn écrivent la virgule décimale (« 42,0 MF ») : même nombre, séparateur français
+      if (MM(v, d) !== (v / 1e6).toFixed(d).replace(".", ",") + " MF") ecarts.push(`MM(${v},${d})`);
       if (MMv(v, d) !== (v / 1e6).toFixed(d).replace(".", ",") + " MF") ecarts.push(`MMv(${v},${d})`);
-      if (MMn(v, d) !== (v / 1e6).toFixed(d)) ecarts.push(`MMn(${v},${d})`);
+      if (MMn(v, d) !== (v / 1e6).toFixed(d).replace(".", ",")) ecarts.push(`MMn(${v},${d})`);
     }
     if (MMC(v) !== MF_C(v / 1e6) + " MF") ecarts.push(`MMC(${v})`);
     if (UU(v) !== FMT(v) + " FF") ecarts.push(`UU(${v})`);
   }
   ok(ecarts.length === 0,
     `en France, les cinq helpers rendent exactement ce que rendaient les expressions remplacées, sur ${SOMMES.length} montants × 3 décimales${ecarts.length ? " — " + ecarts.slice(0, 5).join(", ") : ""}`);
-  ok(MM(12e6, 1) === "12.0 MF" && MMv(12e6, 1) === "12,0 MF" && UU(2500) === "2 500 FF",
-    "à l'œil : 12.0 MF, 12,0 MF, 2 500 FF");
+  ok(MM(12e6, 1) === "12,0 MF" && MMv(12e6, 1) === "12,0 MF" && UU(2500) === "2 500 FF",
+    "à l'œil : 12,0 MF, 12,0 MF, 2 500 FF");
 
   voitPays("ANG", 1990, false);
-  ok(MM(8e6, 1) === "1.0 M£", "en Angleterre, huit millions de francs font un million de livres : « 1.0 M£ »");
+  ok(MM(8e6, 1) === "1,0 M£", "en Angleterre, huit millions de francs font un million de livres : « 1,0 M£ »");
   ok(UU(8000) === "1 000 £", "et huit mille francs font mille livres : « 1 000 £ »");
-  ok(MM(100e6, 1) === "12.5 M£", "un budget de 100 MF se lit 12.5 M£, l'ordre de grandeur d'un club anglais de 1995");
+  ok(MM(100e6, 1) === "12,5 M£", "un budget de 100 MF se lit 12,5 M£, l'ordre de grandeur d'un club anglais de 1995");
   ok(UU(70) === "9 £", "un billet à 70 FF se lit 9 £, ce que coûtait une place à Highbury");
   const unites = new Set([MM(1e6), MMv(1e6), MMC(1e6), UU(1e6)].map(x => x.replace(/[\d.,\s]/g, "")));
   ok(unites.size === 2 && unites.has("M£") && unites.has("£"), `aucun helper n'oublie de changer d'unité : ${[...unites].join(" / ")}`);

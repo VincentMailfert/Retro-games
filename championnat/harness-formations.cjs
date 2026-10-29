@@ -279,8 +279,9 @@ const advDe = G => { const p = G.calendrier[G.journee].find(([x, y]) => x === G.
     G.formation = f;
     let err = null; try { api.ecranCalendrier(); } catch (e) { err = e.message; }
     const h = APP.innerHTML;
-    const boutons = (h.match(/class="act bFormation"/g) || []).length;
-    const actif = new RegExp('data-k="' + f + '" style="[^"]*background:#ffd24a').test(h);
+    const boutons = (h.match(/class="act bFormation( on)?"/g) || []).length;
+    // la vôtre allumée, et elle seule (un choix fait s'allume en blanc, classe « on », depuis la revue de design du 29/10/2026)
+    const actif = new RegExp('class="act bFormation on" data-k="' + f + '"').test(h) && (h.match(/class="act bFormation on"/g) || []).length === 1;
     ok(!err && boutons === 3 && actif, f + " : l'écran Calendrier montre les trois formations, la vôtre allumée" + (err ? " — " + err : ""));
     const ligneA = (h.match(/<div class="fLigne"><span class="fLib dim">Attaque<\/span>(.*?)<\/div>/) || [])[1] || "";
     ok((ligneA.match(/<span>/g) || []).length === api.FORMATIONS[f].A, f + " : le petit terrain aligne " + api.FORMATIONS[f].A + " attaquant(s)");

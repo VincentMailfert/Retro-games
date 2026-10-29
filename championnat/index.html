@@ -138,6 +138,7 @@
     clear:both; /* le téléscripteur passe sous les contrôles de vitesse flottants — sinon il se rétrécit à côté (BFC vs float) */
   }
   #ticker p{margin:0 0 3px; white-space:pre-wrap;}
+  #ticker:has(> p.cursor:only-child){min-height:0;} /* avant le coup d'envoi, une ligne d'attente suffit (piste 3) */
   #ticker .evt{display:flex; align-items:flex-start; gap:7px;}
   #ticker .tx{flex:1;}
   #ticker .ico{flex:0 0 26px; padding-top:1px;}
@@ -188,6 +189,11 @@
     background:var(--panel2); border:1px solid var(--line); color:var(--txt);
     font-family:inherit; font-size:14px; padding:4px 6px;
   }
+  /* les listes dessinées par le jeu, pas par le téléphone : sur iPhone la liste native sortait blanche, texte clair
+     dessus, donc illisible (Finances, 29/10/2026). Flèche en SVG, 44 px au doigt. */
+  select{-webkit-appearance:none; appearance:none; border-radius:4px; min-height:44px; padding:8px 32px 8px 10px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%237e96b5' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; background-size:12px 8px;}
   .startclub{
     display:block; width:100%; text-align:left; margin-bottom:4px;
     background:var(--panel2); border:1px solid var(--line); color:var(--txt);
@@ -235,13 +241,14 @@
   }
   .carSous .act,.carLigne .act{font-size:13px;padding:4px 8px;}
   .pips{font-size:14px;letter-spacing:1px;white-space:nowrap;}
-  .pips .off{color:#31486b;}
+  .pips .off{color:#557199;} /* crans vides : contraste 3,4 sur la carte (1,8 avant), toujours bien en retrait des pleins */
   .accTabs{display:none;}
   /* ---- mercato : chips, pageur, fiche latérale ---- */
   .mChip{font-family:inherit;font-size:14px;padding:5px 9px;background:var(--panel2);
     color:var(--dim);border:1px solid var(--line);cursor:pointer;font-weight:bold;white-space:nowrap;}
-  .mChip.on{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
-  .mChip.onD2{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
+  /* UN CHOIX FAIT (onglet, filtre, vitesse, consigne) s'allume en blanc : le jaune plein reste à l'action offerte
+     et à votre club (29/10/2026, piste 2 de la revue de design) */
+  .mChip.on, .mChip.onD2, .act.on{background:rgba(255,255,255,.14);color:var(--clair);border-color:var(--clair);font-weight:bold;}
   .accPaysRang{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
   .accPays{min-height:40px;padding:6px 12px;}
   .accPays[disabled]{opacity:.55;cursor:default;}
@@ -270,6 +277,9 @@
     .mercRap{grid-template-columns:1fr;}
     .mercWrap{grid-template-columns:1fr;}
     .mercFiche{display:none;}                            /* la fiche vit dans la ligne dépliée */
+    .tbTreso{display:none;}
+    /* classement sur téléphone : rang, club, joués, différence, points ; le détail G N P Bp Bc reste sur ordinateur (piste 5) */
+    .clTab{min-width:0;} .clTab .clDet{display:none;}  /* bandeau du jeu sur une ligne : la trésorerie se lit dans Finances (piste 14) */
     /* sur téléphone le club se réduit à son blason et son sigle : le prix tient dans l'écran (29/10/2026) */
     #listeM .mcLong{display:none;}
     #listeM .mcCourt{display:inline;}
@@ -312,7 +322,7 @@
   .briefDang>span::before{content:"⚠ "; color:var(--rouge);}
   /* les compos en direct (bouton « Compos ») : les deux onze côte à côte, l'un sous l'autre sur téléphone */
   .ctlOutils{white-space:nowrap;display:inline-block} /* Banc et Compos ne se séparent jamais (v1.89) */
-  #bCompos[aria-expanded="true"]{background:var(--jaune); color:#0b1626; font-weight:bold;}
+  #bCompos[aria-expanded="true"]{background:rgba(255,255,255,.14); color:var(--clair); border-color:var(--clair); font-weight:bold;}
   #composDirect{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;}
   #composDirect .terrainXI{margin-top:4px; max-width:none;}
   .compoTete{display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;}
@@ -383,7 +393,9 @@
   #msgbox{position:fixed; inset:0; background:rgba(4,9,18,.72); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
   #msgbox input[type=text],#msgbox input[type=email],#msgbox input[type=password]{display:block; width:100%; margin-top:8px; background:#0b1626; color:#dfe9ff;
      border:1px solid #38507a; border-radius:4px; font-family:inherit; font-size:14px; padding:9px;}
-  .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px;}
+  .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px; padding:0 6px;}
+  /* liens et boutons du pied de page : 44 px au doigt (ils en faisaient 18 à 28) */
+  .footer .act, .footer a{display:inline-flex; align-items:center; min-height:44px; padding:0 10px; vertical-align:middle;}
   /* LE BANDEAU D'ACCUEIL (chantier accueil) : pour qui arrive sans carrière, ce qu'est le jeu en une phrase, et deux
      portes — choisir son club, ou laisser le hasard en désigner un. Le rétro s'y montre : le transistor, le titre en
      pixels. Avec des carrières en cours, il s'efface devant « Reprendre ». */
@@ -530,8 +542,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .accTabs button{font-family:inherit;font-size:15px;font-weight:bold;letter-spacing:1px;
     padding:10px 4px;min-height:44px;background:var(--panel2);color:var(--dim);
     border:1px solid var(--line);cursor:pointer;}
-  .accTabs button.onD1{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
-  .accTabs button.onD2{background:var(--jaune);color:#16243c;border-color:var(--jaune);}
+  .accTabs button.onD1, .accTabs button.onD2{background:rgba(255,255,255,.14);color:var(--clair);border-color:var(--clair);}
   .accCols[data-div="1"] .colD2{display:none;}
   .accCols[data-div="2"] .colD1{display:none;}
   .pips{font-size:13px;letter-spacing:.5px;}
@@ -563,7 +574,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.30"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.31"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -686,8 +697,9 @@ function honneurEte(an){ const t=HONNEURS_PAYS[paysVu().code]||HONNEURS_PAYS.FR;
    UU  : un montant à l'unité (salaires, billets, tarifs journaliers).
    Le point et la virgule qui cohabitent sont une VERRUE héritée des cent dix sites d'origine, pas une
    décision : la régulariser un jour se fera en touchant à MM et MMv, et à rien d'autre. */
-function MM(n, d=1){ const p=paysVu(); return (n*p.taux/1e6).toFixed(d)+" "+p.millions; }
-function MMn(n, d=1){ return (n*paysVu().taux/1e6).toFixed(d); } // le nombre seul : l'unité est dite ailleurs (en-tête de colonne, phrase voisine)
+// virgule décimale partout (« 42,0 MF », « 3,5 M£ ») : le jeu parle français, même quand il compte en livres (29/10/2026)
+function MM(n, d=1){ const p=paysVu(); return MMn(n,d)+" "+p.millions; }
+function MMn(n, d=1){ return (n*paysVu().taux/1e6).toFixed(d).replace(".",","); } // le nombre seul : l'unité est dite ailleurs (en-tête de colonne, phrase voisine)
 function MMv(n, d=1){ return MM(n,d).replace(".",","); }
 function MMC(n){ const p=paysVu(); return MF_C(n*p.taux/1e6)+" "+p.millions; }
 function UU(n){ const p=paysVu(); return FMT(n*p.taux)+" "+p.unite; }
@@ -3768,6 +3780,11 @@ const PRIX_BILLET=[
  {nom:"Majoré",    prix:92,  aff:0.91, rep:-0.22, moral:-0.12, desc:"On rentabilise la tribune. Les abonnés grognent, mais si l'équipe gagne ils reviennent."},
  {nom:"Premium",   prix:120, aff:0.82, rep:-0.45, moral:-0.30, desc:"Guichets de luxe : le tiroir-caisse se remplit, le cœur des supporters un peu moins."},
 ];
+// l'effet d'un contrat sur l'image du club, dit en mots et sans chiffres (consigne : ne pas montrer la mécanique)
+function imageSponsor(o){
+  if(!o.rep) return "";
+  return o.rep>0 ? `<span class="vert">· image en hausse${o.repJ?", et durablement":""}</span>` : `<span class="rouge">· image écornée</span>`;
+}
 function palierBillet(){ return PRIX_BILLET[G.prixBillet!=null?G.prixBillet:2]; }
 
 function avisRecruteur(j){
@@ -12820,6 +12837,7 @@ function rangDe(o){ // le classement d'un objet de partie, sans passer par class
 }
 function enjeuDe(o){
   if(!o || !o.clubs || !o.clubs.length) return null;
+  if(!o.clubs.some(c=>(c.j||0)>0 || (c.pts||0)>0)) return null; // personne n'a joué : le « rang » ne serait que l'ordre alphabétique (piste 3)
   const R=rangDe(o), cl=R.cl, rang=R.rang;
   if(!rang) return null;
   const n=cl.length, div=o.div||1, moi=cl[rang-1];
@@ -17440,7 +17458,7 @@ function ecranCoupe(){
   const peutRegler = !co.elimine && !co.vainqueur && co.tourIdx<COUPE_TOURS.length;
   const rota = peutRegler ? `<div class="panel"><h2>Votre approche pour le prochain tour</h2>
      <div class="ctr" style="margin-top:6px">
-       ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRot" data-k="${k}" style="margin:4px 3px 0${co.rotation===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
+       ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRot${co.rotation===k?" on":""}" data-k="${k}" style="margin:4px 3px 0">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
      </div>${apercuRotation(co.rotation)}</div>` : "";
   const parc = co.monParcours.length ? `<table class="fit"><tr><th>Tour</th><th>Adversaire</th><th class="num">Score</th><th></th></tr>
      ${co.monParcours.map(p=>{ const adv=p.hid===G.monClub?p.aid:p.hid, sc=scoreVu(p,G.monClub);
@@ -19362,6 +19380,15 @@ function euroSeedDe(id, S){ // compétition européenne à laquelle un club est 
   if((S.euroC3||[]).includes(id)) return "C3";
   return null;
 }
+/* « du FC Nantes », « des Girondins Bordeaux », « du Havre AC », « d'Arsenal » : le complément de nom d'un club.
+   En France on dit le club (« du Montpellier HSC ») ; en Angleterre on dit la ville (« de Liverpool »). */
+function deClub(nom, pays){
+  if(/^Girondins /.test(nom)) return "des "+nom;
+  if(/^Le /.test(nom)) return "du "+nom.slice(3);
+  if(/^La /.test(nom)) return "de "+nom;
+  if(pays==="FR") return "du "+nom;
+  return (/^[AEIOUÂÉÈÊÎÔ]/i.test(nom)?"d'":"de ")+nom;
+}
 function ficheClubAccueil(id){
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   const c=metaSaison(id,S.an);
@@ -19385,7 +19412,7 @@ function ficheClubAccueil(id){
     })()}
     <p class="ficheActions">
       ${saisonOuverte(SAISON_ACCUEIL)
-        ? `<button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">PRENDRE LES RÊNES ${esc(("DE "+c.nom).toUpperCase())}</button>`
+        ? `<button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">Prendre les rênes ${esc(deClub(c.nom, paysDeSaison(SAISON_ACCUEIL)))}</button>`
         : `<button class="big" id="bLance" disabled style="display:block;width:100%;margin-bottom:6px">🔒 SAISON FERMÉE</button>`}
       <button class="act" id="bRetour" style="display:block;width:100%">← Choisir un autre club</button>
     </p></div>`;
@@ -19525,7 +19552,7 @@ function ecranAccueil(){
    <div class="panel">
      <div class="accPaysRang" role="group" aria-label="Pays">${boutonsPays}</div>
      <label style="display:block;font-size:13px"><span style="display:flex;justify-content:space-between"><b>Saison de départ</b><span class="dim" id="accCles" title="Clés">🔑 ${cles}</span></span>
-       <select id="selSaison" style="display:block;width:100%;margin-top:4px;background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:16px;padding:8px">${opts}</select>
+       <select id="selSaison" style="display:block;width:100%;margin-top:4px;background-color:#0b1626;color:#dfe9ff;border-color:#38507a;font-size:16px">${opts}</select>
      </label>
      ${ferme?`<p id="accFerme" style="margin-top:8px;font-size:14px">🔒 <span class="dim">${cles?`${cles} clé${cles>1?"s":""} en poche.`:"Aucune clé en poche. Gagnez un titre de champion en première division pour en gagner une."}</span>${cles?` <button class="act" id="bOuvreSaison">🔑 Ouvrir</button>`:""}</p>`:""}
      <p class="fort" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
@@ -19548,7 +19575,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex · prototype v${VERSION} · données d'époque approximatives. · <button class="act" id="bCompteAcc">☁️ ${compteLit()?"Mon compte":"Se connecter"}</button> · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a> · ${liensReseaux()}</p>`;
+   <p class="footer">Multiplex · v${VERSION} · données d'époque approximatives. · <button class="act" id="bCompteAcc">☁️ ${compteLit()?"Mon compte":"Se connecter"}</button> · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a> · ${liensReseaux()}</p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
@@ -19611,7 +19638,7 @@ function chrome(actif, corps){
   app.innerHTML=`
    <div class="topbar">
      <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
-     <span class="r">${esc(G.saison)} · <b class="divTag${G.div===2?' d2':''}">${esc(tagDiv(G.div||1))}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${MM(G.budget,1)} · Trésorerie ${MM(G.tresorerie,1)}</span>
+     <span class="r">${esc(G.saison)} · <b class="divTag${G.div===2?' d2':''}">${esc(tagDiv(G.div||1))}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${MM(G.budget,1)}<span class="tbTreso"> · Trésorerie ${MM(G.tresorerie,1)}</span></span>
    </div>
    ${barreNav(actif)}
    <div id="corps">${corps}</div>
@@ -19633,14 +19660,14 @@ const CONTACT_MAIL="vincent.mailfert@gmail.com";
 const CONTACT_FN="https://hemedkhebhllymdgvuka.supabase.co/functions/v1/contact";
 function ecranApropos(){
   const objets=["Proposition d'amélioration","Erreur scandaleuse à corriger","Autres"];
-  const champ="background:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:13px;padding:8px";
+  const champ="background-color:#0b1626;color:#dfe9ff;border:1px solid #38507a;border-radius:4px;font-family:inherit;font-size:13px;padding:8px";
   // sans carrière chargée (lien du pied de page d'accueil), la page se montre seule, avec un retour à l'accueil
   const corps=`
    <div class="panel">
      <h2>À propos</h2>
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
        et qui est coincé dans l'ascenseur depuis.</p>
-     <p class="dim" style="font-size:13px;line-height:1.5">MULTIPLEX · prototype v${VERSION}</p>
+     <p class="dim" style="font-size:13px;line-height:1.5">MULTIPLEX · v${VERSION}</p>
    </div>
    <div class="panel">
      <h2>Offrir un café</h2>
@@ -19651,7 +19678,7 @@ function ecranApropos(){
      <h2>Une remarque ? Un scandale ?</h2>
      <p class="dim" style="font-size:13px;margin-bottom:10px">Écrivez-moi, je lis tout.</p>
      <label style="display:block;margin-bottom:8px;font-size:13px">Objet
-       <select id="ctcObjet" style="display:block;width:100%;margin-top:4px;${champ}">
+       <select id="ctcObjet" style="display:block;width:100%;margin-top:4px;${champ};padding-right:32px">
          ${objets.map(o=>`<option>${esc(o)}</option>`).join("")}
        </select>
      </label>
@@ -20119,7 +20146,7 @@ function cableTactiqueDirect(o){
   const ctlT=document.getElementById("ctlTactique"); if(!ctlT) return;
   const btns=[...document.querySelectorAll(".bTacD")];
   const maj=()=>btns.forEach(b=>{ const on=b.dataset.k===G.consigne;
-    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; });
+    b.classList.toggle("on",on); });
   ctlT.style.display="block"; maj();
   btns.forEach(b=>b.onclick=()=>{
     const k=b.dataset.k, L=o.lignes, i=o.pos();
@@ -20139,7 +20166,7 @@ function cableTactiqueRdv(o){
   const ctlT=document.getElementById("ctlTactique"); if(!ctlT) return;
   const btns=[...document.querySelectorAll(".bTacD")];
   const maj=()=>btns.forEach(b=>{ const on=b.dataset.k===G.consigne;
-    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; });
+    b.classList.toggle("on",on); });
   let enCours=o.lambdas(); // les buts attendus sous lesquels le fil actuel a été écrit (coup d'envoi, puis dernier changement)
   ctlT.style.display="block"; maj();
   btns.forEach(b=>b.onclick=()=>{
@@ -20178,7 +20205,7 @@ const VITESSES={vTL:3000,vL:2300,vR:950};
 function surligneVitesse(){
   for(const id in VITESSES){ const b=document.getElementById(id); if(!b) continue;
     const on=(VITESSES[id]===tickerDelai);
-    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; }
+    b.classList.toggle("on",on); }
 }
 /* panneau LED clignotant ~5 s pour les temps forts (but, carton rouge…), avec détail ;
    o = {classe, gros, sub (HTML), detail (texte)} ; onDone appelé au clic OU après 5 s */
@@ -20312,7 +20339,7 @@ function blocFormation(xi, adv){
     return js.length?`<div class="fLigne"><span class="fLib dim">${lib}</span>${js.map(x=>`<span>${esc(x.j.nom)}${x.hors?' <i class="rouge">(dépanne)</i>':""}</span>`).join("")}</div>`:""; };
   return `<div class="ctr" style="margin-top:12px">
        <span class="dim" style="font-size:13px">Formation :</span><br>
-       ${Object.keys(FORMATIONS).map(f=>`<button class="act bFormation" data-k="${f}" style="margin:4px 3px 0${k===f?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${f}</button>`).join("")}
+       ${Object.keys(FORMATIONS).map(f=>`<button class="act bFormation${k===f?" on":""}" data-k="${f}" style="margin:4px 3px 0">${f}</button>`).join("")}
        ${xi&&xi.length?`<div class="terrainXI">${ligne("A","Attaque")}${ligne("M","Milieu")}${ligne("D","Défense")}${ligne("G","But")}</div>`:""}
      </div>`;
 }
@@ -20324,11 +20351,11 @@ function blocConsignePrime(quand, xi, adv){
   return `${blocFormation(xi, adv)}
      <div class="ctr" style="margin-top:12px">
        <span class="dim" style="font-size:13px">Consigne d'avant-match :</span><br>
-       ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne" data-k="${k}" style="margin:4px 3px 0${G.consigne===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${CONSIGNES[k].label}</button>`).join("")}
+       ${Object.keys(CONSIGNES).map(k=>`<button class="act bConsigne${G.consigne===k?" on":""}" data-k="${k}" style="margin:4px 3px 0">${CONSIGNES[k].label}</button>`).join("")}
      </div>
      <div class="ctr" style="margin-top:10px">
        <span class="dim" style="font-size:13px">Prime de match, payée ${esc(quand)} :</span><br>
-       ${PRIMES_MATCH.map(p=>`<button class="act bPrime" data-v="${p.v}" style="margin:4px 3px 0${pm===p.v?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${p.label}</button>`).join("")}
+       ${PRIMES_MATCH.map(p=>`<button class="act bPrime${pm===p.v?" on":""}" data-v="${p.v}" style="margin:4px 3px 0">${p.label}</button>`).join("")}
      </div>`;
 }
 function panneauRdv(rdv, h, a){
@@ -20367,7 +20394,7 @@ function panneauRdv(rdv, h, a){
      <p class="ctr" style="font-size:13px;margin-top:4px">${contexte}</p>
      <div class="ctr" style="margin-top:12px">
        <span class="dim" style="font-size:13px">Quelle équipe alignez-vous ?</span><br>
-       ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRdvRot" data-k="${k}" style="margin:4px 3px 0${rot===k?";background:#ffd24a;color:#0b1626;font-weight:bold":""}">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
+       ${Object.keys(ROTATION_COUPE).map(k=>`<button class="act bRdvRot${rot===k?" on":""}" data-k="${k}" style="margin:4px 3px 0">${esc(ROTATION_COUPE[k].label)}</button>`).join("")}
        ${apercuRotation(rot)}
      </div>
      ${blocConsignePrime(quand, onzeRotation(clubById(G.monClub), rot))}
@@ -21325,7 +21352,7 @@ function lanceMatch(instant){
   // Le bouton actif reflète G.consigne.
   const ctlT=document.getElementById("ctlTactique");
   const majTacBtns=()=>document.querySelectorAll(".bTacD").forEach(b=>{ const on=b.dataset.k===G.consigne;
-    b.style.background=on?"#ffd24a":""; b.style.color=on?"#0b1626":""; b.style.fontWeight=on?"bold":""; });
+    b.classList.toggle("on",on); });
   if(ctlT && !instant){
     ctlT.style.display="block";
     if(monMatch._truque){ // on montre le contrôle et on dit pourquoi il ne sert à rien, plutôt que de le faire disparaître
@@ -21763,16 +21790,17 @@ function momentTacle(mo,moi,resoudre,suite){
 /* ---- Classement ---- */
 function ecranClassement(){
   const cl=classement();
+  const joue=cl.some(c=>c.j>0); // avant le 1er match, l'ordre est alphabétique : ni montée ni descente à annoncer (piste 3)
   // on ne classe que ceux qui ont réellement marqué/passé : sinon, en début de saison, on affichait 8 joueurs à 0 (trompeur)
   const buteurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>j.buts>0).sort((a,b)=>b.buts-a.buts).slice(0,8);
   const passeurs=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.passes||0)>0).sort((a,b)=>(b.passes||0)-(a.passes||0)).slice(0,8);
   // les hommes du match : une distinction par rencontre, division entière, depuis la 1re journée (cf. designeHdm)
   const decores=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.hdm||0)>0).sort((a,b)=>(b.hdm||0)-(a.hdm||0)||b.note-a.note).slice(0,8);
   chrome("classement",`<div class="panel"><h2>Classement · ${esc(libDiv(G.div))}</h2>
-   <table><tr><th>#</th><th>Club</th><th class="num">J</th><th class="num">G</th><th class="num">N</th><th class="num">P</th><th class="num">Bp</th><th class="num">Bc</th><th class="num">Diff</th><th class="num">Pts</th></tr>
-   ${cl.map((c,i)=>{const mont=G.div===2&&i<3, desc=G.div===1&&i>=cl.length-3; return `<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
-     <td>${mont?'<span class="vert">'+(i+1)+'▲</span>':desc?'<span class="rouge">'+(i+1)+'▼</span>':(i+1)}</td><td><span style="display:inline-flex;align-items:center;gap:7px">${blason(c,15)}${esc(c.nom)}</span></td><td class="num">${c.j}</td><td class="num">${c.g}</td>
-     <td class="num">${c.n}</td><td class="num">${c.p}</td><td class="num">${c.bp}</td><td class="num">${c.bc}</td>
+   <table class="clTab"><tr><th>#</th><th>Club</th><th class="num">J</th><th class="num clDet">G</th><th class="num clDet">N</th><th class="num clDet">P</th><th class="num clDet">Bp</th><th class="num clDet">Bc</th><th class="num">Diff</th><th class="num">Pts</th></tr>
+   ${cl.map((c,i)=>{const mont=G.div===2&&i<3&&joue, desc=G.div===1&&i>=cl.length-3&&joue; return `<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
+     <td>${mont?'<span class="vert">'+(i+1)+'▲</span>':desc?'<span class="rouge">'+(i+1)+'▼</span>':(i+1)}</td><td><span style="display:inline-flex;align-items:center;gap:7px">${blason(c,15)}${esc(c.nom)}</span></td><td class="num">${c.j}</td><td class="num clDet">${c.g}</td>
+     <td class="num clDet">${c.n}</td><td class="num clDet">${c.p}</td><td class="num clDet">${c.bp}</td><td class="num clDet">${c.bc}</td>
      <td class="num">${c.bp-c.bc>0?"+":""}${c.bp-c.bc}</td><td class="num"><b>${c.pts}</b></td></tr>`;}).join("")}
    </table>
    </div>
@@ -22192,7 +22220,7 @@ function ecranFinances(){
     ${G.offresSponsor.map((o,k)=>`<p style="margin:8px 0">
       <button class="act bSp" data-k="${k}">Signer</button>
       <b class="fort">${esc(o.nom)}</b> · ${UU(o.fixe)}/journée${o.prime?" + "+UU(o.prime)+" par victoire":""}
-      ${o.rep?`<span class="${o.rep>0?'vert':'rouge'}">[réputation ${o.rep>0?'+':''}${o.rep}${o.repJ?", puis +"+o.repJ+"/journée":""}]</span>`:'<span class="dim">[réputation neutre]</span>'}
+      ${imageSponsor(o)}
       <br><span class="dim" style="font-size:13px">${esc(o.desc)}${o.ere?", « "+esc(o.ere)+" »":""}</span></p>`).join("")}
     <p class="dim" style="margin-top:6px">Un seul contrat à la fois.</p></div>`:"";
   const offresEq=(G.offresEquip && !G.equip)?
@@ -22200,7 +22228,7 @@ function ecranFinances(){
     ${G.offresEquip.map((o,k)=>`<p style="margin:8px 0">
       <button class="act bEq" data-k="${k}">Signer</button>
       <b class="fort">${esc(o.nom)}</b> · ${UU(o.fixe)}/journée${o.prime?" + "+UU(o.prime)+" par victoire":""}
-      ${o.rep?`<span class="vert">[réputation +${o.rep}${o.repJ?", puis +"+o.repJ+"/journée":""}]</span>`:""}
+      ${imageSponsor(o)}
       <br><span class="dim" style="font-size:13px">${esc(o.desc)}, « ${esc(o.note)} »</span></p>`).join("")}</div>`:"";
   chrome("finances",`${offres}${offresEq}<div class="panel"><h2>Finances</h2>
    <table class="fit">

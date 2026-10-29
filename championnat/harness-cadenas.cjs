@@ -258,13 +258,13 @@ console.log("\nH) À l'écran");
   ok(/Aucune clé en poche\. Gagnez un titre de champion en première division pour en gagner une\./.test(ligne) && !/bOuvreSaison/.test(ligne), "sur une saison fermée sans clé : une seule ligne, qui dit les clés, sans bouton");
   ok((h.match(/class="startclub"/g) || []).length >= 36, "les clubs de la saison fermée restent visibles");
   a.ficheClubAccueil(a.SAISONS["1993-94"].d1[0]);
-  ok(/disabled[^>]*>🔒 SAISON FERMÉE</.test(FICHE.innerHTML) && !/PRENDRE LES RÊNES/.test(FICHE.innerHTML), "la fiche d'un club d'une saison fermée ne laisse pas lancer la carrière");
+  ok(/disabled[^>]*>🔒 SAISON FERMÉE</.test(FICHE.innerHTML) && !/Prendre les rênes/.test(FICHE.innerHTML), "la fiche d'un club d'une saison fermée ne laisse pas lancer la carrière");
   a.progGagne("1995-96", "p1"); a.ecranAccueil(); h = APP.innerHTML;
   ok(/1 clé en poche/.test(h) && /id="bOuvreSaison"/.test(h) && /🔑 1</.test(h), "avec une clé : la ligne le dit, et un bouton propose d'ouvrir");
   a.setAccueil("ANG-1993-94"); a.ecranAccueil();
   ok(/🔑 0</.test(APP.innerHTML) && /Aucune clé/.test(APP.innerHTML), "le compte est par championnat : la clé française ne se voit pas en Angleterre");
   a.setAccueil("1995-96"); a.ficheClubAccueil(a.SAISONS["1995-96"].d1[0]);
-  ok(/PRENDRE LES RÊNES/.test(FICHE.innerHTML), "sur une saison ouverte, le bouton de lancement est là");
+  ok(/Prendre les rênes/.test(FICHE.innerHTML), "sur une saison ouverte, le bouton de lancement est là");
   // le bilan de fin de saison
   a.nouvellePartie(a.SAISONS["1990-91"].d1[0], "1990-91"); finitSaison(a, true); a.ecranBilan();
   ok(/🔑 Champion : une clé de plus au trousseau\./.test(APP.innerHTML), "le bilan annonce la clé en une ligne");
