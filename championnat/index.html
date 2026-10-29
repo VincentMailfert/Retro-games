@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.33"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.34"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11860,6 +11860,9 @@ function ceremonie(cle, titre, texte, bouton, suite){
 }
 /* La famille d'un sponsor, pour choisir sa cérémonie : le terroir, le décalé (le Minitel rose compris), la marque
    nationale, le louche (celui qui peut ne jamais payer) et le vice (tabac, apéritif, paris). */
+/* Le chien, le pigeon et la panne de projecteurs avaient leur dessin en caractères ; ils ont désormais leur vignette
+   (v2.34), et le dessin reste en secours si l'image venait à manquer. */
+function imageOuArt(cle, art){ return IMG_MOMENT[cle]?{img:PICK(IMG_MOMENT[cle])}:{art}; }
 function familleSponsor(s){
   if(!s) return "sp_national";
   if(s.ringard) return s.rep>0?"sp_terroir":"sp_decale";
@@ -19137,7 +19140,7 @@ async function nuagePrepare(id){
 }
 
 /* =====================================================================
-   LES SAISONS VERROUILLÉES (v2.22)
+   LES SAISONS VERROUILLÉES (v2.34)
    =====================================================================
    La plupart des saisons de départ sont fermées. Un titre de D1, à N'IMPORTE QUELLE année d'une carrière
    (on peut partir de D2, monter, puis être sacré : v2.24, choix de l'auteur), donne une clé dans le
@@ -19922,7 +19925,7 @@ function ecranCalendrier(){
     const motifs={confiance:"La confiance du président est tombée à zéro.",
       relegation:"Le club est relégué en "+libDiv(2)+".",
       objectif:"L'objectif de la saison ("+G.objectif.label+") est manqué de trop loin."};
-    chrome("calendrier",`<div class="panel"><h2 class="rouge">LIMOGÉ</h2>
+    chrome("calendrier",`<div class="panel">${IMG_MOMENT.vire?`<img class="momImg" style="max-height:240px" src="${PICK(IMG_MOMENT.vire)}" alt="">`:""}<h2 class="rouge">LIMOGÉ</h2>
       <p>${esc(motifs[G.vire]||"Le président a tranché.")}</p>
       <p style="margin-top:6px">Votre aventure s'arrête ici${G.palmares.length?", mais le palmarès reste : "+esc(G.palmares.join(", "))+".":"."}</p>
       <p style="margin-top:10px"><button class="act" id="bRe">Recommencer une carrière</button>
@@ -20425,8 +20428,10 @@ function panneauRdv(rdv, h, a){
   }
   rot=ROTATION_COUPE[rot]?rot:"mixte";
   const finale=rdv.aj && (rdv.aj.finale || rdv.aj.nom==="Finale"); // le soir de la finale a sa vignette (v2.17)
+  // le soir où l'on croise le Petit Poucet, son terrain de village plein à craquer (v2.34)
+  const poucet=!finale && rdv.type==="coupe" && rdv.f && G.coupe && [rdv.f.hid,rdv.f.aid].includes(G.coupe.poucetId) && IMG_MOMENT.poucet;
   return `<div class="panel rdvSemaine" style="border-color:var(--jaune)">
-     ${finale?`<img class="momImg" style="max-height:240px" src="${PICK(IMG_MOMENT.finale)}" alt="">`:""}
+     ${finale?`<img class="momImg" style="max-height:240px" src="${PICK(IMG_MOMENT.finale)}" alt="">`:poucet?`<img class="momImg" style="max-height:240px" src="${PICK(IMG_MOMENT.poucet)}" alt="">`:""}
      <h2>${titre}</h2>
      <p class="ctr dim" style="font-size:13px">Rendez-vous de milieu de semaine, avant la J${G.journee+1} de championnat</p>
      <p class="scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blasonAff(H,30)}${esc(H.nom)} - ${esc(A.nom)}${blasonAff(A,30)}</p>
@@ -20834,6 +20839,7 @@ function ouvreConf(suite){
   if(!cp){ return suite&&suite(); }
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:470px;background:#0b1626;border:2px solid #38507a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    ${IMG_MOMENT.conf?`<img class="momImg" src="${PICK(IMG_MOMENT.conf)}" alt="">`:""}
     <h2>🎙️ CONFÉRENCE DE PRESSE</h2>
     <p style="margin:6px 0">${esc(cp.q)}</p>
     <div id="confChoix">${cp.reps.map((r,i)=>`<button class="big confBtn" data-i="${i}" style="display:block;width:100%;margin:6px 0;text-align:left;padding:10px 12px">${esc(r.lib)}</button>`).join("")}</div>
@@ -21574,13 +21580,13 @@ function lanceMatch(instant){
       return;
     }
     if(lg && lg.mo==="chien"){ // l'envahisseur à quatre pattes s'affiche sur le panneau du stade
-      celebreFlash({classe:"", gros:"🐕 ENVAHISSEUR DE PELOUSE", art:DOG_ART,
+      celebreFlash({classe:"", gros:"🐕 ENVAHISSEUR DE PELOUSE", ...imageOuArt("chien",DOG_ART),
         sub:"Un chien sur la pelouse&nbsp;! Le match attendra.",
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
     if(lg && lg.mo==="pigeon"){ // le volatile assommé, pur décor
-      celebreFlash({classe:"", gros:"🐦 PIGEON TOUCHÉ !", art:PIGEON_ART,
+      celebreFlash({classe:"", gros:"🐦 PIGEON TOUCHÉ !", ...imageOuArt("pigeon",PIGEON_ART),
         sub:"Sonné mais vivant, évacué sous l'ovation&nbsp;!",
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
@@ -21592,7 +21598,7 @@ function lanceMatch(instant){
       return;
     }
     if(lg && lg.mo==="projos"){ // les quatre pylônes qui lâchent, pur décor
-      celebreFlash({classe:"", gros:"🔌 PANNE DE PROJECTEURS&nbsp;!", art:PROJOS_ART,
+      celebreFlash({classe:"", gros:"🔌 PANNE DE PROJECTEURS&nbsp;!", ...imageOuArt("projos",PROJOS_ART),
         sub:"Le stade dans le noir, les briquets prennent le relais&nbsp;!",
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
