@@ -183,6 +183,9 @@ toujours « raconter quelque chose ».
   L'ancien `mailto:` ne faisait rien sans logiciel de messagerie. Le bouton devient « ✅ Message envoyé, merci ! ».
 - **Les comptes du jeu (v2.25)** : la constante `RESEAUX` (Instagram `multiplex.club`, X `Multiplexclub`, les comptes que
   Buffer publie) et `liensReseaux()` mettent les deux liens aux DEUX pieds de page, accueil et jeu, en nouvel onglet.
+- **Le ballon du logo (v2.27)** : `logoBallon()` découpe ses pentagones au cercle par le calcul (arc SVG), sans
+  `clipPath` : Safari sur iPhone ignorait le découpage et le ballon sortait en négatif. Les cartes de club de l'accueil
+  mettent stade et places sur deux lignes, Europe et prestige empilés à droite (`.ccNom`, `.ccDroite`).
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
   compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
   Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte

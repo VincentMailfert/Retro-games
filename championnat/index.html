@@ -200,7 +200,12 @@
   .accDivHead{border-bottom:2px solid var(--dim);padding-bottom:4px;margin-bottom:4px;
     display:flex;justify-content:space-between;align-items:baseline;}
   .accDivHead.d2{border-color:var(--dim);}
-  .grpHead{display:flex;align-items:baseline;gap:8px;margin:14px 0 2px;}
+  .grpHead{display:flex;align-items:baseline;gap:8px;margin:24px 0 10px;}
+  /* la carte d'un club à l'accueil : nom, stade, places sur trois lignes ; Europe et prestige rangés à droite */
+  .accCols .startclub{display:flex;align-items:center;gap:14px;padding:12px 14px;margin-bottom:8px;}
+  .ccNom{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;line-height:1.25;}
+  .ccNom b{margin-bottom:2px;}
+  .ccDroite{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex:none;}
   .grpHead .trait{flex:1;height:1px;opacity:.35;align-self:center;}
   .grpAmb{color:var(--dim);font-size:13px;font-style:italic;margin:0 0 6px;}
   .startclub .sous{color:var(--dim);font-size:13px;}
@@ -550,7 +555,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.26"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.27"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -3677,17 +3682,29 @@ function logoDefs(n){
   return `<defs>
     <linearGradient id="lgC${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffbea"/><stop offset=".44" stop-color="#ffe07a"/><stop offset=".5" stop-color="#c98a14"/><stop offset=".56" stop-color="#ffd24a"/><stop offset="1" stop-color="#fff0b0"/></linearGradient>
     <linearGradient id="lgT${n}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd24a" stop-opacity="0"/><stop offset="1" stop-color="#ffd24a"/></linearGradient>
-    <clipPath id="lgB${n}"><circle r="1"/></clipPath>
   </defs>`;
 }
+/* Le ballon ne passe plus par un clipPath (29/10/2026) : Safari sur iPhone l'ignorait, les pentagones du bord
+   débordaient en bleu nuit et le ballon sortait en négatif. Chaque pentagone est donc découpé au cercle à la main :
+   on garde ses sommets intérieurs, on coupe ses côtés au bord, et un arc referme la partie sortie. */
 function logoBallon(cx,cy,r,n){ // ballon blanc à pentagones, dessiné sur un rayon 1 puis mis à l'échelle
   const pt=(ox,oy,d,a)=>[ox+Math.cos(a*Math.PI/180)*d, oy+Math.sin(a*Math.PI/180)*d];
-  const penta=(ox,oy,d,rot)=>'<polygon points="'+[0,1,2,3,4].map(k=>pt(ox,oy,d,rot+72*k).map(v=>v.toFixed(3)).join(",")).join(" ")+'"/>';
+  const f=v=>v.toFixed(3), dedans=p=>p[0]*p[0]+p[1]*p[1]<=1;
+  const coupe=(A,B)=>{ // point où le segment AB franchit le cercle de rayon 1
+    const dx=B[0]-A[0], dy=B[1]-A[1], a=dx*dx+dy*dy, b=2*(A[0]*dx+A[1]*dy), c=A[0]*A[0]+A[1]*A[1]-1;
+    const rd=Math.sqrt(Math.max(0,b*b-4*a*c)); let t=(-b+rd)/(2*a); if(t<0||t>1) t=(-b-rd)/(2*a);
+    return [A[0]+t*dx, A[1]+t*dy]; };
+  const penta=(ox,oy,d,rot)=>{ // sommets dans le sens horaire : l'arc qui referme tourne dans le même sens
+    const P=[0,1,2,3,4].map(k=>pt(ox,oy,d,rot+72*k)); let path="";
+    P.forEach((A,i)=>{ const B=P[(i+1)%5], inA=dedans(A);
+      if(inA) path+=(path?"L":"M")+f(A[0])+" "+f(A[1]);
+      if(inA!==dedans(B)){ const X=coupe(A,B); path+=(inA?(path?"L":"M"):"A1 1 0 0 1 ")+f(X[0])+" "+f(X[1]); } });
+    return '<path d="'+path+'Z"/>'; };
   let g=penta(0,0,.36,-90);
   for(let k=0;k<5;k++){ const a=-90+72*k, [ox,oy]=pt(0,0,1.04,a), [x1,y1]=pt(0,0,.36,a), [x2,y2]=pt(0,0,.68,a);
     g+=penta(ox,oy,.38,a+180)+`<path d="M${x1.toFixed(3)} ${y1.toFixed(3)} L${x2.toFixed(3)} ${y2.toFixed(3)}" fill="none"/>`; }
   return `<g transform="translate(${cx} ${cy}) scale(${r})"><circle r="1" fill="#f2f5fa"/>
-    <g clip-path="url(#lgB${n})" fill="#0b1626" stroke="#0b1626" stroke-width=".08" stroke-linejoin="round">${g}</g>
+    <g fill="#0b1626" stroke="#0b1626" stroke-width=".08" stroke-linejoin="round">${g}</g>
     <circle r="1" fill="none" stroke="#0b1626" stroke-width=".1"/></g>`;
 }
 const LOGO_M="M0 64 V0 H20 L35 26 L50 0 H70 V64 H52 V30 L39 52 H31 L18 30 V64 Z"; // le M, 70 × 64
@@ -19477,8 +19494,8 @@ function ecranAccueil(){
   const opts=clesDe(paysAcc).map(ligne).join("");
   const boutonsPays=Object.keys(PAYS).map(code=>{ const P=PAYS[code], vide=!clesDe(code).length;
     return `<button class="mChip accPays${code===paysAcc?" on":""}" data-pays="${code}"${vide?" disabled":""}>${P.drapeau} ${esc(P.nom)}${vide?' <span class="dim" style="font-weight:normal">bientôt</span>':""}</button>`; }).join("");
-  const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}" style="display:flex;align-items:center;gap:9px">
-        ${blason(c,22)}<span style="flex:1;line-height:1.1"><b>${esc(c.nom)}</b><br><span class="sous">${esc(c.stade)} · ${FMT(c.cap)} places</span></span>${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</button>`; };
+  const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}">
+        ${blason(c,26)}<span class="ccNom"><b>${esc(c.nom)}</b><span class="sous">${esc(c.stade)}</span><span class="sous">${FMT(c.cap)} places</span></span><span class="ccDroite">${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</span></button>`; };
   const colonne=groupes=>groupes.map(g=>`
       <div class="grpHead"><span style="color:${g.coul};font-size:13px;letter-spacing:1px"><b>${g.tag}</b></span><span class="dim" style="font-size:13px">${g.clubs.length} club${g.clubs.length>1?"s":""}</span><span class="trait" style="background:${g.coul}"></span></div>
       ${g.clubs.map(carte).join("")}`).join("");
