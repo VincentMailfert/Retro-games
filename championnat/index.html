@@ -555,7 +555,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.28"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.29"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -3673,9 +3673,8 @@ function blason(c,s){
 /* ---- Logo MULTIPLEX (v1.58) : le générique télé des années 90. Lettres chromées en italique, relief rouge,
    trajectoire de frappe qui finit sur un ballon, slogan sur bandeau rouge. `logoGenerique()` rend le logo entier
    (bandeau d'accueil), `logoMultiplex(s)` son icône : le M seul sur tuile bleu nuit (barre du haut ; le favicon en
-   est la copie figée). Le M de l'icône est un TRACÉ, pas du texte, pour ne dépendre d'aucune fonte ; le grand logo
-   écrit en Archivo Black (fontes Google), et si elle manque Arial Black/Impact prennent le relais, textLength tenant
-   la largeur. Chaque appel numérote ses dégradés (LOGO_N) : deux logos à l'écran ne se volent pas leurs défs.
+   est la copie figée). Le M de l'icône est un TRACÉ, pas du texte, pour ne dépendre d'aucune fonte ; le grand mot
+   aussi (LOGO_MOT) : Archivo Black figée en tracé, 640 de large, centrée sur x=390, ligne de base y=152. Chaque appel numérote ses dégradés (LOGO_N) : deux logos à l'écran ne se volent pas leurs défs.
    Le bord gauche du bandeau prolonge exactement le jambage gauche du M (même pente de 12°, mesuré au pixel). ---- */
 let LOGO_N=0;
 function logoDefs(n){
@@ -3718,17 +3717,16 @@ function logoMultiplex(s){ // s = côté en px ; tuile bleu nuit, lisible aussi 
     ${logoBallon(100,96,11,n)}
   </svg>`;
 }
+const LOGO_MOT="M158.5 152.0L136.6 152.0L136.6 122.7Q136.6 117.3 136.9 111.6Q137.3 105.9 137.7 102.0Q138.1 98.1 138.2 97.0L138.2 97.0L137.8 97.0L125.1 152.0L107.7 152.0L94.9 97.1L94.5 97.1Q94.6 98.2 95.1 102.0Q95.5 105.9 95.9 111.6Q96.3 117.3 96.3 122.7L96.3 122.7L96.3 152.0L76.0 152.0L76.0 70.8L107.2 70.8L117.7 117.7L118.1 117.7L128.4 70.8L158.5 70.8L158.5 152.0ZM240.5 119.3Q240.5 136.0 231.6 144.7Q222.7 153.4 206.2 153.4L206.2 153.4Q189.8 153.4 180.9 144.7Q171.9 136.0 171.9 119.3L171.9 119.3L171.9 70.8L194.0 70.8L194.0 119.0Q194.0 125.8 197.1 129.9Q200.2 133.9 206.1 133.9L206.1 133.9Q212.1 133.9 215.2 129.8Q218.4 125.7 218.4 119.0L218.4 119.0L218.4 70.8L240.5 70.8L240.5 119.3ZM255.3 152.0L255.3 70.8L277.4 70.8L277.4 131.2L312.8 131.2L312.8 152.0L255.3 152.0ZM379.1 91.6L356.6 91.6L356.6 152.0L334.5 152.0L334.5 91.6L311.9 91.6L311.9 70.8L379.1 70.8L379.1 91.6ZM412.4 152.0L390.3 152.0L390.3 70.8L412.4 70.8L412.4 152.0ZM466.8 70.8Q473.2 70.8 478.2 74.3Q483.3 77.8 486.1 83.9Q488.9 89.9 488.9 97.5L488.9 97.5L488.9 99.0Q488.9 106.6 486.1 112.7Q483.3 118.8 478.2 122.3Q473.2 125.8 466.8 125.8L466.8 125.8L450.3 125.8L450.3 152.0L428.2 152.0L428.2 70.8L466.8 70.8ZM450.3 90.0L450.3 106.8L459.4 106.8Q462.9 106.8 464.7 104.7Q466.4 102.6 466.4 98.9L466.4 98.9L466.4 98.0Q466.4 94.2 464.7 92.1Q462.9 90.0 459.4 90.0L459.4 90.0L450.3 90.0ZM500.5 152.0L500.5 70.8L522.6 70.8L522.6 131.2L557.9 131.2L557.9 152.0L500.5 152.0ZM567.2 152.0L567.2 70.8L626.8 70.8L626.8 90.3L589.4 90.3L589.4 101.5L621.4 101.5L621.4 120.1L589.4 120.1L589.4 132.5L627.5 132.5L627.5 152.0L567.2 152.0ZM685.4 109.2L710.0 152.0L683.2 152.0L670.5 126.7L670.1 126.7L657.3 152.0L632.5 152.0L657.1 109.0L634.9 70.8L661.6 70.8L672.1 91.6L672.5 91.6L683.0 70.8L707.7 70.8L685.4 109.2Z"; // MULTIPLEX en Archivo Black, tracé une fois pour toutes (cf. en-tête)
 function logoGenerique(centre){ // le logo entier, à la largeur de son conteneur ; centre=true centre le bandeau (accueil)
-  const n=LOGO_N++, f=`font-family="'Archivo Black','Arial Black',Impact,sans-serif" font-size="118" text-anchor="middle" textLength="640" lengthAdjust="spacingAndGlyphs"`;
-  /* Le mot est écrit UNE fois (lgW) et chaque couche du relief en est une copie (<use>) : Safari sur iPhone
-     n'étirait pas le mot doré (contour, dégradé) à la même largeur que ses copies rouges, et le rouge
-     débordait au M et au X (29/10/2026). Une seule mise en page, donc des couches forcément superposables. */
-  let relief=""; for(let i=9;i>=1;i--) relief+=`<use href="#lgW${n}" x="${i}" y="${i}" fill="${i===9?"#5e1712":"#b8392f"}"/>`;
+  /* Le mot est un TRACÉ (29/10/2026), plus du texte : sur iPhone la fonte Google arrivait après coup, une partie
+     des couches restait dessinée avec la fonte de secours et le relief rouge débordait du M et du X. */
+  const n=LOGO_N++;
+  let relief=""; for(let i=9;i>=1;i--) relief+=`<path d="${LOGO_MOT}" transform="translate(${i} ${i})" fill="${i===9?"#5e1712":"#b8392f"}"/>`;
   return `<svg viewBox="0 0 780 272" style="width:100%;height:auto;display:block" role="img" aria-label="Multiplex, le plaisir du foot rétro">${logoDefs(n)}
-    <defs><text id="lgW${n}" x="390" y="152" ${f}>MULTIPLEX</text></defs>
     <path d="M40 200 C 210 168, 470 158, 684 176" stroke="url(#lgT${n})" stroke-width="8" fill="none" stroke-linecap="round"/>
     <path d="M110 214 C 270 188, 480 178, 676 190" stroke="url(#lgT${n})" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
-    <g transform="translate(34 0) skewX(-12)">${relief}<use href="#lgW${n}" fill="url(#lgC${n})" stroke="#0b1626" stroke-width="4.5" paint-order="stroke"/></g>
+    <g transform="translate(34 0) skewX(-12)">${relief}<path d="${LOGO_MOT}" fill="url(#lgC${n})" stroke="#0b1626" stroke-width="4.5" paint-order="stroke"/></g>
     ${logoBallon(708,178,19,n)}
     <polygon points="${centre?"224.5,226 562.5,226 555.5,258 217.5,258":"61.8,226 399.8,226 392.8,258 54.8,258"}" fill="#ff6f61"/>
     <text x="${centre?390:74}" y="250" ${centre?'text-anchor="middle" ':""}font-family="VT323,monospace" font-size="28" fill="#0b1626" textLength="312" lengthAdjust="spacingAndGlyphs">LE PLAISIR DU FOOT RETRO</text>
