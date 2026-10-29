@@ -56,7 +56,7 @@ const note = n => (PAR_NOM.get(n) || { t: [0, 0, 0, 0, 0] }).t;
 console.log("1) Le plateau réel de 2003-04");
 {
   dit(!!S && S.pays === "ANG" && S.an === 2003 && S.titre === "2003-04", "au registre : ANG, 2003, « 2003-04 »");
-  dit(S.nom === "Trente-huit sans défaite", "son nom : « " + S.nom + " »");
+  dit(S.nom === "Les Invincibles de Highbury", "son nom : « " + S.nom + " »");
   dit(S.d1[0] === "ARS" && S.d1[1] === "CHE" && S.d1[2] === "MUN" && S.d1[3] === "LIV", "Arsenal champion invaincu, devant Chelsea, Manchester United et Liverpool");
   dit(meme(S.d1.slice(-3), ["LEI", "LEE", "WOL"]), "Leicester, Leeds et Wolverhampton, les trois relégués, ferment l'élite");
   dit(S.d2[0] === "NOR" && S.d2[1] === "WBA" && S.d2.includes("CPL") && S.d2.includes("WHU"), "Norwich champion du dessous, West Bromwich deuxième, Crystal Palace et West Ham en barrages");
@@ -101,6 +101,7 @@ console.log("\n4) Les corrections du relevé");
     "Devlin, Horsfield, Butler, Alan Lee et Mathias Svensson ne sont pas aux clubs qu'ils ne rejoignent qu'après le coup d'envoi");
   dit(au("B. Deane", "LEI") && au("W. Hoskins", "ROT"), "Deane et Hoskins, quatrièmes attaquants de Leicester et de Rotherham");
   dit(au("J. Wilcox", "LEE") && !PAR_NOM.has("Alan Smith"), "Wilcox remplace Alan Smith, sans nom libre");
+  dit(au("C. Doig", "FOR") && !PAR_NOM.has("Ga. Williams") && !PAR_NOM.has("Gareth Williams"), "Doig remplace Gareth Williams, sans nom libre (« Ga. Williams » n'est pas une graphie du jeu)");
   const remis = [["J. Aliadière", "ARS"], ["H. Viana", "NEW"], ["S. McPhail", "LEE"], ["Marvin Elliott", "MIW"], ["P. Vernazza", "WAT"], ["J. Hand", "WAT"], ["P. Boertien", "DER"], ["P. Kennedy", "WIG"]];
   const manquent = remis.filter(([n, c]) => !au(n, c));
   dit(manquent.length === 0, "les hommes arrivés avant le coup d'envoi remis à leur club" + (manquent.length ? " — manquent " + manquent.map(x => x[0]).join(", ") : ""));

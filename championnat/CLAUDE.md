@@ -5203,7 +5203,7 @@ une arrivée non datée sans contre-preuve, et les vingt arrivées que le relev�
 
 `harness-ang0203.cjs` garde tout cela.
 
-### ANG 2003-04 — TRENTE-HUIT SANS DÉFAITE (v2.26)
+### ANG 2003-04 — LES INVINCIBLES DE HIGHBURY (v2.26)
 Quatorzième saison anglaise, assemblée par la tâche planifiée le 29/10/2026 à partir de `releves/ANG-2003-04` (relevé
 fait sur le poste de l'auteur, tout Transfermarkt), **encore sans accès au réseau** (Transfermarkt et Wikipedia refusés
 par le proxy). Arsenal champion sans perdre un match, vingt-six victoires et douze nuls, onze points devant le Chelsea
@@ -5212,8 +5212,8 @@ Saha vingt, dont treize pour Fulham où il était au coup d'envoi (80), Parker m
 d'envoi (79, potentiel 86). Lampard (81) et Terry (78), que l'héritage laissait à 77 et 72, sont remontés pour le
 Chelsea deuxième et demi-finaliste de la Ligue des champions, et Defoe (75), à West Ham en deuxième division. Premier
 League à vingt ; l'échelon du dessous perd Burnley, dix-neuvième, faute d'effectif complet au coup d'envoi, et ses
-trois derniers (Walsall, Bradford, Wimbledon). Notes : 512 héritées de 2002-03, 73 plus lointaines, 2 du recruteur,
-173 calculées ; distribution élite 70.3 / 70, dessous 66.0 / 66.
+trois derniers (Walsall, Bradford, Wimbledon). Notes : 513 héritées de 2002-03, 73 plus lointaines, 2 du recruteur,
+172 calculées ; distribution élite 70.3 / 70, dessous 66.0 / 66.
 
 **LES PÉPITES DU RELEVÉ, ENCORE : LES RELEVÉS VOISINS EN SAUVENT CINQ.** Le relevé forçait onze jeunes. Sans historique
 de transferts, la preuve hors ligne est celle de 2001-02 : **l'homme est au même club dans le relevé 2002-03** (même
@@ -5237,7 +5237,10 @@ relevé les a mis.
 **Les remplaçants.** Chaque trou se comble par l'homme le plus utilisé du club arrivé avant le coup d'envoi et relevé
 nulle part ailleurs : Aliadière, Hugo Viana, Adam Green, McPhail, Ryan Jarvis, Chris Cohen, Peter Kennedy, Spencer Prior,
 Gunnarsson, Vernazza ; **Deane et Hoskins** rendent à Leicester et à Rotherham leur quatrième attaquant ; **Wilcox**
-remplace Alan Smith, sans nom libre. **Wigan n'a que trois attaquants** : sans Horsfield, aucun autre n'était au club au
+et **Doig** remplacent Alan Smith et Gareth Williams, sans nom libre : le relevé donnait à ce dernier « Ga. Williams »,
+forme qu'aucune table du jeu n'emploie et que `harness-prenoms.cjs` refuse (un nom court dont le prénom est connu).
+Le nom proposé d'abord, « Trente-huit sans défaite », partageait « défaite » avec 1994-95 (`harness-noms.cjs`) :
+la saison prend le deuxième nom du relevé. **Wigan n'a que trois attaquants** : sans Horsfield, aucun autre n'était au club au
 coup d'envoi, et le jeu tolère ce manque comme le gardien unique de Sheffield United en 2000-01. Le contrôle des minutes
 remet Marvin Elliott (Millwall), Jamie Hand (Watford) et Paul Boertien (Derby). « Aliou Cissé » reprend « A. Cissé »
 par `_graphie`, comme en 2002-03.
