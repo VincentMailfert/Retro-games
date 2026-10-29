@@ -1,0 +1,251 @@
+{
+ "T. Henry": [
+  90,
+  92,
+  "joueur de l'année PFA et FWA, meilleur buteur de la Premier League avec trente buts, champion sans défaite"
+ ],
+ "A. Shearer": [
+  85,
+  90,
+  "vingt-deux buts en championnat, deuxième buteur de la saison"
+ ],
+ "L. Saha": [
+  80,
+  84,
+  "vingt buts sur la saison, treize pour Fulham avant son départ à Manchester United en janvier"
+ ],
+ "S. Parker": [
+  79,
+  86,
+  "meilleur espoir PFA, titulaire de Charlton puis de Chelsea"
+ ],
+ "F. Lampard": [
+  81,
+  88,
+  "titulaire du Chelsea deuxième et demi-finaliste de la Ligue des champions, dix buts en championnat"
+ ],
+ "J. Terry": [
+  78,
+  90,
+  "titulaire du Chelsea deuxième et demi-finaliste de la Ligue des champions ; 72 par héritage de 2002-03, trop bas pour ce rôle"
+ ],
+ "J. Defoe": [
+  75,
+  88,
+  "titulaire de West Ham en deuxième division avant de rejoindre Tottenham en février, international anglais ; 66 par héritage, trop bas pour ce rôle"
+ ],
+ "_forcer": [],
+ "_corriger": [],
+ "_graphie": [
+  [
+   "BIR",
+   "Aliou Cissé",
+   "A. Cissé",
+   "même homme (milieu né en 1976) que « A. Cissé » de Birmingham en 2002-03 et des tables françaises de Lille, du PSG et de Montpellier : la graphie du jeu gagne, comme en 2002-03"
+  ]
+ ],
+ "_retirer": [
+  [
+   "ARS",
+   "Cesc Fàbregas",
+   "pépite forcée par le relevé, absente du relevé 2002-03 : sans historique de transferts, son arrivée de Barcelone n'est pas datée avant le coup d'envoi (règle de la consigne)"
+  ],
+  [
+   "NEW",
+   "Steven Taylor",
+   "pépite forcée par le relevé, 100 minutes, absente du relevé 2002-03 : sans historique de transferts, aucune pépite ne se vérifie (règle de la consigne)"
+  ],
+  [
+   "FUL",
+   "Zesh Rehman",
+   "pépite forcée par le relevé, 34 minutes, absente du relevé 2002-03 : sans historique de transferts, aucune pépite ne se vérifie (règle de la consigne)"
+  ],
+  [
+   "LEE",
+   "Aaron Lennon",
+   "pépite forcée par le relevé, absente du relevé 2002-03 : sans historique de transferts, aucune pépite ne se vérifie (règle de la consigne)"
+  ],
+  [
+   "WAT",
+   "Hamer Bouazza",
+   "pépite forcée par le relevé, absente du relevé 2002-03 : sans historique de transferts, aucune pépite ne se vérifie (règle de la consigne)"
+  ],
+  [
+   "NOR",
+   "Mathias Svensson",
+   "arrivée non datée au relevé (« aucune arrivée datée ») ; il joue 154 minutes pour Charlton cette saison, où il était en 2002-03, puis 786 pour Derby : rien ne le met à Norwich au coup d'envoi"
+  ],
+  [
+   "FOR",
+   "Andy Impey",
+   "doublon : arrivée non datée à Forest ; il joue 1 282 minutes pour Leicester cette saison, où il était retenu en 2002-03 : au coup d'envoi à Leicester"
+  ],
+  [
+   "WAT",
+   "Paul Devlin",
+   "doublon : il joue 22 minutes pour Birmingham cette saison, où il était retenu en 2002-03 : au coup d'envoi à Birmingham, il ne rejoint Watford qu'ensuite"
+  ],
+  [
+   "WIG",
+   "Geoff Horsfield",
+   "doublon : il joue 146 minutes pour Birmingham cette saison, où il était retenu en 2002-03 : au coup d'envoi à Birmingham (puis Wigan, puis West Bromwich)"
+  ],
+  [
+   "ROT",
+   "Martin Butler",
+   "doublon : il joue 56 minutes pour Reading cette saison, où il était retenu en 2002-03 : au coup d'envoi à Reading"
+  ],
+  [
+   "WHU",
+   "Hayden Mullins",
+   "doublon : il joue 882 minutes pour Crystal Palace cette saison, où il était retenu en 2002-03 (4 688 minutes) : au coup d'envoi à Palace, il ne rejoint West Ham qu'ensuite"
+  ],
+  [
+   "LEI",
+   "Marcus Bent",
+   "doublon : il joue 463 minutes pour Ipswich cette saison, où il était retenu en 2002-03 : au coup d'envoi à Ipswich, prêté à Leicester ensuite"
+  ],
+  [
+   "CAR",
+   "Alan Lee",
+   "doublon : il joue 180 minutes pour Rotherham cette saison, où il était retenu en 2002-03 : au coup d'envoi à Rotherham"
+  ],
+  [
+   "LEE",
+   "Alan Smith",
+   "aucun nom libre (« A. Smith » et « Alan Smith » sont à d'autres hommes)"
+  ],
+  [
+   "LEI",
+   "Gerry Taggart",
+   "736 minutes : laisse sa place à Brian Deane, quatrième attaquant (Leicester n'en a plus que trois sans Marcus Bent)"
+  ],
+  [
+   "IPS",
+   "Sam Morrow",
+   "25 minutes : laisse sa place à Marcus Bent, au club au coup d'envoi"
+  ],
+  [
+   "CPL",
+   "Tommy Black",
+   "1 212 minutes : laisse sa place à Hayden Mullins, au club au coup d'envoi"
+  ],
+  [
+   "MIW",
+   "Tony Craig",
+   "718 minutes : laisse sa place à Marvin Elliott, 1 464 minutes"
+  ],
+  [
+   "WAT",
+   "Paul Robinson",
+   "1 020 minutes : laisse sa place à Jamie Hand, 1 481 minutes"
+  ],
+  [
+   "DER",
+   "Andy Oakes",
+   "troisième gardien, 900 minutes : laisse sa place à Paul Boertien, 1 252 minutes"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "LEI",
+   "Andy Impey",
+   "1 282 minutes, arrivée d'avant le coup d'envoi ; retenu à Leicester dans le relevé 2002-03"
+  ],
+  [
+   "IPS",
+   "Marcus Bent",
+   "463 minutes, arrivée d'avant le coup d'envoi ; retenu à Ipswich dans le relevé 2002-03"
+  ],
+  [
+   "CPL",
+   "Hayden Mullins",
+   "882 minutes, arrivée d'avant le coup d'envoi ; retenu à Crystal Palace dans le relevé 2002-03"
+  ],
+  [
+   "LEI",
+   "Brian Deane",
+   "quatrième attaquant, 240 minutes, arrivée d'avant le coup d'envoi ; retenu à Leicester dans le relevé 2002-03"
+  ],
+  [
+   "ARS",
+   "Jérémie Aliadière",
+   "595 minutes, arrivée d'avant le coup d'envoi ; à Arsenal dans les relevés 2002-03 et 2004-05"
+  ],
+  [
+   "NEW",
+   "Hugo Viana",
+   "1 028 minutes, arrivée d'avant le coup d'envoi ; retenu à Newcastle dans le relevé 2002-03"
+  ],
+  [
+   "FUL",
+   "Adam Green",
+   "630 minutes, arrivée d'avant le coup d'envoi ; à Fulham dans le relevé 2004-05"
+  ],
+  [
+   "LEE",
+   "Stephen McPhail",
+   "773 minutes, arrivée d'avant le coup d'envoi ; à Leeds dans le relevé 2002-03"
+  ],
+  [
+   "NOR",
+   "Ryan Jarvis",
+   "188 minutes, arrivée d'avant le coup d'envoi ; à Norwich dans les relevés 2002-03 (165 minutes) et 2004-05"
+  ],
+  [
+   "WHU",
+   "Chris Cohen",
+   "184 minutes, arrivée d'avant le coup d'envoi ; à West Ham dans le relevé 2004-05"
+  ],
+  [
+   "WIG",
+   "Peter Kennedy",
+   "1 150 minutes, arrivée d'avant le coup d'envoi ; Wigan n'a aucun autre attaquant présent au coup d'envoi, il reste à trois (toléré par le jeu)"
+  ],
+  [
+   "MIW",
+   "Marvin Elliott",
+   "1 464 minutes, arrivée d'avant le coup d'envoi ; à Millwall dans les relevés 2002-03 et 2004-05"
+  ],
+  [
+   "CAR",
+   "Spencer Prior",
+   "517 minutes, arrivée d'avant le coup d'envoi"
+  ],
+  [
+   "FOR",
+   "Brynjar Gunnarsson",
+   "839 minutes, arrivée d'avant le coup d'envoi (Stoke la saison d'avant, transfert d'été)"
+  ],
+  [
+   "WAT",
+   "Paolo Vernazza",
+   "1 644 minutes, arrivée d'avant le coup d'envoi ; à Watford dans le relevé 2002-03"
+  ],
+  [
+   "WAT",
+   "Jamie Hand",
+   "1 481 minutes, arrivée d'avant le coup d'envoi ; retenu à Watford dans le relevé 2002-03"
+  ],
+  [
+   "ROT",
+   "Will Hoskins",
+   "quatrième attaquant, 75 minutes, arrivée d'avant le coup d'envoi ; à Rotherham dans les relevés 2002-03 et 2004-05"
+  ],
+  [
+   "DER",
+   "Paul Boertien",
+   "1 252 minutes, arrivée d'avant le coup d'envoi ; retenu à Derby dans le relevé 2002-03"
+  ],
+  [
+   "WAT",
+   "Lloyd Doyley",
+   "pépite proposée par le relevé (2 600 minutes en 2004-05), 895 minutes : au club au coup d'envoi, prouvé hors ligne par les relevés voisins (retenu à Watford en 2002-03, 1 969 minutes, et à Watford en 2004-05), arrivée Transfermarkt d'avant le coup d'envoi"
+  ],
+  [
+   "LEE",
+   "Jason Wilcox",
+   "remplace Alan Smith, sans nom libre : 282 minutes, arrivée d'avant le coup d'envoi, à Leeds dans le relevé 2002-03 ; Matthew Kilgallon, plus utilisé, est aussi relevé à West Ham (prêt) avec une arrivée d'avant le coup d'envoi, son club au coup d'envoi n'est pas tranché hors ligne"
+  ]
+ ]
+}
