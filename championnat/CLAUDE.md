@@ -203,6 +203,12 @@ toujours « raconter quelque chose ».
   `cableVitesses()` câble les quatre boutons) ; au téléphone Vitesse et Attitude en barres pleine largeur de 44 px. Mercato :
   budget en tête, prix en rouge et « Hors budget » au-delà de `G.budget`, filtre « Dans mes moyens » (`MERCF.moyens`).
   Mot d'ouverture : `coupeIntro()` montre deux phrases, le coup d'envoi, puis « Lire la suite » ; `body.mode-intro` masque le menu.
+- **Revue de design, lot 3 (v2.33)** : PARTAGER (`partageMatch`, `partageSaison`, `imagePartage`) : une image 1080 px dessinée
+  sur canvas (logo sans slogan puis bandeau redessiné en VCR, car une image SVG ne voit pas les fontes de la page ; blasons
+  par `svgVersImage`), envoyée par `navigator.share` avec fichier, sinon téléchargée. Bouton à côté de « Prochaine journée »
+  (cartes du multiplex) et sur l'almanach. Effectif au téléphone : XI, joueur, P, note, forme, ★ et 🛌 (âge, moral, valeur,
+  Vendre, Prêter dans la fiche). Écran Club au téléphone : sous-onglets Stade, Campus, Staff, Direction (`CLUB_PART`,
+  `data-part`, tout reste dans le HTML).
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
   compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
   Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte

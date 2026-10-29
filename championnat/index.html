@@ -83,7 +83,9 @@
     font-family:inherit; font-size:13px; padding:4px 12px; cursor:pointer;}
   .sousNav button:hover{color:var(--clair);}
   .sousNav button.on{background:var(--panel); color:var(--clair); border-color:var(--line);}
+  button.act.bPartage{min-height:44px; margin:8px 6px 0; padding:8px 16px; font-family:var(--font-texte); font-size:15px;}
   .sousNav button:focus-visible{outline:2px solid var(--jaune); outline-offset:2px;}
+  @media(min-width:701px){ .clubTabs{display:none;} } /* ordinateur : l'écran Club garde ses deux colonnes entières */
   #corps{margin-top:12px;}
   /* MOINS DE CADRES (chantier interface, lot 3) : un panneau se détache du fond par sa teinte et l'espace
      autour, plus par un filet. Le bord reste là, transparent, pour que les rares panneaux qui portent une
@@ -287,6 +289,16 @@
     #listeM td, #listeM th{padding:2px 4px;}
     #listeM .bF{padding:5px 7px;}
     #listeM .mAch{display:none;}                         /* on achète depuis la ligne dépliée */
+    /* effectif sur téléphone (piste 4) : XI, joueur, poste, note, forme, et les deux gestes du quotidien (★ titulariser,
+       🛌 repos). Âge, moral, valeur, Vendre et Prêter vivent dans la fiche du joueur, à un toucher. */
+    .effTab{min-width:0;}
+    .effTab .effAge, .effTab .effMor, .effTab .effVal, .effBtns button.ico.bV, .effBtns button.ico.bL{display:none;}
+    .effTab td, .effTab th{padding:2px 4px;}
+    .clubParts .cp{display:none;}
+    .clubParts[data-part="stade"] .cp-stade, .clubParts[data-part="campus"] .cp-campus,
+    .clubParts[data-part="staff"] .cp-staff, .clubParts[data-part="direction"] .cp-direction{display:block;}
+    .clubParts[data-part="direction"] .cpHote{display:none;}
+    .clubTabs{margin:0 0 10px;} .clubTabs button{min-height:40px;}
     .mChip{padding:10px 6px;min-height:44px;flex:1;}
     .mercPag button{min-height:44px;}
   }
@@ -580,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.32"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.33"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -18249,12 +18261,14 @@ function ecranBilan(){
      </div>
    </div>
    <div class="panel ctr">
+     <p style="margin-bottom:8px"><button class="act bPartage" id="bPartSaison">Partager ma saison</button></p>
      ${G.vire
        ? `<p><button class="big" id="bInter">← Revenir</button></p>
           <p class="dim" style="margin-top:6px">Le président a tranché : il n'y aura pas d'intersaison pour vous. Il reste la page.</p>`
        : `<p><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>`}
    </div>`);
   document.getElementById("bInter").onclick=()=>{ if(!G.vire) intersaison(); montre("calendrier"); };
+  { const bP=document.getElementById("bPartSaison"); if(bP) bP.onclick=()=>partageSaison(B, verdict); } // piste 1
 }
 function intersaison(){
   const rec=[];
@@ -21228,12 +21242,86 @@ function mpxRaccourcit(hote){
     });
   }catch(e){}
 }
+/* PARTAGER UN EXPLOIT (29/10/2026, piste 1 de la revue de design : « le moment le plus fort ne laisse aucune trace »).
+   Une image carrée 1080 px, dessinée sur un canvas : le score comme au tableau d'affichage du direct (blasons, police VCR),
+   la saison et la journée, l'adresse du site. Le menu de partage du téléphone l'emporte (navigator.share avec fichier) ;
+   sans lui, l'image se télécharge. Les blasons et le logo sont des SVG maison, posés sur le canvas par une Image. */
+function svgVersImage(svg, l, h){
+  return new Promise(ok=>{
+    let s=svg.replace(/^<svg /, '<svg xmlns="http://www.w3.org/2000/svg" ');
+    if(l) s=s.replace(/style="[^"]*"/, `width="${l}" height="${h}"`);
+    const im=new Image(); im.onload=()=>ok(im); im.onerror=()=>ok(null);
+    im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s);
+  });
+}
+async function imagePartage(dessin){
+  const C=document.createElement("canvas"); C.width=1080; C.height=1080;
+  const x=C.getContext("2d");
+  try{ await Promise.all(['64px "VCR OSD Mono"','600 40px "IBM Plex Sans"'].map(f=>document.fonts.load(f))); }catch(e){}
+  x.fillStyle="#0b1626"; x.fillRect(0,0,1080,1080);
+  x.fillStyle="#10233f"; x.fillRect(60,250,960,560);
+  x.strokeStyle="#27466e"; x.lineWidth=3; x.strokeRect(60,250,960,560);
+  // le logo sans son slogan : une image SVG ne voit pas les fontes de la page, le bandeau est redessiné ici en VCR
+  const logo=await svgVersImage(logoGenerique(true).replace(/<polygon[^>]*fill="#ff6f61"\/>\s*<text[^>]*>LE PLAISIR DU FOOT RETRO<\/text>/,""),780,272);
+  if(logo) x.drawImage(logo,190,20,700,244);
+  const k=700/780, P=[[224.5,226],[562.5,226],[555.5,258],[217.5,258]];
+  x.fillStyle="#ff6f61"; x.beginPath(); P.forEach(([a,b],i)=>x[i?"lineTo":"moveTo"](190+a*k,20+b*k)); x.closePath(); x.fill();
+  x.fillStyle="#0b1626"; x.font='19px "VCR OSD Mono", monospace'; x.textAlign="center"; x.fillText("LE PLAISIR DU FOOT RETRO",190+390*k,20+249*k,290);
+  await dessin(x);
+  x.fillStyle="#ffd24a"; x.font='40px "VCR OSD Mono", monospace'; x.textAlign="center";
+  x.fillText("MULTIPLEX.CLUB",540,925);
+  return new Promise(ok=>C.toBlob(ok,"image/png"));
+}
+async function partage(dessin, texte, nom){
+  let blob=null; try{ blob=await imagePartage(dessin); }catch(e){}
+  const url="https://multiplex.club";
+  try{
+    const f=blob?new File([blob], nom+".png", {type:"image/png"}):null;
+    if(f && navigator.canShare && navigator.canShare({files:[f]})) return await navigator.share({files:[f], text:texte+" "+url});
+    if(navigator.share) return await navigator.share({text:texte, url});
+  }catch(e){ if(e && e.name==="AbortError") return; }
+  if(blob){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=nom+".png"; document.body.appendChild(a); a.click(); a.remove(); }
+}
+function ligneScore(x, y, club, nom, buts, gagne){ // une équipe, comme au tableau d'affichage du direct
+  return svgVersImage(blason(club||{id:"?"},90)).then(im=>{
+    if(im) x.drawImage(im,110,y-62,90,108);
+    x.textAlign="left"; x.fillStyle=gagne?"#f2f5fa":"#c9d5e4"; x.font='54px "VCR OSD Mono", monospace';
+    let n=String(nom||"").toUpperCase(); while(x.measureText(n).width>560 && n.length>4) n=n.slice(0,-1);
+    x.fillText(n,230,y+18);
+    x.fillStyle="#0b1626"; x.fillRect(840,y-60,120,120); x.strokeStyle="#27466e"; x.lineWidth=3; x.strokeRect(840,y-60,120,120);
+    x.fillStyle="#ffd24a"; x.font='96px "VCR OSD Mono", monospace'; x.textAlign="center"; x.fillText(String(buts),900,y+34);
+  });
+}
+function partageMatch(M){
+  const m=(M&&M.m||[]).find(z=>z.mien); if(!m) return;
+  const titre=(tagDiv(M.div||G.div||1)+" · "+G.saison+" · JOURNÉE "+M.j).toUpperCase();
+  partage(async x=>{
+    x.fillStyle="#7e96b5"; x.font='600 34px "IBM Plex Sans", sans-serif'; x.textAlign="center"; x.fillText(titre,540,320);
+    await ligneScore(x,450,clubById(m.h),m.hn,m.sh,m.sh>m.sa);
+    await ligneScore(x,620,clubById(m.a),m.an,m.sa,m.sa>m.sh);
+    if(M.enjeu){ x.fillStyle="#f2f5fa"; x.font='600 36px "IBM Plex Sans", sans-serif'; x.textAlign="center"; x.fillText(M.enjeu,540,760); }
+  }, m.hn+" "+m.sh+"-"+m.sa+" "+m.an+" ("+G.saison+", journée "+M.j+").", "multiplex-"+m.h+"-"+m.a);
+}
+function partageSaison(B, verdict){
+  const moi=B.moi; if(!moi) return;
+  partage(async x=>{
+    x.textAlign="center"; x.fillStyle="#7e96b5"; x.font='600 34px "IBM Plex Sans", sans-serif'; x.fillText(("ALMANACH "+B.saison).toUpperCase(),540,320);
+    const im=await svgVersImage(blason(moi,120)); if(im) x.drawImage(im,480,350,120,144);
+    x.fillStyle="#f2f5fa"; x.font='54px "VCR OSD Mono", monospace'; x.fillText(moi.nom.toUpperCase(),540,570);
+    x.fillStyle="#ffd24a"; x.font='96px "VCR OSD Mono", monospace'; x.fillText(B.rang===1?"CHAMPION":B.rang+"E PLACE",540,680);
+    x.fillStyle="#c9d5e4"; x.font='600 34px "IBM Plex Sans", sans-serif';
+    x.fillText(moi.g+" V · "+moi.n+" N · "+moi.p+" D · "+moi.pts+" points",540,750);
+  }, moi.nom+" termine "+ordinal(B.rang)+" en "+libDiv(B.div)+" ("+B.saison+"). "+verdict, "multiplex-"+moi.id+"-"+String(B.saison).replace(/\W/g,""));
+}
 function rendMultiplex(hote, carte, fini){
   if(!hote) return;
   const M=G.multiplex;
-  hote.innerHTML = !M ? `<p class="ctr" style="margin-top:8px"><button class="big" id="bMpxNext">Prochaine journée 📆</button></p>`
-    : (carte===2 ? mpxTable(M) : mpxStades(M));
+  const mien=M && (M.m||[]).some(z=>z.mien); // à côté de la suite, de quoi montrer le score à quelqu'un (piste 1)
+  hote.innerHTML = (!M ? `<p class="ctr" style="margin-top:8px"><button class="big" id="bMpxNext">Prochaine journée 📆</button></p>`
+    : (carte===2 ? mpxTable(M) : mpxStades(M)))
+    .replace(/(id="bMpxNext">[^<]*<\/button>)/, mien?'$1 <button class="act bPartage" id="bPartage">Partager le score</button>':"$1");
   const b=hote.querySelector("#bMpxNext");
+  { const bp=hote.querySelector("#bPartage"); if(bp) bp.onclick=()=>partageMatch(M); }
   mpxRaccourcit(hote);
   mpxVise(hote);
   if(b) b.onclick=()=>{ if(M && carte!==2) rendMultiplex(hote,2,fini); else fini(); };
@@ -21946,7 +22034,7 @@ function ecranEffectif(){
       +`</span>`;
   };
   chrome("effectif",`<div class="panel"><h2>Effectif · ${esc(c.nom)}</h2>
-   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num">Âge</th><th class="num">Note</th><th class="num">Forme</th><th class="num">Moral</th><th class="num" title="Valeur marchande, en millions de ${paysVu().monNom}">Valeur ${paysVu().millions}</th><th></th></tr>
+   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num effAge">Âge</th><th class="num">Note</th><th class="num">Forme</th><th class="num effMor">Moral</th><th class="num effVal" title="Valeur marchande, en millions de ${paysVu().monNom}">Valeur ${paysVu().millions}</th><th></th></tr>
    ${js.map(j=>{ const i=c.joueurs.indexOf(j), lf=libFraich(j), f=Math.round(fraich(j));
      const etats=[
        j.bless>0?`<span class="rouge">blessé ${j.bless} j.</span>`:"",
@@ -21956,11 +22044,11 @@ function ecranEffectif(){
      <td class="effEtat">${xi.includes(j)?'<span class="jaune">XI</span>':""}${j.titu?'<span title="Titularisé de force">★</span>':""}${j.repos?'<span title="Mis au repos, il récupère">🛌</span>':""}${j.avendre?'<span title="Sur la liste des transferts">🏷️</span>':""}</td>
      <td class="effNom">${esc(j.nom)}${j.capitaine?' <span class="jaune" title="Capitaine de l\'équipe">©️</span>':""}${j.tireurElite?' <span title="'+(j.maitreCF?"Maître du coup franc":"Tireur d\'élite, coups francs et penaltys")+'">🎯</span>':""}${(p=>p.includes("class=\"dim\"")?"":` <span class="effCar">${p}</span>`)(pictos(j))}${etats.length?`<span class="effSt">${etats.join(" · ")}</span>`:""}</td>
      <td class="pos-${j.pos}">${j.pos}</td>
-     <td class="num">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux">⏳</span>':""}${j.age}</td>
+     <td class="num effAge">${(j.age>=30&&recupAge(j.age)<1)?'<span class="effVieux">⏳</span>':""}${j.age}</td>
      <td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
      <td class="num effForme" title="${esc(lf[1])} · ${f}/100"><b class="${lf[2]}">${f}</b> <span aria-label="${esc(lf[1])}">${lf[3]}</span></td>
-     <td class="num"><span class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"dim")}">${Math.round(j.moral||65)}</span></td>
-     <td class="num">${MMn(valeur(j),1)}</td>
+     <td class="num effMor"><span class="${(j.moral||65)>=70?"vert":((j.moral||65)<=40?"rouge":"dim")}">${Math.round(j.moral||65)}</span></td>
+     <td class="num effVal">${MMn(valeur(j),1)}</td>
      <td class="effAct">${barre(j,i)}</td></tr>`;}).join("")}
    </table>
    ${(()=>{ // le plancher réglementaire, expliqué là où l'on vend
@@ -23680,14 +23768,22 @@ function maquetteStade(c, aff, chInfo, cible){
 }
 
 /* ---- Club ---- */
+/* L'ÉCRAN CLUB EN QUATRE (29/10/2026, piste 15 de la revue de design) : au téléphone, Stade, Campus, Staff et Direction
+   ne s'empilent plus sur 3 000 px, un sous-onglet à la fois. Tout reste dans la page (les harnais lisent le HTML entier) ;
+   seul l'affichage choisit, par data-part. Sur ordinateur, les deux colonnes de toujours. */
+let CLUB_PART="stade";
 function ecranClub(){
   const c=clubById(G.monClub);
   const affR=affMoyenne(c), affPct=Math.round(affR*100), affEstim=!(G.affHist&&G.affHist.length);
   const affCol=affR>0.75?"var(--vert)":(affR>0.5?"var(--jaune)":"var(--rouge)");
   const projTrib=projetById("tribune"), tribClk=(projTrib && !G.chantier && projTrib.dispo(c))?{id:"tribune",label:projTrib.label(c)}:null;
   const chI=G.chantier?{label:nomChantier(),reste:G.chantier.reste}:null;
-  chrome("club",`<div class="grid2">
-   <div class="panel"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
+  const parts=[["stade","Stade"],["campus","Campus"],["staff","Staff"],["direction","Direction"]];
+  chrome("club",`<div class="clubParts" data-part="${CLUB_PART}">
+   <div class="sousNav clubTabs">${parts.map(([k,l])=>`<button data-p="${k}" class="${k===CLUB_PART?"on":""}">${l}</button>`).join("")}</div>
+   <div class="grid2">
+   <div class="panel cpHote"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
+     <div class="cp cp-stade">
      <div class="maquette">${maquetteStade(c, affR, chI, tribClk)}</div>
      ${G.stade&&G.stade.retract?`<p class="ctr" style="margin:2px 0 6px"><button class="act" id="bToitRet">${G.stade.ferme?"Ouvrir le toit":"Fermer le toit"}</button></p>`:""}
      <p class="ctr">${esc(c.stade)} · <b class="fort">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
@@ -23697,11 +23793,12 @@ function ecranClub(){
        </span> ${affPct}%${affEstim?' <span class="dim" style="font-size:13px">(estim.)</span>':''}</p>
      ${baroTribunes()}
      <div class="ctr" style="margin-top:8px">${projetsHTML()}</div>
-     ${centreHTML()}
-     <h3 style="margin-top:12px">Staff technique</h3>
-     <div>${staffHTML()}</div>
+     </div>
+     <div class="cp cp-campus">${centreHTML()}</div>
+     <div class="cp cp-staff"><h3 style="margin-top:12px">Staff technique</h3>
+     <div>${staffHTML()}</div></div>
    </div>
-   <div class="panel"><h2>Direction &amp; mémoire</h2>
+   <div class="panel cp cp-direction"><h2>Direction &amp; mémoire</h2>
      <h3>Le président</h3>
      <p>Objectif ${esc(G.saison)} : <b class="fort">${esc(G.objectif.label)}</b></p>
      <p>Confiance :
@@ -23723,7 +23820,10 @@ function ecranClub(){
      ${(()=>{ const l=recordsTenus();
         if(!l.length) return `<p class="dim" style="font-size:13px">Rien dans les archives pour l'instant.</p>`;
         return l.map(d=>`<p class="dim" style="font-size:13px">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)}${d.r.h?' <span class="jaune">· histoire du club</span>':""} <span style="font-size:13px">(${esc(d.r.s)}${d.r.j?", J"+d.r.j:""})</span></p>`).join(""); })()}
-   </div></div>`);
+   </div></div></div>`);
+  document.querySelectorAll(".clubTabs button").forEach(b=>b.onclick=()=>{ // sous-onglet : on montre, on ne redessine pas
+    CLUB_PART=b.dataset.p; const cp=document.querySelector(".clubParts"); if(cp) cp.dataset.part=CLUB_PART;
+    document.querySelectorAll(".clubTabs button").forEach(x=>x.classList.toggle("on",x===b)); scrollTo(0,0); });
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>{ lanceProjet(b.dataset.id); cableChoixStyle(); });
   { const bT=document.getElementById("bToitRet"); if(bT) bT.onclick=()=>{ G.stade.ferme=G.stade.ferme?0:1; montre("club"); }; }
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade
