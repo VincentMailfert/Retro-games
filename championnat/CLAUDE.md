@@ -186,6 +186,8 @@ toujours « raconter quelque chose ».
 - **Le ballon du logo (v2.27)** : `logoBallon()` découpe ses pentagones au cercle par le calcul (arc SVG), sans
   `clipPath` : Safari sur iPhone ignorait le découpage et le ballon sortait en négatif. Les cartes de club de l'accueil
   mettent stade et places sur deux lignes, Europe et prestige empilés à droite (`.ccNom`, `.ccDroite`).
+- **Le relief du logo (v2.28)** : `logoGenerique()` écrit le mot une fois (`lgW`) et chaque couche est un `<use>` :
+  Safari iOS étirait le mot doré autrement que ses copies, le rouge débordait au M et au X.
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
   compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
   Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte

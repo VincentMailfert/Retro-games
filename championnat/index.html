@@ -555,7 +555,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.27"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.28"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -3720,11 +3720,15 @@ function logoMultiplex(s){ // s = côté en px ; tuile bleu nuit, lisible aussi 
 }
 function logoGenerique(centre){ // le logo entier, à la largeur de son conteneur ; centre=true centre le bandeau (accueil)
   const n=LOGO_N++, f=`font-family="'Archivo Black','Arial Black',Impact,sans-serif" font-size="118" text-anchor="middle" textLength="640" lengthAdjust="spacingAndGlyphs"`;
-  let relief=""; for(let i=9;i>=1;i--) relief+=`<text x="${390+i}" y="${152+i}" ${f} fill="${i===9?"#5e1712":"#b8392f"}">MULTIPLEX</text>`;
+  /* Le mot est écrit UNE fois (lgW) et chaque couche du relief en est une copie (<use>) : Safari sur iPhone
+     n'étirait pas le mot doré (contour, dégradé) à la même largeur que ses copies rouges, et le rouge
+     débordait au M et au X (29/10/2026). Une seule mise en page, donc des couches forcément superposables. */
+  let relief=""; for(let i=9;i>=1;i--) relief+=`<use href="#lgW${n}" x="${i}" y="${i}" fill="${i===9?"#5e1712":"#b8392f"}"/>`;
   return `<svg viewBox="0 0 780 272" style="width:100%;height:auto;display:block" role="img" aria-label="Multiplex, le plaisir du foot rétro">${logoDefs(n)}
+    <defs><text id="lgW${n}" x="390" y="152" ${f}>MULTIPLEX</text></defs>
     <path d="M40 200 C 210 168, 470 158, 684 176" stroke="url(#lgT${n})" stroke-width="8" fill="none" stroke-linecap="round"/>
     <path d="M110 214 C 270 188, 480 178, 676 190" stroke="url(#lgT${n})" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
-    <g transform="translate(34 0) skewX(-12)">${relief}<text x="390" y="152" ${f} fill="url(#lgC${n})" stroke="#0b1626" stroke-width="4.5" paint-order="stroke">MULTIPLEX</text></g>
+    <g transform="translate(34 0) skewX(-12)">${relief}<use href="#lgW${n}" fill="url(#lgC${n})" stroke="#0b1626" stroke-width="4.5" paint-order="stroke"/></g>
     ${logoBallon(708,178,19,n)}
     <polygon points="${centre?"224.5,226 562.5,226 555.5,258 217.5,258":"61.8,226 399.8,226 392.8,258 54.8,258"}" fill="#ff6f61"/>
     <text x="${centre?390:74}" y="250" ${centre?'text-anchor="middle" ':""}font-family="VT323,monospace" font-size="28" fill="#0b1626" textLength="312" lengthAdjust="spacingAndGlyphs">LE PLAISIR DU FOOT RETRO</text>
