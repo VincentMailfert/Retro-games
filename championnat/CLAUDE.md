@@ -189,6 +189,9 @@ toujours « raconter quelque chose ».
 - **Le relief du logo (v2.29)** : le mot MULTIPLEX de `logoGenerique()` est un TRACÉ (`LOGO_MOT`, Archivo Black
   figée par opentype.js) : sur iPhone la fonte Google arrivait en retard, une partie des couches restait en fonte de
   secours et le relief rouge débordait du M et du X. Pour changer le mot, régénérer le tracé (640 de large, x=390, y=152).
+- **Le mercato sur téléphone (v2.30)** : le club se réduit à blason + sigle (`.mcCourt`, le nom entier `.mcLong` reste
+  sur ordinateur) et la colonne Acheter (`.mAch`) disparaît, l'achat se fait dans la ligne dépliée : nom et prix tiennent
+  dans 390 px sans défilement (vérifié sous WebKit).
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
   compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
   Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte

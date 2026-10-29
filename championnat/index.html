@@ -255,6 +255,7 @@
   /* marché des transferts (lot 4) : une ligne par joueur — le club se tronque plutôt que de passer à la ligne */
   #listeM td, #listeM th{white-space:nowrap;}
   #listeM td.mClub{max-width:150px; overflow:hidden; text-overflow:ellipsis;}
+  #listeM .mcCourt{display:none;}
   .mercFiche{position:sticky;top:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:12px 14px;}
   .mercFiche .noteLed, tr.mercDet .noteLed{font-family:var(--font-led);font-size:26px;color:var(--jaune);
     text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6);}
@@ -269,6 +270,13 @@
     .mercRap{grid-template-columns:1fr;}
     .mercWrap{grid-template-columns:1fr;}
     .mercFiche{display:none;}                            /* la fiche vit dans la ligne dépliée */
+    /* sur téléphone le club se réduit à son blason et son sigle : le prix tient dans l'écran (29/10/2026) */
+    #listeM .mcLong{display:none;}
+    #listeM .mcCourt{display:inline;}
+    #listeM table{min-width:0;}
+    #listeM td, #listeM th{padding:2px 4px;}
+    #listeM .bF{padding:5px 7px;}
+    #listeM .mAch{display:none;}                         /* on achète depuis la ligne dépliée */
     .mChip{padding:10px 6px;min-height:44px;flex:1;}
     .mercPag button{min-height:44px;}
   }
@@ -555,7 +563,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.29"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.30"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -22085,14 +22093,14 @@ function ecranMercato(){
         <th class="num click" data-c="age">Âge${fl("age")}</th>
         <th class="num click" data-c="note">Note${fl("note")}</th>
         <th class="click" data-c="club">Club${fl("club")}</th>
-        <th class="num click" data-c="prix">Prix${fl("prix")}</th><th></th></tr>
+        <th class="num click" data-c="prix">Prix${fl("prix")}</th><th class="mAch"></th></tr>
       ${dispo.map((j,i)=>`<tr class="click${j.uid===MERCF.sel?' sel':''}" data-k="${i}">
         <td><button class="act bF" data-k="${i}" title="Suivre ce joueur">${j.fav?'<span class="jaune">★</span>':"☆"}</button></td>
         <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
         <td class="num">${j.age}</td><td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
-        <td class="mClub dim" title="${esc(clubById(j.club).nom)}">${divOf(j)===2?'<b class="fort">D2</b> · ':""}${esc(clubById(j.club).nom)}</td>
+        <td class="mClub dim" title="${esc(clubById(j.club).nom)}"><span class="mcLong">${divOf(j)===2?'<b class="fort">D2</b> · ':""}${esc(clubById(j.club).nom)}</span><span class="mcCourt">${blason(clubById(j.club),14)} ${esc(j.club)}${divOf(j)===2?' <b class="fort">D2</b>':""}</span></td>
         <td class="num mPrix">${MM(prixAchat(j),1)}</td>
-        <td><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button></td></tr>${
+        <td class="mAch"><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button></td></tr>${
         j.uid===MERCF.sel?`<tr class="mercDet"><td colspan="8"><div class="mercDetInner">${ficheMercato(j)}</div></td></tr>`:""}`).join("")}
       </table>
       <p class="mercPag">
