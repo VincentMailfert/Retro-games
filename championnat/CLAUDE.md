@@ -199,6 +199,10 @@ toujours « raconter quelque chose ».
   virgule décimale. Les `<select>` sont dessinés par le jeu (`appearance:none`, l'iPhone les sortait blancs). Bandeau du
   jeu sur une ligne au téléphone (`.tbTreso`), « prototype » retiré du pied de page, liens du pied à 44 px, `deClub()`
   (« Prendre les rênes du FC Nantes »), sponsors : « image en hausse » au lieu de « [réputation +5] ».
+- **Revue de design, lot 2 (v2.32)** : PAUSE au direct (`PAUSE_DIRECT`, bouton `#vP`, chaque `tic` repasse sans avancer ;
+  `cableVitesses()` câble les quatre boutons) ; au téléphone Vitesse et Attitude en barres pleine largeur de 44 px. Mercato :
+  budget en tête, prix en rouge et « Hors budget » au-delà de `G.budget`, filtre « Dans mes moyens » (`MERCF.moyens`).
+  Mot d'ouverture : `coupeIntro()` montre deux phrases, le coup d'envoi, puis « Lire la suite » ; `body.mode-intro` masque le menu.
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
   compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
   Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte

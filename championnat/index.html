@@ -429,6 +429,7 @@
   @media(max-width:700px){ .accHero .accPitch{font-size:14px;} .accHero .accPortes button{width:100%; min-width:0;} .accHero .accPortes .ou{width:100%;} }
   /* le premier match d'une carrière : on joue d'abord, on règle ensuite (les réglages restent à un clic) */
   details.avantMatch{margin-top:12px; text-align:center;}
+  details.introSuite > summary{cursor:pointer; color:var(--dim); font-size:15px; width:max-content; margin:0 auto; padding:10px 0; list-style-position:inside;}
   details.avantMatch > summary{cursor:pointer; color:var(--dim); font-size:14px; width:max-content; margin:0 auto; padding:4px 0;}
   details.avantMatch > summary:hover{color:var(--clair);}
   /* la sauvegarde est automatique : les outils de carrière se font discrets en pied de page (lot 3) */
@@ -490,6 +491,7 @@
    restante. Texte agrandi pour la lisibilité au téléphone. Purement cosmétique : aucun effet moteur. */
 body.mode-direct{overflow:hidden}
 body.mode-direct .topbar, body.mode-direct nav, body.mode-direct .sousNav, body.mode-direct .footer{display:none}
+body.mode-intro nav, body.mode-intro .sousNav{display:none} /* le mot d'ouverture se lit sans menu : une seule porte, le coup d'envoi */
 body.mode-direct #app{height:100vh;height:100dvh;padding:6px 8px;display:flex;flex-direction:column}
 body.mode-direct #corps{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 body.mode-direct #corps>.panel{display:none}
@@ -520,11 +522,15 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   table.fit{min-width:0} /* tables clé/valeur étroites : tiennent dans l'écran, pas de scroll horizontal */
   .panel table{font-size:13px}
   #tabScore{gap:5px}
-  #ctlVitesse{float:none !important;display:block;margin-top:0}
+  #ctlVitesse{float:none !important;display:flex;gap:4px;margin-top:0;font-size:0 !important}
   /* au direct sur téléphone : le titre « Téléscripteur » s'efface (le panneau parle de lui-même), les commandes se tassent */
   body.mode-direct .panelDirect>h2{font-size:0;margin-bottom:6px}
-  body.mode-direct #ctlVitesse, body.mode-direct #ctlTactique{font-size:13px !important}
-  #ctlVitesse .act, #ctlTactique .act{padding:6px 8px;font-size:13px}
+  body.mode-direct #ctlTactique{font-size:13px !important}
+  /* piste 6 : Vitesse puis Attitude, deux barres pleine largeur ; Banc et Compos sur la ligne d'après, 44 px partout */
+  #ctlVitesse .act, #ctlTactique .act{flex:1;min-height:44px;padding:6px 4px;font-size:14px;margin:0}
+  #ctlTactique{display:flex;flex-wrap:wrap;gap:4px}
+  #ctlTactique .ctlOutils{flex-basis:100%;display:flex;gap:4px}
+  #ctlTactique #composDirect{flex-basis:100%}
   #libTacD{display:none}
   /* sur téléphone : une ligne par équipe suffit à tout loger, blasons compris */
   #tabScore{gap:6px 10px;padding:14px 8px 10px}
@@ -574,7 +580,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.31"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.32"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -18096,8 +18102,15 @@ function introSaison(){
   { const rr=resumeRecords(); if(rr) puces.push("🏛️ Vos records depuis votre arrivée : "+esc(rr)+". Des records faits pour tomber."); }
   return {an, titre:e.titre, txt:e.txt, puces};
 }
+/* Le mot d'ouverture en deux temps (29/10/2026, piste 8 de la revue de design) : deux phrases, le coup d'envoi, et la
+   suite repliée pour qui veut lire. On coupe sur une fin de phrase suivie d'une majuscule (« J.-M. » ne coupe pas). */
+function coupeIntro(txt){
+  const ph=String(txt||"").split(/(?<=[.!?…»])\s+(?=[A-ZÀ-ÖØ-Þ«])/);
+  return ph.length>2 ? [ph.slice(0,2).join(" "), ph.slice(2).join(" ")] : [String(txt||""), ""];
+}
 function ecranIntro(){
   const I=introSaison(), moi=clubById(G.monClub);
+  const [tete, suite]=coupeIntro(I.txt);
   // L'ARRIVÉE AU CLUB (v2.17) : le jour de la signature, seulement au tout premier mot d'ouverture de la carrière
   const imgArr=((G.saisonIdx||1)===1 && !(G.journee>0) && moi)?PICK(IMG_MOMENT[(G.div===1&&moi.pres>=7)?"arr_grand":"arr_petit"]):null;
   chrome("calendrier",`
@@ -18106,13 +18119,17 @@ function ecranIntro(){
      <p class="dim" style="letter-spacing:2px;margin:0">SAISON ${esc(G.saison)} · ${esc(moi?moi.nom:"")}</p>
      <h2 style="font-size:26px;line-height:1.1;margin:6px 0 10px">${esc(I.titre)}</h2>
      <div style="margin:0 auto;max-width:640px;text-align:left">
-       <p style="font-size:17px;line-height:1.45">${esc(I.txt)}</p>
+       <p style="font-size:17px;line-height:1.45">${esc(tete)}</p>
+     </div>
+     <p style="margin-top:16px"><button class="big" id="bIntro">COUP D'ENVOI DE LA SAISON ${esc(G.saison)}</button></p>
+     <div style="margin:14px auto 0;max-width:640px;text-align:left">
+       ${suite?`<details class="introSuite"><summary>Lire la suite</summary><p style="font-size:17px;line-height:1.45;margin-top:8px">${esc(suite)}</p></details>`:""}
        <div style="margin-top:14px;border-top:1px solid #27466e;padding-top:10px">
          ${I.puces.map(p=>`<p style="margin:6px 0">${p}</p>`).join("")}
        </div>
      </div>
-     <p style="margin-top:16px"><button class="big" id="bIntro">COUP D'ENVOI DE LA SAISON ${esc(G.saison)}</button></p>
    </div>`);
+  if(document.body) document.body.classList.add("mode-intro");
   document.getElementById("bIntro").onclick=()=>{ G.intro=null; montre("calendrier"); };
 }
 
@@ -19853,7 +19870,8 @@ const EN_TEST=()=>typeof window!=="undefined"&&window.__TEST__;
 function fermeFiche(){ if(window._penEnCours) return; if(fiche&&fiche.style) fiche.style.display="none"; }
 function rafraichir(){ if(EN_TEST())return; if(VUECLUB) ecranClubVue(VUECLUB); else montre(ECRAN); }
 function abandonneDirect(){
-  if(typeof document!=="undefined" && document.body) document.body.classList.remove("mode-direct"); // on quitte le plein écran match
+  PAUSE_DIRECT=false; // un match quitté ne reste jamais figé
+  if(typeof document!=="undefined" && document.body) document.body.classList.remove("mode-direct","mode-intro"); // on quitte le plein écran match (ou le mot d'ouverture)
   if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; }
   if(butFlashTimer){ clearTimeout(butFlashTimer); butFlashTimer=null; }
   const bf=document.getElementById("butFlash"); if(bf) bf.remove();
@@ -20002,7 +20020,7 @@ function ecranCalendrier(){
    </div>
    <div class="panel panelDirect"><h2>Téléscripteur
      <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-       Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button>
+       Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button>
      </span></h2>
      ${htmlCtlTactique()}
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
@@ -20083,7 +20101,7 @@ function ecranCalendrier(){
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); } }));
   // toute l'échelle reculée d'un cran (le défilement par défaut respire davantage) ; « Très lente » est le nouveau plancher
-  for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
+  cableVitesses();
   surligneVitesse(); // état initial : « Normale » mise en valeur
   const bA=document.getElementById("bMalAcc"); if(bA) bA.onclick=accepterAffaire;
   const bR=document.getElementById("bMalRef"); if(bR) bR.onclick=refuserAffaire;
@@ -20147,7 +20165,7 @@ function cableTactiqueDirect(o){
   const btns=[...document.querySelectorAll(".bTacD")];
   const maj=()=>btns.forEach(b=>{ const on=b.dataset.k===G.consigne;
     b.classList.toggle("on",on); });
-  ctlT.style.display="block"; maj();
+  ctlT.style.display=""; maj();
   btns.forEach(b=>b.onclick=()=>{
     const k=b.dataset.k, L=o.lignes, i=o.pos();
     if(k===G.consigne || i>=L.length) return;
@@ -20168,7 +20186,7 @@ function cableTactiqueRdv(o){
   const maj=()=>btns.forEach(b=>{ const on=b.dataset.k===G.consigne;
     b.classList.toggle("on",on); });
   let enCours=o.lambdas(); // les buts attendus sous lesquels le fil actuel a été écrit (coup d'envoi, puis dernier changement)
-  ctlT.style.display="block"; maj();
+  ctlT.style.display=""; maj();
   btns.forEach(b=>b.onclick=()=>{
     const k=b.dataset.k, L=o.lignes, i=o.pos();
     if(k===G.consigne || i>=L.length) return;
@@ -20202,10 +20220,18 @@ let tickerTimer=null, tickerDelai=2300, butFlashTimer=null;
 // surligne le bouton de vitesse actif (même mise en valeur que les boutons de consigne) — on doit voir d'un coup d'œil le palier choisi
 // trois paliers depuis v1.89 (demande auteur : « trop de vitesses ») ; l'ancienne « Normale » à 1600 a disparu, « Normale » est l'ancienne « Lente »
 const VITESSES={vTL:3000,vL:2300,vR:950};
+/* LA PAUSE (29/10/2026, piste 6 de la revue de design) : le téléscripteur se fige, le match attend. Ce n'est pas une
+   quatrième vitesse : chaque tic regarde PAUSE_DIRECT et repasse un quart de seconde plus tard sans avancer. */
+let PAUSE_DIRECT=false;
 function surligneVitesse(){
   for(const id in VITESSES){ const b=document.getElementById(id); if(!b) continue;
-    const on=(VITESSES[id]===tickerDelai);
+    const on=!PAUSE_DIRECT && (VITESSES[id]===tickerDelai);
     b.classList.toggle("on",on); }
+  const p=document.getElementById("vP"); if(p) p.classList.toggle("on",PAUSE_DIRECT);
+}
+function cableVitesses(){
+  for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; PAUSE_DIRECT=false; surligneVitesse(); }; }
+  const p=document.getElementById("vP"); if(p) p.onclick=()=>{ PAUSE_DIRECT=!PAUSE_DIRECT; surligneVitesse(); };
 }
 /* panneau LED clignotant ~5 s pour les temps forts (but, carton rouge…), avec détail ;
    o = {classe, gros, sub (HTML), detail (texte)} ; onDone appelé au clic OU après 5 s */
@@ -20529,12 +20555,12 @@ function ecranCoupeMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button>
+        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
     <p class="ctr" id="preMatchAct" style="margin-top:10px"></p>`);
-  for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
+  cableVitesses();
   lanceCoupe(H, A, ed);
 }
 function lanceCoupe(H, A, ed){
@@ -20547,7 +20573,7 @@ function lanceCoupe(H, A, ed){
   composDirect([H, coupeClub(ed.hid)||H], [A, coupeClub(ed.aid)||A], S&&S.o&&S.o.feuilles);
   let liveMin=0; const liveMul={h:1, a:1}; // la minute jouée et l'infériorité numérique, pour un recollage
   const tk=document.getElementById("ticker"); tk.innerHTML="";
-  const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=2300; surligneVitesse(); }
+  const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=2300; PAUSE_DIRECT=false; surligneVitesse(); }
   // tableau d'affichage
   document.getElementById("tabScore").innerHTML=
     tabScoreHTML(H, A, blasonAff);
@@ -20589,6 +20615,7 @@ function lanceCoupe(H, A, ed){
     lambdas:()=>lambdasRdv(r.hid, r.aid, COUPE_TERRAIN, forceCoupe),
     verdict:()=>{ Object.assign(r, issueCoupe(r.hid, r.aid, r.sh, r.sa)); Object.assign(ed, {sh:r.sh, sa:r.sa, tab:r.tab, win:r.win}); }});
   const tic=()=>{
+    if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
     const monte=lg && (lg.g || (lg.q && lg.q.bu));
@@ -20656,12 +20683,12 @@ function ecranEuroMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button>
+        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
     <p class="ctr" id="preMatchAct" style="margin-top:10px"></p>`);
-  for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; surligneVitesse(); }; }
+  cableVitesses();
   lanceEuroLeg(H, A, ed, legScore);
 }
 function lanceEuroLeg(H, A, ed, legScore){
@@ -20678,7 +20705,7 @@ function lanceEuroLeg(H, A, ed, legScore){
   composDirect([H, euroClub(H.id)||H], [A, euroClub(A.id)||A], S&&S.o&&S.o.feuilles);
   let liveMin=0; const liveMul={h:1, a:1}; // la minute jouée et l'infériorité numérique, pour un recollage
   const tk=document.getElementById("ticker"); tk.innerHTML="";
-  const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=2300; surligneVitesse(); }
+  const ctl=document.getElementById("ctlVitesse"); if(ctl){ ctl.style.display=""; tickerDelai=2300; PAUSE_DIRECT=false; surligneVitesse(); }
   document.getElementById("tabScore").innerHTML=
     tabScoreHTML(H, A, blasonAff);
   document.getElementById("tabButs").innerHTML="";
@@ -20744,6 +20771,7 @@ function lanceEuroLeg(H, A, ed, legScore){
     lambdas:()=>lambdasRdv(H.id, A.id, ed.finale?0:EURO_TERRAIN, forceEuro),
     verdict:()=>verdict()});
   const tic=()=>{
+    if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
     const monte=lg && (lg.g || (lg.q && lg.q.bu));
@@ -21229,7 +21257,7 @@ function lanceMatch(instant){
   window._diffEnDirect = false;
   const tk=document.getElementById("ticker"); tk.innerHTML="";
   const ctl=document.getElementById("ctlVitesse");
-  if(ctl&&!instant){ ctl.style.display=""; tickerDelai=2300; surligneVitesse(); } // vitesse par défaut + surlignage à jour au coup d'envoi
+  if(ctl&&!instant){ ctl.style.display=""; tickerDelai=2300; PAUSE_DIRECT=false; surligneVitesse(); } // vitesse par défaut + surlignage à jour au coup d'envoi
   const lignes=monMatch.ev;
   const interactif=monMatch.moment && MOMENTS_INTERACTIFS[monMatch.moment.type];
   // l'index de l'annonce se RECALCULE (v1.04) : une re-sim tactique rallonge ou raccourcit le fil devant elle
@@ -21354,7 +21382,7 @@ function lanceMatch(instant){
   const majTacBtns=()=>document.querySelectorAll(".bTacD").forEach(b=>{ const on=b.dataset.k===G.consigne;
     b.classList.toggle("on",on); });
   if(ctlT && !instant){
-    ctlT.style.display="block";
+    ctlT.style.display="";
     if(monMatch._truque){ // on montre le contrôle et on dit pourquoi il ne sert à rien, plutôt que de le faire disparaître
       document.querySelectorAll(".bTacD").forEach(b=>{ b.disabled=true; b.style.opacity=".45"; });
       const lib=document.getElementById("libTacD");
@@ -21389,6 +21417,7 @@ function lanceMatch(instant){
   if(bBanc && !instant){ bBanc.style.display="";
     bBanc.onclick=()=>{ if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; } ouvreBanc(ctxBanc); }; }
   const tic=()=>{
+    if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
     // montée de tension : deux battements d'anticipation avant le flash, devant un BUT (lg.g) comme devant
@@ -22082,7 +22111,7 @@ function ouvreFiche(j){
 let MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*", page:1, sel:null};
 function ecranMercato(){
   // état des filtres conservé entre deux rendus (achat, tri…) — voir MERCF
-  let posF=MERCF.posF, txtF=MERCF.txtF, ageF=MERCF.ageF, favSeul=MERCF.favSeul, triCle=MERCF.triCle, triDir=MERCF.triDir, divF=MERCF.divF, page=MERCF.page||1;
+  let posF=MERCF.posF, txtF=MERCF.txtF, ageF=MERCF.ageF, favSeul=MERCF.favSeul, moyens=!!MERCF.moyens, triCle=MERCF.triCle, triDir=MERCF.triDir, divF=MERCF.divF, page=MERCF.page||1;
   const autreNum=G.div===1?2:1, autreIds=new Set((G.autre||[]).map(c=>c.id));
   const divOf=j=>autreIds.has(j.club)?autreNum:(G.div||1); // le mercato est national : D1 + D2
   const valTri=(j,k)=>k==="prix"?prixAchat(j):(k==="club"?clubById(j.club).nom:(k==="nom"?j.nom:(k==="prog"?j.note-(j.note0||j.note):j[k])));
@@ -22091,7 +22120,7 @@ function ecranMercato(){
     <h2 style="margin:0 0 2px">${esc(nomLong(j.nom))}</h2>
     <p style="margin:0"><span class="pos-${j.pos}">${j.pos}</span> · ${j.age} ans · <span class="dim">${esc(clubById(j.club).nom)}</span> <b class="fort">D${dv}</b></p>
     <p style="margin:8px 0 4px">Note <span class="noteLed">${j.note}</span>${j.note>(j.note0||j.note)?' <span class="vert">▲+'+(j.note-j.note0)+'</span>':""}</p>
-    <p style="margin:0">Prix demandé : <b class="fort">${MM(prixAchat(j),1)}</b></p>
+    <p style="margin:0">Prix demandé : <b class="${prixAchat(j)>G.budget?"rouge":"fort"}">${MM(prixAchat(j),1)}</b>${prixAchat(j)>G.budget?' <span class="rouge">· hors budget</span>':""}</p>
     <p style="margin:2px 0 0" class="dim">Salaire : ${UU(salaire(j))}/sem</p>
     <p class="avis">« ${esc(avisRecruteur(j))} »</p>
     <p style="margin:8px 0 0">${pictos(j,true)} <span class="dim">Caractère</span></p>
@@ -22101,10 +22130,10 @@ function ecranMercato(){
       <button class="act mfFav">${j.fav?"★ Suivi":"☆ Suivre"}</button>
     </p>`; };
   const rend=()=>{
-    MERCF={posF,txtF,ageF,favSeul,triCle,triDir,divF,page,sel:MERCF.sel}; // mémorise l'état pour le prochain rendu
+    MERCF={posF,txtF,ageF,favSeul,moyens,triCle,triDir,divF,page,sel:MERCF.sel}; // mémorise l'état pour le prochain rendu
     const tous=G.clubs.concat(G.autre||[]).filter(c=>c.id!==G.monClub).flatMap(c=>c.joueurs)
       .filter(j=>!j.pretIn&&!j.pretOut)
-      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (divF==="*"||divOf(j)===+divF) && nomLong(j.nom).toLowerCase().includes(txtF.toLowerCase()))
+      .filter(j=>(posF==="*"||j.pos===posF) && j.age<=ageF && (!favSeul||j.fav) && (!moyens||prixAchat(j)<=G.budget) && (divF==="*"||divOf(j)===+divF) && nomLong(j.nom).toLowerCase().includes(txtF.toLowerCase()))
       .sort((a,b)=>{const va=valTri(a,triCle),vb=valTri(b,triCle);
         return (typeof va==="string"? va.localeCompare(vb) : va-vb)*triDir;});
     const PAR_PAGE=20;
@@ -22127,7 +22156,7 @@ function ecranMercato(){
         <td>${esc(j.nom)}</td><td class="pos-${j.pos}">${j.pos}</td>
         <td class="num">${j.age}</td><td class="num"><b>${j.note}</b>${j.note>(j.note0||j.note)?' <span class="vert" title="+'+(j.note-j.note0)+' depuis le début de saison">▲</span>':""}</td>
         <td class="mClub dim" title="${esc(clubById(j.club).nom)}"><span class="mcLong">${divOf(j)===2?'<b class="fort">D2</b> · ':""}${esc(clubById(j.club).nom)}</span><span class="mcCourt">${blason(clubById(j.club),14)} ${esc(j.club)}${divOf(j)===2?' <b class="fort">D2</b>':""}</span></td>
-        <td class="num mPrix">${MM(prixAchat(j),1)}</td>
+        <td class="num mPrix${prixAchat(j)>G.budget?" rouge":""}">${MM(prixAchat(j),1)}</td>
         <td class="mAch"><button class="act bA" data-k="${i}" ${fenetreOuverte()?"":"disabled"}>Acheter</button></td></tr>${
         j.uid===MERCF.sel?`<tr class="mercDet"><td colspan="8"><div class="mercDetInner">${ficheMercato(j)}</div></td></tr>`:""}`).join("")}
       </table>
@@ -22165,8 +22194,8 @@ function ecranMercato(){
     <span style="font-size:13px"><span class="pos-${o.j.pos}">${o.j.pos}</span> · ${o.j.age} ans · note <b>${o.j.note}</b></span>
     <span class="dim" style="font-size:13px">${esc(o.j.lieu)}</span>
     <span style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
-      <b class="fort">${MM(o.prix,1)}</b>
-      <button class="act bJ" data-k="${k}">Signer</button></span>
+      <b class="${o.prix>G.budget?"rouge":"fort"}">${MM(o.prix,1)}</b>
+      ${o.prix>G.budget?'<span class="rouge" style="font-size:13px">Hors budget</span>':`<button class="act bJ" data-k="${k}">Signer</button>`}</span>
   </div>`;
   const chip=(f,v,lib,active)=>`<button class="mChip ${active?(f==="div"&&v==="2"?"onD2":"on"):""}" data-f="${f}" data-v="${v}">${lib}</button>`;
   const chipsPos=[["*","TOUS"],["G","G"],["D","D"],["M","M"],["A","A"]].map(([v,l])=>chip("pos",v,l,posF===v)).join("");
@@ -22174,14 +22203,14 @@ function ecranMercato(){
   const chipsDiv=[["*",tagDiv(1)+" + "+tagDiv(2)],["1",tagDiv(1)],["2",tagDiv(2)]].map(([v,l])=>chip("div",v,l,divF===v)).join("");
   chrome("mercato",`
    ${panneauFlash()}
+   <div class="panel" style="border-color:${fenetreOuverte()?'#5fd98f':'#ff6f61'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+    <b class="${fenetreOuverte()?'vert':'rouge'}" style="letter-spacing:.5px">${esc(msgMercato())}</b>
+    <span class="dim">Budget transferts <b class="fort" style="font-size:18px">${MM(G.budget,1)}</b></span>
+   </div>
    <div class="panel">
     <h2>Le rapport du recruteur <span class="dim"> · cette semaine seulement</span></h2>
     ${G.rapport.length? `<div class="mercRap">${G.rapport.map(carteJoker).join("")}</div>`
       : '<p class="dim">Le recruteur n\'a rien à proposer cette semaine.</p>'}
-   </div>
-   <div class="panel" style="border-color:${fenetreOuverte()?'#5fd98f':'#ff6f61'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
-    <b class="${fenetreOuverte()?'vert':'rouge'}" style="letter-spacing:.5px">${esc(msgMercato())}</b>
-    <span class="dim">Budget transferts <b class="fort" style="font-size:18px">${MM(G.budget,1)}</b></span>
    </div>
    <div class="panel">
     <h2>Le marché des transferts</h2>
@@ -22191,10 +22220,12 @@ function ecranMercato(){
       <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsAge}</span>
       <span style="display:flex;gap:4px;flex-wrap:wrap">${chipsDiv}</span>
       <button class="mChip ${favSeul?'on':''}" id="chkF">★ Favoris</button>
+      <button class="mChip ${moyens?'on':''}" id="chkM">Dans mes moyens</button>
     </div>
     <div class="mercWrap"><div id="listeM"></div><div class="mercFiche" id="ficheM"></div></div></div>`);
   document.getElementById("inpN").oninput=e=>{txtF=e.target.value;page=1;rend();};
   document.getElementById("chkF").onclick=e=>{favSeul=!favSeul;e.target.classList.toggle("on",favSeul);page=1;rend();};
+  document.getElementById("chkM").onclick=e=>{moyens=!moyens;e.target.classList.toggle("on",moyens);page=1;rend();}; // piste 7 : ce que le budget permet
   document.querySelectorAll(".mChip[data-f]").forEach(ch=>ch.onclick=()=>{
     const f=ch.dataset.f, v=ch.dataset.v;
     document.querySelectorAll(`.mChip[data-f="${f}"]`).forEach(o=>o.classList.remove("on","onD2"));
