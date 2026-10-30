@@ -149,7 +149,9 @@ for (const [div, codes, rangs] of [[1, P.d1, P.classementD1], [2, P.d2, P.classe
       PRIS.set(nom, j.tm);
       if (age > 40) { journal.innommables.push(`${j.nom} (${c}) : ${age} ans, au-delà de ce que le jeu accepte`); return; }
       let [n, p] = note(nom, age, calcule(div, rangClub, rangs.length, i, retenus.length, age));
-      const aj = AJUST[nom] || AJUST[j.nom];
+      // le nom entier ne sert de clé que s'il n'est pas le nom du jeu d'un AUTRE homme : en 2004-05, « Andy Johnson »
+      // (Crystal Palace) touchait aussi Andy Johnson de West Bromwich, dont le nom du jeu est « A. Johnson »
+      const aj = AJUST[nom] || (nom === j.nom || !NOMS_JEU.has(j.nom) ? AJUST[j.nom] : undefined);
       if (aj) { journal.ajust.push(`${nom} : ${n}/${p} → ${aj[0]}/${aj[1]} (${aj[2]})`); [n, p] = aj; }
       n = Math.max(55, Math.min(90, n)); p = Math.min(92, Math.max(p, n));
       // cohérence avec le jeu : un homme connu la saison d'avant garde son âge de l'an passé plus un
