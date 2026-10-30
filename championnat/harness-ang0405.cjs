@@ -5,7 +5,7 @@
    3) les hommes : Terry joueur de l'année PFA, Lampard de la presse, Henry meilleur buteur,
       Andy Johnson et Ellington, Rooney absent (il n'arrive à United qu'après le coup d'envoi)
    4) les corrections du relevé : les arrivées « corrigées en masse » reprises contre le relevé 2003-04,
-      deux doublons rendus au club du coup d'envoi, cinq hommes sans nom libre ou trop vieux remplacés,
+      deux doublons rendus au club du coup d'envoi, six hommes sans nom libre ou trop vieux remplacés, les formes courtes du relevé écartées,
       « A. Cissé » graphie du jeu, l'ajustement d'Andy Johnson qui ne touche pas son homonyme
    5) une carrière
    Usage : node harness-ang0405.cjs                                                        */
@@ -105,6 +105,9 @@ console.log("\n4) Les corrections du relevé");
   dit(au("A. Blayney", "SOU") && au("K. Lowe", "WOL") && au("P. Canero", "LEI"), "Blayney, Keith Lowe et Canero remplacent Paul Smith, Rob Edwards et Gareth Williams, sans nom libre");
   dit(au("R. Shakes", "BOL") && !PAR_NOM.has("K. Poole") && api.STARS_ANG0405.BOL.filter(t => t[1] === "G").length === 1,
     "Shakes remplace Kevin Poole, 41 ans ; Bolton n'a qu'un gardien, l'autre arrivant en cours de saison");
+  dit(au("L. Dyer", "WBA") && !PAR_NOM.has("Pa. Robinson") && au("Paul Robinson", "TOT"), "Dyer remplace le Paul Robinson de West Bromwich, sans nom libre ; celui de Tottenham, gardien, garde le sien");
+  dit(au("Andy Smith", "PNE") && au("Jake Cole", "QPR") && au("Steven Davis", "AVL") && ![...PAR_NOM.keys()].some(n => /^[A-Z][a-z]+\. /.test(n)),
+    "Andy Smith, Jake Cole et Steven Davis portent leur nom entier : « An. Smith », « Ja. Cole », « St. Davis » ne sont pas des graphies du jeu");
   dit(au("A. Cissé", "POR") && note("A. Cissé")[2] === 28 && !PAR_NOM.has("Aliou Cissé"), "« A. Cissé », graphie du jeu, à Portsmouth à vingt-huit ans");
 }
 console.log("\n5) Une carrière anglaise depuis 2004-05");
