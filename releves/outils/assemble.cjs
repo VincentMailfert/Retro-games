@@ -77,7 +77,9 @@ function resoudre(j) {
     cands.push({ g, rang: e.tab === "VIVIER" ? 0 : (/ANG/.test(e.tab) ? 1 + Math.abs(e.an - AN) : 50 + Math.abs(e.an - AN)) });
   cands.sort((x, y) => x.rang - y.rang);
   for (const c of cands) if (!autreHommeIci(c.g, j.tm)) { if (c.g !== j.court) journal.graphie.push(`${j.nom} : « ${j.court} » → « ${c.g} » (graphie du jeu)`); return c.g; }
-  for (const f of [formeInitiales(j.nom), formeInitiale(j.nom), j.court, j.nom].filter(f => !/^[A-ZÀ-Þ]\. [A-ZÀ-Þ][a-zà-ÿ']+ [A-ZÀ-Þ]/.test(f) || /^[A-ZÀ-Þ]\. (Van|Von|De|Da|Di|Du|Le|La|Mac|Mc|O|El|Al|Ben|Der|Ten|Ter|Saint|San|Dalla|Della|Del|Dos|Das|Dei) /.test(f))) if (!autreHomme(NOMS_JEU.get(f), by, j.poste) && !autreHommeIci(f, j.tm)) { if (f === j.nom && f !== j.court) journal.homonymes.push(`${j.nom} porte son nom entier (« ${formeInitiale(j.nom)} » est à un autre homme)`); return f; }
+  // la forme courte du relevé à initiale de plusieurs lettres (« An. Smith », « Ga. Williams ») n'est pas une graphie
+  // du jeu, et harness-prenoms.cjs la refuse : l'homme prend alors son nom entier, s'il est libre
+  for (const f of [formeInitiales(j.nom), formeInitiale(j.nom), /^[A-ZÀ-Þ][a-zà-ÿ]+\. /.test(j.court) ? null : j.court, j.nom].filter(f => f && !/^[A-ZÀ-Þ]\. [A-ZÀ-Þ][a-zà-ÿ']+ [A-ZÀ-Þ]/.test(f) || /^[A-ZÀ-Þ]\. (Van|Von|De|Da|Di|Du|Le|La|Mac|Mc|O|El|Al|Ben|Der|Ten|Ter|Saint|San|Dalla|Della|Del|Dos|Das|Dei) /.test(f))) if (!autreHomme(NOMS_JEU.get(f), by, j.poste) && !autreHommeIci(f, j.tm)) { if (f === j.nom && f !== j.court) journal.homonymes.push(`${j.nom} porte son nom entier (« ${formeInitiale(j.nom)} » est à un autre homme)`); return f; }
   return null;
 }
 function autreHommeIci(n, tm) { return PRIS.has(n) && PRIS.get(n) !== tm; }
@@ -149,7 +151,9 @@ for (const [div, codes, rangs] of [[1, P.d1, P.classementD1], [2, P.d2, P.classe
       PRIS.set(nom, j.tm);
       if (age > 40) { journal.innommables.push(`${j.nom} (${c}) : ${age} ans, au-delà de ce que le jeu accepte`); return; }
       let [n, p] = note(nom, age, calcule(div, rangClub, rangs.length, i, retenus.length, age));
-      const aj = AJUST[nom] || AJUST[j.nom];
+      // le nom entier ne sert de clé que s'il n'est pas le nom du jeu d'un AUTRE homme : en 2004-05, « Andy Johnson »
+      // (Crystal Palace) touchait aussi Andy Johnson de West Bromwich, dont le nom du jeu est « A. Johnson »
+      const aj = AJUST[nom] || (nom === j.nom || !NOMS_JEU.has(j.nom) ? AJUST[j.nom] : undefined);
       if (aj) { journal.ajust.push(`${nom} : ${n}/${p} → ${aj[0]}/${aj[1]} (${aj[2]})`); [n, p] = aj; }
       n = Math.max(55, Math.min(90, n)); p = Math.min(92, Math.max(p, n));
       // cohérence avec le jeu : un homme connu la saison d'avant garde son âge de l'an passé plus un

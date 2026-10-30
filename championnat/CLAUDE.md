@@ -5276,6 +5276,56 @@ d'envoi de Kilgallon, Keith Andrews et Neil Mellor.
 
 `harness-ang0304.cjs` garde tout cela.
 
+### ANG 2004-05 — LE VERROU DE CHELSEA (v2.34)
+Quinzième saison anglaise, assemblée par la tâche planifiée le 30/10/2026 à partir de `releves/ANG-2004-05` (relevé
+Transfermarkt), **encore sans accès au réseau** (Transfermarkt et Wikipedia refusés par le proxy). Pour sa première
+saison, Mourinho rend à Chelsea un titre attendu depuis cinquante ans : quatre-vingt-quinze points, record de la Premier
+League, quinze buts encaissés, douze points devant Arsenal. Terry joueur de l'année PFA (85), Lampard de la presse (86),
+Henry meilleur buteur avec vingt-cinq buts (90), Čech (85), Andy Johnson vingt et un buts pour Crystal Palace promu (80,
+l'héritage d'une saison de deuxième division le laissait à 67), Ellington meilleur buteur du dessous pour Wigan (75).
+**Rooney, meilleur espoir, n'est pas au plateau** : il signe à United le 31 août, après le coup d'envoi, et l'effectif
+d'Everton de la saison ne le porte pas (comme Zola en 1996-97). Premier League à vingt ; l'échelon du dessous perd ses
+quatre derniers (Crewe, Gillingham, Nottingham Forest, Rotherham). Notes : 492 héritées de 2003-04, 80 plus lointaines,
+6 du recruteur, 182 calculées ; distribution élite 70.3 / 70, dessous 65.8 / 66. **Aucune pépite forcée.**
+
+**LES DATES « CORRIGÉES EN MASSE » NE SONT PAS DES PREUVES.** Transfermarkt ne garde que la dernière arrivée d'un homme ;
+quand elle tombe après la saison (un retour au club des années plus tard), le relevé l'a passée à « avant le coup
+d'envoi » parce que l'homme avait des minutes, avec la remarque `TM shows <date> but player has <n>min in season`.
+Cinquante-six hommes retenus portent cette remarque. Des minutes ne datent pas une arrivée : chacun a été repris
+contre le relevé 2003-04. Trente-six y sont au même club, et restent. **Drogba** est mis à Chelsea par le recruteur de
+l'été 2004 du jeu (`VIVIER_SAISON`), preuve écrite par l'auteur. **Mido** sort : le rapport du relevé dit lui-même qu'il
+arrive de la Roma en janvier. **Arteta, Pandiani et Nugent** sortent sur le motif de Dickov en 2001-02 : absents de
+l'effectif de leur club en 2003-04 (donc arrivés après), et moins d'un match du club sur deux joués (13 sur 43, 14 sur
+42, 21 sur 53). Les quinze autres restent faute de contre-preuve, à revoir quand Transfermarkt répondra. Le contrôle des
+minutes de 2000-01 ne trouve personne à remettre : le relevé avait bien trié ses effectifs.
+
+**LES DOUBLONS, ENCORE.** Le relevé a réglé ses doublons par l'historique de transferts, sauf pour quelques appels
+échoués qu'il a donnés « au club aux plus de minutes ». La règle de 2003-04 en reprend deux : **Doherty** joue vingt
+minutes pour Tottenham cette saison, **Earnshaw** quatre cent quarante-sept pour Cardiff, leurs clubs de 2003-04 : ils y
+étaient au coup d'envoi. Doherty prend à Tottenham la place de Mido, et **Tottenham reste à trois attaquants** (aucun
+autre n'a de preuve) ; Earnshaw prend à Cardiff celle d'Inamoto, le milieu le moins utilisé. McVeigh, Hulse, Iain Turner
+(troisième gardien d'Everton), Stern John et Simon Lynch, tous au club dans le relevé 2003-04, comblent les trous.
+
+**Les remplacés.** Alan Smith, Gareth Williams, Paul Smith (gardien de Southampton), Rob Edwards (Wolverhampton, né en
+1982 : « R. Edwards » est l'homme de Bristol City et de Preston) et le Paul Robinson de West Bromwich n'ont aucun nom
+libre ; Kevin Poole a 41 ans. Kléberson, Canero, Blayney, Keith Lowe, Dyer et Ricky Shakes les remplacent. **Bolton n'a
+qu'un gardien** : l'autre, Andy Oakes, arrive en cours de saison (toléré, comme Sheffield United en 2000-01).
+
+**DEUX CORRECTIONS D'OUTIL, À GARDER.** (1) `assemble.cjs` cherchait un ajustement par le nom du jeu PUIS par le nom
+entier du relevé : « Andy Johnson », clé de l'attaquant de Crystal Palace (c'est son nom au jeu), donnait aussi 80 à
+Andy Johnson de West Bromwich, milieu dont le nom au jeu est « A. Johnson ». Le nom entier ne sert plus de clé quand il
+est le nom du jeu d'un autre homme. (2) Le relevé écrit certains noms courts avec une initiale de plusieurs lettres
+(« An. Smith », « Ja. Cole », « Pa. Robinson », « St. Davis ») pour départager des homonymes ; ce n'est pas une graphie du
+jeu, et `harness-prenoms.cjs` l'a refusée (un nom court dont le prénom est connu). L'assemblage écarte désormais ces
+formes : l'homme prend son nom entier s'il est libre (Andy Smith, Jake Cole, Steven Davis), sinon il est sans nom libre.
+« Aliou Cissé » reprend « A. Cissé » par `_graphie`, comme en 2002-03 et 2003-04.
+
+**Restent à revoir quand Transfermarkt répondra** : les quinze arrivées « corrigées en masse » gardées sans preuve
+(Flamini, Diouf, Gera, Little, Bromby, Lee Cook, Pugh, Luke Steele, les jeunes Keene et Paterson, et Wotton, McCormick,
+Shittu, Virgo et Hammond, de clubs montés de troisième division que le relevé 2003-04 ne couvre pas).
+
+`harness-ang0405.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus

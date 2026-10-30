@@ -1,0 +1,176 @@
+{
+ "J. Terry": [
+  85,
+  90,
+  "joueur de l'année PFA, capitaine du Chelsea champion qui n'encaisse que quinze buts en trente-huit matchs ; 79 par héritage, trop bas pour ce rôle"
+ ],
+ "F. Lampard": [
+  86,
+  89,
+  "joueur de l'année de la presse (FWA), meneur du Chelsea champion ; 81 par héritage, trop bas pour ce rôle"
+ ],
+ "T. Henry": [
+  90,
+  92,
+  "meilleur buteur de la Premier League avec vingt-cinq buts, Soulier d'or européen"
+ ],
+ "P. Čech": [
+  85,
+  90,
+  "gardien du Chelsea champion, quinze buts encaissés en trente-huit matchs, record de la Premier League"
+ ],
+ "Andy Johnson": [
+  80,
+  84,
+  "vingt et un buts en championnat pour Crystal Palace promu, deuxième buteur de la saison ; 67 par héritage d'une saison de deuxième division"
+ ],
+ "N. Ellington": [
+  75,
+  79,
+  "meilleur buteur de la deuxième division avec vingt-quatre buts, Wigan promu en élite pour la première fois"
+ ],
+ "_forcer": [],
+ "_corriger": [],
+ "_graphie": [
+  [
+   "POR",
+   "Aliou Cissé",
+   "A. Cissé",
+   "même homme (milieu né en 1976) que « A. Cissé » de Birmingham en 2002-03 et 2003-04 (27 ans, d'où 28 cette saison) et des tables françaises de Lille, du PSG et de Montpellier : la graphie du jeu gagne, comme en 2002-03 et 2003-04"
+  ]
+ ],
+ "_retirer": [
+  [
+   "TOT",
+   "Mido",
+   "arrivé en prêt de la Roma en janvier 2005, comme le dit le rapport du relevé lui-même : la correction en masse des arrivées l'avait passé à « avant le coup d'envoi »"
+  ],
+  [
+   "EVE",
+   "Mikel Arteta",
+   "date d'arrivée « corrigée en masse » par le relevé, sans preuve ; absent de l'effectif d'Everton dans le relevé 2003-04, et 13 matchs sur 43 : le profil d'une arrivée en cours de saison, comme Dickov en 2001-02"
+  ],
+  [
+   "BIR",
+   "Walter Pandiani",
+   "date d'arrivée « corrigée en masse » par le relevé, sans preuve ; absent de l'effectif de Birmingham dans le relevé 2003-04, et 14 matchs sur 42 : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "PNE",
+   "David Nugent",
+   "date d'arrivée « corrigée en masse » par le relevé, sans preuve ; absent de l'effectif de Preston dans le relevé 2003-04, et 21 matchs sur 53 : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "NOR",
+   "Gary Doherty",
+   "doublon réglé « au club aux plus de minutes » (appel Transfermarkt échoué) : il joue 20 minutes pour Tottenham cette saison, où il était retenu en 2002-03 et 2003-04 (1 915 minutes) : au coup d'envoi à Tottenham"
+  ],
+  [
+   "WBA",
+   "Robert Earnshaw",
+   "doublon réglé « au club aux plus de minutes » (appel Transfermarkt échoué) : il joue 447 minutes pour Cardiff cette saison, où il était retenu en 2003-04 (4 060 minutes) : au coup d'envoi à Cardiff, il ne rejoint West Bromwich qu'ensuite"
+  ],
+  [
+   "CAR",
+   "Junichi Inamoto",
+   "1 235 minutes, le moins utilisé des milieux : laisse sa place à Robert Earnshaw, au club au coup d'envoi"
+  ],
+  [
+   "MUN",
+   "Alan Smith",
+   "aucun nom libre (« A. Smith » et « Alan Smith » sont à d'autres hommes), comme en 2001-02, 2002-03 et 2003-04"
+  ],
+  [
+   "SOU",
+   "Paul Smith",
+   "aucun nom libre (« P. Smith » est un attaquant de Crewe en 1998-99, « Paul Smith » le milieu de Gillingham)"
+  ],
+  [
+   "WOL",
+   "Rob Edwards",
+   "aucun nom libre (« R. Edwards » est le défenseur né en 1973 de Bristol City et de Preston, « Rob Edwards » celui de Huddersfield)"
+  ],
+  [
+   "LEI",
+   "Gareth Williams",
+   "aucun nom libre (« Gareth Williams » et « G. Williams » sont à deux autres hommes), comme en 2001-02, 2002-03 et 2003-04"
+  ],
+  [
+   "BOL",
+   "Kevin Poole",
+   "41 ans, au-delà de ce que le jeu accepte"
+  ],
+  [
+   "WBA",
+   "Paul Robinson",
+   "aucun nom libre (« P. Robinson » est un attaquant, « Paul Robinson » le gardien de Tottenham ; « Pa. Robinson », proposé par le relevé, n'est pas une graphie du jeu), comme les deux Paul Robinson de 2002-03"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "TOT",
+   "Gary Doherty",
+   "20 minutes pour Tottenham cette saison, retenu à Tottenham dans le relevé 2003-04 : au coup d'envoi à Tottenham ; prend la place de Mido, et Tottenham reste à trois attaquants, aucun autre n'ayant de preuve (toléré par le jeu, comme Wigan en 2003-04)"
+  ],
+  [
+   "CAR",
+   "Robert Earnshaw",
+   "447 minutes pour Cardiff cette saison, retenu à Cardiff dans le relevé 2003-04 (4 060 minutes) : au coup d'envoi à Cardiff"
+  ],
+  [
+   "NOR",
+   "Paul McVeigh",
+   "remplace Gary Doherty : 552 minutes, retenu à Norwich dans le relevé 2003-04 (3 255 minutes) et toujours à son effectif"
+  ],
+  [
+   "WBA",
+   "Rob Hulse",
+   "remplace Robert Earnshaw, quatrième attaquant : 178 minutes, retenu à West Bromwich dans le relevé 2003-04 (2 821 minutes), doublon réglé par le relevé à West Bromwich au coup d'envoi (prêté à Leeds ensuite)"
+  ],
+  [
+   "EVE",
+   "Iain Turner",
+   "remplace Mikel Arteta : troisième gardien, à Everton dans le relevé 2003-04 ; aucun autre homme d'Everton n'a de preuve de présence au coup d'envoi"
+  ],
+  [
+   "BIR",
+   "Stern John",
+   "remplace Walter Pandiani, quatrième attaquant : 51 minutes, retenu à Birmingham dans le relevé 2003-04, doublon réglé par le relevé à Birmingham au coup d'envoi (Coventry ensuite)"
+  ],
+  [
+   "PNE",
+   "Simon Lynch",
+   "remplace David Nugent, quatrième attaquant : 238 minutes, retenu à Preston dans le relevé 2003-04 et relevé nulle part ailleurs"
+  ],
+  [
+   "MUN",
+   "Kléberson",
+   "remplace Alan Smith, sans nom libre : 864 minutes, retenu à Manchester United dans le relevé 2003-04 (1 063 minutes) ; Liam Miller, un peu plus utilisé, est absent du relevé 2003-04 et rien hors ligne ne date son arrivée du Celtic"
+  ],
+  [
+   "SOU",
+   "Alan Blayney",
+   "remplace Paul Smith, sans nom libre, deuxième gardien : 180 minutes, à Southampton dans le relevé 2003-04, doublon réglé par le relevé à Southampton au coup d'envoi (Brighton ensuite)"
+  ],
+  [
+   "WOL",
+   "Keith Lowe",
+   "remplace Rob Edwards, sans nom libre : 1 019 minutes, à l'effectif de Wolverhampton dans le relevé 2003-04 et relevé nulle part ailleurs"
+  ],
+  [
+   "LEI",
+   "Peter Canero",
+   "remplace Gareth Williams, sans nom libre : 535 minutes, à Leicester dans le relevé 2003-04 (arrivé en cours de saison 2003-04, donc au club au coup d'envoi 2004)"
+  ],
+  [
+   "BOL",
+   "Ricky Shakes",
+   "remplace Kevin Poole, 41 ans : 90 minutes, à Bolton dans le relevé 2003-04 ; le seul autre gardien, Andy Oakes, arrive en cours de saison : Bolton n'a qu'un gardien, toléré par le jeu comme Sheffield United en 2000-01"
+  ],
+  [
+   "WBA",
+   "Lloyd Dyer",
+   "remplace Paul Robinson, sans nom libre : 199 minutes, retenu à West Bromwich dans le relevé 2003-04, doublon réglé par le relevé à West Bromwich au coup d'envoi (Coventry ensuite)"
+  ]
+ ]
+}
