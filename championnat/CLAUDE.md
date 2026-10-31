@@ -5326,6 +5326,54 @@ Shittu, Virgo et Hammond, de clubs montés de troisième division que le relevé
 
 `harness-ang0405.cjs` garde tout cela.
 
+### ANG 2005-06 — LA LOI DU PLUS FORT (v2.35)
+Seizième saison anglaise, assemblée par la tâche planifiée le 31/10/2026 à partir de `releves/ANG-2005-06` (relevé
+Transfermarkt), **toujours sans accès au réseau** (Transfermarkt et Wikipedia refusés par le proxy). Chelsea garde son
+titre avec quatre-vingt-onze points, huit devant Manchester United, vainqueur de la Coupe de la Ligue ; Liverpool gagne la
+FA Cup, Arsenal quitte Highbury et perd la finale de la Ligue des champions. Gerrard joueur de l'année PFA (88, 85 par
+héritage), Henry de la presse et meilleur buteur avec vingt-sept buts (90), **Rooney meilleur espoir (84, potentiel 92)** :
+absent du plateau 2004-05, il n'héritait de rien et le calcul le laissait à 76. Darren Bent, dix-huit buts pour Charlton
+(78). Reading champion du dessous avec cent six points. Premier League à vingt ; l'échelon du dessous perd ses quatre
+derniers (QPR, Crewe, Millwall, Brighton). Notes : 514 héritées de 2004-05, 65 plus lointaines, 3 du recruteur, 178
+calculées ; distribution élite 70.4 / 70, dessous 65.8 / 66. **Aucune pépite forcée.** Le premier nom du relevé, « Chelsea
+en roue libre », partageait « Chelsea » avec 2004-05 : la saison prend le deuxième.
+
+**LES ARRIVÉES NON DATÉES, LA RÈGLE DE LA VEILLE.** Le relevé laisse cette fois quarante-cinq hommes retenus à `arrivee: 1`
+(l'historique de transferts a répondu vide pour la moitié des appels). Chacun est repris contre le relevé 2004-05 : au même
+club la saison d'avant, il reste (Drogba, Ronaldo, Scholes, Robbie Keane, Leadbitter…) ; à ce club en cours de saison
+2004-05 (`arrivee: 0`), il y était à la fin et reste aussi (Chadwick, Akinbiyi, Shaun Newton, Duffy). **Absent du club la
+saison d'avant et joué moins d'un match sur deux, il sort** : Scharner, Anichebe, Graham Stack, Shane Long, Theo Robinson,
+Adam Rooney, Reuben Reid, et les prêtés Nicky Weaver et Leon Best, que leur club prêteur a cette saison avec une arrivée
+d'avant le coup d'envoi. **Milner** n'a aucune date d'arrivée à Aston Villa et une, d'avant le coup d'envoi, à Newcastle,
+qui le fait jouer 454 minutes : il revient à Newcastle, à la place de Kieron Dyer, le moins utilisé ; Solano, daté à Villa
+avant le coup d'envoi et parti à Newcastle en cours de saison, prend sa place à Villa. **Walcott reste** à Southampton :
+son arrivée à Arsenal est datée en cours de saison, et vingt-trois matchs en une demi-saison ne sont pas le profil d'un
+arrivé tardif. Khizanishvili, Abdoulaye Faye et Benayoun, absents en 2004-05 mais titulaires, restent faute de
+contre-preuve, comme les hommes de Luton et Hull, montés de troisième division.
+
+**UN DOUBLON DONT LES DEUX ARRIVÉES SONT DATÉES N'EST PAS UN DOUBLON À RENDRE.** Jenas joue 324 minutes pour Newcastle et
+Harley 344 pour Sheffield United, leurs clubs de 2004-05 : la règle de 2003-04 les y rendrait. Mais leur arrivée à
+Tottenham et à Burnley est datée d'avant le coup d'envoi par l'historique, et Newcastle a joué l'Intertoto en juillet :
+les minutes peuvent précéder le transfert. La règle de 2003-04 ne vaut que quand l'arrivée au nouveau club n'est pas
+datée (appel échoué) ; ici, ils restent où le relevé les met.
+
+**Le contrôle des minutes** (non-retenus arrivés avant le coup d'envoi, au moins 500 minutes, plus que le moins utilisé de
+leur effectif, minimums de poste gardés) remet Carlisle (Watford, 2 932 minutes), Matteo, Rommedahl, Onuoha, Ady Williams,
+Woodhouse, Diallo et Kenna ; Rasiak, 572 minutes pour Derby avant Tottenham, sort. **Les remplacés** : Alan Smith, le Paul
+Robinson de West Bromwich, Rob Edwards, Paul Smith et Gareth Williams n'ont aucun nom libre, comme en 2004-05, et Alec
+Chamberlain a 41 ans : Piqué, Darren Moore, Olofinjana, Blayney, Gilbert et Diagouraga entrent. James Vaughan, à Everton en
+2004-05, y rend le quatrième attaquant qu'Anichebe laissait. **Watford n'a qu'un gardien ; Watford, Stoke et Plymouth trois
+attaquants ; Leicester quatre milieux** : aucun autre homme du club n'a de preuve, et le jeu le tolère. « Aliou Cissé »
+reprend « A. Cissé » par `_graphie`, comme depuis 2002-03.
+
+**À trancher par l'auteur** : **Momo Sylla** (Leicester, milieu né en 1977) est peut-être le « M. Sylla » attaquant du Havre
+et du Mans de 1996 à 2000 (né en 1977) ; le résolveur refuse ce nom, que porte aussi un attaquant de Marseille né en 1971,
+et rien hors ligne ne prouve que c'est le même homme : il garde son nom entier, comme Michael Svensson en 2002-03.
+**Restent à revoir quand Transfermarkt répondra** : les arrivées non datées gardées sans preuve ni contre-preuve, et les
+neuf sortis, Shane Long en tête (arrivé de Cork, peut-être dès l'été).
+
+`harness-ang0506.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus

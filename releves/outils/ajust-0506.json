@@ -1,0 +1,276 @@
+{
+ "S. Gerrard": [
+  88,
+  92,
+  "joueur de l'année PFA, capitaine de Liverpool troisième et vainqueur de la FA Cup, buteur deux fois en finale contre West Ham ; 85 par héritage, trop bas pour ce rôle"
+ ],
+ "T. Henry": [
+  90,
+  92,
+  "joueur de l'année de la presse (FWA) et meilleur buteur de la Premier League avec vingt-sept buts, finaliste de la Ligue des champions"
+ ],
+ "W. Rooney": [
+  84,
+  92,
+  "meilleur espoir PFA, seize buts en championnat pour Manchester United ; 76 calculé, faute de saison précédente au jeu (il n'était pas au plateau 2004-05, arrivé d'Everton après le coup d'envoi)"
+ ],
+ "D. Bent": [
+  78,
+  84,
+  "dix-huit buts en championnat pour Charlton, meilleur buteur anglais de la Premier League ; 63 par le calcul, trop bas pour ce rôle"
+ ],
+ "_forcer": [],
+ "_corriger": [],
+ "_graphie": [
+  [
+   "POR",
+   "Aliou Cissé",
+   "A. Cissé",
+   "même homme (milieu né en 1976) que « A. Cissé » de Birmingham puis de Portsmouth de 2002-03 à 2004-05 (28 ans, d'où 29 cette saison) et des tables françaises : la graphie du jeu gagne, comme de 2002-03 à 2004-05"
+  ]
+ ],
+ "_retirer": [
+  [
+   "WIG",
+   "Paul Scharner",
+   "arrivée non datée par le relevé ; absent de l'effectif de Wigan dans le relevé 2004-05, et 20 matchs : le profil d'une arrivée en cours de saison, comme Arteta, Pandiani et Nugent en 2004-05"
+  ],
+  [
+   "EVE",
+   "Victor Anichebe",
+   "arrivée non datée par le relevé ; absent de l'effectif d'Everton dans le relevé 2004-05, et 3 matchs pour 30 minutes : rien hors ligne ne le met au club au coup d'envoi"
+  ],
+  [
+   "RDG",
+   "Graham Stack",
+   "arrivée non datée par le relevé ; à Millwall dans le relevé 2004-05, absent de l'effectif de Reading, et 8 matchs : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "RDG",
+   "Shane Long",
+   "arrivée non datée par le relevé ; absent de l'effectif de Reading dans le relevé 2004-05, et 15 matchs sur une cinquantaine : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "WAT",
+   "Theo Robinson",
+   "arrivée non datée par le relevé ; absent de l'effectif de Watford dans le relevé 2004-05, et un seul match de 45 minutes"
+  ],
+  [
+   "STK",
+   "Adam Rooney",
+   "arrivée non datée par le relevé ; absent de l'effectif de Stoke dans le relevé 2004-05, et 7 matchs"
+  ],
+  [
+   "PLY",
+   "Reuben Reid",
+   "arrivée non datée par le relevé ; absent de l'effectif de Plymouth dans le relevé 2004-05, et un seul match de 12 minutes"
+  ],
+  [
+   "SHW",
+   "Nicky Weaver",
+   "arrivée non datée par le relevé ; à Manchester City dans le relevé 2004-05 et à son effectif cette saison avec une arrivée d'avant le coup d'envoi, absent de Sheffield Wednesday la saison d'avant, 14 matchs : un prêt en cours de saison"
+  ],
+  [
+   "SHW",
+   "Leon Best",
+   "arrivée non datée par le relevé ; à Southampton dans le relevé 2004-05 et à son effectif cette saison avec une arrivée d'avant le coup d'envoi, 13 matchs : un prêt en cours de saison"
+  ],
+  [
+   "AVL",
+   "James Milner",
+   "arrivée non datée à Aston Villa ; retenu à Newcastle dans le relevé 2004-05 et à l'effectif de Newcastle cette saison avec une arrivée d'avant le coup d'envoi et 454 minutes : au coup d'envoi à Newcastle, prêté à Aston Villa ensuite"
+  ],
+  [
+   "NEW",
+   "Kieron Dyer",
+   "616 minutes, le moins utilisé de Newcastle au-dessus des minimums de poste : laisse sa place à James Milner, au club au coup d'envoi"
+  ],
+  [
+   "WAT",
+   "Alec Chamberlain",
+   "41 ans au coup d'envoi, au-delà de ce que le jeu accepte"
+  ],
+  [
+   "BLB",
+   "David Thompson",
+   "300 minutes pour Blackburn : laisse sa place à Dominic Matteo (contrôle des minutes)"
+  ],
+  [
+   "CHL",
+   "Gonzalo Sorondo",
+   "679 minutes : laisse sa place à Dennis Rommedahl (contrôle des minutes)"
+  ],
+  [
+   "MCI",
+   "Lee Croft",
+   "762 minutes : laisse sa place à Nedum Onuoha (contrôle des minutes)"
+  ],
+  [
+   "COV",
+   "Willo Flood",
+   "506 minutes, prêté par Manchester City : laisse sa place à Ady Williams (contrôle des minutes)"
+  ],
+  [
+   "HUL",
+   "Danny Coles",
+   "729 minutes : laisse sa place à Curtis Woodhouse (contrôle des minutes)"
+  ],
+  [
+   "SHW",
+   "Richie Partridge",
+   "797 minutes : laisse sa place à Drissa Diallo (contrôle des minutes)"
+  ],
+  [
+   "DER",
+   "Grzegorz Rasiak",
+   "572 minutes pour Derby avant son départ pour Tottenham, le moins utilisé des attaquants au-dessus du minimum : laisse sa place à Jeff Kenna (contrôle des minutes)"
+  ],
+  [
+   "MUN",
+   "Alan Smith",
+   "aucun nom libre (« A. Smith » et « Alan Smith » sont à d'autres hommes), comme de 2001-02 à 2004-05"
+  ],
+  [
+   "WBA",
+   "Paul Robinson",
+   "aucun nom libre (« P. Robinson » est un attaquant, « Paul Robinson » le gardien de Tottenham), comme en 2002-03 et 2004-05"
+  ],
+  [
+   "WOL",
+   "Rob Edwards",
+   "aucun nom libre (« R. Edwards » est le défenseur né en 1973 de Bristol City et de Preston, « Rob Edwards » celui de Huddersfield), comme en 2004-05"
+  ],
+  [
+   "SOU",
+   "Paul Smith",
+   "aucun nom libre (« P. Smith » est un attaquant de Crewe en 1998-99, « Paul Smith » le milieu de Gillingham), comme en 2004-05"
+  ],
+  [
+   "LEI",
+   "Gareth Williams",
+   "aucun nom libre (« Gareth Williams » et « G. Williams » sont à deux autres hommes), comme de 2001-02 à 2004-05"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "NEW",
+   "James Milner",
+   "arrivée à Newcastle datée d'avant le coup d'envoi, retenu à Newcastle dans le relevé 2004-05 (1 938 minutes), 454 minutes pour Newcastle cette saison avant son prêt à Aston Villa"
+  ],
+  [
+   "EVE",
+   "James Vaughan",
+   "remplace Victor Anichebe, quatrième attaquant : à l'effectif d'Everton dans le relevé 2004-05 (26 minutes) et encore cette saison"
+  ],
+  [
+   "WIG",
+   "Steve McMillan",
+   "remplace Paul Scharner : 494 minutes, arrivée d'avant le coup d'envoi, retenu à Wigan dans le relevé 2004-05"
+  ],
+  [
+   "AVL",
+   "Nolberto Solano",
+   "remplace James Milner : 118 minutes pour Aston Villa avec une arrivée d'avant le coup d'envoi, retenu à Aston Villa dans le relevé 2004-05 ; il ne rejoint Newcastle qu'en cours de saison"
+  ],
+  [
+   "RDG",
+   "Eric Obinna",
+   "remplace Shane Long, quatrième attaquant : 225 minutes, arrivée à Reading datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "RDG",
+   "Adam Federici",
+   "remplace Graham Stack, deuxième gardien : arrivée à Reading datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "WAT",
+   "Clarke Carlisle",
+   "remplace Alec Chamberlain : 2 932 minutes, arrivée à Watford datée d'avant le coup d'envoi (retenu à Leeds en 2004-05) ; Watford n'a plus qu'un gardien, l'autre (Makabu-Makalambay) arrivant en cours de saison, toléré par le jeu comme Bolton en 2004-05"
+  ],
+  [
+   "WAT",
+   "Toumani Diagouraga",
+   "remplace Theo Robinson : 295 minutes, arrivée datée d'avant le coup d'envoi ; aucun autre attaquant de Watford n'a de preuve, et Watford reste à trois attaquants (toléré, comme Tottenham en 2004-05)"
+  ],
+  [
+   "STK",
+   "Peter Sweeney",
+   "remplace Adam Rooney : 887 minutes, arrivée à Stoke datée d'avant le coup d'envoi ; aucun autre attaquant de Stoke n'a de preuve, et Stoke reste à trois attaquants"
+  ],
+  [
+   "PLY",
+   "Taribo West",
+   "remplace Reuben Reid : 450 minutes, arrivée à Plymouth datée d'avant le coup d'envoi ; aucun autre attaquant de Plymouth n'a de preuve, et Plymouth reste à trois attaquants"
+  ],
+  [
+   "SHW",
+   "Chris Adamson",
+   "remplace Nicky Weaver, deuxième gardien : 450 minutes, arrivée datée d'avant le coup d'envoi"
+  ],
+  [
+   "SHW",
+   "Steven MacLean",
+   "remplace Leon Best, quatrième attaquant : 359 minutes, arrivée datée d'avant le coup d'envoi"
+  ],
+  [
+   "BLB",
+   "Dominic Matteo",
+   "contrôle des minutes : 597 minutes, arrivée d'avant le coup d'envoi, retenu à Blackburn dans le relevé 2004-05"
+  ],
+  [
+   "CHL",
+   "Dennis Rommedahl",
+   "contrôle des minutes : 1 638 minutes, arrivée d'avant le coup d'envoi, retenu à Charlton dans le relevé 2004-05"
+  ],
+  [
+   "MCI",
+   "Nedum Onuoha",
+   "contrôle des minutes : 871 minutes, arrivée d'avant le coup d'envoi, retenu à Manchester City dans le relevé 2004-05"
+  ],
+  [
+   "COV",
+   "Ady Williams",
+   "contrôle des minutes : 1 524 minutes, arrivée d'avant le coup d'envoi, à Coventry dans le relevé 2004-05 (arrivé en cours de saison 2004-05, donc au club au coup d'envoi 2005)"
+  ],
+  [
+   "HUL",
+   "Curtis Woodhouse",
+   "contrôle des minutes : 1 269 minutes, arrivée à Hull datée d'avant le coup d'envoi (Hull monte de troisième division, que le relevé 2004-05 ne couvre pas)"
+  ],
+  [
+   "SHW",
+   "Drissa Diallo",
+   "contrôle des minutes : 831 minutes, arrivée datée d'avant le coup d'envoi (retenu à Ipswich en 2004-05)"
+  ],
+  [
+   "DER",
+   "Jeff Kenna",
+   "contrôle des minutes : 1 501 minutes, arrivée d'avant le coup d'envoi, retenu à Derby dans le relevé 2004-05"
+  ],
+  [
+   "MUN",
+   "Gerard Piqué",
+   "remplace Alan Smith, sans nom libre : 388 minutes, arrivée d'avant le coup d'envoi, à Manchester United dans le relevé 2004-05 ; le plus utilisé des non-retenus du club arrivés avant le coup d'envoi"
+  ],
+  [
+   "WBA",
+   "Darren Moore",
+   "remplace Paul Robinson, sans nom libre, cinquième défenseur : 589 minutes, retenu à West Bromwich dans le relevé 2004-05, arrivé à Derby en cours de saison"
+  ],
+  [
+   "WOL",
+   "Seyi Olofinjana",
+   "remplace Rob Edwards, sans nom libre : 769 minutes, retenu à Wolverhampton dans le relevé 2004-05"
+  ],
+  [
+   "SOU",
+   "Alan Blayney",
+   "remplace Paul Smith, sans nom libre, deuxième gardien : à Southampton dans le relevé 2004-05 avec une arrivée d'avant le coup d'envoi, arrivé à Brighton en cours de saison, comme en 2004-05"
+  ],
+  [
+   "LEI",
+   "Peter Gilbert",
+   "remplace Gareth Williams, sans nom libre : 352 minutes, arrivée à Leicester datée d'avant le coup d'envoi (retenu à Plymouth en 2004-05), prêté à Sheffield Wednesday en cours de saison ; aucun autre milieu de Leicester n'a de preuve, et Leicester reste à quatre milieux"
+  ]
+ ]
+}
