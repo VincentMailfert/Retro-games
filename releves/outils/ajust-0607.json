@@ -1,0 +1,239 @@
+{
+ "_forcer": [],
+ "_corriger": [],
+ "_graphie": [],
+ "_retirer": [
+  [
+   "BNS",
+   "Lewin Nyatanga",
+   "arrivée non datée à Barnsley ; à l'effectif de Derby cette saison avec une arrivée d'avant le coup d'envoi et 688 minutes (retenu à Derby dans le relevé 2005-06), et arrivé à Sunderland en cours de saison : à Derby au coup d'envoi, prêté ensuite"
+  ],
+  [
+   "CAR",
+   "Kyle Bassett",
+   "aucune date d'arrivée, absent de l'effectif de Cardiff dans le relevé 2005-06, et 13 minutes : rien hors ligne ne le met au club au coup d'envoi"
+  ],
+  [
+   "CHL",
+   "Zhi Zheng",
+   "arrivée non datée par le relevé ; absent de l'effectif de Charlton dans le relevé 2005-06, et 840 minutes, moins de la moitié d'une saison : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "DER",
+   "Steven Cann",
+   "aucune date d'arrivée, absent de l'effectif de Derby dans le relevé 2005-06, jamais utilisé : laisse la place de deuxième gardien à Lee Camp, au club au coup d'envoi"
+  ],
+  [
+   "EVE",
+   "Manuel Fernandes",
+   "arrivée non datée à Everton ; à l'effectif de Portsmouth cette saison avec une arrivée d'avant le coup d'envoi et 861 minutes : au coup d'envoi à Portsmouth, prêté à Everton ensuite"
+  ],
+  [
+   "FUL",
+   "Clint Dempsey",
+   "arrivée non datée par le relevé ; absent de l'effectif de Fulham dans le relevé 2005-06, et 305 minutes : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "IPS",
+   "Jonathan Walters",
+   "arrivée non datée par le relevé ; absent de l'effectif de Ipswich dans le relevé 2005-06, et 1 044 minutes, moins de la moitié d'une saison"
+  ],
+  [
+   "LIV",
+   "Javier Mascherano",
+   "arrivée non datée par le relevé ; absent de l'effectif de Liverpool dans le relevé 2005-06, 994 minutes, et arrivé à West Ham lui aussi en cours de saison (arrivée datée après le coup d'envoi) : il n'était en Angleterre ni dans l'un ni dans l'autre club au premier jour"
+  ],
+  [
+   "MID",
+   "Jonathan Woodgate",
+   "arrivée non datée à Middlesbrough ; le recruteur de l'été 2006 du jeu (VIVIER_SAISON) le met au Real Madrid, et il est absent de l'effectif de Middlesbrough dans le relevé 2005-06 : prêté après le coup d'envoi"
+  ],
+  [
+   "MUN",
+   "Tomasz Kuszczak",
+   "arrivée non datée par le relevé ; absent de l'effectif de Manchester United dans le relevé 2005-06, 1 200 minutes, moins de la moitié d'une saison, et à l'effectif de West Bromwich cette saison avec une arrivée d'avant le coup d'envoi : la règle de Weaver en 2005-06"
+  ],
+  [
+   "NEW",
+   "Andy Carroll",
+   "arrivée non datée ; absent de l'effectif de Newcastle dans le relevé 2005-06, et 125 minutes : rien hors ligne ne le met dans l'effectif professionnel au coup d'envoi (comme Anichebe en 2005-06)"
+  ],
+  [
+   "NOR",
+   "David Marshall",
+   "arrivée non datée par le relevé ; absent de l'effectif de Norwich dans le relevé 2005-06, et 401 minutes : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "PLY",
+   "Gary Sawyer",
+   "arrivée non datée par le relevé ; absent de l'effectif de Plymouth dans le relevé 2005-06, et 2 054 minutes, moins de la moitié des 4 140 d'une saison de deuxième division"
+  ],
+  [
+   "PLY",
+   "Rory Fallon",
+   "arrivée non datée par le relevé ; absent de l'effectif de Plymouth dans le relevé 2005-06, et 546 minutes"
+  ],
+  [
+   "POR",
+   "Arnold Mvuemba",
+   "arrivée non datée par le relevé ; absent de l'effectif de Portsmouth dans le relevé 2005-06, et 222 minutes"
+  ],
+  [
+   "RDG",
+   "André Bikey",
+   "arrivée non datée par le relevé ; absent de l'effectif de Reading dans le relevé 2005-06, et 1 399 minutes, moins de la moitié d'une saison"
+  ],
+  [
+   "STK",
+   "Jon Parkin",
+   "arrivée non datée à Stoke ; à l'effectif de Hull cette saison avec une arrivée d'avant le coup d'envoi et 2 141 minutes : à Hull au coup d'envoi"
+  ],
+  [
+   "SUN",
+   "Jonny Evans",
+   "arrivée non datée par le relevé ; absent de l'effectif de Sunderland dans le relevé 2005-06, et 1 665 minutes, moins de la moitié d'une saison"
+  ],
+  [
+   "TOT",
+   "Pascal Chimbonda",
+   "arrivée non datée à Tottenham ; à l'effectif de Wigan cette saison avec une arrivée d'avant le coup d'envoi et 14 minutes, retenu à Wigan dans le relevé 2005-06 : à Wigan au coup d'envoi (la règle de 2003-04, l'arrivée au nouveau club n'étant pas datée)"
+  ],
+  [
+   "WHU",
+   "Carlton Cole",
+   "arrivée non datée par le relevé ; absent de l'effectif de West Ham dans le relevé 2005-06, et 764 minutes, moins de la moitié d'une saison"
+  ],
+  [
+   "WHU",
+   "George McCartney",
+   "arrivée non datée par le relevé ; absent de l'effectif de West Ham dans le relevé 2005-06, et 1 701 minutes, moins de la moitié d'une saison"
+  ],
+  [
+   "WIG",
+   "Antonio Valencia",
+   "arrivée non datée par le relevé ; absent de l'effectif de Wigan dans le relevé 2005-06, et 1 380 minutes, moins de la moitié d'une saison"
+  ],
+  [
+   "QPR",
+   "Lee Camp",
+   "arrivée non datée à QPR ; à l'effectif de Derby cette saison avec une arrivée d'avant le coup d'envoi et 360 minutes, retenu à Derby dans le relevé 2005-06 : à Derby au coup d'envoi, prêté à Norwich puis à QPR"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "DER",
+   "Lee Camp",
+   "arrivée à Derby datée d'avant le coup d'envoi, retenu à Derby dans le relevé 2005-06 (3 690 minutes), 360 minutes pour Derby cette saison avant ses prêts"
+  ],
+  [
+   "POR",
+   "Manuel Fernandes",
+   "arrivée à Portsmouth datée d'avant le coup d'envoi, 861 minutes pour Portsmouth avant son prêt à Everton"
+  ],
+  [
+   "WIG",
+   "Pascal Chimbonda",
+   "arrivée à Wigan datée d'avant le coup d'envoi, retenu à Wigan dans le relevé 2005-06 (3 776 minutes), 14 minutes pour Wigan cette saison avant son départ pour Tottenham"
+  ],
+  [
+   "BNS",
+   "Dale Tonge",
+   "remplace Lewin Nyatanga : 430 minutes, arrivée à Barnsley datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "CAR",
+   "Darcy Blake",
+   "remplace Kyle Bassett : 590 minutes, arrivée datée d'avant le coup d'envoi, à Cardiff dans le relevé 2005-06 ; aucun autre attaquant de Cardiff n'a de preuve, et Cardiff reste à trois attaquants (toléré, comme Watford en 2005-06)"
+  ],
+  [
+   "CHL",
+   "Nathan Ashton",
+   "remplace Zhi Zheng : 90 minutes, arrivée à Charlton datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "EVE",
+   "Andy van der Meyde",
+   "remplace Manuel Fernandes : 539 minutes, arrivée datée d'avant le coup d'envoi, retenu à Everton dans le relevé 2005-06"
+  ],
+  [
+   "FUL",
+   "Michael Timlin",
+   "remplace Clint Dempsey : 90 minutes, arrivée datée d'avant le coup d'envoi, à Fulham dans le relevé 2005-06, relevé nulle part ailleurs"
+  ],
+  [
+   "IPS",
+   "Chris Casement",
+   "remplace Jonathan Walters : 200 minutes, arrivée datée d'avant le coup d'envoi, à Ipswich dans le relevé 2005-06"
+  ],
+  [
+   "LIV",
+   "Gabriel Paletta",
+   "remplace Javier Mascherano : 580 minutes, arrivée à Liverpool datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "MID",
+   "Gaizka Mendieta",
+   "remplace Jonathan Woodgate : 380 minutes, arrivée datée d'avant le coup d'envoi, retenu à Middlesbrough dans le relevé 2005-06"
+  ],
+  [
+   "MUN",
+   "David Jones",
+   "remplace Tomasz Kuszczak : 210 minutes, arrivée à Manchester United datée d'avant le coup d'envoi, arrivé à Derby en cours de saison ; Manchester United n'a plus qu'un gardien, Tom Heaton n'ayant aucune date d'arrivée (toléré, comme Watford en 2005-06)"
+  ],
+  [
+   "NEW",
+   "Albert Luque",
+   "remplace Andy Carroll : 605 minutes, arrivée datée d'avant le coup d'envoi, retenu à Newcastle dans le relevé 2005-06 ; aucun autre attaquant de Newcastle n'a de preuve, et Newcastle reste à trois attaquants"
+  ],
+  [
+   "NOR",
+   "Joe Lewis",
+   "remplace David Marshall, deuxième gardien : arrivée à Norwich datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "PLY",
+   "Anthony Mason",
+   "remplace Rory Fallon, quatrième attaquant : arrivée à Plymouth datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "PLY",
+   "Bojan Djordjic",
+   "remplace Gary Sawyer : 651 minutes, arrivée datée d'avant le coup d'envoi, retenu à Plymouth dans le relevé 2005-06"
+  ],
+  [
+   "RDG",
+   "Sam Sodje",
+   "remplace André Bikey : 359 minutes, arrivée à Reading datée d'avant le coup d'envoi, arrivé à West Bromwich en cours de saison"
+  ],
+  [
+   "STK",
+   "Adam Rooney",
+   "remplace Jon Parkin, quatrième attaquant : arrivée à Stoke datée d'avant le coup d'envoi, à Stoke dans le relevé 2005-06 (sorti alors comme arrivé en cours de saison, donc au club à la fin)"
+  ],
+  [
+   "SUN",
+   "Stephen Wright",
+   "remplace Jonny Evans : 288 minutes, arrivée datée d'avant le coup d'envoi, à Sunderland dans le relevé 2005-06"
+  ],
+  [
+   "TOT",
+   "Paul Stalteri",
+   "remplace Pascal Chimbonda : 770 minutes, arrivée datée d'avant le coup d'envoi, retenu à Tottenham dans le relevé 2005-06"
+  ],
+  [
+   "WHU",
+   "Tyrone Mears",
+   "remplace George McCartney : 304 minutes, arrivée à West Ham datée d'avant le coup d'envoi, arrivé à Derby en cours de saison"
+  ],
+  [
+   "WHU",
+   "Kyel Reid",
+   "remplace Carlton Cole : 57 minutes, arrivée datée d'avant le coup d'envoi, à West Ham dans le relevé 2005-06, arrivé à Barnsley en cours de saison ; aucun autre attaquant de West Ham n'a de preuve, et West Ham reste à trois attaquants"
+  ],
+  [
+   "QPR",
+   "Jake Cole",
+   "remplace Lee Camp, deuxième gardien : 450 minutes, arrivée datée d'avant le coup d'envoi, à QPR dans le relevé 2005-06"
+  ]
+ ]
+}
