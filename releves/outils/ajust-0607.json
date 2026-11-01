@@ -1,7 +1,69 @@
 {
+ "C. Ronaldo": [
+  88,
+  92,
+  "joueur de l'année PFA et de la presse (FWA), et meilleur espoir PFA, le doublé des deux trophées de la PFA ; dix-sept buts en championnat pour Manchester United champion ; 80 par héritage, trop bas pour ce rôle"
+ ],
+ "D. Drogba": [
+  87,
+  89,
+  "meilleur buteur de la Premier League avec vingt buts, buteur des deux finales gagnées par Chelsea (Coupe de la Ligue contre Arsenal, FA Cup contre Manchester United) ; 84 par héritage"
+ ],
+ "P. Scholes": [
+  81,
+  88,
+  "titulaire au milieu de Manchester United champion, de nouveau sur le terrain toute la saison ; 73 par héritage d'une saison 2005-06 écourtée, trop bas pour ce rôle"
+ ],
+ "E. van der Sar": [
+  81,
+  81,
+  "gardien titulaire de Manchester United champion ; 62 par l'érosion de l'âge sur six saisons d'héritage, trop bas pour ce rôle"
+ ],
+ "J. Cureton": [
+  74,
+  74,
+  "meilleur buteur de la deuxième division avec vingt-trois buts pour Colchester, promu ; 68 par héritage"
+ ],
  "_forcer": [],
  "_corriger": [],
- "_graphie": [],
+ "_graphie": [
+  [
+   "MUN",
+   "Nemanja Vidic‎",
+   "N. Vidić",
+   "le relevé porte un caractère invisible (marque de sens U+200E) au bout du nom, qui empêchait de reconnaître « N. Vidić », graphie que le jeu lui donne déjà (recruteur de l'été 2005, défenseur né en 1981, prénom Nemanja dans PRENOMS_VRAIS) : la graphie du jeu gagne"
+  ],
+  [
+   "CHL",
+   "Amdy Faye",
+   "A. Faye",
+   "même homme (milieu sénégalais né en 1977) que « A. Faye » d'Auxerre de 2001 à 2003 puis de Portsmouth et de Newcastle de 2003-04 à 2005-06 (28 ans, d'où 29) : la graphie du jeu gagne. Sans cette ligne, le résolveur donnait « A. Faye » et l'âge de Newcastle à Abdoulaye Faye (défenseur né en 1978), un an d'écart et deux postes compatibles ne départageant pas deux hommes"
+  ],
+  [
+   "BOL",
+   "Abdoulaye Faye",
+   "Abdoulaye Faye",
+   "même homme (défenseur sénégalais né en 1978) que « Abdoulaye Faye » de Lens, d'Istres et de Bolton en 2005-06 : il garde la graphie du jeu, « A. Faye » étant Amdy Faye"
+  ],
+  [
+   "COV",
+   "Isaac Osbourne",
+   "I. Osbourne",
+   "même homme (milieu né en 1986) que « I. Osbourne » de Coventry en 2005-06 (19 ans, d'où 20) : la graphie du jeu gagne. Sans cette ligne, le résolveur donnait ce nom et cette note à Isaiah Osbourne d'Aston Villa, né en 1987, un autre homme"
+  ],
+  [
+   "AVL",
+   "Isaiah Osbourne",
+   "Isaiah Osbourne",
+   "né en 1987, formé à Aston Villa : ce n'est pas Isaac Osbourne de Coventry (« I. Osbourne », né en 1986) ; il porte son nom entier"
+  ],
+  [
+   "WOL",
+   "Craig Davies",
+   "Craig Davies",
+   "attaquant gallois né en 1986 : « C. Davies » est au jeu l'attaquant de Sochaux de 2009-10 (Charlie Davies, américain, né la même année), un autre homme que le seul critère de naissance et de poste ne départage pas ; il porte son nom entier"
+  ]
+ ],
  "_retirer": [
   [
    "BNS",
@@ -117,6 +179,31 @@
    "QPR",
    "Lee Camp",
    "arrivée non datée à QPR ; à l'effectif de Derby cette saison avec une arrivée d'avant le coup d'envoi et 360 minutes, retenu à Derby dans le relevé 2005-06 : à Derby au coup d'envoi, prêté à Norwich puis à QPR"
+  ],
+  [
+   "WBA",
+   "Paul Robinson",
+   "aucun nom libre (« P. Robinson » est un attaquant, « Paul Robinson » le gardien de Tottenham), comme de 2002-03 à 2005-06"
+  ],
+  [
+   "WOL",
+   "Rob Edwards",
+   "aucun nom libre (« R. Edwards » est le défenseur né en 1973 de Bristol City et de Preston, « Rob Edwards » celui de Huddersfield), comme en 2004-05 et 2005-06"
+  ],
+  [
+   "LEI",
+   "Gareth Williams",
+   "aucun nom libre, comme en 2003-04, 2004-05 et 2005-06"
+  ],
+  [
+   "BNS",
+   "Paul Reid",
+   "aucun nom libre (« P. Reid » et « Paul Reid » sont à d'autres hommes du jeu)"
+  ],
+  [
+   "BNS",
+   "Tommy Wright",
+   "aucun nom libre (« T. Wright » et « Tommy Wright » sont à d'autres hommes du jeu)"
   ]
  ],
  "_ajouter": [
@@ -234,6 +321,31 @@
    "QPR",
    "Jake Cole",
    "remplace Lee Camp, deuxième gardien : 450 minutes, arrivée datée d'avant le coup d'envoi, à QPR dans le relevé 2005-06"
+  ],
+  [
+   "WBA",
+   "Jared Hodgkiss",
+   "remplace Paul Robinson, sans nom libre, cinquième défenseur : 259 minutes, arrivée à West Bromwich datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "WOL",
+   "Dan Jones",
+   "remplace Rob Edwards, sans nom libre : 615 minutes, arrivée datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "LEI",
+   "Josh Low",
+   "remplace Gareth Williams, sans nom libre, cinquième milieu : 1 209 minutes, arrivée à Leicester datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "BNS",
+   "Michael Coulson",
+   "remplace Tommy Wright, sans nom libre, quatrième attaquant : 297 minutes, arrivée à Barnsley datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "BNS",
+   "Colin Healy",
+   "remplace Paul Reid, sans nom libre : 320 minutes, arrivée à Barnsley datée d'avant le coup d'envoi, relevé nulle part ailleurs"
   ]
  ]
 }
