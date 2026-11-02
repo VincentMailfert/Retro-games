@@ -3016,6 +3016,17 @@ toujours « raconter quelque chose ».
   « 🧤 L'ARRÊT QUI QUALIFIE ! » (ou, contre nous, « ARRÊTÉ, C'EST FINI... »). **`inc_porte`** illustre l'incident
   « 🚪 COUP DE SANG AUX VESTIAIRES ». Envoi des photos : l'espace de travail ne joint pas `upload.higgsfield.ai`, il faut
   passer par le cadre d'envoi Higgsfield (`media_upload_widget`), seul outil du tour.
+- **VINGT ET UNE VIGNETTES DE PLUS, ET UN NOUVEAU MODÈLE (v2.39, 02/11/2026)** : l'auteur a comparé GPT Image 2.5 et
+  **Nano Banana Pro** (2 crédits l'image, quatre fois plus cher) et retenu Nano Banana Pro pour les scènes d'ambiance, GPT
+  Image pour les scènes de match à géométrie précise ; les retouches ponctuelles passent par Nano Banana 2. **Il a préféré
+  les premières versions à une passe « plus réaliste »** : ne pas lisser une série validée. Ajouts : quatorze incidents
+  servis tout seuls par `inc_<id>` (`naissance`, `boite`, `ibiza`, `bagarre`, `dopage`, `paris_truquage`, `celebration`,
+  `telecommande`, `manette`, `sanspermis`, `superstition`, `photoshoot`, `chauffage`, `maillot_jete`) ; **`chien`**,
+  **`pigeon`** et **`projos`** remplacent leur dessin ASCII dans le flash (`imageOuArt`, le dessin reste en secours) ;
+  **`conf`** en tête de la conférence de presse, **`vire`** sur l'écran LIMOGÉ, **`poucet`** en tête du rendez-vous de
+  coupe contre le Petit Poucet ; la **`finale`** est remplacée par sa version Nano Banana Pro. Pièges vus : Nano Banana Pro
+  rend parfois des visages lisses quand on demande des visages anonymes (le préciser : « yeux, nez, bouche ») et tient mal
+  les objets portés à deux (un soigneur qui traverse le brancard).
 - **Montée de tension** (`MONTEE_BUT` + `MONTEE_FRAPPE`, en direct seulement) : avant un but du téléscripteur **MAIS
   AUSSI avant certaines grosses occasions ratées**, l'action se construit en **deux temps**, chacun suivi d'un
   battement (`Math.max(650, tickerDelai)`) AVANT la résolution et son flash. 1er temps = l'action s'installe (ambiance
