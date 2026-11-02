@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.35"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.36"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -18619,7 +18619,7 @@ function ecranBilan(){
   const M=B.match;
   chrome("calendrier",`
    <div class="panel" style="border-color:#ffd24a;text-align:center">
-     <p class="dim" style="letter-spacing:2px;margin:0">${esc(moi?moi.nom.toUpperCase():"")} · DIVISION ${B.div}</p>
+     <p class="dim" style="letter-spacing:2px;margin:0">${esc(moi?moi.nom.toUpperCase():"")} · ${esc(libDiv(B.div).toUpperCase())}</p>
      <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
      ${imgBilan?`<img class="momImg" style="max-height:240px;margin-top:6px" src="${imgBilan}" alt="">`:""}
      <p style="font-size:17px">Vous terminez à la <b class="jaune">${B.rang}ᵉ place</b>. ${esc(verdict)}</p>
@@ -19840,7 +19840,7 @@ function ficheClubAccueil(id){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid ${st.coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:90vh;overflow-y:auto">
     <h2 style="display:flex;align-items:center;gap:10px">${blason(c,40)}${esc(c.nom)}</h2>
-    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag} <span class="dim">·</span> <b class="fort">DIVISION ${enD2?2:1}</b> <span class="dim">·</span> <b class="fort">${esc(S.titre)}</b></p>
+    <p style="color:${st.coul};font-weight:bold;letter-spacing:1px;margin-top:2px">${st.tag} <span class="dim">·</span> <b class="fort">${esc((PAYS[S.pays]||PAYS.FR)[enD2?"div2":"div1"](S.an).toUpperCase())}</b> <span class="dim">·</span> <b class="fort">${esc(S.titre)}</b></p>
     <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="fort">${esc(st.obj.label)}</b></p>
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${MM(c.budget,0)}</p>
     ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="fort">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
@@ -21710,7 +21710,7 @@ function partageMatch(M){
     x.fillStyle="#7e96b5"; x.font='600 34px "IBM Plex Sans", sans-serif'; x.textAlign="center"; x.fillText(titre,540,320);
     await ligneScore(x,450,clubById(m.h),m.hn,m.sh,m.sh>m.sa);
     await ligneScore(x,620,clubById(m.a),m.an,m.sa,m.sa>m.sh);
-    if(M.enjeu){ x.fillStyle="#f2f5fa"; x.font='600 36px "IBM Plex Sans", sans-serif'; x.textAlign="center"; x.fillText(M.enjeu,540,760); }
+    if(M.enjeu){ x.fillStyle="#f2f5fa"; x.font='600 36px "IBM Plex Sans", sans-serif'; x.textAlign="center"; x.fillText(M.enjeu.replace(/ᵉ/g,"e").replace(/ʳ/g,"r"),540,760); }
   }, m.hn+" "+m.sh+"-"+m.sa+" "+m.an+" ("+G.saison+", journée "+M.j+").", "multiplex-"+m.h+"-"+m.a);
 }
 function partageSaison(B, verdict){

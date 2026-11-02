@@ -209,6 +209,10 @@ toujours « raconter quelque chose ».
   (cartes du multiplex) et sur l'almanach. Effectif au téléphone : XI, joueur, P, note, forme, ★ et 🛌 (âge, moral, valeur,
   Vendre, Prêter dans la fiche). Écran Club au téléphone : sous-onglets Stade, Campus, Staff, Direction (`CLUB_PART`,
   `data-part`, tout reste dans le HTML).
+- **Robot joueur (v2.36)** : trois saisons jouées par un robot Playwright WebKit (`C:\Users\VINCE\multiplex-outils\pw\bot.cjs`,
+  hors dépôt) : zéro erreur, partages de score et de saison produits. Corrigés : l'almanach et la fiche de club de l'accueil
+  disaient « DIVISION 1 » en Angleterre (désormais `libDiv` / `PAYS[S.pays].div1(S.an)`), et le « ᵉ » de l'enjeu sortait
+  dans une fonte de secours sur l'image partagée.
 - **Suivi de fréquentation (GoatCounter)** : une balise de comptage dans le `<head>` envoie une visite au
   compte `d1manager` (`https://d1manager.goatcounter.com`). C'est l'une des deux entorses (avec les fontes
   Google) au « aucune dépendance externe » — et elle ne concerne pas la logique de jeu : un petit script de chargement conditionnel n'injecte
