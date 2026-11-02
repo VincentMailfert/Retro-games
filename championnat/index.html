@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.37"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.38"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -18881,8 +18881,10 @@ function ecranBilan(){
        ? `<p><button class="big" id="bInter">← Revenir</button></p>
           <p class="dim" style="margin-top:6px">Le président a tranché : il n'y aura pas d'intersaison pour vous. Il reste la page.</p>`
        : `<p><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>`}
+     ${propCompte("saison")}
    </div>`);
   document.getElementById("bInter").onclick=()=>{ if(!G.vire) intersaison(); montre("calendrier"); };
+  cablePropCompte(app, ()=>{});
   { const bP=document.getElementById("bPartSaison"); if(bP) bP.onclick=()=>partageSaison(B, verdict); } // piste 1
 }
 function intersaison(){
@@ -19244,7 +19246,10 @@ function partiesListe(){ // la liste de l'accueil, la plus récente d'abord — 
 function placeDispo(){ // reste-t-il de la place pour une carrière de plus ?
   if(partiesListe().length<MAX_PARTIES) return true;
   if(nuageLibere()) return true; // connecté : la plus ancienne, à jour en ligne, quitte le navigateur (elle reste en ligne)
-  message("Vous avez déjà "+MAX_PARTIES+" carrières en cours : c'est tout ce que le navigateur peut retenir.\n\nSupprimez-en une sur l'accueil pour en commencer une nouvelle.", {titre:"💾 L'ÉTAGÈRE EST PLEINE"});
+  const txt="Vous avez déjà "+MAX_PARTIES+" carrières en cours : c'est tout ce que le navigateur peut retenir.\n\nSupprimez-en une sur l'accueil pour en commencer une nouvelle.";
+  if(NUAGE.url && !compteLit()) confirme({titre:"💾 L'ÉTAGÈRE EST PLEINE", coul:"#ffd24a", texte:txt+"\n\nAvec un compte, tu peux garder jusqu'à "+NUAGE_MAX+" carrières en ligne.",
+    oui:"Créer mon compte", non:"Compris", onOui:()=>{ COMPTE_ONGLET="inscription"; fenetreCompte(); }}); // v2.38 : sans compte, la sortie
+  else message(txt, {titre:"💾 L'ÉTAGÈRE EST PLEINE"});
   return false;
 }
 function sauvegardeLocale(silencieux){
@@ -19624,7 +19629,7 @@ function nuageSynchronise(){
 }
 // L'INDICATEUR vit dans le bouton du compte, au pied de page : « ☁️ Sauvegardé en ligne » ou « ☁️ En attente
 // de connexion ». Sans compte, il reste « ☁️ Compte » : rien à surveiller. Mis à jour sur place, sans redessiner l'écran.
-function libIndicateur(){ return "☁️ "+((compteLit() && libEtatNuage()) || "Compte"); }
+function libIndicateur(){ return "☁️ "+(compteLit() ? (libEtatNuage() || "Compte") : "Sauvegarder en ligne"); } // sans compte, il dit à quoi il sert (v2.38)
 function majIndicateur(){
   if(EN_TEST() || typeof document==="undefined") return;
   const b=document.getElementById("bCompte"); if(b) b.textContent=libIndicateur();
@@ -20153,6 +20158,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
      <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:13px">${partiesListe().length>=MAX_PARTIES && !nuageEvincable()
        ? "Maximum de "+MAX_PARTIES+" carrières atteint : supprimez-en une pour en commencer une autre."
        : `<button class="lien" id="bMagie" style="padding-left:0">✨ Nouvelle carrière au hasard</button>`}</span></p>
+     ${ligneAppareil()}
    </div>`;
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
@@ -20242,6 +20248,7 @@ function ecranAccueil(){
   app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
   document.getElementById("bAproposAcc").onclick=ecranApropos;
   const bca=document.getElementById("bCompteAcc"); if(bca) bca.onclick=fenetreCompte;
+  const bap=document.getElementById("bAppCompte"); if(bap) bap.onclick=()=>{ COMPTE_ONGLET="inscription"; fenetreCompte(); };
   // connecté : on relit la liste en ligne (au plus toutes les trente secondes), puis on redessine si l'on est
   // toujours sur l'accueil. Sur un nouvel appareil, c'est ce qui fait apparaître les carrières des autres.
   if(compteLit() && NUAGE.url && Date.now()-NUAGE_LISTE_T>30000){ NUAGE_LISTE_T=Date.now();
@@ -20314,6 +20321,10 @@ function ecranApropos(){
      <p style="margin:8px 0;line-height:1.55">Jeu développé par un Mosellan frustré d'avoir perdu le titre de champion 1997-98 au goal-average,
        et qui est coincé dans l'ascenseur depuis.</p>
      <p class="dim" style="font-size:13px;line-height:1.5">MULTIPLEX · v${VERSION}</p>
+   </div>
+   <div class="panel">
+     <h2>La sauvegarde</h2>
+     <p class="dim" style="font-size:13px;line-height:1.5">Elle se fait toute seule, sur cet appareil. Avec un compte, tes carrières te suivent en ligne sur tous tes appareils.</p>
    </div>
    <div class="panel">
      <h2>Offrir un café</h2>
@@ -20446,19 +20457,42 @@ function fenetreCompte(){
 }
 /* LA PROPOSITION DE COMPTE (lot 6) : une ligne en bas du debrief, après un match, pour qui joue sans compte.
    Discrète et refusable : trois fois au plus, et « Non merci » la fait taire pour de bon dans ce navigateur.
-   Tutoyée, au mot près de la consigne de l'auteur (29/09/2026). */
-const PROPKEY="d1manager_compte_prop_v1"; // {vues, non}
+   Tutoyée, au mot près de la consigne de l'auteur (29/09/2026).
+   v2.38 : la même ligne au bas de l'almanach de fin de saison (quand="saison"), avec son propre compteur
+   (saisons, trois au plus, une seule vue par saison même si la page se redessine) ; « Non merci » coupe les deux.
+   Une vue ne compte que quand la ligne est vraiment à l'écran (cablePropCompte), plus quand son HTML est produit. */
+const PROPKEY="d1manager_compte_prop_v1"; // {vues, saisons, vueSaison, non}
 function propLit(){ try{ const o=JSON.parse(lsLit(PROPKEY)||"{}"); return o&&typeof o==="object"?o:{}; }catch(e){ return {}; } }
 function propEcrit(o){ try{ localStorage.setItem(PROPKEY, JSON.stringify(o)); }catch(e){} }
-function propAMontrer(){ const o=propLit(); return !!(NUAGE.url && !compteLit() && !o.non && (o.vues||0)<3 && G && (G.journee||0)>=1); }
-function propCompte(){ // le HTML de la ligne, et elle compte comme vue ; "" s'il n'y a rien à proposer
-  if(!propAMontrer()) return "";
-  const o=propLit(); o.vues=(o.vues||0)+1; propEcrit(o);
-  return `<p id="propCompte" class="dim" style="font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid #27466e">☁️ Crée ton compte pour retrouver ta carrière sur tous tes appareils.<br>
+const propSaison=()=>(G&&G.pid||"")+"/"+(G&&G.saisonIdx||1); // la saison de CETTE carrière dont l'almanach est ouvert
+function propAMontrer(quand){
+  const o=propLit(); if(!(NUAGE.url && !compteLit() && !o.non && G && (G.journee||0)>=1)) return false;
+  if(quand==="saison") return (o.saisons||0)<3 || o.vueSaison===propSaison(); // déjà comptée : elle reste au redessin
+  return (o.vues||0)<3;
+}
+function propCompte(quand){ // le HTML de la ligne ; "" s'il n'y a rien à proposer
+  if(!propAMontrer(quand)) return "";
+  const txt=quand!=="saison" ? "☁️ Crée ton compte pour retrouver ta carrière sur tous tes appareils."
+    : cleDuBilan() ? "☁️ Ce titre, garde-le à l'abri. Crée ton compte pour retrouver ta carrière sur tous tes appareils."
+    : "☁️ Une saison de plus au compteur. Crée ton compte pour la mettre à l'abri.";
+  return `<p id="propCompte" data-quand="${quand==="saison"?"saison":"debrief"}" class="dim" style="font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid #27466e">${txt}<br>
     <button class="lien" id="bPropOui" style="padding-left:0">Créer mon compte</button> · <button class="lien" id="bPropNon">Non merci</button></p>`;
 }
+/* OÙ VIT LA SAUVEGARDE (v2.38) : une ligne grise sous « Vos carrières », pour qui joue sans compte. C'est une
+   information, pas une relance : elle reste tant qu'on n'est pas connecté, et « Non merci » ne la touche pas. */
+function ligneAppareil(){
+  if(!NUAGE.url || compteLit()) return "";
+  return `<p id="ligneAppareil" class="dim" style="font-size:13px;margin-top:10px">💾 Tes carrières sont rangées sur cet appareil. Crée un compte pour les retrouver partout.
+    <button class="lien" id="bAppCompte">Créer mon compte</button></p>`;
+}
 function cablePropCompte(racine, fermer){
-  const oui=racine.querySelector("#bPropOui"), non=racine.querySelector("#bPropNon"); if(!oui||!non) return;
+  const l=racine.querySelector("#propCompte"), oui=racine.querySelector("#bPropOui"), non=racine.querySelector("#bPropNon"); if(!l||!oui||!non) return;
+  if(!(racine.style && racine.style.display==="none")){ // la ligne est à l'écran : c'est là qu'elle compte
+    const o=propLit();
+    if(l.dataset.quand==="saison"){ if(o.vueSaison!==propSaison()){ o.saisons=(o.saisons||0)+1; o.vueSaison=propSaison(); } }
+    else o.vues=(o.vues||0)+1;
+    propEcrit(o);
+  }
   oui.onclick=()=>{ fermer(); COMPTE_ONGLET="inscription"; fenetreCompte(); };
   non.onclick=()=>{ const o=propLit(); o.non=true; propEcrit(o); const l=racine.querySelector("#propCompte"); if(l) l.remove(); };
 }

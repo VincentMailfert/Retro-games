@@ -18,6 +18,9 @@
       garde que les quatre plus récentes (sans jamais retirer une carrière pas encore en ligne), la suppression
    N) la progression des saisons verrouillées (v2.22) : muette pour l'invité, héritée par le premier compte, deux
       appareils qui fusionnent, un envoi qui en croise un autre, un navigateur partagé, la suppression du compte
+   O) l'incitation à créer un compte (v2.38) : le bouton qui dit « Sauvegarder en ligne », la ligne de l'accueil,
+      le rappel de fin de saison (deux textes, plafond de trois, coupé par « Non merci »), le debrief qui ne compte
+      une vue qu'à l'écran, l'étagère pleine ; et toujours pas une requête sans compte
    Usage : node harness-compte.cjs                                                           */
 const fs = require("fs");
 const path = require("path");
@@ -186,6 +189,7 @@ const epilogue = "\n;return {nouvellePartie,jouerJournee,sauvegardeLocale,charge
   "compteInscription,compteConnexion,compteDepuisLien,compteNouveauMdp,texteErreur,compteDeconnexion,compteSupprime,compteOubli,compteLit," +
   "nuageSynchronise,nuagePlanifie,nuageListe,nuageRapatrie,nuageCompresse,nuageDecompresse,nuageEtatLit,avanceDe," +
   "progGagne,ouvreSaison,clesDispo,saisonOuverte,progSynchronise," +
+  "libIndicateur,ligneAppareil,panneauCarrieres,propCompte,propLit,cablePropCompte,cleDepart,PROPKEY," +
   "getG:function(){return G;},setG:function(x){G=x;},getPARTIE:function(){return PARTIE;}," +
   "getEtat:function(){return NUAGE_ETAT;},setDernier:function(v){NUAGE_DERNIER=v;}};";
 function appareil(nom, ls) {
@@ -608,6 +612,53 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   r = await k1.compteSupprime();
   ok(r.ok && !SRV.prog[uidK], "supprimer le compte efface sa progression en ligne");
   ok(k1.clesDispo("FR") === 1 && k1.saisonOuverte("1994-95"), "celle du navigateur reste, rendue à l'invité comme ses carrières");
+
+  /* ===== O) l'incitation à créer un compte ===== */
+  console.log("\nO) L'incitation à créer un compte, sans une requête");
+  const O = appareil("incitation"); let io = sur(O); allume(io);
+  const appelsO = SRV.appels;
+  io.nouvellePartie(io.CLUBS[0].id); joue(io, 2);
+  ok(io.libIndicateur() === "☁️ Sauvegarder en ligne", "sans compte, le bouton du pied de page dit « Sauvegarder en ligne »");
+  ok(/rangées sur cet appareil/.test(io.ligneAppareil()) && /id="bAppCompte"/.test(io.ligneAppareil()), "sans compte, la ligne de l'accueil dit où vivent les carrières, avec son bouton");
+  ok(/id="ligneAppareil"/.test(io.panneauCarrieres(io.carrieresAffichees())), "et elle est bien sous « Vos carrières »");
+  // un faux écran : la ligne y est posée, et il dit s'il est affiché
+  const ecran = (html, cache) => {
+    const q = {}; const m = /data-quand="(\w+)"/.exec(html);
+    if (m) { q["#propCompte"] = { dataset: { quand: m[1] }, remove() {} }; q["#bPropOui"] = {}; q["#bPropNon"] = {}; }
+    return { style: { display: cache ? "none" : "flex" }, querySelector: (k) => q[k] || null, q };
+  };
+  const vues = () => io.propLit().vues || 0, saisons = () => io.propLit().saisons || 0;
+  let h = io.propCompte();
+  ok(/Crée ton compte/.test(h) && vues() === 0, "le debrief : produire la ligne ne compte plus une vue");
+  io.cablePropCompte(ecran(h, true), () => {});
+  ok(vues() === 0, "une ligne posée dans un écran caché ne compte pas");
+  io.cablePropCompte(ecran(h, false), () => {});
+  ok(vues() === 1, "à l'écran, elle compte une vue");
+  const g = io.getG();
+  h = io.propCompte("saison");
+  ok(/Une saison de plus au compteur/.test(h) && !/Ce titre/.test(h), "fin de saison sans titre : « Une saison de plus au compteur »");
+  io.cablePropCompte(ecran(h), () => {}); io.cablePropCompte(ecran(h), () => {});
+  ok(saisons() === 1 && vues() === 1, "l'almanach redessiné ne compte qu'une fois, et pas sur le compteur du debrief");
+  io.progGagne(io.cleDepart(g), g.pid, g.saisonIdx || 1);
+  ok(/Ce titre, garde-le à l'abri/.test(io.propCompte("saison")), "fin de saison avec le titre : « Ce titre, garde-le à l'abri »");
+  for (const an of [2, 3]) { g.saisonIdx = an; io.cablePropCompte(ecran(io.propCompte("saison")), () => {}); }
+  ok(saisons() === 3 && io.propCompte("saison") !== "", "trois saisons, trois vues ; la troisième reste affichée tant qu'on est sur sa page");
+  g.saisonIdx = 4;
+  ok(io.propCompte("saison") === "", "à la quatrième saison, le rappel se tait");
+  g.saisonIdx = 1;
+  const e2 = ecran(io.propCompte()); io.cablePropCompte(e2, () => {}); e2.q["#bPropNon"].onclick();
+  ok(io.propLit().non === true && io.propCompte() === "" && io.propCompte("saison") === "", "« Non merci » coupe le debrief ET la fin de saison");
+  ok(io.ligneAppareil() !== "", "mais pas la ligne de l'accueil, qui est une information");
+  O.ls.removeItem(io.PROPKEY);
+  for (let i = 0; i < 4; i++) { io.nouvellePartie(io.CLUBS[i + 1].id); joue(io, 1); }
+  const avM = io.MSG_JOURNAL.length;
+  ok(!io.placeDispo() && io.MSG_JOURNAL.length > avM && /jusqu'à 10 carrières en ligne/.test(io.MSG_JOURNAL[io.MSG_JOURNAL.length - 1]),
+    "l'étagère pleine, sans compte : « Avec un compte, tu peux garder jusqu'à 10 carrières en ligne »");
+  ok(SRV.appels === appelsO, "tout cela sans une seule requête");
+  await io.compteInscription("incite@exemple.fr", "motdepasse"); await io.nuageSynchronise();
+  ok(io.libIndicateur() !== "☁️ Sauvegarder en ligne" && /Sauvegardé en ligne|En attente de connexion/.test(io.libIndicateur()), "connecté, le bouton redevient l'indicateur (" + io.libIndicateur() + ")");
+  ok(io.ligneAppareil() === "" && !/ligneAppareil/.test(io.panneauCarrieres(io.carrieresAffichees())), "connecté, la ligne de l'accueil disparaît");
+  ok(io.propCompte() === "" && io.propCompte("saison") === "", "connecté, ni debrief ni fin de saison ne proposent de compte");
 
   console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS COMPTE : TOUT EST VERT");
   process.exit(FAILS ? 1 : 0);

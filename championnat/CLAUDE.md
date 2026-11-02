@@ -162,13 +162,24 @@ toujours « raconter quelque chose ».
   en ligne** (choix de l'auteur ; file `_suppr` hors connexion). Limite assumée : si la même carrière est encore sur
   un autre appareil et qu'on y rejoue, elle renaît en ligne (on n'efface jamais rien à distance).
   **L'interface** : « ☁️ Se connecter » / « ☁️ Mon compte » au pied de l'accueil, et au pied du jeu le bouton du compte
-  qui **sert d'indicateur** (« ☁️ Sauvegardé en ligne » / « ☁️ En attente de connexion » ; « ☁️ Compte » sans compte).
+  qui **sert d'indicateur** (« ☁️ Sauvegardé en ligne » / « ☁️ En attente de connexion » ; **« ☁️ Sauvegarder en ligne » sans compte**, v2.38).
   `fenetreCompte` (dans `#msgbox`) : connexion, création, mot de passe oublié ; connecté, déconnexion et **suppression
   du compte** (exigée par l'App Store et le RGPD). Le retour d'un lien reçu par email (`#access_token=…&type=signup`
   ou `recovery`) est lu **sans requête** par `compteDepuisLien` (l'identité est dans le jeton), puis l'ancre est effacée.
   Google et Apple : la place est prête (`FOURNISSEURS`, vide) ; un bouton n'apparaît qu'une fois le fournisseur réglé
   côté Supabase. **La proposition de compte** : une ligne tutoyée (consigne de l'auteur) en bas du debrief, pour qui
-  joue sans compte, **trois fois au plus**, et « Non merci » la fait taire pour de bon (`PROPKEY`). Page
+  joue sans compte, **trois fois au plus**, et « Non merci » la fait taire pour de bon (`PROPKEY`).
+  **L'INCITATION (v2.38)** : rien pour un joueur connecté, toujours aucune requête (section O de `harness-compte.cjs`).
+  (1) Le bouton du pied de page dit « ☁️ Sauvegarder en ligne » sans compte. (2) Sous « Vos carrières »,
+  `ligneAppareil()` : « 💾 Tes carrières sont rangées sur cet appareil… [Créer mon compte] », PERMANENTE tant qu'on
+  n'est pas connecté (c'est une information : « Non merci » ne la touche pas). (3) La ligne du debrief revient au bas
+  de l'almanach (`propCompte("saison")` : texte du titre si `cleDuBilan()`, sinon « Une saison de plus au compteur »),
+  avec **son propre compteur** `saisons` dans `PROPKEY`, trois au plus, une seule vue par saison même si l'almanach se
+  redessine (`vueSaison` = `pid/saisonIdx`) ; « Non merci » (`o.non`) coupe les deux. (4) **Une vue ne compte que si
+  la ligne est à l'écran** : le compteur avance dans `cablePropCompte`, `propCompte` ne fait plus que le HTML.
+  (5) « L'ÉTAGÈRE EST PLEINE », sans compte : « Avec un compte, tu peux garder jusqu'à 10 carrières en ligne » et un
+  bouton « Créer mon compte » (`confirme`). (6) Un encadré « La sauvegarde » dans « À propos » (sans export de
+  fichier : il n'existe plus depuis la v1.61). Page
   `confidentialite.html` à côté du jeu. La session vit dans `COMPTEKEY` (`d1manager_compte_v1`).
   **Réglages faits à la main dans le tableau de bord Supabase** (le connecteur ne sait pas les faire) : Authentication →
   URL Configuration (Site URL et Redirect URLs = l'adresse du jeu), et un SMTP à soi (Resend) dans Authentication →
