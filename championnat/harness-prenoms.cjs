@@ -108,7 +108,7 @@ console.log("D) Sans prénom connu, le nom court reste");
   const inconnus = Object.entries(PRENOMS_VRAIS).filter(([, p]) => !p).map(([n]) => n);
   ok(inconnus.every(n => nomLong(n) === n), `les ${inconnus.length} prénoms introuvables gardent l'initiale`);
   ok(nomLong("Z. Inconnu") === "Z. Inconnu" && nomLong("") === "" && nomLong(undefined) === "", "un nom hors table, vide ou absent ne casse rien");
-  const ex = Object.entries(PRENOMS_VRAIS).find(([, p]) => p);
+  const ex = Object.entries(PRENOMS_VRAIS).find(([n, p]) => p && /^[A-Z]\. [^.]+$/.test(n)); // une seule initiale (« A. A. Mezan » relève de G)
   if (ex) ok(nomLong(ex[0]) === ex[1] + " " + ex[0].slice(ex[0].indexOf(". ") + 2), `exemple : « ${ex[0]} » s'affiche « ${nomLong(ex[0])} »`);
   const compose = Object.keys(PRENOMS_VRAIS).find(n => /^[A-Z]\.-[A-Z]\. /.test(n) && PRENOMS_VRAIS[n]);
   if (compose) ok(!nomLong(compose).includes(". "), `un prénom composé remplace les deux initiales : « ${nomLong(compose)} »`);

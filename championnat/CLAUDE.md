@@ -5378,6 +5378,29 @@ neuf sortis, Shane Long en tête (arrivé de Cork, peut-être dès l'été).
 
 `harness-ang0506.cjs` garde tout cela.
 
+### ANG 2006-07 — RONALDO PREND LE POUVOIR (v2.37)
+Dix-septième saison anglaise, assemblée par la tâche planifiée le 01/11/2026 à partir de `releves/ANG-2006-07` (relevé
+Transfermarkt), **toujours sans accès au réseau**, sur la branche `secours/2026-11-01`, puis livrée le 02/11/2026 par
+l'auteur : `main` avait pris la v2.36 entre-temps (le robot joueur), la saison passe donc en **v2.37**. Manchester United
+reprend le titre à Chelsea. Cristiano Ronaldo joueur de l'année PFA et FWA, meilleur espoir (88) ; Drogba meilleur buteur
+avec vingt buts (87) ; Scholes et Van der Sar 81, Cureton 74. 400 + 360 vrais joueurs. **Aucune pépite forcée.** Premier
+League à vingt ; l'échelon du dessous perd Hull, Southend, Luton et Leeds.
+
+**Les soixante-dix-huit arrivées non datées** sont reprises contre le relevé 2005-06 avec la règle de la veille : dix-sept
+sortent (Zheng, Dempsey, Walters, Mascherano, Kuszczak, Andy Carroll, David Marshall, Sawyer, Fallon, Mvuemba, Bikey,
+Jonny Evans, Carlton Cole, McCartney, Valencia, Bassett, Cann). Woodgate sort (au Real Madrid dans le recruteur de l'été
+2006). Lee Camp, Manuel Fernandes, Chimbonda, Nyatanga et Parkin reviennent au club du coup d'envoi. Paul Robinson, Rob
+Edwards, Gareth Williams, Paul Reid et Tommy Wright n'ont aucun nom libre et sont remplacés. Trois homonymes départagés par
+`_graphie` (Amdy et Abdoulaye Faye, Isaac et Isaiah Osbourne, Craig Davies contre le « C. Davies » de Sochaux) ; « N. Vidić »
+que le relevé écrivait avec un caractère invisible.
+
+**LE TEST DES PRÉNOMS ET LES NOMS À DEUX INITIALES (choix de l'auteur, 02/11/2026).** La section D de
+`harness-prenoms.cjs` prenait pour exemple la première entrée de `PRENOMS_VRAIS` et supposait une seule initiale. Cette
+saison met en tête « A. A. Mezan » (affiché « Alexander Mezan », ce qui est juste, la section G le vérifie) : le harnais
+rougissait sur l'ordre de la table, pas sur une donnée. Elle prend désormais **la première entrée à une seule initiale**.
+
+`harness-ang0607.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
