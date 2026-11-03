@@ -27,6 +27,12 @@
    "Isaiah Osbourne",
    "Isaiah Osbourne",
    "né en 1987, formé à Aston Villa : ce n'est pas Isaac Osbourne (« I. Osbourne », né en 1986, Coventry, club écarté cette saison) ; il garde son nom entier, comme en 2006-07. Sans cette ligne, le résolveur lui donnait « I. Osbourne » et l'âge d'Isaac (21 ans au lieu de 20), ce que controle-graphies.cjs a montré"
+  ],
+  [
+   "BLB",
+   "Roque Santa Cruz",
+   "R. Santa Cruz",
+   "« Santa Cruz » est un seul patronyme, comme « Dalla Bona » ou « Boa Morte » : la particule se garde entière (règle de 1999-00). Sans cette ligne, l'assemblage donnait « R. S. Cruz », que le jeu ne porte nulle part ; « Santa » entre dans la liste des particules de harness-angleterre.cjs, à côté de « San » et « Saint »"
   ]
  ],
  "_retirer": [
