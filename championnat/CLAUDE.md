@@ -5412,6 +5412,43 @@ rougissait sur l'ordre de la table, pas sur une donnée. Elle prend désormais *
 
 `harness-ang0607.cjs` garde tout cela.
 
+### ANG 2007-08 — MOSCOU SOUS LA PLUIE (v2.39)
+Dix-huitième saison anglaise, assemblée par la tâche planifiée le 03/11/2026 à partir de `releves/ANG-2007-08` (relevé
+Transfermarkt), **toujours sans accès au réseau**. Manchester United garde son titre avec quatre-vingt-sept points, deux devant
+Chelsea, qu'il bat aux tirs au but à Moscou en finale de la Ligue des champions ; Portsmouth gagne la FA Cup, Tottenham la
+Coupe de la Ligue, Derby descend avec onze points. Cristiano Ronaldo joueur de l'année PFA et FWA, trente et un buts (90) ;
+**Fàbregas meilleur espoir (84)**, que l'héritage laissait à 72 ; Adebayor 82 (vingt-quatre buts, comme Torres, 85 par
+héritage) ; Ebanks-Blake 74, meilleur buteur du dessous, à Plymouth au coup d'envoi et à Wolverhampton en janvier. Notes :
+485 héritées de 2006-07, 99 plus lointaines, 7 du recruteur, 169 calculées ; élite 70.7 / 70, dessous 66.6 / 67. **Aucune
+pépite forcée.** Premier League à vingt ; l'échelon du dessous perd ses quatre derniers (Coventry, Leicester, Scunthorpe,
+Colchester).
+
+**Les cinquante-quatre arrivées non datées**, reprises contre le relevé 2006-07 avec la règle de la veille : trente-six au
+même club la saison d'avant restent (Ronaldo, Scholes, Drogba, Robbie Keane, Woodgate et Defoe, partis en janvier…). Six
+sortent, absents du club en 2006-07 et utilisés moins d'une demi-saison : Curtis Davies, Chris Clark, Chris Perry, Graham
+Stack, Waghorn, Webbe. **Quatre étaient au coup d'envoi au club qui les fait jouer cette saison avec une arrivée datée**
+(règle de 2003-04) : Sodje (Reading), Paul Gallagher (Blackburn), Carlo Nash (Wigan), **Fraizer Campbell** (Manchester United,
+62 minutes, prêté à Hull ensuite). Les titulaires arrivés l'été restent faute de contre-preuve (Santa Cruz, Pienaar, Baird,
+Viduka, Beattie, Billy Sharp, Kaboul). **Bale reste à Tottenham** malgré 824 minutes : c'est le seul des sortants possibles
+que le rapport du relevé met nommément au club au coup d'envoi, et il ne joue plus une minute pour Southampton, où il était
+retenu en 2006-07. Anderson, Eduardo, Alan Smith, Paul Robinson (West Bromwich), Semedo et Paul Reid n'ont aucun nom libre.
+Seize hommes datés d'avant le coup d'envoi entrent à leur place (Sörensen, Gunter, Powell, Summerfield, Neal, Makin, Buxton,
+Stern John, Ikeme, Bridges, Eagles, Hoyte, Solano, Hodgkiss, Racon, Christensen). Arsenal et Cardiff restent à trois
+attaquants, toléré.
+
+**DEUX NOMS QUE L'ASSEMBLAGE FAISAIT FAUX.** (1) **Isaiah Osbourne** (Aston Villa, né en 1987) prenait « I. Osbourne » et
+l'âge d'Isaac (Coventry, né en 1986), absent cette saison puisque Coventry est écarté : le résolveur ne voit plus d'autre homme
+sous ce nom et rend le nom du jeu au premier venu. `controle-graphies.cjs` l'a montré ; `_graphie` lui rend son nom entier,
+comme en 2006-07. **Leçon : un homonyme départagé une saison peut se refondre la suivante si l'autre homme quitte le
+plateau ; relire la liste à chaque saison.** (2) **Roque Santa Cruz** sortait « R. S. Cruz », forme que le jeu ne porte nulle
+part : « Santa Cruz » est un seul patronyme, la particule se garde entière, **« R. Santa Cruz »**. « Santa » entre dans la liste
+des particules de `harness-angleterre.cjs`, avec sa note, comme « Dalla » en 1999-00. (« L. B. Morte », « M. G. Pedersen »,
+« S. S. Ledger » restent : ce sont des graphies déjà au jeu, et la graphie du jeu gagne.)
+
+**Restent à revoir quand Transfermarkt répondra** : les arrivées gardées sans preuve, Bale compris, et les six sortis.
+
+`harness-ang0708.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
