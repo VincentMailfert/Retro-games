@@ -1,0 +1,172 @@
+{
+ "C. Ronaldo": [
+  90,
+  92,
+  "joueur de l'année PFA et de la presse (FWA), meilleur buteur de la Premier League avec trente et un buts pour Manchester United champion d'Angleterre et d'Europe ; 89 par héritage"
+ ],
+ "C. Fàbregas": [
+  84,
+  91,
+  "meilleur espoir PFA, titulaire au milieu d'Arsenal toute la saison ; 72 par héritage, trop bas pour ce rôle"
+ ],
+ "E. Adebayor": [
+  82,
+  85,
+  "vingt-quatre buts en championnat pour Arsenal, deuxième meilleur buteur à égalité avec Fernando Torres ; 76 par héritage, trop bas pour ce rôle"
+ ],
+ "S. Ebanks-Blake": [
+  74,
+  80,
+  "meilleur buteur de la deuxième division avec vingt-trois buts, partagés entre Plymouth (au coup d'envoi) et Wolverhampton (arrivé en janvier) ; 67 par héritage"
+ ],
+ "_forcer": [],
+ "_corriger": [],
+ "_graphie": [
+  [
+   "AVL",
+   "Isaiah Osbourne",
+   "Isaiah Osbourne",
+   "né en 1987, formé à Aston Villa : ce n'est pas Isaac Osbourne (« I. Osbourne », né en 1986, Coventry, club écarté cette saison) ; il garde son nom entier, comme en 2006-07. Sans cette ligne, le résolveur lui donnait « I. Osbourne » et l'âge d'Isaac (21 ans au lieu de 20), ce que controle-graphies.cjs a montré"
+  ],
+  [
+   "BLB",
+   "Roque Santa Cruz",
+   "R. Santa Cruz",
+   "« Santa Cruz » est un seul patronyme, comme « Dalla Bona » ou « Boa Morte » : la particule se garde entière (règle de 1999-00). Sans cette ligne, l'assemblage donnait « R. S. Cruz », que le jeu ne porte nulle part ; « Santa » entre dans la liste des particules de harness-angleterre.cjs, à côté de « San » et « Saint »"
+  ]
+ ],
+ "_retirer": [
+  [
+   "AVL",
+   "Curtis Davies",
+   "arrivée non datée par le relevé ; absent de l'effectif d'Aston Villa dans le relevé 2006-07 (retenu à West Bromwich, 3 327 minutes, arrivée datée), et 993 minutes, moins de la moitié d'une saison : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "CAR",
+   "Tyrrell Webbe",
+   "aucune date d'arrivée, absent du relevé 2006-07, et 210 minutes : rien hors ligne ne le met au club au coup d'envoi"
+  ],
+  [
+   "CHL",
+   "Sam Sodje",
+   "arrivée non datée à Charlton ; à l'effectif de Reading cette saison avec une arrivée d'avant le coup d'envoi et 58 minutes, et absent de Charlton dans le relevé 2006-07 : à Reading au coup d'envoi, prêté ensuite"
+  ],
+  [
+   "PLY",
+   "Chris Clark",
+   "arrivée non datée par le relevé ; absent du relevé 2006-07, et 779 minutes, moins de la moitié d'une saison : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "PNE",
+   "Paul Gallagher",
+   "arrivée non datée à Preston ; à l'effectif de Blackburn cette saison avec une arrivée d'avant le coup d'envoi (retenu à Blackburn dans le relevé 2006-07), puis prêté à Stoke en cours de saison : à Blackburn au coup d'envoi, à Preston ensuite"
+  ],
+  [
+   "SOU",
+   "Chris Perry",
+   "arrivée non datée par le relevé ; absent de Southampton dans le relevé 2006-07 (retenu à West Bromwich), et 540 minutes : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "STK",
+   "Carlo Nash",
+   "arrivée non datée à Stoke ; à l'effectif de Wigan cette saison avec une arrivée d'avant le coup d'envoi, absent de Stoke dans le relevé 2006-07 (retenu à Preston), 900 minutes : à Wigan au coup d'envoi, à Stoke ensuite"
+  ],
+  [
+   "SUN",
+   "Martyn Waghorn",
+   "arrivée non datée par le relevé ; absent du relevé 2006-07, et 163 minutes : rien hors ligne ne le met à l'effectif au coup d'envoi"
+  ],
+  [
+   "WOL",
+   "Graham Stack",
+   "arrivée non datée par le relevé ; absent de Wolverhampton dans le relevé 2006-07 (Reading, puis Leeds en cours de saison), et 274 minutes : le profil d'un prêt en cours de saison"
+  ],
+  [
+   "HUL",
+   "Fraizer Campbell",
+   "arrivée non datée à Hull ; à l'effectif de Manchester United cette saison avec une arrivée d'avant le coup d'envoi et 62 minutes : le club qui l'a fait jouer cette saison avec une arrivée datée l'avait au coup d'envoi (règle de 2003-04), il est prêté à Hull ensuite"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "AVL",
+   "Thomas Sörensen",
+   "remplace Curtis Davies : arrivée datée d'avant le coup d'envoi, retenu à Aston Villa dans le relevé 2006-07, seul autre homme d'Aston Villa arrivé avant le coup d'envoi ; troisième gardien, Aston Villa reste à cinq défenseurs"
+  ],
+  [
+   "CAR",
+   "Chris Gunter",
+   "remplace Tyrrell Webbe : 1 248 minutes, arrivée datée d'avant le coup d'envoi, retenu à Cardiff dans le relevé 2006-07, arrivé à Tottenham en cours de saison ; aucun autre attaquant de Cardiff n'a de preuve, et Cardiff reste à trois attaquants (toléré, comme Watford en 2005-06)"
+  ],
+  [
+   "CHL",
+   "Chris Powell",
+   "remplace Sam Sodje : 1 546 minutes, arrivée à Charlton datée d'avant le coup d'envoi, relevé nulle part ailleurs cette saison"
+  ],
+  [
+   "PLY",
+   "Luke Summerfield",
+   "remplace Chris Clark : 651 minutes, arrivée datée d'avant le coup d'envoi, retenu à Plymouth dans le relevé 2006-07"
+  ],
+  [
+   "PNE",
+   "Lewis Neal",
+   "remplace Paul Gallagher : 865 minutes, arrivée datée d'avant le coup d'envoi, retenu à Preston dans le relevé 2006-07"
+  ],
+  [
+   "SOU",
+   "Chris Makin",
+   "remplace Chris Perry : 540 minutes, arrivée à Southampton datée d'avant le coup d'envoi, seul défenseur du club dans ce cas qui ait joué"
+  ],
+  [
+   "STK",
+   "Lewis Buxton",
+   "remplace Carlo Nash : 155 minutes, arrivée datée d'avant le coup d'envoi, à Stoke dans le relevé 2006-07 ; Stoke garde deux gardiens"
+  ],
+  [
+   "SUN",
+   "Stern John",
+   "remplace Martyn Waghorn : 32 minutes, arrivée à Sunderland datée d'avant le coup d'envoi, à Sunderland dans le relevé 2006-07, arrivé à Southampton en cours de saison"
+  ],
+  [
+   "WOL",
+   "Carl Ikeme",
+   "remplace Graham Stack, deuxième gardien : arrivée à Wolverhampton datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "HUL",
+   "Michael Bridges",
+   "remplace Fraizer Campbell : 370 minutes, arrivée datée d'avant le coup d'envoi, à Hull dans le relevé 2006-07"
+  ],
+  [
+   "MUN",
+   "Chris Eagles",
+   "remplace Anderson, sans nom libre : 311 minutes, arrivée datée d'avant le coup d'envoi, à Manchester United dans le relevé 2006-07"
+  ],
+  [
+   "ARS",
+   "Justin Hoyte",
+   "remplace Eduardo, sans nom libre : 990 minutes, arrivée datée d'avant le coup d'envoi, retenu à Arsenal dans le relevé 2006-07 ; aucun autre attaquant d'Arsenal n'a de preuve, et Arsenal reste à trois attaquants"
+  ],
+  [
+   "NEW",
+   "Nolberto Solano",
+   "remplace Alan Smith, sans nom libre : arrivée datée d'avant le coup d'envoi, retenu à Newcastle dans le relevé 2006-07, 111 minutes pour Newcastle avant son départ pour West Ham"
+  ],
+  [
+   "WBA",
+   "Jared Hodgkiss",
+   "remplace Paul Robinson, sans nom libre, comme en 2006-07 : 675 minutes, arrivée datée d'avant le coup d'envoi, à West Bromwich dans le relevé 2006-07"
+  ],
+  [
+   "CHL",
+   "Therry Racon",
+   "remplace Semedo, sans nom libre : 265 minutes, arrivée à Charlton datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "BNS",
+   "Kim Christensen",
+   "remplace Paul Reid, sans nom libre : 189 minutes, arrivée à Barnsley datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ]
+ ]
+}
