@@ -106,8 +106,9 @@ doit donc convenir après « Tout converge vers X… ».
 **Fait en v2.42** : l'action qui meurt (`COMM.meurt`, 17 lignes, ~1 par match), relue et validée
 par l'auteur.
 
+**Fait en v2.43** : 22 conclusions pour les voies pauvres (combi 12, rebond 10, face 12, aile 9).
+
 Reste à écrire case par case, dans les deux voix (~70 % reporter, 30 % chambreur) :
-- conclusions : étoffer `combi`, `rebond`, `aile` et `face` (7 lignes ou moins chacune) ;
 - la relance ratée qui finit au fond (erreur adverse, 31 actions dans le corpus) ;
 - les annonces en deux temps (corner à suivre, puis son issue) ;
 - le résumé de mi-temps qui juge le scénario.

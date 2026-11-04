@@ -3047,6 +3047,10 @@ toujours « raconter quelque chose ».
   perdue, contrée ou sifflée sans tir). Pur décor, `t:"occ"`, `ic:"rate"`, proba **0,012 par minute** (~1 par match,
   volontairement en retrait du réel ~2,8), branchée aux DEUX points d'injection (`simuleMatch` et `simuleReste`),
   comme `sauve`. Calibrage intact (2,420 buts/match).
+- **Les voies pauvres étoffées (v2.43, validée par l'auteur)** : 22 conclusions neuves dans `COMM.but`/`rate`/`arret`
+  (bloc marqué « v2.43 »), rangées par leur seul vocabulaire (`VOIES_TIR`) : combi 6→12, rebond 5→10, face 7→12,
+  aile 3→9, chaque voie en but, raté ET arrêt. Piège évité : « avant-centre » contient `centre` et ferait d'une
+  une-deux un centre.
 - **Commentaires du direct — enrichissement sur corpus réel (v0.83, lot 1)** : le téléscripteur ne
   racontait que le tir et le carton. Dépouillement de **17 lives réels de L1** (1 539 entrées, minute 1
   au coup de sifflet) + 5 lives SoFoot, qui a dicté les réglages plutôt que l'intuition. Enseignements :
