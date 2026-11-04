@@ -108,7 +108,8 @@ par l'auteur.
 
 **Fait en v2.43** : 22 conclusions pour les voies pauvres (combi 12, rebond 10, face 12, aile 9).
 
+**Fait en v2.44** : la relance ratée, en deux voies (gardien / défenseur), sans passeur.
+
 Reste à écrire case par case, dans les deux voix (~70 % reporter, 30 % chambreur) :
-- la relance ratée qui finit au fond (erreur adverse, 31 actions dans le corpus) ;
 - les annonces en deux temps (corner à suivre, puis son issue) ;
 - le résumé de mi-temps qui juge le scénario.

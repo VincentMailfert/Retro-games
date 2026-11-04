@@ -3051,6 +3051,14 @@ toujours « raconter quelque chose ».
   (bloc marqué « v2.43 »), rangées par leur seul vocabulaire (`VOIES_TIR`) : combi 6→12, rebond 5→10, face 7→12,
   aile 3→9, chaque voie en but, raté ET arrêt. Piège évité : « avant-centre » contient `centre` et ferait d'une
   une-deux un centre.
+- **La relance ratée (v2.44, validée par l'auteur)** : `BUT_ERREUR`/`RATE_ERREUR`/`ARRET_ERREUR`, deux voies.
+  `gardien` (le portier offre le ballon) et `erreur` (un défenseur l'offre). **Retour de l'auteur** : « si c'est le
+  gardien qui fait une relance dans les pieds de l'attaquant, ensuite il ne peut pas engueuler sa défense » ; le
+  second temps de `gardien` ne dit donc jamais « sa défense » (harnais répétitions, section I). Les buts sur erreur
+  sont dans `BUT_SANS_PASSE` (pas de passeur) et limités à DEUX lignes (tirage uniforme ; corpus : 4,3 % des buts) ;
+  la coupe (`corpsCoupe`) respecte enfin `BUT_SANS_PASSE` (le corner direct y gagnait une passe décisive).
+  Tournures voulues par l'auteur : des montées qui commencent par « Mais… », et « fusille à bout portant » quand
+  le joueur est dans la surface près du gardien (motif `fusille` : une fois par match au plus).
 - **Commentaires du direct — enrichissement sur corpus réel (v0.83, lot 1)** : le téléscripteur ne
   racontait que le tir et le carton. Dépouillement de **17 lives réels de L1** (1 539 entrées, minute 1
   au coup de sifflet) + 5 lives SoFoot, qui a dicté les réglages plutôt que l'intuition. Enseignements :

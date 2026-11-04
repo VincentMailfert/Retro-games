@@ -394,12 +394,19 @@ console.log("\nI) Les voies du jeu ouvert (VOIES_TIR / MONTEE_VOIE)");
   for (const [v, [un, deux]] of Object.entries(api.MONTEE_VOIE))
     for (const t of [...un, ...deux].map(texte))
       for (const [w, rx] of api.VOIES_TIR)
-        if (w !== v && !(v === "aile" && w === "centre") && rx.test(t)) voisines.push(v + " ← " + w + " : « " + t.slice(0, 45) + "… »");
+        if (w !== v && !(v === "aile" && w === "centre") && !(v === "gardien" && w === "erreur") && rx.test(t)) voisines.push(v + " ← " + w + " : « " + t.slice(0, 45) + "… »");
   if (!voisines.length) ok("chaque montée ne parle que la langue de sa voie");
   else fail(voisines.length + " montée(s) parlent la langue d'une autre voie, ex. " + voisines[0]);
   const neutres = [...api.MONTEE_BUT, ...api.MONTEE_FRAPPE].map(texte).filter((t) => api.VOIES_TIR.some(([, rx]) => rx.test(t)));
   if (!neutres.length) ok("les montées de la frappe nue n'annoncent aucune construction");
   else fail(neutres.length + " montée(s) de la frappe nue annoncent une voie : « " + neutres[0].slice(0, 45) + "… »");
+
+  // v2.44, retour de l'auteur : « si c'est le gardien qui fait une relance dans les pieds de l'attaquant, ensuite il
+  // ne peut pas engueuler sa défense ». Le fautif, c'est lui : ni le second temps ni la conclusion ne l'en déchargent.
+  const gkFautif = [...api.MONTEE_VOIE.gardien[1].map(texte),
+    ...OUVERT.filter((l) => api.voieTir(l) === "gardien")].filter((t) => /sa défense|ses défenseurs|son défenseur|un défenseur/i.test(t));
+  if (api.MONTEE_VOIE.gardien && !gkFautif.length) ok("après une relance ratée du gardien, personne ne le fait hurler sur sa défense");
+  else fail(gkFautif.length + " ligne(s) font porter au gardien fautif la faute de sa défense : « " + (gkFautif[0] || "").slice(0, 50) + "… »");
 
   // pas de balle arrêtée, pas de chiffre, et un second temps qui tient aussi après un contre
   const toutes = Object.values(api.MONTEE_VOIE).flatMap(([un, deux]) => [...un, ...deux]).map(texte);
@@ -435,6 +442,25 @@ console.log("\nI) Les voies du jeu ouvert (VOIES_TIR / MONTEE_VOIE)");
       if (!DECORS[v] || !DECORS[v].has(un) || !GESTES[v] || ![...api.MONTEE_VOIE[v][1]].some((f) => f(info.but, "Barthez") === deux)) { faux++; exemple = exemple || un + " / " + deux + " / " + e.x; }
     }
   }
+  // v2.43 bis : le but sur relance ratée n'a pas de passeur (BUT_SANS_PASSE), en championnat ET en coupe
+  // (la coupe ignorait le Set jusque-là : le corner direct y repartait avec une passe décisive)
+  let sansPasse = 0, passeIndue = 0;
+  for (let k = 0; k < 1500; k++) {
+    const h = G.clubs[k % G.clubs.length], a = G.clubs[(k * 3 + 1) % G.clubs.length];
+    if (h === a) continue;
+    frais(h, a);
+    const evs = [...api.simuleMatch(h, a, true).ev, ...api.genEvCoupe(h, a, { sh: 2 + (k % 3), sa: 1 + (k % 2), tab: null, win: h }).ev];
+    for (const e of evs) {
+      if (!e.g || !e.x) continue;
+      const g = gabaritDe(e.x);
+      if (!g || !api.BUT_SANS_PASSE.has(g.ligne)) continue;
+      sansPasse++;
+      if (e.g.pas || /Passe décisive/.test(e.x)) passeIndue++;
+    }
+  }
+  if (sansPasse > 50 && !passeIndue) ok(sansPasse + " buts sans passeur (corner direct, relance ratée), championnat et coupe : aucune passe décisive inventée");
+  else fail(passeIndue ? passeIndue + " but(s) sans passeur repartent avec une passe décisive" : "trop peu de buts sans passeur pour conclure (" + sansPasse + ")");
+
   if (vus > 200 && !faux) ok(vus + " actions de jeu ouvert simulées, toutes mises en scène dans leur voie");
   else fail(faux ? faux + " action(s) sur " + vus + " mises en scène hors de leur voie, ex. " + exemple.slice(0, 120) : "trop peu d'actions de voie simulées (" + vus + ")");
 }
