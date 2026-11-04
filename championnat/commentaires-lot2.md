@@ -103,9 +103,11 @@ doit donc convenir après « Tout converge vers X… ».
 
 ## 3. Version suivante : la quantité
 
-À écrire case par case, dans les deux voix (~70 % reporter, 30 % chambreur) :
+**Fait en v2.42** : l'action qui meurt (`COMM.meurt`, 17 lignes, ~1 par match), relue et validée
+par l'auteur.
+
+Reste à écrire case par case, dans les deux voix (~70 % reporter, 30 % chambreur) :
 - conclusions : étoffer `combi`, `rebond`, `aile` et `face` (7 lignes ou moins chacune) ;
-- l'action qui meurt (perdue, contrée, faute, hors-jeu), premier manque mesuré ;
 - la relance ratée qui finit au fond (erreur adverse, 31 actions dans le corpus) ;
 - les annonces en deux temps (corner à suivre, puis son issue) ;
 - le résumé de mi-temps qui juge le scénario.

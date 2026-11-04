@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.41"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.42"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11308,6 +11308,26 @@ const COMM={
   "{A} n'en revient pas : il avait tout bien fait, et un défenseur a mis le tibia là où il ne fallait pas. Le football est une science cruelle.",
   "Sauvetage sur la ligne devant {A} ! Le défenseur se relève et hurle sur tout le monde, histoire de faire croire que c'était prévu.",
  ],
+ meurt:[ // l'action qui MEURT avant la frappe (v2.42) — {A} = le porteur. Corpus SoFoot : une action sur trois finit
+         // perdue, contrée ou sifflée sans tir (perdue 121, faute 33 sur 1 098), et le jeu n'en racontait presque pas.
+  "{A} gagne son duel sur l'aile, lève les yeux... et son centre file droit dans les gants du gardien.",
+  "Belle remise de {A} dans l'intervalle, mais la passe est trop appuyée : le ballon file en sortie de but.",
+  "{A} récupère au milieu, accélère, et son contrôle s'allonge d'un mètre de trop. La défense de {D} n'en demandait pas tant.",
+  "Une-deux de {A} à l'entrée de la surface... le dernier ballon est intercepté. Bien lu par la défense de {D}.",
+  "{A} part dans le dos de la défense, mais l'ouverture est trop longue : le gardien sort tranquillement la cueillir.",
+  "{A} pousse son défenseur dans le dos au moment de recevoir. Coup franc pour {D}, l'action s'arrête là.",
+  "{A} glisse au moment de contrôler, le ballon lui échappe. La pelouse n'aide personne.",
+  "{A} cherche la passe en retrait dans la surface... un défenseur de {D} s'interpose et dégage loin.",
+  "Contre mené par {A}, trois contre trois... et il choisit la mauvaise option. Le ballon est perdu, l'occasion aussi.",
+  "{A} lance son ailier dans la profondeur, le ballon roule trop vite et meurt en sortie de but.",
+  "Bonne combinaison côté droit, {A} centre en retrait... dans les pieds du premier défenseur. Tout ça pour ça.",
+  "{A} se fait rattraper à l'entrée de la surface et perd le ballon sur un retour propre de la défense de {D}.",
+  "{A} tente la talonnade dans la surface. Personne ne l'avait demandée, personne ne l'attendait, et le ballon part chez l'adversaire.",
+  "{A} dribble un adversaire, puis un deuxième, puis son propre coéquipier. Le ballon finit en touche, et le banc lève les yeux au ciel.",
+  "{A} réclame le ballon, l'obtient, et le rend aussitôt à {D}. Échange de bons procédés.",
+  "Long ballon pour {A}, qui le contrôle de la poitrine, du genou, du tibia... et le perd. Il y avait de l'intention.",
+  "{A} fait un appel magnifique. La passe part de l'autre côté. Il reste là, les bras écartés, et le fait savoir au stade entier.",
+ ],
  corner:[ // le coup de pied de coin — {A} = le tireur
   "Corner pour {D}, le centre fuse au second poteau... et finit dans les gants du gardien, tranquille.",
   "{A} place son corner au point de penalty... la défense sort le poing et éloigne le danger.",
@@ -11947,6 +11967,8 @@ function simuleMatch(home,away,verbeux,opts){
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(verbeux && Math.random()<0.012){ const c=Math.random()<0.5?home:away, t=tireur(c); // l'action qui meurt (v2.42), ~1 par match, en retrait du réel (~2,8)
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.meurt,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.010){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.hj,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
@@ -12051,6 +12073,8 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus,opts){
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
+    if(Math.random()<0.012){ const c=Math.random()<0.5?home:away, t=tireur(c); // l'action qui meurt (v2.42), cf. simuleMatch
+      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.meurt,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.010){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.hj,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.008){ const c=Math.random()<0.5?home:away, t=quelconque(c);
