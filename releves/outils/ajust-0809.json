@@ -1,0 +1,137 @@
+{
+ "R. Giggs": [
+  81,
+  91,
+  "joueur de l'année PFA à trente-cinq ans, onzième titre de champion avec Manchester United ; 77 par héritage"
+ ],
+ "S. Gerrard": [
+  89,
+  92,
+  "joueur de l'année de la presse (FWA), seize buts en championnat pour Liverpool deuxième ; 88 par héritage"
+ ],
+ "A. Young": [
+  80,
+  86,
+  "meilleur espoir PFA, titulaire à Aston Villa toute la saison (4 237 minutes) et dans l'équipe type PFA ; 64 par héritage, une note de remplaçant qui ne tenait plus"
+ ],
+ "N. Anelka": [
+  84,
+  84,
+  "meilleur buteur de la Premier League avec dix-neuf buts pour Chelsea ; 81 par héritage"
+ ],
+ "N. Vidić": [
+  84,
+  86,
+  "joueur de la saison de la Premier League, patron de la défense championne ; 77 par héritage"
+ ],
+ "E. van der Sar": [
+  81,
+  81,
+  "record anglais d'invincibilité, 1 311 minutes sans encaisser de but pour Manchester United champion ; 77 par héritage, le vieillissement d'un trentenaire pris trop sec"
+ ],
+ "S. Ebanks-Blake": [
+  77,
+  80,
+  "meilleur buteur de la deuxième division avec vingt-cinq buts pour Wolverhampton champion ; 75 par héritage"
+ ],
+ "_forcer": [],
+ "_corriger": [],
+ "_graphie": [
+  [
+   "STK",
+   "Amdy Faye",
+   "A. Faye",
+   "même homme (milieu sénégalais né en 1977) que « A. Faye » d'Auxerre, de Portsmouth, de Newcastle et de Charlton jusqu'en 2006-07 : la graphie du jeu gagne, comme en 2006-07. Sans cette ligne, le résolveur donnait « A. Faye » à Abdoulaye Faye, son coéquipier de Stoke, ce que controle-graphies.cjs a montré"
+  ],
+  [
+   "STK",
+   "Abdoulaye Faye",
+   "Abdoulaye Faye",
+   "même homme (défenseur sénégalais né en 1978) que « Abdoulaye Faye » de Lens, d'Istres, de Bolton et de Newcastle : il garde son nom entier, « A. Faye » étant Amdy Faye (règle de 2006-07)"
+  ]
+ ],
+ "_retirer": [
+  [
+   "WHU",
+   "Radoslav Kovac",
+   "arrivée non datée par Transfermarkt (date postérieure corrigée par le relevé) ; absent du relevé 2007-08 à West Ham, et dix matchs pour 788 minutes, moins de la moitié d'une saison : le profil d'une arrivée en cours de saison (règle de 2005-06)"
+  ],
+  [
+   "SHW",
+   "Darren Potter",
+   "arrivée non datée par Transfermarkt (date postérieure corrigée par le relevé) ; retenu à Wolverhampton dans le relevé 2007-08, à l'effectif de Wolverhampton cette saison, et dix-sept matchs sur quarante-six pour Sheffield Wednesday : le profil d'une arrivée en cours de saison"
+  ],
+  [
+   "IPS",
+   "Connor Wickham",
+   "arrivée non datée par Transfermarkt (date postérieure corrigée par le relevé) ; absent du relevé 2007-08, deux matchs et 41 minutes : rien hors ligne ne le met à l'effectif professionnel au coup d'envoi (comme Waghorn en 2007-08)"
+  ],
+  [
+   "CHE",
+   "Franco Di Santo",
+   "contrôle des minutes : 278 minutes, le moins utilisé des cinq attaquants de Chelsea, sort pour Wayne Bridge"
+  ],
+  [
+   "WHU",
+   "Dean Ashton",
+   "contrôle des minutes : 369 minutes, le moins utilisé des cinq attaquants de West Ham, sort pour Junior Stanislas"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "CHE",
+   "Wayne Bridge",
+   "contrôle des minutes : 791 minutes, arrivée datée d'avant le coup d'envoi, retenu à Chelsea dans le relevé 2007-08, parti à Manchester City en janvier"
+  ],
+  [
+   "WHU",
+   "Junior Stanislas",
+   "contrôle des minutes : 628 minutes, arrivée à West Ham datée d'avant le coup d'envoi, relevé nulle part ailleurs"
+  ],
+  [
+   "WHU",
+   "Jonathan Spector",
+   "remplace Radoslav Kovac : 465 minutes, arrivée datée d'avant le coup d'envoi, retenu à West Ham dans le relevé 2007-08"
+  ],
+  [
+   "SHW",
+   "Jimmy Smith",
+   "remplace Darren Potter : 519 minutes, milieu le plus utilisé de Sheffield Wednesday avec une arrivée datée d'avant le coup d'envoi, relevé nulle part ailleurs cette saison"
+  ],
+  [
+   "IPS",
+   "Jordan Rhodes",
+   "remplace Connor Wickham : 32 minutes, arrivée datée d'avant le coup d'envoi, seul autre attaquant d'Ipswich dans ce cas et relevé nulle part ailleurs"
+  ],
+  [
+   "MUN",
+   "Darron Gibson",
+   "remplace Anderson, sans nom libre : 907 minutes, arrivée datée d'avant le coup d'envoi"
+  ],
+  [
+   "MUN",
+   "Wes Brown",
+   "remplace Rafael, sans nom libre : 805 minutes, arrivée datée d'avant le coup d'envoi, retenu à Manchester United dans le relevé 2007-08"
+  ],
+  [
+   "ARS",
+   "Carlos Vela",
+   "remplace Eduardo, sans nom libre : 1 160 minutes, arrivée datée d'avant le coup d'envoi ; aucun autre attaquant d'Arsenal n'a de date d'arrivée, et Arsenal reste à trois attaquants comme en 2007-08"
+  ],
+  [
+   "WBA",
+   "Shelton Martis",
+   "remplace Paul Robinson, sans nom libre : 551 minutes, arrivée datée d'avant le coup d'envoi, à West Bromwich dans le relevé 2007-08"
+  ],
+  [
+   "BLP",
+   "Mohamed Camara",
+   "remplace Rob Edwards, sans nom libre : 1 224 minutes, arrivée à Blackpool datée d'avant le coup d'envoi, relevé nulle part ailleurs cette saison"
+  ],
+  [
+   "FOR",
+   "Dale Roberts",
+   "remplace Paul Smith, sans nom libre, deuxième gardien : arrivée datée d'avant le coup d'envoi, relevé nulle part ailleurs ; Lee Camp, Iain Turner et Karl Darlow n'ont pas de date d'avant le coup d'envoi"
+  ]
+ ]
+}
