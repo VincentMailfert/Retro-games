@@ -5449,6 +5449,44 @@ des particules de `harness-angleterre.cjs`, avec sa note, comme « Dalla » en 1
 
 `harness-ang0708.cjs` garde tout cela.
 
+### ANG 2008-09 — LA TROISIÈME COURONNE (v2.40)
+Dix-neuvième saison anglaise, assemblée par la tâche planifiée le 04/11/2026 à partir de `releves/ANG-2008-09` (relevé
+Transfermarkt), **toujours sans accès au réseau**. Manchester United champion pour la troisième fois de suite avec
+quatre-vingt-dix points, quatre devant Liverpool, vainqueur de la Coupe de la Ligue, battu par Barcelone en finale de la Ligue
+des champions à Rome ; Chelsea gagne la FA Cup. **Giggs joueur de l'année PFA à trente-cinq ans (81)**, Gerrard de la presse (89),
+**Ashley Young meilleur espoir (80, potentiel 86)**, que l'héritage laissait à 64 ; Anelka meilleur buteur avec dix-neuf buts (84),
+Vidić joueur de la saison (84), van der Sar et son record d'invincibilité (81), Ebanks-Blake meilleur buteur du dessous pour
+Wolverhampton champion (77). Notes : 488 héritées de 2007-08, 80 plus lointaines, 3 du recruteur, 189 calculées ; élite
+70.9 / 71, dessous 66.3 / 67. **Aucune pépite forcée.** Premier League à vingt ; l'échelon du dessous perd ses quatre derniers
+(Plymouth, Norwich, Southampton, Charlton).
+
+**LES DATES « POSTÉRIEURES » CORRIGÉES PAR LE RELEVÉ.** Une seule arrivée reste non datée (David Cornell, troisième gardien de
+Swansea, gardé comme les hommes des clubs montés de troisième division que le relevé 2007-08 ne couvre pas, règle de 2004-05).
+Mais quarante-deux retenus portent la remarque « date TM postérieure, présent au coup d'envoi » : c'est la correction en masse de
+2004-05 sous un autre nom, et chacun a été repris contre le relevé 2007-08. Vingt-sept sont au même club la saison d'avant. **Kovac**
+(West Ham, dix matchs : il arrive du Spartak en février), **Potter** (Sheffield Wednesday, dix-sept matchs, à l'effectif de
+Wolverhampton cette saison) et **Wickham** (Ipswich, quinze ans, quarante et une minutes) sortent par la règle de 2005-06. Restent
+faute de contre-preuve les hommes de Swansea, Doncaster et Nottingham Forest (montés de troisième division), et Clyne, Stearman,
+Heaton et Richard Wright, titulaires plus d'une demi-saison.
+
+**Le contrôle des minutes** (minimums de poste gardés, le moins utilisé d'un poste excédentaire cède) remet **Wayne Bridge** à
+Chelsea à la place de Di Santo et **Junior Stanislas** à West Ham à la place de Dean Ashton. Spector, Jimmy Smith et Jordan Rhodes
+remplacent les trois sortis ; Darron Gibson, Wes Brown, Carlos Vela, Shelton Martis, Mohamed Camara et Dale Roberts remplacent
+Anderson, Rafael, Eduardo, Paul Robinson (West Bromwich), Rob Edwards et Paul Smith, sans nom libre. **Arsenal reste à trois
+attaquants**, comme en 2007-08. **« A. Faye » revient à Amdy** par `_graphie` : Amdy et Abdoulaye Faye jouent tous deux à Stoke, et
+le résolveur donnait le nom du jeu à Abdoulaye (`controle-graphies.cjs` l'a montré, comme Isaiah Osbourne l'an passé).
+
+**DEUX ROUGES RÉGLÉS AVANT LIVRAISON.** (1) Le nom proposé « Trois couronnes de rang » partageait « trois » avec « Quarante-trois
+secondes » (`harness-noms.cjs`, qui découpe aux traits d'union) : la saison s'appelle **« La troisième couronne »**. (2) **L'initiale
+« Ł » échappait à `assemble.cjs`**, dont la recherche des prénoms ne lisait que les capitales de À à Ý : « Ł. Fabiański », premier
+Polonais au nom barré du jeu, sortait sans entrée dans `PRENOMS_VRAIS`, et `harness-prenoms.cjs` comme `harness-angleterre.cjs`
+rougissaient. La plage de l'outil prend désormais Ł, Š, Ž et Č ; aucune table livrée n'en portait avant celle-ci.
+
+**Restent à revoir quand Transfermarkt répondra** : les douze dates « postérieures » gardées sans le relevé de la saison d'avant
+(Swansea, Doncaster, Forest, Clyne, Stearman, Heaton, Richard Wright), Cornell, et les trois sortis.
+
+`harness-ang0809.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
