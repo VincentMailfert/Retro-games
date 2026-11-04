@@ -38,7 +38,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,monteeUn,monteeDeux,phaseTir,MONTEE_BUT,MONTEE_CONTRE,MONTEE_FRAPPE,MONTEE_LOIN,MONTEE_LOIN_FRAPPE,MONTEE_LOB,MONTEE_LOB_FRAPPE,MONTEE_ARRET,MONTEE_ARRET_FRAPPE,TIRS_LOIN,TIRS_LOB,TIRS_ARRET,BUT_SANS_PASSE,BUT_CORNER_DIRECT,onze,CLUBS,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,simuleMatch,simuleReste,genEvCoupe,clubById,COMM,MOTIFS_COMM,motifDe,monteeUn,monteeDeux,phaseTir,MONTEE_BUT,MONTEE_CONTRE,MONTEE_FRAPPE,MONTEE_LOIN,MONTEE_LOIN_FRAPPE,MONTEE_LOB,MONTEE_LOB_FRAPPE,MONTEE_ARRET,MONTEE_ARRET_FRAPPE,TIRS_LOIN,TIRS_LOB,TIRS_ARRET,TIRS_CF,MONTEE_VOIE,VOIES_TIR,voieTir,BUT_SANS_PASSE,BUT_CORNER_DIRECT,onze,CLUBS,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -305,7 +305,7 @@ for (let k = 0; k < 600; k++) {
   verifieDrapeau(api.simuleReste(h, v, 45, sh, sa, 1, 1, r.vus).ev, cpt);
   verifieDrapeau(api.genEvCoupe(h, v, { sh: 1 + (k % 4), sa: k % 3, tab: null, win: h }).ev, cpt);
 }
-if (cpt.ko === 0 && cpt.lob > 0) ok("drapeau exact sur " + (cpt.ouvert + cpt.loin + cpt.lob + cpt.bal) + " conclusions (" + cpt.loin + " de loin, " + cpt.lob + " lobs, " + cpt.bal + " sur corner) — championnat, re-sim et coupe");
+if (cpt.ko === 0 && cpt.lob > 0) ok("drapeau exact sur " + Object.entries(cpt).filter(([k]) => k !== "ko").reduce((t, [, n]) => t + n, 0) + " conclusions (" + cpt.loin + " de loin, " + cpt.lob + " lobs, " + cpt.bal + " sur corner) — championnat, re-sim et coupe");
 else fail(cpt.ko ? cpt.ko + " conclusion(s) mal étiquetées" : "aucun lob tiré sur l'échantillon : le drapeau « lob » n'est pas prouvé");
 
 // et la mise en scène pioche dans le bon décor, aux DEUX temps
@@ -317,15 +317,19 @@ const GESTES = {
   lob: new Set(api.MONTEE_LOB_FRAPPE.map((f) => f(nomT, gkT))),
   bal: new Set(api.MONTEE_ARRET_FRAPPE.map((f) => f(nomT, gkT))),
 };
+for (const [v, [un, deux]] of Object.entries(api.MONTEE_VOIE)) { // v2.41 : les voies du jeu ouvert
+  DECORS[v] = new Set(un);
+  GESTES[v] = new Set(deux.map((f) => f(nomT, gkT)));
+}
 let decorKo = 0, gesteKo = 0;
-for (const ph of ["", "loin", "lob", "bal"]) {
+for (const ph of Object.keys(DECORS)) {
   for (let k = 0; k < 400; k++) {
     const info = { ph, but: nomT, cote: h0.id };
     if (!DECORS[ph].has(api.monteeUn(info, [], h0, a0))) decorKo++;
     if (!GESTES[ph].has(api.monteeDeux(info, [], gkT))) gesteKo++;
   }
 }
-if (decorKo === 0 && gesteKo === 0) ok("les quatre phases (proche, de loin, lob, sur corner) ne se mélangent jamais, ni au premier ni au second temps");
+if (decorKo === 0 && gesteKo === 0) ok("les " + Object.keys(DECORS).length + " phases (frappe nue, " + Object.keys(api.MONTEE_VOIE).join(", ") + ", de loin, lob, sur corner) ne se mélangent jamais, ni au premier ni au second temps");
 else fail(decorKo + " décor(s) et " + gesteKo + " geste(s) pris dans la mauvaise phase");
 if (contres().has(api.monteeUn({ ph: "loin", contre: true, but: nomT, cote: h0.id }, [], h0, a0)))
   ok("un contre conclu de loin garde sa mise en scène de contre (la distance ne joue qu'au second temps)");
@@ -361,6 +365,78 @@ else fail("BUT_CORNER_DIRECT n'est plus dans BUT_SANS_PASSE : la coupure ne s'ap
   else fail("trop peu de corners directs tirés (" + directs + ") : le test ne prouve rien");
   if (fautifs === 0) ok("aucun corner direct n'est suivi d'une passe décisive, ni au texte ni aux données");
   else fail(fautifs + " corner(s) direct(s) repartent avec un passeur");
+}
+
+/* ===== I) les voies du jeu ouvert (v2.41) =====
+   Retour de l'auteur : « un attaquant qui dribble la défense et s'apprête à frapper ne termine pas par une
+   reprise de volée ». La case "" mélangeait dribble, centre, face-à-face, une-deux et ballon qui traîne.
+   Depuis v2.41 la voie est lue dans la ligne de résolution (VOIES_TIR) et chaque voie a ses deux temps de
+   montée (MONTEE_VOIE). On vérifie : qu'aucune conclusion ne parle deux langues incompatibles (dribble ET
+   centre), que chaque montée ne parle que la langue de sa voie, qu'aucune voie ne trahit l'issue, et que
+   le second temps, servi aussi après un contre, ne raconte rien de lent ni de balle arrêtée.            */
+console.log("\nI) Les voies du jeu ouvert (VOIES_TIR / MONTEE_VOIE)");
+{
+  const RX = Object.fromEntries(api.VOIES_TIR);
+  const OUVERT = [].concat(api.COMM.but, api.COMM.rate, api.COMM.arret, api.COMM.butContre, api.COMM.rateContre, api.COMM.arretContre)
+    .filter((l) => !api.TIRS_LOIN.has(l) && !api.TIRS_LOB.has(l) && !api.TIRS_ARRET.has(l) && !api.TIRS_CF.has(l));
+  const parVoie = {};
+  for (const l of OUVERT) { const v = api.voieTir(l) || "frappe nue"; parVoie[v] = (parVoie[v] || 0) + 1; }
+  ok("répartition des " + OUVERT.length + " conclusions de jeu ouvert : " + Object.entries(parVoie).map(([v, n]) => v + " " + n).join(", "));
+
+  // une conclusion ne mélange pas le dribble et le centre (le cas signalé par l'auteur)
+  const bilingues = OUVERT.filter((l) => RX.drib.test(l) && RX.centre.test(l));
+  if (!bilingues.length) ok("aucune conclusion ne raconte à la fois un dribble et un centre, une tête ou une volée");
+  else fail(bilingues.length + " conclusion(s) mêlent dribble et centre : « " + bilingues[0].slice(0, 50) + "… »");
+
+  // chaque montée ne parle que la langue de sa voie (aile et centre partagent le mot « centre »)
+  const texte = (x) => (typeof x === "function" ? x("Joueur", "Gardien") : x);
+  const voisines = [];
+  for (const [v, [un, deux]] of Object.entries(api.MONTEE_VOIE))
+    for (const t of [...un, ...deux].map(texte))
+      for (const [w, rx] of api.VOIES_TIR)
+        if (w !== v && !(v === "aile" && w === "centre") && rx.test(t)) voisines.push(v + " ← " + w + " : « " + t.slice(0, 45) + "… »");
+  if (!voisines.length) ok("chaque montée ne parle que la langue de sa voie");
+  else fail(voisines.length + " montée(s) parlent la langue d'une autre voie, ex. " + voisines[0]);
+  const neutres = [...api.MONTEE_BUT, ...api.MONTEE_FRAPPE].map(texte).filter((t) => api.VOIES_TIR.some(([, rx]) => rx.test(t)));
+  if (!neutres.length) ok("les montées de la frappe nue n'annoncent aucune construction");
+  else fail(neutres.length + " montée(s) de la frappe nue annoncent une voie : « " + neutres[0].slice(0, 45) + "… »");
+
+  // pas de balle arrêtée, pas de chiffre, et un second temps qui tient aussi après un contre
+  const toutes = Object.values(api.MONTEE_VOIE).flatMap(([un, deux]) => [...un, ...deux]).map(texte);
+  const arretees = toutes.filter((t) => /corner|coup franc|penalty|touche de but|contre-attaque|en contre/i.test(t));
+  if (!arretees.length) ok("aucune montée de voie n'impose une balle arrêtée ni un contre");
+  else fail(arretees.length + " montée(s) de voie imposent une phase : « " + arretees[0].slice(0, 45) + "… »");
+  const chiffrees = toutes.filter((t) => RX_CHIFFRE.test(t));
+  if (!chiffrees.length) ok("aucune montée de voie ne chiffre la distance");
+  else fail(chiffrees.length + " montée(s) de voie chiffrent une distance : « " + chiffrees[0].slice(0, 45) + "… »");
+  const lentes = Object.values(api.MONTEE_VOIE).flatMap(([, deux]) => deux).map(texte)
+    .filter((t) => /patiem|construi|tourne|lentement|prend son temps|bloc/i.test(t));
+  if (!lentes.length) ok("aucun second temps de voie ne raconte une action lente (il sert aussi après un contre)");
+  else fail(lentes.length + " second(s) temps trop lents pour un contre : « " + lentes[0].slice(0, 45) + "… »");
+
+  // le suspense : chaque voie existe en but ET en échec, sinon sa montée annonce le dénouement
+  const issues = (v) => ["but", "rate", "arret"].filter((k) => [...api.COMM[k], ...(api.COMM[k + "Contre"] || [])].some((l) => api.voieTir(l) === v && !api.TIRS_LOIN.has(l) && !api.TIRS_LOB.has(l) && !api.TIRS_ARRET.has(l)));
+  const trahies = Object.keys(api.MONTEE_VOIE).filter((v) => { const i = issues(v); return !i.includes("but") || i.length < 2; });
+  if (!trahies.length) ok("chaque voie mène au but comme à l'échec : sa montée ne trahit pas l'issue");
+  else fail("la voie « " + trahies[0] + " » n'a que des issues " + issues(trahies[0]).join("/") + " : sa montée annonce le dénouement");
+
+  // de bout en bout : sur des matchs simulés, l'enchaînement affiché respecte la voie de la conclusion
+  let vus = 0, faux = 0, exemple = "";
+  for (let k = 0; k < 400; k++) {
+    const h = G.clubs[k % G.clubs.length], a = G.clubs[(k * 5 + 2) % G.clubs.length];
+    if (h === a) continue;
+    frais(h, a);
+    for (const e of api.simuleMatch(h, a, true).ev) {
+      const info = e.g || e.q;
+      if (!info || !e.x || info.contre || !api.MONTEE_VOIE[info.ph]) continue;
+      vus++;
+      const un = api.monteeUn(info, [], h, a), deux = api.monteeDeux(info, [], "Barthez");
+      const g = gabaritDe(e.x), v = g && api.voieTir(g.ligne);
+      if (!DECORS[v] || !DECORS[v].has(un) || !GESTES[v] || ![...api.MONTEE_VOIE[v][1]].some((f) => f(info.but, "Barthez") === deux)) { faux++; exemple = exemple || un + " / " + deux + " / " + e.x; }
+    }
+  }
+  if (vus > 200 && !faux) ok(vus + " actions de jeu ouvert simulées, toutes mises en scène dans leur voie");
+  else fail(faux ? faux + " action(s) sur " + vus + " mises en scène hors de leur voie, ex. " + exemple.slice(0, 120) : "trop peu d'actions de voie simulées (" + vus + ")");
 }
 
 /* ===== bilan ===== */

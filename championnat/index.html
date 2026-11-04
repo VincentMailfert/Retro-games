@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.40"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.41"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11118,8 +11118,26 @@ const TIRS_CF=new Set(BUT_CF_MAITRE);
 /* La phase de tir telle que le moteur la pose sur l'évènement (`g` ou `q`), lue par `monteeUn` et
    `monteeDeux` : "" = jeu ouvert et finition proche, "loin" = frappe de vingt mètres et plus,
    "lob" = le gardien est sorti et on tente de le lober, "bal" = la conclusion vient d'un corner.
-   Un seul champ, court : les évènements du direct sont nombreux et ce drapeau les suit tous. */
-function phaseTir(l){ return TIRS_CF.has(l)?"cf":(TIRS_LOIN.has(l)?"loin":(TIRS_LOB.has(l)?"lob":(TIRS_ARRET.has(l)?"bal":""))); }
+   Un seul champ, court : les évènements du direct sont nombreux et ce drapeau les suit tous.
+   LE JEU OUVERT A SES VOIES (v2.41) — retour de l'auteur : « un attaquant qui dribble la défense et
+   s'apprête à frapper ne termine pas par une reprise de volée ». La case "" mélangeait le dribble, le
+   centre, le face-à-face, la une-deux et le ballon qui traîne : la montée tirait « Une percée plein
+   axe… » et la résolution « Volée pure à l'entrée de la surface ». Le corpus SoFoot (55 lives, 1 098
+   actions, cf. commentaires-lot2.md) le confirme : la volée naît d'un centre ou d'un renvoi, jamais
+   d'un dribble. La voie se LIT dans la ligne de résolution (son vocabulaire), dans cet ordre, la
+   première qui parle gagne ; une ligne qui ne dit rien de sa construction reste "" (une frappe nue).
+   Lire le texte plutôt que tenir une liste : une ligne neuve se range seule, et le harnais
+   répétitions (section I) refuse celles qui parleraient deux langues incompatibles. */
+const VOIES_TIR=[
+  ["aile",   /^\{A\} (déborde et )?centre\b|le centre de \{A\}/i],         // {A} est le CENTREUR, pas le buteur de la tête
+  ["rebond", /relâch|contrée|contré par|insiste|rebond/i],                  // le ballon traîne, revient, on suit
+  ["centre", /\bcentre|(?<!(prend|lève) la )tête|casque|second poteau|volée|reprise|retourné/i],
+  ["combi",  /une-deux|combinaison|patiemment|talonnade|plateau|chaîne/i], // pas « billard » : le coup de billard est un ballon qui ricoche
+  ["drib",   /roulette|slalom|élimine|enrhume|infiltre|déboule|crochet|balle au pied|avale|mouchoir|réajuste|dribbl|percée/i],
+  ["face",   /(?<!lui tout |un )\bseul\b|face-à-face|face à|se joue du gardien|duel avec|piqué|sort loin|sortie/i],
+];
+function voieTir(l){ const v=VOIES_TIR.find(x=>x[1].test(l)); return v?v[0]:""; }
+function phaseTir(l){ return TIRS_CF.has(l)?"cf":(TIRS_LOIN.has(l)?"loin":(TIRS_LOB.has(l)?"lob":(TIRS_ARRET.has(l)?"bal":voieTir(l||"")))); }
 const COMM={
  amb:[
   "Le public donne de la voix dans les tribunes.",
@@ -11956,7 +11974,7 @@ function simuleMatch(home,away,verbeux,opts){
   }
   if(verbeux){
     // l'arbitre garde encore le temps pour lui en 1995 : pas de panneau lumineux, un geste et c'est tout
-    ev.push({m:fin,t:"sys",x:"L'arbitre annonce "+PICK([1,2,2,3,3,4,5])+" minutes de temps additionnel."});
+    ev.push({m:fin,t:"sys",x:(n=>"L'arbitre annonce "+n+(n>1?" minutes":" minute")+" de temps additionnel.")(PICK([1,2,2,3,3,4,5]))});
     ev.push({m:fin,t:"sys",x:"COUP DE SIFFLET FINAL. "+home.nom+" "+sh+" - "+sa+" "+away.nom+(prolong?" après prolongations.":"")});
     annoteButs(ev); }
   /* TOUJOURS ÉGAUX APRÈS CENT VINGT MINUTES : la séance de tirs au but. Elle ne touche pas au score du
@@ -12110,7 +12128,7 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA,opts){
   }
   for(const e of fil) r.ev.push(e);
   for(const l of queue) r.ev.push(l);
-  if(opts) r.ev.push({m:out.fin,t:"sys",x:"L'arbitre annonce "+PICK([1,2,2,3,3,4,5])+" minutes de temps additionnel."});
+  if(opts) r.ev.push({m:out.fin,t:"sys",x:(n=>"L'arbitre annonce "+n+(n>1?" minutes":" minute")+" de temps additionnel.")(PICK([1,2,2,3,3,4,5]))});
   r.ev.push({m:opts?out.fin:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom+(opts&&out.prolong?" après prolongations.":"")});
   r.sh=out.sh; r.sa=out.sa;
   if(opts){ const eg=opts.egalite||((x,y)=>x===y);
@@ -12662,20 +12680,17 @@ const MONTEE_RATEE=0.6; // proba qu'une occasion ratée hérite d'une montée de
 // étape 1 — l'action s'installe. Volontairement AGNOSTIQUE au type de finition (pas de centre/corner/contre
 // imposé) : sinon le geste annoncé peut contredire la ligne de but tirée plus loin (ex. « contre lancé » puis
 // « tête sur corner »). C'est la ligne de but (COMM.but) qui décrit le geste, pas la montée.
+// DEPUIS v2.41, ce pool ne sert plus qu'à la voie "" (une frappe nue, sans construction racontée) : les
+// lignes qui annonçaient une voie (la percée, la une-deux, l'ouverture, le billard) sont parties dans
+// MONTEE_VOIE, sous la voie qu'elles promettent.
 const MONTEE_BUT=[
   "Ça s'emballe dans la surface, la défense recule…",
-  "Ça circule à une touche de balle, la défense ne suit plus…",
-  "Récupération haute, l'attaque déboule…",
-  "Coup de billard devant le but, ça chauffe…",
-  "Une-deux dans l'axe, la dernière passe arrive…",
+  "Récupération haute, l'attaque se lance…",
   "Tout le monde se projette dans la surface…",
-  "Ouverture limpide dans le dos des défenseurs…",
   "Le ballon brûle dans la surface, plus personne ne respire dans le stade…",
   "Deux appels croisés dans la surface, ça sent la poudre…",
-  "Le ballon revient dans la surface, la défense flotte, ça se referme mal…",
-  "Oh là là, le ballon traîne à l'entrée de la surface, personne ne dégage…",
   "Le stade se lève d'un seul homme, l'action est chaude, très chaude…",
-  "Une percée plein axe, la défense recule, recule… c'est le moment ou jamais…",
+  "Ça presse haut, le ballon est récupéré à l'entrée de la surface…",
 ];
 // étape 2 — le porteur (le futur buteur) se présente, le gardien adverse est nommé (p = joueur, gk = gardien).
 // AGNOSTIQUE au geste : on installe le danger sans dire « frappe » ni « tête » (sinon contradiction avec la
@@ -12689,14 +12704,84 @@ const MONTEE_FRAPPE=[
   (p,gk)=>p+" se présente, tout le stade se lève…",
   (p,gk)=>p+" surgit au bon moment, "+gk+" est sur ses appuis…",
   (p,gk)=>"Dernière passe pour "+p+", l'occasion est immense…",
-  (p,gk)=>p+" jaillit dans la surface face à "+gk+"…",
   (p,gk)=>"Tout converge vers "+p+", le danger est à son comble…",
   (p,gk)=>p+" arme son geste, "+gk+" écarte les bras et se fait tout grand…",
-  (p,gk)=>p+" se présente seul devant "+gk+", tout le stade debout…",
-  (p,gk)=>"Le ballon revient sur "+p+", "+gk+" est à contre-pied, mes amis…",
-  (p,gk)=>p+" fixe "+gk+" droit dans les yeux, le duel du soir, c'est maintenant…",
   (p,gk)=>p+" est trouvé dans la surface, "+gk+" hurle sur sa défense mais personne ne l'écoute…",
 ];
+/* LES MONTÉES PAR VOIE (v2.41, cf. VOIES_TIR) — [premier temps, second temps] pour chaque voie du jeu
+   ouvert. Le premier temps installe la construction que la résolution va raconter, le second met le
+   porteur en place SANS dire le geste. Contraintes, gardées par le harnais répétitions (section I) :
+   aucun mot d'une voie voisine (pas de centre dans un dribble, pas de dribble dans un centre), aucune
+   balle arrêtée, aucun chiffre ; et le second temps doit aussi convenir à un CONTRE (monteeDeux le sert
+   après MONTEE_CONTRE), donc rien de lent, rien de « patient ». Le second temps de "centre" ne place
+   pas le porteur (ni second poteau, ni point de penalty) : la résolution peut être une tête au premier
+   poteau comme une volée à l'entrée de la surface. */
+const MONTEE_VOIE={
+  centre:[[
+    "Le jeu bascule sur l'aile, le latéral passe son homme…",
+    "Débordement sur le côté gauche, le ballon va repartir vers la surface…",
+    "Ça déborde à droite, les grands attaquent la surface…",
+    "Le ballon file dans le couloir, la surface se remplit…",
+    "Coup d'accélérateur sur le côté, la défense recule vers sa ligne…",
+  ],[
+    (p,gk)=>p+" se démarque dans la surface, "+gk+" hésite à sortir…",
+    (p,gk)=>p+" attend le ballon, les yeux rivés sur le centreur, "+gk+" se replace…",
+    (p,gk)=>"Tout le monde regarde le ballon, personne ne regarde "+p+"…",
+    (p,gk)=>p+" prend le meilleur sur son garde du corps, "+gk+" reste sur sa ligne…",
+    (p,gk)=>p+" a lu la trajectoire avant tout le monde, "+gk+" crie quelque chose que personne n'entend…",
+  ]],
+  aile:[[
+    "Le ballon est écarté sur l'aile, le couloir est grand ouvert…",
+    "Changement d'aile, la défense a coulissé trop tard…",
+    "La défense se resserre dans l'axe et laisse tout le couloir libre…",
+  ],[
+    (p,gk)=>p+" file le long de la ligne de touche, "+gk+" se décale vers son premier poteau…",
+    (p,gk)=>p+" a de l'espace sur son côté, et il compte bien s'en servir…",
+    (p,gk)=>p+" arrive au bout de son couloir, la surface est pleine de monde…",
+  ]],
+  drib:[[
+    "Une percée plein axe, la défense recule, recule… c'est le moment ou jamais…",
+    "Un joueur s'échappe balle au pied, la défense recule en désordre…",
+    "Ça part en dribble au milieu, personne n'ose aller au tacle…",
+    "Le ballon arrive dans les pieds d'un dribbleur, et les défenseurs reculent d'un pas…",
+  ],[
+    (p,gk)=>p+" a le ballon collé au pied, "+gk+" attend, fléchi sur ses appuis…",
+    (p,gk)=>p+" fonce droit sur la défense, "+gk+" se ramasse sur sa ligne…",
+    (p,gk)=>p+" provoque, provoque encore, et la défense recule toujours…",
+    (p,gk)=>"Personne n'arrive à prendre le ballon à "+p+", "+gk+" se prépare au pire…",
+  ]],
+  face:[[
+    "Ouverture limpide dans le dos des défenseurs…",
+    "Une passe en profondeur coupe la défense en deux…",
+    "La ligne de hors-jeu est mal alignée, et le ballon passe…",
+    "Ballon en profondeur, la défense est prise de vitesse…",
+  ],[
+    (p,gk)=>p+" se présente seul devant "+gk+", tout le stade debout…",
+    (p,gk)=>p+" fixe "+gk+" droit dans les yeux, le duel du soir, c'est maintenant…",
+    (p,gk)=>p+" jaillit dans la surface face à "+gk+"…",
+    (p,gk)=>p+" file seul vers le but, "+gk+" sort à sa rencontre…",
+  ]],
+  combi:[[
+    "Une-deux dans l'axe, la dernière passe arrive…",
+    "Ça circule à une touche de balle, la défense ne suit plus…",
+    "Trois passes courtes à l'entrée de la surface, la défense ne sait plus qui suivre…",
+    "Jeu en triangle aux abords de la surface, ça va trop vite pour la défense…",
+  ],[
+    (p,gk)=>p+" reçoit dans l'intervalle, "+gk+" avance d'un pas…",
+    (p,gk)=>p+" demande le ballon dans la surface, et il l'obtient…",
+    (p,gk)=>"Le dernier relais est pour "+p+", "+gk+" se met sur ses appuis…",
+  ]],
+  rebond:[[
+    "Coup de billard devant le but, ça chauffe…",
+    "Le ballon revient dans la surface, la défense flotte, ça se referme mal…",
+    "Oh là là, le ballon traîne dans la surface, personne ne dégage…",
+    "Mêlée devant le but, le ballon passe de jambe en jambe…",
+  ],[
+    (p,gk)=>"Le ballon revient sur "+p+", "+gk+" est à contre-pied, mes amis…",
+    (p,gk)=>p+" rôde dans la surface, à l'affût du moindre ballon…",
+    (p,gk)=>p+" a suivi l'action, "+gk+" hurle à sa défense de dégager…",
+  ]],
+};
 /* MONTÉE DE TENSION, VERSION FRAPPE LOINTAINE (v1.04) — les deux temps qui précèdent une résolution
    de `TIRS_LOIN`. Premier temps : l'action NE passe pas, le bloc tient, le ballon ressort. Second
    temps : le porteur se met en position LOIN du but. Mêmes contraintes que les autres pools de
@@ -12801,6 +12886,7 @@ function monteeUn(info, lignes, campA, campD, m){ // m : la minute de l'action (
   if(info && info.ph==="bal") return pickM(MONTEE_ARRET,lignes);  // la conclusion vient d'un corner (cf. TIRS_ARRET)
   if(info && info.ph==="loin") return pickM(MONTEE_LOIN,lignes);  // frappe de loin : le bloc tient, l'action ressort (cf. TIRS_LOIN)
   if(info && info.ph==="lob") return pickM(MONTEE_LOB,lignes);    // lob : le gardien a quitté sa surface (cf. TIRS_LOB)
+  if(info && MONTEE_VOIE[info.ph]) return pickM(MONTEE_VOIE[info.ph][0],lignes); // jeu ouvert : la voie de la résolution (v2.41)
   return pickM(MONTEE_BUT,lignes);
 }
 /* SECOND TEMPS DE LA MONTÉE (v1.04) — le porteur arme son geste ; restait à savoir D'OÙ. Le drapeau
@@ -12809,7 +12895,7 @@ function monteeUn(info, lignes, campA, campD, m){ // m : la minute de l'action (
    l'occasion est immense… » avant de conclure « PRALINE DE TRENTE MÈTRES ! » — signalé en playtest. */
 function monteeDeux(info, lignes, gk){
   const ph=info&&info.ph;
-  const pool=ph==="cf"?MONTEE_CF_FRAPPE:ph==="bal"?MONTEE_ARRET_FRAPPE:(ph==="loin"?MONTEE_LOIN_FRAPPE:(ph==="lob"?MONTEE_LOB_FRAPPE:MONTEE_FRAPPE));
+  const pool=ph==="cf"?MONTEE_CF_FRAPPE:ph==="bal"?MONTEE_ARRET_FRAPPE:(ph==="loin"?MONTEE_LOIN_FRAPPE:(ph==="lob"?MONTEE_LOB_FRAPPE:(MONTEE_VOIE[ph]?MONTEE_VOIE[ph][1]:MONTEE_FRAPPE)));
   return pickM(pool,lignes)(info.but, gk);
 }
 const MONTEE_CONTRE=[

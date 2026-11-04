@@ -3029,6 +3029,19 @@ toujours « raconter quelque chose ».
   (le tireur nommé + le flag de montée) ; `tic()` déclenche les deux temps si `lg.g || (lg.q && lg.q.bu)` via le
   **compteur** `lg._monte` (0→1→2), en piochant `info=lg.g||lg.q` pour le nom du porteur et le camp. N'altère ni le
   score ni le calibrage (purement cosmétique). Le harnais ne rend pas le direct, donc rien à vérifier côté moteur.
+- **Les voies du jeu ouvert (v2.41, lot 2 des commentaires, retour de l'auteur : « un attaquant qui dribble la
+  défense et s'apprête à frapper ne termine pas par une reprise de volée »)** : la case `ph:""` mélangeait dribble,
+  centre, face-à-face, une-deux et ballon qui traîne, donc « Une percée plein axe… » pouvait précéder « Volée pure à
+  l'entrée de la surface ». `phaseTir` rend désormais aussi une **voie** lue dans le VOCABULAIRE de la ligne de
+  résolution (`VOIES_TIR`, première qui parle gagne : `aile` ({A} est le centreur), `rebond`, `centre`, `combi`,
+  `drib`, `face`, sinon `""` = frappe nue), et `monteeUn`/`monteeDeux` piochent dans `MONTEE_VOIE[voie]`
+  ([premier temps, second temps]). `MONTEE_BUT`/`MONTEE_FRAPPE` ne servent plus qu'à la frappe nue. Lire le texte
+  plutôt que tenir une liste : une ligne neuve se range seule. **Pièges** : « se prend la tête », « lève la tête »,
+  « d'un seul homme », « lui tout seul » et « coup de billard » sont des faux amis (exclus des regex) ; le second
+  temps d'une voie sert aussi après `MONTEE_CONTRE`, donc rien de lent. **Gardé par le harnais répétitions,
+  section I** (conclusion qui parle dribble ET centre, montée qui parle la langue d'une autre voie, voie qui ne
+  mènerait qu'au but ou qu'à l'échec, bout en bout sur matchs simulés). Corpus et chiffres : `commentaires-lot2.md`
+  (55 lives SoFoot, textes bruts dans `corpus-lives/`, **hors git**). Au passage : « 1 minute » au singulier.
 - **Commentaires du direct — enrichissement sur corpus réel (v0.83, lot 1)** : le téléscripteur ne
   racontait que le tir et le carton. Dépouillement de **17 lives réels de L1** (1 539 entrées, minute 1
   au coup de sifflet) + 5 lives SoFoot, qui a dicté les réglages plutôt que l'intuition. Enseignements :
