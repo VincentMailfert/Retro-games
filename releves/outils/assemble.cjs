@@ -163,7 +163,7 @@ for (const [div, codes, rangs] of [[1, P.d1, P.classementD1], [2, P.d2, P.classe
     lignes.sort((a, b) => ordre.indexOf(a.poste) - ordre.indexOf(b.poste) || b.n - a.n);
     (div === 1 ? sortie.stars1 : sortie.stars2)[c] = lignes;
     for (const l of lignes) {
-      const m = /^([A-ZÀ-Ý][a-zà-ÿ]*(?:-[A-ZÀ-Ý][a-zà-ÿ]*)?)\. /.exec(l.nom);
+      const m = /^([A-ZÀ-ÝŁŠŽČ][a-zà-ÿ]*(?:-[A-ZÀ-ÝŁŠŽČ][a-zà-ÿ]*)?)\. /.exec(l.nom); // « Ł. Fabiański » : Ł, Š, Ž, Č sont hors de la plage À-Ý (2008-09)
       if (!m || PRENOMS.has(l.nom) || sortie.prenoms.some(x => x[0] === l.nom)) continue;
       let pr = l.prenom || "";
       if (pr && !pr.startsWith(m[1].split("-")[0])) pr = "";

@@ -62,7 +62,7 @@ for (const lst of [...Object.values(api.STARS_ANG0708), ...Object.values(api.STA
 console.log("1) Le plateau réel de 2008-09");
 {
   dit(!!S && S.pays === "ANG" && S.an === 2008 && S.titre === "2008-09", "au registre : ANG, 2008, « 2008-09 »");
-  dit(S.nom === "Trois couronnes de rang", "son nom : « " + S.nom + " »");
+  dit(S.nom === "La troisième couronne", "son nom : « " + S.nom + " »");
   dit(S.d1[0] === "MUN" && S.d1[1] === "LIV" && S.d1[2] === "CHE" && S.d1[3] === "ARS" && S.d1[4] === "EVE", "Manchester United champion, devant Liverpool, Chelsea, Arsenal et Everton");
   dit(S.d1[17] === "NEW" && S.d1[18] === "MID" && S.d1[19] === "WBA", "Newcastle, Middlesbrough et West Bromwich, les trois relégués, ferment l'élite");
   dit(S.d1.includes("WBA") && S.d1.includes("STK") && S.d1.includes("HUL"), "West Bromwich, Stoke et Hull, promus de 2007-08, à l'élite");
