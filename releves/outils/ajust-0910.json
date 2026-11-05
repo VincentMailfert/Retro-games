@@ -1,0 +1,481 @@
+{
+ "W. Rooney": [
+  90,
+  92,
+  "joueur de l'année PFA et de la presse (FWA), vingt-six buts en championnat pour Manchester United deuxième ; 89 par héritage"
+ ],
+ "D. Drogba": [
+  88,
+  89,
+  "meilleur buteur de la Premier League avec vingt-neuf buts, champion et vainqueur de la FA Cup avec Chelsea (doublé) ; 85 par héritage"
+ ],
+ "J. Milner": [
+  79,
+  84,
+  "meilleur espoir PFA, titulaire à Aston Villa toute la saison ; 71 par héritage, une note d'ailier remplaçant qui ne tenait plus (comme Ashley Young en 2008-09)"
+ ],
+ "_forcer": [],
+ "_corriger": [],
+ "_graphie": [
+  [
+   "STK",
+   "Abdoulaye Faye",
+   "Abdoulaye Faye",
+   "même homme (défenseur sénégalais né en 1978) que « Abdoulaye Faye » de Stoke en 2008-09 : il garde son nom entier, « A. Faye » étant Amdy Faye (règle de 2006-07). Amdy n'est plus au plateau, et sans cette ligne le résolveur rendait « A. Faye » à Abdoulaye, le piège d'Isaiah Osbourne en 2007-08"
+  ]
+ ],
+ "_retirer": [
+  [
+   "CHE",
+   "Andriy Shevchenko",
+   "resélection aux minutes : 4 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "MUN",
+   "John O'Shea",
+   "resélection aux minutes : 1 408 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "MUN",
+   "Rafael",
+   "resélection aux minutes : 1 240 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "TOT",
+   "Danny Rose",
+   "resélection aux minutes : 157 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "EVE",
+   "Joleon Lescott",
+   "resélection aux minutes : 90 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "FUL",
+   "Kagisho Dikgacoi",
+   "resélection aux minutes : 751 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "FUL",
+   "Diomansy Kamara",
+   "resélection aux minutes : 702 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "FUL",
+   "Stefano Okaka",
+   "resélection aux minutes : 472 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SUN",
+   "Carlos Edwards",
+   "resélection aux minutes : 90 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WOL",
+   "Michael Kightly",
+   "resélection aux minutes : 502 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WOL",
+   "Andrew Surman",
+   "resélection aux minutes : 500 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WIG",
+   "Michael Brown",
+   "resélection aux minutes : 152 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WIG",
+   "Won-hee Cho",
+   "resélection aux minutes : 113 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WHU",
+   "Frank Nouble",
+   "resélection aux minutes : 393 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "POR",
+   "Nadir Çiftçi",
+   "arrivée rectifiée par le relevé (« joueur de formation », zéro minute) : absent du relevé 2008-09 à Portsmouth et jamais utilisé, rien hors ligne ne le met à l'effectif professionnel au coup d'envoi (comme Wickham en 2008-09) ; Portsmouth reste à trois attaquants, toléré"
+  ],
+  [
+   "NEW",
+   "Wayne Routledge",
+   "doublon par l'identifiant Transfermarkt : 2 556 minutes à Queens Park Rangers, où il était dans le relevé 2008-09, puis 1 399 à Newcastle, où il arrive en janvier 2010 ; il était à QPR au coup d'envoi et y est remis"
+  ],
+  [
+   "NEW",
+   "Haris Vuckic",
+   "resélection aux minutes : 77 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WBA",
+   "Leon Barnett",
+   "resélection aux minutes : 336 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "FOR",
+   "Joe Garner",
+   "resélection aux minutes : 1 167 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "FOR",
+   "Joel Lynch",
+   "resélection aux minutes : 931 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "LEI",
+   "James Vaughan",
+   "resélection aux minutes : 327 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SWA",
+   "Jazz Richards",
+   "resélection aux minutes : 983 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SWA",
+   "Thomas Butler",
+   "resélection aux minutes : 962 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SWA",
+   "Jordi López",
+   "resélection aux minutes : 900 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "RDG",
+   "Gunnar Heidar Thorvaldsson",
+   "resélection aux minutes : 197 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "DON",
+   "Jay Emmanuel-Thomas",
+   "resélection aux minutes : 1 053 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "DON",
+   "John Spicer",
+   "resélection aux minutes : 904 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "DON",
+   "Waide Fairhurst",
+   "resélection aux minutes : 225 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "QPR",
+   "Fitz Hall",
+   "resélection aux minutes : 1 002 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "QPR",
+   "Lee Cook",
+   "resélection aux minutes : 740 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "IPS",
+   "Shane O'Connor",
+   "resélection aux minutes : 1 048 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "IPS",
+   "Liam Trotter",
+   "resélection aux minutes : 978 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "IPS",
+   "Lee Martin",
+   "resélection aux minutes : 898 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WAT",
+   "Tommy Smith",
+   "resélection aux minutes : 480 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "WAT",
+   "Jobi McAnuff",
+   "resélection aux minutes : 323 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "BNS",
+   "Martin Devaney",
+   "resélection aux minutes : 592 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "COV",
+   "Jermaine Grandison",
+   "resélection aux minutes : 324 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SCU",
+   "Michael Raynes",
+   "resélection aux minutes : 1 062 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SCU",
+   "Niall Canavan",
+   "resélection aux minutes : 759 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SCU",
+   "Donal McDermott",
+   "resélection aux minutes : 485 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SCU",
+   "Kenny Milne",
+   "resélection aux minutes : 413 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ],
+  [
+   "SCU",
+   "Matty Godden",
+   "resélection aux minutes : 0 minutes, sort au profit d'un homme dont l'arrivée rectifiée n'avait pas été reprise dans la présélection du relevé"
+  ]
+ ],
+ "_ajouter": [
+  [
+   "CHE",
+   "Didier Drogba",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 793 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "MUN",
+   "Jonny Evans",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 517 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "MUN",
+   "Paul Scholes",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 677 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "TOT",
+   "Gareth Bale",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 719 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "EVE",
+   "Steven Pienaar",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 327 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "FUL",
+   "Chris Baird",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 4 277 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "FUL",
+   "Jonathan Greening",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 349 minutes, absent du club dans le relevé 2008-09 mais titulaire plus d'une demi-saison, gardé faute de contre-preuve"
+  ],
+  [
+   "FUL",
+   "Clint Dempsey",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 258 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "SUN",
+   "Grant Leadbitter",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 118 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "WOL",
+   "Michael Mancienne",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 246 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "WOL",
+   "Richard Stearman",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 1 305 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "WIG",
+   "Maynor Figueroa",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 358 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "WIG",
+   "Paul Scharner",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 701 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "WHU",
+   "Carlton Cole",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 442 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "POR",
+   "Jamie Ashdown",
+   "complète Portsmouth après la sortie de Nadir Çiftçi : 541 minutes, arrivée datée d'avant le coup d'envoi, aucun attaquant de Portsmouth dans ce cas"
+  ],
+  [
+   "NEW",
+   "Andy Carroll",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 057 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "NEW",
+   "Tamás Kádár",
+   "complète Newcastle après la sortie de Wayne Routledge : 909 minutes, arrivée datée d'avant le coup d'envoi"
+  ],
+  [
+   "WBA",
+   "Gabriel Tamaș",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 318 minutes, absent du club dans le relevé 2008-09 mais titulaire plus d'une demi-saison, gardé faute de contre-preuve"
+  ],
+  [
+   "FOR",
+   "Kelvin Wilson",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 405 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "FOR",
+   "Radosław Majewski",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 949 minutes, absent du club dans le relevé 2008-09 mais titulaire plus d'une demi-saison, gardé faute de contre-preuve"
+  ],
+  [
+   "LEI",
+   "Martyn Waghorn",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 748 minutes ; club monté de troisième division, que le relevé 2008-09 ne couvre pas, gardé faute de contre-preuve (règle de 2004-05)"
+  ],
+  [
+   "SWA",
+   "Federico Bessone",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 1 851 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "SWA",
+   "Leon Britton",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 268 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "SWA",
+   "Joe Allen",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 1 114 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "RDG",
+   "Shane Long",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 195 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "DON",
+   "Mark Wilson",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 811 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "DON",
+   "Martin Woods",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 1 981 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "DON",
+   "Billy Sharp",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 039 minutes, absent du club dans le relevé 2008-09 mais titulaire plus d'une demi-saison, gardé faute de contre-preuve"
+  ],
+  [
+   "QPR",
+   "Adel Taarabt",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 873 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "QPR",
+   "Wayne Routledge",
+   "remis à QPR, club du coup d'envoi (2 556 minutes, au club dans le relevé 2008-09) ; arrivée rectifiée par le relevé"
+  ],
+  [
+   "IPS",
+   "Jonathan Walters",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 4 026 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "IPS",
+   "Jack Colback",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 091 minutes, absent du club dans le relevé 2008-09 mais titulaire plus d'une demi-saison, gardé faute de contre-preuve"
+  ],
+  [
+   "IPS",
+   "Richard Wright",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 1 105 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "WAT",
+   "Adrian Mariappa",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 4 455 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "WAT",
+   "Tom Cleverley",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 062 minutes, absent du club dans le relevé 2008-09 mais titulaire plus d'une demi-saison, gardé faute de contre-preuve"
+  ],
+  [
+   "BNS",
+   "Adam Hammill",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 021 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "COV",
+   "Ben Turner",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 1 277 minutes, déjà au club dans le relevé 2008-09"
+  ],
+  [
+   "SCU",
+   "Marcus Williams",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 806 minutes ; club monté de troisième division, que le relevé 2008-09 ne couvre pas, gardé faute de contre-preuve (règle de 2004-05)"
+  ],
+  [
+   "SCU",
+   "David Mirfin",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 624 minutes ; club monté de troisième division, que le relevé 2008-09 ne couvre pas, gardé faute de contre-preuve (règle de 2004-05)"
+  ],
+  [
+   "SCU",
+   "Cliff Byrne",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 3 356 minutes ; club monté de troisième division, que le relevé 2008-09 ne couvre pas, gardé faute de contre-preuve (règle de 2004-05)"
+  ],
+  [
+   "SCU",
+   "Paul Hayes",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 4 452 minutes ; club monté de troisième division, que le relevé 2008-09 ne couvre pas, gardé faute de contre-preuve (règle de 2004-05)"
+  ],
+  [
+   "SCU",
+   "Matt Sparrow",
+   "arrivée rectifiée par le relevé mais oubliée de sa présélection : 2 226 minutes ; club monté de troisième division, que le relevé 2008-09 ne couvre pas, gardé faute de contre-preuve (règle de 2004-05)"
+  ],
+  [
+   "MUN",
+   "John O'Shea",
+   "remplace Anderson, sans nom libre : 1 408 minutes, arrivée datée d'avant le coup d'envoi, retenu à Manchester United dans le relevé 2008-09"
+  ],
+  [
+   "ARS",
+   "Armand Traoré",
+   "remplace Eduardo, sans nom libre : 1 054 minutes, arrivée datée d'avant le coup d'envoi (revenu de son prêt à Portsmouth) ; Sol Campbell, 1 225 minutes, passe après lui : absent d'Arsenal dans le relevé 2008-09 et utilisé moins d'une demi-saison, le profil d'un retour en cours de saison (il revient en janvier 2010) ; Arsenal reste à trois attaquants, comme en 2007-08 et 2008-09"
+  ],
+  [
+   "BOL",
+   "Sean Davis",
+   "remplace Paul Robinson, sans nom libre : 324 minutes, arrivée datée d'avant le coup d'envoi ; Ivan Klasnic passe après lui (arrivée rectifiée, absent de Bolton dans le relevé 2008-09, moins d'une demi-saison)"
+  ],
+  [
+   "NEW",
+   "Joey Barton",
+   "remplace Alan Smith, sans nom libre : 751 minutes, arrivée datée d'avant le coup d'envoi, retenu à Newcastle dans le relevé 2008-09"
+  ],
+  [
+   "FOR",
+   "Joe Garner",
+   "remplace Paul Smith, sans nom libre, deuxième gardien : aucun autre gardien de Forest n'a de date d'avant le coup d'envoi, Lee Camp reste seul gardien (toléré) ; Garner, 1 167 minutes, arrivée datée, retenu à Forest dans le relevé 2008-09"
+  ],
+  [
+   "BLP",
+   "Ashley Eastham",
+   "remplace Rob Edwards, sans nom libre : 155 minutes, défenseur, arrivée datée d'avant le coup d'envoi ; DJ Campbell (1 451 minutes) était à Leicester au coup d'envoi, où il joue 73 minutes avant son prêt"
+  ]
+ ]
+}
