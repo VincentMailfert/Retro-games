@@ -465,6 +465,44 @@ console.log("\nI) Les voies du jeu ouvert (VOIES_TIR / MONTEE_VOIE)");
   else fail(faux ? faux + " action(s) sur " + vus + " mises en scène hors de leur voie, ex. " + exemple.slice(0, 120) : "trop peu d'actions de voie simulées (" + vus + ")");
 }
 
+/* ===== J) le corner en deux temps (v2.46) =====
+   L'annonce (« Corner pour X. Untel s'installe au drapeau… ») et sa suite (COMM.cornerSuite) doivent se
+   talonner : même minute, même équipe, rien entre les deux. La suite ne redit pas « Corner de… ». Et le
+   piège trouvé au passage : « Corner pour {D} » donnait le corner à l'équipe qui DÉFEND ({D} = l'adversaire
+   du tireur dans fmtC) ; aucune ligne de corner ne doit plus nommer {D} comme celle qui le tire.        */
+console.log("\nJ) Le corner en deux temps");
+{
+  const ouvre = api.COMM.cornerSuite.filter((l) => /^corner/i.test(l));
+  if (!ouvre.length) ok("aucune suite ne redit « Corner de… » : l'annonce l'a déjà dit");
+  else fail(ouvre.length + " suite(s) rouvrent sur « Corner » : « " + ouvre[0].slice(0, 45) + "… »");
+  const aLEnvers = [...api.COMM.corner, ...api.COMM.cornerSuite].filter((l) => /(pour|de) \{D\}/.test(l) && !/défense(ur)? de \{D\}/.test(l));
+  if (!aLEnvers.length) ok("aucune ligne de corner ne donne le corner à l'équipe qui défend");
+  else fail(aLEnvers.length + " ligne(s) de corner nomment {D} comme l'équipe qui tire : « " + aLEnvers[0].slice(0, 45) + "… »");
+
+  let annonces = 0, orphelines = 0, seuls = 0, exemple = "";
+  for (let k = 0; k < 600; k++) {
+    const h = G.clubs[k % G.clubs.length], a = G.clubs[(k * 7 + 5) % G.clubs.length];
+    if (h === a) continue;
+    frais(h, a);
+    const r = api.simuleMatch(h, a, true);
+    const garde = r.ev.filter((e) => e.m <= 45);
+    let sh = 0, sa = 0;
+    for (const e of garde) if (e.g) { if (e.g.cote === h.id) sh++; else sa++; }
+    for (const ev of [r.ev, api.simuleReste(h, a, 45, sh, sa, 1, 1, r.vus).ev]) {
+      ev.forEach((e, i) => {
+        const g = e.x && gabaritDe(e.x);
+        if (g && g.famille === "corner") seuls++;
+        if (!e.ca) return;
+        annonces++;
+        const s = ev[i + 1], gs = s && s.x && gabaritDe(s.x), tag = (x) => (x.match(/\((\w+)\)$/) || [])[1];
+        if (!s || s.m !== e.m || !gs || gs.famille !== "cornerSuite" || tag(s.x) !== tag(e.x)) { orphelines++; exemple = exemple || e.x + " / " + (s ? s.x : "rien"); }
+      });
+    }
+  }
+  if (annonces > 300 && !orphelines) ok(annonces + " corners annoncés, tous suivis de leur issue (même minute, même équipe) ; " + seuls + " racontés d'un seul tenant");
+  else fail(orphelines ? orphelines + " annonce(s) sans leur suite, ex. " + exemple.slice(0, 110) : "trop peu de corners annoncés (" + annonces + ")");
+}
+
 /* ===== bilan ===== */
 console.log(FAILS ? "\n❌ HARNAIS RÉPÉTITIONS : " + FAILS + " PROBLÈME(S)" : "\n✅ HARNAIS RÉPÉTITIONS : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);

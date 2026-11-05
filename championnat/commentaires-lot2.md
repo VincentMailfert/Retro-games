@@ -110,6 +110,7 @@ par l'auteur.
 
 **Fait en v2.44** : la relance ratée, en deux voies (gardien / défenseur), sans passeur.
 
+**Fait en v2.46** : le corner en deux temps (annonce, puis issue à la ligne suivante).
+
 Reste à écrire case par case, dans les deux voix (~70 % reporter, 30 % chambreur) :
-- les annonces en deux temps (corner à suivre, puis son issue) ;
 - le résumé de mi-temps qui juge le scénario.

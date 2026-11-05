@@ -263,8 +263,13 @@ try {
 console.log("G) Calibrage : campus au maximum, les buts par match ne bougent pas");
 try {
   // même graine, même club : une fois campus à zéro, une fois au maximum. Les matchs des autres ne doivent pas bouger.
+  // SEIZE clubs depuis v2.46 (décision de l'auteur du 05/11/2026) : à quatre, l'écart mesuré avait un écart-type de 0,035
+  // pour une tolérance de 0,08, et le test rougissait ~2 fois sur 100 par pur hasard (60 graines mesurées sur la v2.44
+  // ET sur la v2.46) ; le décor du corner en deux temps avait rebrassé la graine 2024 sur l'un de ces cas. À huit, encore
+  // 1 sur 40 (écart-type 0,026-0,031) ; à seize, 0 sur 40, écart-type 0,016, pire écart 0,071. Tolérance inchangée.
+  const CLUBS_G = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   const mesure = (etat) => avecGraine(2024, () => { let tous = 0, miens = 0;
-    for (const i of [0, 7, 14, 19]) {
+    for (const i of CLUBS_G) {
       api.nouvellePartie(api.CLUBS[i].id); pose(etat);
       for (let s = 0; s < 2; s++) {
         for (let d = 0; d < 38; d++) api.jouerJournee();
@@ -272,7 +277,7 @@ try {
         api.intersaison(); pose(etat);
       }
     }
-    const n = 8 * 380, nm = 8 * 38; return { tous: tous / n, miens: miens / nm, autres: (tous - miens) / (n - nm) }; });
+    const n = CLUBS_G.length * 2 * 380, nm = CLUBS_G.length * 2 * 38; return { tous: tous / n, miens: miens / nm, autres: (tous - miens) / (n - nm) }; });
   const z = mesure(ZERO), x = mesure(MAX);
   ok(z.tous >= 2.0 && z.tous <= 2.8 && x.tous >= 2.0 && x.tous <= 2.8,
     `calibrage : ${z.tous.toFixed(3)} buts/match campus à zéro, ${x.tous.toFixed(3)} au maximum (tolérance de harness.cjs : 2,0 à 2,8)`);

@@ -3059,6 +3059,14 @@ toujours « raconter quelque chose ».
   la coupe (`corpsCoupe`) respecte enfin `BUT_SANS_PASSE` (le corner direct y gagnait une passe décisive).
   Tournures voulues par l'auteur : des montées qui commencent par « Mais… », et « fusille à bout portant » quand
   le joueur est dans la surface près du gardien (motif `fusille` : une fois par match au plus).
+- **Le corner en deux temps (v2.46, validé et retouché par l'auteur)** : `cornerDecor` (les DEUX points d'injection) annonce
+  deux corners sur trois (`CORNER_ANNONCE`, fonctions (club, tireur), drapeau `ca:1` sur l'évènement) et fait tomber
+  l'issue à la ligne suivante, même minute, même équipe (`COMM.cornerSuite`, jamais d'ouverture « Corner de… ») ; le
+  tiers restant garde `COMM.corner`. Piège corrigé : « Corner pour {D} » donnait le corner à l'équipe qui DÉFEND
+  ({D} = l'adversaire du tireur dans `fmtC`). Vocabulaire de l'auteur : « au pied du poteau de corner », « l'action se
+  termine en corner », et c'est le GARDIEN qui repousse du poing, pas « la défense ». Harnais répétitions, section J.
+  **Harnais centre, section G** : 16 clubs au lieu de 4 (décision de l'auteur), le test rougissait ~2 fois sur 100 par
+  hasard et le décor du corner avait rebrassé sa graine fixe sur l'un de ces cas ; tolérance 0,08 inchangée.
 - **Commentaires du direct — enrichissement sur corpus réel (v0.83, lot 1)** : le téléscripteur ne
   racontait que le tir et le carton. Dépouillement de **17 lives réels de L1** (1 539 entrées, minute 1
   au coup de sifflet) + 5 lives SoFoot, qui a dicté les réglages plutôt que l'intuition. Enseignements :

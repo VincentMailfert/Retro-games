@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.45"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.46"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11358,6 +11358,23 @@ const VOIES_TIR=[
 ];
 function voieTir(l){ const v=VOIES_TIR.find(x=>x[1].test(l)); return v?v[0]:""; }
 function phaseTir(l){ return TIRS_CF.has(l)?"cf":(TIRS_LOIN.has(l)?"loin":(TIRS_LOB.has(l)?"lob":(TIRS_ARRET.has(l)?"bal":voieTir(l||"")))); }
+/* LE CORNER EN DEUX TEMPS (v2.46, lot 2 des commentaires) — dans les vrais lives, le corner s'annonce
+   (« corner à suivre… ») et son issue tombe à l'entrée suivante. Deux corners sur trois se racontent
+   ainsi : l'annonce nomme le club qui TIRE et son tireur, la suite (COMM.cornerSuite) ne redit pas
+   « Corner de… ». Le tiers restant garde la ligne d'un seul tenant (COMM.corner). Pur décor. */
+const CORNER_ANNONCE=[
+  (club,t)=>"Corner pour "+club+". "+t+" s'installe au drapeau, les grands montent…",
+  (club,t)=>"Corner pour "+club+", arraché au bout du couloir. "+t+" va le tirer…",
+  (club,t)=>t+" pose le ballon au pied du poteau de corner. Tout le monde attend dans la surface…",
+  (club,t)=>"Corner ! "+club+" insiste, et "+t+" file vers le drapeau…",
+  (club,t)=>"L'action se termine en corner. "+t+" lève le bras, signal convenu…",
+];
+function cornerDecor(ev, m, c, t, opp, vus){
+  if(Math.random()<0.67){
+    ev.push({m,t:"occ",ic:"rate",ca:1,x:pickNR(CORNER_ANNONCE,vus)(c.nom,t.nom)+" ("+c.id+")"}); // ca : l'annonce, sa suite la talonne
+    ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.cornerSuite,vus),t,opp)+" ("+c.id+")"});
+  } else ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vus),t,opp)+" ("+c.id+")"});
+}
 const COMM={
  amb:[
   "Le public donne de la voix dans les tribunes.",
@@ -11577,8 +11594,8 @@ const COMM={
   "{A} fait un appel magnifique. La passe part de l'autre côté. Il reste là, les bras écartés, et le fait savoir au stade entier.",
  ],
  corner:[ // le coup de pied de coin — {A} = le tireur
-  "Corner pour {D}, le centre fuse au second poteau... et finit dans les gants du gardien, tranquille.",
-  "{A} place son corner au point de penalty... la défense sort le poing et éloigne le danger.",
+  "Corner de {A}, le centre fuse au second poteau... et finit dans les gants du gardien, tranquille.", // v2.46 : « Corner pour {D} » donnait le corner à l'équipe qui DÉFEND
+  "{A} place son corner au point de penalty... le gardien sort et repousse le ballon du poing.",
   "Corner de {A}, tout le monde saute, personne ne touche... et ça ressort de l'autre côté !",
   "{A} tire son corner à ras de terre au premier poteau... dévié, mais ça file juste à côté !",
   "Corner de {A}, mêlée furieuse dans les six mètres... et l'arbitre siffle une faute sur le gardien.",
@@ -11586,6 +11603,20 @@ const COMM={
   "Corner rentrant de {A} : le gardien sort dans les airs et cueille le ballon à deux mains. Autorité totale.",
   "{A} joue le corner à deux. On se fait des passes, on cherche l'ouverture, on réfléchit... et on perd le ballon. Le banc a fermé les yeux.",
   "Corner de {A}. Les grands montent, les petits font semblant de marquer quelqu'un, et le ballon file directement en six mètres. Un classique du genre.",
+ ],
+ cornerSuite:[ // v2.46 : la SUITE d'un corner annoncé à la ligne d'avant (CORNER_ANNONCE). {A} = le tireur, {D} = le club qui
+               // défend. Jamais d'ouverture « Corner de… » (l'annonce l'a dit), jamais l'équipe qui tire nommée par {D}.
+  "Le centre de {A} fuse au second poteau... et finit dans les gants du gardien, tranquille.",
+  "{A} le place au point de penalty, le gardien sort et repousse le ballon du poing.",
+  "Tout le monde saute, personne ne touche... et ça ressort de l'autre côté !",
+  "{A} le joue à ras de terre au premier poteau... dévié, mais ça file juste à côté !",
+  "Mêlée furieuse dans les six mètres... et l'arbitre siffle une faute sur le gardien.",
+  "Trop long : le ballon de {A} survole tout le monde et sort directement en six mètres.",
+  "Le ballon rentrant de {A} est cueilli à deux mains par le gardien, sorti dans les airs. Autorité totale.",
+  "Le premier défenseur de {D} dégage de la tête, et tout est à refaire.",
+  "Repris de la tête au second poteau... au-dessus ! Ça n'est pas passé loin.",
+  "{A} le joue à deux. On se fait des passes, on réfléchit... et on perd le ballon. Le banc a fermé les yeux.",
+  "Les grands font semblant de se battre, les petits font semblant de marquer quelqu'un, et le ballon file en six mètres. Un classique.",
  ],
  hj:[ // le hors-jeu — {A} = l'attaquant signalé
   "{A} part au but, seul... le drapeau se lève ! Hors-jeu d'une demi-semelle, et le banc de {D} respire.",
@@ -12212,7 +12243,7 @@ function simuleMatch(home,away,verbeux,opts){
     // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
     // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
     if(verbeux && Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(enJeu(c));
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) cornerDecor(ev,m,c,t,c===home?away:home,vusC); }
     if(verbeux && Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && Math.random()<0.012){ const c=Math.random()<0.5?home:away, t=tireur(c); // l'action qui meurt (v2.42), ~1 par match, en retrait du réel (~2,8)
@@ -12318,7 +12349,7 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus,opts){
     // faits de jeu sans tir — fréquences calées sur un corpus de 17 lives réels.
     // PUR DÉCOR : aucune de ces lignes ne touche au score ni aux statistiques.
     if(Math.random()<0.020){ const c=Math.random()<0.5?home:away, t=tireurDuXI(enJeu(c));
-      if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.corner,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
+      if(t) cornerDecor(ev,m,c,t,c===home?away:home,vusC); }
     if(Math.random()<0.018){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"arret",x:fmtC(pickNR(COMM.sauve,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(Math.random()<0.012){ const c=Math.random()<0.5?home:away, t=tireur(c); // l'action qui meurt (v2.42), cf. simuleMatch
@@ -13089,7 +13120,7 @@ const MONTEE_VOIE={
    comme buteur de la tête — le second temps doit convenir aux deux). */
 const MONTEE_ARRET=[
   "Corner à jouer : les grands remontent, le gardien organise son monde à la voix…",
-  "Le ballon est posé au coin du terrain, et la surface se remplit…",
+  "Le ballon est posé au pied du poteau de corner, et la surface se remplit…",
   "Corner. Onze joueurs dans la surface, pas un centimètre de libre…",
   "Le tireur prend son temps au drapeau, ça se marque à la culotte dans les six mètres…",
   "Arrêt de jeu, tout le monde monte : ce corner sent le danger…",
