@@ -5517,6 +5517,45 @@ rougissaient. La plage de l'outil prend désormais Ł, Š, Ž et Č ; aucune tab
 
 `harness-ang0809.cjs` garde tout cela.
 
+### ANG 2009-10 — ANCELOTTI PASSE LA CENTAINE (v2.45)
+Vingtième et dernière saison anglaise, assemblée par la tâche planifiée le 05/11/2026 à partir de `releves/ANG-2009-10` (relevé
+Transfermarkt), **toujours sans accès au réseau** (Transfermarkt et Wikipédia injoignables). Chelsea est champion avec quatre-vingt-six
+points, un devant Manchester United, et **cent trois buts, record de la Premier League** ; Carlo Ancelotti ajoute la FA Cup contre
+Portsmouth, premier doublé du club. **Rooney joueur de l'année PFA et FWA (90)**, **Milner meilleur espoir (79, potentiel 84)**, que
+l'héritage laissait à 71 ; **Drogba meilleur buteur avec vingt-neuf buts (88)**. Notes : 536 héritées de 2008-09, 65 plus lointaines, 1 du
+recruteur, 158 calculées ; élite 70.4 / 70, dessous 66.4 / 67. **Aucune pépite forcée.** Le meilleur buteur du dessous n'est pas ajusté :
+sans réseau, je ne savais pas le nommer avec certitude. Premier League à vingt ; l'échelon du dessous perd ses quatre derniers (Crystal
+Palace, Sheffield Wednesday, Plymouth, Peterborough). Portsmouth, privé de neuf points, ferme l'élite.
+
+**LE RELEVÉ AVAIT OUBLIÉ DE REFAIRE SA PRÉSÉLECTION.** Le relevé a corrigé l'arrivée de quatre-vingt-dix-neuf hommes (la date
+« postérieure » de Transfermarkt, passée de 1 à 2) **sans rejouer le tri aux minutes** : leur `retenu` était resté à `false`. Le
+vérificateur passait (760 retenus, minimums tenus), et le rapport citait Drogba, Scholes, Bale et Pienaar parmi les rectifiés comme s'ils
+étaient dans les effectifs. Ils n'y étaient pas : **Chelsea alignait Shevchenko (quatre minutes) à la place de Drogba**, Scunthorpe Matty
+Godden (zéro minute) à la place de Paul Hayes (4 452). **Contrôle à faire sur tout relevé : lister club par club les hommes `arrivee: 2`
+non retenus qui ont plus de minutes que le dernier retenu.** La présélection est rejouée à la règle même du relevé (minutes, minimums
+2-5-5-4, un homme par identifiant au club du coup d'envoi), et la différence passe par `_retirer` / `_ajouter` : quarante-deux hommes,
+dont Drogba, Scholes, Jonny Evans, Bale, Pienaar, Carroll, Dempsey, Carlton Cole, Taarabt, Billy Sharp et cinq hommes de Scunthorpe.
+
+**LA MENTION « HISTORIQUE VÉRIFIÉ » DU RELEVÉ NE TIENT PAS.** Quarante-six rectifiés la portent, et **Landon Donovan**, prêté à Everton
+en janvier 2010, en fait partie. Toutes les arrivées rectifiées sont donc reprises contre le relevé 2008-09 avec la règle de 2005-06,
+vérifiées ou non : absent du club la saison d'avant et utilisé moins d'une demi-saison, il sort (Donovan, Jack Cork, Ricardo Rocha,
+Stephen McManus, Ivan Klasnic, Jordi Gómez, Carl Baker, Nadir Çiftçi…) ; titulaire plus d'une demi-saison, il reste faute de contre-preuve
+(Greening, Tamaș, Majewski, Colback, Cleverley, Billy Sharp) ; club monté de troisième division que le relevé 2008-09 ne couvre pas
+(Leicester, Scunthorpe), il reste (règle de 2004-05). **Wayne Routledge** est remis à Queens Park Rangers (2 556 minutes, au club en 2008-09)
+au lieu de Newcastle, où il arrive en janvier. Anderson, Eduardo, Paul Robinson (Bolton), Alan Smith, Paul Smith et Rob Edwards n'ont aucun
+nom libre : John O'Shea, Armand Traoré, Sean Davis, Joey Barton, Joe Garner et Ashley Eastham les remplacent. Sol Campbell (revenu à
+Arsenal en janvier) et DJ Campbell (à Leicester au coup d'envoi) passent après. **Forest reste à un seul gardien**, Lee Camp, aucun autre
+n'ayant de date d'avant le coup d'envoi ; **Arsenal et Portsmouth à trois attaquants** : tolérés.
+
+**ABDOULAYE FAYE GARDE SON NOM.** Amdy Faye n'est plus au plateau, et le résolveur rendait « A. Faye » à Abdoulaye, son ancien coéquipier
+de Stoke : le piège d'Isaiah Osbourne (2007-08) rejoué. `_graphie` lui garde « Abdoulaye Faye ». Nicky Hunt (« N. Hunt », Derby) et Noel
+Hunt (Reading) sont deux hommes.
+
+**Restent à revoir quand Transfermarkt répondra** : les arrivées rectifiées sorties ou gardées sans preuve, et le meilleur buteur de
+Championship.
+
+`harness-ang0910.cjs` garde tout cela.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
