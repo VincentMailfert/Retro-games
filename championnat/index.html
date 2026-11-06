@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.48"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.49"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11961,7 +11961,7 @@ function lignesChangements(c, s){ return s.banc.map((j,k)=>k).filter(k=>!(s.urge
 function ligneApresRouge(c, rel, m){
   if(!rel) return null;
   if(rel.entre){ const p=CHANGEMENTS[c.id]; return ligneChangement(c, p, p.banc.indexOf(rel.entre)); }
-  if(rel.gants) return {m, t:"amb", x:(rel.raison==="banc" ? "Pas de gardien sur le banc de "+c.nom+" : " : c.nom+" a déjà fait ses trois changements : ")
+  if(rel.gants) return {m, t:"amb", x:(rel.raison==="banc" ? "Pas de gardien sur le banc "+deMT(c.nom)+" : " : "Les trois changements sont faits pour "+c.nom+" : ") // v2.49 : une équipe n'a pas « ses » changements (règle de l'auteur : ils / leur)
     +rel.gants.nom+" enfile le maillot du gardien et file dans les buts !"};
   return null;
 }
@@ -12682,7 +12682,7 @@ const BLESSURE_DIT=[ // {A} l'homme touché, {C} son club
   "Le soigneur de {C} est déjà sur la pelouse : {A} grimace, la cheville ne le porte plus.",
   "{A} tente deux foulées, s'arrête net et lève le bras vers le banc de {C}. Il est touché.",
   "Réception ratée, {A} reste à terre. Les visages se ferment sur le banc de {C}.",
-  "{A} s'est tordu en retombant et frappe la pelouse du poing. {C} retient son souffle.",
+  "{A} s'est tordu en retombant et frappe la pelouse du poing. Le banc de {C} retient son souffle.",
 ];
 const SUBS_BLESSURE=[ // {C} le club, {S} le blessé, {E} celui qui entre
   "{S} ne peut pas reprendre : {E} entre à sa place, échauffement écourté.",
@@ -12692,14 +12692,14 @@ const SUBS_BLESSURE=[ // {C} le club, {S} le blessé, {E} celui qui entre
 ];
 function ligneBlessure(c, j, m){
   return {m, t:"crd", ic:"soin", cote:c.id, bl:{cote:c.id, nom:j.nom, uid:j.uid},
-    x:PICK(BLESSURE_DIT).replace("{A}", j.nom).replace("{C}", c.nom)};
+    x:PICK(BLESSURE_DIT).replace("{A}", j.nom).replace("de {C}", deMT(c.nom)).replace("{C}", c.nom)}; // « le banc d'Auxerre » (v2.49)
 }
 /* Ce que le téléscripteur écrit d'un pépin : la scène, puis la réponse du banc — l'entrant, le joueur
    de champ qui enfile les gants, ou l'aveu de celui qui n'a plus de changement. */
 function lignesBlessure(c, j, m, rel){
   const out=[ligneBlessure(c, j, m)];
   const suite=(rel&&(rel.entre||rel.gants)) ? ligneApresRouge(c, rel, m)
-    : {m, t:"amb", x:c.nom+" a épuisé ses changements : "+j.nom+" reste sur la pelouse en serrant les dents."};
+    : {m, t:"amb", x:"Les trois changements sont faits pour "+c.nom+" : "+j.nom+" reste sur la pelouse en serrant les dents."};
   if(suite) out.push(suite);
   return out;
 }

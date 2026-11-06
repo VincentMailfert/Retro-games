@@ -3074,6 +3074,11 @@ toujours « raconter quelque chose ».
   fin de coupe rejouée (il n'aurait vu qu'une partie de la mi-temps). Élision `deMT` (« d'Auxerre », pas deClub : les
   clubs d'un match ne portent pas tous leur pays). Règle de l'auteur : une équipe se reprend par « ils / leur » (les
   joueurs), jamais « il / lui ». Harnais répétitions, section K (le jugement ne contredit jamais le score).
+- **« Ils / leur » sur tout le jeu (v2.49, règle de l'auteur)** : crible passé, aucun « il / lui » ne reprend un club.
+  Trois possessifs réécrits avec l'accord de l'auteur : « Les trois changements sont faits pour X » (au lieu de « X a
+  déjà fait ses trois changements » / « a épuisé ses changements » ; garder « trois changements », harness-fraicheur
+  exige la raison), « Le banc de {C} retient son souffle » (`ligneBlessure` élide « de {C} » via `deMT`). Le titre de
+  presse « terrasse enfin sa bête noire » reste (un journal parle du club comme d'une institution).
 - **Commentaires du direct — enrichissement sur corpus réel (v0.83, lot 1)** : le téléscripteur ne
   racontait que le tir et le carton. Dépouillement de **17 lives réels de L1** (1 539 entrées, minute 1
   au coup de sifflet) + 5 lives SoFoot, qui a dicté les réglages plutôt que l'intuition. Enseignements :
