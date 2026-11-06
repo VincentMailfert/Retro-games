@@ -3024,9 +3024,9 @@ toujours « raconter quelque chose ».
   Le mode instantané et les matchs des autres gardent la séance automatique de `tirsAuBut` (calibrage intact).
   `ordreTireurs` (partagé avec le moteur) met désormais **le gardien en dernier** (Barthez tirait le cinquième).
   **Constat de calibrage** : avec ces repères, le niveau pèse ~2× plus que dans la séance du moteur (PSG-Rennes au
-  hasard : 78 % contre 62 %) — c'est le prix des fourchettes 30-85 / 80-95, pas un bug. Les vignettes photo des
-  penaltys (`penAvant`, `penBut`, `penEncaisse`, `penArret`, `penRate`) ne s'affichent plus dans la fenêtre (le but
-  dessiné les remplace) ; les fichiers restent. Gardé par **`harness-penalties.cjs`**.
+  hasard : 78 % contre 62 %) — c'est le prix des fourchettes 30-85 / 80-95, pas un bug. Choix de l'auteur : garder ses
+  chiffres. Les photos de l'issue (`penBut`/`penEncaisse`, `penArret`, `penRate`) reviennent SOUS le but dessiné, avec
+  le bouton « Reprendre le match » (`vignettePen`, penalty de la 90ᵉ seulement) ; `penAvant` n'est plus montrée. Gardé par **`harness-penalties.cjs`**.
 - **L'ISSUE DES PENALTYS EN IMAGE (v2.21, 28/10/2026)** : quatre vignettes de plus. **`penArret`** (la v2.20 y avait mis
   `penContre-2` ; s'y ajoute l'arrêt vu à travers le filet, tiré de la photo de l'auteur) et **`penRate`** (le ballon à côté du poteau) remplacent l'image du haut des
   fenêtres de penalty de la 90ᵉ, pour et contre, quand le tir ne rentre pas (`vignetteIssuePen`). **`tabArret`** (tirée

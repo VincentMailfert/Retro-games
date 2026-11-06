@@ -149,9 +149,9 @@ console.log("\nF) Les tireurs de la séance sont ceux du moteur");
 
 /* ===== G) trois mille séances ===== */
 console.log("\nG) Trois mille séances jouées au hasard");
-const joueSeance = (home, away, choix) => {
+const joueSeance = (home, away, choix, xiH, xiA) => {
   let fin = null;
-  api.seanceTAB(home, away, api.xiSeance(home), api.xiSeance(away), r => { fin = r; });
+  api.seanceTAB(home, away, xiH || api.xiSeance(home), xiA || api.xiSeance(away), r => { fin = r; });
   for (let garde = 0; garde < 500 && !fin; garde++) {
     const ok_ = FICHE.querySelector("#penRes").querySelector("#bPenOk");
     if (ok_.onclick) { ok_.onclick(); break; }
@@ -202,9 +202,17 @@ const joueSeance = (home, away, choix) => {
   ok(vuDomicile, "à l'extérieur aussi, c'est vous qui tirez le premier");
   ok(mortes > 100 && maxi > 12, "la mort subite arrive (" + mortes + " séances au-delà de cinq tirs chacun, la plus longue en " + maxi + " frappes)");
   ok(decisifs > 0, "l'arrêt qui qualifie porte son drapeau pour le flash (" + decisifs + " fois)");
-  // le PSG face à un adversaire plus faible, en cliquant au hasard : favori, jamais assuré (avec les repères de
-  // l'auteur, le niveau pèse environ deux fois plus que dans la séance automatique du moteur, ~58 % ici contre ~53 %)
-  ok(gagnees > 1500 && gagnees < 2550, "en cliquant au hasard, le PSG en gagne " + gagnees + " sur 3000 contre " + adv.id + " : favori, jamais assuré");
+  // PAS « LE PSG EST FAVORI » : selon le tirage de la partie (les tireurs d'élite 🎯 sont semés au hasard), il gagne
+  // de 44 % à 64 % de ses séances contre Auxerre. Ce qui vaut toujours : personne n'est assuré, ni perdu d'avance.
+  ok(gagnees > 750 && gagnees < 2550, "en cliquant au hasard, le PSG en gagne " + gagnees + " sur 3000 contre " + adv.id + " : jamais assuré, jamais perdu d'avance");
+  // et le niveau pèse : les MÊMES hommes, quinze points plus bas, sans tireur d'élite des deux côtés. Les habitudes
+  // naissent de l'identifiant : on en change à chaque séance, sinon un seul gardien « qui reste debout » face à des
+  // clics au hasard ferait varier la mesure de 57 à 79 % d'une partie à l'autre.
+  const net = (l, s, d) => l.map(j => Object.assign({}, j, { tireurElite: false, uid: j.uid + "#" + s, note: j.note - d }));
+  let fortes = 0; const N = 1500;
+  for (let s = 0; s < N; s++) { const xi0 = api.xiSeance(moi);
+    const r = joueSeance(moi, adv, null, net(xi0, "m" + s, 0), net(xi0, "b" + s, 15)); if (r && r.win === moi.id) fortes++; }
+  ok(fortes / N > 0.58 && fortes / N < 0.85, "les mêmes joueurs avec quinze points de moins : vous en gagnez " + pct(fortes / N) + ", le niveau pèse sans tout décider");
 }
 
 /* ===== H) dans le fil du direct ===== */

@@ -194,6 +194,7 @@
   @keyframes duelChrono{to{transform:scaleX(0);}}
   .duelBtns{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;}
   .duelBtns button{min-height:48px; padding:10px 4px;}
+  .momImg.duelImg{margin:10px auto 0; max-height:170px;}
   .duelBand{position:absolute; left:-14px; right:-14px; top:82%; transform:translateY(-50%); padding:6px 0;
     font-family:var(--font-led); font-size:42px; letter-spacing:4px; background:rgba(11,22,38,.94);
     border-top:3px solid currentColor; border-bottom:3px solid currentColor; animation:duelBand .3s steps(3) both;}
@@ -23464,6 +23465,9 @@ function momentProvoc(mo,moi,adv,resoudre,suite){
   };
 }
 
+/* LES PHOTOS DE L'ISSUE (v2.21) reviennent sous le but dessiné, avec le bouton qui rend la main : le but, l'arrêt
+   ou le raté. Au penalty de la 90ᵉ seulement ; la séance enchaîne ses frappes sans elles. */
+function vignettePen(cle){ const l=IMG_MOMENT[cle]; return l ? `<img class="momImg duelImg" src="${PICK(l)}" alt="">` : ""; }
 /* Penalty POUR : vous tirez (le duel du point de penalty, v2.51) */
 function momentPenPour(mo,moi,adv,resoudre,suite){
   const t=byUid(mo.uid)||{nom:"votre tireur",note:75};
@@ -23471,7 +23475,7 @@ function momentPenPour(mo,moi,adv,resoudre,suite){
   const fiche=cadreMoment("PENALTY : 90ᵉ MINUTE", `<div id="duelPen"></div><div id="penRes"></div>`);
   duelPenalty(fiche.querySelector("#duelPen"), {tireur:t, gardien:gk, moiTire:true, xiT:enJeu(moi,90), xiG:xiA, onFin:x=>{
     const lib=PEN_LIB[x.tir], marque=x.issue==="but", arret=x.issue==="arret";
-    finMoment(fiche, "", ()=>{
+    finMoment(fiche, vignettePen(marque?"penBut":arret?"penArret":"penRate"), ()=>{
       const lx=marque?(t.nom+" prend le gardien à contre-pied, "+lib+" : BUUUT À LA 90ᵉ !!! {SCORE}")
             :arret?("ARRÊT DU GARDIEN !! Il avait lu la frappe de "+t.nom+". Quel sang-froid !")
             :x.issue==="poteau"?(t.nom+" frappe "+lib+"... SUR LE POTEAU ! Le stade se prend la tête.")
@@ -23562,7 +23566,7 @@ function momentPenContre(mo,moi,adv,resoudre,suite){
   duelPenalty(fiche.querySelector("#duelPen"), {tireur:t, gardien:gk, moiTire:false, xiT:enJeu(adv,90), xiG:enJeu(moi,90), onFin:x=>{
     const lib=PEN_LIB[x.tir], but=x.issue==="but", arret=x.issue==="arret";
     if(arret){ gk.moral=Math.min(100,(gk.moral||65)+10); }
-    finMoment(fiche, "", ()=>{
+    finMoment(fiche, vignettePen(but?"penEncaisse":arret?"penArret":"penRate"), ()=>{
       const lx=but?(t.nom+" transforme, "+lib+", le coup de poignard de la 90ᵉ. {SCORE}")
             :arret?("ARRÊT DE "+gk.nom.toUpperCase()+" SUR LE PENALTY !! "+moi.stade+" explose ! Le héros du soir porte des gants.")
             :x.issue==="poteau"?(t.nom+" trouve le POTEAU ! Le stade souffle.")
