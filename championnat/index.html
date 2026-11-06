@@ -177,6 +177,36 @@
   .momImg{display:block; margin:0 auto 8px; width:auto; max-width:100%; max-height:200px; image-rendering:pixelated;
     border:2px solid #2a2a2a; border-radius:4px;}
   @keyframes butflash{50%{opacity:.2;}}
+  /* LE DUEL DU POINT DE PENALTY (v2.51) : le but vu de face, deux pastilles, trois boutons, un chrono, un bandeau */
+  .duel{text-align:center;}
+  .duelScene{position:relative;}
+  .duel svg{display:block; width:100%; max-width:340px; height:auto; margin:4px auto 0;}
+  .duel .pGk{transform-box:fill-box; transform-origin:center; transition:transform .45s cubic-bezier(.2,.7,.3,1);}
+  .duel .pBal{transition:transform .4s cubic-bezier(.15,.6,.35,1);}
+  .duel .pNum{font-family:var(--font-led); font-weight:bold; fill:#16243c; text-anchor:middle;}
+  .duel .pNom{font:600 10px var(--font-texte); fill:var(--txt); text-anchor:middle; paint-order:stroke; stroke:var(--bg); stroke-width:3px;}
+  .duel .pNom.g{text-anchor:start;}
+  .duelIndice{color:var(--dim); font-size:13px; font-style:italic; min-height:19px; margin:2px 0 6px;}
+  .duelChrono{display:flex; align-items:center; gap:8px; max-width:300px; margin:0 auto 8px;}
+  .duelChrono b{font-family:var(--font-led); color:var(--jaune); font-size:20px; width:20px; font-weight:normal;}
+  .duelChrono i{flex:1; height:4px; background:var(--line); position:relative; overflow:hidden;}
+  .duelChrono i::after{content:""; position:absolute; inset:0; background:var(--jaune); transform-origin:left; animation:duelChrono var(--d,5s) linear forwards;}
+  @keyframes duelChrono{to{transform:scaleX(0);}}
+  .duelBtns{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;}
+  .duelBtns button{min-height:48px; padding:10px 4px;}
+  .duelBand{position:absolute; left:-14px; right:-14px; top:82%; transform:translateY(-50%); padding:6px 0;
+    font-family:var(--font-led); font-size:42px; letter-spacing:4px; background:rgba(11,22,38,.94);
+    border-top:3px solid currentColor; border-bottom:3px solid currentColor; animation:duelBand .3s steps(3) both;}
+  @keyframes duelBand{from{transform:translateY(-50%) scaleY(0);}}
+  .tabTableau{margin:0 0 6px;}
+  .tabLigne{display:flex; align-items:center; justify-content:center; gap:6px; padding:2px 0; font-family:var(--font-led);}
+  .tabNom{width:48px; text-align:right; margin-right:4px;}
+  .tabNb{width:22px; text-align:left; margin-left:4px; color:var(--clair); font-weight:normal;}
+  .tabRond{width:14px; height:14px; border-radius:50%; border:2px solid var(--line); flex:none;}
+  .tabRond.ok{background:var(--vert); border-color:var(--vert);}
+  .tabRond.ko{background:var(--rouge); border-color:var(--rouge);}
+  @media(max-width:700px){ .duelBand{font-size:32px;} }
+  @media (prefers-reduced-motion:reduce){.duel .pGk,.duel .pBal{transition-duration:.01s;} .duelBand{animation:none;}}
   @media (prefers-reduced-motion:reduce){#butFlash .gros{animation:none;}}
   @media(max-width:700px){ #butFlash .gros{font-size:26px; letter-spacing:2px;} #butFlash .led{padding:14px 18px;}
     #butFlash .buteur{font-size:20px;} }
@@ -592,7 +622,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.50"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.51"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -12147,9 +12177,17 @@ function probaPenalty(tir, gk){
   const nt=(tir&&tir.note)||60, ng=(gk&&gk.note)||60;
   return Math.max(0.60, Math.min(0.88, 0.75 + 0.002*(nt-70) - 0.002*(ng-70)));
 }
+/* Les hommes de la séance : ceux qui finissent le match, les meilleurs frappeurs d'abord (un attaquant passe devant
+   un milieu de même note, un milieu devant un défenseur), et le gardien en dernier, quelle que soit sa note : un
+   Barthez à 85 tirait sinon le cinquième. La séance jouable (seanceTAB) lit le même ordre. */
+function xiSeance(c){ const l=enJeu(c,90); return l.length?l:onze(c); }
+function ordreTireurs(c, xi){
+  const cle=j=>j.pos==="G" ? -1 : j.note+("A".includes(j.pos)?6:"M".includes(j.pos)?3:0);
+  const l=(xi||xiSeance(c)).slice().sort((a,b)=>cle(b)-cle(a));
+  return l.length?l:[{nom:"un joueur",note:55}];
+}
 function tirsAuBut(home, away, verbeux, ev){
-  const xi=c=>{ const l=enJeu(c,90); return l.length?l:onze(c); };
-  const ordre=c=>{ const l=xi(c).slice().sort((a,b)=>(b.note+("A".includes(b.pos)?6:"M".includes(b.pos)?3:0))-(a.note+("A".includes(a.pos)?6:"M".includes(a.pos)?3:0))); return l.length?l:[{nom:"un joueur",note:55}]; };
+  const xi=xiSeance, ordre=c=>ordreTireurs(c);
   const tirH=ordre(home), tirA=ordre(away);
   const gkH=xi(home).find(j=>j.pos==="G"), gkA=xi(away).find(j=>j.pos==="G");
   let h=0, a=0, k=0;
@@ -22184,6 +22222,12 @@ function lanceCoupe(H, A, ed){
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
+    if(lg && lg.tab && R && !lignes._tabJouee){ // LA SÉANCE SE JOUE (v2.51) : le direct s'arrête au premier tir au but
+      lignes._tabJouee=true;
+      return seanceDirect(lignes, i, coupeClub(ed.hid)||H, coupeClub(ed.aid)||A, tk, (tab, n)=>{
+        R.tab=tab; r.tab=true; r.win=tab.win; Object.assign(ed, {tab:true, win:tab.win});
+        i=n; tickerTimer=setTimeout(tic,600); });
+    }
     ajouteLigne(tk,lg); majTab(lg); i++;
     if(lg && lg.m) liveMin=lg.m;
     if(lg && lg.c && lg.c.rouge){ // infériorité numérique : même barème que le moteur (malusRouge), pour un recollage
@@ -22339,6 +22383,12 @@ function lanceEuroLeg(H, A, ed, legScore){
       else { const defAff=(info.cote===H.id?A:H); txt=monteeDeux(info,lignes,gardienAff(defAff, onzeEuro)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
+    }
+    if(lg && lg.tab && R && !lignes._tabJouee){ // LA SÉANCE SE JOUE (v2.51) : le direct s'arrête au premier tir au but
+      lignes._tabJouee=true;
+      return seanceDirect(lignes, i, euroClub(H.id)||H, euroClub(A.id)||A, tk, (tab, n)=>{
+        R.tab=tab; r.sh=R.sh; r.sa=R.sa; verdict(R.tab);
+        i=n; tickerTimer=setTimeout(tic,600); });
     }
     ajouteLigne(tk,lg); majTab(lg); i++;
     if(lg && lg.m) liveMin=lg.m;
@@ -23177,7 +23227,6 @@ function majMinute(m){
     if(tm) tm.textContent=String(m).padStart(2,"0")+"'";
   }catch(e){}
 }
-const ZONES_PEN=[["hg","Lucarne G"],["hc","Sous la barre"],["hd","Lucarne D"],["bg","Ras de terre G"],["bc","Plein centre"],["bd","Ras de terre D"]];
 function cadreMoment(titre, corps){
   const fiche=document.getElementById("fiche");
   fiche.innerHTML=`<div class="fbox" style="max-width:430px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
@@ -23186,24 +23235,173 @@ function cadreMoment(titre, corps){
   window._penEnCours=true;
   return fiche;
 }
-function grilleZones(prefixe){
-  return `<div style="margin:10px auto;width:330px;border:3px solid #e8e8e8;border-bottom:none;padding:4px;background:rgba(255,255,255,.04)">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
-      ${ZONES_PEN.map(z=>`<button class="act zPen" data-z="${z[0]}" style="padding:14px 4px">${prefixe}${z[1]}</button>`).join("")}
-    </div></div><div id="penRes"></div>`;
+/* ======== LE DUEL DU POINT DE PENALTY (v2.51) ========
+   Une devinette, sans jauge ni adresse. Le tireur choisit gauche, centre ou droite ; le gardien plonge à gauche,
+   reste, ou plonge à droite. La gauche est toujours celle de l'écran (le but vu de face), pour l'un comme pour
+   l'autre. LA DEVINETTE DÉCIDE DE LA SITUATION, LE NIVEAU DÉCIDE DU RÉSULTAT. Le même duel sert au penalty de la
+   90ᵉ (momentPenPour, momentPenContre) et à chaque frappe de la séance de tirs au but (seanceTAB).
+   TOUS LES RÉGLAGES SONT ICI, à ajuster en jouant. */
+const PEN_REGLAGES={
+  chrono:5,                  // secondes pour choisir ; au-delà, le choix tombe au hasard
+  // les repères de niveau (notes des joueurs)
+  tireurFaible:62, tireurElite:88, gardienMoyen:72, grandGardien:86,
+  // GARDIEN DU MAUVAIS CÔTÉ : le tireur marque 80 % du temps s'il est faible, 95 % s'il est d'élite, en proportion
+  // entre les deux. Le reste, c'est le poteau ou à côté (au-dessus compris).
+  reussiteFaible:0.80, reussiteElite:0.95,
+  partPoteau:0.5,            // part du poteau dans ces tirs ratés
+  // GARDIEN DU BON CÔTÉ : arrêt 30 % du temps pour un tireur d'élite face à un gardien moyen, 85 % pour un tireur
+  // faible face à un grand gardien. Entre les deux, c'est l'écart de notes (tireur moins gardien) qui décide.
+  arretMin:0.30, arretMax:0.85,
+  // TIR AU CENTRE : arrêt à coup sûr si le gardien reste, but à coup sûr s'il plonge (la règle, pas un réglage).
+  habitude:0.65,             // l'ordinateur suit son habitude deux fois sur trois
+  // L'INDICE (« Tire souvent à gauche ») dit vrai 70 % du temps à niveaux égaux. Chaque point de note de celui qui
+  // observe (votre gardien, ou votre tireur) l'affermit d'un point ; chaque point de celui qu'on observe le brouille.
+  indiceBase:0.70, indiceParPoint:0.01, indiceMin:0.40, indiceMax:0.92,
+  bonusSpecialiste:5,        // le tireur d'élite 🎯 frappe comme s'il avait cinq points de plus
+  bonusCoach:2,              // points par niveau de coach : coups de pied arrêtés pour vos tireurs, gardiens pour votre gardien
+  pauseSeance:1500           // millisecondes entre deux frappes de la séance, le temps de lire le bandeau
+};
+const COTES_PEN=["g","c","d"];
+const PEN_LIB={g:"à gauche", c:"plein centre", d:"à droite"};
+function penBorne(x,a,b){ return Math.max(Math.min(a,b), Math.min(Math.max(a,b), x)); }
+/* LES HABITUDES ne se tirent pas à chaque penalty : elles naissent d'une graine fixe par joueur (son identifiant),
+   donc un tireur garde son côté toute sa carrière, sans rien ajouter à la sauvegarde. */
+function penGraine(j, sel){
+  const s=sel+String(j&&(j.uid!=null?j.uid:j.nom)||"?"); let h=2166136261;
+  for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); }
+  return (h>>>0)/4294967296;
 }
-function zoneGardien(){
-  const poids={bg:.22,bd:.22,hg:.14,hd:.14,bc:.18,hc:.10};
-  let r=Math.random(), zg="bd";
-  for(const k in poids){ r-=poids[k]; if(r<=0){ zg=k; break; } }
-  return zg;
+function penHabitude(j, gardien){
+  const x=penGraine(j, gardien?"gk":"tir");
+  return gardien ? (x<0.42?"g":x<0.84?"d":"c") : (x<0.45?"g":x<0.90?"d":"c");
 }
-/* L'ISSUE D'UN PENALTY RATÉ A SA PROPRE IMAGE (v2.21) : la vignette du haut cède la place au plongeon gagnant du
-   gardien, ou au ballon qui file à côté du poteau. Un penalty transformé garde la sienne, le flash du but suit. */
-function vignetteIssuePen(fiche, dedans, arret){
-  if(dedans) return;
-  const im=fiche&&fiche.querySelector&&fiche.querySelector(".momImg"), l=IMG_MOMENT[arret?"penArret":"penRate"];
-  if(im && l) im.src=PICK(l);
+function penAutre(c){ return PICK(COTES_PEN.filter(x=>x!==c)); }
+function penSuit(hab){ return Math.random()<PEN_REGLAGES.habitude ? hab : penAutre(hab); }
+function penReussite(nt){ const R=PEN_REGLAGES;
+  return penBorne(R.reussiteFaible+(nt-R.tireurFaible)*(R.reussiteElite-R.reussiteFaible)/(R.tireurElite-R.tireurFaible), R.reussiteFaible, R.reussiteElite); }
+function penArret(nt, ng){ const R=PEN_REGLAGES, e=nt-ng, eHaut=R.tireurElite-R.gardienMoyen, eBas=R.tireurFaible-R.grandGardien;
+  return penBorne(R.arretMax+(e-eBas)*(R.arretMin-R.arretMax)/(eHaut-eBas), R.arretMin, R.arretMax); }
+function penIssue(tir, plonge, nt, ng){ // "but", "arret", "poteau" ou "cote"
+  if(tir==="c") return plonge==="c" ? "arret" : "but";
+  if(plonge===tir) return Math.random()<penArret(nt, ng) ? "arret" : "but";
+  return Math.random()<penReussite(nt) ? "but" : (Math.random()<PEN_REGLAGES.partPoteau ? "poteau" : "cote");
+}
+function penIndice(hab, nObs, nVu, gardien){ const R=PEN_REGLAGES;
+  const dit=Math.random()<penBorne(R.indiceBase+R.indiceParPoint*(nObs-nVu), R.indiceMin, R.indiceMax) ? hab : penAutre(hab);
+  return gardien ? {g:"Plonge souvent à gauche", c:"Reste souvent debout", d:"Plonge souvent à droite"}[dit]
+                 : {g:"Tire souvent à gauche", c:"Aime frapper au centre", d:"Tire souvent à droite"}[dit];
+}
+function penNumero(j, xi){ // le numéro du maillot : 1 au gardien, puis défense, milieu, attaque, comme une feuille d'époque
+  if(!j) return ""; if(j.pos==="G") return 1;
+  const k=(xi||[]).filter(x=>x.pos!=="G").sort((a,b)=>"DMA".indexOf(a.pos)-"DMA".indexOf(b.pos)).indexOf(j);
+  return k<0 ? "" : k+2;
+}
+// où file le ballon (décalage depuis le point de penalty) et où s'envole le gardien (depuis le milieu de sa ligne)
+const PEN_BAL={but:{g:[-66,-95],c:[0,-82],d:[66,-95]}, poteau:{g:[-100,-75],d:[100,-75]},
+  cote:{g:[-128,-62],d:[128,-62]}, dessus:{g:[-50,-150],d:[50,-150]}};
+const PEN_GK={g:[-64,8,-28],c:[0,-3,0],d:[64,8,28]};
+function duelScene(t, gk, numT, numG, tMien, gMien){
+  const pas=(cx,cy,r,mien,num)=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${mien?"#ffd24a":"#f2f5fa"}" stroke="#0b1626" stroke-width="2"/>`+
+    `<text class="pNum" x="${cx}" y="${cy+r*0.36}" font-size="${r}">${num}</text>`;
+  let filet=""; for(let x=62;x<250;x+=12) filet+=`M${x} 28V128`; for(let y=40;y<128;y+=12) filet+=`M50 ${y}H250`;
+  return `<svg viewBox="0 0 300 200" aria-hidden="true">
+    <rect x="0" y="128" width="300" height="72" fill="#1d3b26"/>
+    <path d="${filet}" stroke="#27466e" stroke-width="1" fill="none"/>
+    <path d="M0 128H300" stroke="#f2f5fa" stroke-width="1.5" opacity=".5"/>
+    <path d="M50 130V28H250V130" fill="none" stroke="#f2f5fa" stroke-width="5"/>
+    <text class="pNom" x="150" y="125">${esc(gk.nom)}</text><g class="pGk">${pas(150,98,15,gMien,numG)}</g>
+    <g>${pas(116,180,12,tMien,numT)}<text class="pNom g" x="134" y="184">${esc(t.nom)}</text></g>
+    <circle class="pBal" cx="150" cy="163" r="5" fill="#fff" stroke="#16243c" stroke-width="1"/>
+  </svg>`;
+}
+/* Un duel, dans `cont`. o = {tireur, gardien, moiTire, xiT, xiG, onFin(x)} ; x = {issue, tir, plonge}. Vous tirez
+   (moiTire) ou vous gardez vos buts ; l'ordinateur choisit en secret, selon son habitude. */
+function duelPenalty(cont, o){
+  const R=PEN_REGLAGES, t=o.tireur, gk=o.gardien, moi=!!o.moiTire;
+  const habT=penHabitude(t,false), habG=penHabitude(gk,true);
+  const indice=moi ? penIndice(habG, t.note||60, gk.note||60, true) : penIndice(habT, gk.note||60, t.note||60, false);
+  const choix=moi ? [["g","Gauche"],["c","Centre"],["d","Droite"]] : [["g","Plonger à gauche"],["c","Rester"],["d","Plonger à droite"]];
+  cont.innerHTML=`<div class="duel"><div class="duelScene">${duelScene(t, gk, penNumero(t,o.xiT), penNumero(gk,o.xiG), moi, !moi)}</div>
+    <p class="duelIndice">${esc(indice)}</p>
+    <div class="duelChrono" style="--d:${R.chrono}s"><b>${R.chrono}</b><i></i></div>
+    <div class="duelBtns">${choix.map(c=>`<button class="act zDuel" data-c="${c[0]}">${c[1]}</button>`).join("")}</div></div>`;
+  const btns=[...cont.querySelectorAll(".zDuel")], chiffre=cont.querySelector(".duelChrono b");
+  let reste=R.chrono, fini=false, horloge=null;
+  const joue=(c, b)=>{
+    if(fini) return; fini=true; clearInterval(horloge);
+    figeChoix(btns, b||btns.find(x=>x.dataset.c===c));
+    const ch=cont.querySelector(".duelChrono"); if(ch) ch.style.visibility="hidden";
+    const tir=moi ? c : penSuit(habT), plonge=moi ? penSuit(habG) : c;
+    const ntir=((t.note)||60)+(t.tireurElite?R.bonusSpecialiste:0)+(moi?R.bonusCoach*coachTier("cpa"):0);
+    const ngk=((gk.note)||60)+(moi?0:R.bonusCoach*coachTier("gardien"));
+    const issue=penIssue(tir, plonge, ntir, ngk);
+    const [gx,gy,rot]=PEN_GK[plonge];
+    const cible=issue==="arret" ? [gx, 98+gy-163] : (issue==="cote" && Math.random()<0.5 ? PEN_BAL.dessus : PEN_BAL[issue])[tir];
+    const gkEl=cont.querySelector(".pGk"), bal=cont.querySelector(".pBal");
+    setTimeout(()=>{
+      if(gkEl) gkEl.style.transform=`translate(${gx}px,${gy}px) rotate(${rot}deg)`;
+      if(bal) bal.style.transform=`translate(${cible[0]}px,${cible[1]}px)`;
+    }, 120);
+    setTimeout(()=>{
+      const bon=moi ? issue==="but" : issue!=="but", d=cont.querySelector(".duelScene");
+      if(d) d.insertAdjacentHTML("beforeend", `<div class="duelBand ${bon?"vert":"rouge"}">${{but:"BUT",arret:"ARRÊT",poteau:"POTEAU",cote:"À CÔTÉ"}[issue]}</div>`);
+    }, 700);
+    setTimeout(()=>o.onFin({issue, tir, plonge}), 1300);
+  };
+  btns.forEach(b=>b.onclick=()=>joue(b.dataset.c, b));
+  horloge=setInterval(()=>{ reste--; if(chiffre) chiffre.textContent=Math.max(0,reste); if(reste<=0) joue(PICK(COTES_PEN), null); }, 1000);
+}
+/* LA SÉANCE DE TIRS AU BUT, JOUÉE (v2.51). Vous tirez le premier, puis vous gardez vos buts, et ainsi de suite.
+   Cinq frappes chacun, la séance s'arrête dès qu'une équipe ne peut plus être rattrapée, puis mort subite. Les
+   tireurs sont ceux du moteur (ordreTireurs, parmi ceux qui finissent le match). onFin reçoit {h, a, win, lignes},
+   les lignes du téléscripteur au format de tirsAuBut. */
+const TAB_TXT={but:" prend le gardien à contre-pied. AU FOND. ", arret:" se fait repousser sa frappe ! ",
+  poteau:" trouve le poteau ! ", cote:" envoie le ballon à côté ! "};
+function seanceTAB(home, away, xiH, xiA, onFin){
+  const R=PEN_REGLAGES, nous=away.id===G.monClub?away:home, eux=nous===home?away:home;
+  const xi={[home.id]:xiH, [away.id]:xiA};
+  const tireurs={[home.id]:ordreTireurs(home,xiH), [away.id]:ordreTireurs(away,xiA)};
+  const gardien=c=>xi[c.id].find(j=>j.pos==="G")||{nom:"un joueur de champ",note:50};
+  const coups={[home.id]:[], [away.id]:[]}, lignes=[];
+  const nb=c=>coups[c.id].filter(Boolean).length;
+  const fiche=cadreMoment("TIRS AU BUT", `<div class="tabTableau"></div><div id="duelPen"></div><div id="penRes"></div>`);
+  const tableau=()=>{ const n=Math.max(5, coups[nous.id].length, coups[eux.id].length);
+    fiche.querySelector(".tabTableau").innerHTML=[nous,eux].map(c=>`<div class="tabLigne"><span class="tabNom${c===nous?" jaune":""}">${esc(tagAff(c))}</span>`+
+      Array.from({length:n},(_,k)=>{ const v=coups[c.id][k]; return `<span class="tabRond${v===true?" ok":v===false?" ko":""}"></span>`; }).join("")+
+      `<b class="tabNb">${nb(c)}</b></div>`).join(""); };
+  const pliee=()=>{ const a=coups[nous.id].length, b=coups[eux.id].length, ga=nb(nous), gb=nb(eux);
+    if(a<5 || b<5) return ga>gb+(5-b) || gb>ga+(5-a);   // plus rattrapable dans les cinq
+    return a===b && ga!==gb; };                          // mort subite : à la fin d'une série
+  const suivant=()=>{
+    const c=coups[nous.id].length<=coups[eux.id].length ? nous : eux, adv=c===nous?eux:nous;
+    const k=coups[c.id].length, t=tireurs[c.id][k%tireurs[c.id].length];
+    duelPenalty(fiche.querySelector("#duelPen"), {tireur:t, gardien:gardien(adv), moiTire:c===nous, xiT:xi[c.id], xiG:xi[adv.id], onFin:x=>{
+      const dedans=x.issue==="but";
+      coups[c.id].push(dedans); tableau();
+      lignes.push({m:120, t:dedans?"but":"occ", ic:dedans?"but":"arret", tab:{tireur:c.id, dedans},
+        x:(t.nom||"le tireur")+TAB_TXT[x.issue]+"("+tagAff(home)+" "+nb(home)+"-"+nb(away)+" t.a.b.)"});
+      if(!pliee()) return setTimeout(suivant, R.pauseSeance);
+      const win=nb(home)>nb(away)?home.id:away.id, der=lignes[lignes.length-1];
+      if(!der.tab.dedans && der.tab.tireur!==win) der.tab.decisif=win;
+      lignes.push({m:120, t:"sys", x:"TIRS AU BUT : "+(win===home.id?home.nom:away.nom)+" se qualifie ("+nb(home)+"-"+nb(away)+")."});
+      const div=fiche.querySelector("#penRes");
+      div.innerHTML=`<p style="margin-top:8px"><button class="big" id="bPenOk">Continuer</button></p>`;
+      div.querySelector("#bPenOk").onclick=()=>{ window._penEnCours=false; fermeFiche(); onFin({h:nb(home), a:nb(away), win, lignes}); };
+    }});
+  };
+  tableau(); suivant();
+}
+/* Dans un direct de coupe ou d'Europe, la séance que le moteur avait tirée cède la place à la séance jouée : on
+   retire ses lignes du fil, on y glisse celles de la vôtre, et l'appelant refait son verdict avec fini(tab, suite). */
+function seanceDirect(lignes, i, home, away, tk, fini){
+  const ctlT=document.getElementById("ctlTactique"); if(ctlT) ctlT.style.display="none";
+  const xi=c=>{ const l=surPelouse(c, 90); return l.length?l:onze(c); };
+  seanceTAB(home, away, xi(home), xi(away), res=>{
+    let j=i; while(j<lignes.length && (lignes[j].tab || (lignes[j].t==="sys" && /^TIRS AU BUT/.test(lignes[j].x||"")))) j++;
+    lignes.splice(i, j-i, ...res.lignes);
+    res.lignes.forEach(l=>ajouteLigne(tk,l)); tk.scrollTop=0;
+    fini({h:res.h, a:res.a, win:res.win}, i+res.lignes.length);
+  });
 }
 function finMoment(fiche, html, onOk, choisi){
   const div=fiche.querySelector("#penRes");
@@ -23266,41 +23464,21 @@ function momentProvoc(mo,moi,adv,resoudre,suite){
   };
 }
 
-/* Penalty POUR : vous tirez */
+/* Penalty POUR : vous tirez (le duel du point de penalty, v2.51) */
 function momentPenPour(mo,moi,adv,resoudre,suite){
-  const t=byUid(mo.uid);
-  const gk=enJeu(adv,90).find(j=>j.pos==="G")||{note:70,nom:"le gardien"}; // celui qui garde les buts à la 90e (changement, expulsion)
-  const fiche=cadreMoment("PENALTY : 90ᵉ MINUTE",
-    `<img class="momImg" src="${PICK(IMG_MOMENT.penAvant)}" alt="">
-     <p><b>${esc(t.nom)}</b> (note ${t.note}) face à <b>${esc(gk.nom)}</b> (${gk.note}).</p>
-     ${t.tireurElite?`<p>🎯 Votre spécialiste s'avance.</p>`:""}
-     `+grilleZones(""));
-  fiche.querySelectorAll(".zPen").forEach(b=>b.onclick=()=>{
-    const z=b.dataset.z, s=t.note, g=gk.note;
-    const pOff=((z==="hg"||z==="hd")?Math.max(0.05,0.48-0.005*s):(z==="hc")?Math.max(0.03,0.30-0.003*s):(z==="bc")?0.02:0.04)*(t.tireurElite?0.6:1);
-    const zg=zoneGardien();
-    const off=Math.random()<pOff;
-    let arret=false, marque=false;
-    if(!off){
-      if(zg===z){
-        const pSave=((z==="bg"||z==="bd")?Math.min(.85,.62+(g-75)*.005):(z==="bc"?.75:(z==="hc"?.45:.30)))*(t.tireurElite?0.82:1);
-        arret=Math.random()<pSave;
-      }
-      marque=!arret;
-    }
-    const lib=ZONES_PEN.find(x=>x[0]===z)[1].toLowerCase();
-    if(marque) fiche.querySelector(".momImg").src=PICK(IMG_MOMENT.penBut);
-    vignetteIssuePen(fiche, marque, arret); // raté : l'arrêt du gardien ou le ballon à côté (v2.21)
-    finMoment(fiche,
-      `<p style="margin-top:8px">${esc(gk.nom)} plonge ${zg===z?"du bon côté":"à l'opposé"}...</p>
-       <p class="${marque?"vert":"rouge"}" style="font-size:18px;margin-top:4px">${marque?"⚽ BUUUT !!!":(arret?"🧤 ARRÊT DU GARDIEN !":"✗ À CÔTÉ !")}</p>`,
-      ()=>{
-        const lx=marque?(t.nom+" prend le gardien à contre-pied, "+lib+" : BUUUT À LA 90ᵉ !!! {SCORE}")
-              :(arret?("ARRÊT DU GARDIEN !! Il avait lu le "+lib+" de "+t.nom+". Quel sang-froid !")
-                     :(t.nom+" vise "+lib+"... À CÔTÉ ! Le ballon meurt en tribune."));
-        resoudre(marque?+1:0, lx, marque?"but":(arret?"arret":"rate"), moi.id, t.nom, suite);
-      }, b);
-  });
+  const t=byUid(mo.uid)||{nom:"votre tireur",note:75};
+  const xiA=enJeu(adv,90), gk=xiA.find(j=>j.pos==="G")||{note:70,nom:"le gardien"}; // celui qui garde les buts à la 90e (changement, expulsion)
+  const fiche=cadreMoment("PENALTY : 90ᵉ MINUTE", `<div id="duelPen"></div><div id="penRes"></div>`);
+  duelPenalty(fiche.querySelector("#duelPen"), {tireur:t, gardien:gk, moiTire:true, xiT:enJeu(moi,90), xiG:xiA, onFin:x=>{
+    const lib=PEN_LIB[x.tir], marque=x.issue==="but", arret=x.issue==="arret";
+    finMoment(fiche, "", ()=>{
+      const lx=marque?(t.nom+" prend le gardien à contre-pied, "+lib+" : BUUUT À LA 90ᵉ !!! {SCORE}")
+            :arret?("ARRÊT DU GARDIEN !! Il avait lu la frappe de "+t.nom+". Quel sang-froid !")
+            :x.issue==="poteau"?(t.nom+" frappe "+lib+"... SUR LE POTEAU ! Le stade se prend la tête.")
+            :(t.nom+" vise "+lib+"... À CÔTÉ ! Le ballon meurt en tribune.");
+      resoudre(marque?+1:0, lx, marque?"but":(arret?"arret":"rate"), moi.id, t.nom, suite);
+    }, null);
+  }});
 }
 
 /* Coup franc dangereux (16-25 m) : vous choisissez la frappe. Un tireur d'élite la met où il veut. */
@@ -23376,46 +23554,22 @@ function momentCorner(mo,moi,adv,resoudre,suite){
   });
 }
 
-/* Penalty CONTRE : vous choisissez le plongeon de votre gardien */
+/* Penalty CONTRE : vous gardez vos buts (le duel du point de penalty, v2.51) */
 function momentPenContre(mo,moi,adv,resoudre,suite){
   const t=byUid(mo.uid)||{nom:"l'attaquant",note:78};
   const gk=byUid(mo.gk)||{nom:"votre gardien",note:70};
-  const fiche=cadreMoment("PENALTY CONTRE VOUS : 90ᵉ MINUTE",
-    `<img class="momImg" src="${PICK(IMG_MOMENT.penAvant)}" alt="">
-     <p><b>${esc(t.nom)}</b> (note ${t.note}) face à <b>${esc(gk.nom)}</b> (${gk.note}).</p>
-     `+grilleZones("Plonger : "));
-  fiche.querySelectorAll(".zPen").forEach(b=>b.onclick=()=>{
-    const z=b.dataset.z, s=t.note, g=gk.note;
-    // le tireur adverse choisit : plus il est fort, plus il ose haut
-    const ph=Math.min(0.34, 0.10+0.003*(s-60));
-    const r=Math.random();
-    let zt;
-    if(r<ph) zt=PICK(["hg","hd","hc"]);
-    else zt=PICK(["bg","bd","bg","bd","bc"]);
-    const pOff=(zt==="hg"||zt==="hd")?Math.max(0.05,0.48-0.005*s):(zt==="hc")?Math.max(0.03,0.30-0.003*s):(zt==="bc")?0.02:0.04;
-    const off=Math.random()<pOff;
-    let arret=false, but=false;
-    if(!off){
-      if(z===zt){
-        const pSave=(zt==="bg"||zt==="bd")?Math.min(.90,.70+(g-75)*.006):(zt==="bc"?.82:(zt==="hc"?.48:.32));
-        arret=Math.random()<pSave;
-      }
-      but=!arret;
-    }
+  const fiche=cadreMoment("PENALTY CONTRE VOUS : 90ᵉ MINUTE", `<div id="duelPen"></div><div id="penRes"></div>`);
+  duelPenalty(fiche.querySelector("#duelPen"), {tireur:t, gardien:gk, moiTire:false, xiT:enJeu(adv,90), xiG:enJeu(moi,90), onFin:x=>{
+    const lib=PEN_LIB[x.tir], but=x.issue==="but", arret=x.issue==="arret";
     if(arret){ gk.moral=Math.min(100,(gk.moral||65)+10); }
-    const libT=ZONES_PEN.find(x=>x[0]===zt)[1].toLowerCase();
-    if(but) fiche.querySelector(".momImg").src=PICK(IMG_MOMENT.penEncaisse);
-    vignetteIssuePen(fiche, but, arret); // arrêté ou à côté (v2.21)
-    finMoment(fiche,
-      `<p style="margin-top:8px">${esc(t.nom)} frappe ${libT}${z===zt?", vous plongez du bon côté !":", vous êtes parti de l'autre côté..."}</p>
-       <p class="${but?"rouge":"vert"}" style="font-size:18px;margin-top:4px">${but?(z===zt?"💔 BUT QUAND MÊME : la frappe était trop pure !":"💔 BUT ENCAISSÉ À LA 90ᵉ..."):(arret?"🧤 ARRÊT DE "+esc(gk.nom).toUpperCase()+" !!!":"✗ À CÔTÉ ! Le poteau vous sauve !")}</p>`,
-      ()=>{
-        const lx=but?(t.nom+" transforme, "+libT+", le coup de poignard de la 90ᵉ. {SCORE}")
-              :(arret?("ARRÊT DE "+gk.nom.toUpperCase()+" SUR LE PENALTY !! "+moi.stade+" explose ! Le héros du soir porte des gants.")
-                     :(t.nom+" expédie son penalty À CÔTÉ ! Le stade souffle."));
-        resoudre(but?-1:0, lx, but?"but":(arret?"arret":"rate"), adv.id, t.nom, suite);
-      }, b);
-  });
+    finMoment(fiche, "", ()=>{
+      const lx=but?(t.nom+" transforme, "+lib+", le coup de poignard de la 90ᵉ. {SCORE}")
+            :arret?("ARRÊT DE "+gk.nom.toUpperCase()+" SUR LE PENALTY !! "+moi.stade+" explose ! Le héros du soir porte des gants.")
+            :x.issue==="poteau"?(t.nom+" trouve le POTEAU ! Le stade souffle.")
+            :(t.nom+" expédie son penalty À CÔTÉ ! Le stade souffle.");
+      resoudre(but?-1:0, lx, but?"but":(arret?"arret":"rate"), adv.id, t.nom, suite);
+    }, null);
+  }});
 }
 
 /* Le tacle de la discorde : contester ou subir */

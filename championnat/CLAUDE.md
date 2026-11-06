@@ -3007,6 +3007,26 @@ toujours « raconter quelque chose ».
   • **`adieu`** en tête de l'écran d'intersaison s'il porte un jubilé ou une retraite de VOTRE club ; **`mallette`** quand
   on accepte l'affaire ; **`stade`** (l'inauguration) après la carte de livraison d'une **tribune** ou des **virages**
   seulement ; **`finale`** en tête du rendez-vous de semaine d'une finale (Coupe de France ou Europe).
+- **LE DUEL DU POINT DE PENALTY ET LA SÉANCE JOUÉE (v2.51, 06/11/2026, branche `chantier/penalties`)** : le penalty de la
+  90ᵉ (`momentPenPour`/`momentPenContre`) n'est plus une grille à six zones mais une **devinette à trois** : Gauche / Centre /
+  Droite pour le tireur, Plonger à gauche / Rester / Plonger à droite pour le gardien, la gauche étant TOUJOURS celle de
+  l'écran (but vu de face). Chrono de 5 s (au-delà, choix au hasard), l'ordinateur choisit en secret. **La devinette
+  décide de la situation, le niveau du résultat** : gardien du mauvais côté → réussite de 80 % (tireur noté 62) à 95 %
+  (noté 88), le reste poteau ou à côté ; bon côté → arrêt de 30 % (élite contre gardien moyen 72) à 85 % (faible contre
+  grand gardien 86), l'écart de notes glissant entre les deux ; centre → arrêt sûr si le gardien reste, but sûr s'il
+  plonge. **Tous les chiffres vivent dans `PEN_REGLAGES`**, à régler en jouant (chiffres de l'auteur). Habitudes FIXES
+  par joueur sans rien sauvegarder (`penHabitude`, graine tirée de l'uid) ; indice discret (« Tire souvent à gauche »),
+  d'autant plus fiable que l'observateur est bon et flou que l'observé est bon (`penIndice`) ; l'ordinateur suit son
+  habitude 65 % du temps. Tireur d'élite +5 points, coachs CPA/gardiens +2 par niveau. Le MÊME `duelPenalty` sert à
+  **`seanceTAB`**, la séance jouée des directs de Coupe de France et d'Europe : au premier tir au but du fil, `seanceDirect`
+  met le direct en pause, fait jouer la séance (vous tirez le premier, puis vous gardez, ronds verts/rouges, arrêt dès
+  que c'est plié, mort subite), REMPLACE les lignes de la séance du moteur dans le fil et refait le verdict (`R.tab`).
+  Le mode instantané et les matchs des autres gardent la séance automatique de `tirsAuBut` (calibrage intact).
+  `ordreTireurs` (partagé avec le moteur) met désormais **le gardien en dernier** (Barthez tirait le cinquième).
+  **Constat de calibrage** : avec ces repères, le niveau pèse ~2× plus que dans la séance du moteur (PSG-Rennes au
+  hasard : 78 % contre 62 %) — c'est le prix des fourchettes 30-85 / 80-95, pas un bug. Les vignettes photo des
+  penaltys (`penAvant`, `penBut`, `penEncaisse`, `penArret`, `penRate`) ne s'affichent plus dans la fenêtre (le but
+  dessiné les remplace) ; les fichiers restent. Gardé par **`harness-penalties.cjs`**.
 - **L'ISSUE DES PENALTYS EN IMAGE (v2.21, 28/10/2026)** : quatre vignettes de plus. **`penArret`** (la v2.20 y avait mis
   `penContre-2` ; s'y ajoute l'arrêt vu à travers le filet, tiré de la photo de l'auteur) et **`penRate`** (le ballon à côté du poteau) remplacent l'image du haut des
   fenêtres de penalty de la 90ᵉ, pour et contre, quand le tir ne rentre pas (`vignetteIssuePen`). **`tabArret`** (tirée
