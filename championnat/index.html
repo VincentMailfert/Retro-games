@@ -592,7 +592,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.47"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.48"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11666,6 +11666,58 @@ function quelconque(c, m){ return PICK(enJeu(c, m)); } // m : la minute raconté
 /* État du match : lignes d'ambiance CONDITIONNÉES par le score et la minute, au lieu d'être
    tirées au hasard. Calqué sur ce que fait un vrai live (~7 % de ses entrées). Ordre = priorité.
    Aucun effet moteur : c'est du décor, le calibrage n'y touche pas. */
+/* LE RÉSUMÉ DE MI-TEMPS (v2.48, lot 2 des commentaires) — dans les vrais lives, la pause s'accompagne d'une phrase qui
+   JUGE la première période (« pas de but malgré la domination nette de l'OM »). Elle compte ce que le lecteur vient
+   de voir défiler : les occasions (`q`) et les buts (`g`) de chaque camp jusqu'à la 45e, et le score. L'ordre vaut
+   priorité. Elle se tait quand elle ne voit qu'une partie de la mi-temps (match rejoué après un changement de
+   consigne) : mieux vaut rien qu'un jugement sur la moitié des faits. Pur décor. */
+const MITEMPS=[
+  {cle:"flatteur", cond:(cL,cO,ecart)=>ecart>0 && cO>=cL+2, lignes:[
+    (L,O)=>L+" mène à la pause, mais c'est "+O+" qui a eu le plus d'occasions. Le score est sévère.",
+    (L,O)=>O+" a poussé, "+L+" a marqué. Le football n'a jamais promis d'être juste.",
+    (L,O)=>"Avantage "+L+" à la mi-temps, contre le cours du jeu. "+O+" rentre au vestiaire en se demandant comment.",
+  ]},
+  {cle:"large", cond:(cL,cO,ecart)=>ecart>=2, lignes:[
+    (L,O)=>L+" a fait le travail en une mi-temps. "+O+" a quarante-cinq minutes pour trouver une idée.",
+    (L,O)=>"Pause méritée pour "+L+", qui déroule. Dans le vestiaire "+deMT(O)+", les murs vont trembler.",
+    (L,O)=>"L'affaire est bien engagée pour "+L+". Chez "+O+", on cherche déjà des excuses dans le couloir.",
+  ]},
+  {cle:"logique", cond:(cL,cO,ecart)=>ecart>0, lignes:[
+    (L,O)=>L+" mène logiquement à la pause. "+O+" devra montrer autre chose.",
+    (L,O)=>"Avantage mérité pour "+L+" à la mi-temps. Rien n'est fait, mais le scénario leur sourit.",
+    (L,O)=>L+" vire en tête, et sans voler personne. "+O+" a quinze minutes de vestiaire pour changer quelque chose.",
+    (L,O)=>"À la pause, "+L+" a l'avantage et la maîtrise. "+O+" court beaucoup, mais derrière le ballon.",
+  ]},
+  {cle:"domine", cond:(cL,cO,ecart)=>ecart===0 && cL>=cO+3, lignes:[
+    (L,O)=>L+" a eu les occasions, il leur manque le but. "+O+" s'en sort bien.",
+    (L,O)=>"Domination "+deMT(L)+" non récompensée. "+O+" a plié sans rompre, pour l'instant.",
+  ]},
+  {cle:"ferme", cond:(cL,cO,ecart,buts)=>buts===0 && cL+cO<=2, lignes:[
+    ()=>"Première période fermée, on a surtout vu le milieu de terrain. Il faudra mieux après la pause.",
+    ()=>"Mi-temps sans éclat. Les deux équipes se sont surtout appliquées à ne rien donner.",
+    ()=>"Quarante-cinq minutes de duels et de touches. Les deux gardiens auraient pu lire le journal.",
+    ()=>"Pas grand-chose à se mettre sous la dent. Le public file à la buvette, il y sera mieux servi.",
+  ]},
+  {cle:"ouvert", cond:(cL,cO,ecart,buts)=>buts>0, lignes:[
+    ()=>"Match ouvert, chacun a eu sa chance. Tout reste à faire.",
+    ()=>"Une mi-temps comme on les aime, avec des buts des deux côtés. La suite promet.",
+  ]},
+  {cle:"nul", cond:()=>true, lignes:[
+    ()=>"Rien au tableau d'affichage à la pause, et c'est assez juste.",
+    ()=>"Score vierge à la mi-temps, mais le match n'a pas été triste pour autant.",
+  ]},
+];
+// « d'Auxerre », « de Nantes » : l'élision devant une voyelle (retour de l'auteur, v2.48). Pas deClub ici : les clubs
+// d'un match ne portent pas tous leur pays, et « du » n'irait pas à un adversaire européen.
+const deMT=nom=>(/^[AEIOUYÂÉÈÊÎÔ]/i.test(nom)?"d'":"de ")+nom;
+// ev = ce qui a défilé ; idH/idA = les camps (`cote`) ; nomH/nomA = ce qu'on écrit
+function resumeMiTemps(ev, idH, nomH, idA, nomA, sh, sa, vus){
+  let cH=0, cA=0;
+  for(const e of ev){ if(e.m>45) continue; const i=e.g||e.q; if(!i) continue; if(i.cote===idH) cH++; else if(i.cote===idA) cA++; }
+  const hMene=sh>sa||(sh===sa && cH>=cA), cL=hMene?cH:cA, cO=hMene?cA:cH, L=hMene?nomH:nomA, O=hMene?nomA:nomH;
+  const r=MITEMPS.find(x=>x.cond(cL,cO,Math.abs(sh-sa),sh+sa));
+  return {m:45,t:"amb",mt:r.cle,x:pickNR(r.lignes,vus||[])(L,O)};
+}
 const ETAT=[
  { cle:"reprise", cond:(m,sh,sa)=> m>=46 && m<=50, lignes:[
    "Retour des vestiaires, et on sent que ça a parlé fort à la pause : le rythme est tout autre.",
@@ -12249,7 +12301,8 @@ function simuleMatch(home,away,verbeux,opts){
     if(verbeux && Math.random()<0.003){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(verbeux && METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:pickNR(METEO_MATCH.amb,vusC)}); }
-    if(verbeux&&m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
+    if(verbeux&&m===45){ ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
+      ev.push(resumeMiTemps(ev,home.id,home.nom,away.id,away.nom,sh,sa,vusC)); } // le jugement de la pause (v2.48)
     /* FIN DU TEMPS RÈGLEMENTAIRE : si la compétition exige un vainqueur et que rien ne les sépare,
        on rallonge de deux fois quinze minutes. L'usure des trente minutes frappe alors chaque camp
        selon l'état dans lequel il y arrive — c'est là que le banc se paie. */
@@ -18843,7 +18896,8 @@ function corpsCoupe(ctx, ev, m0, sh0, sa0, nh, na, miTemps){
   // assemblage trié + mi-temps (score réel à la 45e)
   let hh=sh0, ha=sa0; for(const e of butEvts){ if(e.m<=45){ hh=e.g.sh; ha=e.g.sa; } }
   const corps=butEvts.concat(occ,amb);
-  if(miTemps) corps.push({m:45,t:"sys",x:"MI-TEMPS. "+tagAff(H)+" "+hh+" - "+ha+" "+tagAff(A)});
+  if(miTemps){ corps.push({m:45,t:"sys",x:"MI-TEMPS. "+tagAff(H)+" "+hh+" - "+ha+" "+tagAff(A)});
+    if(!m0) corps.push(resumeMiTemps(corps,H.id,H.nom,A.id,A.nom,hh,ha,vus)); } // tout le premier acte sous les yeux : on juge (v2.48)
   corps.sort((a,b)=>a.m-b.m);
   for(const e of corps) ev.push(e);
 }

@@ -3067,6 +3067,13 @@ toujours « raconter quelque chose ».
   termine en corner », et c'est le GARDIEN qui repousse du poing, pas « la défense ». Harnais répétitions, section J.
   **Harnais centre, section G** : 16 clubs au lieu de 4 (décision de l'auteur), le test rougissait ~2 fois sur 100 par
   hasard et le décor du corner avait rebrassé sa graine fixe sur l'un de ces cas ; tolérance 0,08 inchangée.
+- **Le résumé de mi-temps (v2.48, validé et retouché par l'auteur)** : juste après « MI-TEMPS », `resumeMiTemps` juge la
+  première période sur ce qui a défilé (occasions `q` et buts `g` de chaque camp jusqu'à la 45e) et le score : `MITEMPS`,
+  sept cas dans l'ordre de priorité (flatteur, large, logique, domine, ferme, ouvert, nul), drapeau `mt` sur la ligne.
+  Branché dans `simuleMatch` et la coupe (`corpsCoupe`, seulement si `m0=0`) ; **se tait** dans `simuleReste` et une
+  fin de coupe rejouée (il n'aurait vu qu'une partie de la mi-temps). Élision `deMT` (« d'Auxerre », pas deClub : les
+  clubs d'un match ne portent pas tous leur pays). Règle de l'auteur : une équipe se reprend par « ils / leur » (les
+  joueurs), jamais « il / lui ». Harnais répétitions, section K (le jugement ne contredit jamais le score).
 - **Commentaires du direct — enrichissement sur corpus réel (v0.83, lot 1)** : le téléscripteur ne
   racontait que le tir et le carton. Dépouillement de **17 lives réels de L1** (1 539 entrées, minute 1
   au coup de sifflet) + 5 lives SoFoot, qui a dicté les réglages plutôt que l'intuition. Enseignements :

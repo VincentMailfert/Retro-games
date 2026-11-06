@@ -112,5 +112,6 @@ par l'auteur.
 
 **Fait en v2.46** : le corner en deux temps (annonce, puis issue à la ligne suivante).
 
-Reste à écrire case par case, dans les deux voix (~70 % reporter, 30 % chambreur) :
-- le résumé de mi-temps qui juge le scénario.
+**Fait en v2.48** : le résumé de mi-temps (sept cas, jamais en contradiction avec le score).
+
+**Lot 2 terminé** (v2.41 à v2.48). Prochain chantier possible : passer tout le jeu au crible de la règle « une équipe, c'est ils et leur ».

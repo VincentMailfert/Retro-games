@@ -503,6 +503,50 @@ console.log("\nJ) Le corner en deux temps");
   else fail(orphelines ? orphelines + " annonce(s) sans leur suite, ex. " + exemple.slice(0, 110) : "trop peu de corners annoncés (" + annonces + ")");
 }
 
+/* ===== K) le résumé de mi-temps (v2.48) =====
+   La phrase de la pause juge la première période. Elle ne doit jamais contredire le tableau d'affichage : un nul
+   n'est ni « mérité » ni « sévère » pour personne, un score qui penche nomme celui qui mène, et elle tombe juste
+   après « MI-TEMPS ». Elle se tait quand elle n'a vu qu'une partie de la mi-temps (match rejoué en cours de route). */
+console.log("\nK) Le résumé de mi-temps");
+{
+  const NUL = new Set(["domine", "ferme", "ouvert", "nul"]), PENCHE = new Set(["flatteur", "large", "logique"]);
+  let vus = 0, faux = 0, absents = 0, exemple = "";
+  const parCle = {};
+  const controle = (ev, nomDe) => {
+    ev.forEach((e, i) => {
+      if (e.t !== "sys" || !/^MI-TEMPS/.test(e.x || "")) return;
+      const s = ev[i + 1];
+      if (!s || !s.mt) { absents++; return; }
+      vus++; parCle[s.mt] = (parCle[s.mt] || 0) + 1;
+      const m = e.x.match(/^MI-TEMPS\. (\S+) (\d+) - (\d+) (\S+)$/);
+      const sh = +m[2], sa = +m[3];
+      if (sh === sa ? !NUL.has(s.mt) : !PENCHE.has(s.mt)) { faux++; exemple = exemple || e.x + " / " + s.x; return; }
+      if (sh !== sa && !s.x.includes(nomDe(sh > sa))) { faux++; exemple = exemple || e.x + " / " + s.x; }
+      if (/[—]/.test(s.x)) { faux++; exemple = exemple || "tiret long : " + s.x; }
+    });
+  };
+  for (let k = 0; k < 800; k++) {
+    const h = G.clubs[k % G.clubs.length], a = G.clubs[(k * 11 + 4) % G.clubs.length];
+    if (h === a) continue;
+    frais(h, a);
+    controle(api.simuleMatch(h, a, true).ev, (dom) => (dom ? h : a).nom);
+    controle(api.genEvCoupe(h, a, { sh: k % 4, sa: (k * 3) % 3, tab: null, win: h }).ev, (dom) => (dom ? h : a).nom);
+  }
+  if (vus > 1000 && !faux && !absents) ok(vus + " mi-temps jugées sans contredire le score (" + Object.entries(parCle).map(([c, n]) => c + " " + n).join(", ") + ")");
+  else fail(faux ? faux + " jugement(s) contredisent le score, ex. " + exemple.slice(0, 120) : absents ? absents + " mi-temps sans leur résumé" : "trop peu de mi-temps (" + vus + ")");
+
+  // rejouée après un changement de consigne à la 30e : la pause ne juge pas ce qu'elle n'a vu qu'à moitié
+  let jugeesAMoitie = 0;
+  for (let k = 0; k < 200; k++) {
+    const h = G.clubs[k % G.clubs.length], a = G.clubs[(k * 7 + 3) % G.clubs.length];
+    if (h === a) continue;
+    frais(h, a);
+    jugeesAMoitie += api.simuleReste(h, a, 30, 0, 0, 1, 1, []).ev.filter((e) => e.mt).length;
+  }
+  if (!jugeesAMoitie) ok("après un changement de consigne avant la pause, aucun jugement sur une demi-mi-temps");
+  else fail(jugeesAMoitie + " résumé(s) de mi-temps rendus sur une mi-temps vue à moitié");
+}
+
 /* ===== bilan ===== */
 console.log(FAILS ? "\n❌ HARNAIS RÉPÉTITIONS : " + FAILS + " PROBLÈME(S)" : "\n✅ HARNAIS RÉPÉTITIONS : TOUT EST VERT");
 process.exit(FAILS ? 1 : 0);
