@@ -1,16 +1,72 @@
-# Consigne de la tâche planifiée — une saison par nuit (assemblage)
+# Consigne de la tâche planifiée : une étape par nuit (Italie, Espagne, Allemagne)
 
-Ce fichier est la consigne complète de la tâche « MULTIPLEX 95 — une saison par jour ». La tâche elle-même
-ne contient qu'une ligne : « Lis championnat/routine-consigne.md et suis-le à la lettre. » Le projet est en
-français : code, commentaires, messages de commit et compte rendu compris. L'auteur n'est pas développeur :
-écris-lui en prose simple.
+Ce fichier est la consigne complète de la tâche « MULTIPLEX 95, une saison par nuit ». La tâche elle-même
+renvoie ici. Le projet est en français : code, commentaires, messages de commit et compte rendu compris.
+L'auteur n'est pas développeur : écris-lui en prose simple.
+
+**Mise à jour du 07/11/2026.** Les vingt saisons anglaises sont livrées (la dernière, 2009-10, le
+05/11/2026). La file continue avec l'**Italie**, puis l'**Espagne**, puis l'**Allemagne**, chacune de
+**1990-91 à 2009-10**, dans l'ordre des années, comme pour l'Angleterre.
 
 ## Ta mission de la nuit
 
-**Assembler UNE saison anglaise dans le jeu, à partir de son relevé, et la livrer.** Les quinze relevés
-anglais sont déjà faits et sur `main` (`releves/ANG-AAAA-AA/`). Tu ne relèves rien de neuf : tu assembles.
-La saison du jour est la **première ligne non cochée** de la section « Angleterre » de
-`championnat/chantier-saisons.md`. Une seule saison, jamais deux.
+**Une seule étape par nuit, jamais deux.** L'étape du jour est la **première ligne non cochée** de
+`championnat/chantier-saisons.md`, en lisant les sections dans cet ordre et en ignorant tout le reste :
+
+1. « Avant l'Italie : le lot structure », puis « Italie, 20 saisons » ;
+2. « Avant l'Espagne : le lot structure », puis « Espagne, 20 saisons » ;
+3. « Avant l'Allemagne : le lot structure », puis « Allemagne, 20 saisons ».
+
+Dans les sections de saisons, plusieurs cases tiennent sur une ligne (« [ ] **ITA 1990-91** · [ ] … ») :
+l'étape est la **première case** `[ ]` rencontrée. La ligne **ANG-F** de la section anglaise n'est pas à
+toi : ne la touche pas.
+
+Si plus aucune case de ces six sections n'est vide, ne fais rien d'autre et dis simplement que les trois
+pays sont livrés.
+
+### Si l'étape est un lot structure (ITA-A, ITA-B, ITA-C, puis ESP-…, DEU-…)
+
+C'est ce que les étapes ANG-A à ANG-E ont fait pour l'Angleterre : relis leurs lignes dans
+`chantier-saisons.md` (« Avant l'Angleterre : le lot structure ») et leurs sections dans
+`championnat/CLAUDE.md`, puis fais la même chose pour le nouveau pays, en réutilisant le cadre déjà posé
+(champ `pays`, clés de sauvegarde, réconciliation européenne, textes). Le harnais de pays
+(`harness-italie.cjs`, `harness-espagne.cjs`, `harness-allemagne.cjs`) se calque sur
+`harness-angleterre.cjs`. Les couleurs, stades et derbys se vérifient à la source, rien ne s'invente.
+Les sponsors et équipementiers d'un pays sont une liste **arrêtée par l'auteur** : ne les écris pas, note
+au journal qu'ils l'attendent.
+
+### Si l'étape est une saison (ITA AAAA-AA, ESP …, DEU …)
+
+Une saison se fait en deux temps, la même nuit si possible :
+
+1. **Le relevé** (phase 1 d'`IMPORT_SAISON.md`), dans `releves/<PAYS>-AAAA-AA/` (`ITA`, `ESP` ou `DEU`).
+   Les sources changent avec le pays : la page d'effectif Transfermarkt du club pour la saison, et les
+   classements finaux de la Wikipédia anglaise (« 1990–91 Serie A » et « 1990–91 Serie B » ;
+   « 1990–91 La Liga » et « 1990–91 Segunda División » ; « 1990–91 Bundesliga » et
+   « 1990–91 2. Bundesliga »). Les identifiants Transfermarkt des clubs se notent dans
+   `releves/clubs-tm.json`. Pousse le relevé sur ta branche de secours dès qu'il est fini.
+2. **L'assemblage** (phase 2), avec la méthode décrite plus bas, mot pour mot comme pour l'Angleterre :
+   il suffit de remplacer `ANG` par le code du pays dans les noms de fichiers, de tables et de harnais
+   (`harness-itaAAAA.cjs`, `D1_ITA9091`…). Les outils de `releves/outils/` ont été écrits pour
+   l'Angleterre : à la **première saison d'un pays**, adapte-les pour qu'ils prennent le pays en
+   paramètre, sans rien casser pour l'Angleterre (tous les harnais anglais doivent rester verts).
+
+Si la nuit ne suffit pas pour les deux temps, livre seulement le relevé (sur `main`, dans son seul dossier
+`releves/`), laisse la case non cochée, écris-le au journal : la nuit suivante repart du relevé déjà fait
+et assemble.
+
+**Les divisions à 18, 22 ou 24 clubs** (Serie A jusqu'en 2003-04, Primera de 1995 à 1997, Bundesliga,
+2. Bundesliga du début des années 90) : le jeu joue toujours à 20. Applique la règle déjà écrite pour la
+D1 française 1997-98 dans `CLAUDE.md` (repêchés ou écartés selon le classement réel), et écris au journal
+quels clubs entrent ou sortent.
+
+**Sans accès au réseau, aucun relevé n'est possible.** Si Transfermarkt et Wikipédia sont injoignables
+(essaie `.com`, `.de`, `.co.uk`), ne relève rien, n'invente rien : pousse seulement une ligne de journal
+qui le dit, et la case reste vide.
+
+---
+
+# La méthode d'assemblage (écrite pour l'Angleterre, valable pour tous les pays)
 
 ## Ce que tu lis avant de toucher à quoi que ce soit
 

@@ -342,6 +342,31 @@ La Primera passe à **22 clubs** de 1995 à 1997 avant de revenir à 20 : deux �
 
 ---
 
+### ⚠ Avant l'Allemagne : le lot structure (raccourci)
+
+Ajouté le 07/11/2026 à la demande de l'auteur : l'Allemagne suit l'Espagne, sur le même modèle.
+
+- [ ] **DEU-A — Les clubs** : métadonnées, couleurs vérifiées, blasons, derbys (le Revierderby
+      Schalke-Dortmund, le Nordderby Hambourg-Brême, Munich, le Rhin Cologne-Mönchengladbach),
+      Deutsche Mark puis euros à l'affichage.
+- [ ] **DEU-B — Le cadre local** : Bundesliga / 2. Bundesliga, DFB-Pokal, sièges européens allemands par
+      saison, textes et sélection allemande, et la réunification (clubs de l'Est qui entrent en 1991-92).
+- [ ] **DEU-C — Le harnais** : `harness-allemagne.cjs`.
+
+### Allemagne — 20 saisons
+
+La Bundesliga n'a que **18 clubs** (deux repêchés de 2. Bundesliga chaque fois, comme la Serie A), sauf en
+**1991-92 où elle en compte 20** avec les deux clubs de l'Est. La 2. Bundesliga, elle, change de taille :
+**deux poules de 12 en 1991-92 et 24 clubs en 1992-93** ; il faut en écarter pour revenir à 20, et le
+choix s'écrit au journal.
+
+- [ ] **DEU 1990-91** · [ ] **DEU 1991-92** · [ ] **DEU 1992-93** · [ ] **DEU 1993-94** · [ ] **DEU 1994-95**
+- [ ] **DEU 1995-96** · [ ] **DEU 1996-97** · [ ] **DEU 1997-98** · [ ] **DEU 1998-99** · [ ] **DEU 1999-00**
+- [ ] **DEU 2000-01** · [ ] **DEU 2001-02** · [ ] **DEU 2002-03** · [ ] **DEU 2003-04** · [ ] **DEU 2004-05**
+- [ ] **DEU 2005-06** · [ ] **DEU 2006-07** · [ ] **DEU 2007-08** · [ ] **DEU 2008-09** · [ ] **DEU 2009-10**
+
+---
+
 ## Où on en est
 
 72 saisons en file, plus douze étapes de structure (ANG-F ouverte le 12/10/2026 par ANG-D). À une par jour et si les PR sont relues au fil de l'eau,
