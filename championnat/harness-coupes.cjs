@@ -94,10 +94,15 @@ const ETALON = {
      · `monPremierTour` 0,350 → 0,385 (0,340-0,411) : votre sortie dès les 32es, en équipe MIXTE (le défaut, celui
        du harnais). Arbitrage de l'auteur : la rotation décide — avec vos cadres, on descend vers 25 %, et c'est
        le prix du samedi qui suit. La cible de 15-20 % écrite au lancement du chantier est abandonnée : elle
-       n'était atteignable qu'en affaiblissant vos adversaires, donc en tuant les exploits des villages. */
-  butsParMatch: [2.844, 0.09],
-  butsProPro: [2.705, 0.09],
-  butsProAma: [3.131, 0.15],
+       n'était atteignable qu'en affaiblissant vos adversaires, donc en tuant les exploits des villages.
+     RÉÉCRIT SCIEMMENT LE 09/11/2026 (v2.52, lot 3 des formations, accord de l'auteur) : les autres clubs choisissent
+     leur formation, et un pro favori s'ouvre en 4-3-3 contre un village. Quatre graines (défaut, 1234, 7, 99) :
+     · `butsParMatch` 2,844 → 2,953 (2,941-2,963), `butsProPro` 2,705 → 2,773 (2,760-2,791) et `butsProAma`
+       3,131 → 3,318 (3,297-3,349) : le pro gagne plus large, c'est l'effet voulu.
+     · `exploit` 0,161 GARDÉ (mesuré 0,159-0,168) : les villages sortent un pro aussi souvent qu'avant. */
+  butsParMatch: [2.953, 0.09],
+  butsProPro: [2.773, 0.09],
+  butsProAma: [3.318, 0.15],
   tabCoupe: [0.108, 0.025],
   exploit: [0.161, 0.028],
   poucetLoin: [0.122, 0.060],

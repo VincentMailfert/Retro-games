@@ -623,7 +623,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.52"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.53"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11025,7 +11025,14 @@ const FORMATIONS={
   "4-3-3":{G:1,D:4,M:3,A:3, desc:"Trois hommes devant : on marque davantage, mais le milieu cède du terrain et l'on encaisse plus."},
   "5-3-2":{G:1,D:5,M:3,A:2, desc:"Cinq défenseurs : on ferme la maison et l'on encaisse peu, mais il faut se contenter de peu devant."},
 };
-function cleFormation(c){ return (c && G && c.id===G.monClub && FORMATIONS[G.formation]) ? G.formation : "4-4-2"; }
+function cleFormation(c){
+  if(!c || !G) return "4-4-2";
+  if(c.id===G.monClub) return FORMATIONS[G.formation] ? G.formation : "4-4-2";
+  if(SOIREE && FORMATIONS[SOIREE[c.id]]) return SOIREE[c.id]; // un soir de coupe ou d'Europe, la formation de CE match
+  // le samedi, la formation posée pour CE match (poseFormations) ; ailleurs, le système habituel du club
+  const fs=enChampionnat() && G.formSoir && G.formSoir.cle===cleSoirForm() ? G.formSoir.f[c.id] : null;
+  return FORMATIONS[fs] ? fs : systemeClub(c);
+}
 function formationDe(c){ return FORMATIONS[cleFormation(c)]; }
 /* Consigne d'avant-match : modulateur d'agressivité appliqué au SEUL match du joueur.
    att = votre attaque, adv = l'attaque adverse contre vous. Offensif marque plus mais expose ; prudent verrouille. */
@@ -11116,8 +11123,8 @@ function jaugeFraich(j, w){ // la petite barre télétexte, même grammaire que 
 }
 function dispo(j){ return !(j.bless>0) && !(j.susp>0) && !j._reposIncident; }
 function alignable(j){ return dispo(j) && !j.repos; } // « mis au repos » : la Ligue le compte sur la feuille, vous l'écartez
-function onze(c){
-  const xi=[], F=formationDe(c);
+function onze(c, fk){ // fk : une formation imposée (le choix de l'adversaire essaie les trois) ; absent, celle du club
+  const xi=[], F=FORMATIONS[fk]||formationDe(c);
   for(const p of ["G","D","M","A"]){
     let pool=c.joueurs.filter(j=>j.pos===p && alignable(j));
     if(pool.length<F[p]){ // trop de repos volontaire à ce poste : le match prime, on rappelle les plus frais
@@ -11203,7 +11210,7 @@ function tireurDuXI(xi){ // le tireur d'élite (coups francs/penaltys) s'il est 
 const ZONES={p:2, wa:0.5, c:0.9, aa:0.9, am:0.5, ad:1.1};
 // K_ZONES : 2,45 comme l'ancien moteur, remonté de 1,1 % après mesure — à 2,45, trente passes de harness.cjs donnaient
 // 2,3833 buts/match contre 2,4097 en v1.11 (erreur-type 0,0035) : la formule à trois zones ne coïncide pas au chiffre près
-const K_ZONES=2.477, TIR_ELITE=Math.pow(1.03,2.5); // le tireur d'élite pèse exactement ce qu'il pesait avant (+3 % d'attaque à la puissance 2,5)
+const K_ZONES=2.66, TIR_ELITE=Math.pow(1.03,2.5); // le tireur d'élite pèse exactement ce qu'il pesait avant (+3 % d'attaque à la puissance 2,5)
 const TIR_MAITRE=TIR_ELITE*1.08; // le maître du coup franc (MAITRES_CF) : ~0,1 but de plus par match, ses coups francs directs
 /* QUI JOUE OÙ. Chaque ligne reçoit d'abord ses hommes de métier ; un dépanneur (effectif décimé, que `onze` complète
    hors poste) joue dans la ligne qui manque d'hommes — défense d'abord, puis milieu, attaque, et le but en tout
@@ -11218,8 +11225,8 @@ function placeXI(xi, F){
   for(const j of reste){ const z=["D","M","A","G"].find(p=>n[p]<F[p]) || j.pos; n[z]++; place.push({j, z, hors:z!==j.pos}); }
   return place;
 }
-function forces(c, xiIn){ // xiIn (v1.18) : les hommes RÉELLEMENT sur la pelouse — le direct s'en sert pour peser un blessé qu'on garde ou un remplaçant plus faible
-  const xi=xiIn||onze(c), F=formationDe(c), place=placeXI(xi, F);
+function forces(c, xiIn, fk){ // xiIn (v1.18) : les hommes RÉELLEMENT sur la pelouse — le direct s'en sert pour peser un blessé qu'on garde ou un remplaçant plus faible
+  const F=FORMATIONS[fk]||formationDe(c), xi=xiIn||onze(c, fk), place=placeXI(xi, F);
   let exces=0; xi.forEach(j=>{ if((j.ego||5)>=8) exces+=(j.ego-7); });
   const L=leadership(capitaineDuXI(xi)); // qualité du capitaine effectif (0..~1,15)
   let coh=Math.max(0.85, 1-0.012*exces*(1-0.40*L)); // un fort capitaine tempère les divas
@@ -11251,6 +11258,64 @@ function lambdasZones(fh, fa){
 function styleFormation(k){
   const z=f=>({att:Math.pow(f.A/2,ZONES.aa), mil:Math.pow(f.M/4,ZONES.am), def:Math.pow((f.G+f.D)/5,ZONES.ad)});
   return lambdasZones(z(FORMATIONS[k]||FORMATIONS["4-4-2"]), z(FORMATIONS["4-4-2"])).map(x=>x/K_ZONES);
+}
+/* ======== LES AUTRES CLUBS CHOISISSENT LEUR FORMATION (lot 3, v2.52) ========
+   Deux étages. Le SYSTÈME du club naît de son effectif : la formation où ses propres joueurs pèsent le plus, jugée
+   contre lui-même en 4-4-2 (à joueurs égaux, aucune formation ne rapporte de points gratuits : seul l'effectif
+   départage, le troisième attaquant contre le quatrième milieu, le cinquième défenseur contre lui). Puis le MATCH :
+   chez un gros, un petit gagne à fermer le jeu (moins de buts, plus de nuls) ; un favori à domicile gagne à l'ouvrir.
+   On ne quitte une formation que pour un gain net (FORM_SEUIL), sinon on garde ses habitudes. Aucun hasard : le même
+   effectif, le même adversaire et le même terrain donnent toujours la même réponse. VOTRE club n'est jamais concerné. */
+const FORM_SEUIL={systeme:0.05, match:0.08, ecart:0.6}; // dosage choisi par l'auteur : ~53 % de 4-4-2, 19 % de 4-3-3, 28 % de 5-3-2 sur la pelouse // gain qu'il faut pour changer (en points attendus) ; ecart : ce que pèse en plus l'écart de buts attendu
+function ptsPoisson(lp, lc){ // points attendus de qui marque lp et encaisse lc, buts de Poisson (au-delà de 9, négligeable)
+  const p=l=>{ const t=[]; let v=Math.exp(-l); for(let k=0;k<10;k++){ t.push(v); v*=l/(k+1); } return t; };
+  const a=p(lp), b=p(lc); let g=0, n=0;
+  for(let i=0;i<10;i++) for(let j=0;j<10;j++){ if(i>j) g+=a[i]*b[j]; else if(i===j) n+=a[i]*b[j]; }
+  return 3*g+n+FORM_SEUIL.ecart*Math.max(0, lp-lc); // un favori veut aussi gagner large (un petit, lui, compte ses points)
+}
+function forcesEn(c, k){ return forces(c, onze(c, k), k); }
+const SYS_CACHE=new WeakMap(); // club → {sig, k} : recalculé à chaque journée (blessures, mercato), jamais sauvegardé
+function systemeClub(c){
+  if(!c || !c.joueurs || c.joueurs.length<11) return "4-4-2";
+  const sig=(G.saison||"")+"/"+(G.journee||0)+"/"+c.joueurs.length, m=SYS_CACHE.get(c);
+  if(m && m.sig===sig) return m.k;
+  const ref=forcesEn(c, "4-4-2");
+  let best="4-4-2", bestPts=ptsPoisson(...lambdasZones(ref, ref))+FORM_SEUIL.systeme;
+  for(const k of ["4-3-3","5-3-2"]){ const v=ptsPoisson(...lambdasZones(forcesEn(c, k), ref)); if(v>bestPts){ best=k; bestPts=v; } }
+  SYS_CACHE.set(c, {sig, k:best});
+  return best;
+}
+function formationMatch(c, adv, dom, neutre){ // la formation de c pour CE match, face à adv dans son système habituel
+  const base=systemeClub(c), kAdv=systemeClub(adv), fa=forcesEn(adv, kAdv);
+  const tn=Math.sqrt(1.18*0.92), th=neutre?tn:1.18, ta=neutre?tn:0.92; // terrain neutre : personne n'est chez soi
+  const pts=k=>{ const fc=forcesEn(c, k), [lh,la]=dom ? lambdasZones(fc, fa) : lambdasZones(fa, fc);
+    return dom ? ptsPoisson(lh*th, la*ta) : ptsPoisson(la*ta, lh*th); };
+  let best=base, bestPts=pts(base)+FORM_SEUIL.match;
+  for(const k of Object.keys(FORMATIONS)) if(k!==base){ const v=pts(k); if(v>bestPts){ best=k; bestPts=v; } }
+  return best;
+}
+/* UN SOIR DE COUPE OU D'EUROPE, chaque match pose ses deux formations le temps de se jouer, rangées dans ses options
+   (o.formations) : un recollage en direct, après un changement de consigne, reprend exactement les mêmes. */
+let SOIREE=null;
+function avecFormations(h, a, o, fn){
+  if(!o.formations){ const f={};
+    if(h.id!==G.monClub) f[h.id]=formationMatch(h, a, true, !!o.neutre);
+    if(a.id!==G.monClub) f[a.id]=formationMatch(a, h, false, !!o.neutre);
+    Object.defineProperty(o, "formations", {value:f, writable:true, configurable:true}); } // hors sauvegarde, comme le fil du moteur
+  const avant=SOIREE; SOIREE=o.formations;
+  try { return fn(); } finally { SOIREE=avant; }
+}
+const cleSoirForm=()=>(G.saison||"")+"/"+(G.journee||0);
+/* Les formations de la journée, posées une fois pour toutes AVANT l'avant-match et le coup d'envoi, et gardées dans la
+   sauvegarde : ce que l'avant-match annonce est ce qui se joue, même après un rechargement ou un changement de consigne. */
+function poseFormations(){
+  const cle=cleSoirForm(), day=G.calendrier && G.calendrier[G.journee];
+  if(!day || (G.formSoir && G.formSoir.cle===cle)) return;
+  const f={};
+  for(const [hid,aid] of day){ const h=clubById(hid), a=clubById(aid); if(!h||!a) continue;
+    if(hid!==G.monClub) f[hid]=formationMatch(h, a, true);
+    if(aid!==G.monClub) f[aid]=formationMatch(a, h, false); }
+  G.formSoir={cle, f};
 }
 /* garantit que MON club a toujours un capitaine valide (départ, retraite, vieille sauvegarde) */
 function assureCapitaine(){
@@ -12965,6 +13030,7 @@ function posePend(v){
 }
 function jouerJournee(evCb){
   veilleEffectif(); // aucun club ne prend le départ d'une journée avec un effectif hors des clous
+  poseFormations(); // chacun choisit sa formation avant les changements prévus et le coup d'envoi (lot 3) ; déjà fait si l'avant-match l'a annoncée
   /* LE CLASSEMENT D'AVANT LE COUP D'ENVOI (v1.17) : sans lui, la carte de fin de journée ne peut pas dire
      qui a gagné des places et qui en a perdu — les neuf autres matchs sont appliqués dès la boucle
      ci-dessous. Vingt entrées {id: rang}, quelques dizaines d'octets dans la sauvegarde. */
@@ -18650,10 +18716,12 @@ function coupeMatchReel(hid, aid, opts, verbeux){
   const H=coupeClub(hid), A=coupeClub(aid);
   if(!H || !A || !onze(H).length || !onze(A).length) return {sh:0, sa:0, tab:null, _sansEffectif:true};
   const o=opts||{};
-  if(hid!==G.monClub && aid!==G.monClub) return enCompet("CF", ()=>simuleMatch(H, A, !!verbeux, o));
-  o.xiH=onzeCoupe(H); o.xiA=onzeCoupe(A);                         // votre onze suit la rotation, celui d'en face est le meilleur
-  o.feuilles={[H.id]:feuilleDe(o.xiH), [A.id]:feuilleDe(o.xiA)};
-  return enCompet("CF", ()=>sousFeuilles(o.feuilles, ()=>simuleMatch(H, A, !!verbeux, o)));
+  return avecFormations(H, A, o, ()=>{
+    if(hid!==G.monClub && aid!==G.monClub) return enCompet("CF", ()=>simuleMatch(H, A, !!verbeux, o));
+    o.xiH=onzeCoupe(H); o.xiA=onzeCoupe(A);                       // votre onze suit la rotation, celui d'en face est le meilleur
+    o.feuilles={[H.id]:feuilleDe(o.xiH), [A.id]:feuilleDe(o.xiA)};
+    return enCompet("CF", ()=>sousFeuilles(o.feuilles, ()=>simuleMatch(H, A, !!verbeux, o)));
+  });
 }
 /* `sortie` (VOTRE match, celui qu'on regarde) : joué BAVARD, il rend son fil (sortie.r) et ses options (sortie.o). */
 function resoudreCoupe(hid,aid,sortie){
@@ -18668,7 +18736,7 @@ function resoudreCoupe(hid,aid,sortie){
 /* Recoller VOTRE match de coupe après un changement de consigne : maillot « CF », feuille du coup d'envoi. */
 function coupeRejoue(sortie, from, mNow, mulH, mulA){
   const o=sortie.o||{}, R=sortie.r, H=coupeClub(sortie.hid), A=coupeClub(sortie.aid);
-  return enCompet("CF", ()=>sousFeuilles(o.feuilles||{}, ()=>rejoueDepuis(R, H, A, from, mNow, mulH, mulA, o)));
+  return avecFormations(H, A, o, ()=>enCompet("CF", ()=>sousFeuilles(o.feuilles||{}, ()=>rejoueDepuis(R, H, A, from, mNow, mulH, mulA, o))));
 }
 /* UNE CONSIGNE CHANGÉE EN DIRECT VAUT POUR CE MATCH SEUL (v1.55, retour de l'auteur : « si je bascule en offensif
    au cours d'un match, c'est le réglage par défaut du match d'après »). Le premier changement en direct met de
@@ -19321,16 +19389,19 @@ function euroMatchReel(hid,aid,opts,verbeux){
   if(!H || !A || !onze(H).length || !onze(A).length)            // filet : vieille sauvegarde sans effectif
     return {sh:0, sa:0, tab:null, _sansEffectif:true};
   const o=opts||{};
-  if(hid!==G.monClub && aid!==G.monClub) return enCompet("EU", ()=>simuleMatch(H, A, !!verbeux, o));
-  o.xiH=onzeEuro(H); o.xiA=onzeEuro(A);                           // votre onze suit la rotation, celui d'en face est le meilleur
-  o.feuilles={[H.id]:feuilleDe(o.xiH), [A.id]:feuilleDe(o.xiA)};
-  return enCompet("EU", ()=>sousFeuilles(o.feuilles, ()=>simuleMatch(H, A, !!verbeux, o)));
+  return avecFormations(H, A, o, ()=>{
+    if(hid!==G.monClub && aid!==G.monClub) return enCompet("EU", ()=>simuleMatch(H, A, !!verbeux, o));
+    o.xiH=onzeEuro(H); o.xiA=onzeEuro(A);                         // votre onze suit la rotation, celui d'en face est le meilleur
+    o.feuilles={[H.id]:feuilleDe(o.xiH), [A.id]:feuilleDe(o.xiA)};
+    return enCompet("EU", ()=>sousFeuilles(o.feuilles, ()=>simuleMatch(H, A, !!verbeux, o)));
+  });
 }
 /* Recoller VOTRE manche après un changement de consigne : sous le maillot européen (les buts effacés sortent de
    butsC) et sur la feuille du coup d'envoi (mêmes hommes, mêmes expulsés). */
 function euroRejoue(sortie, hid, aid, from, mNow, mulH, mulA){
   const o=sortie.o||{};
-  return enCompet("EU", ()=>sousFeuilles(o.feuilles||{}, ()=>rejoueDepuis(sortie.r, euroClub(hid), euroClub(aid), from, mNow, mulH, mulA, o)));
+  const H=euroClub(hid), A=euroClub(aid);
+  return avecFormations(H, A, o, ()=>enCompet("EU", ()=>sousFeuilles(o.feuilles||{}, ()=>rejoueDepuis(sortie.r, H, A, from, mNow, mulH, mulA, o))));
 }
 function euroSortie(sortie, r, o){ if(sortie && !r._sansEffectif){ sortie.r=r; sortie.o=o; } }
 function euroManche(hid,aid,sortie){ // une manche : score brut d'un match, hôte = hid (avantage terrain)
@@ -21944,6 +22015,7 @@ function dangersDe(xi){
 }
 function briefAdverse(adv){
   if(!adv || !adv.joueurs || !adv.joueurs.length || adv.id===G.monClub) return "";
+  poseFormations(); // la formation annoncée est celle qui jouera samedi
   const xi=onze(adv), dang=dangersDe(xi), place=placeXI(xi, formationDe(adv));
   const r=G.clubs.includes(adv) && G.journee>0 ? classement().indexOf(adv)+1 : 0;
   const rang=r ? `${r===1?"1er":r+"ᵉ"} · ${adv.pts} pts` : "";

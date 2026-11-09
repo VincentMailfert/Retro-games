@@ -2222,6 +2222,27 @@ toujours « raconter quelque chose ».
   en 4-4-2. » ou « X se présente en 5-3-2, Y en 4-4-2. »). **Pas encore de changement de formation en cours de match**
   (lot 2 envisagé : un changement de système = un remplacement réel, à brancher sur les changements v1.11).
   Validation : **`harness-formations.cjs`**.
+- **LOT 3 DES FORMATIONS : LES AUTRES CLUBS CHOISISSENT LA LEUR (v2.53, 09/11/2026)**. Arbitrages de l'auteur : choix selon
+  l'effectif PUIS le match ; pas de changement de formation en cours de match pour l'IA (pour l'instant) ; recaler le
+  moteur si les buts bougent ; dosage « varié ». **Deux étages** : `systemeClub(c)` = la formation où ses propres joueurs
+  pèsent le plus, jugée contre lui-même en 4-4-2 (seul l'effectif départage), recalculée à chaque journée (cache
+  `SYS_CACHE`, WeakMap, jamais sauvegardé) ; `formationMatch(c, adv, dom, neutre)` = la formation pour CE match face
+  au système habituel d'en face, avec le terrain. Critère : points attendus (`ptsPoisson`, buts de Poisson) + un bonus
+  d'écart de buts **réservé au favori** (`FORM_SEUIL.ecart`) — sans lui, le 4-3-3 n'apparaissait jamais (+10 % de
+  buts pour, +14 % contre : un club qui ne compte que ses points ne s'ouvre pas) et la division jouait à moitié en
+  5-3-2. On ne quitte une formation que pour un gain net (`FORM_SEUIL` : système 0,05, match 0,08). Mesuré :
+  ~53 % de 4-4-2, 19 % de 4-3-3, 28 % de 5-3-2 sur la pelouse ; un club sur quatre adapte sa formation au match.
+  **Aucun hasard** : même effectif, même adversaire, même terrain → même réponse. **Le samedi**, `poseFormations()`
+  fixe les formations de la journée dans la sauvegarde (`G.formSoir={cle, f}`, clé saison/journée), appelée par
+  l'avant-match (`briefAdverse`) ET `jouerJournee` : ce qui est annoncé est ce qui se joue, même si vous changez
+  de formation entre-temps (le choix d'en face ignore votre `G.formation`). **En coupe et en Europe**,
+  `avecFormations(h, a, o, fn)` pose les deux formations du match dans `o.formations` (non énumérable, hors
+  sauvegarde) et `SOIREE` le temps de jouer ; `coupeRejoue`/`euroRejoue` les reprennent telles quelles. `cleFormation`
+  lit, dans l'ordre : votre `G.formation`, `SOIREE`, `G.formSoir` (championnat), sinon `systemeClub`. `onze(c, fk)`
+  et `forces(c, xi, fk)` acceptent une formation imposée. **Calibrage** : `K_ZONES` 2,477 → **2,66** ; trente passes
+  de `harness.cjs` : 2,4242 avant, **2,4315** après (erreur-type 0,0067). Étalon des coupes **réécrit sciemment**
+  (accord de l'auteur) : buts par match 2,844 → 2,953, pro contre amateur 3,131 → 3,318 (le pro favori s'ouvre
+  contre un village) ; exploits GARDÉS (0,159-0,168). Gardé par la **section L de `harness-formations.cjs`**.
 - **Changement de tactique EN DIRECT** (v0.61, retour de playtest « si on perd, pouvoir passer offensif ») :
   le téléscripteur est pré-calculé au coup d'envoi (`jouerJournee`→`simuleMatch` verrouille score ET `j.buts`), donc
   pour qu'un changement de consigne en cours de match pèse **vraiment**, deux mécanismes. (1) **Finalisation différée** :

@@ -4,12 +4,13 @@
    dans celle-ci — 5-3-2 plus solide en défense mais pauvre en attaque, 4-4-2 plus solide au milieu, 4-3-3 plus
    agressif en attaque — bien sûr conditionné par la qualité des joueurs : un 4-3-3 peut être meilleur au milieu avec
    trois bons joueurs qu'un 4-4-2 avec des milieux moyens ».
-     A) le 4-4-2 reste le jeu d'avant : réglage par défaut, IA, coupe neutre
+     A) le 4-4-2 reste le jeu d'avant : réglage par défaut, coupe neutre ; les autres clubs ne copient pas le vôtre
      B) chaque formation aligne ses lignes : onze, rotation de coupe, titularisations ★
      C) les trois caractères, à joueurs de même valeur — et aucune formation ne rapporte de points gratuits
      D) la qualité compte : trois bons milieux valent mieux que quatre moyens, pas que quatre bons
      E) sur les vrais effectifs : pas de formation miracle, et le bon choix dépend des joueurs
      F) le vrai moteur (simuleMatch) : le 5-3-2 ferme le match, le 4-3-3 l'ouvre, l'IA n'en sait rien
+     L) lot 3 (v2.52) : les autres clubs choisissent leur formation, selon leur effectif puis le match
      G) les soirs de coupe et d'Europe portent le caractère de la formation
      H) sauvegarde : la formation est retenue, une valeur inconnue est réparée
      I) l'avant-match se rend : boutons, onze ligne par ligne, onze et dangers d'en face, annonce au coup d'envoi
@@ -45,7 +46,7 @@ global.localStorage = ls; global.navigator = { userAgent: "h" };
 global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = cb => setTimeout(cb, 0); global.cancelAnimationFrame = id => clearTimeout(id);
 
-const api = new Function(script + "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,onze,onzeRotation,forces,simuleMatch," +
+const api = new Function(script + "\n;return {cleFormation,systemeClub,formationMatch,poseFormations,avecFormations,nouvellePartie,jouerJournee,intersaison,clubById,onze,onzeRotation,forces,simuleMatch," +
   "lambdasZones,styleFormation,multTactique,titulariser,migre,blocConsignePrime,ecranCalendrier,placeXI,HORS_POSTE," +
   "FORMATIONS,ZONES,K_ZONES,CLUBS,CLUBS_D2,composDirect,htmlCompos,enJeu,feuilleDe,finirJournee,autoMoment," +
   "getChg:function(){return CHANGEMENTS;},compos:function(){return COMPOS;},getG:function(){return G;}};")();
@@ -79,9 +80,10 @@ console.log("A) Le 4-4-2 reste le jeu d'avant");
   ok(s[0] === 1 && s[1] === 1, "le caractère du 4-4-2 est neutre : [" + s + "]");
   const moi = api.clubById(G.monClub);
   ok(lignes(api.onze(moi)) === "1-4-4-2", "votre onze en 4-4-2 : " + lignes(api.onze(moi)));
-  let tousIA442 = true;
-  for (const f of FORMS) { G.formation = f; for (const c of G.clubs) if (c.id !== G.monClub && lignes(api.onze(c)) !== "1-4-4-2") tousIA442 = false; }
-  ok(tousIA442, "les dix-neuf autres clubs restent en 4-4-2, quelle que soit votre formation");
+  // lot 3 : les autres clubs ont désormais leur formation, mais elle ne copie jamais la vôtre
+  const vus = f => { G.formation = f; return G.clubs.filter(c => c.id !== G.monClub).map(c => lignes(api.onze(c))).join(" "); };
+  const s442 = vus("4-4-2");
+  ok(FORMS.every(f => vus(f) === s442), "les dix-neuf autres clubs gardent leur formation, quelle que soit la vôtre");
   G.formation = "4-4-2"; G.consigne = "equilibre"; G.primeMatch = 0;
   const adv = G.clubs.find(c => c.id !== G.monClub).id;
   const m = api.multTactique(G.monClub, adv);
@@ -345,12 +347,14 @@ const advDe = G => { const p = G.calendrier[G.journee].find(([x, y]) => x === G.
   // l'annonce au coup d'envoi
   G.formation = "5-3-2";
   const adv = G.clubs.find(c => c.id !== G.monClub);
+  const fAdv = api.cleFormation(adv); // depuis le lot 3, l'adversaire a la sienne
   const r = api.simuleMatch(moi, adv, true);
-  ok(r.ev.some(l => l.t === "sys" && l.m === 0 && l.x === moi.nom + " se présente en 5-3-2, " + adv.nom + " en 4-4-2."),
-    "le direct annonce les deux formations au coup d'envoi");
-  G.formation = "4-4-2";
+  ok(r.ev.some(l => l.t === "sys" && l.m === 0 && l.x === (fAdv === "5-3-2" ? "Les deux équipes se présentent en 5-3-2." : moi.nom + " se présente en 5-3-2, " + adv.nom + " en " + fAdv + ".")),
+    "le direct annonce les deux formations au coup d'envoi (" + adv.nom + " en " + fAdv + ")");
+  G.formation = fAdv;
   const r2m = api.simuleMatch(moi, adv, true);
-  ok(r2m.ev.some(l => l.t === "sys" && l.x === "Les deux équipes se présentent en 4-4-2."), "…et le dit sobrement quand elles se ressemblent");
+  ok(r2m.ev.some(l => l.t === "sys" && l.x === "Les deux équipes se présentent en " + fAdv + "."), "…et le dit sobrement quand elles se ressemblent");
+  G.formation = "4-4-2";
   moi.joueurs.forEach(j => { j.susp = 0; });
 }
 
@@ -381,6 +385,35 @@ console.log("\nJ) Quatre saisons en changeant de formation chaque semaine");
   // Recentrée le 28/09/2026, même largeur : cette division contient VOTRE club, dont les matchs portent les moments de la
   // 90e (~2,97 buts par match contre ~2,42 pour les autres) ; mesurée sur 200 graines, elle tourne à 2,495 (écart-type 0,046).
   ok(cal >= 2.3 && cal <= 2.7, "calibrage de la division tenu : " + r3(cal) + " buts par match");
+}
+
+/* ===== L) lot 3 : les autres clubs choisissent leur formation ===== */
+console.log("\nL) Les autres clubs choisissent leur formation (lot 3)");
+{
+  const G = neuve("PSG"), moi = api.clubById(G.monClub);
+  const autres = G.clubs.filter(c => c.id !== G.monClub);
+  const sys = {}; autres.forEach(c => { const k = api.systemeClub(c); sys[k] = (sys[k] || 0) + 1; });
+  ok(Object.keys(sys).length >= 2 && (sys["4-4-2"] || 0) >= 8, "les systèmes suivent les effectifs : " + JSON.stringify(sys) + " (le 4-4-2 reste le plus courant)");
+  ok(autres.every(c => lignes(api.onze(c)) === "1-" + api.cleFormation(c)), "chaque club aligne les lignes de la formation qu'il annonce");
+  ok(autres.every(c => api.systemeClub(c) === api.systemeClub(c)), "aucun hasard : le même effectif donne le même système");
+  // le match : chez le plus fort de la division, un petit se ferme plus souvent qu'un favori chez lui
+  const fort = autres.slice().sort((a, b) => api.forces(b).mil + api.forces(b).att - api.forces(a).mil - api.forces(a).att)[0];
+  let ferme = 0, ouvre = 0; for (const c of autres) if (c !== fort) {
+    if (api.formationMatch(c, fort, false) === "5-3-2") ferme++;
+    if (api.formationMatch(fort, c, true) === "5-3-2") ouvre++; }
+  ok(ferme > ouvre && ferme >= 6, "à " + fort.nom + ", " + ferme + " clubs sur " + (autres.length - 1) + " ferment le jeu en 5-3-2 ; " + fort.nom + " chez lui ne le fait que " + ouvre + " fois");
+  // ce que l'avant-match annonce est ce qui se joue samedi, même si vous changez de formation entre-temps
+  api.poseFormations(); const annonce = JSON.stringify(G.formSoir.f);
+  G.formation = "4-3-3"; api.poseFormations(); G.formation = "4-4-2";
+  ok(JSON.stringify(G.formSoir.f) === annonce && Object.keys(G.formSoir.f).length === autres.length, "les formations de la journée sont posées une fois (" + autres.length + " clubs) et ne bougent plus");
+  const adv = api.clubById(G.calendrier[G.journee].find(p => p.includes(G.monClub)).find(id => id !== G.monClub));
+  ok(api.cleFormation(adv) === G.formSoir.f[adv.id], "votre adversaire de samedi joue la formation annoncée (" + adv.nom + " en " + api.cleFormation(adv) + ")");
+  // un soir de coupe : la formation du match, gardée pour un recollage en direct
+  const a2 = autres[0], b2 = autres[1], o = {};
+  const k1 = api.avecFormations(a2, b2, o, () => [api.cleFormation(a2), api.cleFormation(b2)]);
+  const k2 = api.avecFormations(a2, b2, o, () => [api.cleFormation(a2), api.cleFormation(b2)]);
+  ok(k1.join() === k2.join() && k1[0] === o.formations[a2.id] && !Object.keys(o).includes("formations"), "un soir de coupe, la formation du match est rangée hors sauvegarde et reprise telle quelle au recollage");
+  ok(api.cleFormation(a2) !== undefined && !JSON.stringify(G).includes("formations"), "et elle disparaît une fois le match joué");
 }
 
 console.log(F ? "\n❌ HARNAIS FORMATIONS : " + F + " PROBLÈME(S)" : "\n✅ HARNAIS FORMATIONS : TOUT EST VERT");
