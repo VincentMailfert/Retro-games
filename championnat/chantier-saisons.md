@@ -367,6 +367,51 @@ choix s'écrit au journal.
 
 ---
 
+### ⚠ Avant le Portugal : le lot structure (raccourci)
+
+Ajouté le 09/11/2026 à la demande de l'auteur : le Portugal suit l'Allemagne, puis l'Écosse.
+
+- [ ] **POR-A — Les clubs** : métadonnées, couleurs vérifiées, blasons, derbys (Lisbonne Benfica-Sporting,
+      O Clássico Porto-Benfica, le Minho Braga-Guimarães), escudos puis euros à l'affichage.
+- [ ] **POR-B — Le cadre local** : première division / deuxième division (Divisão de Honra, puis Liga de
+      Honra), Taça de Portugal, sièges européens portugais par saison, textes et sélection portugaise.
+- [ ] **POR-C — Le harnais** : `harness-portugal.cjs`.
+
+### Portugal — 20 saisons
+
+La première division change de taille sur la période (moins de 20 clubs la plupart des saisons, et 16 à
+la fin des années 2000) : le nombre exact se lit au relevé, et les clubs repêchés de deuxième division pour
+revenir à 20 s'écrivent au journal, comme pour la Serie A.
+
+- [ ] **POR 1990-91** · [ ] **POR 1991-92** · [ ] **POR 1992-93** · [ ] **POR 1993-94** · [ ] **POR 1994-95**
+- [ ] **POR 1995-96** · [ ] **POR 1996-97** · [ ] **POR 1997-98** · [ ] **POR 1998-99** · [ ] **POR 1999-00**
+- [ ] **POR 2000-01** · [ ] **POR 2001-02** · [ ] **POR 2002-03** · [ ] **POR 2003-04** · [ ] **POR 2004-05**
+- [ ] **POR 2005-06** · [ ] **POR 2006-07** · [ ] **POR 2007-08** · [ ] **POR 2008-09** · [ ] **POR 2009-10**
+
+---
+
+### ⚠ Avant l'Écosse : le lot structure (raccourci)
+
+- [ ] **SCO-A — Le format** (**décision de l'auteur, à demander avant tout le reste**) : la première
+      division écossaise n'a que 10 ou 12 clubs sur toute la période, et la deuxième pas davantage. Le jeu
+      joue à 20 par division. Il faut choisir entre fusionner deux niveaux en un, repêcher la moitié d'une
+      division inférieure, ou apprendre au jeu les divisions plus petites. **La tâche de nuit ne tranche
+      pas : elle écrit au journal que l'Écosse attend ce choix et s'arrête.**
+- [ ] **SCO-B — Les clubs** : métadonnées, couleurs vérifiées, blasons, derbys (l'Old Firm Celtic-Rangers,
+      Édimbourg Hearts-Hibernian, Dundee United-Dundee), livres sterling à l'affichage.
+- [ ] **SCO-C — Le cadre local** : divisions, Coupe d'Écosse, sièges européens écossais par saison, textes
+      et sélection écossaise.
+- [ ] **SCO-D — Le harnais** : `harness-ecosse.cjs`.
+
+### Écosse — 20 saisons
+
+- [ ] **SCO 1990-91** · [ ] **SCO 1991-92** · [ ] **SCO 1992-93** · [ ] **SCO 1993-94** · [ ] **SCO 1994-95**
+- [ ] **SCO 1995-96** · [ ] **SCO 1996-97** · [ ] **SCO 1997-98** · [ ] **SCO 1998-99** · [ ] **SCO 1999-00**
+- [ ] **SCO 2000-01** · [ ] **SCO 2001-02** · [ ] **SCO 2002-03** · [ ] **SCO 2003-04** · [ ] **SCO 2004-05**
+- [ ] **SCO 2005-06** · [ ] **SCO 2006-07** · [ ] **SCO 2007-08** · [ ] **SCO 2008-09** · [ ] **SCO 2009-10**
+
+---
+
 ## Où on en est
 
 72 saisons en file, plus douze étapes de structure (ANG-F ouverte le 12/10/2026 par ANG-D). À une par jour et si les PR sont relues au fil de l'eau,

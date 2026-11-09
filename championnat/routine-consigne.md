@@ -1,11 +1,12 @@
-# Consigne de la tâche planifiée : une étape par nuit (Italie, Espagne, Allemagne)
+# Consigne de la tâche planifiée : une étape par nuit (Italie, Espagne, Allemagne, Portugal, Écosse)
 
 Ce fichier est la consigne complète de la tâche « MULTIPLEX 95, une saison par nuit ». La tâche elle-même
 renvoie ici. Le projet est en français : code, commentaires, messages de commit et compte rendu compris.
 L'auteur n'est pas développeur : écris-lui en prose simple.
 
 **Mise à jour du 07/11/2026.** Les vingt saisons anglaises sont livrées (la dernière, 2009-10, le
-05/11/2026). La file continue avec l'**Italie**, puis l'**Espagne**, puis l'**Allemagne**, chacune de
+05/11/2026). La file continue avec l'**Italie**, puis l'**Espagne**, puis l'**Allemagne**, puis le **Portugal**
+et l'**Écosse** (ajoutés le 09/11/2026), chacun de
 **1990-91 à 2009-10**, dans l'ordre des années, comme pour l'Angleterre.
 
 ## Ta mission de la nuit
@@ -15,35 +16,43 @@ L'auteur n'est pas développeur : écris-lui en prose simple.
 
 1. « Avant l'Italie : le lot structure », puis « Italie, 20 saisons » ;
 2. « Avant l'Espagne : le lot structure », puis « Espagne, 20 saisons » ;
-3. « Avant l'Allemagne : le lot structure », puis « Allemagne, 20 saisons ».
+3. « Avant l'Allemagne : le lot structure », puis « Allemagne, 20 saisons » ;
+4. « Avant le Portugal : le lot structure », puis « Portugal, 20 saisons » ;
+5. « Avant l'Écosse : le lot structure », puis « Écosse, 20 saisons ».
+
+**L'Écosse commence par une décision de l'auteur** (SCO-A, le format à 10 ou 12 clubs). Tant que
+la ligne SCO-A n'est pas cochée par lui, n'y touche pas : écris au journal que l'Écosse attend son
+choix, et arrête-toi.
 
 Dans les sections de saisons, plusieurs cases tiennent sur une ligne (« [ ] **ITA 1990-91** · [ ] … ») :
 l'étape est la **première case** `[ ]` rencontrée. La ligne **ANG-F** de la section anglaise n'est pas à
 toi : ne la touche pas.
 
-Si plus aucune case de ces six sections n'est vide, ne fais rien d'autre et dis simplement que les trois
+Si plus aucune case de ces dix sections n'est vide, ne fais rien d'autre et dis simplement que les cinq
 pays sont livrés.
 
-### Si l'étape est un lot structure (ITA-A, ITA-B, ITA-C, puis ESP-…, DEU-…)
+### Si l'étape est un lot structure (ITA-A, ITA-B, ITA-C, puis ESP-…, DEU-…, POR-…, SCO-…)
 
 C'est ce que les étapes ANG-A à ANG-E ont fait pour l'Angleterre : relis leurs lignes dans
 `chantier-saisons.md` (« Avant l'Angleterre : le lot structure ») et leurs sections dans
 `championnat/CLAUDE.md`, puis fais la même chose pour le nouveau pays, en réutilisant le cadre déjà posé
 (champ `pays`, clés de sauvegarde, réconciliation européenne, textes). Le harnais de pays
-(`harness-italie.cjs`, `harness-espagne.cjs`, `harness-allemagne.cjs`) se calque sur
+(`harness-italie.cjs`, `harness-espagne.cjs`, `harness-allemagne.cjs`, `harness-portugal.cjs`,
+`harness-ecosse.cjs`) se calque sur
 `harness-angleterre.cjs`. Les couleurs, stades et derbys se vérifient à la source, rien ne s'invente.
 Les sponsors et équipementiers d'un pays sont une liste **arrêtée par l'auteur** : ne les écris pas, note
 au journal qu'ils l'attendent.
 
-### Si l'étape est une saison (ITA AAAA-AA, ESP …, DEU …)
+### Si l'étape est une saison (ITA AAAA-AA, ESP …, DEU …, POR …, SCO …)
 
 Une saison se fait en deux temps, la même nuit si possible :
 
-1. **Le relevé** (phase 1 d'`IMPORT_SAISON.md`), dans `releves/<PAYS>-AAAA-AA/` (`ITA`, `ESP` ou `DEU`).
+1. **Le relevé** (phase 1 d'`IMPORT_SAISON.md`), dans `releves/<PAYS>-AAAA-AA/` (`ITA`, `ESP`, `DEU`, `POR` ou `SCO`).
    Les sources changent avec le pays : la page d'effectif Transfermarkt du club pour la saison, et les
    classements finaux de la Wikipédia anglaise (« 1990–91 Serie A » et « 1990–91 Serie B » ;
    « 1990–91 La Liga » et « 1990–91 Segunda División » ; « 1990–91 Bundesliga » et
-   « 1990–91 2. Bundesliga »). Les identifiants Transfermarkt des clubs se notent dans
+   « 1990–91 2. Bundesliga » ; « 1990–91 Primeira Divisão » et la deuxième division portugaise de la
+   saison ; « 1990–91 Scottish Premier Division » et « 1990–91 Scottish First Division »). Les identifiants Transfermarkt des clubs se notent dans
    `releves/clubs-tm.json`. Pousse le relevé sur ta branche de secours dès qu'il est fini.
 2. **L'assemblage** (phase 2), avec la méthode décrite plus bas, mot pour mot comme pour l'Angleterre :
    il suffit de remplacer `ANG` par le code du pays dans les noms de fichiers, de tables et de harnais
@@ -56,7 +65,7 @@ Si la nuit ne suffit pas pour les deux temps, livre seulement le relevé (sur `m
 et assemble.
 
 **Les divisions à 18, 22 ou 24 clubs** (Serie A jusqu'en 2003-04, Primera de 1995 à 1997, Bundesliga,
-2. Bundesliga du début des années 90) : le jeu joue toujours à 20. Applique la règle déjà écrite pour la
+2. Bundesliga du début des années 90, première division portugaise) : le jeu joue toujours à 20. Applique la règle déjà écrite pour la
 D1 française 1997-98 dans `CLAUDE.md` (repêchés ou écartés selon le classement réel), et écris au journal
 quels clubs entrent ou sortent.
 
