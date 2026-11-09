@@ -311,7 +311,8 @@ toujours « raconter quelque chose ».
   lieu du multiplex. **Pas encore fait** : les moments de la 90e (penalty, coup franc, décor) les soirs de semaine.
   `harness-euro` K compte désormais les remplaçants entrés comme « sur la feuille ». L'étalon `butsMancheEuro` de
   `harness-coupes` sort à 2,581 sur la graine par défaut (2,549/2,550 sur 1234/777, identiques à main, déjà à ~2,547) :
-  dérive antérieure, étalon à réécrire sur décision de l'auteur.
+  dérive antérieure : étalon recalé à 2,55 le 09/11/2026, sur décision de l'auteur. **Prochain chantier décidé par
+  l'auteur** : les moments de la 90e les soirs de semaine (attention : un but à la 90e peut ôter ou provoquer les prolongations).
 - **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
   le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
   championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :

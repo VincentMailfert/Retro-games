@@ -120,7 +120,11 @@ const ETALON = {
      Ce qui N'A PAS bougé, et c'est la vraie nouvelle : les buts par manche du temps réglementaire, la
      part de l'hôte et le taux de qualification du favori se transfèrent quasiment intacts d'un moteur
      à l'autre (mesuré à 0,009 but près sur 3 733 affiches avant la bascule). */
-  butsMancheEuro: [2.484, 0.09],
+  /* RECALÉ LE 09/11/2026 (v2.55, décision de l'auteur) : 2,484 → 2,55. La version en ligne d'avant (v2.54, sans rien
+     toucher) mesurait déjà 2,549 / 2,547 / 2,546 (graines défaut, 1234, 777) : dérive antérieure, au bord de la tolérance.
+     La v2.55 (banc et pépins les soirs de semaine) donne 2,581 / 2,549 / 2,550 : même niveau, seule la graine par défaut
+     sort plus haut, parce que votre match consomme d'autres tirages. Le jeu n'a pas changé pour ce recalage. */
+  butsMancheEuro: [2.55, 0.09],
   tabEuro: [0.038, 0.012],
   favoriEuro: [0.669, 0.040],
 };
