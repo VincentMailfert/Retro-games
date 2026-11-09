@@ -291,6 +291,27 @@ toujours « raconter quelque chose ».
   celui de `rdvEnAttente`** : Europe, puis Coupe de France, puis le championnat. Un tour encore lointain ne prend
   pas la place d'un samedi : la liste est chronologique et coupée à trois.
   Gardé par la **section H de `harness-rdv.cjs`**.
+- **LE SOIR DE COUPE SE JOUE COMME LE SAMEDI (v2.55, demande de l'auteur du 09/11/2026 : « l'expérience d'un match de coupe
+  doit être strictement similaire à celle d'un match de championnat »)**. Coupe de France et Europe partagent un seul
+  direct, `directSemaine(o)`, calqué geste pour geste sur `lanceMatch` (`lanceCoupe`/`lanceEuroLeg` ne font plus que
+  le paramétrer : recollage, verdict, séance, sortie). Ce qui a été rattrapé : (1) **un vrai banc** pour VOTRE match de
+  semaine (`matchRdvMien` : `tireSubs` sur le onze de la rotation, `feuilleDe` n'est plus utilisée), donc les
+  changements au fil, le bouton **🔁 Banc** et (2) **le pépin en direct** avec sa fenêtre, tirés comme dans
+  `jouerJournee` ; `ouvreBanc`/`ouvreBlessure` acceptent `ctx.actif()`/`ctx.rejoue()` (`ctxActif`/`ctxRejoue`), la
+  feuille du soir est posée dans `CHANGEMENTS` le temps du direct. Les pépins ne touchent que les vestiaires suivis
+  (`vestiaireSuivi` : le vôtre, un adversaire du championnat ; jamais un village ni un club étranger). (3) Le registre
+  au prorata (`registreRdv` → `registreFeuille`, sorti de `registreDesHommes`) remplace `fatigueSemaine` pour votre
+  club : fraîcheur selon les minutes, `matchsC` enfin compté, blessures déclarées ; `_joue` (progression) reste
+  réservé au championnat. (4) L'avant-match montre l'adversaire (`briefAdverse(adv, {form, rang, bl})`, formation
+  tirée par `formationMatch`), la ligne FEUILLE DE MATCH et l'alerte de fraîcheur (`etatOnzeHTML`) ; le bouton dit
+  « JOUER LE MATCH » comme le samedi. (5) La feuille du sifflet porte cartons et homme du match (`feuilleRdvHTML`,
+  `hdmRdv` lu sur le fil par `faitsDuFil`, sans toucher `j.hdm`), le coup du chapeau a son flash (`chapeauxPuis`).
+  (6) Le **résultat instantané** passe par l'écran du match (`ed._instant`, non énumérable) au lieu de sauter au
+  verdict. **Restent propres à la coupe, sciemment** : le choix de rotation, la séance de tirs au but, le verdict au
+  lieu du multiplex. **Pas encore fait** : les moments de la 90e (penalty, coup franc, décor) les soirs de semaine.
+  `harness-euro` K compte désormais les remplaçants entrés comme « sur la feuille ». L'étalon `butsMancheEuro` de
+  `harness-coupes` sort à 2,581 sur la graine par défaut (2,549/2,550 sur 1234/777, identiques à main, déjà à ~2,547) :
+  dérive antérieure, étalon à réécrire sur décision de l'auteur.
 - **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
   le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
   championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :

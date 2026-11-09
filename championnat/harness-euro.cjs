@@ -321,7 +321,9 @@ try {
       const attendu = api.onzeRotation(c, rot).map(j => j.uid).sort().join(); // le onze que la rotation doit aligner, AVANT le coup d'envoi
       const sortie = {}; api.euroManche(moi, adv, sortie);
       const o = sortie.o; if (!o || !o.xiH) { sansFeuille++; continue; }
-      const mien = new Set(o.xiH.map(j => j.uid)), lui = new Set(o.xiA.map(j => j.uid));
+      // v2.55 : votre soir a un banc, comme le samedi. La feuille, c'est le onze ET les remplaçants entrés
+      const fH = (o.feuilles && o.feuilles[moi]) || {banc: []}, fA = (o.feuilles && o.feuilles[adv]) || {banc: []};
+      const mien = new Set(o.xiH.concat(fH.banc).map(j => j.uid)), lui = new Set(o.xiA.concat(fA.banc).map(j => j.uid));
       for (const l of sortie.r.ev) if (l.g && l.g.uid) {
         const surLaFeuille = l.g.cote === moi ? mien.has(l.g.uid) : lui.has(l.g.uid);
         if (!surLaFeuille) horsFeuille++;
