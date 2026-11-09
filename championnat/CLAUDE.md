@@ -2214,7 +2214,7 @@ toujours « raconter quelque chose ».
   [1,1] en 4-4-2 → tirages de coupe inchangés par défaut). Se combine à la consigne.
   **Écran** : `blocFormation(xi, adv)` en tête de `blocConsignePrime(quand, xi, adv)` — trois boutons `.bFormation`
   (câblés dans `ecranCalendrier`, **verrouillés par `lanceMatch`** comme la consigne), la `desc`, le **petit terrain**
-  `.terrainXI` (attaque en haut, chacun dans la ligne où il joue, « (dépanne) » en rouge pour un hors-poste) et, le
+  `.terrainXI` (du gardien en haut à l'attaque en bas depuis v2.54, choix auteur ; chacun dans la ligne où il joue, « (dépanne) » en rouge pour un hors-poste) et, le
   samedi seulement, **`lectureDuels(adv)`** : les trois duels en mots (« Au milieu, vos 3 contre leurs 4 : le ballon
   se partagera »…), seuils `DUEL_MIL`/`DUEL_BUT` = quartiles mesurés sur toutes les affiches dans les trois formations.
   Les soirs de coupe, pas de lecture (le modèle de coupe ne joue pas zone contre zone) mais la formation et le onze de
