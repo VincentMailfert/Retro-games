@@ -161,6 +161,25 @@ let moi = api.clubById(G.monClub);
   api.fatigueSemaine("cadres");
   ok(cadres.filter(j => api.fraich(j) < 100).length === 11,
     "en envoyant les cadres, ce sont bien les onze titulaires qui paient l'addition");
+  /* 09/11/2026, retour de l'auteur : « je joue la réserve pour préserver des joueurs fatigués, ils rentrent
+     quand même sur le terrain ». La réserve ne peut pas toujours se passer de tous les cadres (cinq ou six
+     remplaçants seulement), mais elle ne doit JAMAIS aligner un fatigué, ni un homme mis au repos, quand un
+     autre homme du même poste reste assis en meilleur état. Vingt clubs, cinq tirages de fatigue chacun. */
+  let evitable = 0, reposAligne = 0, soirs = 0;
+  for (let s = 0; s < 5; s++) for (const id of G.clubs.map(c => c.id)) {
+    const c = api.clubById(id);
+    c.joueurs.forEach(j => { j.fraich = 100; j.repos = false; j.titu = false; });
+    api.onze(c).forEach(j => { if (j.pos !== "G" && Math.random() < 0.35) j.fraich = 50 + Math.random() * 15; });
+    const res = api.onzeRotation(c, "reserve"); soirs++;
+    const assis = x => !res.includes(x) && api.dispo(x);
+    for (const j of res) if (api.fraich(j) < 80 && c.joueurs.some(x => x.pos === j.pos && assis(x) && api.fraich(x) >= 80)) evitable++;
+    c.joueurs.forEach(j => { if (api.fraich(j) < 80) j.repos = true; });
+    const r2 = api.onzeRotation(c, "reserve");
+    for (const j of r2) if (j.repos && c.joueurs.some(x => x.pos === j.pos && !r2.includes(x) && api.alignable(x))) reposAligne++;
+    c.joueurs.forEach(j => { j.fraich = 100; j.repos = false; });
+  }
+  ok(evitable === 0, `réserve : ${evitable} fatigué(s) aligné(s) alors qu'un homme frais du même poste restait assis (${soirs} soirs)`);
+  ok(reposAligne === 0, `réserve : ${reposAligne} homme(s) mis au repos aligné(s) alors qu'un autre du même poste restait disponible (${soirs} soirs)`);
 }
 
 /* ============ D) le onze se protège, et reste alignable ============ */
