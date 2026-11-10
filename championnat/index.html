@@ -623,7 +623,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.59"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.60"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -13286,7 +13286,7 @@ function changementDirect(ctx, entrant, sortant){
    tout, ~2 en moyenne) borne le reste, avec ARRETS.ecart minutes au moins entre deux arrêts. La blessure de l'un des
    vôtres ouvre déjà sa fenêtre (ouvreBlessure) : elle COMPTE dans le quota, et celles que le fil porte plus loin sont
    réservées d'avance, comme la mi-temps à venir, pour que le maximum de trois tienne.
-   Le bouton « Arrêts » du direct les coupe ; le choix est retenu dans le navigateur. Pas d'arrêt en résultat
+   Le bouton « 🗣️ Coach » du direct (ex-« Arrêts », renommé en v2.60) les coupe ; le choix est retenu dans le navigateur. Pas d'arrêt en résultat
    instantané, ni sur un match arrangé, ni sur le fil de secours d'une vieille sauvegarde de coupe.
    Tout ce qui décide est PUR (planArrets, situationArret, questionArret) : harness-arrets.cjs le rejoue. */
 const ARRETS_KEY="d1manager_arrets_v1";
@@ -22177,7 +22177,7 @@ function ecranCalendrier(){
    </div>
    <div class="panel panelDirect"><h2>Téléscripteur
      <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-       Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button> <button class="act" id="vAuto" title="Arrêts automatiques">Arrêts</button>
+       Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match">🗣️ Coach</button>
      </span></h2>
      ${htmlCtlTactique()}
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
@@ -22384,7 +22384,8 @@ function surligneVitesse(){
   for(const id in VITESSES){ const b=document.getElementById(id); if(!b) continue;
     const on=!PAUSE_DIRECT && (VITESSES[id]===tickerDelai);
     b.classList.toggle("on",on); }
-  const p=document.getElementById("vP"); if(p) p.classList.toggle("on",PAUSE_DIRECT);
+  const p=document.getElementById("vP"); if(p){ p.classList.toggle("on",PAUSE_DIRECT); // ❚❚ pour figer, ▶ pour relancer (v2.60, demande de l auteur)
+    p.textContent=PAUSE_DIRECT?"▶︎":"❚❚"; p.title=PAUSE_DIRECT?"Reprendre":"Pause"; if(p.setAttribute) p.setAttribute("aria-label", p.title); }
   const au=document.getElementById("vAuto"); if(au) au.classList.toggle("on",arretsActifs()); // les arrêts du coach (v2.58)
 }
 function cableVitesses(){
@@ -22742,7 +22743,7 @@ function ecranCoupeMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button> <button class="act" id="vAuto" title="Arrêts automatiques">Arrêts</button>
+        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match">🗣️ Coach</button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
@@ -23032,7 +23033,7 @@ function ecranEuroMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button> <button class="act" id="vAuto" title="Arrêts automatiques">Arrêts</button>
+        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match">🗣️ Coach</button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>

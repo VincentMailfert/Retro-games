@@ -340,7 +340,7 @@ toujours « raconter quelque chose ».
   arrêts ; **la fenêtre de la blessure compte dans le quota**, et `situationArret` réserve d'avance la mi-temps à venir
   et vos blessures que le fil porte plus loin, pour que le maximum de trois tienne. Les moments de la 90e ne comptent
   pas (ce ne sont pas des décisions tactiques). Pas d'arrêt en résultat instantané, sur un match arrangé, ni sur le fil
-  de secours d'une vieille sauvegarde de coupe (`R` absent). **Le réglage** : bouton « Arrêts » (`#vAuto`) dans la barre
+  de secours d'une vieille sauvegarde de coupe (`R` absent). **Le réglage** : bouton « 🗣️ Coach » (`#vAuto`, nommé « Arrêts » jusqu'à la v2.60 ; la pause y devient ❚❚ puis ▶ pour relancer) dans la barre
   des vitesses des trois directs, retenu dans le navigateur (`ARRETS_KEY` = `d1manager_arrets_v1`, allumé par défaut).
   La pause manuelle est inchangée. **Mesure qui borne le design** : une consigne n'est jamais la meilleure partout ; à la
   70e, en menant 1-0, « Prudent » garde la victoire 81 % contre 76 % pour « Offensif », et mené 0-1, « Offensif » évite
