@@ -39,6 +39,9 @@
   .seg button:disabled{ opacity:.45; cursor:not-allowed; }
   button:focus-visible,input:focus-visible{ outline:2px solid var(--jaune); outline-offset:2px; }
   .titre{ font-size:13px; color:var(--dim); margin-bottom:5px; }
+  .familles{ grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 22px; border-top:2px solid var(--line); padding-top:14px; }
+  @media (max-width:640px){ .familles{ grid-template-columns:1fr; } }
+  .familles .seg button{ font-size:12px; }
 </style>
 </head>
 <body>
@@ -54,6 +57,7 @@
     <div><label class="r" for="rAff">Remplissage <output id="affOut"></output></label><input type="range" id="rAff" min="0" max="100" step="1" value="80"></div>
     <div><div class="titre">Travaux</div><div class="seg"><button type="button" id="bVir" aria-pressed="false">Virages</button><button type="button" id="bToit" aria-pressed="false">Toiture</button><button type="button" id="bEcran" aria-pressed="false">Écran géant</button></div></div>
     <div><div class="titre">Éclairage</div><div class="seg" id="segEcl"><button type="button" data-e="1" aria-pressed="true">Mâts</button><button type="button" data-e="2" aria-pressed="false">Pylônes</button><button type="button" data-e="3" aria-pressed="false">Rampe de toit</button></div></div>
+    <div class="familles" id="familles"></div>
   </div>
 </div>
 <script>
@@ -96,11 +100,19 @@ function rendre(ctx, R, image){
   // --- géométrie : rangs par côté (Nord, Sud, Est, Ouest), comme la maquette d'origine
   const [nN,nS,nE,nO]=profondeurs(R), vir=R.virages?1:0, toit=R.toit?1:0, ecl=R.eclairage||1;
   const hN=nN*RZ, hS=nS*RZ, hE=nE*RZ, hO=nO*RZ, zMax=Math.max(hN,hS,hE,hO)+(toit?8:0)+(ecl===2?30:10);
-  const m=20, xa=-(nO*D+m), xb=L+nE*D+m, ya=-(nN*D+m), yb=W+nS*D+m;
+  const m=30, xa=-(nO*D+m), xb=L+nE*D+m, ya=-(nN*D+m), yb=W+nS*D+m;
   const k=Math.min(1.3, (GW-6)/((xb-ya)-(xa-yb)), (GH-26)/(((xb+yb)-(xa+ya))/2+zMax*1.05)), kz=k*1.05;
   const ox=GW/2-((xb-ya)+(xa-yb))/2*k, oy=(GH-14)/2-((xb+yb)+(xa+ya))/4*k+zMax*kz/2+2;
   const P=(x,y,z)=>[Math.round(ox+(x-y)*k), Math.round(oy+(x+y)*k/2-(z||0)*kz)];
   const quad=(pts,c,bord)=>poly(pts.map(p=>P(p[0],p[1],p[2])),c,bord);
+
+  // --- de quoi bâtir le quartier : une boîte (dessus, face sud, face est), ses fenêtres, ses repères
+  const X0=-nO*D, X1=L+nE*D, Y1=W+nS*D, niv=f=>Math.max(0,Math.min(3,Math.round(R[f]||0)));
+  const boite=(x0,x1,y0,y1,z0,z1,cT,cF,cE)=>{ quad([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],cF,C.encre); quad([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],cE,C.encre); quad([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],cT,C.encre); };
+  const vitres=(x0,x1,y0,y1,z0,z1,g,c)=>{ const pasX=Math.max(2.2,1.9/k), pasZ=Math.max(2.8,2.2/k);
+    for(let z=z0+2;z<z1-1;z+=pasZ){ for(let x=x0+1.4;x<x1-.8;x+=pasX){ const q=P(x,y1,z); px(q[0],q[1],hasard(Math.round(x*3)+g,Math.round(z*3))<.7?c:C.encre); }
+      for(let y=y0+1.4;y<y1-.8;y+=pasX){ const q=P(x1,y,z); px(q[0],q[1],hasard(Math.round(y*3)+g+5,Math.round(z*3))<.7?c:C.encre); } } };
+  const point=(x,y,z,c)=>{ const q=P(x,y,z); px(q[0],q[1],c); };
 
   // --- le quartier : nuit, parvis, route, arbres
   for(let i=0;i<GW*GH;i++){ buf[i*4]=C.nuit[0]; buf[i*4+1]=C.nuit[1]; buf[i*4+2]=C.nuit[2]; buf[i*4+3]=255; }
@@ -111,6 +123,9 @@ function rendre(ctx, R, image){
   const arbre=(x,y)=>{ const p=P(x,y,0); px(p[0],p[1],C.encre); for(const [dx,dy] of [[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]]) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); };
   for(let x=xa+2;x<xb;x+=17) arbre(x,ya+2); for(let y=ya+19;y<yb;y+=17) arbre(xa+2,y);
 
+  // transports, niveau 1 et plus : le parking, à l'ouest
+  if(niv('transport')>=1){ const px0=X0-27, px1=X0-9; quad([[px0,8,0],[px1,8,0],[px1,W-8,0],[px0,W-8,0]],C.route,C.marque);
+    for(let y=11;y<W-10;y+=4.5) for(const x of [px0+3,px0+10]){ if(hasard(Math.round(x),Math.round(y))<.78){ const q=P(x,y,0), c=[C.rouge,C.blanc,C.jaune,C.siege2,C.beton3][Math.floor(hasard(Math.round(y),Math.round(x))*5)]; px(q[0],q[1],c); px(q[0]+1,q[1],c); px(q[0]+2,q[1]+1,c); px(q[0]+1,q[1]+1,C.encre); } } }
   const lampes=[];
   // public : un pixel par supporter, posé sur les gradins
   const public_=(Q,graine)=>{ const long=Math.hypot(Q[1][0]-Q[0][0],Q[1][1]-Q[0][1]), pas=Math.max(1.6,1.15/k);
@@ -191,7 +206,46 @@ function rendre(ctx, R, image){
   if(!vir){ let pr=[[L,W,0]]; for(let r=0;r<nE;r++) pr.push([L+r*D,W,(r+1)*RZ],[L+(r+1)*D,W,(r+1)*RZ]); pr.push([L+nE*D,W,0]); quad(pr,C.beton3,C.encre);
     pr=[[L,W,0]]; for(let r=0;r<nS;r++) pr.push([L,W+r*D,(r+1)*RZ],[L,W+(r+1)*D,(r+1)*RZ]); pr.push([L,W+nS*D,0]); quad(pr,C.beton2,C.encre); }
   if(toit) pres.forEach(toitDe);
+  // --- à l'est du stade : l'hôtel, puis la boutique
+  { const n=niv('hotel'); if(n){ const w=[10,12,14][n-1], h=[12,21,34][n-1], x0=X1+9, y0=4;
+      boite(x0,x0+w,y0,y0+w,0,h,n===3?C.clair:C.beton3,C.beton,C.beton2); vitres(x0,x0+w,y0,y0+w,0,h,11,C.jaune);
+      if(n>=2) quad([[x0,y0+w,h-2.4],[x0+w,y0+w,h-2.4],[x0+w,y0+w,h],[x0,y0+w,h]],C.rouge,C.encre);
+      if(n===3){ quad([[x0+3,y0+3,h],[x0+w-3,y0+3,h],[x0+w-3,y0+w-3,h],[x0+3,y0+w-3,h]],C.jaune,C.encre); ligne(P(x0+w/2,y0+w/2,h),P(x0+w/2,y0+w/2,h+6),C.blanc); point(x0+w/2,y0+w/2,h+6,C.rouge); } } }
+  { const n=niv('boutique'); if(n){ const x0=X1+9, y1=W-6;
+      if(n===1){ boite(x0,x0+6,y1-6,y1,0,3.6,C.rouge,C.blanc,C.beton3); quad([[x0+1,y1,1.2],[x0+5,y1,1.2],[x0+5,y1,2.8],[x0+1,y1,2.8]],C.jaune); }
+      if(n===2){ boite(x0,x0+12,y1-12,y1,0,6,C.beton3,C.beton,C.beton2); quad([[x0+1.5,y1,1],[x0+10.5,y1,1],[x0+10.5,y1,4],[x0+1.5,y1,4]],C.jaune,C.encre); quad([[x0,y1,4.6],[x0+12,y1,4.6],[x0+12,y1,6],[x0,y1,6]],C.rouge,C.encre); }
+      if(n===3){ boite(x0,x0+17,y1-18,y1,0,11,C.clair,C.siege,C.siege2); vitres(x0,x0+17,y1-18,y1,0,9,23,C.clair); quad([[x0,y1,8.6],[x0+17,y1,8.6],[x0+17,y1,11],[x0,y1,11]],C.jaune,C.encre); quad([[x0+6,y1,0],[x0+11,y1,0],[x0+11,y1,4],[x0+6,y1,4]],C.jaune,C.encre);
+        for(const [i,c] of [[0,C.rouge],[1,C.blanc],[2,C.jaune]]){ const fx=x0+3+i*5; ligne(P(fx,y1-9,11),P(fx,y1-9,16),C.blanc); const q=P(fx,y1-9,16); px(q[0]+1,q[1],c); px(q[0]+2,q[1],c); px(q[0]+1,q[1]+1,c); } } } }
   pylone(1,1);
+  // --- au sud, côté rue : le musée, le restaurant, la buvette
+  { const n=niv('musee'); if(n){ const x0=4, y0=Y1+8;
+      if(n===1){ boite(x0,x0+8,y0,y0+7,0,4.5,C.beton3,C.beton2,C.beton); for(const [dx,dz] of [[3,5],[4,5],[5,5],[4,6]]) point(x0+dx,y0+3.5,dz+.5,C.jaune); quad([[x0+3,y0+7,0],[x0+5,y0+7,0],[x0+5,y0+7,3],[x0+3,y0+7,3]],C.jaune); }
+      else { const w=n===2?16:22, h=n===2?7:9; boite(x0,x0+w,y0,y0+10,0,h,C.clair,C.beton3,C.beton2);
+        for(let x=x0+1.5;x<x0+w;x+=Math.max(2.4,2/k)) ligne(P(x,y0+10,.6),P(x,y0+10,h-1.4),C.blanc);
+        quad([[x0,y0+10,h-1.2],[x0+w,y0+10,h-1.2],[x0+w,y0+10,h],[x0,y0+10,h]],C.clair,C.encre); quad([[x0-1,y0+10,0],[x0+w+1,y0+10,0],[x0+w+1,y0+11.5,0],[x0-1,y0+11.5,0]],C.beton3);
+        if(n===3) for(const fx of [x0+4,x0+w/2,x0+w-4]){ const q=P(fx,y0+13.5,0); px(q[0],q[1],C.beton3); px(q[0],q[1]-1,C.jaune); px(q[0],q[1]-2,C.jaune); px(q[0],q[1]-3,C.jaune); lampes.push([q[0],q[1]-2,3]); } } } }
+  { const n=niv('restaurant'); if(n){ const x0=L/2-9, y0=Y1+8;
+      if(n===1){ boite(x0,x0+14,y0,y0+8,0,5,C.beton2,C.beton,C.beton); for(let x=x0;x<x0+14;x+=1/k){ const q=P(x,y0+8,5); px(q[0],q[1]+1,Math.round(x*k)%2?C.arbre2:C.blanc); } quad([[x0+1,y0+8,.8],[x0+13,y0+8,.8],[x0+13,y0+8,3.2],[x0+1,y0+8,3.2]],C.jaune);
+        for(const [i,c] of [[0,C.rouge],[1,C.blanc],[2,C.arbre2]]){ const q=P(x0+2.5+i*4.5,y0+11.5,0); px(q[0],q[1],C.beton3); px(q[0],q[1]-1,C.beton3); px(q[0]-1,q[1]-2,c); px(q[0],q[1]-2,c); px(q[0]+1,q[1]-2,c); } }
+      if(n===2){ boite(x0,x0+16,y0,y0+9,0,10,C.beton3,C.siege,C.siege2); vitres(x0,x0+16,y0,y0+9,0,10,31,C.jaune); quad([[x0,y0+9,8.4],[x0+16,y0+9,8.4],[x0+16,y0+9,10],[x0,y0+9,10]],C.clair,C.encre); }
+      if(n===3){ boite(x0,x0+18,y0,y0+10,0,6,C.clair,C.beton2,C.beton); quad([[x0+1,y0+10,1],[x0+17,y0+10,1],[x0+17,y0+10,4.4],[x0+1,y0+10,4.4]],C.jaune,C.encre); boite(x0+3,x0+15,y0+1.5,y0+8.5,6,10,C.clair,C.beton2,C.beton); vitres(x0+3,x0+15,y0+1.5,y0+8.5,6,10.6,37,C.jaune);
+        const q=P(x0+9,y0+5,13.5); for(const [dx,dy] of [[0,0],[-1,0],[1,0],[0,-1],[0,1],[-2,0],[2,0],[0,-2],[0,2]]) px(q[0]+dx,q[1]+dy,C.jaune); lampes.push([q[0],q[1],4]); } } }
+  { const n=niv('buvette'); if(n){ const x0=L-30, y0=Y1+8;
+      if(n===1){ boite(x0+6,x0+13,y0+2,y0+6,.6,4,C.blanc,C.blanc,C.beton3); quad([[x0+6,y0+6,1.8],[x0+13,y0+6,1.8],[x0+13,y0+6,2.6],[x0+6,y0+6,2.6]],C.rouge); point(x0+7.5,y0+6,.2,C.encre); point(x0+11.5,y0+6,.2,C.encre); }
+      if(n===2) [[0,C.rouge],[8,C.blanc],[16,C.rouge]].forEach(([dx,c])=>{ boite(x0+dx,x0+dx+5.5,y0+1,y0+6.5,0,4,c,C.beton,C.beton2); quad([[x0+dx+.8,y0+6.5,1.4],[x0+dx+4.7,y0+6.5,1.4],[x0+dx+4.7,y0+6.5,2.8],[x0+dx+.8,y0+6.5,2.8]],C.jaune); });
+      if(n===3){ const a=[x0+11,y0+5,9]; boite(x0,x0+22,y0,y0+10,0,3.6,C.blanc,C.clair,C.beton3);
+        quad([[x0,y0+10,3.6],[x0+22,y0+10,3.6],a],C.blanc,C.encre); quad([[x0+22,y0,3.6],[x0+22,y0+10,3.6],a],C.clair,C.encre);
+        for(let x=x0+1;x<x0+22;x+=Math.max(2,1.8/k)){ const q=P(x,y0+10,3.2); px(q[0],q[1],C.jaune); }
+        for(const [i,c] of [[0,C.rouge],[1,C.jaune],[2,C.blanc]]){ const q=P(x0+4+i*7,y0+13,0); px(q[0],q[1],C.beton3); px(q[0]-1,q[1]-1,c); px(q[0],q[1]-1,c); px(q[0]+1,q[1]-1,c); } } } }
+  // --- transports, niveaux 2 et 3 : le tram sur la rue, puis la gare
+  { const n=niv('transport'), yr=yb+4.5;
+    if(n>=2){ ligne(P(xa-56,yr,0),P(xb+56,yr,0),C.beton3); ligne(P(xa-56,yr+2.4,0),P(xb+56,yr+2.4,0),C.beton3);
+      const tx=n===3?L/2-30:L/2-13, tl=n===3?44:26; boite(tx,tx+tl,yr-.3,yr+2.7,.6,4.4,C.clair,C.blanc,C.beton3);
+      quad([[tx,yr+2.7,1.4],[tx+tl,yr+2.7,1.4],[tx+tl,yr+2.7,2.2],[tx,yr+2.7,2.2]],C.rouge);
+      for(let x=tx+1.5;x<tx+tl-1;x+=Math.max(2.2,1.8/k)){ const q=P(x,yr+2.7,3.2); px(q[0],q[1],C.jaune); } }
+    if(n===3){ const gx=X0-22, gy=Y1+11; boite(gx,gx+24,gy,gy+8,0,7,C.beton3,C.beton2,C.beton); vitres(gx,gx+24,gy,gy+8,0,6,41,C.jaune);
+      quad([[gx-1,gy+8,5.6],[gx+25,gy+8,5.6],[gx+25,gy+11,5],[gx-1,gy+11,5]],C.clair,C.encre);
+      const q=P(gx+12,gy+8,9.5); for(const [dx,dy] of [[0,0],[1,0],[0,1],[1,1]]) px(q[0]+dx,q[1]+dy,C.jaune); ligne(P(gx+12,gy+4,7),P(gx+12,gy+4,9),C.beton3); } }
 
   // --- la lumière : un damier clair autour de chaque lampe, jamais de fondu
   for(const [gx,gy,r] of lampes) for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++){ const X=gx+dx, Y=gy+dy; if(X<0||Y<0||X>=GW||Y>=GH||(X+Y)%2||dx*dx+dy*dy>r*r) continue;
@@ -206,7 +260,10 @@ return {rendre, etape, GW, GH};
    ============================================================ */
 (()=>{
   const $=id=>document.getElementById(id), ctx=$('ecran').getContext('2d');
-  const R={cap:22500, aff:.8, virages:0, toit:0, ecran:0, eclairage:1};
+  const R={cap:22500, aff:.8, virages:0, toit:0, ecran:0, eclairage:1, boutique:1, buvette:1, restaurant:0, musee:0, hotel:0, transport:1};
+  const FAMS=[['boutique','Boutique',['Aucune','Kiosque','Boutique','Mégastore']],['buvette','Buvette',['Aucune','Frites','Buvettes','Fan zone']],['restaurant','Restaurant',['Aucun','Brasserie','Panoramique','Étoilé']],['musee','Musée',['Aucun','Trophées','Musée','Légendes']],['hotel','Hôtel',['Aucun','Hôtel','Du club','Palace']],['transport','Accès et transports',['Aucun','Parking','Tram','Gare']]];
+  $('familles').innerHTML=FAMS.map(([f,nom,niv])=>`<div><div class="titre">${nom}</div><div class="seg" data-f="${f}">${niv.map((t,i)=>`<button type="button" data-n="${i}">${t}</button>`).join('')}</div></div>`).join('');
+  document.querySelectorAll('#familles .seg button').forEach(b=>b.addEventListener('click',()=>{ R[b.parentNode.dataset.f]=+b.dataset.n; maj(); }));
   const FMT=n=>Math.round(n).toLocaleString('fr-FR').replace(/[  ]/g,' ');
   const calme=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let image=0;
@@ -214,6 +271,7 @@ return {rendre, etape, GW, GH};
     if(R.cap<20000) R.virages=0; if(!R.toit&&R.eclairage===3) R.eclairage=2;
     $('bVir').disabled=R.cap<20000; $('bVir').setAttribute('aria-pressed',!!R.virages); $('bToit').setAttribute('aria-pressed',!!R.toit); $('bEcran').setAttribute('aria-pressed',!!R.ecran);
     document.querySelectorAll('#segEcl button').forEach(b=>{ b.setAttribute('aria-pressed',+b.dataset.e===R.eclairage); b.disabled=(+b.dataset.e===3&&!R.toit); });
+    document.querySelectorAll('#familles .seg button').forEach(b=>b.setAttribute('aria-pressed',R[b.parentNode.dataset.f]===+b.dataset.n));
     $('capOut').textContent=FMT(R.cap); $('affOut').textContent=Math.round(R.aff*100)+' %';
     $('etape').textContent=STADEPIX.etape(R.cap).toUpperCase(); $('places').textContent=FMT(R.cap)+' PLACES';
     STADEPIX.rendre(ctx,R,image);

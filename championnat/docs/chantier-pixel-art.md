@@ -35,7 +35,11 @@ un moteur `STADEPIX` qui pose chaque pixel sur une grille de 320 x 224, palette 
 l'encre, aucun filtre. Il reprend les règles de taille de la maquette d'origine (`rangs`, `profondeurs`, virages,
 uniformisation) et sait déjà dessiner : les quatre tribunes qui grandissent, les virages, la toiture, les trois
 éclairages, l'écran géant, le public selon le remplissage, deux images par seconde.
-**Pas encore fait** : commerces et annexes (boutique, buvette, restaurant, musée, hôtel, transports), kop, loges,
+Corrigé à la demande de l'auteur (11/11/2026) : **les virages sont des coins arrondis** (le tour du stade reprend
+`contour()` de la maquette d'origine, profondeur lissée d'une tribune à l'autre), **les projecteurs sont tournés vers la
+pelouse** (lampes de face, caisson de dos, tranche de profil, lumière au sol), **l'écran géant pend sous la toiture**.
+Ajoutés ensuite : boutique, buvette, restaurant, musée, hôtel et transports, trois niveaux chacun.
+**Pas encore fait** : kop, loges,
 ruban LED, toit rétractable, styles de l'histoire, gabarit cliquable de la prochaine tribune, grue de chantier, et
 le branchement dans le jeu (`maquetteStade` attend une chaîne SVG, ce moteur dessine dans un canvas).
 Rien dans `index.html` ne l'utilise pour l'instant.
