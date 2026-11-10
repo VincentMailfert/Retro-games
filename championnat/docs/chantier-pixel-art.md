@@ -39,7 +39,10 @@ Corrigé à la demande de l'auteur (11/11/2026) : **les virages sont des coins a
 `contour()` de la maquette d'origine, profondeur lissée d'une tribune à l'autre), **les projecteurs sont tournés vers la
 pelouse** (lampes de face, caisson de dos, tranche de profil, lumière au sol), **l'écran géant pend sous la toiture**.
 Ajoutés ensuite : boutique, buvette, restaurant, musée, hôtel et transports, trois niveaux chacun.
-**Pas encore fait** : kop, loges,
-ruban LED, toit rétractable, styles de l'histoire, gabarit cliquable de la prochaine tribune, grue de chantier, et
-le branchement dans le jeu (`maquetteStade` attend une chaîne SVG, ce moteur dessine dans un canvas).
+Puis, toujours le 11/11 : annexes grossies à la demande de l'auteur (loupe `T`, facteur `G` de 1,4 à 1,9 selon la
+capacité), et le stade terminé : kop au virage nord-ouest (drapeaux, tifos, sono), loges, ruban LED, toit rétractable
+(ouvert ou fermé), grue et gabarit du rang à venir, six styles de l'histoire sur le mur extérieur.
+**Reste à faire** : le centre d'entraînement dans le même style, la carte de livraison, le gabarit cliquable de la
+prochaine tribune, et le branchement dans le jeu (`maquetteStade` attend une chaîne SVG, ce moteur dessine dans un
+canvas). L'auteur a tranché : le pixel art REMPLACERA la maquette actuelle sur l'écran Club.
 Rien dans `index.html` ne l'utilise pour l'instant.
