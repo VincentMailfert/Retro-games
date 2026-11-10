@@ -5663,6 +5663,100 @@ Championship.
 
 `harness-ang0910.cjs` garde tout cela.
 
+### LES CLUBS ITALIENS (ITA-A, v2.56)
+Première étape du lot structure qui précède l'Italie, faite par la tâche de nuit du 10/11/2026 (troisième
+essai du jour : les deux premiers n'avaient pas de réseau). Comme ANG-B, rien du moteur n'est touché, une seule
+ligne de code l'est (`metaClub`, qui cherche désormais aussi dans `CLUBS_ITA`, **après** les tables françaises
+et anglaise : un club français ou anglais répond toujours en premier). Aucune saison italienne n'est jouable.
+
+**Combien de clubs, et comment on l'a su : 74.** Les **quarante classements finaux** de la période (Serie A et
+Serie B, de 1990-91 à 2009-10) ont été lus sur la Wikipédia anglaise, en texte brut (`action=raw`), par le
+paramètre `team1=… teamN=` du module de classement et les liens `name_XXX=[[…]]`. Les quarante tables ont
+toutes donné 18, 20, 22 ou 24 clubs, et l'union en donne soixante-quatorze. **Deux pièges de lecture** : la page
+« 1999–00 Serie A » est un renvoi (le vrai titre est « 1999–2000 »), et la table de « 1995–96 Serie B » répète
+deux clubs dans son ordre (Ancona, Avellino) — on ne garde que les vingt premiers distincts. Un club qui a changé
+de raison sociale reste **un** club (Messina 1990-92 et 2001-08, Monza, Lucchese, Fidelis Andria sous deux noms).
+
+**Une table à part, `CLUBS_ITA`**, au même gabarit que `CLUBS_ANG` : nom, stade et capacité du **début de la
+fenêtre (1990)**, prestige, budget au **barème français** (le harnais refuse tout budget hors barème). Les noms
+sont les noms courts italiens que le joueur connaît (« Napoli », « Sampdoria », « Hellas Verona »), avec trois
+préfixes d'usage (« AC Milan », « AS Roma ») ; « Inter » tout court. Un club **absent du plateau en 1990**
+porte le stade de sa première saison dans la fenêtre (AlbinoLeffe et Alzano à Bergame, à l'Atleti Azzurri
+d'Italia ; Sassuolo au Braglia de Modène, où il joue sa Serie B de 2008 à 2013) : leur stade de 1990 n'a
+aucune chance d'être affiché.
+
+**Les identifiants : six partages voulus, neuf contournements.** `JUV`, `MIL`, `INT`, `ROM`, `LAZ` et `PAR` sont
+**déjà** dans `CLUBS_EUROPE` : même club, même code, comme les quatre anglais d'ANG-B, et c'est ce qui permettra
+de retirer la Juventus du vivier le jour où l'on jouera la Serie A (la réconciliation est faite au pays de la
+saison depuis ANG-C, elle n'a rien à apprendre). Neuf codes naturels étaient pris : **`BAI`** Bari (`BAR` est le
+Barça), **`BGN`** Bologna (`BOL` Bolton), **`BRS`** Brescia (`BRE` Brest), **`CHI`** Chievo (`CHV` Charleville),
+**`CRM`** Cremonese (`CRE` Créteil), **`FRM`** Fermana (`FER` Ferencváros), **`LVR`** Livorno (`LIV`
+Liverpool !), **`MZA`** Monza (`MON` Monaco), **`PRG`** Perugia (`PER` Perpignan). Le harnais épingle les neuf.
+**Leçon pour l'Espagne et l'Allemagne : contrôler chaque code contre TOUTES les tables (France, Angleterre,
+Italie, vivier d'Europe, `BLASONS`) avant d'écrire, Livourne a failli devenir Liverpool.**
+
+**Les capacités** sont celles de l'infobox du stade (Wikipédia anglaise, l'italienne quand l'anglaise manque),
+relevées le 10/11/2026, **sauf quand la source date un chiffre d'époque** : le Mirabello de Reggio (15 500
+après les années 80), le Degli Ulivi d'Andria (« environ 15 000 » quand la Fidelis jouait en Serie B), le vieux
+Comunale de Reggio de Calabre (15 000), le Puttilli de Barletta (17 000 après 1987), le Sant'Elia de Cagliari
+(40 919 de la structure de 1990). Le Franchi de Florence prend les 43 147 de la fiche du club, parce que
+l'infobox du stade donne la jauge réduite des travaux en cours. **Un trou assumé : le Dorico d'Ancône** (1990-91
+et 1991-92) n'a qu'un chiffre à la source, ses **3 000** places d'aujourd'hui ; c'est peu pour un stade de Serie B
+de 1990, mais on n'invente pas. Le harnais descend son plancher à 3 000 pour ce seul stade, et le dit.
+
+**Les déménagements et les changements de nom, tous datés à la source** (Wikipédia italienne, sections
+« Stadio » des clubs et des stades), dans `STADE_EPOQUE` : le Del Conero (6 décembre 1992, Ancona-Inter),
+l'Euganeo (19 juin 1994), le Giglio de Reggio (1995), le nouveau Granillo (11 septembre 1999), le Nereo Rocco
+de Trieste (18 octobre 1992), le San Filippo de Messine (été 2004), l'Olimpico de Turin rénové où la Juventus
+et le Torino retournent en 2006 en quittant le Delle Alpi, Cittadella qui joue ses deux premières Serie B à
+l'Euganeo de Padoue (2000-2002), la Favorita qui devient le **Renzo Barbera** (18 septembre 2002) et le Cibali
+l'**Angelo Massimino** (2002). Le San Nicola de Bari (juin 1990) et l'Arechi de Salerne (en service dès
+1990-91, sans nom pendant quinze journées) sont à la fiche. Le harnais épingle **trente-quatre faits de stade**,
+l'année d'avant et l'année d'après. **Napoli reste au « San Paolo »** : le nom de Maradona date de 2020.
+
+**Le standing raconte l'argent et les chutes** (`PRES_EPOQUE`, vingt-sept clubs) : Parme de Tanzi passe de 4 à
+8 entre 1990 et 1995 et retombe après le krach de Parmalat (2004), la Lazio de Cragnotti culmine à 9 de 1997
+à 2001, la Fiorentina tombe à 4 avec sa faillite de 2002, Naples, champion en titre et à 9 en 1990, descend à
+3 quand il joue la Serie C (2004), la Juventus perd deux crans l'année du Calciopoli (8 en 2006-07, en Serie
+B) et l'Inter monte à 10 ; Chievo, Palerme, Udine, Sienne, Livourne et Catane montent. **Ce sont des
+jugements, pas des relevés** : la règle reste celle d'ANG-B, un cran par vraie marche.
+
+**Les couleurs**, vérifiées club par club sur deux sources : le champ **« colori »** de l'infobox italienne
+(« Rosso, nero », « Granata », « Bianco, celeste ») et, côté anglais, les hex du maillot et la phrase de la
+section couleurs. Ramenées à la palette maison, avec **deux exceptions nommées** que le harnais connaît par
+leur club : le **gris** des grigiorossi de la Cremonese et le **rose** des rosanero de Palerme. Les ramener à la
+palette aurait habillé Palerme en Milan. Vingt clubs rayés (Juventus, Milan, Inter, Atalanta, Udinese,
+Bologna…), quatre coupés en deux (Genoa, Cagliari, Cremonese, Taranto), Mantova barré en écharpe
+(les biancobandati), quarante-neuf unis. Des clubs partagent une allure (Juventus, Udinese, Siena, Ascoli),
+comme en Angleterre.
+
+**Vingt-cinq derbys**, un rival par club, tous relevés sur « Derby calcistici in Italia » (Wikipédia
+italienne) : la Madonnina, la Capitale, la Mole, la Lanterne, l'Arena (Hellas-Chievo), la Sicile, les Pouilles
+(Bari-Lecce), le derby lombard (Atalanta-Brescia), la Calabre, l'Ombrie, la Secchia (Modena-Reggiana), le Duché
+(Parma-Piacenza), le Détroit (Messina-Reggina), les Apennins (Fiorentina-Bologna), la Romagne
+(Cesena-Rimini), le Santo (Padova-Cittadella), le Nord-Est (Udinese-Triestina), la Campanie
+(Avellino-Salernitana), le derby bourbon (Napoli-Foggia), les Salines (Grosseto-Siena), la côte adriatique
+(Ancona-Pescara). **Quatre paires n'ont pas de nom propre à la source** (Livourne-Pise, Venise-Trévise,
+Crémone-Mantoue, Côme-Monza) : elles portent celui des deux villes, rien n'est inventé. Le choix d'un rival
+unique tranche parfois (la Fiorentina a aussi la Juventus, Naples aussi la Roma) : c'est la contrainte du moteur
+(`RIVAL` est une table un-pour-un), et le derby retenu est toujours celui que la source range comme tel.
+
+**Ce qui N'EST PAS fait, et pourquoi : les lires puis les euros.** La ligne ITA-A les annonçait, mais deux garde-fous
+du moteur l'interdisent aujourd'hui sans décision de l'auteur. (1) L'affichage d'une monnaie passe par une entrée
+`PAYS.ITA`, or **`harness-pays.cjs` (section F) exige qu'aucun pays de la table ne soit « bientôt »** à l'accueil :
+une entrée italienne sans saison jouable le rougit. (2) La lire vaut environ **295 lires pour un franc** (parité
+fixe de l'euro : 1 936,27 lires et 6,55957 francs pour un euro), or **`harness-pays.cjs` (section A) refuse tout
+taux d'affichage supérieur à 1**, et les helpers `MM`/`UU` multiplient le franc par ce taux. On ne modifie pas
+une assertion pour la faire passer : la monnaie italienne est donc renvoyée à **ITA-B**, qui crée `PAYS.ITA`
+avec ses divisions, et elle attend l'auteur sur deux points (lever le plafond du taux ou écrire les lires en
+milliers ; à quelle saison passer à l'euro — 2002-03, première saison entière en euros, est la proposition).
+
+**Ce qui reste aux étapes suivantes** : `PAYS.ITA` et la monnaie, la Coppa Italia, les sièges européens italiens
+par saison, les textes et la sélection (ITA-B), le harnais de pays `harness-italie.cjs` (ITA-C). Et comme pour
+l'Angleterre, `JAMAIS_CHAMPION`/`MALEDICTIONS` ne connaissent aucun club italien, et les **sponsors et
+équipementiers** italiens sont une liste **arrêtée par l'auteur** : rien n'est écrit, ils l'attendent. Gardé par
+**`harness-clubs-ita.cjs`**.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
@@ -5773,6 +5867,10 @@ test est **« contient-elle des lignes de joueurs »**.
    une saison anglaise d'essai, les seize clubs tenus dans les trois compétitions qualifié ou non, le
    siège du pays et son absence en C1 1990-91, la ceinture de `migre`, et trente-huit journées anglaises
    jouées pour de vrai avec leur Coupe d'Europe),
+   `harness-clubs-ita.cjs` (les clubs italiens, ITA-A v2.56 : les soixante-quatorze clubs de Serie A et de
+   Serie B de la fenêtre, les six codes partagés avec le vivier d'Europe et les neuf codes de contournement,
+   la palette maison plus le gris de Crémone et le rose de Palerme, vingt-cinq derbys, trente-quatre faits
+   de stade et vingt et un standings d'époque, la France et l'Angleterre intactes),
    `harness-textes-ang.cjs` (les textes vus d'Angleterre, ANG-D v1.91 : les onze étés de chaque pays et le
    marqueur de sacre qu'aucun été anglais ne porte, la sélection nationale qui sait de quel pays elle est,
    les deux viviers de noms procéduraux et le contrôle des soixante patronymes anglais contre tous les noms

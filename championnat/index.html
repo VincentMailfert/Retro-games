@@ -3525,7 +3525,9 @@ const RIVAL={PSG:"OM",OM:"PSG",LEN:"LIL",LIL:"LEN",LYO:"STE",STE:"LYO",NAN:"BOR"
  NIC:"MON",MON:"NIC",GUI:"REN",REN:"GUI",MET:"NCY",NCY:"MET",CAE:"LEH",LEH:"CAE",
  ACA:"BAS",BAS:"ACA",
  /* Angleterre (ANG-B) */
- MUN:"MCI",MCI:"MUN", LIV:"EVE",EVE:"LIV", ARS:"TOT",TOT:"ARS", CHE:"QPR",QPR:"CHE", NEW:"SUN",SUN:"NEW", AVL:"BIR",BIR:"AVL", WBA:"WOL",WOL:"WBA", SHU:"SHW",SHW:"SHU", LEE:"BRD",BRD:"LEE", NOR:"IPS",IPS:"NOR", STK:"PTV",PTV:"STK", DER:"FOR",FOR:"DER", BLB:"BUR",BUR:"BLB", BOL:"WIG",WIG:"BOL", POR:"SOU",SOU:"POR", CAR:"SWA",SWA:"CAR", BSC:"BSR",BSR:"BSC", CPL:"BHA",BHA:"CPL", WHU:"MIW",MIW:"WHU", LEI:"COV",COV:"LEI", FUL:"BTF",BTF:"FUL", PNE:"BLP",BLP:"PNE", WAT:"LUT",LUT:"WAT", RDG:"OXF",OXF:"RDG", GRI:"SCU",SCU:"GRI", DON:"ROT",ROT:"DON", COL:"SND",SND:"COL", CAM:"PET",PET:"CAM"};
+ MUN:"MCI",MCI:"MUN", LIV:"EVE",EVE:"LIV", ARS:"TOT",TOT:"ARS", CHE:"QPR",QPR:"CHE", NEW:"SUN",SUN:"NEW", AVL:"BIR",BIR:"AVL", WBA:"WOL",WOL:"WBA", SHU:"SHW",SHW:"SHU", LEE:"BRD",BRD:"LEE", NOR:"IPS",IPS:"NOR", STK:"PTV",PTV:"STK", DER:"FOR",FOR:"DER", BLB:"BUR",BUR:"BLB", BOL:"WIG",WIG:"BOL", POR:"SOU",SOU:"POR", CAR:"SWA",SWA:"CAR", BSC:"BSR",BSR:"BSC", CPL:"BHA",BHA:"CPL", WHU:"MIW",MIW:"WHU", LEI:"COV",COV:"LEI", FUL:"BTF",BTF:"FUL", PNE:"BLP",BLP:"PNE", WAT:"LUT",LUT:"WAT", RDG:"OXF",OXF:"RDG", GRI:"SCU",SCU:"GRI", DON:"ROT",ROT:"DON", COL:"SND",SND:"COL", CAM:"PET",PET:"CAM",
+ /* Italie (ITA-A) */
+ INT:"MIL",MIL:"INT", ROM:"LAZ",LAZ:"ROM", JUV:"TOR",TOR:"JUV", GEN:"SAM",SAM:"GEN", HEL:"CHI",CHI:"HEL", PAL:"CTN",CTN:"PAL", BAI:"LEC",LEC:"BAI", ATA:"BRS",BRS:"ATA", CTZ:"COS",COS:"CTZ", PRG:"TER",TER:"PRG", MOD:"REG",REG:"MOD", PAR:"PIA",PIA:"PAR", MES:"RGC",RGC:"MES", FIO:"BGN",BGN:"FIO", LVR:"PIS",PIS:"LVR", CES:"RIM",RIM:"CES", PAD:"CIT",CIT:"PAD", UDI:"TRI",TRI:"UDI", VEN:"TRV",TRV:"VEN", CRM:"MAN",MAN:"CRM", AVE:"SAL",SAL:"AVE", NAP:"FOG",FOG:"NAP", GRO:"SIE",SIE:"GRO", ANC:"PES",PES:"ANC", COM:"MZA",MZA:"COM"};
 const NOMS_RIVALITES={"PSG-OM":"Le Classique","LEN-LIL":"Le derby du Nord","LYO-STE":"Le derby du Rhône",
  "NAN-BOR":"Le derby de l'Atlantique","NIC-MON":"Le derby de la Côte d'Azur","GUI-REN":"Le derby breton",
  "MET-NCY":"Le derby lorrain","CAE-LEH":"Le derby normand","ACA-BAS":"Le derby corse",
@@ -3557,7 +3559,34 @@ const NOMS_RIVALITES={"PSG-OM":"Le Classique","LEN-LIL":"Le derby du Nord","LYO-
  "GRI-SCU":"Le derby du Lincolnshire",
  "DON-ROT":"Le derby du Yorkshire du Sud",
  "COL-SND":"Le derby de l'Essex",
- "CAM-PET":"Le derby des Fens"};
+ "CAM-PET":"Le derby des Fens",
+ /* Italie (ITA-A) : noms relevés sur « Derby calcistici in Italia » (Wikipédia italienne), traduits ;
+    quatre paires sans nom propre à la source portent celui des deux villes. */
+ "INT-MIL":"Le derby de la Madonnina",
+ "ROM-LAZ":"Le derby de la Capitale",
+ "JUV-TOR":"Le derby de la Mole",
+ "GEN-SAM":"Le derby de la Lanterne",
+ "HEL-CHI":"Le derby de l'Arena",
+ "PAL-CTN":"Le derby de Sicile",
+ "BAI-LEC":"Le derby des Pouilles",
+ "ATA-BRS":"Le derby lombard",
+ "CTZ-COS":"Le derby de Calabre",
+ "PRG-TER":"Le derby d'Ombrie",
+ "MOD-REG":"Le derby de la Secchia",
+ "PAR-PIA":"Le derby du Duché",
+ "MES-RGC":"Le derby du Détroit",
+ "FIO-BGN":"Le derby des Apennins",
+ "LVR-PIS":"Le derby Livourne-Pise",
+ "CES-RIM":"Le derby de Romagne",
+ "PAD-CIT":"Le derby du Santo",
+ "UDI-TRI":"Le derby du Nord-Est",
+ "VEN-TRV":"Le derby Venise-Trévise",
+ "CRM-MAN":"Le derby Crémone-Mantoue",
+ "AVE-SAL":"Le derby de Campanie",
+ "NAP-FOG":"Le derby bourbon",
+ "GRO-SIE":"Le derby des Salines",
+ "ANC-PES":"Le derby de la côte adriatique",
+ "COM-MZA":"Le derby Côme-Monza"};
 function nomRivalite(a,b){ return NOMS_RIVALITES[a+"-"+b]||NOMS_RIVALITES[b+"-"+a]||"Le derby"; }
 const JAMAIS_CHAMPION=new Set(["AJA","LEN","MET","MTP","REN","BAS","GUI","LEH","CAN","MAR","GUE","TOU","CAE","NCY","LYO"]);
 // premier titre réel (année de début de la saison du sacre) : une carrière lancée après ne le vit plus comme une malédiction
@@ -3918,6 +3947,85 @@ const BLASONS={
  WIG :{a:"#1c4fa0",b:"#ffffff",st:"ray"},  // Wigan Athletic
  WIM :{a:"#1c4fa0",b:"#f7d917",st:"uni"},  // Wimbledon
  WOL :{a:"#e8b800",b:"#111111",st:"uni"},  // Wolverhampton Wanderers
+
+ /* --- Italie (ITA-A) : couleurs relevées club par club (champ « colori » de la Wikipédia italienne,
+    hex du maillot et phrase des couleurs de la Wikipédia anglaise), ramenées à la palette maison. Deux
+    exceptions, faute d'équivalent : le gris de la Cremonese (grigiorossi) et le rose de Palerme
+    (rosanero). --- */
+ ACR :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Acireale
+ ALB :{a:"#37a6dc",b:"#0a2a6b",st:"uni"},  // AlbinoLeffe
+ ALZ :{a:"#ffffff",b:"#111111",st:"uni"},  // Alzano Virescit
+ ANC :{a:"#d40026",b:"#ffffff",st:"uni"},  // Ancona
+ AND :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Fidelis Andria
+ ARE :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Arezzo
+ ASC :{a:"#ffffff",b:"#111111",st:"ray"},  // Ascoli
+ ATA :{a:"#1c4fa0",b:"#111111",st:"ray"},  // Atalanta
+ AVE :{a:"#1c7c3a",b:"#ffffff",st:"uni"},  // Avellino
+ BAI :{a:"#ffffff",b:"#d40026",st:"uni"},  // Bari
+ BRL :{a:"#ffffff",b:"#d40026",st:"uni"},  // Barletta
+ BGN :{a:"#d40026",b:"#0a2a6b",st:"ray"},  // Bologna
+ BRS :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Brescia
+ CAG :{a:"#d40026",b:"#0a2a6b",st:"v"},  // Cagliari
+ CAS :{a:"#0a2a6b",b:"#d40026",st:"uni"},  // Casertana
+ CDS :{a:"#d40026",b:"#f7d917",st:"uni"},  // Castel di Sangro
+ CTN :{a:"#d40026",b:"#1d6bb5",st:"ray"},  // Catania
+ CTZ :{a:"#f7d917",b:"#d40026",st:"uni"},  // Catanzaro
+ CES :{a:"#ffffff",b:"#111111",st:"uni"},  // Cesena
+ CHI :{a:"#1c4fa0",b:"#f7d917",st:"uni"},  // Chievo Verona
+ CIT :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Cittadella
+ COM :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Como
+ COS :{a:"#d40026",b:"#0a2a6b",st:"ray"},  // Cosenza
+ CRM :{a:"#d40026",b:"#8c8c8c",st:"v"},  // Cremonese
+ CRO :{a:"#0a2a6b",b:"#d40026",st:"ray"},  // Crotone
+ EMP :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Empoli
+ FRM :{a:"#f7d917",b:"#1c4fa0",st:"uni"},  // Fermana
+ FIO :{a:"#5b2d8e",b:"#ffffff",st:"uni"},  // Fiorentina
+ FOG :{a:"#d40026",b:"#111111",st:"ray"},  // Foggia
+ FRO :{a:"#f7d917",b:"#1d6bb5",st:"uni"},  // Frosinone
+ GAL :{a:"#f7d917",b:"#d40026",st:"ray"},  // Gallipoli
+ GEN :{a:"#d40026",b:"#0a2a6b",st:"v"},  // Genoa
+ GRO :{a:"#d40026",b:"#ffffff",st:"uni"},  // Grosseto
+ HEL :{a:"#1c4fa0",b:"#f7d917",st:"uni"},  // Hellas Verona
+ INT :{a:"#1c4fa0",b:"#111111",st:"ray"},  // Inter
+ JUV :{a:"#ffffff",b:"#111111",st:"ray"},  // Juventus
+ LAZ :{a:"#37a6dc",b:"#ffffff",st:"uni"},  // Lazio
+ LEC :{a:"#f7d917",b:"#d40026",st:"ray"},  // Lecce
+ LVR :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Livorno
+ LUC :{a:"#d40026",b:"#111111",st:"uni"},  // Lucchese
+ MAN :{a:"#ffffff",b:"#d40026",st:"diag"},  // Mantova
+ MES :{a:"#f7d917",b:"#d40026",st:"uni"},  // Messina
+ MIL :{a:"#d40026",b:"#111111",st:"ray"},  // AC Milan
+ MOD :{a:"#f7d917",b:"#0a2a6b",st:"uni"},  // Modena
+ MZA :{a:"#d40026",b:"#ffffff",st:"uni"},  // Monza
+ NAP :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Napoli
+ PAD :{a:"#ffffff",b:"#d40026",st:"uni"},  // Padova
+ PAL :{a:"#f29ec4",b:"#111111",st:"uni"},  // Palermo
+ PAR :{a:"#ffffff",b:"#111111",st:"uni"},  // Parma
+ PRG :{a:"#d40026",b:"#ffffff",st:"uni"},  // Perugia
+ PES :{a:"#ffffff",b:"#37a6dc",st:"ray"},  // Pescara
+ PIA :{a:"#d40026",b:"#ffffff",st:"uni"},  // Piacenza
+ PIS :{a:"#1c4fa0",b:"#111111",st:"ray"},  // Pisa
+ PST :{a:"#ff7b00",b:"#1c4fa0",st:"uni"},  // Pistoiese
+ RAV :{a:"#f7d917",b:"#d40026",st:"uni"},  // Ravenna
+ REG :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Reggiana
+ RGC :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Reggina
+ RIM :{a:"#ffffff",b:"#d40026",st:"uni"},  // Rimini
+ ROM :{a:"#b8001f",b:"#e8b800",st:"uni"},  // AS Roma
+ SAL :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Salernitana
+ SAM :{a:"#1d6bb5",b:"#ffffff",st:"uni"},  // Sampdoria
+ SAS :{a:"#1c7c3a",b:"#111111",st:"ray"},  // Sassuolo
+ SAV :{a:"#ffffff",b:"#111111",st:"uni"},  // Savoia
+ SIE :{a:"#ffffff",b:"#111111",st:"ray"},  // Siena
+ SPA :{a:"#ffffff",b:"#37a6dc",st:"ray"},  // SPAL
+ SPE :{a:"#ffffff",b:"#111111",st:"uni"},  // Spezia
+ TAR :{a:"#0a2a6b",b:"#d40026",st:"v"},  // Taranto
+ TER :{a:"#1c7c3a",b:"#d40026",st:"ray"},  // Ternana
+ TOR :{a:"#7a1f3d",b:"#ffffff",st:"uni"},  // Torino
+ TRV :{a:"#37a6dc",b:"#ffffff",st:"uni"},  // Treviso
+ TRI :{a:"#d40026",b:"#ffffff",st:"uni"},  // Triestina
+ UDI :{a:"#ffffff",b:"#111111",st:"ray"},  // Udinese
+ VEN :{a:"#111111",b:"#ff7b00",st:"uni"},  // Venezia
+ VIC :{a:"#ffffff",b:"#d40026",st:"ray"},  // Vicenza
 };
 let _blN=0;
 /* L'encre du code court dans l'écu : la couleur du club si elle se lit (écu uni), sinon bleu nuit ou blanc cassé,
@@ -4183,7 +4291,98 @@ const CLUBS_ANG=[
  {id:"WIM", nom:"Wimbledon",               stade:"Plough Lane",             cap:13000, pres:4, budget:18e6},
  {id:"WOL", nom:"Wolverhampton Wanderers", stade:"Molineux",                cap:25000, pres:4, budget:18e6},
 ];
-function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===id)||CLUBS_EXTRA.find(c=>c.id===id)||CLUBS_ANG.find(c=>c.id===id); }
+/* ---------- LES CLUBS ITALIENS (ITA-A, v2.56) ----------
+   Les 74 clubs qui ont traversé la Serie A et la Serie B entre 1990-91 et 2009-10, relevés sur les
+   quarante classements finaux de la Wikipédia anglaise (« 1990–91 Serie A » … « 2009–10 Serie B »),
+   l'union faisant la liste. Même règle que pour l'Angleterre : le stade et la capacité sont ceux du
+   DÉBUT de la fenêtre (1990), STADE_EPOQUE porte les déménagements, et un club absent du plateau en
+   1990 (AlbinoLeffe, Alzano, Sassuolo) porte le stade de sa première saison dans la fenêtre. Les
+   capacités sont celles de l'infobox du stade (Wikipédia anglaise ou italienne, relevée le 10/11/2026),
+   sauf quand la source date un autre chiffre pour l'époque (Mirabello, Degli Ulivi, Comunale de Reggio,
+   Puttilli, Sant'Elia) ; le Dorico n'a qu'un chiffre à la source, ses 3 000 places d'aujourd'hui. Les
+   budgets suivent le barème FRANÇAIS du moteur. Six identifiants sont ceux que CLUBS_EUROPE porte DÉJÀ
+   (JUV, MIL, INT, ROM, LAZ, PAR) : même club, même code, comme les quatre anglais d'ANG-B. Neuf codes
+   évitent un code déjà pris : BAI (Bari, BAR est le Barça), BGN (Bologna, BOL est Bolton), BRS (Brescia,
+   BRE est Brest), CHI (Chievo, CHV est Charleville), CRM (Cremonese, CRE est Créteil), FRM (Fermana, FER
+   est Ferencváros), LVR (Livorno, LIV est Liverpool), MZA (Monza, MON est Monaco), PRG (Perugia, PER est
+   Perpignan). Voir « LES CLUBS ITALIENS » dans CLAUDE.md. */
+const CLUBS_ITA=[
+ {id:"ACR", nom:"Acireale",         stade:"Aci e Galatea",           cap:14500, pres:1, budget:6e6},
+ {id:"ALB", nom:"AlbinoLeffe",      stade:"Atleti Azzurri d'Italia", cap:23439, pres:1, budget:6e6},
+ {id:"ALZ", nom:"Alzano Virescit",  stade:"Atleti Azzurri d'Italia", cap:23439, pres:1, budget:6e6},
+ {id:"ANC", nom:"Ancona",           stade:"Dorico",                  cap:3000,  pres:3, budget:13e6},
+ {id:"AND", nom:"Fidelis Andria",   stade:"Degli Ulivi",             cap:15000, pres:1, budget:6e6},
+ {id:"ARE", nom:"Arezzo",           stade:"Città di Arezzo",         cap:13128, pres:2, budget:8e6},
+ {id:"ASC", nom:"Ascoli",           stade:"Cino e Lillo Del Duca",   cap:12461, pres:3, budget:13e6},
+ {id:"ATA", nom:"Atalanta",         stade:"Atleti Azzurri d'Italia", cap:23439, pres:5, budget:26e6},
+ {id:"AVE", nom:"Avellino",         stade:"Partenio",                cap:26000, pres:3, budget:13e6},
+ {id:"BAI", nom:"Bari",             stade:"San Nicola",              cap:58270, pres:4, budget:18e6},
+ {id:"BRL", nom:"Barletta",         stade:"Cosimo Puttilli",         cap:17000, pres:1, budget:6e6},
+ {id:"BGN", nom:"Bologna",          stade:"Renato Dall'Ara",         cap:36532, pres:4, budget:18e6},
+ {id:"BRS", nom:"Brescia",          stade:"Mario Rigamonti",         cap:19550, pres:3, budget:13e6},
+ {id:"CAG", nom:"Cagliari",         stade:"Sant'Elia",               cap:40919, pres:4, budget:18e6},
+ {id:"CAS", nom:"Casertana",        stade:"Alberto Pinto",           cap:12000, pres:1, budget:6e6},
+ {id:"CDS", nom:"Castel di Sangro", stade:"Teofilo Patini",          cap:7220,  pres:1, budget:6e6},
+ {id:"CTN", nom:"Catania",          stade:"Cibali",                  cap:23266, pres:2, budget:8e6},
+ {id:"CTZ", nom:"Catanzaro",        stade:"Nicola Ceravolo",         cap:14650, pres:2, budget:8e6},
+ {id:"CES", nom:"Cesena",           stade:"Dino Manuzzi",            cap:23900, pres:3, budget:13e6},
+ {id:"CHI", nom:"Chievo Verona",    stade:"Marcantonio Bentegodi",   cap:39211, pres:1, budget:6e6},
+ {id:"CIT", nom:"Cittadella",       stade:"Pier Cesare Tombolato",   cap:7623,  pres:1, budget:6e6},
+ {id:"COM", nom:"Como",             stade:"Giuseppe Sinigaglia",     cap:13602, pres:2, budget:8e6},
+ {id:"COS", nom:"Cosenza",          stade:"San Vito",                cap:20987, pres:2, budget:8e6},
+ {id:"CRM", nom:"Cremonese",        stade:"Giovanni Zini",           cap:16003, pres:3, budget:13e6},
+ {id:"CRO", nom:"Crotone",          stade:"Ezio Scida",              cap:16547, pres:1, budget:6e6},
+ {id:"EMP", nom:"Empoli",           stade:"Carlo Castellani",        cap:16284, pres:2, budget:8e6},
+ {id:"FRM", nom:"Fermana",          stade:"Bruno Recchioni",         cap:8920,  pres:1, budget:6e6},
+ {id:"FIO", nom:"Fiorentina",       stade:"Artemio Franchi",         cap:43147, pres:7, budget:42e6},
+ {id:"FOG", nom:"Foggia",           stade:"Pino Zaccheria",          cap:25085, pres:3, budget:13e6},
+ {id:"FRO", nom:"Frosinone",        stade:"Matusa",                  cap:10000, pres:1, budget:6e6},
+ {id:"GAL", nom:"Gallipoli",        stade:"Antonio Bianco",          cap:5000,  pres:1, budget:6e6},
+ {id:"GEN", nom:"Genoa",            stade:"Luigi Ferraris",          cap:33205, pres:5, budget:26e6},
+ {id:"GRO", nom:"Grosseto",         stade:"Carlo Zecchini",          cap:9779,  pres:1, budget:6e6},
+ {id:"HEL", nom:"Hellas Verona",    stade:"Marcantonio Bentegodi",   cap:39211, pres:4, budget:18e6},
+ {id:"INT", nom:"Inter",            stade:"San Siro",                cap:80018, pres:9, budget:75e6},
+ {id:"JUV", nom:"Juventus",         stade:"Delle Alpi",              cap:69000, pres:9, budget:75e6},
+ {id:"LAZ", nom:"Lazio",            stade:"Olimpico",                cap:70634, pres:6, budget:36e6},
+ {id:"LEC", nom:"Lecce",            stade:"Via del Mare",            cap:30534, pres:3, budget:13e6},
+ {id:"LVR", nom:"Livorno",          stade:"Armando Picchi",          cap:14267, pres:1, budget:6e6},
+ {id:"LUC", nom:"Lucchese",         stade:"Porta Elisa",             cap:7386,  pres:2, budget:8e6},
+ {id:"MAN", nom:"Mantova",          stade:"Danilo Martelli",         cap:14884, pres:2, budget:8e6},
+ {id:"MES", nom:"Messina",          stade:"Giovanni Celeste",        cap:11900, pres:2, budget:8e6},
+ {id:"MIL", nom:"AC Milan",         stade:"San Siro",                cap:80018, pres:10, budget:95e6},
+ {id:"MOD", nom:"Modena",           stade:"Alberto Braglia",         cap:21092, pres:3, budget:13e6},
+ {id:"MZA", nom:"Monza",            stade:"Brianteo",                cap:17102, pres:2, budget:8e6},
+ {id:"NAP", nom:"Napoli",           stade:"San Paolo",               cap:54732, pres:9, budget:75e6},
+ {id:"PAD", nom:"Padova",           stade:"Silvio Appiani",          cap:24000, pres:3, budget:13e6},
+ {id:"PAL", nom:"Palermo",          stade:"La Favorita",             cap:36365, pres:2, budget:8e6},
+ {id:"PAR", nom:"Parma",            stade:"Ennio Tardini",           cap:27906, pres:4, budget:18e6},
+ {id:"PRG", nom:"Perugia",          stade:"Renato Curi",             cap:23625, pres:2, budget:8e6},
+ {id:"PES", nom:"Pescara",          stade:"Adriatico",               cap:20476, pres:3, budget:13e6},
+ {id:"PIA", nom:"Piacenza",         stade:"Leonardo Garilli",        cap:21668, pres:2, budget:8e6},
+ {id:"PIS", nom:"Pisa",             stade:"Arena Garibaldi",         cap:12508, pres:3, budget:13e6},
+ {id:"PST", nom:"Pistoiese",        stade:"Marcello Melani",         cap:13195, pres:1, budget:6e6},
+ {id:"RAV", nom:"Ravenna",          stade:"Bruno Benelli",           cap:12020, pres:1, budget:6e6},
+ {id:"REG", nom:"Reggiana",         stade:"Mirabello",               cap:15500, pres:3, budget:13e6},
+ {id:"RGC", nom:"Reggina",          stade:"Comunale",                cap:15000, pres:2, budget:8e6},
+ {id:"RIM", nom:"Rimini",           stade:"Romeo Neri",              cap:9768,  pres:1, budget:6e6},
+ {id:"ROM", nom:"AS Roma",          stade:"Olimpico",                cap:70634, pres:7, budget:42e6},
+ {id:"SAL", nom:"Salernitana",      stade:"Arechi",                  cap:31300, pres:2, budget:8e6},
+ {id:"SAM", nom:"Sampdoria",        stade:"Luigi Ferraris",          cap:33205, pres:8, budget:58e6},
+ {id:"SAS", nom:"Sassuolo",         stade:"Alberto Braglia",         cap:21092, pres:1, budget:6e6},
+ {id:"SAV", nom:"Savoia",           stade:"Alfredo Giraud",          cap:10750, pres:1, budget:6e6},
+ {id:"SIE", nom:"Siena",            stade:"Artemio Franchi",         cap:15373, pres:1, budget:6e6},
+ {id:"SPA", nom:"SPAL",             stade:"Paolo Mazza",             cap:16134, pres:2, budget:8e6},
+ {id:"SPE", nom:"Spezia",           stade:"Alberto Picco",           cap:11466, pres:1, budget:6e6},
+ {id:"TAR", nom:"Taranto",          stade:"Erasmo Iacovone",         cap:20049, pres:2, budget:8e6},
+ {id:"TER", nom:"Ternana",          stade:"Libero Liberati",         cap:17460, pres:2, budget:8e6},
+ {id:"TOR", nom:"Torino",           stade:"Delle Alpi",              cap:69000, pres:6, budget:36e6},
+ {id:"TRV", nom:"Treviso",          stade:"Omobono Tenni",           cap:10000, pres:1, budget:6e6},
+ {id:"TRI", nom:"Triestina",        stade:"Giuseppe Grezar",         cap:8000,  pres:2, budget:8e6},
+ {id:"UDI", nom:"Udinese",          stade:"Friuli",                  cap:25144, pres:4, budget:18e6},
+ {id:"VEN", nom:"Venezia",          stade:"Pierluigi Penzo",         cap:12048, pres:2, budget:8e6},
+ {id:"VIC", nom:"Vicenza",          stade:"Romeo Menti",             cap:12000, pres:2, budget:8e6},
+];
+function metaClub(id){ return CLUBS.find(c=>c.id===id)||CLUBS_D2.find(c=>c.id===id)||CLUBS_EXTRA.find(c=>c.id===id)||CLUBS_ANG.find(c=>c.id===id)||CLUBS_ITA.find(c=>c.id===id); }
 /* Le prestige des fiches est celui de 1995 : une carrière lancée à une autre saison prend celui de son époque
    ([à partir de, prestige] ; null rend la valeur de la fiche). Le budget suit dans la même proportion. */
 const PRES_EPOQUE={
@@ -4243,6 +4442,37 @@ const PRES_EPOQUE={
  SWI:[[1993,4],[1994,2]],
  BRD:[[1999,4],[2001,2]],
  WBA:[[2002,5],[2006,4]],
+ /* --- Italie (ITA-A) : l'argent et les chutes de la fenêtre. Parme de Tanzi monte de 4 à 8 puis retombe
+    après le krach de Parmalat (2004), la Lazio de Cragnotti culmine de 1997 à 2001, la Fiorentina fait
+    faillite en 2002, Naples tombe jusqu'en Serie C (2004) et la Juventus descend en Serie B après le
+    Calciopoli (2006-07) ; Chievo, Palerme, Udine, Sienne, Livourne et Catane montent. --- */
+ JUV:[[1994,10],[2006,8],[2007,9]],
+ INT:[[2006,10]],
+ NAP:[[1992,7],[1996,5],[1998,4],[2004,3],[2007,5],[2008,6]],
+ SAM:[[1994,7],[1997,6],[1999,4],[2003,6]],
+ ROM:[[1999,8]],
+ LAZ:[[1993,7],[1997,9],[2002,7],[2004,6]],
+ FIO:[[1993,6],[1994,null],[2002,4],[2004,6],[2006,7]],
+ TOR:[[1996,4]],
+ GEN:[[1995,4]],
+ BGN:[[1991,3],[1996,5]],
+ PAR:[[1991,5],[1992,6],[1995,8],[2004,6],[2008,5]],
+ BAI:[[2001,3]],
+ UDI:[[1996,5],[2000,6]],
+ BRS:[[2000,4]],
+ MES:[[2004,3]],
+ SAL:[[1998,3]],
+ RGC:[[1999,4]],
+ PIA:[[1993,3]],
+ VEN:[[1998,3]],
+ CHI:[[2001,4]],
+ PRG:[[1996,4],[2004,2]],
+ VIC:[[1995,4],[2001,2]],
+ EMP:[[2005,3]],
+ PAL:[[2004,6]],
+ CTN:[[2006,4]],
+ SIE:[[2003,3]],
+ LVR:[[2004,4]],
 };
 // le stade aussi : [à partir de, nom, places] ; null rend celui de la fiche (sources : Wikipédia, vérifié le 30/09/2026)
 const STADE_EPOQUE={
@@ -4293,6 +4523,23 @@ const STADE_EPOQUE={
  WHU:[[2001,"Boleyn Ground",35300]],
  WIG:[[1999,"JJB Stadium",25100]],
  WOL:[[1993,"Molineux",28500]],
+ /* --- Italie (ITA-A) : déménagements de 1990 à 2010, datés sur l'ouverture du stade ou le changement
+    de nom relevés à la source (Wikipédia italienne, 10/11/2026). Le Del Conero ouvre le 6 décembre 1992,
+    l'Euganeo le 19 juin 1994, le Giglio en 1995, le nouveau Granillo le 11 septembre 1999, le Nereo Rocco
+    le 18 octobre 1992, le San Filippo à l'été 2004 ; la Juventus et le Torino quittent le Delle Alpi pour
+    l'Olimpico rénové en 2006 ; Cittadella joue ses deux premières saisons de Serie B à Padoue (2000-2002) ;
+    la Favorita devient le Renzo Barbera et le Cibali l'Angelo Massimino en 2002. --- */
+ ANC:[[1992,"Del Conero",23967]],
+ PAD:[[1994,"Euganeo",32420]],
+ REG:[[1995,"Giglio",21525]],
+ RGC:[[1999,"Oreste Granillo",27543]],
+ TRI:[[1992,"Nereo Rocco",26566]],
+ MES:[[2004,"San Filippo",38722]],
+ JUV:[[2006,"Olimpico di Torino",28177]],
+ TOR:[[2006,"Olimpico di Torino",28177]],
+ CIT:[[2000,"Euganeo",32420],[2002,null]],
+ PAL:[[2002,"Renzo Barbera",36365]],
+ CTN:[[2002,"Angelo Massimino",23266]],
 };
 function metaSaison(id, an){
   const c=metaClub(id); if(!c) return c;
