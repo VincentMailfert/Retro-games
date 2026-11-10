@@ -349,6 +349,15 @@ toujours « raconter quelque chose ».
   **`harness-arrets.cjs`** (sections A à F). **Piège payé en écrivant le harnais** : rejouer des milliers de fins de
   match sur la MÊME feuille du jour accumule les rouges (feuille et suspensions) jusqu'à vider la pelouse ; une feuille
   neuve à chaque essai.
+  **v2.59, trois correctifs trouvés en rendant ce harnais stable (30 passages verts d'affilée)** : (1) `simuleReste`
+  réécrit le jalon « MI-TEMPS » le samedi aussi (il ne le faisait qu'un soir de coupe : une consigne changée avant la
+  45e l'effaçait du fil ; section G) ; la mi-temps des arrêts se repère de toute façon sur la dernière ligne de la
+  première période, pas sur ce jalon. (2) **Le quatrième changement, défaut présent depuis le banc v1.19** : un rouge
+  pré-tiré plus tard dans le fil a déjà posé son changement d'urgence ; un changement voulu au banc prend cette place
+  (`poseRemplacement` fait sauter le dernier à venir, ici l'urgence) ; le recollage efface le rouge et RENDAIT le
+  changement que le rouge avait annulé, d'où quatre changements (~1 scène sur 150). `rejoueDepuis` ne rend plus un
+  changement annulé quand la feuille porte déjà trois entrants. (3) Trois pépins des vôtres (passés et à venir dans le
+  fil) font taire la mi-temps : leurs fenêtres s'ouvrent quoi qu'il arrive, et la pause en aurait fait quatre.
 - **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
   le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
   championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :

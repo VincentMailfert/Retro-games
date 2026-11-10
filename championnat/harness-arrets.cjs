@@ -75,7 +75,7 @@ let G;
 /* ---------- A) le rythme, sur des journées réellement jouées ---------- */
 console.log("A) le rythme des arrêts");
 {
-  const compte = [], types = {}, mt = [];
+  const compte = [], types = {}, mt = [], bls = [];
   let matchs = 0;
   for (const club of ["NAN", "PSG", "MET", "LEN"]) {
     api.nouvellePartie(club); G = api.getG();
@@ -89,10 +89,10 @@ console.log("A) le rythme des arrêts");
       const L = monMatch.ev, eM = { hId: monMatch.h ? monMatch.h.id : null };
       const hId = L.find(l => l.t === "sys" && /^MI-TEMPS/.test(l.x || "")).x.split(" ")[1];
       const A = api.planArrets();
-      let nMt = 0;
+      let nMt = 0, nBl = 0;
       for (let k = 0; k < L.length; k++) {
         const l = L[k];
-        if (l.bl && l.bl.cote === G.monClub && l.m < 90) { A.fait++; A.dernier = l.m; types.blessure = (types.blessure || 0) + 1; continue; }
+        if (l.bl && l.bl.cote === G.monClub && l.m < 90) { A.fait++; A.dernier = l.m; nBl++; types.blessure = (types.blessure || 0) + 1; continue; }
         const s = api.situationArret(A, L, k, { moiId: G.monClub, hId, cuit: m => api.hommeCuit(moi, m) });
         if (!s) continue;
         A.vus[s.type] = true; A.fait++; A.dernier = s.m;
@@ -100,16 +100,17 @@ console.log("A) le rythme des arrêts");
         if (s.type === "mt") nMt++;
       }
       for (const [x, f] of apres) x.fraich = f;
-      compte.push(A.fait); mt.push(nMt); matchs++;
+      compte.push(A.fait); mt.push(nMt); bls.push(nBl); matchs++;
     }
   }
   const moy = compte.reduce((a, b) => a + b, 0) / compte.length;
   console.log("    " + matchs + " matchs, " + moy.toFixed(2) + " arrêts en moyenne ; répartition " +
     [1, 2, 3].map(n => n + ":" + compte.filter(x => x === n).length).join(" ") + " ; " + JSON.stringify(types));
   ok(compte.every(x => x >= 1), "jamais zéro arrêt");
-  ok(compte.every(x => x <= 3), "jamais plus de trois arrêts (blessures des vôtres comprises)");
+  // les pépins des vôtres ouvrent leur fenêtre quoi qu'il arrive (v1.18) : seuls, ils peuvent dépasser trois, jamais avec nous
+  ok(compte.every((x, i) => x <= Math.max(3, bls[i])), "jamais plus de trois arrêts (blessures des vôtres comprises)");
   ok(moy >= 1.75 && moy <= 2.25, "deux arrêts en moyenne (" + moy.toFixed(2) + ")");
-  ok(mt.every(x => x === 1), "la mi-temps s'arrête une fois, et une seule, à chaque match");
+  ok(mt.every((x, i) => x === 1 || (x === 0 && bls[i] >= 3)), "la mi-temps s'arrête une fois, et une seule, à chaque match (sauf trois pépins avant)");
   // l'homme cuit est rare le samedi (la semaine de repos remet presque tout le monde à 100) : section C le monte exprès
   ok((types.encaisse || 0) > 0 && (types.serre || 0) > 0, "but encaissé et score serré finissent par se présenter");
 }
@@ -178,7 +179,7 @@ console.log("D) le changement d'un clic");
   ok(k >= 0 && p.min[k] === m && p.sort[k] === c.sortant, "l'entrant prend sa place à la minute de la question");
   ok(p.min.length <= 3 && p.min.filter(x => x <= m).length === avant + 1, "une des trois places, jamais une quatrième");
   ok(r.ev[from] && r.ev[from].ic === "sub" && r.ev[from].uid === c.entrant.uid, "le téléscripteur l'annonce tout de suite");
-  ok(suites === 1 && !api.enJeu(moi, 80).includes(c.sortant) && api.enJeu(moi, 80).includes(c.entrant), "la pelouse suit, et le verdict aussi");
+  ok(suites === 1 && !api.enJeu(moi, m + 1).includes(c.sortant) && api.enJeu(moi, m + 1).includes(c.entrant), "la pelouse suit, et le verdict aussi");
   delete G._pend;
 }
 
@@ -241,6 +242,27 @@ console.log("F) le réglage");
   const sansJalon = [{ m: 12, t: "occ", x: "a" }, { m: 44, t: "occ", x: "b" }, { m: 48, t: "occ", x: "c" }];
   const A2 = api.planArrets(), vus = sansJalon.map((l, k) => api.situationArret(A2, sansJalon, k, { moiId: G.monClub, hId: "NAN" }));
   ok(vus[1] && vus[1].type === "mt" && !vus[0], "fil recollé sans jalon : la mi-temps s'arrête sur la dernière ligne de la première période");
+}
+
+/* ---------- G) le jalon de la mi-temps survit au recollage du samedi (v2.59) ---------- */
+console.log("G) le jalon de la mi-temps");
+{
+  let bon = true;
+  for (let n = 0; n < 20; n++) {
+    api.nouvellePartie("NAN"); G = api.getG();
+    const moi = api.clubById(G.monClub), adv = G.clubs.find(c => c.id !== moi.id);
+    [moi, adv].forEach(c => c.joueurs.forEach(j => { j.fraich = 100; j.bless = 0; j.susp = 0; }));
+    api.setChg({ [moi.id]: api.tireSubs(moi, 0), [adv.id]: api.tireSubs(adv, 3) });
+    const r = api.simuleMatch(moi, adv, true);
+    const from = r.ev.findIndex(l => l.m > 20);
+    G.consigne = "offensif";
+    api.rejoueDepuis(r, moi, adv, from, 20, 1, 1);
+    const jalons = r.ev.filter(l => l.t === "sys" && /^MI-TEMPS/.test(l.x || ""));
+    let sh = 0, sa = 0; for (const l of r.ev) { if (l.m > 45) break; if (l.g) { if (l.g.cote === moi.id) sh++; else sa++; } }
+    if (jalons.length !== 1 || jalons[0].x !== "MI-TEMPS. " + moi.id + " " + sh + " - " + sa + " " + adv.id) bon = false;
+  }
+  G.consigne = "equilibre";
+  ok(bon, "consigne changée à la 20e : le fil garde une seule ligne « MI-TEMPS », au bon score");
 }
 
 console.log(FAILS ? "\n✗ " + FAILS + " échec(s)" : "\n✓ tout est vert");

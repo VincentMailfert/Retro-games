@@ -623,7 +623,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.58"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.59"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -12779,8 +12779,9 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus,opts){
     if(Math.random()<0.003){ const c=Math.random()<0.5?home:away, t=tireur(c);
       if(t) ev.push({m,t:"occ",ic:"rate",x:fmtC(pickNR(COMM.refuse,vusC),t,c===home?away:home)+" ("+c.id+")"}); }
     if(METEO_MATCH && METEO_MATCH.amb.length && Math.random()<0.010){ ev.push({m,t:"amb",x:pickNR(METEO_MATCH.amb,vusC)}); }
+    // le jalon de la mi-temps, samedi compris (v2.59) : une consigne changée avant la 45e le faisait disparaître du fil
+    if(m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
     if(O){ // les jalons d'un soir de coupe, exactement comme simuleMatch les pose
-      if(m===45) ev.push({m,t:"sys",x:"MI-TEMPS. "+home.id+" "+sh+" - "+sa+" "+away.id});
       if(m===90 && O.prolong && egalite(sh,sa) && !prolong){
         prolong=true; fin=120; mulH*=usureProlong(home); mulA*=usureProlong(away);
         ev.push({m:90,t:"sys",x:"Rien n'a pu les départager. PROLONGATIONS : deux fois quinze minutes."});
@@ -12817,6 +12818,9 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA,opts){
     for(let k=p.banc.length-1;k>=0;k--){ const u=p.urgence&&p.urgence[p.banc[k].uid];
       if(u && u.par===c.uid){ delete p.urgence[p.banc[k].uid]; p.banc.splice(k,1); p.sort.splice(k,1); p.min.splice(k,1); } }
     p.annules=(p.annules||[]).filter(x=>{ if(x.par!==c.uid) return true;
+      // plus de place à rendre (v2.59) : un changement voulu au banc a pris celle que l'urgence de ce rouge occupait ;
+      // le rendre ferait un QUATRIÈME changement (trouvé par harness-arrets, D : ~1 scène sur 150)
+      if(p.banc.length>=3) return false;
       p.banc.push(x.banc); p.sort.push(x.sort); p.min.push(x.min);
       if(!(p.urgence&&p.urgence[x.banc.uid])) rendus.push(ligneChangement(c.cote===h.id?h:a, p, p.banc.length-1)); // le relais du gardien blessé à la 90e n'a pas de ligne : le moment le raconte
       return false; });
@@ -13306,8 +13310,13 @@ function situationArret(A, lignes, k, o){
   const m=lg.m||0;
   // LA MI-TEMPS : toujours, sur la DERNIÈRE ligne de la première période (le jalon et son jugement compris), et c'est
   // de là que repart la seconde. On ne se fie pas au jalon « MI-TEMPS » : le samedi, une consigne changée avant la 45e
-  // recolle le fil par simuleReste, qui ne le réécrit pas (trouvé au navigateur).
-  if(!A.vus.mt && m<=45 && lignes[k+1] && lignes[k+1].m>45) return {type:"mt", m:45};
+  // recolle le fil par simuleReste, qui ne le réécrit pas (trouvé au navigateur). Seule exception (v2.59) : vos pépins,
+  // passés et à venir, font déjà trois décisions à eux seuls ; la pause se tait pour que le maximum tienne, et ce
+  // n'est jamais zéro puisque les pépins en sont.
+  if(!A.vus.mt && m<=45 && lignes[k+1] && lignes[k+1].m>45){
+    const pepins=lignes.slice(k+1).filter(l=>l.bl && l.bl.cote===o.moiId && l.m<90).length;
+    return A.fait+pepins>=3 ? null : {type:"mt", m:45};
+  }
   if(m>=90) return null;
   // le budget : ce qui est déjà fait, plus ce que le fil réserve (la mi-temps à venir, vos blessures à venir)
   const reserve=(A.vus.mt?0:1)+lignes.slice(k+1).filter(l=>l.bl && l.bl.cote===o.moiId).length;
