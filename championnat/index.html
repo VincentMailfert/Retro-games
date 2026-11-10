@@ -13091,18 +13091,18 @@ function hommeCuit(moi, m){
    devient « on garde le plan ». `sc` = le score à afficher (« Nantes 1 - 0 Lens »). */
 const ARRETS_DIT={
   mt:      {q:sc=>sc+". Le discours ?",                    prudent:"🚌 On met le bus",          equilibre:"⚖️ On reste en place", offensif:"⚔️ À l'abordage",            garde:"👍 On garde le plan"},
-  encaisse:{q:sc=>"But encaissé. "+sc+".",                 prudent:"🧱 Pas de panique, on ferme", equilibre:"⚖️ On reste en place", offensif:"⚔️ Tout le monde devant",    garde:"👍 On ne change rien"},
-  rougeN:  {q:(sc,s)=>"Rouge pour "+s.nom+". À dix.",      prudent:"🧱 On ferme la boutique",   equilibre:"⚖️ On tient le plan",  offensif:"⚔️ On tente quand même",     garde:"👍 On ne change rien"},
-  rougeE:  {q:(sc,s)=>s.nom+" expulsé. Ils sont à dix.",   prudent:"🧱 Sans prendre de risque", equilibre:"⚖️ On reste en place", offensif:"⚔️ On en profite",           garde:"👍 On ne change rien"},
-  serreG:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". On tient ?",         prudent:"🧱 On garde le score",      equilibre:"⚖️ On reste en place", offensif:"⚔️ On tue le match",         garde:"👍 On garde le plan"},
-  serreN:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". Le nul vous va ?",   prudent:"🧱 On prend le point",      equilibre:"⚖️ On reste en place", offensif:"⚔️ On va chercher la victoire", garde:"👍 On garde le plan"},
-  serreP:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". Il faut un but.",    prudent:"🧱 On limite la casse",     equilibre:"⚖️ On reste en place", offensif:"⚔️ Tout pour l'égalisation", garde:"👍 On garde le plan"}
+  encaisse:{q:sc=>"But encaissé. "+sc+".",                 prudent:"🚌 On gare le bus, pas de panique", equilibre:"⚖️ On reste en place", offensif:"⚔️ Tout le monde à l'abordage", garde:"👍 On ne change rien"},
+  rougeN:  {q:(sc,s)=>"Rouge pour "+s.nom+". À dix.",      prudent:"🚌 Le bus devant le but",   equilibre:"⚖️ On tient le plan",  offensif:"⚔️ À dix, à l'abordage quand même", garde:"👍 On ne change rien"},
+  rougeE:  {q:(sc,s)=>s.nom+" expulsé. Ils sont à dix.",   prudent:"🚌 On reste au garage",     equilibre:"⚖️ On reste en place", offensif:"⚔️ À l'abordage, ils sont à dix", garde:"👍 On ne change rien"},
+  serreG:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". On tient ?",         prudent:"🚌 On met le bus",          equilibre:"⚖️ On reste en place", offensif:"⚔️ À l'abordage pour tuer le match", garde:"👍 On garde le plan"},
+  serreN:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". Le nul vous va ?",   prudent:"🚌 On met le bus, le point est bon", equilibre:"⚖️ On reste en place", offensif:"⚔️ À l'abordage, on veut gagner", garde:"👍 On garde le plan"},
+  serreP:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". Il faut un but.",    prudent:"🚌 Le bus, pour limiter la casse", equilibre:"⚖️ On reste en place", offensif:"⚔️ Tout le monde à l'abordage", garde:"👍 On garde le plan"}
 };
 function questionArret(s, consigne, sc, diff){
   if(s.type==="cuit") return {titre:"😮‍💨 "+s.m+"ᵉ MINUTE", q:s.sortant.nom+" n'a plus de jambes.", rep:[
     {lab:"🔁 "+s.entrant.nom+" entre ("+s.entrant.pos+" "+Math.round(s.entrant.note)+")", act:{k:"change"}},
     {lab:"👍 Il reste", act:{k:"garde"}}]
-    .concat(consigne!=="prudent" ? [{lab:"🧱 On recule d'un cran", act:{k:"consigne", v:"prudent"}}] : [])};
+    .concat(consigne!=="prudent" ? [{lab:"🚌 On met le bus", act:{k:"consigne", v:"prudent"}}] : [])};
   const cle=s.type==="rouge" ? (s.nous?"rougeN":"rougeE") : s.type==="serre" ? (diff>0?"serreG":diff<0?"serreP":"serreN") : s.type;
   const D=ARRETS_DIT[cle];
   const titre=s.type==="mt" ? "⏸️ MI-TEMPS" : s.type==="encaisse" ? "⚽ "+s.m+"ᵉ MINUTE" : s.type==="rouge" ? "🟥 "+s.m+"ᵉ MINUTE" : "⏱️ "+s.m+"ᵉ MINUTE";
