@@ -326,6 +326,29 @@ toujours « raconter quelque chose ».
   but compris (36/36). `byUid` retombe sur `UID_SOIR` (les deux vestiaires du soir) le temps du direct, pour que
   les fenêtres nomment le tireur ou le gardien d'un village ou d'un club étranger ; remis à null au sifflet et
   dans `abandonneDirect`. Un direct abandonné laisse le moment non résolu (le score reste celui du moteur).
+- **LES ARRÊTS DU COACH (v2.57, demande de l'auteur du 10/11/2026 : « le jeu doit proposer lui-même des décisions
+  pendant le match »)**. Le direct s'arrête de lui-même sur une situation de jeu et pose une question courte, deux ou
+  trois réponses, un clic et ça repart (`arretsDuMatch`, branché dans `lanceMatch` ET `directSemaine` par `apres(k, d)`
+  après chaque ligne lue et après le flash d'un but ou d'un rouge). Situations : **la mi-temps, toujours** (jamais zéro
+  décision), un but encaissé (≤ 85e), un carton rouge pour ou contre (≤ 80e), un titulaire « sans jambes » (fraîcheur
+  d'avant-match sous `ARRETS.cuit` = 70, entre la 60e et la 80e, `hommeCuit`), un score serré après la 70e (écart ≤ 1).
+  **Aucun système neuf** (consigne de l'auteur) : une réponse est l'une des trois consignes (on clique le bouton
+  `.bTacD` du bandeau, donc le même recollage que le geste manuel) ou un changement (`changementDirect`, sorti de
+  `ouvreBanc` dont il est désormais le geste). **« Garder le plan » est toujours proposé** (choix de l'auteur) : la
+  consigne en place devient cette réponse, qui ne rejoue rien. **Le rythme** : un quota tiré au coup d'envoi
+  (`ARRETS.quotas`, 1 à 3 arrêts, ~2 en moyenne, mesuré 1,95 sur 120 samedis), `ARRETS.ecart` = 8 minutes entre deux
+  arrêts ; **la fenêtre de la blessure compte dans le quota**, et `situationArret` réserve d'avance la mi-temps à venir
+  et vos blessures que le fil porte plus loin, pour que le maximum de trois tienne. Les moments de la 90e ne comptent
+  pas (ce ne sont pas des décisions tactiques). Pas d'arrêt en résultat instantané, sur un match arrangé, ni sur le fil
+  de secours d'une vieille sauvegarde de coupe (`R` absent). **Le réglage** : bouton « Arrêts » (`#vAuto`) dans la barre
+  des vitesses des trois directs, retenu dans le navigateur (`ARRETS_KEY` = `d1manager_arrets_v1`, allumé par défaut).
+  La pause manuelle est inchangée. **Mesure qui borne le design** : une consigne n'est jamais la meilleure partout ; à la
+  70e, en menant 1-0, « Prudent » garde la victoire 81 % contre 76 % pour « Offensif », et mené 0-1, « Offensif » évite
+  la défaite plus souvent (79 % de défaites contre 83 %). L'homme cuit est rare le samedi (la semaine de repos remet
+  presque tout le monde à 100) : il sert surtout après un soir de semaine et pour les vétérans. Gardé par
+  **`harness-arrets.cjs`** (sections A à F). **Piège payé en écrivant le harnais** : rejouer des milliers de fins de
+  match sur la MÊME feuille du jour accumule les rouges (feuille et suspensions) jusqu'à vider la pelouse ; une feuille
+  neuve à chaque essai.
 - **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
   le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
   championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :

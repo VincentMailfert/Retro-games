@@ -623,7 +623,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.56"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.57"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -13005,18 +13005,142 @@ function ouvreBanc(ctx){
     const bF=f.querySelector("#bFermeBanc"); if(bF) bF.onclick=()=>{ window._penEnCours=false; fermeFiche(); ctx.reprendre(); };
   };
   const applique=(entrant, sortant)=>{
-    const xiAvant=enJeu(moi, m).slice(), tok=jetonBanc(sortant);
-    avanceLeBanc(p, entrant, tok);                              // s'il devait entrer plus tard, ce changement-là saute
-    poseRemplacement(p, entrant, sortant, m, "banc", tok);      // et celui-ci prend l'une des trois places
-    const w=poidsPelouse(moi, adv, xiAvant, enJeu(moi, m).slice());
-    if(eM.h.id===G.monClub){ ctx.mul.h*=w.mien; ctx.mul.a*=w.sien; } else { ctx.mul.a*=w.mien; ctx.mul.h*=w.sien; }
-    ctxRejoue(ctx, pl.from, m);
-    lignes.splice(pl.from, 0, ligneChangement(moi, p, p.banc.indexOf(entrant))); // le téléscripteur l'annonce tout de suite
-    ctx.suite();
+    changementDirect(ctx, entrant, sortant);
     ferme(cadre("🔁 CHANGEMENT", entete+`<p><b>${esc(entrant.nom)}</b> entre à la place de <b>${esc(sortant.nom)}</b>.</p>
       `));
   };
   etape1();
+}
+/* Le geste du banc, sans sa fenêtre : l'entrant prend l'une des trois places, la pelouse est repesée (poidsPelouse) et
+   la fin du match se rejoue depuis la position du téléscripteur. Partagé par le bouton Banc et les arrêts du coach. */
+function changementDirect(ctx, entrant, sortant){
+  const lignes=ctx.monMatch.ev, eM=ctx.eM, pl=ctx.pos(), m=pl.mNow;
+  const moi=eM.h.id===G.monClub?eM.h:eM.a, adv=eM.h.id===G.monClub?eM.a:eM.h, p=CHANGEMENTS[moi.id];
+  const xiAvant=enJeu(moi, m).slice(), tok=jetonBanc(sortant);
+  avanceLeBanc(p, entrant, tok);                              // s'il devait entrer plus tard, ce changement-là saute
+  poseRemplacement(p, entrant, sortant, m, "banc", tok);      // et celui-ci prend l'une des trois places
+  const w=poidsPelouse(moi, adv, xiAvant, enJeu(moi, m).slice());
+  if(eM.h.id===G.monClub){ ctx.mul.h*=w.mien; ctx.mul.a*=w.sien; } else { ctx.mul.a*=w.mien; ctx.mul.h*=w.sien; }
+  ctxRejoue(ctx, pl.from, m);
+  lignes.splice(pl.from, 0, ligneChangement(moi, p, p.banc.indexOf(entrant))); // le téléscripteur l'annonce tout de suite
+  ctx.suite();
+}
+
+/* ================= LES ARRÊTS DU COACH (v2.57, demande de l'auteur du 10/11/2026) =================
+   Le match s'arrête de lui-même sur une situation de jeu (mi-temps, but encaissé, carton rouge, un homme sans
+   jambes, score serré après la 70e) et pose une question courte. Un clic, et ça repart. AUCUN SYSTÈME NEUF : chaque
+   réponse est l'une des trois consignes (on clique le bouton du bandeau, donc le même recollage) ou un changement
+   (changementDirect, le geste du bouton Banc). « Garder le plan » est toujours proposé et ne rejoue rien.
+   LE RYTHME : la mi-temps arrête toujours (jamais zéro décision) ; un quota tiré au coup d'envoi (1 à 3 arrêts en
+   tout, ~2 en moyenne) borne le reste, avec ARRETS.ecart minutes au moins entre deux arrêts. La blessure de l'un des
+   vôtres ouvre déjà sa fenêtre (ouvreBlessure) : elle COMPTE dans le quota, et celles que le fil porte plus loin sont
+   réservées d'avance, comme la mi-temps à venir, pour que le maximum de trois tienne.
+   Le bouton « Arrêts » du direct les coupe ; le choix est retenu dans le navigateur. Pas d'arrêt en résultat
+   instantané, ni sur un match arrangé, ni sur le fil de secours d'une vieille sauvegarde de coupe.
+   Tout ce qui décide est PUR (planArrets, situationArret, questionArret) : harness-arrets.cjs le rejoue. */
+const ARRETS_KEY="d1manager_arrets_v1";
+function arretsActifs(){ try{ return localStorage.getItem(ARRETS_KEY)!=="0"; }catch(e){ return true; } }
+function poseArrets(on){ try{ localStorage.setItem(ARRETS_KEY, on?"1":"0"); }catch(e){} }
+const ARRETS={
+  quotas:[[1,0.12],[2,0.62],[3,0.26]], // nombre d'arrêts du match, mi-temps comprise (et blessures des vôtres)
+  ecart:8,                              // minutes au moins entre deux arrêts
+  cuit:70,                              // fraîcheur sous laquelle un titulaire « n'a plus de jambes »
+  chance:0.3                            // un homme cuit ou un score serré : l'arrêt tombe à une ligne au hasard de sa fenêtre
+};
+function planArrets(){
+  let x=Math.random(), q=2;
+  for(const [n,p] of ARRETS.quotas){ if(x<p){ q=n; break; } x-=p; }
+  return {quota:q, fait:0, dernier:-99, vus:{}};
+}
+/* La situation que la ligne `k` (qu'on vient de lire) ouvre, ou null. `o` = {moiId, hId, cuit()} ; `cuit()` rend
+   {sortant, entrant} quand un titulaire est à bout et qu'un changement est encore possible. */
+function situationArret(A, lignes, k, o){
+  const lg=lignes[k]; if(!lg) return null;
+  const m=lg.m||0;
+  // LA MI-TEMPS : toujours, sur la DERNIÈRE ligne de la première période (le jalon et son jugement compris), et c'est
+  // de là que repart la seconde. On ne se fie pas au jalon « MI-TEMPS » : le samedi, une consigne changée avant la 45e
+  // recolle le fil par simuleReste, qui ne le réécrit pas (trouvé au navigateur).
+  if(!A.vus.mt && m<=45 && lignes[k+1] && lignes[k+1].m>45) return {type:"mt", m:45};
+  if(m>=90) return null;
+  // le budget : ce qui est déjà fait, plus ce que le fil réserve (la mi-temps à venir, vos blessures à venir)
+  const reserve=(A.vus.mt?0:1)+lignes.slice(k+1).filter(l=>l.bl && l.bl.cote===o.moiId).length;
+  if(A.fait+reserve>=A.quota || m-A.dernier<ARRETS.ecart) return null;
+  if(lg.c && lg.c.rouge && m<=80 && !A.vus.rouge) return {type:"rouge", m, nous:lg.c.cote===o.moiId, nom:lg.c.nom};
+  if(lg.g && lg.g.cote!==o.moiId && m<=85 && !A.vus.encaisse) return {type:"encaisse", m};
+  if(m>=60 && m<=80 && !A.vus.cuit && Math.random()<ARRETS.chance){ const c=o.cuit && o.cuit(m); if(c) return {type:"cuit", m, sortant:c.sortant, entrant:c.entrant}; }
+  if(m>=70 && m<=84 && !A.vus.serre){
+    let sh=0, sa=0; for(let n=0;n<=k;n++){ const l=lignes[n]; if(l && l.g){ if(l.g.cote===o.hId) sh++; else sa++; } }
+    if(Math.abs(sh-sa)<=1 && Math.random()<ARRETS.chance) return {type:"serre", m};
+  }
+  return null;
+}
+/* Le titulaire le plus entamé encore sur la pelouse (hors gardien, et hors ceux que le banc sort déjà plus tard), et
+   l'homme du banc qui le remplace le mieux (son poste d'abord). Null s'il n'y a plus de changement à faire. */
+function hommeCuit(moi, m){
+  const p=CHANGEMENTS[moi.id]; if(!p) return null;
+  if(3-p.min.filter(x=>x<=m).length<=0) return null;
+  const pelouse=enJeu(moi, m);
+  const s=p.xi.filter(j=>pelouse.includes(j) && j.pos!=="G" && !p.sort.includes(j) && fraich(j)<ARRETS.cuit)
+    .sort((x,y)=>fraich(x)-fraich(y))[0];
+  if(!s) return null;
+  const banc=bancDispo(moi, p, m); if(!banc.length) return null;
+  const e=banc.slice().sort((x,y)=>((y.pos===s.pos)-(x.pos===s.pos)) || (noteSel(y)-noteSel(x)))[0];
+  return {sortant:s, entrant:e};
+}
+/* La question et ses réponses. Chaque situation dit les trois consignes à sa façon ; celle qui est déjà en place
+   devient « on garde le plan ». `sc` = le score à afficher (« Nantes 1 - 0 Lens »). */
+const ARRETS_DIT={
+  mt:      {q:sc=>sc+". Le discours ?",                    prudent:"🧱 On resserre",            equilibre:"⚖️ On reste en place", offensif:"⚔️ On y va",                 garde:"👍 On garde le plan"},
+  encaisse:{q:sc=>"But encaissé. "+sc+".",                 prudent:"🧱 Pas de panique, on ferme", equilibre:"⚖️ On reste en place", offensif:"⚔️ Tout le monde devant",    garde:"👍 On ne change rien"},
+  rougeN:  {q:(sc,s)=>"Rouge pour "+s.nom+". À dix.",      prudent:"🧱 On ferme la boutique",   equilibre:"⚖️ On tient le plan",  offensif:"⚔️ On tente quand même",     garde:"👍 On ne change rien"},
+  rougeE:  {q:(sc,s)=>s.nom+" expulsé. Ils sont à dix.",   prudent:"🧱 Sans prendre de risque", equilibre:"⚖️ On reste en place", offensif:"⚔️ On en profite",           garde:"👍 On ne change rien"},
+  serreG:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". On tient ?",         prudent:"🧱 On garde le score",      equilibre:"⚖️ On reste en place", offensif:"⚔️ On tue le match",         garde:"👍 On garde le plan"},
+  serreN:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". Le nul vous va ?",   prudent:"🧱 On prend le point",      equilibre:"⚖️ On reste en place", offensif:"⚔️ On va chercher la victoire", garde:"👍 On garde le plan"},
+  serreP:  {q:(sc,s)=>s.m+"ᵉ, "+sc+". Il faut un but.",    prudent:"🧱 On limite la casse",     equilibre:"⚖️ On reste en place", offensif:"⚔️ Tout pour l'égalisation", garde:"👍 On garde le plan"}
+};
+function questionArret(s, consigne, sc, diff){
+  if(s.type==="cuit") return {titre:"😮‍💨 "+s.m+"ᵉ MINUTE", q:s.sortant.nom+" n'a plus de jambes.", rep:[
+    {lab:"🔁 "+s.entrant.nom+" entre", act:{k:"change"}},
+    {lab:"👍 Il reste", act:{k:"garde"}}]
+    .concat(consigne!=="prudent" ? [{lab:"🧱 On recule d'un cran", act:{k:"consigne", v:"prudent"}}] : [])};
+  const cle=s.type==="rouge" ? (s.nous?"rougeN":"rougeE") : s.type==="serre" ? (diff>0?"serreG":diff<0?"serreP":"serreN") : s.type;
+  const D=ARRETS_DIT[cle];
+  const titre=s.type==="mt" ? "⏸️ MI-TEMPS" : s.type==="encaisse" ? "⚽ "+s.m+"ᵉ MINUTE" : s.type==="rouge" ? "🟥 "+s.m+"ᵉ MINUTE" : "⏱️ "+s.m+"ᵉ MINUTE";
+  return {titre, q:D.q(sc, s), rep:["prudent","equilibre","offensif"].map(k=>k===consigne
+    ? {lab:D.garde, act:{k:"garde"}} : {lab:D[k], act:{k:"consigne", v:k}})};
+}
+/* Le moteur des arrêts pour UN direct. `o` = {lignes, tk, hId, nomH, nomA, ctxBanc (ou null), moiClub(), actif()} ;
+   rend {apres(k, reprise), blessure(m)} : `apres` est appelé après chaque ligne lue (et après son flash), `reprise`
+   relance le téléscripteur ; `blessure` compte la fenêtre du pépin dans le quota. */
+function arretsDuMatch(o){
+  const A=planArrets();
+  const marque=(type, m)=>{ A.vus[type]=true; A.fait++; A.dernier=m; };
+  return {
+    A,
+    blessure:m=>{ A.fait++; A.dernier=m; },
+    apres:(k, reprise)=>{
+      if(!arretsActifs() || !o.actif()) return reprise();
+      const moi=o.moiClub();
+      const s=situationArret(A, o.lignes, k, {moiId:G.monClub, hId:o.hId, cuit:m=>o.ctxBanc && moi ? hommeCuit(moi, m) : null});
+      if(!s) return reprise();
+      if(s.type==="mt" && A.vus.mt) return reprise();
+      marque(s.type, s.m);
+      let sh=0, sa=0; for(let n=0;n<=k;n++){ const l=o.lignes[n]; if(l && l.g){ if(l.g.cote===o.hId) sh++; else sa++; } }
+      const diff=o.hId===G.monClub ? sh-sa : sa-sh;
+      const Q=questionArret(s, G.consigne, o.nomH+" "+sh+" - "+sa+" "+o.nomA, diff);
+      const fiche=cadreMoment(Q.titre, `<p style="font-size:16px">${esc(Q.q)}</p>
+        <p style="margin-top:10px">${Q.rep.map((r,n)=>`<button class="act zChoix bArret" data-n="${n}" style="display:block;width:100%;margin:6px 0;padding:12px;font-size:15px">${esc(r.lab)}</button>`).join("")}</p>`);
+      fiche.querySelectorAll(".bArret").forEach(b=>b.onclick=()=>{
+        const r=Q.rep[+b.dataset.n]; if(!r) return;
+        window._penEnCours=false; fermeFiche();
+        if(r.act.k==="consigne"){ const bt=document.querySelector('.bTacD[data-k="'+r.act.v+'"]'); if(bt && !bt.disabled && bt.onclick) bt.onclick(); }
+        else if(r.act.k==="change" && o.ctxBanc && o.actif()){ changementDirect(o.ctxBanc, s.entrant, s.sortant); }
+        else ajouteLigne(o.tk, {m:s.m, t:"amb", x:"🗣️ Le banc ne bouge pas."});
+        o.tk.scrollTop=0;
+        reprise();
+      });
+    }
+  };
 }
 
 function notif(t){ (G.notifs=G.notifs||[]).push(t); }
@@ -21797,7 +21921,7 @@ function ecranCalendrier(){
    </div>
    <div class="panel panelDirect"><h2>Téléscripteur
      <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-       Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button>
+       Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button> <button class="act" id="vAuto" title="Arrêts automatiques">Arrêts</button>
      </span></h2>
      ${htmlCtlTactique()}
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
@@ -22005,10 +22129,12 @@ function surligneVitesse(){
     const on=!PAUSE_DIRECT && (VITESSES[id]===tickerDelai);
     b.classList.toggle("on",on); }
   const p=document.getElementById("vP"); if(p) p.classList.toggle("on",PAUSE_DIRECT);
+  const au=document.getElementById("vAuto"); if(au) au.classList.toggle("on",arretsActifs()); // les arrêts du coach (v2.57)
 }
 function cableVitesses(){
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; PAUSE_DIRECT=false; surligneVitesse(); }; }
   const p=document.getElementById("vP"); if(p) p.onclick=()=>{ PAUSE_DIRECT=!PAUSE_DIRECT; surligneVitesse(); };
+  const au=document.getElementById("vAuto"); if(au) au.onclick=()=>{ poseArrets(!arretsActifs()); surligneVitesse(); };
 }
 /* panneau LED clignotant ~5 s pour les temps forts (but, carton rouge…), avec détail ;
    o = {classe, gros, sub (HTML), detail (texte)} ; onDone appelé au clic OU après 5 s */
@@ -22360,7 +22486,7 @@ function ecranCoupeMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button>
+        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button> <button class="act" id="vAuto" title="Arrêts automatiques">Arrêts</button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
@@ -22481,7 +22607,10 @@ function directSemaine(o){
   const bBanc=document.getElementById("bBanc");
   if(bBanc && R && F){ bBanc.style.display="";
     bBanc.onclick=()=>{ if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; } ouvreBanc(ctxBanc); }; }
-  const suivant=()=>{ tickerTimer=setTimeout(tic,300); };
+  // LES ARRÊTS DU COACH (v2.57), comme le samedi ; seulement sur le fil du moteur (le fil de secours ne se recolle pas)
+  const arrets=R ? arretsDuMatch({lignes, tk, hId:H.id, nomH:H.nom, nomA:A.nom, ctxBanc:F ? ctxBanc : null,
+    moiClub:()=>Hc.id===G.monClub?Hc:Ac, actif:()=>!fini && i<=sif()}) : null;
+  const apres=(k, d)=>{ const go=()=>{ tickerTimer=setTimeout(tic,d); }; if(arrets) arrets.apres(k, go); else go(); };
   const tic=()=>{
     if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
@@ -22514,18 +22643,19 @@ function directSemaine(o){
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
-        detail:lg.x}, suivant);
+        detail:lg.x}, ()=>apres(courante,300));
       return;
     }
     if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE
       const contre=lg.c.cote===G.monClub;
       celebreFlash({classe:"contre", gros:"🟥 CARTON ROUGE", img:PICK(IMG_MOMENT.rouge),
         sub:`<b class="jaune">${esc(lg.c.nom)}</b> · ${lg.m}'${contre?", un des vôtres&nbsp;!":""}`,
-        detail:lg.x}, suivant);
+        detail:lg.x}, ()=>apres(courante,300));
       return;
     }
     if(lg && lg.bl){ // BLESSURE : la vôtre arrête le match et ouvre la fenêtre du banc, celle d'en face se lit au fil
       if(lg.bl.cote!==G.monClub || !R || !F){ tickerTimer=setTimeout(tic,tickerDelai); return; }
+      if(arrets && ctxBlessure.actif()) arrets.blessure(lg.m); // la fenêtre du pépin compte parmi les arrêts du match
       celebreFlash({classe:"contre", gros:"🏥 BLESSURE", img:PICK(IMG_MOMENT.blessure),
         sub:`<b class="jaune">${esc(lg.bl.nom)}</b> · ${lg.m}'`,
         detail:lg.x}, ()=>ouvreBlessure(ctxBlessure, lg, courante));
@@ -22535,10 +22665,10 @@ function directSemaine(o){
       const nous=lg.tab.decisif===G.monClub;
       celebreFlash({classe:nous?"":"contre", gros:nous?"🧤 L'ARRÊT QUI QUALIFIE !":"🧤 ARRÊTÉ, C'EST FINI...", img:IMG_MOMENT.tabArret?PICK(IMG_MOMENT.tabArret):null,
         sub:`<b class="jaune">${esc(nous?"Votre gardien":"Le gardien d'en face")}</b> sort le dernier tir au but`,
-        detail:lg.x}, suivant);
+        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
-    tickerTimer=setTimeout(tic,tickerDelai);
+    apres(courante, tickerDelai);
   };
   tickerDelai=2300; tic();
 }
@@ -22646,7 +22776,7 @@ function ecranEuroMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button>
+        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP">Pause</button> <button class="act" id="vAuto" title="Arrêts automatiques">Arrêts</button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
@@ -23382,6 +23512,11 @@ function lanceMatch(instant){
   const bBanc=document.getElementById("bBanc");
   if(bBanc && !instant){ bBanc.style.display="";
     bBanc.onclick=()=>{ if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; } ouvreBanc(ctxBanc); }; }
+  // LES ARRÊTS DU COACH (v2.57) : après chaque ligne lue (et son flash), le match peut s'arrêter et poser sa question
+  const arrets=monMatch._truque ? null : arretsDuMatch({lignes, tk, hId:eM.h.id, nomH:eM.h.nom, nomA:eM.a.nom,
+    ctxBanc:CHANGEMENTS[G.monClub] ? ctxBanc : null, moiClub:()=>eM.h.id===G.monClub?eM.h:eM.a,
+    actif:()=>!!G._pend && i<lignes.length});
+  const apres=(k, d)=>{ const go=()=>{ tickerTimer=setTimeout(tic,d); }; if(arrets) arrets.apres(k, go); else go(); };
   const tic=()=>{
     if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
@@ -23416,18 +23551,19 @@ function lanceMatch(instant){
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(eM.h.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
-        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+        detail:lg.x}, ()=>apres(courante,300));
       return;
     }
     if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE
       const contre=lg.c.cote===G.monClub;
       celebreFlash({classe:"contre", gros:"🟥 CARTON ROUGE", img:PICK(IMG_MOMENT.rouge),
         sub:`<b class="jaune">${esc(lg.c.nom)}</b> · ${lg.m}'${contre?", un des vôtres&nbsp;!":""}`,
-        detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
+        detail:lg.x}, ()=>apres(courante,300));
       return;
     }
     if(lg && lg.bl){ // BLESSURE (v1.18) : la vôtre arrête le match et ouvre la fenêtre du banc, celle d'en face se lit au fil
       if(lg.bl.cote!==G.monClub){ tickerTimer=setTimeout(tic,tickerDelai); return; }
+      if(arrets && G._pend && !monMatch._truque) arrets.blessure(lg.m); // la fenêtre du pépin compte parmi les arrêts du match
       celebreFlash({classe:"contre", gros:"🏥 BLESSURE", img:PICK(IMG_MOMENT.blessure),
         sub:`<b class="jaune">${esc(lg.bl.nom)}</b> · ${lg.m}'`,
         detail:lg.x}, ()=>ouvreBlessure(ctxBlessure, lg, courante));
@@ -23481,7 +23617,7 @@ function lanceMatch(instant){
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
-    tickerTimer=setTimeout(tic,tickerDelai);
+    apres(courante, tickerDelai);
   };
   tic();
 }
