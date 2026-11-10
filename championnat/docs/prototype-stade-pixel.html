@@ -169,8 +169,11 @@ function rendre(ctx, R, image){
   if(!vir){ let pr=[[L,0,0]]; for(let r=0;r<nN;r++) pr.push([L,-r*D,(r+1)*RZ],[L,-(r+1)*D,(r+1)*RZ]); pr.push([L,-nN*D,0]); quad(pr,C.beton2,C.encre);
     pr=[[0,W,0]]; for(let r=0;r<nO;r++) pr.push([-r*D,W,(r+1)*RZ],[-(r+1)*D,W,(r+1)*RZ]); pr.push([-nO*D,W,0]); quad(pr,C.beton3,C.encre); }
   if(toit) loin.forEach(toitDe);
-  if(R.ecran){ const z=hN+(toit?8:1), x=6; quad([[x,-nN*D,z],[x+26,-nN*D,z],[x+26,-nN*D,z+11],[x,-nN*D,z+11]],C.encre,C.beton3);
-    quad([[x+2,-nN*D,z+2],[x+24,-nN*D,z+2],[x+24,-nN*D,z+9],[x+2,-nN*D,z+9]],image%2?C.jaune:C.rouge); }
+  // l'écran géant : posé sur le haut de la tribune Nord, ou suspendu SOUS la toiture quand il y en a une (sinon le public ne le voit pas)
+  if(R.ecran){ const y=toit?-nN*D*.45+.3:-nN*D, haut=toit?hN+5.4:hN+12, z=haut-9.5, x=L/2-13;
+    if(toit) for(const xs of [x+3,x+23]) ligne(P(xs,y,haut),P(xs,y,hN+7),C.beton3);
+    quad([[x,y,z],[x+26,y,z],[x+26,y,haut],[x,y,haut]],C.encre,C.beton3);
+    quad([[x+2,y,z+1.8],[x+24,y,z+1.8],[x+24,y,haut-1.8],[x+2,y,haut-1.8]],image%2?C.jaune:C.rouge); }
 
   // --- la pelouse
   quad([[-3,-0.01,0],[L+3,-0.01,0],[L+3,W,0],[-3,W,0]],C.herbe);
