@@ -1,4 +1,4 @@
-/* Harnais de validation — LES CLUBS ITALIENS (ITA-A, v2.56)
+/* Harnais de validation — LES CLUBS ITALIENS (ITA-A, v2.57)
    Première étape du lot structure qui précède l'Italie, calquée sur harness-clubs-ang.cjs (ANG-B).
    Aucune saison italienne n'est encore jouable : ce qui se vérifie ici, c'est que les soixante-quatorze
    clubs existent, qu'ils disent vrai, qu'ils ne marchent sur les pieds d'aucun club français ni anglais,

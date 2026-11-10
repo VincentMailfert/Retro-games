@@ -5663,7 +5663,7 @@ Championship.
 
 `harness-ang0910.cjs` garde tout cela.
 
-### LES CLUBS ITALIENS (ITA-A, v2.56)
+### LES CLUBS ITALIENS (ITA-A, v2.57)
 Première étape du lot structure qui précède l'Italie, faite par la tâche de nuit du 10/11/2026 (troisième
 essai du jour : les deux premiers n'avaient pas de réseau). Comme ANG-B, rien du moteur n'est touché, une seule
 ligne de code l'est (`metaClub`, qui cherche désormais aussi dans `CLUBS_ITA`, **après** les tables françaises
@@ -5867,7 +5867,7 @@ test est **« contient-elle des lignes de joueurs »**.
    une saison anglaise d'essai, les seize clubs tenus dans les trois compétitions qualifié ou non, le
    siège du pays et son absence en C1 1990-91, la ceinture de `migre`, et trente-huit journées anglaises
    jouées pour de vrai avec leur Coupe d'Europe),
-   `harness-clubs-ita.cjs` (les clubs italiens, ITA-A v2.56 : les soixante-quatorze clubs de Serie A et de
+   `harness-clubs-ita.cjs` (les clubs italiens, ITA-A v2.57 : les soixante-quatorze clubs de Serie A et de
    Serie B de la fenêtre, les six codes partagés avec le vivier d'Europe et les neuf codes de contournement,
    la palette maison plus le gris de Crémone et le rose de Palerme, vingt-cinq derbys, trente-quatre faits
    de stade et vingt et un standings d'époque, la France et l'Angleterre intactes),
