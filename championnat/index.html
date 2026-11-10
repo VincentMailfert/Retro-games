@@ -475,6 +475,7 @@
   details.introSuite > summary{cursor:pointer; color:var(--dim); font-size:15px; width:max-content; margin:0 auto; padding:10px 0; list-style-position:inside;}
   details.avantMatch > summary{cursor:pointer; color:var(--dim); font-size:14px; width:max-content; margin:0 auto; padding:4px 0;}
   details.avantMatch > summary:hover{color:var(--clair);}
+  details.revivre{text-align:left; margin-top:6px;} details.revivre > summary{margin:0 auto 6px;}
   /* la sauvegarde est automatique : les outils de carrière se font discrets en pied de page (lot 3) */
   .footer .act{background:none; border-color:transparent; color:var(--dim);}
   .footer .act:hover{border-color:transparent; color:var(--clair);}
@@ -623,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.60"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.61"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -14855,7 +14856,7 @@ function panneauActe(){
       ${e?`<b class="fort" style="font-size:15px">${esc(e.txt)}</b>`:""}
       <button class="act" id="bOuEn" style="margin-left:auto">📖 Où en étions-nous ?</button>
     </p>
-    <p class="dim" style="margin:4px 0 0;font-size:13px">${esc(a.sous)}</p>
+    ${G.journee===a.de?`<p class="dim" style="margin:4px 0 0;font-size:13px">${esc(a.sous)}</p>`:""}
   </div>`;
 }
 
@@ -15397,12 +15398,12 @@ function ecranReprise(){
    <div class="panel">
      <p class="dim" style="letter-spacing:2px;margin:0">${esc(moi?moi.nom.toUpperCase():"")} · SAISON ${esc(G.saison)} · JOURNÉE ${Math.min(G.journee+1,38)}/38</p>
      <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">OÙ EN ÉTIONS-NOUS&nbsp;?</h2>
-     <p class="dim">Dernière partie ${esc(ilYA(G._maj))}. Reprenons le fil.</p>
+     <p class="dim">Dernière partie ${esc(ilYA(G._maj))}.</p>
    </div>
    <div class="grid2">
      <div class="panel"><h2>📊 LA SITUATION</h2>
        ${S.e?`<p style="font-size:18px"><b class="fort">${esc(S.e.txt)}</b></p>
-         <p class="dim">${esc(S.e.sens==="chasse"?"Il y a quelque chose à aller chercher.":"Il y a quelque chose à défendre.")} ${esc(libDiv(G.div))} · acte ${ROMAIN[S.acte.n]}, ${esc(S.acte.nom.toLowerCase())}.</p>`
+         `
         :`<p class="dim">Le classement n'a pas encore de sens : la saison vient de commencer.</p>`}
        ${S.der.length?`<p style="margin-top:8px"><span class="dim">Vos ${S.der.length} derniers matchs :</span> ${S.der.map(pastille).join(" ")}</p>
          ${S.der.slice(-3).reverse().map(x=>`<p class="dim" style="font-size:13px">J${x.j} · ${x.dom?"":"à "}${esc(x.adv)} ${x.mes}-${x.ses}</p>`).join("")}`
@@ -15410,7 +15411,7 @@ function ecranReprise(){
      </div>
      <div class="panel"><h2>🗞️ CE QU'ON DISAIT DE VOUS</h2>
        ${S.phrase?`<p style="font-size:16px;font-style:italic;color:var(--clair)">${esc(S.phrase.t)}</p>
-         <p class="dim" style="margin-top:4px">la presse, journée ${S.phrase.j}. C'est la phrase que l'almanach a retenue de votre saison.</p>`
+         <p class="dim" style="margin-top:4px">journée ${S.phrase.j}</p>`
         :`<p class="dim">La presse n'a encore rien écrit qu'on garderait.</p>`}
      </div>
    </div>
@@ -15427,7 +15428,7 @@ function ecranReprise(){
        <p class="ctr dim">Journée ${Math.min(G.journee+1,38)} · ${S.pm.dom?"à domicile":"à l'extérieur"}</p>
        ${S.raisons.length?`<p style="margin-top:8px"><span class="dim">Ce match compte parce que…</span></p>
          ${S.raisons.slice(0,3).map(x=>`<p style="margin:3px 0">${x.ico} ${esc(x.txt)}</p>`).join("")}`
-        :`<p class="ctr dim" style="margin-top:8px">Un match de championnat comme un autre, ils comptent tous pareil au classement.</p>`}
+        :""}
        ${blocProchains(G, null)}`
       :`<p class="dim">La saison est terminée : il reste l'intersaison à dérouler.</p>`}
      <p class="ctr" style="margin-top:14px"><button class="big" id="bReprise">REPRENDRE LA SAISON</button></p>
@@ -20220,7 +20221,7 @@ function introSaison(){
   }
   if(G.tresorerie<0) puces.push("🔴 Les caisses sont dans le rouge : avant les rêves de grandeur, le président veut un budget à l'équilibre.");
   if(G.palmares && G.palmares.length) puces.push("🏆 Au mur du club : "+esc(G.palmares.join(", "))+".");
-  { const rr=resumeRecords(); if(rr) puces.push("🏛️ Vos records depuis votre arrivée : "+esc(rr)+". Des records faits pour tomber."); }
+  { const rr=resumeRecords(); if(rr) puces.push("🏛️ Vos records depuis votre arrivée : "+esc(rr)+"."); }
   return {an, titre:e.titre, txt:e.txt, puces};
 }
 /* Le mot d'ouverture en deux temps (29/10/2026, piste 8 de la revue de design) : deux phrases, le coup d'envoi, et la
@@ -20339,8 +20340,7 @@ function ecranBilan(){
      </div>
      <div class="panel"><h2>🏅 L'HOMME DE LA SAISON</h2>
        ${B.hommeSaison?`<p style="font-size:18px"><b class="fort">${esc(nomLong(B.hommeSaison.nom))}</b></p>
-         <p class="dim">${B.hommeSaison.hdm} fois homme du match, ${B.hommeSaison.buts||0} but${(B.hommeSaison.buts||0)>1?"s":""}, ${B.hommeSaison.passes||0} passe${(B.hommeSaison.passes||0)>1?"s":""} décisive${(B.hommeSaison.passes||0)>1?"s":""}, note ${B.hommeSaison.note}.</p>
-         <p class="dim" style="margin-top:6px;font-style:italic">Celui que les tribunes ont fini par appeler par son prénom.</p>`
+         <p class="dim">${B.hommeSaison.hdm} fois homme du match, ${B.hommeSaison.buts||0} but${(B.hommeSaison.buts||0)>1?"s":""}, ${B.hommeSaison.passes||0} passe${(B.hommeSaison.passes||0)>1?"s":""} décisive${(B.hommeSaison.passes||0)>1?"s":""}, note ${B.hommeSaison.note}.</p>`
         :`<p class="dim">Aucun de vos joueurs n'a été désigné homme du match cette saison. Ça viendra.</p>`}
      </div>
    </div>
@@ -20349,12 +20349,11 @@ function ecranBilan(){
       const l=recordsTenus().filter(d=>d.r.s===B.saison && d.r.anc!=null);
       if(!l.length) return "";
       return `<div class="panel" style="border-color:#5fd98f"><h2 style="color:#5fd98f">🏛️ VOS RECORDS TOMBÉS CETTE SAISON</h2>`
-        +l.map(d=>`<p style="margin:4px 0">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)}${d.r.h?' <span class="jaune">· histoire du club</span>':""} <span class="dim">(journée ${d.r.j})</span></p>`).join("")
-        +`<p class="dim" style="font-size:13px;margin-top:6px">Votre mur des records a perdu ${l.length>1?"plusieurs pages":"une page"} cette saison.</p></div>`;
+        +l.map(d=>`<p style="margin:4px 0">${d.ico} <b>${esc(d.nom)}</b> · ${esc(d.r.t)}${d.r.h?' <span class="jaune">· histoire du club</span>':""} <span class="dim">(journée ${d.r.j})</span></p>`).join("")+`</div>`;
     })()}
    <div class="panel"><h2>🔥 LE MATCH DE L'ANNÉE</h2>
      ${M?`<p class="scoreline" style="text-align:center;font-size:18px">${esc(nomC(M.h))} <span class="jaune">${M.sh}</span> - <span class="jaune">${M.sa}</span> ${esc(nomC(M.a))}</p>
-       <p class="ctr dim">Journée ${M.j}${M.mien?", et vous y étiez.":""}</p>`
+       <p class="ctr dim">Journée ${M.j}</p>`
       :`<p class="dim">Pas un match ne s'est détaché du lot.</p>`}
    </div>
    <div class="grid2">
@@ -20365,7 +20364,7 @@ function ecranBilan(){
      </div>
      <div class="panel" style="border-color:#b86a2e"><h2>🕶️ LA DÉPÊCHE</h2>
        ${B.depeche?`<p style="font-size:15px">${esc(B.depeche.t)}</p>
-         <p class="dim" style="margin-top:4px">journée ${B.depeche.j}. Celle dont on parle encore à la buvette.</p>`
+         <p class="dim" style="margin-top:4px">journée ${B.depeche.j}</p>`
         :`<p class="dim">Une saison sans une once de soufre. Étonnant.</p>`}
      </div>
    </div>
@@ -22182,8 +22181,8 @@ function ecranCalendrier(){
      ${htmlCtlTactique()}
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
    ${G.presse.length?`<div class="panel"><h2>Revue de presse</h2>
-     ${G.presse.slice(0,4).map(p=>`<p class="dim" style="font-style:italic">${esc(p)}</p>`).join("")}</div>`:""}
-   <div class="panel"><h2>Dépêches</h2>${G.news.slice(0,6).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
+     ${G.presse.slice(0,2).map(p=>`<p class="dim" style="font-style:italic">${esc(p)}</p>`).join("")}</div>`:""}
+   <div class="panel"><h2>Dépêches</h2>${G.news.slice(0,3).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
   { const dA=document.querySelector("details.avantMatch"); if(dA) dA.ontoggle=()=>{ AVANT_MATCH_OUVERT=dA.open; }; } // un réglage redessine l'écran : le panneau reste ouvert
   { const bJ=document.getElementById("bJouer"); if(bJ) bJ.onclick=()=>lanceMatch(false);
     const bV=document.getElementById("bVite");  if(bV) bV.onclick=()=>lanceMatch(true);
@@ -23658,6 +23657,15 @@ function lanceMatch(instant){
     const colBut=(cote,droite)=>buts.filter(l=>l.g.cote===cote)
       .map(l=>`<p>⚽ ${l.m}' ${esc(nomLong(l.g.but))}${l.g.pas?' <span class="dim">(p. '+esc(l.g.pas)+')</span>':""}${l.g.cf?' <span class="dim">(cf)</span>':l.g.pen?' <span class="dim">(sp)</span>':""}</p>`).join("")||'<p class="dim">-</p>';
     const afficheFeuille=()=>{
+      // RÉSULTAT INSTANTANÉ (v2.58, consigne auteur « less is more ») : les quatre-vingt-dix minutes de commentaires
+      // tombaient d'un bloc sous la feuille, plus de mille mots. On les range derrière « Revivre le match », fermé.
+      if(instant && tk.querySelectorAll){
+        const evts=[...tk.querySelectorAll(":scope > p.evt")];
+        if(evts.length){
+          tk.insertAdjacentHTML("afterbegin",`<details class="avantMatch revivre"><summary>📻 Revivre le match</summary></details>`);
+          const d=tk.firstElementChild; evts.forEach(e=>d.appendChild(e));
+        }
+      }
       // le téléscripteur insère en tête : on pose donc le multiplex D'ABORD pour que la feuille de
       // match, posée ensuite, ressorte AU-DESSUS de lui — lecture : feuille, puis les deux cartes
       tk.insertAdjacentHTML("afterbegin",`<div id="mpxHote"></div>`);
@@ -24718,7 +24726,7 @@ function ecranFinances(){
       <button class="act bSp" data-k="${k}">Signer</button>
       <b class="fort">${esc(o.nom)}</b> · ${UU(o.fixe)}/journée${o.prime?" + "+UU(o.prime)+" par victoire":""}
       ${imageSponsor(o)}
-      <br><span class="dim" style="font-size:13px">${esc(o.desc)}${o.ere?", « "+esc(o.ere)+" »":""}</span></p>`).join("")}
+      ${o.ere?`<br><span class="dim" style="font-size:13px">« ${esc(o.ere)} »</span>`:""}</p>`).join("")}
     <p class="dim" style="margin-top:6px">Un seul contrat à la fois.</p></div>`:"";
   const offresEq=(G.offresEquip && !G.equip)?
    `<div class="panel"><h2>Offres d'équipementier</h2>
@@ -24726,7 +24734,7 @@ function ecranFinances(){
       <button class="act bEq" data-k="${k}">Signer</button>
       <b class="fort">${esc(o.nom)}</b> · ${UU(o.fixe)}/journée${o.prime?" + "+UU(o.prime)+" par victoire":""}
       ${imageSponsor(o)}
-      <br><span class="dim" style="font-size:13px">${esc(o.desc)}, « ${esc(o.note)} »</span></p>`).join("")}</div>`:"";
+      ${o.note?`<br><span class="dim" style="font-size:13px">« ${esc(o.note)} »</span>`:""}</p>`).join("")}</div>`:"";
   chrome("finances",`${offres}${offresEq}<div class="panel"><h2>Finances</h2>
    <table class="fit">
     <tr><td>Budget transferts</td><td class="num">${MM(G.budget,1)}</td></tr>
