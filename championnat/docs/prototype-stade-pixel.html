@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multiplex stade pixel art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Silkscreen&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1626; --panel:#10233f; --panel2:#0e1d35; --line:#27466e;
+    --txt:#d9e4f2; --dim:#8fa6c4; --clair:#f2f5fa; --jaune:#ffd24a;
+    --font-texte:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    --font-ui:'VT323','Lucida Console',monospace; --font-led:'Silkscreen','VT323',monospace;
+  }
+  /* Le jeu vit la nuit : même palette en clair comme en sombre, volontairement. */
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0b1626; } }
+  :root[data-theme="dark"]{ --bg:#0b1626; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--txt); font-family:var(--font-texte); font-size:15px; line-height:1.5; }
+  .page{ max-width:980px; margin:0 auto; padding:18px 16px 50px; }
+  .jeu{ font-family:var(--font-led); color:var(--jaune); font-size:12px; }
+  h1{ font-family:var(--font-ui); font-weight:normal; font-size:38px; line-height:1; color:var(--clair); margin:4px 0 14px; }
+  .cadre{ position:relative; border:4px solid #1b2c49; background:#070b1a; box-shadow:inset 0 0 0 2px #000, 0 0 0 2px #000, 4px 4px 0 2px rgba(0,0,0,.55); }
+  canvas{ display:block; width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges; }
+  .legende{ position:absolute; left:10px; right:10px; bottom:8px; display:flex; justify-content:space-between; gap:10px; font-family:var(--font-led); font-size:13px; pointer-events:none; }
+  .legende b{ font-weight:normal; color:var(--jaune); text-shadow:0 0 2px currentColor,0 1px 0 rgba(0,0,0,.6); }
+  .legende span{ color:var(--clair); text-shadow:0 1px 0 rgba(0,0,0,.6); }
+  .pupitre{ margin-top:18px; background:var(--panel); border:2px solid var(--line); box-shadow:5px 5px 0 #040a14; padding:16px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 22px; }
+  @media (max-width:640px){ .pupitre{ grid-template-columns:1fr; } h1{ font-size:32px; } }
+  label.r{ display:flex; justify-content:space-between; font-size:13px; color:var(--dim); margin-bottom:4px; }
+  label.r output{ color:var(--txt); font-variant-numeric:tabular-nums; }
+  input[type=range]{ width:100%; accent-color:var(--jaune); min-height:28px; }
+  .seg{ display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:6px; }
+  .seg button{ font-family:inherit; font-size:13px; min-height:44px; padding:6px 4px; color:var(--dim); background:#1a3052; border:2px solid #000; box-shadow:inset 2px 2px 0 rgba(255,255,255,.1), inset -2px -2px 0 rgba(0,0,0,.45); cursor:pointer; }
+  .seg button[aria-pressed="true"]{ background:#0c1830; border-color:var(--jaune); color:var(--jaune); box-shadow:inset 2px 2px 0 rgba(0,0,0,.6); }
+  .seg button:disabled{ opacity:.45; cursor:not-allowed; }
+  button:focus-visible,input:focus-visible{ outline:2px solid var(--jaune); outline-offset:2px; }
+  .titre{ font-size:13px; color:var(--dim); margin-bottom:5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="jeu">MULTIPLEX · PROTOTYPE</div>
+  <h1>Le stade en vrai pixel art</h1>
+  <div class="cadre">
+    <canvas id="ecran" width="320" height="224" role="img" aria-label="Maquette du stade en pixel art"></canvas>
+    <div class="legende"><b id="etape"></b><span id="places"></span></div>
+  </div>
+  <div class="pupitre">
+    <div><label class="r" for="rCap">Capacité <output id="capOut"></output></label><input type="range" id="rCap" min="5000" max="100000" step="500" value="22500"></div>
+    <div><label class="r" for="rAff">Remplissage <output id="affOut"></output></label><input type="range" id="rAff" min="0" max="100" step="1" value="80"></div>
+    <div><div class="titre">Travaux</div><div class="seg"><button type="button" id="bVir" aria-pressed="false">Virages</button><button type="button" id="bToit" aria-pressed="false">Toiture</button><button type="button" id="bEcran" aria-pressed="false">Écran géant</button></div></div>
+    <div><div class="titre">Éclairage</div><div class="seg" id="segEcl"><button type="button" data-e="1" aria-pressed="true">Mâts</button><button type="button" data-e="2" aria-pressed="false">Pylônes</button><button type="button" data-e="3" aria-pressed="false">Rampe de toit</button></div></div>
+  </div>
+</div>
+<script>
+/* ============================================================
+   STADEPIX : LE STADE EN VRAI PIXEL ART
+   Chaque pixel est posé exprès sur une petite grille (320 x 224), avec une palette fermée. Ce n'est pas un filtre
+   passé sur un dessin : le moteur trace des polygones pleins, sans lissage, puis des contours à l'encre.
+   Mêmes règles que la maquette d'origine pour la taille des tribunes (rangs, virages, uniformisation).
+   ============================================================ */
+const STADEPIX=(()=>{
+const GW=320, GH=224, L=105, W=70, D=5, RZ=3.2;
+const PLACES_VIRAGES=5000;
+const PALIERS=[[5000,"Stade municipal"],[12000,"Stade de Division 1"],[20000,"Grande enceinte"],[30000,"Enceinte internationale"],[50000,"Arène européenne"],[75000,"Cathédrale du football"]];
+function etape(cap){ let e=PALIERS[0][1]; for(const [s,n] of PALIERS) if(cap>=s) e=n; return e; }
+function rangs(capT){ const base=[3,2,1,1], e=Math.max(0,(capT-5000)/3500);
+  return base.map((b,i)=>{ const t=e-i; if(t<=0) return b; const k=Math.floor(t/4), r=t-4*k; return b+k+Math.min(1,r); }); }
+function profondeurs(R){ const rows=rangs(R.cap-PLACES_VIRAGES*(R.virages||0)), vir=R.virages||0, u=Math.max(0,Math.min(1,(R.cap-20000)/35000))*vir;
+  const moy=rows.reduce((a,b)=>a+b,0)/4; return rows.map(r=>Math.max(1,Math.round(r+(moy-r)*u))); }
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+// La palette : vingt couleurs, pas une de plus.
+const C=Object.fromEntries(Object.entries({
+  encre:'#05070f', nuit:'#080d1f', sol:'#111a36', parvis:'#1b2547', route:'#0c1228', marque:'#3d4877',
+  herbe:'#1f6b3a', herbe2:'#2a8347', trait:'#dfe6f5', beton:'#454d75', beton2:'#5a6390', beton3:'#8a93bd', clair:'#c9cfe6',
+  siege:'#2b56a8', siege2:'#3a6fc9', jaune:'#ffd24a', rouge:'#d8433a', blanc:'#f2f5fa', peau:'#e2b58f', arbre:'#1a4a33', arbre2:'#256b45', lueur:'#3a4370'
+}).map(([k,v])=>[k,hex(v)]));
+const hasard=(a,b)=>{ let t=(a*374761393+b*668265263)|0; t=(t^(t>>>13))*1274126177|0; return ((t^(t>>>16))>>>0)/4294967296; };
+
+function rendre(ctx, R, image){
+  const buf=new Uint8ClampedArray(GW*GH*4);
+  const px=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return; const i=(y*GW+x)*4; buf[i]=c[0]; buf[i+1]=c[1]; buf[i+2]=c[2]; buf[i+3]=255; };
+  const lit=(x,y)=>{ const i=(y*GW+x)*4; return [buf[i],buf[i+1],buf[i+2]]; };
+  const ligne=(a,b,c)=>{ let [x0,y0]=a,[x1,y1]=b; const dx=Math.abs(x1-x0), dy=-Math.abs(y1-y0), sx=x0<x1?1:-1, sy=y0<y1?1:-1; let e=dx+dy;
+    for(;;){ px(x0,y0,c); if(x0===x1&&y0===y1) break; const e2=2*e; if(e2>=dy){ e+=dy; x0+=sx; } if(e2<=dx){ e+=dx; y0+=sy; } } };
+  const poly=(P,c,bord)=>{ let y0=GH, y1=0; for(const p of P){ y0=Math.min(y0,p[1]); y1=Math.max(y1,p[1]); }
+    for(let y=Math.max(0,y0); y<=Math.min(GH-1,y1); y++){ const xs=[];
+      for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length]; if((a[1]<=y&&b[1]>y)||(b[1]<=y&&a[1]>y)) xs.push(Math.round(a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0]))); }
+      xs.sort((u,v)=>u-v); for(let i=0;i+1<xs.length;i+=2) for(let x=xs[i]; x<=xs[i+1]; x++) px(x,y,c); }
+    if(bord) for(let i=0;i<P.length;i++) ligne(P[i],P[(i+1)%P.length],bord); };
+
+  // --- géométrie : rangs par côté (Nord, Sud, Est, Ouest), comme la maquette d'origine
+  const [nN,nS,nE,nO]=profondeurs(R), vir=R.virages?1:0, toit=R.toit?1:0, ecl=R.eclairage||1;
+  const hN=nN*RZ, hS=nS*RZ, hE=nE*RZ, hO=nO*RZ, zMax=Math.max(hN,hS,hE,hO)+(toit?8:0)+(ecl===2?30:10);
+  const m=20, xa=-(nO*D+m), xb=L+nE*D+m, ya=-(nN*D+m), yb=W+nS*D+m;
+  const k=Math.min(1.3, (GW-6)/((xb-ya)-(xa-yb)), (GH-26)/(((xb+yb)-(xa+ya))/2+zMax*1.05)), kz=k*1.05;
+  const ox=GW/2-((xb-ya)+(xa-yb))/2*k, oy=(GH-14)/2-((xb+yb)+(xa+ya))/4*k+zMax*kz/2+2;
+  const P=(x,y,z)=>[Math.round(ox+(x-y)*k), Math.round(oy+(x+y)*k/2-(z||0)*kz)];
+  const quad=(pts,c,bord)=>poly(pts.map(p=>P(p[0],p[1],p[2])),c,bord);
+
+  // --- le quartier : nuit, parvis, route, arbres
+  for(let i=0;i<GW*GH;i++){ buf[i*4]=C.nuit[0]; buf[i*4+1]=C.nuit[1]; buf[i*4+2]=C.nuit[2]; buf[i*4+3]=255; }
+  quad([[xa-60,ya-60,0],[xb+60,ya-60,0],[xb+60,yb+60,0],[xa-60,yb+60,0]],C.sol);
+  quad([[xa+6,ya+6,0],[xb-6,ya+6,0],[xb-6,yb-6,0],[xa+6,yb-6,0]],C.parvis,C.marque);
+  quad([[xa-60,yb+2,0],[xb+60,yb+2,0],[xb+60,yb+11,0],[xa-60,yb+11,0]],C.route);
+  for(let x=xa-56;x<xb+56;x+=9) ligne(P(x,yb+6.5,0),P(x+4,yb+6.5,0),C.marque);
+  const arbre=(x,y)=>{ const p=P(x,y,0); px(p[0],p[1],C.encre); for(const [dx,dy] of [[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]]) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); };
+  for(let x=xa+2;x<xb;x+=17) arbre(x,ya+2); for(let y=ya+19;y<yb;y+=17) arbre(xa+2,y);
+
+  const lampes=[];
+  const pylone=(x,y)=>{ if(ecl===3) return; const h=ecl===2?Math.max(34,Math.max(hN,hS,hE,hO)+16):16, a=P(x,y,0), b=P(x,y,h);
+    ligne(a,b,C.beton3); ligne([a[0]+1,a[1]],[b[0]+1,b[1]],C.beton);
+    if(ecl===2){ for(let dx=-2;dx<=3;dx++) for(let dy=-4;dy<=0;dy++) px(b[0]+dx,b[1]+dy,C.encre); for(let dx=-1;dx<=2;dx++) for(let dy=-3;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,(dx+dy)%2?C.blanc:C.jaune); lampes.push([b[0],b[1]-2,9]); }
+    else { px(b[0],b[1]-1,C.jaune); px(b[0]+1,b[1]-1,C.blanc); lampes.push([b[0],b[1]-1,5]); } };
+  // public : un pixel par supporter, posé sur les gradins
+  const public_=(x0,x1,y0,y1,z,graine)=>{ const lx=x1-x0, ly=y1-y0, long=Math.max(lx,ly), pas=Math.max(1.6,1.15/k);
+    for(let u=.8;u<long-.4;u+=pas) for(const v of [.3,.72]){ const x=lx>ly?x0+u:x0+lx*v, y=lx>ly?y0+ly*v:y0+u, p=P(x,y,z), h=hasard(p[0]*7+graine,p[1]*13+graine);
+        if(h<R.aff*.92){ const c=h*31%1; px(p[0],p[1]-1,c<.34?C.jaune:c<.6?C.blanc:c<.8?C.peau:C.rouge);
+          if(image%2 && hasard(p[0]+image,p[1])<.06) px(p[0],p[1]-2,C.blanc); } } };
+  const gradin=(x0,x1,y0,y1,z,i)=>{ quad([[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],i%2?C.siege:C.siege2); public_(x0,x1,y0,y1,z,i*17); };
+  const fenetres=(a,b,z0,z1,g)=>{ const n=Math.floor(Math.hypot(b[0]-a[0],b[1]-a[1])/4); for(let i=1;i<n;i++) for(let z=z0+3;z<z1-2;z+=4.2){ const p=P(a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n,z); px(p[0],p[1],hasard(i+g,Math.round(z))<.62?C.jaune:C.encre); } };
+  const pub=(a,b,z)=>{ const n=Math.max(3,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/14)); for(let i=0;i<n;i++){ const u=i/n, v=(i+1)/n, q0=[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u], q1=[a[0]+(b[0]-a[0])*v,a[1]+(b[1]-a[1])*v];
+      quad([[q0[0],q0[1],0],[q1[0],q1[1],0],[q1[0],q1[1],z],[q0[0],q0[1],z]],[C.jaune,C.blanc,C.rouge][i%3],C.encre); } };
+
+  // étendue des tribunes Nord et Sud : la longueur du terrain, ou tout le tour avec les virages
+  const xN0=vir?-nO*D:0, xN1=vir?L+nE*D:L;
+  pylone(-nO*D-9,-nN*D-9);
+  // --- NORD (au fond à droite) : on voit les gradins et les contremarches
+  for(let r=nN-1;r>=0;r--){ gradin(xN0,xN1,-(r+1)*D,-r*D,(r+1)*RZ,r);
+    if(r>0) quad([[xN0,-r*D,r*RZ],[xN1,-r*D,r*RZ],[xN1,-r*D,(r+1)*RZ],[xN0,-r*D,(r+1)*RZ]],C.beton,C.encre); }
+  { const pr=[[xN1,0,0]]; for(let r=0;r<nN;r++) pr.push([xN1,-r*D,(r+1)*RZ],[xN1,-(r+1)*D,(r+1)*RZ]); pr.push([xN1,-nN*D,0]); if(!vir||nE===0) quad(pr,C.beton2,C.encre); }
+  pub([vir?0:xN0,0],[vir?L:xN1,0],RZ);
+  // --- OUEST (au fond à gauche)
+  for(let r=nO-1;r>=0;r--){ gradin(-(r+1)*D,-r*D,0,W,(r+1)*RZ,r+1);
+    if(r>0) quad([[-r*D,0,r*RZ],[-r*D,W,r*RZ],[-r*D,W,(r+1)*RZ],[-r*D,0,(r+1)*RZ]],C.beton2,C.encre); }
+  { const pr=[[0,W,0]]; for(let r=0;r<nO;r++) pr.push([-r*D,W,(r+1)*RZ],[-(r+1)*D,W,(r+1)*RZ]); pr.push([-nO*D,W,0]); if(!vir) quad(pr,C.beton3,C.encre); }
+  pub([0,0],[0,W],RZ);
+  const toitDe=(x0,x1,y0,y1,z)=>{ quad([[x0,y1,z-1.2],[x1,y1,z-1.2],[x1,y1,z],[x0,y1,z]],C.rouge,C.encre); quad([[x1,y0,z-1.2],[x1,y1,z-1.2],[x1,y1,z],[x1,y0,z]],C.rouge,C.encre);
+    quad([[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],C.clair,C.encre);
+    const lx=x1-x0, ly=y1-y0; if(lx>ly) for(let x=x0+10;x<x1-4;x+=10) ligne(P(x,y0,z),P(x,y1,z),C.beton3); else for(let y=y0+10;y<y1-4;y+=10) ligne(P(x0,y,z),P(x1,y,z),C.beton3); };
+  const rampe=(a,b,z)=>{ const n=Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/5); for(let i=0;i<=n;i++){ const p=P(a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n,z); px(p[0],p[1],i%2?C.blanc:C.jaune); if(i%4===0) lampes.push([p[0],p[1],4]); } };
+  if(toit){ const pN=Math.max(1,Math.round(nN*.55))*D, pO=Math.max(1,Math.round(nO*.55))*D;
+    toitDe(xN0-1,xN1+1,-nN*D-2,-nN*D+pN,hN+7); if(ecl===3) rampe([xN0,-nN*D+pN+.2],[xN1,-nN*D+pN+.2],hN+6);
+    toitDe(-nO*D-2,-nO*D+pO,vir?-1:0,W+1,hO+7); if(ecl===3) rampe([-nO*D+pO+.2,0],[-nO*D+pO+.2,W],hO+6); }
+  if(R.ecran){ const z=hN+(toit?8:1), x=xN0+6; quad([[x,-nN*D,z],[x+26,-nN*D,z],[x+26,-nN*D,z+11],[x,-nN*D,z+11]],C.encre,C.beton3);
+    quad([[x+2,-nN*D,z+2],[x+24,-nN*D,z+2],[x+24,-nN*D,z+9],[x+2,-nN*D,z+9]],image%2?C.jaune:C.rouge); }
+
+  // --- la pelouse
+  quad([[-3,-0.01,0],[L+3,-0.01,0],[L+3,W,0],[-3,W,0]],C.herbe);
+  for(let i=0;i<7;i+=2) quad([[i*15,3,0],[i*15+15,3,0],[i*15+15,W-3,0],[i*15,W-3,0]],C.herbe2);
+  const tr=(a,b)=>ligne(P(a[0],a[1],0),P(b[0],b[1],0),C.trait);
+  tr([2,4],[L-2,4]); tr([L-2,4],[L-2,W-4]); tr([L-2,W-4],[2,W-4]); tr([2,W-4],[2,4]); tr([L/2,4],[L/2,W-4]);
+  { let av=null; for(let a=0;a<=24;a++){ const q=[L/2+9*Math.cos(a/12*Math.PI),W/2+9*Math.sin(a/12*Math.PI)]; if(av) tr(av,q); av=q; } }
+  for(const [x0,x1] of [[2,18],[L-18,L-2]]){ tr([x0,W/2-20],[x1,W/2-20]); tr([x0,W/2+20],[x1,W/2+20]); const xm=x0===2?x1:x0; tr([xm,W/2-20],[xm,W/2+20]); }
+
+  pylone(L+nE*D+9,-nN*D-9); pylone(-nO*D-9,W+nS*D+9);
+  // --- EST (devant à droite) : on voit les gradins de dessus et le mur extérieur
+  for(let r=0;r<nE;r++) gradin(L+r*D,L+(r+1)*D,0,W,(r+1)*RZ,r);
+  quad([[L+nE*D,0,0],[L+nE*D,W,0],[L+nE*D,W,hE],[L+nE*D,0,hE]],C.beton2,C.encre); fenetres([L+nE*D+.2,0],[L+nE*D+.2,W],0,hE,3);
+  { const pr=[[L,W,0]]; for(let r=0;r<nE;r++) pr.push([L+r*D,W,(r+1)*RZ],[L+(r+1)*D,W,(r+1)*RZ]); pr.push([L+nE*D,W,0]); quad(pr,C.beton3,C.encre); }
+  if(toit){ const pE=Math.max(1,Math.round(nE*.55))*D; toitDe(L+nE*D-pE,L+nE*D+2,vir?-1:0,W+1,hE+7); if(ecl===3) rampe([L+nE*D-pE-.2,0],[L+nE*D-pE-.2,W],hE+6); }
+  // --- SUD (devant à gauche)
+  const xS0=vir?-nO*D:0, xS1=vir?L+nE*D:L;
+  for(let r=0;r<nS;r++) gradin(xS0,xS1,W+r*D,W+(r+1)*D,(r+1)*RZ,r+1);
+  quad([[xS0,W+nS*D,0],[xS1,W+nS*D,0],[xS1,W+nS*D,hS],[xS0,W+nS*D,hS]],C.beton,C.encre); fenetres([xS0,W+nS*D+.2],[xS1,W+nS*D+.2],0,hS,9);
+  { const pr=[[xS1,W,0]]; for(let r=0;r<nS;r++) pr.push([xS1,W+r*D,(r+1)*RZ],[xS1,W+(r+1)*D,(r+1)*RZ]); pr.push([xS1,W+nS*D,0]); quad(pr,C.beton2,C.encre); }
+  if(toit){ const pS=Math.max(1,Math.round(nS*.55))*D; toitDe(xS0-1,xS1+1,W+nS*D-pS,W+nS*D+2,hS+7); if(ecl===3) rampe([xS0,W+nS*D-pS-.2],[xS1,W+nS*D-pS-.2],hS+6); }
+  pylone(L+nE*D+9,W+nS*D+9);
+
+  // --- la lumière : un damier clair autour de chaque lampe, jamais de fondu
+  for(const [gx,gy,r] of lampes) for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++){ const X=gx+dx, Y=gy+dy; if(X<0||Y<0||X>=GW||Y>=GH||(X+Y)%2||dx*dx+dy*dy>r*r) continue;
+    const c=lit(X,Y); if(c[0]+c[1]+c[2]<150) px(X,Y,C.lueur); }
+  ctx.putImageData(new ImageData(buf,GW,GH),0,0);
+}
+return {rendre, etape, GW, GH};
+})();
+
+/* ============================================================
+   PUPITRE
+   ============================================================ */
+(()=>{
+  const $=id=>document.getElementById(id), ctx=$('ecran').getContext('2d');
+  const R={cap:22500, aff:.8, virages:0, toit:0, ecran:0, eclairage:1};
+  const FMT=n=>Math.round(n).toLocaleString('fr-FR').replace(/[  ]/g,' ');
+  const calme=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let image=0;
+  function maj(){
+    if(R.cap<20000) R.virages=0; if(!R.toit&&R.eclairage===3) R.eclairage=2;
+    $('bVir').disabled=R.cap<20000; $('bVir').setAttribute('aria-pressed',!!R.virages); $('bToit').setAttribute('aria-pressed',!!R.toit); $('bEcran').setAttribute('aria-pressed',!!R.ecran);
+    document.querySelectorAll('#segEcl button').forEach(b=>{ b.setAttribute('aria-pressed',+b.dataset.e===R.eclairage); b.disabled=(+b.dataset.e===3&&!R.toit); });
+    $('capOut').textContent=FMT(R.cap); $('affOut').textContent=Math.round(R.aff*100)+' %';
+    $('etape').textContent=STADEPIX.etape(R.cap).toUpperCase(); $('places').textContent=FMT(R.cap)+' PLACES';
+    STADEPIX.rendre(ctx,R,image);
+  }
+  $('rCap').addEventListener('input',e=>{ R.cap=+e.target.value; maj(); });
+  $('rAff').addEventListener('input',e=>{ R.aff=e.target.value/100; maj(); });
+  $('bVir').addEventListener('click',()=>{ R.virages=R.virages?0:1; maj(); });
+  $('bToit').addEventListener('click',()=>{ R.toit=R.toit?0:1; maj(); });
+  $('bEcran').addEventListener('click',()=>{ R.ecran=R.ecran?0:1; maj(); });
+  document.querySelectorAll('#segEcl button').forEach(b=>b.addEventListener('click',()=>{ R.eclairage=+b.dataset.e; maj(); }));
+  maj();
+  // deux images par seconde : le public bouge, l'écran géant clignote
+  if(!calme) setInterval(()=>{ image++; STADEPIX.rendre(ctx,R,image); },500);
+  window.__essai=(o)=>{ Object.assign(R,o); $('rCap').value=R.cap; $('rAff').value=R.aff*100; maj(); };
+})();
+</script>
+</body>
+</html>

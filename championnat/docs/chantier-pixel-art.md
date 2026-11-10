@@ -26,3 +26,16 @@ Les deux greffes ont été rejouées dans `index.html`, les animations en `steps
 le CSS du jeu, `VERSION` passée à 2.62. Harnais verts : stade, centre, multiplex, coupes, Europe et le harnais général.
 L'habillage du pupitre des prototypes (boutons à biseau, jauges à crans) n'a pas d'équivalent dans le jeu : le pupitre
 est un outil de prototype. Seul le cadre des maquettes a été porté.
+
+## Suite : le stade en vrai pixel art (prototype, 10/11/2026)
+
+Après la greffe, trois pistes de redessin ont été montrées à l'auteur sur une même tribune (vignette d'album, vrai
+pixel art, plan d'architecte). **Il a retenu le vrai pixel art.** Premier jet dans `docs/prototype-stade-pixel.html` :
+un moteur `STADEPIX` qui pose chaque pixel sur une grille de 320 x 224, palette fermée de vingt couleurs, contours à
+l'encre, aucun filtre. Il reprend les règles de taille de la maquette d'origine (`rangs`, `profondeurs`, virages,
+uniformisation) et sait déjà dessiner : les quatre tribunes qui grandissent, les virages, la toiture, les trois
+éclairages, l'écran géant, le public selon le remplissage, deux images par seconde.
+**Pas encore fait** : commerces et annexes (boutique, buvette, restaurant, musée, hôtel, transports), kop, loges,
+ruban LED, toit rétractable, styles de l'histoire, gabarit cliquable de la prochaine tribune, grue de chantier, et
+le branchement dans le jeu (`maquetteStade` attend une chaîne SVG, ce moteur dessine dans un canvas).
+Rien dans `index.html` ne l'utilise pour l'instant.
