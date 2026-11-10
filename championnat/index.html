@@ -12906,7 +12906,7 @@ function ouvreBlessure(ctx, lg, idx){
   const fiche=cadreMoment("🏥 BLESSURE : "+m+"ᵉ MINUTE",
     `<p><b>${esc(j.nom)}</b> ne peut pas reprendre. ${entrant?"Le banc a déjà fait lever <b>"+esc(entrant.nom)+"</b>.":"Plus de changement possible."}</p>
      <p style="margin-top:10px">
-       ${entrant?`<button class="big zChoix" id="bVite" style="padding:12px">⚡ Remplacement rapide : ${esc(entrant.nom)}</button>`:""}
+       ${entrant?`<button class="big zChoix" id="bVite" style="padding:12px">⚡ Remplacement rapide : ${esc(entrant.nom)} (${entrant.pos} ${Math.round(entrant.note)})</button>`:""}
        ${(entrant&&cands.length)?`<br><span class="dim" style="font-size:13px">ou faire entrer&nbsp;:</span><br>${cands.map((x,n)=>`<button class="act zChoix bAutreB" data-n="${n}" style="margin:4px 3px 0">${lib(x)}</button>`).join("")}`:""}
        <br><button class="act zChoix" id="bDents" style="margin-top:10px;padding:10px">🦵 Il reste</button>
        ${entrant?"":`<br><button class="act zChoix" id="bDix" style="margin-top:6px;padding:10px">🚑 Le sortir</button>`}
@@ -13090,7 +13090,7 @@ function hommeCuit(moi, m){
 /* La question et ses réponses. Chaque situation dit les trois consignes à sa façon ; celle qui est déjà en place
    devient « on garde le plan ». `sc` = le score à afficher (« Nantes 1 - 0 Lens »). */
 const ARRETS_DIT={
-  mt:      {q:sc=>sc+". Le discours ?",                    prudent:"🧱 On resserre",            equilibre:"⚖️ On reste en place", offensif:"⚔️ On y va",                 garde:"👍 On garde le plan"},
+  mt:      {q:sc=>sc+". Le discours ?",                    prudent:"🚌 On met le bus",          equilibre:"⚖️ On reste en place", offensif:"⚔️ À l'abordage",            garde:"👍 On garde le plan"},
   encaisse:{q:sc=>"But encaissé. "+sc+".",                 prudent:"🧱 Pas de panique, on ferme", equilibre:"⚖️ On reste en place", offensif:"⚔️ Tout le monde devant",    garde:"👍 On ne change rien"},
   rougeN:  {q:(sc,s)=>"Rouge pour "+s.nom+". À dix.",      prudent:"🧱 On ferme la boutique",   equilibre:"⚖️ On tient le plan",  offensif:"⚔️ On tente quand même",     garde:"👍 On ne change rien"},
   rougeE:  {q:(sc,s)=>s.nom+" expulsé. Ils sont à dix.",   prudent:"🧱 Sans prendre de risque", equilibre:"⚖️ On reste en place", offensif:"⚔️ On en profite",           garde:"👍 On ne change rien"},
@@ -13100,7 +13100,7 @@ const ARRETS_DIT={
 };
 function questionArret(s, consigne, sc, diff){
   if(s.type==="cuit") return {titre:"😮‍💨 "+s.m+"ᵉ MINUTE", q:s.sortant.nom+" n'a plus de jambes.", rep:[
-    {lab:"🔁 "+s.entrant.nom+" entre", act:{k:"change"}},
+    {lab:"🔁 "+s.entrant.nom+" entre ("+s.entrant.pos+" "+Math.round(s.entrant.note)+")", act:{k:"change"}},
     {lab:"👍 Il reste", act:{k:"garde"}}]
     .concat(consigne!=="prudent" ? [{lab:"🧱 On recule d'un cran", act:{k:"consigne", v:"prudent"}}] : [])};
   const cle=s.type==="rouge" ? (s.nous?"rougeN":"rougeE") : s.type==="serre" ? (diff>0?"serreG":diff<0?"serreP":"serreN") : s.type;

@@ -117,7 +117,7 @@ console.log("A) le rythme des arrêts");
 /* ---------- B) les questions ---------- */
 console.log("B) les questions");
 {
-  const faux = { nom: "X. Durand", pos: "M" }, ent = { nom: "Y. Martin", pos: "M" };
+  const faux = { nom: "X. Durand", pos: "M", note: 70 }, ent = { nom: "Y. Martin", pos: "M", note: 68 };
   const sits = [{ type: "mt", m: 45 }, { type: "encaisse", m: 30 }, { type: "rouge", m: 50, nous: true, nom: "Z. Petit" },
     { type: "rouge", m: 50, nous: false, nom: "Z. Petit" }, { type: "serre", m: 75 }, { type: "cuit", m: 65, sortant: faux, entrant: ent }];
   let bon = true, gardeToujours = true, pasDeDouble = true, propre = true;
