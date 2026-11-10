@@ -152,17 +152,13 @@
     .tete h1{ font-size:38px; }
   }
   /* ============================================================
-     HABILLAGE CONSOLE 16 BITS : angles droits, biseaux, ombres dures, jauges à crans, écran cathodique.
+     HABILLAGE CONSOLE 16 BITS : angles droits, biseaux, ombres dures, jauges à crans.
      Posé en fin de feuille, il ne fait que surcharger l'habillage d'avant. Aucune règle de jeu ici.
      ============================================================ */
   .pupitre,.vue,.plan .bloc{ border-radius:0; border:2px solid var(--line); box-shadow:inset 2px 2px 0 rgba(255,255,255,.05), 5px 5px 0 #040a14; }
   .vue h2::before,.plan h2::before{ content:"\25B6"; display:inline-block; color:var(--jaune); font-size:.55em; margin-right:.5em; vertical-align:.25em; }
-  /* l'écran : coque sombre, liseré, lignes de balayage */
+  /* le cadre de la maquette : coque sombre et liseré */
   .cadre{ position:relative; border-radius:0; border:4px solid #1b2c49; background:#000924; box-shadow:inset 0 0 0 2px #000, 0 0 0 2px #000, 4px 4px 0 2px rgba(0,0,0,.55); }
-  .cadre::after,.nScene::after{ content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
-    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.17) 2px 3px), radial-gradient(ellipse at center, rgba(0,0,0,0) 62%, rgba(0,0,0,.28) 100%); }
-  .nScene{ position:relative; border-bottom:2px solid #000; }
-  @media (max-width:600px){ .cadre#maq::after{ width:190%; } }
   /* boutons : touches en relief, enfoncées quand elles sont choisies */
   .seg button,.opt span,.second,.paliers span{ border-radius:0; border:2px solid #000; background:#1a3052; box-shadow:inset 2px 2px 0 rgba(255,255,255,.1), inset -2px -2px 0 rgba(0,0,0,.45); }
   .seg button[aria-checked="true"],.opt input:checked + span{ background:#0c1830; border-color:var(--jaune); color:var(--jaune); box-shadow:inset 2px 2px 0 rgba(0,0,0,.6), inset -2px -2px 0 rgba(255,255,255,.06); }
@@ -392,46 +388,21 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function rnd(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const saison=a=>a+'-'+String((a+1)%100).padStart(2,'0');
 
-/* ---- PIXEL ART 16 BITS : le dessin vectoriel passe par un filtre qui l'échantillonne sur une grille de gros pixels
-   (un point par case, pas de flou), le trame (matrice de Bayer 2x2) puis réduit la palette à quelques niveaux par canal
-   (niveaux plus serrés dans les sombres, puisque le jeu vit la nuit).
-   Tout reste du SVG vivant : les animations et les zones cliquables continuent de marcher sous le filtre.
-   c = côté d'un pixel de jeu, en unités du viewBox ; niv = niveaux par canal ; (X,Y) = origine du viewBox. ---- */
-function corpsPixel(X,Y,c,d,o,r,niv){
-  const pas=1/(niv-1), n3=v=>(+v).toFixed(4);
-  const tv=[...Array(2*(niv-1))].map((_,j)=>n3(Math.ceil(j/2)/(niv-1))).join(' ');   // arrondi au niveau le plus proche
-  const trame=(x,y,a,nom)=>`<feFlood x="${n3(X+x)}" y="${n3(Y+y)}" width="${n3(c)}" height="${n3(c)}" flood-color="#fff" flood-opacity="${a}"/><feComposite width="${n3(2*c)}" height="${n3(2*c)}"/><feTile result="${nom}"/>`;
-  return `<feFlood x="${n3(X+o)}" y="${n3(Y+o)}" width="${n3(d)}" height="${n3(d)}"/><feComposite width="${n3(c)}" height="${n3(c)}"/><feTile result="grille"/>
-    <feComposite in="SourceGraphic" in2="grille" operator="in"/><feMorphology operator="dilate" radius="${n3(r)}" result="gros"/>
-    <feMerge result="plein"><feMergeNode in="SourceGraphic"/><feMergeNode in="gros"/></feMerge>
-    ${trame(c,0,.5,'t1')}${trame(0,c,.75,'t2')}${trame(c,c,.25,'t3')}
-    <feMerge result="bayer"><feMergeNode in="t1"/><feMergeNode in="t2"/><feMergeNode in="t3"/></feMerge>
-    <feComponentTransfer in="plein" result="clair"><feFuncR type="gamma" exponent=".6"/><feFuncG type="gamma" exponent=".6"/><feFuncB type="gamma" exponent=".6"/></feComponentTransfer>
-    <feComposite in="clair" in2="bayer" operator="arithmetic" k1="0" k2="1" k3="${n3(pas*.5)}" k4="${n3(-pas*.5*.375)}"/>
-    <feComponentTransfer><feFuncR type="discrete" tableValues="${tv}"/><feFuncG type="discrete" tableValues="${tv}"/><feFuncB type="discrete" tableValues="${tv}"/></feComponentTransfer>
-    <feComponentTransfer><feFuncR type="gamma" exponent="1.6667"/><feFuncG type="gamma" exponent="1.6667"/><feFuncB type="gamma" exponent="1.6667"/></feComponentTransfer>`;
-}
-function filtrePixel(id,X,Y,w,h,c,niv){
-  c=c||2.5; niv=niv||8;
-  const d=c*0.36, o=(c-d)/2;
-  return `<filter id="${id}" data-pix="${c}" data-niv="${niv}" filterUnits="userSpaceOnUse" x="${X}" y="${Y}" width="${w}" height="${h}" color-interpolation-filters="sRGB">${corpsPixel(X,Y,c,d,o,o+.35,niv)}</filter>`;
-}
-/* Cale la grille sur les pixels de l'écran : un pixel de jeu = un nombre entier (impair) de pixels physiques, sinon la
-   grille bave et dessine un quadrillage. À appeler après avoir posé un SVG dans la page ; chaque SVG est ensuite
-   surveillé (ResizeObserver) et se recale tout seul quand sa taille change. */
-function caleFiltre(f){
-  const svg=f.ownerSVGElement, vb=svg&&svg.viewBox.baseVal, m=svg&&svg.getScreenCTM();
-  if(!vb||!vb.width||!m||!m.a) return;
-  const dpr=window.devicePixelRatio||1, e=m.a*dpr;                           // pixels physiques par unité de dessin
-  const voulu=Math.max(+f.dataset.pix*e, 1.2*dpr);                           // jamais moins d'un pixel d'écran et quelque
-  const n=Math.max(3, 2*Math.round((voulu-1)/2)+1), cle=n+'/'+e.toFixed(4);
-  if(f.dataset.cale===cle) return; f.dataset.cale=cle;
-  f.innerHTML=corpsPixel(vb.x, vb.y, n/e, 1/e, (n-1)/2/e, (n-1)/2/e, +f.dataset.niv);
-}
-const VEILLE=typeof ResizeObserver!=='undefined'?new ResizeObserver(l=>l.forEach(x=>x.target.querySelectorAll('filter[data-pix]').forEach(caleFiltre))):null;
-function calePixels(racine){
-  if(typeof document==='undefined') return;
-  (racine||document).querySelectorAll('filter[data-pix]').forEach(f=>{ caleFiltre(f); if(VEILLE&&f.ownerSVGElement) VEILLE.observe(f.ownerSVGElement); });
+/* ---- RÉTRO PAR LE STYLE : pas de filtre, le dessin reste net. Les dégradés lisses deviennent des paliers francs
+   (halos en anneaux, ciel en bandes), comme sur une console 16 bits qui n'avait pas assez de couleurs pour fondre. ---- */
+function crans(svg){
+  const hex=c=>{ c=c.replace('#',''); if(c.length===3) c=c.split('').map(x=>x+x).join(''); return [0,2,4].map(i=>parseInt(c.slice(i,i+2),16)); };
+  return svg.replace(/<(radial|linear)Gradient([^>]*)>([\s\S]*?)<\/\1Gradient>/g,(tout,type,attr,corps)=>{
+    const st=[...corps.matchAll(/<stop([^>]*)\/>/g)].map(m=>{ const a=m[1], g=(n,d)=>{ const r=a.match(new RegExp(n+'="([^"]*)"')); return r?r[1]:d; };
+      return {o:+g('offset','0'), c:hex(g('stop-color','#000')), a:+g('stop-opacity','1')}; });
+    if(st.length<2) return tout;
+    const n=type==='radial'?4:7, en=t=>{ let i=0; while(i<st.length-2&&t>st[i+1].o) i++; const A=st[i], B=st[i+1], u=Math.max(0,Math.min(1,(t-A.o)/((B.o-A.o)||1)));
+      return {c:A.c.map((v,k)=>Math.round(v+(B.c[k]-v)*u)), a:A.a+(B.a-A.a)*u}; };
+    let o='';
+    for(let i=0;i<n;i++){ const v=en((i+.5)/n), col='#'+v.c.map(x=>x.toString(16).padStart(2,'0')).join(''), op=v.a.toFixed(2);
+      o+=`<stop offset="${(i/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/><stop offset="${((i+1)/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/>`; }
+    return `<${type}Gradient${attr}>${o}</${type}Gradient>`;
+  });
 }
 function points(R){ return FAMS.reduce((s,f)=>s+R[f.id],0); }
 function palier(R){ if(R.chateau) return 'Le Château'; const p=points(R); let n=PALIERS[0][1]; for(const [s,nm] of PALIERS) if(p>=s) n=nm; return n; }
@@ -795,7 +766,6 @@ function lumiere(vb,fete){ const [X,Y,W,H]=vbN(vb);
   return o; }
 
 /* --- la scène --- */
-let NPIX=0;
 const GRUES={terrains:[137,128,40],physique:[180,46,30],medical:[102,50,30],vie:[50,48,34],academie:[42,114,30],video:[194,48,46],chateau:[48,168,48]};
 function scene(R,o){
   o=o||{}; BB=null; const F=o.focus||null, ann=R.annee, objs=[]; let ground='';
@@ -819,21 +789,20 @@ function scene(R,o){
   else if(F&&BB){ const pad=30, AR=760/440; let w=BB[2]-BB[0]+pad*2, h=BB[3]-BB[1]+pad*2; if(w/h<AR) w=h*AR; else h=w/AR; w=Math.max(w,300); h=Math.max(h,300/AR);
     const cx=(BB[0]+BB[2])/2, cy=(BB[1]+BB[3])/2; vb=`${f1(cx-w/2)} ${f1(cy-h/2)} ${f1(w)} ${f1(h)}`; }
   const gold=R.chateau&&!F?rect(-3,243,-3,203,0,'none',' stroke="#ffd24a" stroke-width="1.4" opacity=".55"'):'';
-  const fid='ctPix'+(++NPIX);   // un filtre par scène : son cadre suit le viewBox, et deux scènes cohabitent sur la carte de livraison
   let s=`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Maquette isométrique du centre d'entraînement, ${palier(R)}">
   <defs><radialGradient id="cHalo"><stop offset="0" stop-color="#fffbe6" stop-opacity=".9"/><stop offset=".3" stop-color="#ffe58a" stop-opacity=".4"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
   <linearGradient id="cAube" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb07a" stop-opacity=".55"/><stop offset=".5" stop-color="#e08aa0" stop-opacity=".16"/><stop offset="1" stop-color="#5a6ab0" stop-opacity=".08"/></linearGradient>
   <linearGradient id="cOr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd24a" stop-opacity=".35"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></linearGradient>
   <radialGradient id="cBrume"><stop offset="0" stop-color="#eef3fb" stop-opacity=".5"/><stop offset=".6" stop-color="#eef3fb" stop-opacity=".18"/><stop offset="1" stop-color="#eef3fb" stop-opacity="0"/></radialGradient>
   <radialGradient id="cEau"><stop offset="0" stop-color="#8fd0ff" stop-opacity=".35"/><stop offset="1" stop-color="#8fd0ff" stop-opacity="0"/></radialGradient>
-  ${filtrePixel(fid,...vbN(vb),vbN(vb)[2]/276)}</defs>
-  <g filter="url(#${fid})"><rect x="-400" y="-400" width="1600" height="1400" fill="${o.aube?'#141a33':'#000924'}"/>`;
+</defs>
+  <g><rect x="-400" y="-400" width="1600" height="1400" fill="${o.aube?'#141a33':'#000924'}"/>`;
   s+= F?`<g opacity=".4">${base}</g>`:base;
   s+=ground+gold;
   if(o.aube) s+=brume(vb);
   for(const ob of objs) s+=(F&&ob.fam!==F&&ob.fam!=='grue'&&ob.fam!=='aube')?`<g opacity=".3">${ob.svg}</g>`:ob.svg;
   if(o.aube) s+=lumiere(vb,F==='chateau');
-  return {svg:s+'</g></svg>', vb};
+  return {svg:crans(s+'</g></svg>'), vb};
 }
 
 /* ===== CENTRE3D : FIN ===== */
@@ -886,7 +855,7 @@ function majTout(){
   bc.disabled=!!R.chateau||!ouvert||!!CHT||!!carriere; bc.classList.toggle('fait',!!R.chateau);
   $('chateauInfo').textContent=R.chateau?'Le château est construit.':(ouvert?`${CHATEAU.cout} MF · ${CHATEAU.duree} journées · définitif`:'15 points, et chaque bâtiment au niveau 2');
   $('anneeOut').textContent=saison(R.annee); $('annee').value=R.annee;
-  $('maq').innerHTML=scene(R,{ch:CHT}).svg; calePixels($('maq'));
+  $('maq').innerHTML=scene(R,{ch:CHT}).svg;
   majGains();
 }
 function majGains(){
@@ -911,7 +880,6 @@ function majGains(){
 function ouvreLivraison(id,n,avant){
   const apres={...R}, a=scene(apres,{focus:id,aube:true}), b=scene(avant,{focus:id,vb:a.vb,aube:true});
   $('nScene').innerHTML=`<div class="avant">${b.svg}</div><div class="apres">${a.svg}</div>`;
-  requestAnimationFrame(()=>calePixels($('nScene')));
   if(id==='chateau'){ $('nTitre').textContent='Le château'; $('nSous').textContent='Cinq tours, des douves, une grille dorée et un parc. Le président coupe le ruban, les jeunes du pays rêvent d\'y dormir une nuit.'; $('nChiffres').textContent='Progression +10 % · une montée de plus · mise au vert avant les grands soirs'; }
   else { const f=FAM[id]; $('nTitre').textContent=nomNiveau(f,n,apres.annee); $('nSous').textContent=f.sous[n]; $('nChiffres').textContent=f.eff[n]; }
   $('nSur').textContent=id==='chateau'?'INAUGURATION · LE CHÂTEAU':'LIVRAISON · LUNDI, 7 H 30 · CENTRE D\'ENTRAÎNEMENT';
@@ -919,7 +887,6 @@ function ouvreLivraison(id,n,avant){
   $('notif').hidden=false; $('nOk').focus();
 }
 function fermeLivraison(){ $('notif').hidden=true; }
-addEventListener('resize',()=>calePixels());
 $('nOk').addEventListener('click',fermeLivraison);
 $('notif').addEventListener('click',e=>{ if(e.target===$('notif')) fermeLivraison(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') fermeLivraison(); });

@@ -1,30 +1,27 @@
-# Chantier « pixel art 16 bits » : stade et centre d'entraînement
+# Chantier « rétro » : stade et centre d'entraînement
 
 Branche `chantier/pixel-art-stade-centre`. **Seuls les prototypes ont bougé** (`docs/prototype-stade.html`,
-`docs/prototype-centre.html`) et les deux scripts de greffe, qui exportent désormais `calePixels`.
-`index.html` n'est pas touché : la greffe dans le jeu reste à faire, une fois le rendu validé.
+`docs/prototype-centre.html`). `index.html` n'est pas touché : la greffe reste à faire, une fois le rendu validé.
 
-## Ce qui change dans les prototypes
+## Ce qui a été essayé puis retiré (10/11/2026)
 
-Le dessin reste celui d'avant, en SVG vivant. Il passe désormais par un filtre (`filtrePixel`) qui le découpe en gros
-pixels, le trame et réduit sa palette. Les animations et les zones cliquables marchent toujours dessous.
-`calePixels(racine)` cale la grille sur les pixels de l'écran, puis surveille chaque maquette pour se recaler seule.
-Les animations passent en image par image (`steps()` en CSS, `calcMode="discrete"` pour les joueurs du campus) :
-c'est plus rétro, et le filtre ne se recalcule que quelques fois par seconde.
-L'habillage (bloc « HABILLAGE CONSOLE 16 BITS » en fin de feuille de style) refait le cadre en écran cathodique,
-les boutons en touches à biseau, les jauges à crans et la carte de livraison.
+Un filtre qui hachait le dessin en gros pixels, avec tramage et lignes d'écran cathodique. **Refusé par l'auteur** :
+« on n'y voit pas grand-chose avec les traits superposés et tous les pixels ». Leçon : on ne pose pas un effet
+16 bits par-dessus un dessin vectoriel fin, ça donne du bruit. Ne pas y revenir.
 
-## Ce qu'il faudra faire dans le jeu, au moment de la greffe
+## Ce qui reste
 
-1. Relancer `node docs/greffe-stade.cjs .` puis `node docs/greffe-centre.cjs .` depuis `championnat/`.
-2. Appeler `STADE3D.calePixels(el)` et `CENTRE3D.calePixels(el)` juste après chaque pose d'une maquette ou d'une
-   carte de livraison dans la page (`maquetteStade`, `maquetteCentre`, `ouvreLivraison`, `ouvreLivraisonCentre`,
-   aperçu du choix de style). Sans cet appel le rendu marche, mais la grille peut baver.
-3. Reporter dans le CSS du jeu les animations en `steps()` (`.feu`, `.eclat`, `.defile`, `.vapeur`, et pour le
-   centre `.arrive`, `.brume`, `.jet`, `.cEclat`, `.cVapeur`, `.bob`, `.vv`) et l'habillage du cadre et des boutons.
-4. Relancer `harness-stade.cjs` et `harness-centre.cjs` (verts sur une copie d'essai avec la greffe).
+- **Le dessin est net**, comme avant. Le rétro passe par le style : les dégradés lisses deviennent des paliers
+  francs (`crans(svg)`, halos en anneaux, ciel en bandes), sans aucun filtre.
+- **Animations image par image** (`steps()` en CSS, `calcMode="discrete"` pour les joueurs du campus).
+- **Habillage console** (bloc « HABILLAGE CONSOLE 16 BITS » en fin de feuille de style) : cadres à angles droits,
+  boutons à biseau, jauges à crans. Pas de lignes d'écran.
+- **La carte de livraison du stade se consacre à l'élément livré** (demande de l'auteur : « la carte est surchargée
+  à force d'additionner les éléments ») : pour une boutique, une buvette, un restaurant, un musée ou un hôtel,
+  `vueVille` cadre serré sur l'élément (table `ELEM`), le stade ne reste qu'en toile de fond.
 
-## À vérifier sur de vrais appareils
+## Pour la greffe dans le jeu
 
-Testé sous Chrome seulement (ordinateur et gabarit téléphone). Le filtre repose sur `feTile` et `feMorphology` :
-à contrôler sur iPhone (Safari) avant de publier.
+1. `node docs/greffe-stade.cjs .` puis `node docs/greffe-centre.cjs .` depuis `championnat/`.
+2. Reporter dans le CSS du jeu les animations en `steps()` et l'habillage.
+3. Relancer `harness-stade.cjs` et `harness-centre.cjs` (verts sur une copie d'essai avec la greffe).

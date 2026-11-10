@@ -126,17 +126,13 @@
     .tete h1{ font-size:36px; }
   }
   /* ============================================================
-     HABILLAGE CONSOLE 16 BITS : angles droits, biseaux, ombres dures, jauges à crans, écran cathodique.
+     HABILLAGE CONSOLE 16 BITS : angles droits, biseaux, ombres dures, jauges à crans.
      Posé en fin de feuille, il ne fait que surcharger l'habillage d'avant. Aucune règle de jeu ici.
      ============================================================ */
   .pupitre,.vue,.plan .bloc{ border-radius:0; border:2px solid var(--line); box-shadow:inset 2px 2px 0 rgba(255,255,255,.05), 5px 5px 0 #040a14; }
   .vue h2::before,.plan h2::before{ content:"\25B6"; display:inline-block; color:var(--jaune); font-size:.55em; margin-right:.5em; vertical-align:.25em; }
-  /* l'écran : coque sombre, liseré, lignes de balayage */
+  /* le cadre de la maquette : coque sombre et liseré */
   .cadre{ position:relative; border-radius:0; border:4px solid #1b2c49; background:#000924; box-shadow:inset 0 0 0 2px #000, 0 0 0 2px #000, 4px 4px 0 2px rgba(0,0,0,.55); }
-  .cadre::after,.nScene::after{ content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
-    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.17) 2px 3px), radial-gradient(ellipse at center, rgba(0,0,0,0) 62%, rgba(0,0,0,.28) 100%); }
-  .nScene{ position:relative; border-bottom:2px solid #000; }
-  @media (max-width:600px){ .cadre#maq::after{ width:190%; } }
   /* boutons : touches en relief, enfoncées quand elles sont choisies */
   .seg button,.opt span,.second,.paliers span{ border-radius:0; border:2px solid #000; background:#1a3052; box-shadow:inset 2px 2px 0 rgba(255,255,255,.1), inset -2px -2px 0 rgba(0,0,0,.45); }
   .seg button[aria-checked="true"],.opt input:checked + span{ background:#0c1830; border-color:var(--jaune); color:var(--jaune); box-shadow:inset 2px 2px 0 rgba(0,0,0,.6), inset -2px -2px 0 rgba(255,255,255,.06); }
@@ -314,46 +310,21 @@ function palierSuivant(cap){ return PALIERS.find(([s])=>s>cap)||null; }
 function rnd(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const f1=v=>(+v).toFixed(1);
 const COUL=['#ffd24a','#f2f5fa','#ff6f61','#5fd98f','#8fb8e8'];
-/* ---- PIXEL ART 16 BITS : le dessin vectoriel passe par un filtre qui l'échantillonne sur une grille de gros pixels
-   (un point par case, pas de flou), le trame (matrice de Bayer 2x2) puis réduit la palette à quelques niveaux par canal
-   (niveaux plus serrés dans les sombres, puisque le jeu vit la nuit).
-   Tout reste du SVG vivant : les animations et les zones cliquables continuent de marcher sous le filtre.
-   c = côté d'un pixel de jeu, en unités du viewBox ; niv = niveaux par canal ; (X,Y) = origine du viewBox. ---- */
-function corpsPixel(X,Y,c,d,o,r,niv){
-  const pas=1/(niv-1), n3=v=>(+v).toFixed(4);
-  const tv=[...Array(2*(niv-1))].map((_,j)=>n3(Math.ceil(j/2)/(niv-1))).join(' ');   // arrondi au niveau le plus proche
-  const trame=(x,y,a,nom)=>`<feFlood x="${n3(X+x)}" y="${n3(Y+y)}" width="${n3(c)}" height="${n3(c)}" flood-color="#fff" flood-opacity="${a}"/><feComposite width="${n3(2*c)}" height="${n3(2*c)}"/><feTile result="${nom}"/>`;
-  return `<feFlood x="${n3(X+o)}" y="${n3(Y+o)}" width="${n3(d)}" height="${n3(d)}"/><feComposite width="${n3(c)}" height="${n3(c)}"/><feTile result="grille"/>
-    <feComposite in="SourceGraphic" in2="grille" operator="in"/><feMorphology operator="dilate" radius="${n3(r)}" result="gros"/>
-    <feMerge result="plein"><feMergeNode in="SourceGraphic"/><feMergeNode in="gros"/></feMerge>
-    ${trame(c,0,.5,'t1')}${trame(0,c,.75,'t2')}${trame(c,c,.25,'t3')}
-    <feMerge result="bayer"><feMergeNode in="t1"/><feMergeNode in="t2"/><feMergeNode in="t3"/></feMerge>
-    <feComponentTransfer in="plein" result="clair"><feFuncR type="gamma" exponent=".6"/><feFuncG type="gamma" exponent=".6"/><feFuncB type="gamma" exponent=".6"/></feComponentTransfer>
-    <feComposite in="clair" in2="bayer" operator="arithmetic" k1="0" k2="1" k3="${n3(pas*.5)}" k4="${n3(-pas*.5*.375)}"/>
-    <feComponentTransfer><feFuncR type="discrete" tableValues="${tv}"/><feFuncG type="discrete" tableValues="${tv}"/><feFuncB type="discrete" tableValues="${tv}"/></feComponentTransfer>
-    <feComponentTransfer><feFuncR type="gamma" exponent="1.6667"/><feFuncG type="gamma" exponent="1.6667"/><feFuncB type="gamma" exponent="1.6667"/></feComponentTransfer>`;
-}
-function filtrePixel(id,X,Y,w,h,c,niv){
-  c=c||2.5; niv=niv||8;
-  const d=c*0.36, o=(c-d)/2;
-  return `<filter id="${id}" data-pix="${c}" data-niv="${niv}" filterUnits="userSpaceOnUse" x="${X}" y="${Y}" width="${w}" height="${h}" color-interpolation-filters="sRGB">${corpsPixel(X,Y,c,d,o,o+.35,niv)}</filter>`;
-}
-/* Cale la grille sur les pixels de l'écran : un pixel de jeu = un nombre entier (impair) de pixels physiques, sinon la
-   grille bave et dessine un quadrillage. À appeler après avoir posé un SVG dans la page ; chaque SVG est ensuite
-   surveillé (ResizeObserver) et se recale tout seul quand sa taille change. */
-function caleFiltre(f){
-  const svg=f.ownerSVGElement, vb=svg&&svg.viewBox.baseVal, m=svg&&svg.getScreenCTM();
-  if(!vb||!vb.width||!m||!m.a) return;
-  const dpr=window.devicePixelRatio||1, e=m.a*dpr;                           // pixels physiques par unité de dessin
-  const voulu=Math.max(+f.dataset.pix*e, 1.2*dpr);                           // jamais moins d'un pixel d'écran et quelque
-  const n=Math.max(3, 2*Math.round((voulu-1)/2)+1), cle=n+'/'+e.toFixed(4);
-  if(f.dataset.cale===cle) return; f.dataset.cale=cle;
-  f.innerHTML=corpsPixel(vb.x, vb.y, n/e, 1/e, (n-1)/2/e, (n-1)/2/e, +f.dataset.niv);
-}
-const VEILLE=typeof ResizeObserver!=='undefined'?new ResizeObserver(l=>l.forEach(x=>x.target.querySelectorAll('filter[data-pix]').forEach(caleFiltre))):null;
-function calePixels(racine){
-  if(typeof document==='undefined') return;
-  (racine||document).querySelectorAll('filter[data-pix]').forEach(f=>{ caleFiltre(f); if(VEILLE&&f.ownerSVGElement) VEILLE.observe(f.ownerSVGElement); });
+/* ---- RÉTRO PAR LE STYLE : pas de filtre, le dessin reste net. Les dégradés lisses deviennent des paliers francs
+   (halos en anneaux, ciel en bandes), comme sur une console 16 bits qui n'avait pas assez de couleurs pour fondre. ---- */
+function crans(svg){
+  const hex=c=>{ c=c.replace('#',''); if(c.length===3) c=c.split('').map(x=>x+x).join(''); return [0,2,4].map(i=>parseInt(c.slice(i,i+2),16)); };
+  return svg.replace(/<(radial|linear)Gradient([^>]*)>([\s\S]*?)<\/\1Gradient>/g,(tout,type,attr,corps)=>{
+    const st=[...corps.matchAll(/<stop([^>]*)\/>/g)].map(m=>{ const a=m[1], g=(n,d)=>{ const r=a.match(new RegExp(n+'="([^"]*)"')); return r?r[1]:d; };
+      return {o:+g('offset','0'), c:hex(g('stop-color','#000')), a:+g('stop-opacity','1')}; });
+    if(st.length<2) return tout;
+    const n=type==='radial'?4:7, en=t=>{ let i=0; while(i<st.length-2&&t>st[i+1].o) i++; const A=st[i], B=st[i+1], u=Math.max(0,Math.min(1,(t-A.o)/((B.o-A.o)||1)));
+      return {c:A.c.map((v,k)=>Math.round(v+(B.c[k]-v)*u)), a:A.a+(B.a-A.a)*u}; };
+    let o='';
+    for(let i=0;i<n;i++){ const v=en((i+.5)/n), col='#'+v.c.map(x=>x.toString(16).padStart(2,'0')).join(''), op=v.a.toFixed(2);
+      o+=`<stop offset="${(i/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/><stop offset="${((i+1)/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/>`; }
+    return `<${type}Gradient${attr}>${o}</${type}Gradient>`;
+  });
 }
 
 /* ============================================================
@@ -433,9 +404,8 @@ function vueMaquette(R){
     <radialGradient id="iHalo"><stop offset="0" stop-color="#fffbe6" stop-opacity=".95"/><stop offset=".3" stop-color="#ffe58a" stop-opacity=".45"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
     <radialGradient id="iHaloStade"><stop offset="0" stop-color="#fff4c9" stop-opacity=".75"/><stop offset=".55" stop-color="#ffd98a" stop-opacity=".22"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
     <radialGradient id="iFeu"><stop offset="0" stop-color="#fff0d8"/><stop offset=".25" stop-color="#ff5a3a" stop-opacity=".9"/><stop offset="1" stop-color="#ff3a2a" stop-opacity="0"/></radialGradient>
-    ${filtrePixel('iPix',0,0,760,600)}
   </defs>
-  <g filter="url(#iPix)"><rect width="760" height="600" fill="#000924"/>`;
+  <g><rect width="760" height="600" fill="#000924"/>`;
 
   // --- sol, routes, parvis
   const G=92;
@@ -886,7 +856,7 @@ function vueMaquette(R){
     s+=`<ellipse cx="${f1(c[0])}" cy="${f1(c[1])}" rx="${f1(rx)}" ry="${f1(rx*.62)}" fill="url(#iHaloStade)" opacity="${f1(.05+.075*(ecl-1)+.05*R.aff+.1*clamp(R.legende||0,0,1))}" pointer-events="none"/>`; }
   s+=`</g><text x="18" y="582" font-family="Silkscreen,monospace" font-size="13" fill="#ffd24a">${etapeR(R).toUpperCase()}</text>
       <text x="742" y="582" text-anchor="end" font-family="VT323,monospace" font-size="22" fill="#d9e4f2">${FMT(R.cap)} places</text>`;
-  return s+'</svg>';
+  return crans(s+'</svg>');
 }
 
 /* ============================================================
@@ -915,7 +885,21 @@ function vueVille(R, id, focus){
     : `M${f1(x0-3)} ${f1(GY-he)} C${f1(x0+w*.25)} ${f1(GY-h-1)} ${f1(x1-w*.25)} ${f1(GY-h-1)} ${f1(x1+3)} ${f1(GY-he)}`;
   const ecl=R.eclairage||1, aff=R.aff, btq=montre('boutique')?(R.boutique||0):0, clampV=(v,a,b)=>Math.max(a,Math.min(b,v));
   const opMat=clampV(ecl-1,0,1)*clampV(3-ecl,0,1), opPoteau=clampV(2-ecl,0,1), opRampe=clampV(ecl-2,0,1)*clampV(R.toit*2-1,0,1), pyl=clampV(ecl-1,0,1);
-  let s=`<svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Le stade dans son quartier, soir de match, ${FMT(R.cap)} places">
+  // La carte de livraison se consacre à l'élément livré : pour un commerce ou une annexe, on cadre serré dessus
+  // (le stade ne reste qu'en toile de fond). Chaque entrée donne [bord gauche, bord droit, hauteur] de l'élément.
+  const rang=k=>Math.min(3,Math.max(1,Math.ceil((R[k]||0)-.001)))-1, xh=Math.max(20,x0-170);
+  const ELEM={
+    boutique:()=>[x1+28, x1+28+[36,88,140][rang('boutique')], [34,52,134][rang('boutique')]],
+    musee:()=>[x0-26-[46,92,120][rang('musee')], x0-26, [40,66,84][rang('musee')]],
+    buvette:()=>[x0+14, x0+[72,114,14+Math.min(120,w*.42)][rang('buvette')], [14,16,40][rang('buvette')]],
+    restaurant:()=>[x1-[104,132,150][rang('restaurant')], x1-10, [36,64,84][rang('restaurant')]],
+    hotel:()=>[xh, xh+[56,64,74][rang('hotel')], [86,136,206][rang('hotel')]],
+  };
+  let VB=[0,0,760,420];
+  if(focus&&ELEM[focus]){ const [xa,xb,hh]=ELEM[focus](), bas=GY+44;
+    const lw=Math.min(760,Math.max(xb-xa+110,(hh+90)*760/420,230)), lh=lw*420/760;
+    VB=[Math.max(0,Math.min(760-lw,(xa+xb)/2-lw/2)), Math.min(420-lh,bas-lh), lw, lh]; }
+  let s=`<svg viewBox="${VB.map(f1).join(' ')}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Le stade dans son quartier, soir de match, ${FMT(R.cap)} places">
   <defs>
     <linearGradient id="${id}Ciel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#040a15"/><stop offset=".7" stop-color="#0c1d36"/><stop offset="1" stop-color="#173050"/></linearGradient>
     <linearGradient id="${id}Facade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#23385a"/><stop offset="1" stop-color="#101c30"/></linearGradient>
@@ -926,9 +910,8 @@ function vueVille(R, id, focus){
     <pattern id="${id}Loges" width="7" height="8" patternUnits="userSpaceOnUse"><rect width="7" height="8" fill="#2c230c"/><rect x="1" y="1.5" width="5" height="5" fill="#ffcf6a"/></pattern>
     <radialGradient id="${id}Vign" cx=".5" cy=".55" r=".75"><stop offset=".55" stop-color="#02060d" stop-opacity="0"/><stop offset="1" stop-color="#02060d" stop-opacity=".75"/></radialGradient>
     <clipPath id="${id}Clip"><path d="${profil}"/></clipPath>
-    ${filtrePixel(id+'Pix',0,0,760,420)}
   </defs>
-  <g filter="url(#${id}Pix)"><rect width="760" height="420" fill="url(#${id}Ciel)"/>`;
+  <g><rect width="760" height="420" fill="url(#${id}Ciel)"/>`;
   if((R.legende||0)>0.01&&(!calme||focus==='legende')){ const op=Math.min(1,R.legende); [[150,70,'#ffd24a',0],[610,110,'#ff6f61',.6],[380,45,'#f7f1ea',1.2],[250,150,'#ffd24a',1.8],[520,60,'#7cc4ff',.3]].filter((f,q)=>!calme||q<3).forEach(([fx,fy,col,dl])=>{
       let r=''; for(let q=0;q<16;q++){ const a=q/16*Math.PI*2; r+=`<line x1="${f1(fx+Math.cos(a)*6)}" y1="${f1(fy+Math.sin(a)*6)}" x2="${f1(fx+Math.cos(a)*24)}" y2="${f1(fy+Math.sin(a)*24)}"/><circle cx="${f1(fx+Math.cos(a)*27)}" cy="${f1(fy+Math.sin(a)*27)}" r="1.5" fill="${col}" stroke="none"/>`; }
       s+=`<g class="eclat" style="animation-delay:-${dl}s;transform-origin:${fx}px ${fy}px" opacity="${f1(op)}" stroke="${col}" stroke-width="1.2" stroke-linecap="round">${r}</g>`; }); }
@@ -1183,10 +1166,10 @@ function vueVille(R, id, focus){
   const nb=Math.round(aff*VILLE.fans.length*(calme?.4:1));
   VILLE.fans.slice(0,nb).forEach(([a,b,c])=>{ const x=Math.max(12,Math.min(748,x0-130+a*(w+260))), y=GY+8+b*12;
     s+=`<rect x="${f1(x-1.3)}" y="${f1(y-5)}" width="2.6" height="5.5" fill="${COUL[c]}"/><circle cx="${f1(x)}" cy="${f1(y-6.6)}" r="1.4" fill="#e9d3b5"/>`; });
-  if(calme) s+=`<rect width="760" height="420" fill="url(#${id}Vign)"/>`;
+  if(calme) s+=`<rect x="${f1(VB[0])}" y="${f1(VB[1])}" width="${f1(VB[2])}" height="${f1(VB[3])}" fill="url(#${id}Vign)"/>`;
   s+='</g>';
   if(!calme) s+=`<text x="18" y="404" font-family="VT323,monospace" font-size="22" fill="#d9e4f2">${FMT(R.cap)} places</text>`;
-  return s+'</svg>';
+  return crans(s+'</svg>');
 }
 
 /* ============================================================
@@ -1200,8 +1183,7 @@ if(typeof document!=='undefined'){
   const calme=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let sale=true, dernier=performance.now(), occupe=false, carriere=false, derniereLivraison=null;
 
-  function rendre(){ $('vA').innerHTML=vueMaquette(R); $('vC').innerHTML=vueVille(R,'p'); calePixels(); }
-  addEventListener('resize',()=>calePixels());
+  function rendre(){ $('vA').innerHTML=vueMaquette(R); $('vC').innerHTML=vueVille(R,'p',(derniereLivraison&&derniereLivraison[6])||'tribune'); }
   function pupitre(){
     const c=cible.cap; $('capAff').textContent=FMT(c); $('capOut').textContent=FMT(c); $('etape').textContent=etapeR(cible);
     const ps=palierSuivant(c), prec=[...PALIERS].reverse().find(([s])=>s<=c);
@@ -1252,7 +1234,7 @@ if(typeof document!=='undefined'){
       const pas=now=>{ if(fini) return; const u=dur?Math.max(0,Math.min(1,(now-t0)/dur)):1, e=ease(u), E={};
         for(const k in apres) E[k]=typeof apres[k]==='number'?avant[k]+(apres[k]-avant[k])*e:apres[k];
         E.chantier=u<.75?1:Math.max(0,1-(u-.75)/.2);
-        sc.innerHTML=vueVille(E,'n',focus||'_'); calePixels(sc); if(u<1||E.chantier>0) requestAnimationFrame(pas); };
+        sc.innerHTML=vueVille(E,'n',focus||'_'); if(u<1||E.chantier>0) requestAnimationFrame(pas); };
       requestAnimationFrame(pas);
       fermer=()=>{ fini=true; clearTimeout(auto); box.hidden=true; fermer=null; res(); };
       if(autoMs) auto=setTimeout(()=>fermer&&fermer(), autoMs);
