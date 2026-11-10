@@ -2632,6 +2632,28 @@ toujours « raconter quelque chose ».
   essayé et **refusé par l'auteur** : « on n'y voit pas grand-chose avec les traits superposés et tous les pixels, la
   superposition html et effet rétro 16 bits ne marche pas ». Un vrai rendu rétro passe par un redessin, pas par un effet.
   Journal du chantier : `docs/chantier-pixel-art.md`.
+- **LA MAQUETTE DU STADE EN VRAI PIXEL ART (v2.63, 11/11/2026)** : après l'échec du filtre (voir v2.62), l'auteur a choisi
+  entre trois pistes de redessin (vignette d'album, vrai pixel art, plan d'architecte) : **le vrai pixel art, qui REMPLACE
+  la maquette vectorielle sur l'écran Club**. **Référence : `docs/prototype-stade-pixel.html`**, greffée dans `index.html`
+  par **`node docs/greffe-stade-pixel.cjs .`** (bloc entre « STADEPIX : DÉBUT » et « STADEPIX : FIN », juste avant le bloc
+  `STADE3D` ; rejouable, on ne retouche jamais le bloc à la main). **Le moteur `STADEPIX`** pose chaque pixel sur une grille
+  de 320 x 224 (remplissage de polygones sans lissage, contours à l'encre, palette fermée d'une vingtaine de couleurs,
+  halos en damier, jamais de fondu). Il lit le même état que l'ancienne maquette (`etatStade3D`) et reprend ses règles
+  (`rangs`, `profondeurs`, virages, uniformisation). **Trois consignes de l'auteur, à tenir** : les **virages sont les coins
+  ARRONDIS** du stade (quatre côtés droits reliés par quatre quarts de cercle centrés sur les coins de la pelouse, la
+  profondeur lissée d'une tribune à l'autre : pas de boîte à angles droits) ; les **projecteurs sont tournés VERS LA
+  PELOUSE** (lampes visibles de face, caisson de dos, tranche de profil, lumière au sol) ; l'**écran géant pend SOUS la
+  toiture** quand il y en a une (« sinon les gens ne le voient pas »). Les annexes (boutique, buvette, restaurant, musée,
+  hôtel, transports) sont **grossies** par une loupe (`T`, facteur `G` de 1,4 à 1,9 selon la capacité) : l'auteur les
+  trouvait trop petites. Kop au virage nord-ouest, loges, ruban LED, toit rétractable, grue et gabarit du rang à venir,
+  six styles de l'histoire sur le mur extérieur.
+  **Dans le jeu** : `maquetteStade` rend un `<canvas class="pxStade" data-r='état'>` (plus de SVG), la légende `.pxLeg`
+  (palier, places), le badge de chantier `.pxBadge` et le bouton `.stTrib.pxCible` ; **`peintStades()`**, appelée par
+  `ecranClub` après la pose, peint chaque canvas, place le bouton sur la `zone` que rend `STADEPIX.rendre`, et relance la
+  peinture deux fois par seconde tant qu'un canvas est à l'écran (rien sous `prefers-reduced-motion`). `CACHE_STADE` ne
+  garde plus qu'une courte chaîne. **`STADE3D.vueMaquette` n'est plus appelée par le jeu** (les harnais la lisent encore) ;
+  **`STADE3D.vueVille` sert toujours** aux cartes de livraison et au choix du style, qui restent en dessin vectoriel :
+  les passer en pixel art est la suite prévue, avec le centre d'entraînement.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente

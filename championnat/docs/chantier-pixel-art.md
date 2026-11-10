@@ -45,4 +45,10 @@ capacité), et le stade terminé : kop au virage nord-ouest (drapeaux, tifos, so
 **Reste à faire** : le centre d'entraînement dans le même style, la carte de livraison, le gabarit cliquable de la
 prochaine tribune, et le branchement dans le jeu (`maquetteStade` attend une chaîne SVG, ce moteur dessine dans un
 canvas). L'auteur a tranché : le pixel art REMPLACERA la maquette actuelle sur l'écran Club.
-Rien dans `index.html` ne l'utilise pour l'instant.
+
+## Branché dans le jeu (v2.63)
+
+`node docs/greffe-stade-pixel.cjs .` copie le moteur dans `index.html` (bloc `STADEPIX`). `maquetteStade` rend un canvas,
+`peintStades()` le peint après la pose de l'écran Club. Vérifié dans une vraie partie, au téléphone et sur ordinateur.
+Harnais verts : stade, général, centre, multiplex. Restent en dessin vectoriel : les cartes de livraison, le choix du
+style (`vueVille`) et tout le centre d'entraînement.
