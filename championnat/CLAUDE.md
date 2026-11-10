@@ -2618,6 +2618,20 @@ toujours « raconter quelque chose ».
   prestige gagné au stade dans **`G.stade.presStade`** ; **`presObjectif(c)`** le retire avant `objectifPour`
   (intersaison et `migre`). Le prestige garde tous ses autres effets (affluence, sponsors, équipementier, jeunes).
   Seul le stade fait monter `c.pres` dans le jeu. Vieille partie : `presStade` absent = 0 (comportement d'avant).
+- **STADE ET CENTRE, RETOUCHES « RÉTRO » (v2.62, 10/11/2026)** : trois choses, toutes faites dans les prototypes puis greffées.
+  **(1) La carte de livraison du stade se consacre à l'élément livré** (consigne auteur : « la carte est vraiment surchargée
+  à force d'additionner les éléments »). Pour `boutique`, `buvette`, `restaurant`, `musee` et `hotel`, `vueVille` cadre serré
+  sur l'élément (table `ELEM` : bord gauche, bord droit, hauteur selon le niveau, d'où un `viewBox` recadré), le stade ne
+  reste qu'en toile de fond. Les autres livraisons (tribune, virages, toit…) gardent la vue entière : le stade EST l'élément.
+  **(2) Dégradés en paliers francs** : `crans(svg)`, appelé en sortie de `vueMaquette`, `vueVille` et `scene`, réécrit chaque
+  dégradé en anneaux ou en bandes (4 paliers en radial, 7 en linéaire). Aucun filtre SVG.
+  **(3) Animations image par image** : `steps()` dans le CSS (`.feu .eclat .defile .bob .vv .arrive .brume .jet .cEclat
+  .cVapeur`), `calcMode="discrete"` pour les joueurs et le ballon du campus (`images()`, 8 positions par seconde).
+  Le cadre `.maquette` passe aux angles droits (coque sombre, liseré noir).
+  **À NE PAS REFAIRE** : un filtre « pixel art 16 bits » (mosaïque, tramage, lignes d'écran cathodique) posé sur le dessin a été
+  essayé et **refusé par l'auteur** : « on n'y voit pas grand-chose avec les traits superposés et tous les pixels, la
+  superposition html et effet rétro 16 bits ne marche pas ». Un vrai rendu rétro passe par un redessin, pas par un effet.
+  Journal du chantier : `docs/chantier-pixel-art.md`.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente

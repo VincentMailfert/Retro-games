@@ -370,13 +370,13 @@
   #composDirect .terrainXI{margin-top:4px; max-width:none;}
   .compoTete{display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;}
   @media (max-width:600px){ #composDirect{grid-template-columns:1fr;} }
-  .maquette{margin:4px 0 6px; border-radius:4px; overflow:hidden; background:#081221;}
+  .maquette{margin:4px 0 10px; border-radius:0; overflow:hidden; background:#000924; border:4px solid #1b2c49; box-shadow:inset 0 0 0 2px #000, 0 0 0 2px #000, 4px 4px 0 2px rgba(0,0,0,.55);} /* v2.62 : cadre à angles droits, façon console */
   .maquette svg{display:block; width:100%; height:auto;}
   .maquette .stTrib:hover polygon{fill-opacity:.3;}
   .clign{animation:clign 1.1s steps(2,start) infinite;} @keyframes clign{to{visibility:hidden;}}
-  .feu{animation:feu .35s ease-in-out infinite alternate;} @keyframes feu{to{opacity:.55;}}
-  .eclat{animation:eclat 2.4s ease-out infinite;} @keyframes eclat{0%{transform:scale(.2);opacity:0;} 15%{opacity:1;} 70%{opacity:.9;} 100%{transform:scale(1.15);opacity:0;}}
-  .defile{animation:defile 14s linear infinite;} @keyframes defile{from{transform:translateX(0);} to{transform:translateX(-360px);}}
+  .feu{animation:feu .7s steps(2,jump-none) infinite alternate;} @keyframes feu{to{opacity:.55;}}
+  .eclat{animation:eclat 2.4s steps(8,jump-none) infinite;} @keyframes eclat{0%{transform:scale(.2);opacity:0;} 15%{opacity:1;} 70%{opacity:.9;} 100%{transform:scale(1.15);opacity:0;}}
+  .defile{animation:defile 14s steps(96) infinite;} @keyframes defile{from{transform:translateX(0);} to{transform:translateX(-360px);}}
   @media (prefers-reduced-motion:reduce){.clign,.feu,.eclat,.defile{animation:none;}}
   .choixStyle .apStyle{border-radius:4px; overflow:hidden; margin:8px 0 6px; background:#081221;}
   .choixStyle .apStyle svg{display:block; width:100%; height:auto;}
@@ -397,14 +397,14 @@
   @media (prefers-reduced-motion:reduce){ #fiche .livr{animation:none;} }
   /* LE CENTRE EN CAMPUS (v1.53) : les animations du prototype ; .vapeur, .eclat et .clign existent déjà pour le stade
      avec d'autres réglages, le centre a les siennes (cVapeur, cEclat, cClign), posées par docs/greffe-centre.cjs */
-  .bob{animation:bob .45s ease-in-out infinite alternate;} @keyframes bob{to{transform:translateY(-1.1px);}}
-  .vv{animation:vv 4s ease-in-out infinite alternate;} @keyframes vv{to{transform:translate(var(--x),var(--y));}}
-  .arrive{animation:arrive 3.4s cubic-bezier(.15,.7,.3,1) .6s both;} @keyframes arrive{from{transform:translate(var(--x),var(--y));}}
-  .brume{animation:brume 9s ease-in-out infinite alternate;} .brume.b{animation-duration:12s; animation-delay:-4s;} .brume.c{animation-duration:15s;} @keyframes brume{to{transform:translateX(18px);}}
-  .jet{animation:jet 1.4s ease-in-out infinite alternate; transform-box:fill-box; transform-origin:bottom;} @keyframes jet{to{transform:scaleY(.8);}}
-  .cEclat{animation:cEclat 2.6s ease-out infinite; transform-box:fill-box; transform-origin:center;} @keyframes cEclat{0%{transform:scale(.2); opacity:0;} 15%{opacity:1;} 70%{opacity:.9;} 100%{transform:scale(1.15); opacity:0;}}
+  .bob{animation:bob .9s steps(2,jump-none) infinite alternate;} @keyframes bob{to{transform:translateY(-1.1px);}}
+  .vv{animation:vv 4s steps(16,jump-none) infinite alternate;} @keyframes vv{to{transform:translate(var(--x),var(--y));}}
+  .arrive{animation:arrive 3.4s steps(26,jump-none) .6s both;} @keyframes arrive{from{transform:translate(var(--x),var(--y));}}
+  .brume{animation:brume 9s steps(9,jump-none) infinite alternate;} .brume.b{animation-duration:12s; animation-delay:-4s;} .brume.c{animation-duration:15s;} @keyframes brume{to{transform:translateX(18px);}}
+  .jet{animation:jet 1.4s steps(3,jump-none) infinite alternate; transform-box:fill-box; transform-origin:bottom;} @keyframes jet{to{transform:scaleY(.8);}}
+  .cEclat{animation:cEclat 2.6s steps(8,jump-none) infinite; transform-box:fill-box; transform-origin:center;} @keyframes cEclat{0%{transform:scale(.2); opacity:0;} 15%{opacity:1;} 70%{opacity:.9;} 100%{transform:scale(1.15); opacity:0;}}
   .cClign{animation:cClign 1.1s steps(2,start) infinite;} @keyframes cClign{to{visibility:hidden;}}
-  .cVapeur{animation:cVapeur 4.5s ease-in-out infinite; transform-box:fill-box;} .cVapeur.b{animation-delay:-1.5s;} .cVapeur.c{animation-delay:-3s;}
+  .cVapeur{animation:cVapeur 4.5s steps(9,jump-none) infinite; transform-box:fill-box;} .cVapeur.b{animation-delay:-1.5s;} .cVapeur.c{animation-delay:-3s;}
   @keyframes cVapeur{0%{transform:translateY(6px); opacity:0;} 40%{opacity:.9;} 100%{transform:translateY(-16px); opacity:0;}}
   .livrC .livrScene{position:relative;}
   .livrC .livrScene .apres{position:absolute; inset:0; animation:cApparait 1.5s .6s both;} @keyframes cApparait{from{opacity:0;}}
@@ -624,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.61"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.62"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -24815,6 +24815,22 @@ const STADE3D=(()=>{
   function rnd(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
   const f1=v=>(+v).toFixed(1);
   const COUL=['#ffd24a','#f2f5fa','#ff6f61','#5fd98f','#8fb8e8'];
+  /* ---- RÉTRO PAR LE STYLE : pas de filtre, le dessin reste net. Les dégradés lisses deviennent des paliers francs
+     (halos en anneaux, ciel en bandes), comme sur une console 16 bits qui n'avait pas assez de couleurs pour fondre. ---- */
+  function crans(svg){
+    const hex=c=>{ c=c.replace('#',''); if(c.length===3) c=c.split('').map(x=>x+x).join(''); return [0,2,4].map(i=>parseInt(c.slice(i,i+2),16)); };
+    return svg.replace(/<(radial|linear)Gradient([^>]*)>([\s\S]*?)<\/\1Gradient>/g,(tout,type,attr,corps)=>{
+      const st=[...corps.matchAll(/<stop([^>]*)\/>/g)].map(m=>{ const a=m[1], g=(n,d)=>{ const r=a.match(new RegExp(n+'="([^"]*)"')); return r?r[1]:d; };
+        return {o:+g('offset','0'), c:hex(g('stop-color','#000')), a:+g('stop-opacity','1')}; });
+      if(st.length<2) return tout;
+      const n=type==='radial'?4:7, en=t=>{ let i=0; while(i<st.length-2&&t>st[i+1].o) i++; const A=st[i], B=st[i+1], u=Math.max(0,Math.min(1,(t-A.o)/((B.o-A.o)||1)));
+        return {c:A.c.map((v,k)=>Math.round(v+(B.c[k]-v)*u)), a:A.a+(B.a-A.a)*u}; };
+      let o='';
+      for(let i=0;i<n;i++){ const v=en((i+.5)/n), col='#'+v.c.map(x=>x.toString(16).padStart(2,'0')).join(''), op=v.a.toFixed(2);
+        o+=`<stop offset="${(i/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/><stop offset="${((i+1)/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/>`; }
+      return `<${type}Gradient${attr}>${o}</${type}Gradient>`;
+    });
+  }
 
   /* ============================================================
      L'ÉCRAN GÉANT : un seul dessin (96 x 44), réutilisé partout
@@ -24825,7 +24841,7 @@ const STADE3D=(()=>{
     <rect x="-2" y="-2" width="100" height="48" rx="3" fill="#ffd98a" opacity=".16"/>
     <rect width="96" height="44" rx="2.5" fill="url(#${id}Cadre)" stroke="#c9d6e8" stroke-width="1"/>
     <rect x="3" y="3" width="90" height="38" fill="url(#${id}Px)"/>
-    <rect x="3" y="3" width="90" height="8" fill="#ffd24a"/><text x="48" y="9.3" text-anchor="middle" font-family="Silkscreen,monospace" font-size="6" fill="#16243c">MULTIPLEX</text>
+    <rect x="3" y="3" width="90" height="8" fill="#ffd24a"/><text x="48" y="9.3" text-anchor="middle" font-family="Silkscreen,monospace" font-size="6" fill="#16243c">MULTIPLEX 95</text>
     <rect x="7" y="15" width="18" height="13" fill="#b3302a"/><rect x="7" y="15" width="6" height="13" fill="#f7f1ea"/>
     <rect x="71" y="15" width="18" height="13" fill="#2b5687"/><rect x="83" y="15" width="6" height="13" fill="#f7f1ea"/>
     <text x="48" y="27.5" text-anchor="middle" font-family="Silkscreen,monospace" font-size="13" fill="#ffd24a">1-0</text>
@@ -24894,7 +24910,7 @@ const STADE3D=(()=>{
       <radialGradient id="iHaloStade"><stop offset="0" stop-color="#fff4c9" stop-opacity=".75"/><stop offset=".55" stop-color="#ffd98a" stop-opacity=".22"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
       <radialGradient id="iFeu"><stop offset="0" stop-color="#fff0d8"/><stop offset=".25" stop-color="#ff5a3a" stop-opacity=".9"/><stop offset="1" stop-color="#ff3a2a" stop-opacity="0"/></radialGradient>
     </defs>
-    <rect width="760" height="600" fill="#081221"/>`;
+    <g><rect width="760" height="600" fill="#000924"/>`;
 
     // --- sol, routes, parvis
     const G=92;
@@ -25345,9 +25361,9 @@ const STADE3D=(()=>{
     // --- halo au-dessus du stade : plus l'éclairage progresse, plus le ciel s'allume
     { const c=PI(L/2,W/2,maxTop*0.7), rx=(L/2+Math.max(...rows)*D+30)*IS.sc*1.05;
       s+=`<ellipse cx="${f1(c[0])}" cy="${f1(c[1])}" rx="${f1(rx)}" ry="${f1(rx*.62)}" fill="url(#iHaloStade)" opacity="${f1(.05+.075*(ecl-1)+.05*R.aff+.1*clamp(R.legende||0,0,1))}" pointer-events="none"/>`; }
-    s+=`<text x="18" y="582" font-family="Silkscreen,monospace" font-size="13" fill="#ffd24a">${etapeR(R).toUpperCase()}</text>
+    s+=`</g><text x="18" y="582" font-family="Silkscreen,monospace" font-size="13" fill="#ffd24a">${etapeR(R).toUpperCase()}</text>
         <text x="742" y="582" text-anchor="end" font-family="VT323,monospace" font-size="22" fill="#d9e4f2">${FMT(R.cap)} places</text>`;
-    return s+'</svg>';
+    return crans(s+'</svg>');
   }
 
   /* ============================================================
@@ -25376,7 +25392,21 @@ const STADE3D=(()=>{
       : `M${f1(x0-3)} ${f1(GY-he)} C${f1(x0+w*.25)} ${f1(GY-h-1)} ${f1(x1-w*.25)} ${f1(GY-h-1)} ${f1(x1+3)} ${f1(GY-he)}`;
     const ecl=R.eclairage||1, aff=R.aff, btq=montre('boutique')?(R.boutique||0):0, clampV=(v,a,b)=>Math.max(a,Math.min(b,v));
     const opMat=clampV(ecl-1,0,1)*clampV(3-ecl,0,1), opPoteau=clampV(2-ecl,0,1), opRampe=clampV(ecl-2,0,1)*clampV(R.toit*2-1,0,1), pyl=clampV(ecl-1,0,1);
-    let s=`<svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Le stade dans son quartier, soir de match, ${FMT(R.cap)} places">
+    // La carte de livraison se consacre à l'élément livré : pour un commerce ou une annexe, on cadre serré dessus
+    // (le stade ne reste qu'en toile de fond). Chaque entrée donne [bord gauche, bord droit, hauteur] de l'élément.
+    const rang=k=>Math.min(3,Math.max(1,Math.ceil((R[k]||0)-.001)))-1, xh=Math.max(20,x0-170);
+    const ELEM={
+      boutique:()=>[x1+28, x1+28+[36,88,140][rang('boutique')], [34,52,134][rang('boutique')]],
+      musee:()=>[x0-26-[46,92,120][rang('musee')], x0-26, [40,66,84][rang('musee')]],
+      buvette:()=>[x0+14, x0+[72,114,14+Math.min(120,w*.42)][rang('buvette')], [14,16,40][rang('buvette')]],
+      restaurant:()=>[x1-[104,132,150][rang('restaurant')], x1-10, [36,64,84][rang('restaurant')]],
+      hotel:()=>[xh, xh+[56,64,74][rang('hotel')], [86,136,206][rang('hotel')]],
+    };
+    let VB=[0,0,760,420];
+    if(focus&&ELEM[focus]){ const [xa,xb,hh]=ELEM[focus](), bas=GY+44;
+      const lw=Math.min(760,Math.max(xb-xa+110,(hh+90)*760/420,230)), lh=lw*420/760;
+      VB=[Math.max(0,Math.min(760-lw,(xa+xb)/2-lw/2)), Math.min(420-lh,bas-lh), lw, lh]; }
+    let s=`<svg viewBox="${VB.map(f1).join(' ')}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Le stade dans son quartier, soir de match, ${FMT(R.cap)} places">
     <defs>
       <linearGradient id="${id}Ciel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#040a15"/><stop offset=".7" stop-color="#0c1d36"/><stop offset="1" stop-color="#173050"/></linearGradient>
       <linearGradient id="${id}Facade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#23385a"/><stop offset="1" stop-color="#101c30"/></linearGradient>
@@ -25388,7 +25418,7 @@ const STADE3D=(()=>{
       <radialGradient id="${id}Vign" cx=".5" cy=".55" r=".75"><stop offset=".55" stop-color="#02060d" stop-opacity="0"/><stop offset="1" stop-color="#02060d" stop-opacity=".75"/></radialGradient>
       <clipPath id="${id}Clip"><path d="${profil}"/></clipPath>
     </defs>
-    <rect width="760" height="420" fill="url(#${id}Ciel)"/>`;
+    <g><rect width="760" height="420" fill="url(#${id}Ciel)"/>`;
     if((R.legende||0)>0.01&&(!calme||focus==='legende')){ const op=Math.min(1,R.legende); [[150,70,'#ffd24a',0],[610,110,'#ff6f61',.6],[380,45,'#f7f1ea',1.2],[250,150,'#ffd24a',1.8],[520,60,'#7cc4ff',.3]].filter((f,q)=>!calme||q<3).forEach(([fx,fy,col,dl])=>{
         let r=''; for(let q=0;q<16;q++){ const a=q/16*Math.PI*2; r+=`<line x1="${f1(fx+Math.cos(a)*6)}" y1="${f1(fy+Math.sin(a)*6)}" x2="${f1(fx+Math.cos(a)*24)}" y2="${f1(fy+Math.sin(a)*24)}"/><circle cx="${f1(fx+Math.cos(a)*27)}" cy="${f1(fy+Math.sin(a)*27)}" r="1.5" fill="${col}" stroke="none"/>`; }
         s+=`<g class="eclat" style="animation-delay:-${dl}s;transform-origin:${fx}px ${fy}px" opacity="${f1(op)}" stroke="${col}" stroke-width="1.2" stroke-linecap="round">${r}</g>`; }); }
@@ -25431,7 +25461,7 @@ const STADE3D=(()=>{
     for(let x=x0+10;x<x1-18;x+=34) s+=`<path d="M${f1(x)} ${GY} v-12 a8 8 0 0 1 16 0 v12 z" fill="#ffd24a" opacity="${f1(.35+.4*aff)}"/>`;
     if(R.loges>0.01&&montre('loges')) s+=`<rect x="${f1(x0)}" y="${f1(GY-h*.6-4)}" width="${f1(w)}" height="9" fill="url(#${id}Loges)" opacity="${f1(R.loges)}"/>`;
     if(ledV>0.01){ const yl=GY-h*.47; s+=`<g opacity="${f1(ledV)}"><rect x="${f1(x0)}" y="${f1(yl-5)}" width="${f1(w)}" height="10" fill="#05080f"/><rect x="${f1(x0)}" y="${f1(yl-9)}" width="${f1(w)}" height="18" fill="#f2f5fa" opacity=".08"/>
-      <g class="defile"><text x="${f1(x0+6)}" y="${f1(yl+3.2)}" font-family="Silkscreen,monospace" font-size="8" fill="#f2f5fa">MULTIPLEX <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan> MULTIPLEX <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan></text></g></g>`; }
+      <g class="defile"><text x="${f1(x0+6)}" y="${f1(yl+3.2)}" font-family="Silkscreen,monospace" font-size="8" fill="#f2f5fa">MULTIPLEX 95 <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan> MULTIPLEX 95 <tspan fill="#ffd24a">BIÈRE DU NORD</tspan> <tspan fill="#ff3fa4">RADIO FOOT</tspan> <tspan fill="#7cff6b">CAISSE RÉGIONALE</tspan></text></g></g>`; }
     if(vir>0.01) s+=`<rect x="${f1(x0)}" y="${f1(GY-h-4)}" width="${f1(w)}" height="${f1(h+4)}" fill="url(#${id}Rond)" opacity="${f1(vir)}"/>`;
     if(R.chantier>0.01){ for(let x=x0; x<x0+w*.3; x+=10) s+=`<line x1="${f1(x)}" y1="${GY}" x2="${f1(x)}" y2="${f1(GY-h)}" stroke="#ffd24a" stroke-width=".8" stroke-dasharray="3 2" opacity="${f1(.7*R.chantier)}"/>`;
       for(let y=GY-8; y>GY-h; y-=10) s+=`<line x1="${f1(x0)}" y1="${f1(y)}" x2="${f1(x0+w*.3)}" y2="${f1(y)}" stroke="#ffd24a" stroke-width=".8" opacity="${f1(.6*R.chantier)}"/>`; }
@@ -25643,9 +25673,10 @@ const STADE3D=(()=>{
     const nb=Math.round(aff*VILLE.fans.length*(calme?.4:1));
     VILLE.fans.slice(0,nb).forEach(([a,b,c])=>{ const x=Math.max(12,Math.min(748,x0-130+a*(w+260))), y=GY+8+b*12;
       s+=`<rect x="${f1(x-1.3)}" y="${f1(y-5)}" width="2.6" height="5.5" fill="${COUL[c]}"/><circle cx="${f1(x)}" cy="${f1(y-6.6)}" r="1.4" fill="#e9d3b5"/>`; });
+    if(calme) s+=`<rect x="${f1(VB[0])}" y="${f1(VB[1])}" width="${f1(VB[2])}" height="${f1(VB[3])}" fill="url(#${id}Vign)"/>`;
+    s+='</g>';
     if(!calme) s+=`<text x="18" y="404" font-family="VT323,monospace" font-size="22" fill="#d9e4f2">${FMT(R.cap)} places</text>`;
-    else s+=`<rect width="760" height="420" fill="url(#${id}Vign)"/>`;
-    return s+'</svg>';
+    return crans(s+'</svg>');
   }
   return {vueMaquette, vueVille, capTribunes, coteSuivante};
 })(); /* ---- fin de la maquette ---- */
@@ -25715,6 +25746,22 @@ const CENTRE3D=(()=>{
   function rnd(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
   const saison=a=>a+'-'+String((a+1)%100).padStart(2,'0');
 
+  /* ---- RÉTRO PAR LE STYLE : pas de filtre, le dessin reste net. Les dégradés lisses deviennent des paliers francs
+     (halos en anneaux, ciel en bandes), comme sur une console 16 bits qui n'avait pas assez de couleurs pour fondre. ---- */
+  function crans(svg){
+    const hex=c=>{ c=c.replace('#',''); if(c.length===3) c=c.split('').map(x=>x+x).join(''); return [0,2,4].map(i=>parseInt(c.slice(i,i+2),16)); };
+    return svg.replace(/<(radial|linear)Gradient([^>]*)>([\s\S]*?)<\/\1Gradient>/g,(tout,type,attr,corps)=>{
+      const st=[...corps.matchAll(/<stop([^>]*)\/>/g)].map(m=>{ const a=m[1], g=(n,d)=>{ const r=a.match(new RegExp(n+'="([^"]*)"')); return r?r[1]:d; };
+        return {o:+g('offset','0'), c:hex(g('stop-color','#000')), a:+g('stop-opacity','1')}; });
+      if(st.length<2) return tout;
+      const n=type==='radial'?4:7, en=t=>{ let i=0; while(i<st.length-2&&t>st[i+1].o) i++; const A=st[i], B=st[i+1], u=Math.max(0,Math.min(1,(t-A.o)/((B.o-A.o)||1)));
+        return {c:A.c.map((v,k)=>Math.round(v+(B.c[k]-v)*u)), a:A.a+(B.a-A.a)*u}; };
+      let o='';
+      for(let i=0;i<n;i++){ const v=en((i+.5)/n), col='#'+v.c.map(x=>x.toString(16).padStart(2,'0')).join(''), op=v.a.toFixed(2);
+        o+=`<stop offset="${(i/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/><stop offset="${((i+1)/n).toFixed(3)}" stop-color="${col}" stop-opacity="${op}"/>`; }
+      return `<${type}Gradient${attr}>${o}</${type}Gradient>`;
+    });
+  }
   function points(R){ return FAMS.reduce((s,f)=>s+R[f.id],0); }
   function palier(R){ if(R.chateau) return 'Le Château'; const p=points(R); let n=PALIERS[0][1]; for(const [s,nm] of PALIERS) if(p>=s) n=nm; return n; }
   function nivMax(f,annee){ if(!f.des) return 3; for(let n=1;n<=3;n++) if(f.des[n]&&f.des[n]>annee) return n-1; return 3; }
@@ -25876,21 +25923,25 @@ const CENTRE3D=(()=>{
   const bouge=()=>typeof REDUIT==='undefined'||!REDUIT;
   function iso(dx,dy){ return [(dx-dy)*IS.c*IS.sc,(dx+dy)*IS.s*IS.sc]; }
   /* mv : {dx,dy,dur,del,mode} en mètres au sol. mode 'va' = traverse et recommence, 'vv' = va-et-vient */
+  /* Animation image par image, comme sur console (8 images par seconde) : le trajet est redécoupé en positions fixes. */
+  function images(Q,dur){ const n=Math.max(2,Math.round(dur*8)), m=Q.length-1, out=[];
+    for(let i=0;i<n;i++){ const u=i/n*m, k=Math.min(m-1,Math.floor(u)), t=u-k; out.push([Q[k][0]+(Q[k+1][0]-Q[k][0])*t, Q[k][1]+(Q[k+1][1]-Q[k][1])*t]); }
+    return out; }
   function gars(x,y,col,t,mv){ t=t||ADULTE; const b=PI(x,y,0), s=IS.sc*t, X=b[0], Y=b[1];
     let o=`<ellipse cx="${f1(X)}" cy="${f1(Y)}" rx="${f1(1.1*s)}" ry="${f1(.45*s)}" fill="#000" opacity=".3"/>`+
       `<g class="bob" style="animation-delay:-${f1((x*7+y*3)%10/10)}s"><rect x="${f1(X-.5*s)}" y="${f1(Y-1.5*s)}" width="${f1(1*s)}" height="${f1(1.5*s)}" fill="#1b2433"/>`+
       `<rect x="${f1(X-.65*s)}" y="${f1(Y-3*s)}" width="${f1(1.3*s)}" height="${f1(1.6*s)}" rx="${f1(.3*s)}" fill="${col}"/>`+
       `<circle cx="${f1(X)}" cy="${f1(Y-3.55*s)}" r="${f1(.55*s)}" fill="#e2b58f"/></g>`;
-    if(mv&&mv.path){ if(!bouge()) return o; const pts=mv.path.map(([a,b])=>iso(a,b)).map(q=>f1(q[0])+' '+f1(q[1])).join(';');
-      return `<g>${o}<animateTransform attributeName="transform" type="translate" values="${pts}" dur="${f1(mv.dur)}s" begin="-${f1(mv.del||0)}s" repeatCount="indefinite"/></g>`; }
+    if(mv&&mv.path){ if(!bouge()) return o; const pts=images(mv.path.map(([a,b])=>iso(a,b)),mv.dur).map(q=>f1(q[0])+' '+f1(q[1])).join(';');
+      return `<g>${o}<animateTransform attributeName="transform" type="translate" calcMode="discrete" values="${pts}" dur="${f1(mv.dur)}s" begin="-${f1(mv.del||0)}s" repeatCount="indefinite"/></g>`; }
     if(mv){ const d=iso(mv.dx||0,mv.dy||0); o=`<g class="${mv.mode||'vv'}" style="--x:${f1(d[0])}px;--y:${f1(d[1])}px;animation-duration:${f1(mv.dur||4)}s;animation-delay:-${f1(mv.del||0)}s">${o}</g>`; }
     return o; }
   function ballon(x,y){ const p=PI(x,y,.6); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="1.6" fill="#f2f5fa" stroke="#1b2433" stroke-width=".4"/>`; }
   function ballonMv(pts,dur){ if(!bouge()) return ballon(...pts[0]);
-    const Q=pts.map(([x,y])=>PI(x,y,.6));
+    const Q=images(pts.map(([x,y])=>PI(x,y,.6)),dur);
     return `<circle cx="${f1(Q[0][0])}" cy="${f1(Q[0][1])}" r="1.6" fill="#f2f5fa" stroke="#1b2433" stroke-width=".4">`+
-      `<animate attributeName="cx" values="${Q.map(q=>f1(q[0])).join(';')}" dur="${dur}s" repeatCount="indefinite"/>`+
-      `<animate attributeName="cy" values="${Q.map(q=>f1(q[1])).join(';')}" dur="${dur}s" repeatCount="indefinite"/></circle>`; }
+      `<animate attributeName="cx" calcMode="discrete" values="${Q.map(q=>f1(q[0])).join(';')}" dur="${dur}s" repeatCount="indefinite"/>`+
+      `<animate attributeName="cy" calcMode="discrete" values="${Q.map(q=>f1(q[1])).join(';')}" dur="${dur}s" repeatCount="indefinite"/></circle>`; }
   function plot(x,y){ const b=PI(x,y,0); return `<polygon points="${f1(b[0]-1.5)},${f1(b[1])} ${f1(b[0]+1.5)},${f1(b[1])} ${f1(b[0])},${f1(b[1]-3)}" fill="#ff8a3a"/>`; }
   function seance(kind,x0,y0,x1,y1,add,fam,seed){
     const r=rnd(seed), mx=(x0+x1)/2, my=(y0+y1)/2, A=(k,fn)=>add(k,fn,false,fam);
@@ -26101,14 +26152,15 @@ const CENTRE3D=(()=>{
     <linearGradient id="ctAube" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb07a" stop-opacity=".55"/><stop offset=".5" stop-color="#e08aa0" stop-opacity=".16"/><stop offset="1" stop-color="#5a6ab0" stop-opacity=".08"/></linearGradient>
     <linearGradient id="ctOr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd24a" stop-opacity=".35"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></linearGradient>
     <radialGradient id="ctBrume"><stop offset="0" stop-color="#eef3fb" stop-opacity=".5"/><stop offset=".6" stop-color="#eef3fb" stop-opacity=".18"/><stop offset="1" stop-color="#eef3fb" stop-opacity="0"/></radialGradient>
-    <radialGradient id="ctEau"><stop offset="0" stop-color="#8fd0ff" stop-opacity=".35"/><stop offset="1" stop-color="#8fd0ff" stop-opacity="0"/></radialGradient></defs>
-    <rect x="-400" y="-400" width="1600" height="1400" fill="${o.aube?'#141a33':'#081221'}"/>`;
+    <radialGradient id="ctEau"><stop offset="0" stop-color="#8fd0ff" stop-opacity=".35"/><stop offset="1" stop-color="#8fd0ff" stop-opacity="0"/></radialGradient>
+  </defs>
+    <g><rect x="-400" y="-400" width="1600" height="1400" fill="${o.aube?'#141a33':'#000924'}"/>`;
     s+= F?`<g opacity=".4">${base}</g>`:base;
     s+=ground+gold;
     if(o.aube) s+=brume(vb);
     for(const ob of objs) s+=(F&&ob.fam!==F&&ob.fam!=='grue'&&ob.fam!=='aube')?`<g opacity=".3">${ob.svg}</g>`:ob.svg;
     if(o.aube) s+=lumiere(vb,F==='chateau');
-    return {svg:s+'</svg>', vb};
+    return {svg:crans(s+'</g></svg>'), vb};
   }
   return {scene, FAMS, FAM, PALIERS, SOUS_PALIER, CHATEAU, points, palier, nivMax, chateauOuvert, nomNiveau, effets};
 })();

@@ -1,7 +1,7 @@
 # Chantier « rétro » : stade et centre d'entraînement
 
 Branche `chantier/pixel-art-stade-centre`. **Seuls les prototypes ont bougé** (`docs/prototype-stade.html`,
-`docs/prototype-centre.html`). `index.html` n'est pas touché : la greffe reste à faire, une fois le rendu validé.
+`docs/prototype-centre.html`). Rendu validé par l'auteur le 10/11/2026, puis greffé (voir en bas).
 
 ## Ce qui a été essayé puis retiré (10/11/2026)
 
@@ -20,8 +20,9 @@ Un filtre qui hachait le dessin en gros pixels, avec tramage et lignes d'écran 
   à force d'additionner les éléments ») : pour une boutique, une buvette, un restaurant, un musée ou un hôtel,
   `vueVille` cadre serré sur l'élément (table `ELEM`), le stade ne reste qu'en toile de fond.
 
-## Pour la greffe dans le jeu
+## Greffe faite (v2.62)
 
-1. `node docs/greffe-stade.cjs .` puis `node docs/greffe-centre.cjs .` depuis `championnat/`.
-2. Reporter dans le CSS du jeu les animations en `steps()` et l'habillage.
-3. Relancer `harness-stade.cjs` et `harness-centre.cjs` (verts sur une copie d'essai avec la greffe).
+Les deux greffes ont été rejouées dans `index.html`, les animations en `steps()` et le cadre `.maquette` reportés dans
+le CSS du jeu, `VERSION` passée à 2.62. Harnais verts : stade, centre, multiplex, coupes, Europe et le harnais général.
+L'habillage du pupitre des prototypes (boutons à biseau, jauges à crans) n'a pas d'équivalent dans le jeu : le pupitre
+est un outil de prototype. Seul le cadre des maquettes a été porté.
