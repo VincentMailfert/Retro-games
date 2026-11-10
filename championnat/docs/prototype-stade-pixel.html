@@ -73,10 +73,10 @@ function rangs(capT){ const base=[3,2,1,1], e=Math.max(0,(capT-5000)/3500);
 function profondeurs(R){ const rows=rangs(R.cap-PLACES_VIRAGES*(R.virages||0)), vir=R.virages||0, u=Math.max(0,Math.min(1,(R.cap-20000)/35000))*vir;
   const moy=rows.reduce((a,b)=>a+b,0)/4; return rows.map(r=>Math.max(1,Math.round(r+(moy-r)*u))); }
 const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
-// La palette : vingt couleurs, pas une de plus.
+// La palette : une vingtaine de couleurs, pas une de plus.
 const C=Object.fromEntries(Object.entries({
   encre:'#05070f', nuit:'#080d1f', sol:'#111a36', parvis:'#1b2547', route:'#0c1228', marque:'#3d4877',
-  herbe:'#1f6b3a', herbe2:'#2a8347', trait:'#dfe6f5', beton:'#454d75', beton2:'#5a6390', beton3:'#8a93bd', clair:'#c9cfe6',
+  herbe:'#1f6b3a', herbe2:'#2a8347', herbe3:'#49a85c', trait:'#dfe6f5', beton:'#454d75', beton2:'#5a6390', beton3:'#8a93bd', clair:'#c9cfe6',
   siege:'#2b56a8', siege2:'#3a6fc9', jaune:'#ffd24a', rouge:'#d8433a', blanc:'#f2f5fa', peau:'#e2b58f', arbre:'#1a4a33', arbre2:'#256b45', lueur:'#3a4370'
 }).map(([k,v])=>[k,hex(v)]));
 const hasard=(a,b)=>{ let t=(a*374761393+b*668265263)|0; t=(t^(t>>>13))*1274126177|0; return ((t^(t>>>16))>>>0)/4294967296; };
@@ -112,64 +112,83 @@ function rendre(ctx, R, image){
   for(let x=xa+2;x<xb;x+=17) arbre(x,ya+2); for(let y=ya+19;y<yb;y+=17) arbre(xa+2,y);
 
   const lampes=[];
-  const pylone=(x,y)=>{ if(ecl===3) return; const h=ecl===2?Math.max(34,Math.max(hN,hS,hE,hO)+16):16, a=P(x,y,0), b=P(x,y,h);
-    ligne(a,b,C.beton3); ligne([a[0]+1,a[1]],[b[0]+1,b[1]],C.beton);
-    if(ecl===2){ for(let dx=-2;dx<=3;dx++) for(let dy=-4;dy<=0;dy++) px(b[0]+dx,b[1]+dy,C.encre); for(let dx=-1;dx<=2;dx++) for(let dy=-3;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,(dx+dy)%2?C.blanc:C.jaune); lampes.push([b[0],b[1]-2,9]); }
-    else { px(b[0],b[1]-1,C.jaune); px(b[0]+1,b[1]-1,C.blanc); lampes.push([b[0],b[1]-1,5]); } };
   // public : un pixel par supporter, posé sur les gradins
-  const public_=(x0,x1,y0,y1,z,graine)=>{ const lx=x1-x0, ly=y1-y0, long=Math.max(lx,ly), pas=Math.max(1.6,1.15/k);
-    for(let u=.8;u<long-.4;u+=pas) for(const v of [.3,.72]){ const x=lx>ly?x0+u:x0+lx*v, y=lx>ly?y0+ly*v:y0+u, p=P(x,y,z), h=hasard(p[0]*7+graine,p[1]*13+graine);
+  const public_=(Q,graine)=>{ const long=Math.hypot(Q[1][0]-Q[0][0],Q[1][1]-Q[0][1]), pas=Math.max(1.6,1.15/k);
+    for(let u=.8;u<long-.4;u+=pas) for(const v of [.3,.72]){ const t=u/long, x=(Q[0][0]+(Q[1][0]-Q[0][0])*t)*(1-v)+(Q[3][0]+(Q[2][0]-Q[3][0])*t)*v, y=(Q[0][1]+(Q[1][1]-Q[0][1])*t)*(1-v)+(Q[3][1]+(Q[2][1]-Q[3][1])*t)*v,
+        p=P(x,y,Q[0][2]), h=hasard(p[0]*7+graine,p[1]*13+graine);
         if(h<R.aff*.92){ const c=h*31%1; px(p[0],p[1]-1,c<.34?C.jaune:c<.6?C.blanc:c<.8?C.peau:C.rouge);
           if(image%2 && hasard(p[0]+image,p[1])<.06) px(p[0],p[1]-2,C.blanc); } } };
-  const gradin=(x0,x1,y0,y1,z,i)=>{ quad([[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],i%2?C.siege:C.siege2); public_(x0,x1,y0,y1,z,i*17); };
   const fenetres=(a,b,z0,z1,g)=>{ const n=Math.floor(Math.hypot(b[0]-a[0],b[1]-a[1])/4); for(let i=1;i<n;i++) for(let z=z0+3;z<z1-2;z+=4.2){ const p=P(a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n,z); px(p[0],p[1],hasard(i+g,Math.round(z))<.62?C.jaune:C.encre); } };
   const pub=(a,b,z)=>{ const n=Math.max(3,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/14)); for(let i=0;i<n;i++){ const u=i/n, v=(i+1)/n, q0=[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u], q1=[a[0]+(b[0]-a[0])*v,a[1]+(b[1]-a[1])*v];
       quad([[q0[0],q0[1],0],[q1[0],q1[1],0],[q1[0],q1[1],z],[q0[0],q0[1],z]],[C.jaune,C.blanc,C.rouge][i%3],C.encre); } };
 
-  // étendue des tribunes Nord et Sud : la longueur du terrain, ou tout le tour avec les virages
-  const xN0=vir?-nO*D:0, xN1=vir?L+nE*D:L;
-  pylone(-nO*D-9,-nN*D-9);
-  // --- NORD (au fond à droite) : on voit les gradins et les contremarches
-  for(let r=nN-1;r>=0;r--){ gradin(xN0,xN1,-(r+1)*D,-r*D,(r+1)*RZ,r);
-    if(r>0) quad([[xN0,-r*D,r*RZ],[xN1,-r*D,r*RZ],[xN1,-r*D,(r+1)*RZ],[xN0,-r*D,(r+1)*RZ]],C.beton,C.encre); }
-  { const pr=[[xN1,0,0]]; for(let r=0;r<nN;r++) pr.push([xN1,-r*D,(r+1)*RZ],[xN1,-(r+1)*D,(r+1)*RZ]); pr.push([xN1,-nN*D,0]); if(!vir||nE===0) quad(pr,C.beton2,C.encre); }
-  pub([vir?0:xN0,0],[vir?L:xN1,0],RZ);
-  // --- OUEST (au fond à gauche)
-  for(let r=nO-1;r>=0;r--){ gradin(-(r+1)*D,-r*D,0,W,(r+1)*RZ,r+1);
-    if(r>0) quad([[-r*D,0,r*RZ],[-r*D,W,r*RZ],[-r*D,W,(r+1)*RZ],[-r*D,0,(r+1)*RZ]],C.beton2,C.encre); }
-  { const pr=[[0,W,0]]; for(let r=0;r<nO;r++) pr.push([-r*D,W,(r+1)*RZ],[-(r+1)*D,W,(r+1)*RZ]); pr.push([-nO*D,W,0]); if(!vir) quad(pr,C.beton3,C.encre); }
-  pub([0,0],[0,W],RZ);
-  const toitDe=(x0,x1,y0,y1,z)=>{ quad([[x0,y1,z-1.2],[x1,y1,z-1.2],[x1,y1,z],[x0,y1,z]],C.rouge,C.encre); quad([[x1,y0,z-1.2],[x1,y1,z-1.2],[x1,y1,z],[x1,y0,z]],C.rouge,C.encre);
-    quad([[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],C.clair,C.encre);
-    const lx=x1-x0, ly=y1-y0; if(lx>ly) for(let x=x0+10;x<x1-4;x+=10) ligne(P(x,y0,z),P(x,y1,z),C.beton3); else for(let y=y0+10;y<y1-4;y+=10) ligne(P(x0,y,z),P(x1,y,z),C.beton3); };
-  const rampe=(a,b,z)=>{ const n=Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/5); for(let i=0;i<=n;i++){ const p=P(a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n,z); px(p[0],p[1],i%2?C.blanc:C.jaune); if(i%4===0) lampes.push([p[0],p[1],4]); } };
-  if(toit){ const pN=Math.max(1,Math.round(nN*.55))*D, pO=Math.max(1,Math.round(nO*.55))*D;
-    toitDe(xN0-1,xN1+1,-nN*D-2,-nN*D+pN,hN+7); if(ecl===3) rampe([xN0,-nN*D+pN+.2],[xN1,-nN*D+pN+.2],hN+6);
-    toitDe(-nO*D-2,-nO*D+pO,vir?-1:0,W+1,hO+7); if(ecl===3) rampe([-nO*D+pO+.2,0],[-nO*D+pO+.2,W],hO+6); }
-  if(R.ecran){ const z=hN+(toit?8:1), x=xN0+6; quad([[x,-nN*D,z],[x+26,-nN*D,z],[x+26,-nN*D,z+11],[x,-nN*D,z+11]],C.encre,C.beton3);
+  // --- le tour du stade, comme la maquette d'origine : quatre côtés droits, et quatre quarts de cercle centrés sur les
+  //     coins de la pelouse quand les virages sont bâtis. Chaque point du tour porte sa normale et sa profondeur en rangs.
+  const NB=[nN,nS,nE,nO], ARC=7, rad=Math.PI/180, lisse=t=>t*t*(3-2*t);
+  const mk=(ax,ay,phi,n)=>({ax,ay,nx:Math.cos(phi*rad),ny:Math.sin(phi*rad),n});
+  const arc=(cx,cy,p0,sA,sB)=>{ const o=[]; for(let q=0;q<=ARC;q++){ const u=q/ARC; o.push(mk(cx,cy,p0+90*u,NB[sA]+(NB[sB]-NB[sA])*lisse(u))); } return o; };
+  const cote=(x0,y0,x1,y1,phi,s)=>[mk(x0,y0,phi,NB[s]),mk(x1,y1,phi,NB[s])];
+  const segs=[], pousse=(pts,droit)=>{ for(let i=0;i+1<pts.length;i++){ const a=pts[i], b=pts[i+1], mx=(a.nx+b.nx)/2, my=(a.ny+b.ny)/2, n=Math.max(1,Math.ceil(Math.max(a.n,b.n)-1e-6));
+      segs.push({a,b,droit,n,mx,my,loin:mx+my<-0.001, fond:(a.ax+a.ay+b.ax+b.ay)/2+(mx+my)*n*D}); } };
+  pousse(cote(0,0,L,0,-90,0),1); pousse(cote(L,0,L,W,0,2),1); pousse(cote(L,W,0,W,90,1),1); pousse(cote(0,W,0,0,180,3),1);
+  if(vir){ pousse(arc(L,0,-90,0,2),0); pousse(arc(L,W,0,2,1),0); pousse(arc(0,W,90,1,3),0); pousse(arc(0,0,180,3,0),0); }
+  const pt=(p,o,z)=>[p.ax+o*p.nx,p.ay+o*p.ny,z];
+  // dans un virage, la profondeur passe en douceur d'une tribune à l'autre : le dernier rang s'effile au lieu de faire une marche
+  const bout=(e,r)=>Math.max(r,Math.min(r+1,e.n));
+  const marche=(g,r,i)=>{ const z=(r+1)*RZ, Q=[pt(g.a,r*D,z),pt(g.b,r*D,z),pt(g.b,bout(g.b,r)*D,z),pt(g.a,bout(g.a,r)*D,z)]; quad(Q,(r+i)%2?C.siege:C.siege2); if(bout(g.a,r)+bout(g.b,r)-2*r>1.2) public_(Q,r*17+i*5); };
+  const toitDe=g=>{ const za=g.a.n*RZ+7, zb=g.b.n*RZ+7, ia=g.a.n*D*.45, ib=g.b.n*D*.45, oa=g.a.n*D+2, ob=g.b.n*D+2, bord=g.loin?[ia,ib]:[oa,ob];
+    quad([pt(g.a,bord[0],za-1.3),pt(g.b,bord[1],zb-1.3),pt(g.b,bord[1],zb),pt(g.a,bord[0],za)],C.rouge,C.encre);
+    quad([pt(g.a,ia,za),pt(g.b,ib,zb),pt(g.b,ob,zb),pt(g.a,oa,za)],C.clair,C.beton3);
+    ligne(P(...pt(g.a,ia,za)),P(...pt(g.b,ib,zb)),C.encre); ligne(P(...pt(g.a,oa,za)),P(...pt(g.b,ob,zb)),C.encre);
+    if(ecl===3){ const m=g.droit?Math.round(Math.hypot(g.b.ax-g.a.ax,g.b.ay-g.a.ay)/5):2; for(let q=0;q<=m;q++){ const t=q/m, e=[g.a.ax+(g.b.ax-g.a.ax)*t+(ia+(ib-ia)*t-.6)*(g.a.nx+(g.b.nx-g.a.nx)*t), g.a.ay+(g.b.ay-g.a.ay)*t+(ia+(ib-ia)*t-.6)*(g.a.ny+(g.b.ny-g.a.ny)*t)], p=P(e[0],e[1],za-1.6+(zb-za)*t);
+        px(p[0],p[1],q%2?C.blanc:C.jaune); if(g.loin&&q%4===0) lampes.push([p[0],p[1],3]); } } };
+
+  // --- les projecteurs : tournés vers la pelouse. De face on voit les lampes, de dos le caisson, de profil une tranche.
+  const dMax=Math.max(nN,nS,nE,nO)*D, ecart=(a,b)=>vir?dMax*.74+8:[a,b];
+  const coin=(sx,sy)=>{ const e=vir?[dMax*.74+8,dMax*.74+8]:[(sx<0?nO:nE)*D+9,(sy<0?nN:nS)*D+9]; return [sx<0?-e[0]:L+e[0], sy<0?-e[1]:W+e[1]]; };
+  const pylone=(sx,sy)=>{ if(ecl===3) return; const [x,y]=coin(sx,sy), h=ecl===2?Math.max(34,Math.max(hN,hS,hE,hO)+16):16, a=P(x,y,0), b=P(x,y,h);
+    ligne(a,b,C.beton3); ligne([a[0]+1,a[1]],[b[0]+1,b[1]],C.beton);
+    const face=-(sx+sy);                    // > 0 : la pelouse est vers nous, on voit les lampes ; < 0 : on voit le dos
+    if(ecl===1){ px(b[0],b[1]-1,C.encre); px(b[0]+(sx>0?-1:1)*(sy>0?-1:1)*(face?0:1)+(face>0?0:0),b[1]-1+(face>0?1:0),face<0?C.beton2:C.jaune); if(face>0) lampes.push([b[0],b[1],4]); return; }
+    if(face!==0){ for(let dx=-3;dx<=3;dx++) for(let dy=-5;dy<=0;dy++) px(b[0]+dx,b[1]+dy,C.encre);
+      if(face>0){ for(let dx=-2;dx<=2;dx++) for(let dy=-4;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,(dx+dy)%2?C.blanc:C.jaune); lampes.push([b[0],b[1]-2,9]); }
+      else for(let dx=-2;dx<=2;dx++) for(let dy=-4;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,dy===-4||dx===-2?C.beton2:C.beton); }
+    else { const s=sx>0?-1:1;                // de profil : une tranche, les lampes du côté de la pelouse
+      for(let dy=-6;dy<=0;dy++){ px(b[0],b[1]+dy,C.encre); px(b[0]-s,b[1]+dy,C.beton); if(dy<0&&dy>-6) px(b[0]+s,b[1]+dy,dy%2?C.jaune:C.blanc); } } };
+  // la lumière tombe sur la pelouse, au pied de chaque projecteur : un damier d'herbe claire
+  const flaque=(sx,sy)=>{ if(ecl===3) return; const c=P(sx<0?16:L-16, sy<0?13:W-13, 0), rx=Math.round((ecl===2?22:11)*k), ry=Math.max(2,Math.round(rx*.5));
+    for(let dx=-rx;dx<=rx;dx++) for(let dy=-ry;dy<=ry;dy++){ const X=c[0]+dx, Y=c[1]+dy; if(X<0||Y<0||X>=GW||Y>=GH||(X+Y)%2||(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry)>1) continue;
+      const v=lit(X,Y); if((v[0]===C.herbe[0]&&v[1]===C.herbe[1])||(v[0]===C.herbe2[0]&&v[1]===C.herbe2[1])) px(X,Y,C.herbe3); } };
+
+  pylone(-1,-1);
+  // --- au fond : on voit les gradins et leurs contremarches, du haut vers la pelouse
+  const loin=segs.filter(g=>g.loin).sort((u,v)=>u.fond-v.fond), pres=segs.filter(g=>!g.loin).sort((u,v)=>u.fond-v.fond);
+  loin.forEach((g,i)=>{ for(let r=g.n-1;r>=0;r--){ marche(g,r,i);
+      if(r>0) quad([pt(g.a,r*D,r*RZ),pt(g.b,r*D,r*RZ),pt(g.b,r*D,bout(g.b,r)*RZ),pt(g.a,r*D,bout(g.a,r)*RZ)],g.my<g.mx?C.beton:C.beton2,C.encre); }
+    if(g.droit) pub([g.a.ax,g.a.ay],[g.b.ax,g.b.ay],RZ); else quad([pt(g.a,0,0),pt(g.b,0,0),pt(g.b,0,RZ),pt(g.a,0,RZ)],C.beton3,C.encre); });
+  if(!vir){ let pr=[[L,0,0]]; for(let r=0;r<nN;r++) pr.push([L,-r*D,(r+1)*RZ],[L,-(r+1)*D,(r+1)*RZ]); pr.push([L,-nN*D,0]); quad(pr,C.beton2,C.encre);
+    pr=[[0,W,0]]; for(let r=0;r<nO;r++) pr.push([-r*D,W,(r+1)*RZ],[-(r+1)*D,W,(r+1)*RZ]); pr.push([-nO*D,W,0]); quad(pr,C.beton3,C.encre); }
+  if(toit) loin.forEach(toitDe);
+  if(R.ecran){ const z=hN+(toit?8:1), x=6; quad([[x,-nN*D,z],[x+26,-nN*D,z],[x+26,-nN*D,z+11],[x,-nN*D,z+11]],C.encre,C.beton3);
     quad([[x+2,-nN*D,z+2],[x+24,-nN*D,z+2],[x+24,-nN*D,z+9],[x+2,-nN*D,z+9]],image%2?C.jaune:C.rouge); }
 
   // --- la pelouse
   quad([[-3,-0.01,0],[L+3,-0.01,0],[L+3,W,0],[-3,W,0]],C.herbe);
   for(let i=0;i<7;i+=2) quad([[i*15,3,0],[i*15+15,3,0],[i*15+15,W-3,0],[i*15,W-3,0]],C.herbe2);
+  flaque(-1,-1); flaque(1,-1); flaque(-1,1); flaque(1,1);
   const tr=(a,b)=>ligne(P(a[0],a[1],0),P(b[0],b[1],0),C.trait);
   tr([2,4],[L-2,4]); tr([L-2,4],[L-2,W-4]); tr([L-2,W-4],[2,W-4]); tr([2,W-4],[2,4]); tr([L/2,4],[L/2,W-4]);
   { let av=null; for(let a=0;a<=24;a++){ const q=[L/2+9*Math.cos(a/12*Math.PI),W/2+9*Math.sin(a/12*Math.PI)]; if(av) tr(av,q); av=q; } }
   for(const [x0,x1] of [[2,18],[L-18,L-2]]){ tr([x0,W/2-20],[x1,W/2-20]); tr([x0,W/2+20],[x1,W/2+20]); const xm=x0===2?x1:x0; tr([xm,W/2-20],[xm,W/2+20]); }
 
-  pylone(L+nE*D+9,-nN*D-9); pylone(-nO*D-9,W+nS*D+9);
-  // --- EST (devant à droite) : on voit les gradins de dessus et le mur extérieur
-  for(let r=0;r<nE;r++) gradin(L+r*D,L+(r+1)*D,0,W,(r+1)*RZ,r);
-  quad([[L+nE*D,0,0],[L+nE*D,W,0],[L+nE*D,W,hE],[L+nE*D,0,hE]],C.beton2,C.encre); fenetres([L+nE*D+.2,0],[L+nE*D+.2,W],0,hE,3);
-  { const pr=[[L,W,0]]; for(let r=0;r<nE;r++) pr.push([L+r*D,W,(r+1)*RZ],[L+(r+1)*D,W,(r+1)*RZ]); pr.push([L+nE*D,W,0]); quad(pr,C.beton3,C.encre); }
-  if(toit){ const pE=Math.max(1,Math.round(nE*.55))*D; toitDe(L+nE*D-pE,L+nE*D+2,vir?-1:0,W+1,hE+7); if(ecl===3) rampe([L+nE*D-pE-.2,0],[L+nE*D-pE-.2,W],hE+6); }
-  // --- SUD (devant à gauche)
-  const xS0=vir?-nO*D:0, xS1=vir?L+nE*D:L;
-  for(let r=0;r<nS;r++) gradin(xS0,xS1,W+r*D,W+(r+1)*D,(r+1)*RZ,r+1);
-  quad([[xS0,W+nS*D,0],[xS1,W+nS*D,0],[xS1,W+nS*D,hS],[xS0,W+nS*D,hS]],C.beton,C.encre); fenetres([xS0,W+nS*D+.2],[xS1,W+nS*D+.2],0,hS,9);
-  { const pr=[[xS1,W,0]]; for(let r=0;r<nS;r++) pr.push([xS1,W+r*D,(r+1)*RZ],[xS1,W+(r+1)*D,(r+1)*RZ]); pr.push([xS1,W+nS*D,0]); quad(pr,C.beton2,C.encre); }
-  if(toit){ const pS=Math.max(1,Math.round(nS*.55))*D; toitDe(xS0-1,xS1+1,W+nS*D-pS,W+nS*D+2,hS+7); if(ecl===3) rampe([xS0,W+nS*D-pS-.2],[xS1,W+nS*D-pS-.2],hS+6); }
-  pylone(L+nE*D+9,W+nS*D+9);
+  pylone(1,-1); pylone(-1,1);
+  // --- devant : on voit les gradins de dessus, puis le mur extérieur et ses fenêtres
+  pres.forEach((g,i)=>{ for(let r=0;r<g.n;r++) marche(g,r,i+1);
+    const A=pt(g.a,g.a.n*D,0), B=pt(g.b,g.b.n*D,0); quad([A,B,[B[0],B[1],g.b.n*RZ],[A[0],A[1],g.a.n*RZ]],g.mx>g.my?C.beton2:C.beton,C.encre); fenetres(A,B,0,Math.min(g.a.n,g.b.n)*RZ,i*7+3); });
+  if(!vir){ let pr=[[L,W,0]]; for(let r=0;r<nE;r++) pr.push([L+r*D,W,(r+1)*RZ],[L+(r+1)*D,W,(r+1)*RZ]); pr.push([L+nE*D,W,0]); quad(pr,C.beton3,C.encre);
+    pr=[[L,W,0]]; for(let r=0;r<nS;r++) pr.push([L,W+r*D,(r+1)*RZ],[L,W+(r+1)*D,(r+1)*RZ]); pr.push([L,W+nS*D,0]); quad(pr,C.beton2,C.encre); }
+  if(toit) pres.forEach(toitDe);
+  pylone(1,1);
 
   // --- la lumière : un damier clair autour de chaque lampe, jamais de fondu
   for(const [gx,gy,r] of lampes) for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++){ const X=gx+dx, Y=gy+dy; if(X<0||Y<0||X>=GW||Y>=GH||(X+Y)%2||dx*dx+dy*dy>r*r) continue;
