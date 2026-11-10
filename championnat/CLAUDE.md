@@ -326,7 +326,7 @@ toujours « raconter quelque chose ».
   but compris (36/36). `byUid` retombe sur `UID_SOIR` (les deux vestiaires du soir) le temps du direct, pour que
   les fenêtres nomment le tireur ou le gardien d'un village ou d'un club étranger ; remis à null au sifflet et
   dans `abandonneDirect`. Un direct abandonné laisse le moment non résolu (le score reste celui du moteur).
-- **LES ARRÊTS DU COACH (v2.57, demande de l'auteur du 10/11/2026 : « le jeu doit proposer lui-même des décisions
+- **LES ARRÊTS DU COACH (v2.58, demande de l'auteur du 10/11/2026 : « le jeu doit proposer lui-même des décisions
   pendant le match »)**. Le direct s'arrête de lui-même sur une situation de jeu et pose une question courte, deux ou
   trois réponses, un clic et ça repart (`arretsDuMatch`, branché dans `lanceMatch` ET `directSemaine` par `apres(k, d)`
   après chaque ligne lue et après le flash d'un but ou d'un rouge). Situations : **la mi-temps, toujours** (jamais zéro

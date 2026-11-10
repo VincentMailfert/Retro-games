@@ -1,4 +1,4 @@
-/* Harnais headless — LES ARRÊTS DU COACH (v2.57)
+/* Harnais headless — LES ARRÊTS DU COACH (v2.58)
    Le match s'arrête de lui-même sur une situation de jeu et pose une question courte. Ce harnais garde :
    A) le rythme, sur des journées réellement jouées : jamais zéro arrêt, jamais plus de trois, deux en moyenne,
       la mi-temps toujours, et chaque situation finit par se présenter (but encaissé, homme cuit, score serré)
