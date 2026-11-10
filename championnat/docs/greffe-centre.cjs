@@ -28,7 +28,7 @@ const bloc=`${DEB}
    Pour le régénérer depuis le prototype : node docs/greffe-centre.cjs . (depuis championnat/). */
 const CENTRE3D=(()=>{
 ${ind}
-  return {scene, FAMS, FAM, PALIERS, SOUS_PALIER, CHATEAU, points, palier, nivMax, chateauOuvert, nomNiveau, effets};
+  return {scene, FAMS, FAM, PALIERS, SOUS_PALIER, CHATEAU, points, palier, nivMax, chateauOuvert, nomNiveau, effets, calePixels};
 })();
 ${FIN}
 `;

@@ -27,7 +27,7 @@ const bloc=`/* ---- LE STADE EN MAQUETTE (v1.36) ----
    Pour le régénérer depuis le prototype : node docs/greffe-stade.cjs . (depuis championnat/). */
 const STADE3D=(()=>{
 ${ind}
-  return {vueMaquette, vueVille, capTribunes, coteSuivante};
+  return {vueMaquette, vueVille, capTribunes, coteSuivante, calePixels};
 })(); /* ---- fin de la maquette ---- */
 `;
 const f=path.join(dir,'index.html');

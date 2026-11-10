@@ -125,24 +125,24 @@
     background:#1a1300; border:2px solid var(--jaune); color:var(--jaune); border-radius:4px; padding:8px 14px; font-family:var(--font-ui); font-size:21px; z-index:15; max-width:92vw; text-align:center; }
   .toast.vu{ transform:translate(-50%,0); }
 
-  .arrive{ animation:arrive 3.4s cubic-bezier(.15,.7,.3,1) .6s both; }
+  .arrive{ animation:arrive 3.4s steps(26,jump-none) .6s both; }
   @keyframes arrive{ from{ transform:translate(var(--x),var(--y)); } }
-  .brume{ animation:brume 9s ease-in-out infinite alternate; } .brume.b{ animation-duration:12s; animation-delay:-4s; } .brume.c{ animation-duration:15s; }
+  .brume{ animation:brume 9s steps(9,jump-none) infinite alternate; } .brume.b{ animation-duration:12s; animation-delay:-4s; } .brume.c{ animation-duration:15s; }
   @keyframes brume{ to{ transform:translateX(18px); } }
-  .jet{ animation:jet 1.4s ease-in-out infinite alternate; transform-box:fill-box; transform-origin:bottom; }
+  .jet{ animation:jet 1.4s steps(3,jump-none) infinite alternate; transform-box:fill-box; transform-origin:bottom; }
   @keyframes jet{ to{ transform:scaleY(.8); } }
-  .eclat{ animation:eclat 2.6s ease-out infinite; transform-box:fill-box; transform-origin:center; }
+  .eclat{ animation:eclat 2.6s steps(8,jump-none) infinite; transform-box:fill-box; transform-origin:center; }
   @keyframes eclat{ 0%{ transform:scale(.2); opacity:0; } 15%{ opacity:1; } 70%{ opacity:.9; } 100%{ transform:scale(1.15); opacity:0; } }
   .clign{ animation:clign 1.1s steps(2,start) infinite; }
   @keyframes clign{ to{ visibility:hidden; } }
-  .vapeur{ animation:vapeur 4.5s ease-in-out infinite; transform-box:fill-box; }
+  .vapeur{ animation:vapeur 4.5s steps(9,jump-none) infinite; transform-box:fill-box; }
   .vapeur.b{ animation-delay:-1.5s; } .vapeur.c{ animation-delay:-3s; }
   @keyframes vapeur{ 0%{ transform:translateY(6px); opacity:0; } 40%{ opacity:.9; } 100%{ transform:translateY(-16px); opacity:0; } }
   .ecran{ animation:ecran 2.2s steps(3) infinite; }
   @keyframes ecran{ 50%{ opacity:.45; } }
-  .bob{ animation:bob .45s ease-in-out infinite alternate; }
+  .bob{ animation:bob .9s steps(2,jump-none) infinite alternate; }
   @keyframes bob{ to{ transform:translateY(-1.1px); } }
-  .vv{ animation:vv 4s ease-in-out infinite alternate; }
+  .vv{ animation:vv 4s steps(16,jump-none) infinite alternate; }
   @keyframes vv{ to{ transform:translate(var(--x),var(--y)); } }
   @media (prefers-reduced-motion: reduce){ .clign,.bob,.vv,.arrive,.brume,.jet,.eclat,.vapeur,.ecran,.nBoite,.nScene .apres{ animation:none; } .toast,.jauge i,.gain .barre i{ transition:none; } }
 
@@ -151,6 +151,47 @@
     .pupitre{ position:static; }
     .tete h1{ font-size:38px; }
   }
+  /* ============================================================
+     HABILLAGE CONSOLE 16 BITS : angles droits, biseaux, ombres dures, jauges à crans, écran cathodique.
+     Posé en fin de feuille, il ne fait que surcharger l'habillage d'avant. Aucune règle de jeu ici.
+     ============================================================ */
+  .pupitre,.vue,.plan .bloc{ border-radius:0; border:2px solid var(--line); box-shadow:inset 2px 2px 0 rgba(255,255,255,.05), 5px 5px 0 #040a14; }
+  .vue h2::before,.plan h2::before{ content:"\25B6"; display:inline-block; color:var(--jaune); font-size:.55em; margin-right:.5em; vertical-align:.25em; }
+  /* l'écran : coque sombre, liseré, lignes de balayage */
+  .cadre{ position:relative; border-radius:0; border:4px solid #1b2c49; background:#000924; box-shadow:inset 0 0 0 2px #000, 0 0 0 2px #000, 4px 4px 0 2px rgba(0,0,0,.55); }
+  .cadre::after,.nScene::after{ content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.17) 2px 3px), radial-gradient(ellipse at center, rgba(0,0,0,0) 62%, rgba(0,0,0,.28) 100%); }
+  .nScene{ position:relative; border-bottom:2px solid #000; }
+  @media (max-width:600px){ .cadre#maq::after{ width:190%; } }
+  /* boutons : touches en relief, enfoncées quand elles sont choisies */
+  .seg button,.opt span,.second,.paliers span{ border-radius:0; border:2px solid #000; background:#1a3052; box-shadow:inset 2px 2px 0 rgba(255,255,255,.1), inset -2px -2px 0 rgba(0,0,0,.45); }
+  .seg button[aria-checked="true"],.opt input:checked + span{ background:#0c1830; border-color:var(--jaune); color:var(--jaune); box-shadow:inset 2px 2px 0 rgba(0,0,0,.6), inset -2px -2px 0 rgba(255,255,255,.06); }
+  .seg button:not(:disabled):active,.second:active{ box-shadow:inset 2px 2px 0 rgba(0,0,0,.6); transform:translate(1px,1px); }
+  .big{ border-radius:0; border:2px solid #000; font-family:var(--font-ui); font-weight:normal; font-size:21px; line-height:1; padding:11px 10px 10px;
+    box-shadow:inset 3px 3px 0 #ffe894, inset -3px -3px 0 #b8901f, 4px 4px 0 #040a14; }
+  .big:not(:disabled):active{ transform:translate(3px,3px); box-shadow:inset 3px 3px 0 #b8901f, inset -3px -3px 0 #ffe894; }
+  .big:disabled{ border-color:#6b5a22; box-shadow:none; }
+  .histoire{ border-radius:0; border:2px solid #000; background:#221a06; box-shadow:inset 0 0 0 2px #c9a23a, inset 5px 5px 0 rgba(255,210,74,.12), 4px 4px 0 #040a14; padding:13px 14px; }
+  .histoire.fait{ box-shadow:inset 0 0 0 2px var(--jaune), 4px 4px 0 #040a14; }
+  /* jauges à crans */
+  .jauge,.gain .barre{ height:12px; border-radius:0; border:2px solid #000; background:#060d18; padding:1px; }
+  .gain .barre{ height:10px; }
+  .jauge i{ background:repeating-linear-gradient(90deg, var(--jaune) 0 6px, transparent 6px 8px); transition:width .4s steps(6); }
+  .gain .barre i{ background:repeating-linear-gradient(90deg, var(--vert) 0 4px, transparent 4px 6px); transition:width .4s steps(6); }
+  /* curseurs : rail creusé, poignée carrée */
+  input[type=range]{ -webkit-appearance:none; appearance:none; height:20px; background:none; }
+  input[type=range]::-webkit-slider-runnable-track{ height:8px; background:#060d18; border:2px solid #000; box-shadow:inset 0 2px 0 rgba(0,0,0,.6); }
+  input[type=range]::-moz-range-track{ height:4px; background:#060d18; border:2px solid #000; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:12px; height:20px; margin-top:-8px; background:var(--jaune); border:2px solid #000; border-radius:0; box-shadow:inset 2px 2px 0 #ffe894, inset -2px -2px 0 #b8901f; }
+  input[type=range]::-moz-range-thumb{ width:8px; height:16px; background:var(--jaune); border:2px solid #000; border-radius:0; }
+  .grue input,.case input{ -webkit-appearance:none; appearance:none; width:18px; height:18px; flex:none; background:#060d18; border:2px solid #000; box-shadow:inset 2px 2px 0 rgba(0,0,0,.6), 0 0 0 1px var(--line); }
+  .grue input:checked,.case input:checked{ background:var(--jaune) linear-gradient(#000,#000) center/6px 6px no-repeat; }
+  /* carte de livraison et bandeau d'information */
+  .nBoite{ border-radius:0; border:2px solid var(--jaune); box-shadow:0 0 0 2px #000, 8px 8px 0 2px #000; animation:entre .3s steps(4,jump-none); }
+  .nSur::after{ content:"\2588"; margin-left:6px; animation:clign 1.1s steps(2,start) infinite; }
+  .toast{ border-radius:0; box-shadow:0 0 0 2px #000, 4px 4px 0 2px #000; transition:transform .25s steps(5); }
+  .epoque{ border-radius:0; }
+  @media (prefers-reduced-motion: reduce){ .nSur::after{ animation:none; } .jauge i,.gain .barre i{ transition:none; } }
 </style>
 
 <div class="tete">
@@ -351,6 +392,47 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function rnd(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const saison=a=>a+'-'+String((a+1)%100).padStart(2,'0');
 
+/* ---- PIXEL ART 16 BITS : le dessin vectoriel passe par un filtre qui l'échantillonne sur une grille de gros pixels
+   (un point par case, pas de flou), le trame (matrice de Bayer 2x2) puis réduit la palette à quelques niveaux par canal
+   (niveaux plus serrés dans les sombres, puisque le jeu vit la nuit).
+   Tout reste du SVG vivant : les animations et les zones cliquables continuent de marcher sous le filtre.
+   c = côté d'un pixel de jeu, en unités du viewBox ; niv = niveaux par canal ; (X,Y) = origine du viewBox. ---- */
+function corpsPixel(X,Y,c,d,o,r,niv){
+  const pas=1/(niv-1), n3=v=>(+v).toFixed(4);
+  const tv=[...Array(2*(niv-1))].map((_,j)=>n3(Math.ceil(j/2)/(niv-1))).join(' ');   // arrondi au niveau le plus proche
+  const trame=(x,y,a,nom)=>`<feFlood x="${n3(X+x)}" y="${n3(Y+y)}" width="${n3(c)}" height="${n3(c)}" flood-color="#fff" flood-opacity="${a}"/><feComposite width="${n3(2*c)}" height="${n3(2*c)}"/><feTile result="${nom}"/>`;
+  return `<feFlood x="${n3(X+o)}" y="${n3(Y+o)}" width="${n3(d)}" height="${n3(d)}"/><feComposite width="${n3(c)}" height="${n3(c)}"/><feTile result="grille"/>
+    <feComposite in="SourceGraphic" in2="grille" operator="in"/><feMorphology operator="dilate" radius="${n3(r)}" result="gros"/>
+    <feMerge result="plein"><feMergeNode in="SourceGraphic"/><feMergeNode in="gros"/></feMerge>
+    ${trame(c,0,.5,'t1')}${trame(0,c,.75,'t2')}${trame(c,c,.25,'t3')}
+    <feMerge result="bayer"><feMergeNode in="t1"/><feMergeNode in="t2"/><feMergeNode in="t3"/></feMerge>
+    <feComponentTransfer in="plein" result="clair"><feFuncR type="gamma" exponent=".6"/><feFuncG type="gamma" exponent=".6"/><feFuncB type="gamma" exponent=".6"/></feComponentTransfer>
+    <feComposite in="clair" in2="bayer" operator="arithmetic" k1="0" k2="1" k3="${n3(pas*.5)}" k4="${n3(-pas*.5*.375)}"/>
+    <feComponentTransfer><feFuncR type="discrete" tableValues="${tv}"/><feFuncG type="discrete" tableValues="${tv}"/><feFuncB type="discrete" tableValues="${tv}"/></feComponentTransfer>
+    <feComponentTransfer><feFuncR type="gamma" exponent="1.6667"/><feFuncG type="gamma" exponent="1.6667"/><feFuncB type="gamma" exponent="1.6667"/></feComponentTransfer>`;
+}
+function filtrePixel(id,X,Y,w,h,c,niv){
+  c=c||2.5; niv=niv||8;
+  const d=c*0.36, o=(c-d)/2;
+  return `<filter id="${id}" data-pix="${c}" data-niv="${niv}" filterUnits="userSpaceOnUse" x="${X}" y="${Y}" width="${w}" height="${h}" color-interpolation-filters="sRGB">${corpsPixel(X,Y,c,d,o,o+.35,niv)}</filter>`;
+}
+/* Cale la grille sur les pixels de l'écran : un pixel de jeu = un nombre entier (impair) de pixels physiques, sinon la
+   grille bave et dessine un quadrillage. À appeler après avoir posé un SVG dans la page ; chaque SVG est ensuite
+   surveillé (ResizeObserver) et se recale tout seul quand sa taille change. */
+function caleFiltre(f){
+  const svg=f.ownerSVGElement, vb=svg&&svg.viewBox.baseVal, m=svg&&svg.getScreenCTM();
+  if(!vb||!vb.width||!m||!m.a) return;
+  const dpr=window.devicePixelRatio||1, e=m.a*dpr;                           // pixels physiques par unité de dessin
+  const voulu=Math.max(+f.dataset.pix*e, 1.2*dpr);                           // jamais moins d'un pixel d'écran et quelque
+  const n=Math.max(3, 2*Math.round((voulu-1)/2)+1), cle=n+'/'+e.toFixed(4);
+  if(f.dataset.cale===cle) return; f.dataset.cale=cle;
+  f.innerHTML=corpsPixel(vb.x, vb.y, n/e, 1/e, (n-1)/2/e, (n-1)/2/e, +f.dataset.niv);
+}
+const VEILLE=typeof ResizeObserver!=='undefined'?new ResizeObserver(l=>l.forEach(x=>x.target.querySelectorAll('filter[data-pix]').forEach(caleFiltre))):null;
+function calePixels(racine){
+  if(typeof document==='undefined') return;
+  (racine||document).querySelectorAll('filter[data-pix]').forEach(f=>{ caleFiltre(f); if(VEILLE&&f.ownerSVGElement) VEILLE.observe(f.ownerSVGElement); });
+}
 function points(R){ return FAMS.reduce((s,f)=>s+R[f.id],0); }
 function palier(R){ if(R.chateau) return 'Le Château'; const p=points(R); let n=PALIERS[0][1]; for(const [s,nm] of PALIERS) if(p>=s) n=nm; return n; }
 function nivMax(f,annee){ if(!f.des) return 3; for(let n=1;n<=3;n++) if(f.des[n]&&f.des[n]>annee) return n-1; return 3; }
@@ -512,21 +594,25 @@ const ADULTE=1.7, JEUNE=1.35;
 const bouge=()=>typeof REDUIT==='undefined'||!REDUIT;
 function iso(dx,dy){ return [(dx-dy)*IS.c*IS.sc,(dx+dy)*IS.s*IS.sc]; }
 /* mv : {dx,dy,dur,del,mode} en mètres au sol. mode 'va' = traverse et recommence, 'vv' = va-et-vient */
+/* Animation image par image, comme sur console (8 images par seconde) : le trajet est redécoupé en positions fixes. */
+function images(Q,dur){ const n=Math.max(2,Math.round(dur*8)), m=Q.length-1, out=[];
+  for(let i=0;i<n;i++){ const u=i/n*m, k=Math.min(m-1,Math.floor(u)), t=u-k; out.push([Q[k][0]+(Q[k+1][0]-Q[k][0])*t, Q[k][1]+(Q[k+1][1]-Q[k][1])*t]); }
+  return out; }
 function gars(x,y,col,t,mv){ t=t||ADULTE; const b=PI(x,y,0), s=IS.sc*t, X=b[0], Y=b[1];
   let o=`<ellipse cx="${f1(X)}" cy="${f1(Y)}" rx="${f1(1.1*s)}" ry="${f1(.45*s)}" fill="#000" opacity=".3"/>`+
     `<g class="bob" style="animation-delay:-${f1((x*7+y*3)%10/10)}s"><rect x="${f1(X-.5*s)}" y="${f1(Y-1.5*s)}" width="${f1(1*s)}" height="${f1(1.5*s)}" fill="#1b2433"/>`+
     `<rect x="${f1(X-.65*s)}" y="${f1(Y-3*s)}" width="${f1(1.3*s)}" height="${f1(1.6*s)}" rx="${f1(.3*s)}" fill="${col}"/>`+
     `<circle cx="${f1(X)}" cy="${f1(Y-3.55*s)}" r="${f1(.55*s)}" fill="#e2b58f"/></g>`;
-  if(mv&&mv.path){ if(!bouge()) return o; const pts=mv.path.map(([a,b])=>iso(a,b)).map(q=>f1(q[0])+' '+f1(q[1])).join(';');
-    return `<g>${o}<animateTransform attributeName="transform" type="translate" values="${pts}" dur="${f1(mv.dur)}s" begin="-${f1(mv.del||0)}s" repeatCount="indefinite"/></g>`; }
+  if(mv&&mv.path){ if(!bouge()) return o; const pts=images(mv.path.map(([a,b])=>iso(a,b)),mv.dur).map(q=>f1(q[0])+' '+f1(q[1])).join(';');
+    return `<g>${o}<animateTransform attributeName="transform" type="translate" calcMode="discrete" values="${pts}" dur="${f1(mv.dur)}s" begin="-${f1(mv.del||0)}s" repeatCount="indefinite"/></g>`; }
   if(mv){ const d=iso(mv.dx||0,mv.dy||0); o=`<g class="${mv.mode||'vv'}" style="--x:${f1(d[0])}px;--y:${f1(d[1])}px;animation-duration:${f1(mv.dur||4)}s;animation-delay:-${f1(mv.del||0)}s">${o}</g>`; }
   return o; }
 function ballon(x,y){ const p=PI(x,y,.6); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="1.6" fill="#f2f5fa" stroke="#1b2433" stroke-width=".4"/>`; }
 function ballonMv(pts,dur){ if(!bouge()) return ballon(...pts[0]);
-  const Q=pts.map(([x,y])=>PI(x,y,.6));
+  const Q=images(pts.map(([x,y])=>PI(x,y,.6)),dur);
   return `<circle cx="${f1(Q[0][0])}" cy="${f1(Q[0][1])}" r="1.6" fill="#f2f5fa" stroke="#1b2433" stroke-width=".4">`+
-    `<animate attributeName="cx" values="${Q.map(q=>f1(q[0])).join(';')}" dur="${dur}s" repeatCount="indefinite"/>`+
-    `<animate attributeName="cy" values="${Q.map(q=>f1(q[1])).join(';')}" dur="${dur}s" repeatCount="indefinite"/></circle>`; }
+    `<animate attributeName="cx" calcMode="discrete" values="${Q.map(q=>f1(q[0])).join(';')}" dur="${dur}s" repeatCount="indefinite"/>`+
+    `<animate attributeName="cy" calcMode="discrete" values="${Q.map(q=>f1(q[1])).join(';')}" dur="${dur}s" repeatCount="indefinite"/></circle>`; }
 function plot(x,y){ const b=PI(x,y,0); return `<polygon points="${f1(b[0]-1.5)},${f1(b[1])} ${f1(b[0]+1.5)},${f1(b[1])} ${f1(b[0])},${f1(b[1]-3)}" fill="#ff8a3a"/>`; }
 function seance(kind,x0,y0,x1,y1,add,fam,seed){
   const r=rnd(seed), mx=(x0+x1)/2, my=(y0+y1)/2, A=(k,fn)=>add(k,fn,false,fam);
@@ -709,6 +795,7 @@ function lumiere(vb,fete){ const [X,Y,W,H]=vbN(vb);
   return o; }
 
 /* --- la scène --- */
+let NPIX=0;
 const GRUES={terrains:[137,128,40],physique:[180,46,30],medical:[102,50,30],vie:[50,48,34],academie:[42,114,30],video:[194,48,46],chateau:[48,168,48]};
 function scene(R,o){
   o=o||{}; BB=null; const F=o.focus||null, ann=R.annee, objs=[]; let ground='';
@@ -732,19 +819,21 @@ function scene(R,o){
   else if(F&&BB){ const pad=30, AR=760/440; let w=BB[2]-BB[0]+pad*2, h=BB[3]-BB[1]+pad*2; if(w/h<AR) w=h*AR; else h=w/AR; w=Math.max(w,300); h=Math.max(h,300/AR);
     const cx=(BB[0]+BB[2])/2, cy=(BB[1]+BB[3])/2; vb=`${f1(cx-w/2)} ${f1(cy-h/2)} ${f1(w)} ${f1(h)}`; }
   const gold=R.chateau&&!F?rect(-3,243,-3,203,0,'none',' stroke="#ffd24a" stroke-width="1.4" opacity=".55"'):'';
+  const fid='ctPix'+(++NPIX);   // un filtre par scène : son cadre suit le viewBox, et deux scènes cohabitent sur la carte de livraison
   let s=`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Maquette isométrique du centre d'entraînement, ${palier(R)}">
   <defs><radialGradient id="cHalo"><stop offset="0" stop-color="#fffbe6" stop-opacity=".9"/><stop offset=".3" stop-color="#ffe58a" stop-opacity=".4"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
   <linearGradient id="cAube" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb07a" stop-opacity=".55"/><stop offset=".5" stop-color="#e08aa0" stop-opacity=".16"/><stop offset="1" stop-color="#5a6ab0" stop-opacity=".08"/></linearGradient>
   <linearGradient id="cOr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd24a" stop-opacity=".35"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></linearGradient>
   <radialGradient id="cBrume"><stop offset="0" stop-color="#eef3fb" stop-opacity=".5"/><stop offset=".6" stop-color="#eef3fb" stop-opacity=".18"/><stop offset="1" stop-color="#eef3fb" stop-opacity="0"/></radialGradient>
-  <radialGradient id="cEau"><stop offset="0" stop-color="#8fd0ff" stop-opacity=".35"/><stop offset="1" stop-color="#8fd0ff" stop-opacity="0"/></radialGradient></defs>
-  <rect x="-400" y="-400" width="1600" height="1400" fill="${o.aube?'#141a33':'#081221'}"/>`;
+  <radialGradient id="cEau"><stop offset="0" stop-color="#8fd0ff" stop-opacity=".35"/><stop offset="1" stop-color="#8fd0ff" stop-opacity="0"/></radialGradient>
+  ${filtrePixel(fid,...vbN(vb),vbN(vb)[2]/276)}</defs>
+  <g filter="url(#${fid})"><rect x="-400" y="-400" width="1600" height="1400" fill="${o.aube?'#141a33':'#000924'}"/>`;
   s+= F?`<g opacity=".4">${base}</g>`:base;
   s+=ground+gold;
   if(o.aube) s+=brume(vb);
   for(const ob of objs) s+=(F&&ob.fam!==F&&ob.fam!=='grue'&&ob.fam!=='aube')?`<g opacity=".3">${ob.svg}</g>`:ob.svg;
   if(o.aube) s+=lumiere(vb,F==='chateau');
-  return {svg:s+'</svg>', vb};
+  return {svg:s+'</g></svg>', vb};
 }
 
 /* ===== CENTRE3D : FIN ===== */
@@ -797,7 +886,7 @@ function majTout(){
   bc.disabled=!!R.chateau||!ouvert||!!CHT||!!carriere; bc.classList.toggle('fait',!!R.chateau);
   $('chateauInfo').textContent=R.chateau?'Le château est construit.':(ouvert?`${CHATEAU.cout} MF · ${CHATEAU.duree} journées · définitif`:'15 points, et chaque bâtiment au niveau 2');
   $('anneeOut').textContent=saison(R.annee); $('annee').value=R.annee;
-  $('maq').innerHTML=scene(R,{ch:CHT}).svg;
+  $('maq').innerHTML=scene(R,{ch:CHT}).svg; calePixels($('maq'));
   majGains();
 }
 function majGains(){
@@ -822,6 +911,7 @@ function majGains(){
 function ouvreLivraison(id,n,avant){
   const apres={...R}, a=scene(apres,{focus:id,aube:true}), b=scene(avant,{focus:id,vb:a.vb,aube:true});
   $('nScene').innerHTML=`<div class="avant">${b.svg}</div><div class="apres">${a.svg}</div>`;
+  requestAnimationFrame(()=>calePixels($('nScene')));
   if(id==='chateau'){ $('nTitre').textContent='Le château'; $('nSous').textContent='Cinq tours, des douves, une grille dorée et un parc. Le président coupe le ruban, les jeunes du pays rêvent d\'y dormir une nuit.'; $('nChiffres').textContent='Progression +10 % · une montée de plus · mise au vert avant les grands soirs'; }
   else { const f=FAM[id]; $('nTitre').textContent=nomNiveau(f,n,apres.annee); $('nSous').textContent=f.sous[n]; $('nChiffres').textContent=f.eff[n]; }
   $('nSur').textContent=id==='chateau'?'INAUGURATION · LE CHÂTEAU':'LIVRAISON · LUNDI, 7 H 30 · CENTRE D\'ENTRAÎNEMENT';
@@ -829,6 +919,7 @@ function ouvreLivraison(id,n,avant){
   $('notif').hidden=false; $('nOk').focus();
 }
 function fermeLivraison(){ $('notif').hidden=true; }
+addEventListener('resize',()=>calePixels());
 $('nOk').addEventListener('click',fermeLivraison);
 $('notif').addEventListener('click',e=>{ if(e.target===$('notif')) fermeLivraison(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') fermeLivraison(); });
