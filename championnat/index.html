@@ -623,7 +623,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.55"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.56"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -12476,6 +12476,13 @@ function simuleReste(home,away,mStart,sh,sa,mulH,mulA,vus,opts){
   const ev=[], vusC=vus||[], booked=new Set(); // anti-répétition (héritée du match en cours) + joueurs avertis (uid), propres au reste de match re-simulé
   let prolong=!!(O&&O.enProlong), fin=prolong?120:90;
   if(prolong){ mulH*=usureProlong(home); mulA*=usureProlong(away); } // on recolle en pleine prolongation : l'usure est déjà là
+  // recollé PILE à la 90e (le moment de la 90e d'un soir de coupe, v2.56) : la boucle commence à la 91e et ne verrait
+  // jamais le jalon de la 90e ; à égalité, les prolongations s'ouvrent donc ici
+  else if(O && mStart===90 && O.prolong && egalite(sh,sa)){
+    prolong=true; fin=120; mulH*=usureProlong(home); mulA*=usureProlong(away);
+    ev.push({m:90,t:"sys",x:"Rien n'a pu les départager. PROLONGATIONS : deux fois quinze minutes."});
+    ev.push({m:90,t:"amb",x:pickNR(COMM.amb,vusC)});
+  }
   for(let m=mStart+1;m<=fin;m++){ MIN_JEU=m;
     const elh=lh*mulH, ela=la*mulA, r=Math.random();
     if(r < elh/90){
@@ -15388,9 +15395,10 @@ function venteEclair(j){
 }
 
 /* ---------- Prêts ---------- */
+let UID_SOIR=null; // le temps d'un direct de semaine : retrouver un joueur du village ou du club étranger d'en face (v2.56)
 function byUid(uid){
   for(const c of G.clubs) for(const j of c.joueurs) if(j.uid===uid) return j;
-  return null;
+  return UID_SOIR ? UID_SOIR(uid) : null;
 }
 function tarifPret(j){ return Math.max(20000, Math.round(valeur(j)*0.0020/1e4)*1e4); } // appoint, pas une rente : prêter libère surtout le salaire et du temps de jeu
 /* Les durées proposées à la signature d'un prêt (v1.72, demande de l'auteur) : les piges de 5, 10 et
@@ -19408,6 +19416,19 @@ function sousFeuilles(feuilles, fn){ // pose des feuilles de match le temps de f
    touchent que les clubs dont le vestiaire vit toute la saison (le vôtre, et un adversaire du championnat) : un
    village ou un club étranger ne soigne personne entre deux tours. Le registre (fraîcheur au prorata, matchs de
    coupe, blessures déclarées) tombe à la résolution du tour, par registreRdv. Les autres affiches ne changent pas. */
+/* La place du moment dans le fil d'un soir de semaine : juste avant « PROLONGATIONS », sinon juste avant le sifflet. */
+function bordDe90(ev, from){
+  const ok=(l,n)=>n>=(from||0) && l.t==="sys";
+  let k=ev.findIndex((l,n)=>ok(l,n) && /^Rien n'a pu les départager/.test(l.x||""));
+  if(k<0) k=ev.findIndex((l,n)=>ok(l,n) && /^COUP DE SIFFLET FINAL/.test(l.x||""));
+  return k<0 ? ev.length : k;
+}
+/* Après un recollage, la ligne du moment encore à venir revient à sa place (rejoueDepuis la range en queue de fil,
+   donc après les prolongations). */
+function recaleMoment(ev, from){
+  const k=ev.findIndex((l,n)=>n>=from && l.mo); if(k<0) return;
+  const [l]=ev.splice(k,1); ev.splice(bordDe90(ev, from), 0, l);
+}
 let FEUILLES_RDV=null; // {compet, H, A, feuilles} de VOTRE dernier match de semaine, en attente de son registre
 function vestiaireSuivi(c){ return !!c && (c.id===G.monClub || (clubById(c.id)===c && !estAmateur(c.id))); }
 function matchRdvMien(H, A, verbeux, o, compet){
@@ -19435,6 +19456,14 @@ function matchRdvMien(H, A, verbeux, o, compet){
     for(const l of lignes.sort((x,y)=>x.m-y.m)){
       const k=r.ev.findIndex(e=>e.m>l.m);
       r.ev.splice(k<0?Math.max(0, r.ev.length-1):k, 0, l);
+    }
+    /* LE MOMENT DE LA 90e (v2.56), comme le samedi : même tirage (tireMoment), même probabilité, pour le match qu'on
+       regarde (le direct ou l'instantané, qui le résolvent). Il tombe à la fin du temps réglementaire, avant
+       d'éventuelles prolongations ; s'il change le score, le direct rejoue la suite depuis la 90e (directSemaine). */
+    if(verbeux && Math.random()<0.26){
+      const moi=H.id===G.monClub?H:A, adv=moi===H?A:H;
+      r.moment=tireMoment(moi, adv);
+      if(r.moment) r.ev.splice(bordDe90(r.ev), 0, {m:90, t:"crd", x:r.moment.annonce, mo:r.moment.type});
     }
     return r;
   }));
@@ -21618,7 +21647,7 @@ const EN_TEST=()=>typeof window!=="undefined"&&window.__TEST__;
 function fermeFiche(){ if(window._penEnCours) return; if(fiche&&fiche.style) fiche.style.display="none"; }
 function rafraichir(){ if(EN_TEST())return; if(VUECLUB) ecranClubVue(VUECLUB); else montre(ECRAN); }
 function abandonneDirect(){
-  PAUSE_DIRECT=false; // un match quitté ne reste jamais figé
+  PAUSE_DIRECT=false; UID_SOIR=null; // un match quitté ne reste jamais figé
   if(typeof document!=="undefined" && document.body) document.body.classList.remove("mode-direct","mode-intro"); // on quitte le plein écran match (ou le mot d'ouverture)
   if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; }
   if(butFlashTimer){ clearTimeout(butFlashTimer); butFlashTimer=null; }
@@ -22357,6 +22386,9 @@ function directSemaine(o){
   if(document.body) document.body.classList.add("mode-direct"); // le soir de semaine en plein écran, comme le samedi
   const H=o.H, A=o.A, Hc=o.Hc||H, Ac=o.Ac||A, S=o.S, R=S&&S.r&&S.r.ev ? S.r : null, lignes=o.lignes, instant=!!o.instant;
   const F=R && S.o && S.o.feuilles ? S.o.feuilles : null;
+  const rejoue=(from, m, mh, ma)=>{ const x=o.rejoue(from, m, mh, ma); recaleMoment(lignes, from); return x; };
+  // les deux vestiaires du soir, pour les fenêtres des moments (byUid ne connaît que votre division)
+  UID_SOIR=uid=>(Hc.joueurs||[]).find(j=>j.uid===uid)||(Ac.joueurs||[]).find(j=>j.uid===uid)||null;
   // la feuille de VOTRE soir reste posée le temps du direct : le banc, la fenêtre du pépin et les compos la lisent
   if(F) Object.assign(CHANGEMENTS, F);
   composDirect([H, Hc], [A, Ac], F);
@@ -22371,7 +22403,7 @@ function directSemaine(o){
     tabButAjoute(l.g.cote===H.id?"tBuH":"tBuA", l.g.but, l.m, l.g.cf?" (cf)":l.g.pen?" (sp)":"");
   };
   const fin=()=>{
-    fini=true;
+    fini=true; UID_SOIR=null;
     if(ctl) ctl.style.display="none";
     { const ctlT=document.getElementById("ctlTactique"); if(ctlT) ctlT.style.display="none"; }
     if(F) for(const id in F) if(CHANGEMENTS[id]===F[id]) delete CHANGEMENTS[id]; // la feuille du soir rend la place
@@ -22382,17 +22414,65 @@ function directSemaine(o){
       o.fin(tk);
     });
   };
-  if(instant){ lignes.forEach(l=>{ ajouteLigne(tk,l); majTab(l); }); tk.scrollTop=0; fin(); return; }
+  /* LE MOMENT DE LA 90e (v2.56), comme le samedi : la même fenêtre (ouvreMoment) pour les six moments à choix, le même
+     flash pour les autres. Un but change le score à la 90e : on écrit la ligne du but juste après l'annonce, puis la
+     suite se rejoue depuis la 90e (prolongations ouvertes à égalité, effacées si le but départage). */
+  const mo=R && R.moment, idxMo=()=>mo ? lignes.findIndex(l=>l.mo && l.x===mo.annonce) : -1;
+  let moFait=false;
+  const scoreA=k=>{ let sh=0, sa=0; for(let n=0;n<=k;n++){ const l=lignes[n]; if(l&&l.g){ if(l.g.cote===H.id) sh++; else sa++; } } return [sh, sa]; };
+  const coteBut=delta=>delta>0 ? G.monClub : (H.id===G.monClub ? A.id : H.id);
+  const resoudMo=(delta, lx, lic, butCote, butNom, suite)=>{
+    moFait=true;
+    const k=idxMo(); if(k<0){ suite(); return; }
+    let [sh, sa]=scoreA(k), g=null;
+    if(delta){
+      const cote=coteBut(delta), camp=cote===Hc.id ? Hc : Ac;
+      const j=(camp.joueurs||[]).find(x=>x.uid===mo.uid)||null;
+      if(cote===H.id) sh++; else sa++;
+      if(j) enCompet(o.compet, ()=>{ const kB=cleButs(); j[kB]=(j[kB]||0)+1; }); // au carnet de coupe, comme marque()
+      g={cote, but:(j&&j.nom)||butNom||"?", uid:j?j.uid:null, pas:null, sh, sa,
+        pen:mo.type==="pen_pour"||mo.type==="pen_contre", cf:mo.type==="coupfranc"};
+    }
+    const ligne={m:lignes[k].m, t:delta?"but":"occ", ic:lic, x:String(lx||"").replace("{SCORE}","("+H.id+" "+sh+"-"+sa+")"), g};
+    lignes.splice(k+1, 0, ligne);
+    if(delta){ rejoue(k+2, 90, liveMul.h, liveMul.a); o.verdict();
+      // sans prolongations, le temps additionnel était déjà annoncé avant le moment : le recollage ne le redit pas
+      const ta=l=>l.t==="sys" && l.m===90 && /temps additionnel/.test(l.x||"");
+      if(lignes.slice(0, k).some(ta)){ const d=lignes.findIndex((l,n)=>n>k+1 && ta(l)); if(d>=0) lignes.splice(d, 1); } }
+    i=k+2; ajouteLigne(tk, ligne); majTab(ligne); tk.scrollTop=0;
+    suite();
+  };
+  // à choix : la fenêtre du samedi ; sans choix : le banc tranche (autoMoment) et le flash le raconte
+  const traiteMoment=(lg, suite, flash)=>{
+    if(MOMENTS_INTERACTIFS[mo.type]) return ouvreMoment(R, [{mien:true, h:Hc, a:Ac}], resoudMo, suite);
+    const delta=autoMoment(mo);
+    const moi=Hc.id===G.monClub?Hc:Ac;
+    if(mo.type==="gants"){ const gk=(moi.joueurs||[]).find(j=>j.uid===(mo.gk||mo.uid)); if(gk) gk.bless=RNDI(2,4); }
+    if(mo.type==="chien") (moi.joueurs||[]).forEach(j=>{ j.moral=Math.min(100,(j.moral||65)+1); });
+    const apres=()=>{ if(delta) return resoudMo(delta, "BUT À LA 90ᵉ ! {SCORE}", "but", null, null, suite); moFait=true; suite(); };
+    if(!flash) return apres();
+    let [sh, sa]=scoreA(idxMo());
+    if(delta){ if(coteBut(delta)===H.id) sh++; else sa++; }
+    const fl=flashMoment(mo, lg, `<b class="jaune">${esc(H.nom)} ${sh} - ${sa} ${esc(A.nom)}</b> · ${lg.m}'`);
+    if(!fl) return apres();
+    celebreFlash(fl, apres);
+  };
+  if(instant){ // tout le fil d'un coup ; le moment à choix s'ouvre quand même, comme le samedi
+    const dump=()=>{ while(i<lignes.length){ const l=lignes[i]; ajouteLigne(tk,l); majTab(l); i++;
+        if(mo && !moFait && l.mo && l.x===mo.annonce) return traiteMoment(l, dump, false); }
+      tk.scrollTop=0; fin(); };
+    dump(); return;
+  }
   // la consigne se change en direct, comme le samedi : on rejoue la fin du match par le moteur, et le verdict suit
   if(R) cableTactiqueDirect({lignes, tk, pos:()=>i, minute:()=>liveMin,
-    rejoue:(from, mNow)=>o.rejoue(from, mNow, liveMul.h, liveMul.a), verdict:o.verdict});
+    rejoue:(from, mNow)=>rejoue(from, mNow, liveMul.h, liveMul.a), verdict:o.verdict});
   else cableTactiqueRdv({lignes, gen:o.gen, r:o.r, tk, pos:()=>i, lambdas:o.lambdas, verdict:o.verdict});
   // LE BANC ET LE PÉPIN, comme le samedi : le même contexte que lanceMatch, avec le recollage du soir (ctx.rejoue) et
   // un match vivant jusqu'au coup de sifflet de la 90e (ctx.actif) — les prolongations se jouent avec ce qui reste
   const sif=()=>lignes.findIndex(l=>l.t==="sys" && /^COUP DE SIFFLET FINAL/.test(l.x||""));
   const ctxBlessure={monMatch:R, eM:{h:Hc, a:Ac}, mul:liveMul,
     actif:()=>!fini && i<=sif(),
-    rejoue:(from, m, mh, ma)=>o.rejoue(from, m, mh, ma),
+    rejoue:(from, m, mh, ma)=>rejoue(from, m, mh, ma),
     reprendre:()=>{ tickerTimer=setTimeout(tic,300); },
     suite:()=>o.verdict() };
   const ctxBanc=Object.assign({}, ctxBlessure, {
@@ -22428,6 +22508,8 @@ function directSemaine(o){
       if(lg.c.cote===H.id){ liveMul.h*=0.78; liveMul.a*=dDef; } else { liveMul.a*=0.78; liveMul.h*=dDef; }
     }
     tk.scrollTop=0;
+    if(mo && !moFait && lg && lg.mo && courante===idxMo())
+      return traiteMoment(lg, ()=>{ tickerTimer=setTimeout(tic, tickerDelai); }, true);
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
@@ -22459,6 +22541,22 @@ function directSemaine(o){
     tickerTimer=setTimeout(tic,tickerDelai);
   };
   tickerDelai=2300; tic();
+}
+/* Le flash d'un moment de la 90e sans choix (buts d'exception, cagade, parade, décor) : les titres et images du samedi
+   (cf. lanceMatch). Rend null pour un moment qui se lit simplement au fil (les gants). */
+function flashMoment(mo, lg, sub){
+  const t=mo.type;
+  if(MOMENTS_BUT[t]){ const cag=t==="cagade";
+    const titre=cag?"🧤 CAGADE !":t==="cadeau"?"🎁 CADEAU DU GARDIEN !":t==="gkbut"?"🧤⚽ LE GARDIEN MARQUE !":"🌟 BUT D'ANTHOLOGIE !";
+    const tete=t==="geste" && /TÊTE PLONGEANTE/.test(mo.geste||"");
+    return {classe:cag?"contre":"", gros:titre, img:tete?PICK(IMG_MOMENT.gesteTete):IMG_MOMENT[t]?PICK(IMG_MOMENT[t]):null, sub, detail:lg.x}; }
+  if(t==="parade") return {classe:"", gros:"🧤 ARRÊT MIRACLE !", img:PICK(IMG_MOMENT.parade), sub, detail:lg.x};
+  if(t==="chien") return {classe:"", gros:"🐕 ENVAHISSEUR DE PELOUSE", ...imageOuArt("chien",DOG_ART), sub:"Un chien sur la pelouse&nbsp;! Le match attendra.", detail:lg.x};
+  if(t==="pigeon") return {classe:"", gros:"🐦 PIGEON TOUCHÉ !", ...imageOuArt("pigeon",PIGEON_ART), sub:"Sonné mais vivant, évacué sous l'ovation&nbsp;!", detail:lg.x};
+  if(t==="streaker") return {classe:"", gros:"🍑 INTRUS SUR LA PELOUSE&nbsp;!", img:PICK(IMG_MOMENT.streaker), sub:"En bottes de caoutchouc, plaqué au rond central&nbsp;!", detail:lg.x};
+  if(t==="projos") return {classe:"", gros:"🔌 PANNE DE PROJECTEURS&nbsp;!", ...imageOuArt("projos",PROJOS_ART), sub:"Le stade dans le noir, les briquets prennent le relais&nbsp;!", detail:lg.x};
+  if(t==="banderole") return {classe:"", gros:"📣 BANDEROLE DANS LE KOP&nbsp;!", img:PICK(IMG_MOMENT.banderole), sub:"«&nbsp;Monsieur l'arbitre, la buvette vous offre les lunettes&nbsp;»", detail:lg.x};
+  return null;
 }
 /* La feuille du sifflet d'un soir de semaine : celle du samedi (buts, cartons, homme du match, affluence), plus la
    mention des tirs au but. */
@@ -22508,7 +22606,7 @@ function lanceCoupe(H, A, ed){
   // LE FIL DU MOTEUR : celui que simuleMatch a écrit en jouant le match ; genEvCoupe ne reste qu'en secours
   const S=ed._sim, R=S&&S.r&&S.r.ev ? S.r : null;
   const gen=R ? null : genEvCoupe(H, A, r);
-  directSemaine({H, A, Hc:coupeClub(ed.hid)||H, Ac:coupeClub(ed.aid)||A, S, r, gen, instant:!!ed._instant,
+  directSemaine({compet:"CF", H, A, Hc:coupeClub(ed.hid)||H, Ac:coupeClub(ed.aid)||A, S, r, gen, instant:!!ed._instant,
     lignes:R ? R.ev : gen.ev, affSoir:R ? R.aff : gen.aff, stade:H.stade,
     rejoue:(from, mNow, mh, ma)=>coupeRejoue(S, from, mNow, mh, ma),
     lambdas:()=>lambdasRdv(r.hid, r.aid, COUPE_TERRAIN, forceCoupe),
@@ -22577,7 +22675,7 @@ function lanceEuroLeg(H, A, ed, legScore){
       else ed.tie=euroClotureAvec(ed.aid, ed.bid, ed.tie.l1, [r.sh, r.sa], tabR); // au retour, l'hôte est b : [buts b, buts a]
     }
   };
-  directSemaine({H, A, Hc:euroClub(H.id)||H, Ac:euroClub(A.id)||A, S, r, gen, instant:!!ed._instant, onzeFn:onzeEuro,
+  directSemaine({compet:"EU", H, A, Hc:euroClub(H.id)||H, Ac:euroClub(A.id)||A, S, r, gen, instant:!!ed._instant, onzeFn:onzeEuro,
     lignes:R ? R.ev : gen.ev, affSoir:R ? R.aff : gen.aff, stade:H.stade||"le stade",
     // le reste du match se rejoue SOUS LE MAILLOT EUROPÉEN : les buts effacés sortent de butsC, pas du championnat
     rejoue:(from, mNow, mh, ma)=>euroRejoue(S, H.id, A.id, from, mNow, mh, ma),

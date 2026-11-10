@@ -308,11 +308,24 @@ toujours « raconter quelque chose ».
   `hdmRdv` lu sur le fil par `faitsDuFil`, sans toucher `j.hdm`), le coup du chapeau a son flash (`chapeauxPuis`).
   (6) Le **résultat instantané** passe par l'écran du match (`ed._instant`, non énumérable) au lieu de sauter au
   verdict. **Restent propres à la coupe, sciemment** : le choix de rotation, la séance de tirs au but, le verdict au
-  lieu du multiplex. **Pas encore fait** : les moments de la 90e (penalty, coup franc, décor) les soirs de semaine.
+  lieu du multiplex. **Les moments de la 90e** suivent en v2.56 (ci-dessous).
   `harness-euro` K compte désormais les remplaçants entrés comme « sur la feuille ». L'étalon `butsMancheEuro` de
   `harness-coupes` sort à 2,581 sur la graine par défaut (2,549/2,550 sur 1234/777, identiques à main, déjà à ~2,547) :
-  dérive antérieure : étalon recalé à 2,55 le 09/11/2026, sur décision de l'auteur. **Prochain chantier décidé par
-  l'auteur** : les moments de la 90e les soirs de semaine (attention : un but à la 90e peut ôter ou provoquer les prolongations).
+  dérive antérieure : étalon recalé à 2,55 le 09/11/2026, sur décision de l'auteur.
+- **LES MOMENTS DE LA 90e LES SOIRS DE SEMAINE (v2.56, 10/11/2026, suite décidée par l'auteur)**. Même tirage que le samedi
+  (`tireMoment`, 26 %), dans `matchRdvMien`, mais seulement pour le match REGARDÉ (`verbeux` : direct ou instantané, qui
+  le résolvent ; les autres chemins, harnais compris, n'en tirent pas). La ligne tombe à la fin du temps réglementaire
+  (`bordDe90` : avant « PROLONGATIONS », sinon avant le sifflet) et y revient après chaque recollage (`recaleMoment`,
+  car `rejoueDepuis` range les lignes `mo` en queue de fil). Dans `directSemaine`, les six moments à choix ouvrent la
+  fenêtre du samedi (`ouvreMoment(R, [{mien, h:Hc, a:Ac}], resoudMo, suite)`), les autres passent par `autoMoment`
+  + le flash du samedi (`flashMoment`) ; `gants` et `chien` appliquent ce que `finirJournee` applique le samedi.
+  **Un but à la 90e** (`resoudMo`) : ligne du but juste après l'annonce (au carnet de coupe, `pen`/`cf` pour le
+  tableau), puis la suite se rejoue depuis la 90e. Pour cela `simuleReste` ouvre lui-même les prolongations quand
+  on le recolle PILE à la 90e à égalité (la boucle commence à la 91e et ne voyait jamais ce jalon). Vérifié au
+  navigateur : un nul départagé perd ses prolongations (15/15), un match décidé puis égalisé les gagne, tirs au
+  but compris (36/36). `byUid` retombe sur `UID_SOIR` (les deux vestiaires du soir) le temps du direct, pour que
+  les fenêtres nomment le tireur ou le gardien d'un village ou d'un club étranger ; remis à null au sifflet et
+  dans `abandonneDirect`. Un direct abandonné laisse le moment non résolu (le score reste celui du moteur).
 - **LE BANC EN DIRECT (v1.19, arbitrage de l'auteur : « un bouton Banc, les changements automatiques restent
   le défaut »)** — un bouton **🔁 Banc** dans le bandeau du direct (`htmlCtlTactique`, masqué partout sauf en
   championnat : les soirs de coupe n'ont pas de `CHANGEMENTS`). **Si on ne l'ouvre jamais, rien ne change** :
