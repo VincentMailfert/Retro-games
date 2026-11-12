@@ -624,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.65"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.66"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -21694,7 +21694,8 @@ function finSaisonEntr(rang){ // appelée par finDeSaison
   C.rep=Math.max(0,Math.min(100,avant+d)); C.repMax=Math.max(C.repMax||0,C.rep);
   C.contrat.reste=C.vire ? 0 : Math.max(0,(C.contrat.reste||1)-1);
   const moi=clubById(G.monClub);
-  C.saisons.push({s:G.saison, pays:G.pays, club:G.monClub, nom:moi?moi.nom:"", div:G.div, rang, obj:o.label, v:vd.v, rep:C.rep, vireJ:C.vire?C.vire.j:null});
+  C.saisons.push({s:G.saison, pays:G.pays, club:G.monClub, nom:moi?moi.nom:"", div:G.div, rang, obj:o.label, v:vd.v, rep:C.rep, vireJ:C.vire?C.vire.j:null,
+    pal:trophees((G.palmares||[]).filter(p=>p.includes(G.saison)))}); // les trophées de la saison, pour le livre d'or
   C.bilan={v:vd.v, crans:vd.crans, avant, apres:C.rep, rang, obj:o.label};
   C.vire=null; C.avert=null; // la page est tournée : l'été décide de la suite
 }
@@ -21860,14 +21861,44 @@ function ecranEte(){
       <p style="margin-top:8px">${esc(tete)}</p></div>`+E.offres.map(carte).join(""));
   app.querySelectorAll(".bEteSigne").forEach(x=>x.onclick=()=>basculeSaison(E.offres[+x.dataset.i]));
 }
-function ecranFinCarriere(){ // la version courte : le livre d'or et le grand bilan viendront avec la livraison 5
-  const C=G.coach, clubs=[...new Set(C.saisons.map(s=>s.nom))], titres=(G.palmares||[]).filter(p=>/^Champion/.test(p));
+/* ---------- LIVRAISON 5 : LE LIVRE D'OR ET LE GRAND BILAN ----------
+   Le livre d'or raconte la carrière, une ligne par saison achevée (`G.coach.saisons`, rempli par finSaisonEntr) :
+   la saison, le drapeau et le club, la division du pays, la place, le verdict (avec la journée du renvoi), et une
+   coupe 🏆 par trophée de la saison (`pal` : titres de champion et coupes gagnées, relevés au palmarès à la fin
+   de la saison). Il vit dans l'onglet Club (Direction & mémoire) pendant la carrière, et il fait le cœur de
+   l'écran de fin de carrière, quand il n'y a plus de saison à jouer. */
+const LIB_COURT={depasse:"Dépassé", tenu:"Tenu", rate:"Manqué", vire:"Renvoyé"};
+function trophees(p){ return (p||[]).filter(x=>/^(Champion|Vainqueur)/.test(x)); }
+function livreDorHTML(){
+  const C=G.coach; if(!C) return "";
+  if(!C.saisons.length) return `<p class="dim" style="font-size:13px">La première page s'écrit cette saison.</p>`;
+  const lignes=C.saisons.map(s=>{ const P=PAYS[s.pays||"FR"]||PAYS.FR, an=+String(s.s).slice(0,4), t=trophees(s.pal).length;
+    return `<tr><td class="dim">${esc(s.s)}</td><td>${P.drapeau} ${esc(s.nom)}</td><td class="dim">${esc(P[s.div===1?"tag1":"tag2"](an))}</td>
+      <td class="num"><b>${s.rang}ᵉ</b></td><td class="${(s.v==="rate"||s.v==="vire")?"rouge":"fort"}">${esc(LIB_COURT[s.v]||"")}${s.vireJ?" J"+s.vireJ:""}</td><td>${"🏆".repeat(t)}</td></tr>`; }).join("");
+  return `<table class="fit" style="font-size:13px;margin-top:4px">${lignes}</table>`;
+}
+function panneauLivreDor(){ // en tête de « Direction & mémoire », pour une carrière d'entraîneur
+  const C=G.coach, cc=C.contrat||{}, moi=clubById(G.monClub);
+  return `<h3>📖 Livre d'or</h3>
+    <p>${etoiles(C.rep)}${C.repMax>C.rep?` <span class="dim">· au plus haut ${etoiles(C.repMax)}</span>`:""}</p>
+    <p class="dim" style="font-size:13px">Contrat : ${esc(moi?moi.nom:"")}, ${cc.reste>1?cc.reste+" saisons":"dernière saison"}.</p>
+    ${livreDorHTML()}`;
+}
+function ecranFinCarriere(){
+  const C=G.coach, clubs=[], vus={};
+  for(const s of C.saisons) if(!vus[s.club]){ vus[s.club]=1; clubs.push(s); }
+  const titres=[].concat(...C.saisons.map(s=>trophees(s.pal)));
+  const pays=[...new Set(C.saisons.map(s=>s.pays||"FR"))];
   chrome("calendrier", `<div class="panel ctr"><h2>FIN DE CARRIÈRE</h2>
     <p class="dim">Il n'y a plus de saison à jouer.</p>
-    <p style="margin-top:10px">${C.saisons.length} saison${C.saisons.length>1?"s":""} · ${esc(clubs.join(", "))}</p>
-    <p style="margin-top:4px">${titres.length?esc(titres.join(" · ")):"Aucun titre."}</p>
-    <p style="margin-top:4px">Meilleure réputation : ${etoiles(C.repMax)}</p>
-    <p style="margin-top:12px"><button class="big" id="bFinC">Retour à l'accueil</button></p></div>`);
+    <p style="font-size:26px;letter-spacing:2px;margin-top:8px">${etoiles(C.repMax)}</p>
+    <p class="dim">meilleure réputation</p>
+    <p style="margin-top:10px">${C.saisons.length} saison${C.saisons.length>1?"s":""} · ${clubs.length} club${clubs.length>1?"s":""}${pays.length>1?" · "+pays.length+" pays":""}</p>
+    <p style="margin-top:4px">${clubs.map(s=>(PAYS[s.pays||"FR"]||PAYS.FR).drapeau+" "+esc(s.nom)).join(" · ")}</p>
+    <p style="margin-top:8px" class="${titres.length?"fort":"dim"}">${titres.length?titres.map(t=>"🏆 "+esc(t)).join("<br>"):"Aucun trophée."}</p>
+    </div>
+    <div class="panel"><h2>📖 LIVRE D'OR</h2>${livreDorHTML()}</div>
+    <div class="panel ctr"><button class="big" id="bFinC">Retour à l'accueil</button></div>`);
   document.getElementById("bFinC").onclick=retourAccueil;
 }
 function basculeSaison(o){ // signer l'offre de l'été : la vraie saison suivante, même carrière
@@ -26551,7 +26582,7 @@ function ecranClub(){
      <div>${staffHTML()}</div></div>
    </div>
    <div class="panel cp cp-direction"><h2>Direction &amp; mémoire</h2>
-     <h3>Le président</h3>
+     ${G.mode==="entraineur"&&G.coach?panneauLivreDor()+`<h3 style="margin-top:12px">Le président</h3>`:`<h3>Le président</h3>`}
      <p>Objectif ${esc(G.saison)} : <b class="fort">${esc(G.objectif.label)}</b></p>
      <p>Confiance :
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">

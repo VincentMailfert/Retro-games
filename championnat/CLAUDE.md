@@ -2290,6 +2290,14 @@ toujours « raconter quelque chose ».
   **La saison de départ vit dans `G.coach.depart`** (posée à la signature, rattrapée dans `basculeSaison` pour une
   carrière plus ancienne) et `cleDepart` la lit d'abord : la clé d'un titre gagné à l'étranger va au championnat du
   départ. L'Italie entrera seule quand ses saisons seront dans `SAISONS`.
+  **Livraison 5 (v2.66) : le livre d'or et le grand bilan.** Chaque ligne de `G.coach.saisons` retient aussi `pal`,
+  les trophées de CETTE saison (titres de champion et coupes gagnées : `trophees`, filtre « Champion… »/« Vainqueur… »
+  sur les entrées du palmarès qui portent la saison). `livreDorHTML` en fait un tableau d'une ligne par saison :
+  saison, drapeau et club, division dans les mots de son pays (`PAYS[p].tag1/tag2(an)` : D2, PL, CH…), place,
+  verdict court (`LIB_COURT`, avec « J15 » pour un renvoi), une 🏆 par trophée. Pendant la carrière, `panneauLivreDor`
+  (étoiles, record, contrat en cours, tableau) ouvre le panneau « Direction & mémoire » de l'onglet Club (sous-onglet
+  Direction au téléphone). Quand il n'y a plus de saison, `ecranFinCarriere` : meilleure réputation en grand, nombre
+  de saisons, de clubs et de pays, les clubs avec leur drapeau, la liste des trophées, puis le livre d'or.
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le

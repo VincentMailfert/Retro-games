@@ -13,6 +13,7 @@
    J) signer l'été : la vraie saison suivante, le vrai effectif, la même carrière
    K) le naufrage : l'avertissement, sa levée, le renvoi, la fin de saison sans vous, l'été d'un renvoyé (livraison 3)
    L) les offres de l'étranger : un été sur deux, une offre d'un autre pays ; signer change de pays, pas de saison de départ (livraison 4)
+   M) le livre d'or et le grand bilan de fin de carrière (livraison 5)
    Usage : node harness-entraineur.cjs                                                               */
 const fs = require("fs");
 const path = require("path");
@@ -51,7 +52,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,classement,sauvegardeLocale,chargeLocale,partiesListe," +
   "ecranAccueil,SAISONS,SAISONS_OUVERTES,saisonOuverte,offresDebut,forceReelle,forceEffectif,nivDuRang,objectifEntr,objectifDuClub," +
-  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier,offresEte,seuilNaufrage,surveillePresident,finitSansVous,forceReelle2:forceReelle," +
+  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier,offresEte,ecranClub,livreDorHTML,seuilNaufrage,surveillePresident,finitSansVous,forceReelle2:forceReelle," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 function reel(fn) { global.window.__TEST__ = false; try { return fn(); } finally { global.window.__TEST__ = true; } }
@@ -261,7 +262,7 @@ console.log("I) les offres de l'été, cas par cas");
     const o = api.offresDebut(last)[0]; api.nouvellePartie(o.id, last, o); const G = api.getG();
     G.coach.bilan = { v: "tenu", crans: 0, avant: 20, apres: 26, rang: 12, obj: o.obj.label }; G.coach.contrat.reste = 0;
     api.preparerEte(); APP._h = ""; api.ecranCalendrier();
-    ok(api.getG().ete.fin && APP._h.includes("FIN DE CARRIÈRE") && APP._h.includes("Meilleure réputation"), "après " + last + " : fin de carrière"); }
+    ok(api.getG().ete.fin && APP._h.includes("FIN DE CARRIÈRE") && APP._h.includes("meilleure réputation"), "après " + last + " : fin de carrière"); }
   // l'écran de l'été
   E = ete("depasse", 0); APP._h = ""; api.ecranCalendrier();
   ok(APP._h.includes("OBJECTIF DÉPASSÉ") && (APP._h.match(/bEteSigne/g) || []).length === 4 && APP._h.includes("Prolonger"), "l'écran de l'été : verdict, trois offres et la prolongation");
@@ -408,6 +409,44 @@ console.log("L) les offres de l'étranger (livraison 4)");
   a.getG().ete.offres.push({ id: S["1997-98"].d2[0], k: "1997-98", div: 2, duree: 1, exig: false, obj: a.objectifEntr(0, 2, 20) });
   APP._h = ""; a.ecranCalendrier();
   ok(APP._h.includes('class="drap"') && APP._h.includes("Division 2"), "une offre de France porte son drapeau et le nom de sa division");
+}
+
+console.log("M) le livre d'or et le grand bilan (livraison 5)");
+{
+  // une saison entière : la ligne du livre d'or retient les trophées de CETTE saison
+  const o = Object.assign({}, api.offresDebut("1995-96")[0], { duree: 2 });
+  api.nouvellePartie(o.id, "1995-96", o);
+  let G = api.getG();
+  G.palmares.push("Champion de France 1994-95"); // un vieux titre : il ne doit pas entrer dans la ligne de 1995-96
+  G = joueSaison(api);
+  const s0 = G.coach.saisons[0];
+  ok(Array.isArray(s0.pal) && !s0.pal.includes("Champion de France 1994-95"), "la ligne de 1995-96 ne retient que ses trophées");
+  ok((s0.rang === 1) === s0.pal.some(p => /^Champion/.test(p)), "un titre de champion y entre quand on l'est (" + s0.rang + "e)");
+  // un livre d'or fabriqué : deux pays, un renvoi, des trophées
+  G.coach.saisons = [
+    { s: "1995-96", pays: "FR", club: "POI", nom: "Stade Poitevin", div: 2, rang: 1, obj: "x", v: "depasse", rep: 40, pal: ["Champion de Division 2 1995-96", "Vainqueur de la Coupe de France 1995-96"] },
+    { s: "1996-97", pays: "ANG", club: "LEI", nom: "Leicester City", div: 1, rang: 19, obj: "x", v: "vire", rep: 25, vireJ: 15, pal: [] },
+    { s: "1997-98", pays: "FR", club: "LAV", nom: "Stade Lavallois", div: 2, rang: 9, obj: "x", v: "tenu", rep: 31, pal: [] },
+  ];
+  G.coach.repMax = 40; G.coach.rep = 31;
+  const h = api.livreDorHTML();
+  ok((h.match(/<tr>/g) || []).length === 3, "une ligne par saison");
+  ok(h.includes("Stade Poitevin") && h.includes("Leicester City") && (h.match(/class="drap"/g) || []).length === 3, "les clubs, chacun avec son drapeau");
+  ok(h.includes(">PL<") && h.includes(">D2<"), "la division dans les mots de son pays (PL, D2)");
+  ok(h.includes("Renvoyé J15") && h.includes("Dépassé") && h.includes("Tenu"), "les verdicts, et la journée du renvoi");
+  ok(h.includes("🏆🏆") && !/—/.test(h), "deux trophées la première saison ; aucun tiret long");
+  // l'onglet Club, pendant la carrière
+  APP._h = ""; api.ecranClub();
+  ok(APP._h.includes("Livre d'or") && APP._h.includes("Contrat :") && APP._h.includes("Leicester City"), "le livre d'or vit dans l'onglet Club");
+  api.nouvellePartie("OM", "1995-96"); APP._h = ""; api.ecranClub();
+  ok(!APP._h.includes("Livre d'or") && APP._h.includes("Le président"), "pas dans le mode de toujours");
+  // la fin de carrière
+  api.setG(G); G.ete = { fin: true, k: null, cas: null, offres: [] };
+  APP._h = ""; api.ecranCalendrier();
+  ok(APP._h.includes("FIN DE CARRIÈRE") && APP._h.includes("LIVRE D'OR"), "l'écran de fin de carrière, avec le livre d'or");
+  ok(APP._h.includes("3 saisons · 3 clubs · 2 pays") && APP._h.includes(api.etoiles(40)), "trois saisons, trois clubs, deux pays, la meilleure réputation");
+  ok(APP._h.includes("🏆 Champion de Division 2 1995-96") && APP._h.includes("🏆 Vainqueur de la Coupe de France 1995-96"), "la liste des trophées");
+  ok(!/—/.test(APP._h), "aucun tiret long");
 }
 
 console.log(FAILS ? "\n✗ " + FAILS + " échec(s)" : "\n✓ tout est vert");
