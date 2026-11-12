@@ -65,7 +65,8 @@ console.log("A) La table PAYS : un pays décrit, pas un pays esquissé");
   ok(trous.length === 0, `aucun champ vide ni manquant sur aucun pays${trous.length ? " — " + trous.join(", ") : ""}`);
   const codeFaux = codes.filter(c => PAYS[c].code !== c);
   ok(codeFaux.length === 0, `chaque entrée porte son propre code${codeFaux.length ? " — " + codeFaux.join(", ") : ""}`);
-  const tauxFaux = codes.filter(c => !(PAYS[c].taux > 0 && PAYS[c].taux <= 1));
+  // la lire (ITA, v2.68) vaut bien moins qu'un franc : un taux plausible va d'un huitième (la livre) à mille
+  const tauxFaux = codes.filter(c => !(PAYS[c].taux > 0 && PAYS[c].taux <= 1000));
   ok(tauxFaux.length === 0, `tous les taux d'affichage sont plausibles${tauxFaux.length ? " — " + tauxFaux.join(", ") : ""}`);
   ok(PAYS.FR.taux === 1, "la France est la référence : son taux vaut exactement 1, donc elle ne convertit rien");
   // deux pays ne peuvent pas porter la même coupe nationale, sinon le libellé ne distingue plus rien
@@ -215,8 +216,16 @@ console.log("F) L'écran : sélecteur de pays, puis de saison, bandeaux au bon l
   const btnFR = (page.match(/<button class="mChip accPays[^"]*" data-pays="FR"[^>]*>/) || [""])[0];
   const btnANG = (page.match(/<button class="mChip accPays[^"]*" data-pays="ANG"[^>]*>/) || [""])[0];
   ok(/accPays on"/.test(btnFR) && !/disabled/.test(btnFR), "la rangée de pays s'ouvre sur la France, allumée");
-  ok(btnANG && !/disabled/.test(btnANG) && !/accPays on"/.test(btnANG) && !page.includes("bientôt"),
+  const btnPays = code => (page.match(new RegExp('<button class="mChip accPays[^"]*" data-pays="' + code + '"[\\s\\S]*?</button>')) || [""])[0];
+  ok(btnANG && !/disabled/.test(btnANG) && !/accPays on"/.test(btnANG) && !btnPays("ANG").includes("bientôt"),
     "l'Angleterre a sa saison : son bouton est cliquable, éteint, et plus « bientôt »");
+  /* L'ITALIE AVANT SES SAISONS (v2.68) : un pays de la table sans saison jouable reste visible, grisé et
+     « bientôt » ; le jour où sa première saison entre dans SAISONS, ce contrôle s'inverse tout seul. */
+  for (const code of Object.keys(PAYS).filter(c => c !== "FR" && c !== "ANG")) {
+    const b = btnPays(code), aSaison = cles.some(k => SAISONS[k].pays === code);
+    ok(b && (aSaison ? !/disabled/.test(b) && !b.includes("bientôt") : /disabled/.test(b) && b.includes("bientôt")),
+      `${PAYS[code].nom} a son drapeau à l'accueil, ${aSaison ? "cliquable" : "grisé et « bientôt »"}`);
+  }
   ok(!page.includes("<optgroup"), "le sélecteur de saison n'est plus groupé : le pays se choisit au-dessus");
   ok((page.match(/<option /g) || []).length === clesFR.length && !page.includes('value="ANG-'),
     `la France regardée, il liste ses ${clesFR.length} saisons et pas une anglaise`);

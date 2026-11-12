@@ -624,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.67"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.68"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -669,6 +669,17 @@ const PAYS={
        1995 = 4,9864 FF/$ × 1,5785 $/£ = 7,87 ; 1996 = 5,1158 × 1,5607 = 7,99. Le chiffre est juste
        d'époque et rond à retenir, et il rend un budget de 100 MF en 12,5 M£, un billet de 70 FF en 9 £. */
     taux:1/8, unite:"£", millions:"M£", monNom:"livres", piece:"un penny" },
+  /* L'ITALIE ENTRE DANS LA TABLE AVANT SES SAISONS (v2.68, demande de l'auteur) : son drapeau s'affiche à
+     l'accueil, grisé et « bientôt », tant qu'aucune saison ITA- n'est dans SAISONS, puis s'allume tout seul.
+     Même règle pour chaque championnat suivant : il entre ici dès que son chantier commence.
+     Serie A et Serie B portent ces noms sur toute la fenêtre 1990-2012. Pas de coupe de la ligue en Italie :
+     `coupeLigue` n'est lu par aucun écran. La lire : 1 FF ≈ 300 L (parité de l'euro, 295,2), montant à
+     trancher avec le lot monnaie de l'Italie (les journaux comptaient en milliards). */
+  ITA:{ code:"ITA", nom:"Italie", adj:"italienne", adjM:"italien", le:"l'Italie", du:"d'Italie",
+    nat:"ITA", titre:"Champion d'Italie", triomphe:"L'ITALIE SACRÉE", drapeau:'<svg class="drap" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></svg>',
+    div1:()=>"Serie A", div2:()=>"Serie B", tag1:()=>"SA", tag2:()=>"SB",
+    coupe:"Coppa Italia", coupeLigue:"Supercoppa", champion:"champion d'Italie",
+    taux:300, unite:"L", millions:"M L", monNom:"lires", piece:"une lire" },
 };
 /* LE PAYS REGARDÉ, et non le pays joué. L'accueil affiche des libellés et des montants avant qu'aucune
    carrière n'existe, et il peut montrer une saison anglaise alors que G porte encore une carrière française

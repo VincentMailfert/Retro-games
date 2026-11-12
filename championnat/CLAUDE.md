@@ -4008,7 +4008,12 @@ paramétrée par pays, et c'est volontaire : un moteur qui se plie par pays se c
 **La table `PAYS`** (en tête de script, juste sous `VERSION`) décrit chaque pays : son nom, son adjectif, son
 drapeau, les libellés de ses deux divisions (en fonction de l'année, voir plus bas), les étiquettes courtes du
 bandeau, sa coupe nationale, sa coupe de la ligue, la formule « champion de … », son unité monétaire et son
-**taux d'affichage**. Deux entrées pour l'instant, `FR` et `ANG`.
+**taux d'affichage**. Trois entrées : `FR`, `ANG` et, depuis la v2.68, `ITA`.
+**Règle de l'auteur (12/11/2026) : un championnat entre dans `PAYS` DÈS QUE SON CHANTIER COMMENCE**, avant sa
+première saison. Son drapeau apparaît alors dans la rangée de l'accueil, grisé et « bientôt », et s'allume tout
+seul quand sa première saison entre dans `SAISONS`. L'Italie y est ainsi depuis la v2.68 (lire à 300 pour un franc,
+provisoire jusqu'au lot monnaie italien) ; l'Espagne et les suivants feront pareil. `harness-pays` vérifie que
+chaque pays autre que FR et ANG a son bouton, grisé sans saison, cliquable avec.
 **Piège de vocabulaire, à ne pas confondre** : `CLUBS_EUROPE` porte DÉJÀ un champ `pays`, qui contient un nom de
 pays en français (« Angleterre », « Pays-Bas ») et sert à la présentation d'un adversaire de Coupe d'Europe. Le
 champ `pays` de `SAISONS` est d'une autre nature : c'est un **code** (`"FR"`, `"ANG"`), clé de la table `PAYS`.
