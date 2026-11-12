@@ -67,13 +67,17 @@ console.log("A) les offres du premier été, sur les " + cles.length + " saisons
     if (l.some(o => !s.d2.includes(o.id))) horsD2.push(k);
     const f = s.d2.map(id => api.forceReelle(s, id)).sort((a, b) => a - b);
     if (l.some(o => api.forceReelle(s, o.id) > f[2] + 1e-9)) pasLesPlusFaibles.push(k);
-    if (l.some(o => o.obj.niv !== 0 || o.obj.place !== s.d2.length - 3)) objFaux.push(k);
+    // le maintien, ou la première moitié quand le président est exigeant (et seulement alors)
+    if (l.some(o => o.obj.niv !== (o.exig ? 1 : 0) || o.obj.place !== (o.exig ? Math.floor(s.d2.length / 2) : s.d2.length - 3))) objFaux.push(k);
     if (l.some(o => o.duree !== 1 && o.duree !== 2)) dureeFausse.push(k);
   }
   ok(!malTrois.length, "trois clubs différents à chaque saison" + (malTrois.length ? " : " + malTrois.join(", ") : ""));
   ok(!horsD2.length, "tous en deuxième division" + (horsD2.length ? " : " + horsD2.join(", ") : ""));
   ok(!pasLesPlusFaibles.length, "ce sont les trois effectifs les plus faibles" + (pasLesPlusFaibles.length ? " : " + pasLesPlusFaibles.join(", ") : ""));
-  ok(!objFaux.length, "le président leur demande le maintien" + (objFaux.length ? " : " + objFaux.join(", ") : ""));
+  ok(!objFaux.length, "le président leur demande le maintien, ou la première moitié s'il est exigeant" + (objFaux.length ? " : " + objFaux.join(", ") : ""));
+  // environ un président sur cinq est exigeant : 1 200 offres, écart-type ~1,2 point, fenêtre de ±5 points
+  let ex = 0, tot = 0; for (let i = 0; i < 400; i++) api.offresDebut("1995-96").forEach(o => { tot++; if (o.exig) ex++; });
+  ok(ex / tot > 0.15 && ex / tot < 0.25, "un président exigeant sur cinq environ (" + (100 * ex / tot).toFixed(1) + " %)");
   ok(!dureeFausse.length, "un contrat d'une ou deux saisons");
   const durees = new Set(); for (let i = 0; i < 40; i++) api.offresDebut("1995-96").forEach(o => durees.add(o.duree));
   ok(durees.has(1) && durees.has(2), "les deux durées sortent");
@@ -104,7 +108,7 @@ console.log("C) signer");
   ok(G.mode === "entraineur", "la partie est une carrière d'entraîneur");
   ok(G.coach && G.coach.rep === 20 && G.coach.repMax === 20 && api.etoiles(G.coach.rep) === "★☆☆☆☆", "réputation : une étoile");
   ok(G.coach.contrat.club === o.id && G.coach.contrat.duree === o.duree && G.coach.contrat.reste === o.duree && G.coach.contrat.saison === "1995-96", "le contrat est retenu");
-  ok(G.objectif.place === 17 && G.objectif.label === "Le maintien (top 17)", "l'objectif du président est celui du contrat");
+  ok(G.objectif.place === o.obj.place && G.objectif.label === o.obj.label, "l'objectif du président est celui du contrat (« " + G.objectif.label + " »)");
   ok(G.monClub === o.id && G.div === 2, "on dirige le club choisi, en deuxième division");
   ok(/^Contrat signé/.test(G.news[0]), "la première dépêche : « " + G.news[0] + " »");
 }
@@ -150,7 +154,9 @@ console.log("F) l'écran");
   ok(!/—/.test(FICHE._h), "aucun tiret long");
   const o = api.offresDebut("1995-96")[0];
   api.contratEntraineur(o);
-  ok(FICHE._h.includes("Signer") && FICHE._h.includes("Le maintien (top 17)") && FICHE._h.includes("Le président"), "le contrat : président, objectif, signature");
+  ok(FICHE._h.includes("Signer") && FICHE._h.includes(o.obj.label) && FICHE._h.includes("Le président"), "le contrat : président, objectif, signature");
+  const ex = Object.assign({}, o, { exig: true, obj: api.objectifEntr(1, 2, 20) }); api.contratEntraineur(ex);
+  ok(FICHE._h.includes("La première moitié (top 10)") && FICHE._h.includes("Pas une place de moins"), "le président exigeant parle de la première moitié");
   ok(!/—/.test(FICHE._h), "aucun tiret long dans le contrat");
   api.nouvellePartie(o.id, "1995-96", o); api.getG().intro = null; api.montre("calendrier");
   ok(APP._h.includes("★☆☆☆☆"), "les étoiles dans le bandeau du jeu");

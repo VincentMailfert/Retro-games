@@ -2236,7 +2236,9 @@ toujours « raconter quelque chose ».
   fermée) → `ecranEntraineur` (overlay `#fiche`) tend les trois effectifs les plus faibles de la D2 (`offresDebut`,
   au `forceReelle` = 4-4-2 des meilleures notes réelles, poste court complété à 60) → `contratEntraineur` : le mot
   du président (`motPresident`), la durée (1 ou 2 saisons, tirée à l'ouverture et figée dans `ENTR_OFFRES` tant
-  qu'on regarde la même saison) et l'objectif → « Signer » appelle `nouvellePartie(id, k, offre)`, dont le
+  qu'on regarde la même saison) et l'objectif (**le président exigeant**, choix de l'auteur du 12/11/2026 :
+  `PRES_EXIGEANT`=0,2, environ une offre sur cinq vise un cran au-dessus de l'effectif, la première moitié au
+  lieu du maintien, champ `exig` de l'offre) → « Signer » appelle `nouvellePartie(id, k, offre)`, dont le
   troisième argument déclenche `signeContrat`. Sans lui, la fonction fait exactement ce qu'elle faisait.
   **L'objectif se lit au RANG DE FORCE dans la division** (`nivDuRang` : 1-2 titre, 3-6 montée en D2 ou Europe
   top 5 en D1, 7-12 première moitié top 10, 13-20 maintien top 17), jamais au prestige ; l'intersaison le relit
