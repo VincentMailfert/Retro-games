@@ -14159,7 +14159,7 @@ function finirJournee(delta){
         G.promoBillets=false; // opération ponctuelle : à réactiver au prochain match
       } else {
         recette=aff*pb.prix;
-        libBill="Billetterie ("+pb.nom.toLowerCase()+", "+UU(pb.prix)+") : "+FMT(aff)+" spectateurs, recette "+MM(recette,2)+".";
+        libBill="Billetterie ("+pb.nom.toLowerCase()+", "+UU(pb.prix)+" la place) : "+FMT(aff)+" spectateurs, recette "+MM(recette,2)+".";
       }
       G.tresorerie += recette;
       { const annexe=stadeRecetteMatch(Math.min(1, aff/Math.max(1,h.cap))); // loges, buvettes, restaurant : les recettes du soir de match
