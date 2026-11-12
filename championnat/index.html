@@ -610,6 +610,21 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .effTab th.effNom::after, .effTab td.effNom::after{content:""; position:absolute; top:0; bottom:0; right:0;
     width:1px; background:var(--line);}
 }
+  /* LA SALLE DES TROPHÉES (v2.75) */
+  .trPorte{display:flex;justify-content:space-between;align-items:center;width:100%;margin:0 0 12px;padding:12px 14px;
+    background:#0b1626;border:2px solid #ffd24a;color:#dfe9ff;font-family:inherit;font-size:15px;cursor:pointer;}
+  .trPorte:hover{background:#13223a;}
+  .trPts{font-size:30px;letter-spacing:1px;margin:8px 0 2px;color:#ffd24a;}
+  .trGrille{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+  .trCase{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1px solid #38507a;font-size:12px;text-align:center;}
+  .trCase b{font-size:22px;color:#ffd24a;}
+  .trCase .trEmo{font-size:22px;}
+  .trVide{opacity:.35;}
+  .trClubs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+  .trBlason{position:relative;display:inline-flex;}
+  .trBlason i{position:absolute;right:-6px;bottom:-4px;font-style:normal;font-size:11px;background:#ffd24a;color:#16243c;padding:0 3px;font-weight:bold;}
+  .trDefi{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:4px 0;border-bottom:1px solid #1d2c45;opacity:.55;}
+  .trDefi.ok{opacity:1;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -628,7 +643,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.74"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.75"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -14421,6 +14436,7 @@ function finirJournee(delta){
   // (passés par référence), soit ~100 Ko de sauvegarde par journée. En milieu de saison le fichier
   // dépassait le quota du navigateur et la sauvegarde automatique échouait en silence.
   G.histo.push(res.map(e=>({h:e.h.id, a:e.a.id, sh:e.sh, sa:e.sa, mien:!!e.mien})));
+  defisJournee(); // un défi relevé ce samedi ? (cf. LES DÉFIS ET LA SALLE DES TROPHÉES)
   G.multiplex=bilanJournee(res); // la carte de fin de journée, figée ici (cf. bilanJournee)
   if(G.news.length>60) G.news.length=60; // on n'affiche que les 10 dernières dépêches : le reste est du poids mort
   genPresse(res);
@@ -21399,7 +21415,7 @@ function cleDepart(o){ // la clé de la saison de départ d'une carrière (G ou 
   const pays=o.pays||"FR", an=+o.anBase||1995;
   return Object.keys(SAISONS).find(k=>SAISONS[k].an===an && (SAISONS[k].pays||"FR")===pays)||null;
 }
-function progVide(){ return {gagnees:[], ouvertes:[], resultats:[], maj:0, envoye:0}; }
+function progVide(){ return {gagnees:[], ouvertes:[], resultats:[], defis:[], maj:0, envoye:0}; }
 function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde que la forme attendue
   const o=progVide(); if(!p || typeof p!=="object") return o;
   const cle=k=>typeof k==="string" && k.length<=24 && /^[A-Z0-9-]+$/.test(k);
@@ -21407,6 +21423,8 @@ function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde
     .map(g=>({k:g.k, pid:typeof g.pid==="string"?g.pid.slice(0,64):null, t:+g.t||0, an:+g.an||0}));
   o.ouvertes=(Array.isArray(p.ouvertes)?p.ouvertes:[]).filter(cle);
   o.resultats=(Array.isArray(p.resultats)?p.resultats:[]).filter(r=>r && typeof r==="object" && !Array.isArray(r)).slice(-PROG_RES_MAX);
+  o.defis=(Array.isArray(p.defis)?p.defis:[]).filter(d=>d && typeof d.id==="string" && d.id.length<=24 && /^[A-Za-z0-9]+$/.test(d.id))
+    .map(d=>({id:d.id, t:+d.t||0, pid:typeof d.pid==="string"?d.pid.slice(0,64):null}));
   o.maj=+p.maj||0; o.envoye=+p.envoye||0;
   return o;
 }
@@ -21477,6 +21495,7 @@ function progFinDeSaison(rang){
   if(G.euro && G.euro.vainqueur===G.monClub && G.euro.compet) coupes.push(G.euro.compet);
   const p=prog(), r={pid:G.pid||null, ch:G.pays||"FR", dep:k, an, s:G.saison, club:G.monClub, div:G.div, rang, coupes, t:Date.now()};
   p.resultats=p.resultats.filter(x=>!(x.pid===r.pid && x.an===an)).concat([r]).slice(-PROG_RES_MAX); // une saison rejouée remplace la précédente
+  defisFinSaison(rang, coupes); // les défis de la saison et de la carrière (cf. LES DÉFIS ET LA SALLE DES TROPHÉES)
   progSauve(true); progPlanifie();
 }
 /* LA FUSION DE DEUX APPAREILS : le meilleur des deux, c'est-à-dire la réunion des saisons gagnées (la plus
@@ -21488,10 +21507,12 @@ function progFusionne(a, b){
   o.ouvertes=[...new Set(a.ouvertes.concat(b?b.ouvertes:[]))];
   for(const x of a.resultats.concat(b?b.resultats:[])) r[x.pid+"|"+x.an]=x;
   o.resultats=Object.values(r).sort((x,y)=>(x.t||0)-(y.t||0)).slice(-PROG_RES_MAX);
+  const d={}; for(const x of (a.defis||[]).concat(b?(b.defis||[]):[])){ const y=d[x.id]; if(!y || (x.t && (!y.t || x.t<y.t))) d[x.id]=x; }
+  o.defis=Object.values(d).sort((x,y)=>(x.t||0)-(y.t||0)); // un défi réussi l'est pour toujours, le premier appareil fait foi
   return o;
 }
 function progEmpreinte(p){ // deux progressions qui disent la même chose ont la même empreinte
-  return JSON.stringify([p.gagnees.map(g=>g.k).sort(), p.ouvertes.slice().sort(), p.resultats.map(x=>x.pid+"|"+x.an).sort()]);
+  return JSON.stringify([p.gagnees.map(g=>g.k).sort(), p.ouvertes.slice().sort(), p.resultats.map(x=>x.pid+"|"+x.an).sort(), (p.defis||[]).map(d=>d.id).sort()]);
 }
 /* LA PROGRESSION EN LIGNE : on lit la ligne du compte, on fusionne, et l'on ne renvoie que si la fusion
    apporte quelque chose au serveur. Concurrence optimiste comme les carrières : pousse_progression ne
@@ -21508,12 +21529,12 @@ function progSynchronise(){
       if(!compteLit() || compteLit().uid!==s.uid) return "aucun"; // déconnecté (ou changé de compte) entre-temps
       const ligne=r.donnees[0]||null, dist=ligne?progNette(assainit(ligne.donnees)):null, mDist=ligne?+ligne.maj||0:0;
       p=prog(); const f=progFusionne(p, dist), neuf=progEmpreinte(f)!==progEmpreinte(p);
-      Object.assign(p, {gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats});
+      Object.assign(p, {gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis});
       if(progEmpreinte(f)===progEmpreinte(dist||progVide())){ // le serveur sait déjà tout (ou il n'y a rien à dire)
         p.maj=mDist; p.envoye=mDist; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
       const maj=Math.max(Date.now(), mDist+1);
       const e=await nuageAppel("/rest/v1/rpc/pousse_progression", "POST",
-        {p_attendu:mDist, p_maj:maj, p_donnees:{gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats}, p_version:VERSION}, true);
+        {p_attendu:mDist, p_maj:maj, p_donnees:{gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis}, p_version:VERSION}, true);
       if(!e.ok) return "attente";
       const d=e.donnees||{};
       if(d.ok){ p.maj=maj; p.envoye=maj; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
@@ -21524,6 +21545,158 @@ function progSynchronise(){
   return PROG_EN_COURS;
 }
 function progPlanifie(){ if(nuageAllume()) progSynchronise(); }
+
+/* =====================================================================
+   LES DÉFIS ET LA SALLE DES TROPHÉES (v2.75, chantier de l'auteur du 12/11/2026)
+   Inspiré de Retro Football Management : une partie n'est jamais « juste une partie ». Des défis rapportent
+   des POINTS (la monnaie du jeu, gagnée en jouant, jamais achetée) ; une salle des trophées, à l'accueil,
+   réunit tout ce que le joueur a gagné, toutes carrières confondues.
+   - Les défis réussis vivent dans la progression (`prog().defis`, [{id,t,pid}]) : un défi réussi l'est pour
+     toujours, une seule fois, et la fusion de deux appareils en est la réunion. Les POINTS NE SONT JAMAIS
+     STOCKÉS : ils se déduisent des défis réussis (`pointsDefis`), comme les clés des saisons gagnées.
+   - Trois familles : « Premiers pas » (un match, au soir de chaque journée, `defisJournee`), « La saison »
+     (à la fin de la saison, `defisFinSaison`, qui lit G.histo, le rang et les coupes), « La carrière »
+     (sur la durée, relevés aussi à la fin de chaque saison, et rattrapés à l'accueil par `defisConstate`
+     à partir des résultats de fin de saison déjà rangés dans la progression).
+   - Le championnat seul compte pour les défis de match (G.histo n'archive que lui).
+   - La salle des trophées (`ecranTrophees`) lit les RÉSULTATS de fin de saison (`prog().resultats`) :
+     elle ne voit donc que les saisons finies depuis la v2.22. Les titres de champion de D1 y forment une
+     collection de blasons, un par club sacré. Rien ne s'y achète encore (la boutique viendra après).
+   ===================================================================== */
+const DEFIS_FAM=[["pas","Premiers pas"],["saison","La saison"],["carriere","La carrière"]];
+const DEFIS=[
+  {id:"vic",         fam:"pas",      nom:"Une première victoire",                    pts:10},
+  {id:"ext",         fam:"pas",      nom:"Gagner à l'extérieur",                     pts:10},
+  {id:"zero",        fam:"pas",      nom:"Un match sans encaisser",                  pts:10},
+  {id:"large",       fam:"pas",      nom:"Gagner par trois buts d'écart",            pts:20},
+  {id:"cinq",        fam:"pas",      nom:"Cinq buts dans un match",                  pts:30},
+  {id:"serie6",      fam:"saison",   nom:"Six victoires d'affilée",                  pts:150},
+  {id:"invaincu10",  fam:"saison",   nom:"Dix matchs sans défaite",                  pts:100},
+  {id:"murs10",      fam:"saison",   nom:"Dix matchs sans encaisser en une saison",  pts:150},
+  {id:"buts70",      fam:"saison",   nom:"Soixante-dix buts en une saison",          pts:200},
+  {id:"forteresse",  fam:"saison",   nom:"Invaincu à domicile toute une saison",     pts:250},
+  {id:"montee",      fam:"saison",   nom:"Monter en première division",              pts:150},
+  {id:"podium",      fam:"saison",   nom:"Sur le podium de première division",       pts:100},
+  {id:"titre",       fam:"saison",   nom:"Champion de première division",            pts:300},
+  {id:"coupe",       fam:"saison",   nom:"Gagner la coupe nationale",                pts:200},
+  {id:"europe",      fam:"saison",   nom:"Gagner une coupe d'Europe",                pts:500},
+  {id:"double",      fam:"saison",   nom:"Le doublé championnat et coupe",           pts:500},
+  {id:"invincibles", fam:"saison",   nom:"Champion sans perdre un match",            pts:1000},
+  {id:"fidele",      fam:"carriere", nom:"Cinq saisons dans une même carrière",      pts:100},
+  {id:"decennie",    fam:"carriere", nom:"Dix saisons dans une même carrière",       pts:300},
+  {id:"cles3",       fam:"carriere", nom:"Ouvrir trois saisons fermées",             pts:200},
+  {id:"deuxPays",    fam:"carriere", nom:"Champion dans deux championnats",          pts:500},
+];
+const DEFI_DE=Object.fromEntries(DEFIS.map(d=>[d.id,d]));
+function defiReussi(id){ return prog().defis.some(d=>d.id===id); }
+function pointsDefis(){ return prog().defis.reduce((n,d)=>n+((DEFI_DE[d.id]||{}).pts||0), 0); }
+function defiGagne(id, pid, muet){ // vrai si le défi vient d'être réussi (il ne l'était pas) ; muet : pas de notification (rattrapage)
+  if(!DEFI_DE[id] || defiReussi(id)) return false;
+  prog().defis.push({id, t:Date.now(), pid:pid||null});
+  if(!muet && typeof G!=="undefined" && G) notif("🎯 DÉFI RÉUSSI : "+DEFI_DE[id].nom+" · +"+DEFI_DE[id].pts+" pts");
+  return true;
+}
+function mesMatchs(){ // les matchs de championnat du club, dans l'ordre : {dom, bp, bc}
+  const out=[];
+  for(const jour of (G.histo||[])) for(const e of (jour||[])){
+    if(!e || !(e.mien || e.h===G.monClub || e.a===G.monClub)) continue;
+    const dom=e.h===G.monClub; out.push({dom, bp:dom?e.sh:e.sa, bc:dom?e.sa:e.sh});
+  }
+  return out;
+}
+function plusLongueSerie(ms, test){ let n=0, m=0; for(const x of ms){ n=test(x)?n+1:0; if(n>m) m=n; } return m; }
+function defisJournee(){
+  const ms=mesMatchs(), x=ms[ms.length-1]; if(!x) return;
+  let neuf=false; const g=(id)=>{ if(defiGagne(id, G.pid)) neuf=true; };
+  if(x.bp>x.bc) g("vic");
+  if(x.bp>x.bc && !x.dom) g("ext");
+  if(x.bc===0) g("zero");
+  if(x.bp-x.bc>=3) g("large");
+  if(x.bp>=5) g("cinq");
+  if(plusLongueSerie(ms, m=>m.bp>m.bc)>=6) g("serie6");
+  if(plusLongueSerie(ms, m=>m.bp>=m.bc)>=10) g("invaincu10");
+  if(ms.filter(m=>m.bc===0).length>=10) g("murs10");
+  if(ms.reduce((n,m)=>n+m.bp,0)>=70) g("buts70");
+  if(neuf) progSauve(true);
+}
+function defisFinSaison(rang, coupes){ // appelée par progFinDeSaison, la progression est sauvée juste après
+  const ms=mesMatchs(), g=id=>defiGagne(id, G.pid), champion=G.div===1 && rang===1, cn=(coupes||[]).includes("CN");
+  const dom=ms.filter(m=>m.dom);
+  if(dom.length>=15 && dom.every(m=>m.bp>=m.bc)) g("forteresse");
+  if(G.div===2 && rang<=3) g("montee");
+  if(G.div===1 && rang<=3) g("podium");
+  if(champion) g("titre");
+  if(cn) g("coupe");
+  if((coupes||[]).some(c=>c!=="CN")) g("europe");
+  if(champion && cn) g("double");
+  if(champion && ms.length>=30 && ms.every(m=>m.bp>=m.bc)) g("invincibles");
+  defisCarriere(G.pid, false);
+}
+function defisCarriere(pid, muet){ // les défis qui se lisent dans les résultats rangés : fin de saison et rattrapage
+  const p=prog(), R=p.resultats, g=id=>defiGagne(id, pid, muet), parPid={};
+  for(const r of R) if(r.pid) parPid[r.pid]=Math.max(parPid[r.pid]||0, +r.an||0);
+  const plus=Math.max(0, ...Object.values(parPid));
+  if(plus>=5) g("fidele");
+  if(plus>=10) g("decennie");
+  if(p.ouvertes.length>=3) g("cles3");
+  if(new Set(R.filter(r=>r.div===1 && r.rang===1).map(r=>r.ch||"FR")).size>=2) g("deuxPays");
+}
+function defisConstate(){ // à l'accueil : ce que les saisons déjà rangées auraient dû rapporter (sans notification)
+  const p=prog(), avant=p.defis.length, g=(id,pid)=>defiGagne(id, pid, true);
+  for(const r of p.resultats){
+    const ch=r.div===1 && r.rang===1, cn=(r.coupes||[]).includes("CN");
+    if(r.div===2 && r.rang<=3) g("montee", r.pid);
+    if(r.div===1 && r.rang<=3) g("podium", r.pid);
+    if(ch) g("titre", r.pid);
+    if(cn) g("coupe", r.pid);
+    if((r.coupes||[]).some(c=>c!=="CN")) g("europe", r.pid);
+    if(ch && cn) g("double", r.pid);
+  }
+  defisCarriere(null, true);
+  if(p.defis.length>avant){ progSauve(true); progPlanifie(); }
+  return p.defis.length-avant;
+}
+/* LA VITRINE : ce que les résultats de fin de saison ont rapporté, toutes carrières confondues. */
+function vitrine(){
+  const R=prog().resultats, v={d1:0, d2:0, cn:0, C1:0, C2:0, C3:0, clubs:{}, saisons:R.length};
+  for(const r of R){
+    if(r.rang===1 && r.div===1){ v.d1++; const k=(r.ch||"FR")+"|"+r.club; v.clubs[k]=(v.clubs[k]||0)+1; }
+    if(r.rang===1 && r.div===2) v.d2++;
+    for(const c of (r.coupes||[])){ if(c==="CN") v.cn++; else if(v[c]!=null) v[c]++; }
+  }
+  return v;
+}
+function ecranTrophees(){
+  defisConstate();
+  const v=vitrine(), pts=pointsDefis(), faits=prog().defis.length;
+  const case_=(emo,n,lib)=>`<div class="trCase${n?"":" trVide"}"><span class="trEmo">${emo}</span><b>${n}</b><span class="dim">${lib}</span></div>`;
+  const clubs=Object.keys(v.clubs).map(k=>{ const [ch,id]=k.split("|"), c=metaClub(id)||{id, nom:id};
+    return `<span class="trBlason" title="${esc(c.nom||id)}${v.clubs[k]>1?" ×"+v.clubs[k]:""}">${blason(c,34)}${v.clubs[k]>1?`<i>×${v.clubs[k]}</i>`:""}</span>`; }).join("");
+  const famille=([f,lib])=>{ const ds=DEFIS.filter(d=>d.fam===f), n=ds.filter(d=>defiReussi(d.id)).length;
+    return `<h3 style="display:flex;justify-content:space-between"><span>${esc(lib)}</span><span class="dim">${n}/${ds.length}</span></h3>
+      ${ds.map(d=>{ const ok=defiReussi(d.id);
+        return `<p class="trDefi${ok?" ok":""}"><span>${ok?"✅":"⬜"} ${esc(d.nom)}</span><span class="${ok?"fort":"dim"}">${FMT(d.pts)}</span></p>`; }).join("")}`; };
+  const corps=`
+   <div class="panel ctr">
+     <h2>🏆 SALLE DES TROPHÉES</h2>
+     <p class="trPts">⭐ ${FMT(pts)} <span class="dim">pts</span></p>
+     <p class="dim" style="font-size:13px">${faits}/${DEFIS.length} défis</p>
+   </div>
+   <div class="panel">
+     <h2>La vitrine</h2>
+     <div class="trGrille">
+       ${case_("🏆", v.d1, "Champion")}${case_("🥈", v.d2, "Champion D2")}${case_("🏅", v.cn, "Coupe")}
+       ${case_("⭐", v.C1, "C1")}${case_("🔷", v.C2, "C2")}${case_("🔶", v.C3, "C3")}
+     </div>
+     ${clubs?`<div class="trClubs">${clubs}</div>`:""}
+   </div>
+   <div class="panel">
+     <h2>Les défis</h2>
+     ${DEFIS_FAM.map(famille).join("")}
+   </div>`;
+  app.innerHTML=`<p style="margin:0 0 10px"><button class="act" id="bRetourAcc">← Accueil</button></p>${corps}`;
+  document.getElementById("bRetourAcc").onclick=ecranAccueil; window.scrollTo(0,0);
+}
 
 /* =====================================================================
    INTERFACE
@@ -22183,6 +22356,7 @@ const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"
 function liensReseaux(){ return RESEAUX.map(r=>`<a href="${r.url}" target="_blank" rel="noopener" style="color:inherit">${esc(r.nom)}</a>`).join(" · "); }
 const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
 function ecranAccueil(){
+  defisConstate(); // les saisons déjà rangées rapportent leurs défis (une fois, sans bruit)
   const parties=carrieresAffichees();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   voitPays(S.pays||"FR", S.an, false); // à l'accueil on REGARDE un pays sans le jouer : G peut encore porter une autre carrière
@@ -22216,6 +22390,7 @@ function ecranAccueil(){
        <button class="porte2" id="bChoisir">Choisir mon club</button>
      </div>
    </div>`}
+   <button class="trPorte" id="bTrophees"><span>🏆 Salle des trophées</span><span class="fort">⭐ ${FMT(pointsDefis())}</span></button>
    <div class="panel">
      <div class="accPaysRang" role="group" aria-label="Pays">${boutonsPays}</div>
      <label style="display:block;font-size:13px"><span style="display:flex;justify-content:space-between"><b>Saison de départ</b><span class="dim" id="accCles" title="Clés">🔑 ${cles}</span></span>
@@ -22264,6 +22439,7 @@ function ecranAccueil(){
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
   app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
   document.getElementById("bAproposAcc").onclick=ecranApropos;
+  { const bt=document.getElementById("bTrophees"); if(bt) bt.onclick=ecranTrophees; }
   const bca=document.getElementById("bCompteAcc"); if(bca) bca.onclick=fenetreCompte;
   const bap=document.getElementById("bAppCompte"); if(bap) bap.onclick=()=>{ COMPTE_ONGLET="inscription"; fenetreCompte(); };
   // connecté : on relit la liste en ligne (au plus toutes les trente secondes), puis on redessine si l'on est

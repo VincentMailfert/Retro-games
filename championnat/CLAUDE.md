@@ -3898,6 +3898,33 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
 - Gardé par **`harness-cadenas.cjs`** (sections A à I) et la **section N de `harness-compte.cjs`** (le faux serveur
   imite `pousse_progression`).
 
+### LES DÉFIS ET LA SALLE DES TROPHÉES (v2.75, chantier de l'auteur du 12/11/2026)
+Premier étage du plan de fidélisation inspiré de Retro Football Management (points, défis, salle des trophées ;
+la boutique à points et les défis de club viendront après). **Pas d'argent réel** : tout se gagne en jouant.
+- **Les défis** : la constante **`DEFIS`** (21 entrées `{id, fam, nom, pts}`), trois familles (`DEFIS_FAM`) :
+  « Premiers pas » (un match : victoire, victoire dehors, cage inviolée, trois buts d'écart, cinq buts ; 10 à 30 pts),
+  « La saison » (six victoires d'affilée, dix sans défaite, dix sans encaisser, 70 buts, invaincu à domicile, montée,
+  podium, titre, coupe nationale, coupe d'Europe, doublé, champion invaincu ; 100 à 1 000 pts), « La carrière » (cinq
+  puis dix saisons dans une même carrière, trois saisons ouvertes, champion dans deux championnats ; 100 à 500 pts).
+  Changer un barème ou ajouter un défi ne touche que cette table (un `id` ne se renomme jamais : il est stocké).
+- **Où on les relève** : `defisJournee()` juste après `G.histo.push` dans `jouerJournee` (le championnat seul,
+  `mesMatchs()` lit G.histo) ; `defisFinSaison(rang, coupes)` dans `progFinDeSaison` (G.histo est encore plein, il
+  n'est vidé qu'à l'intersaison) ; `defisCarriere` à chaque fin de saison et au rattrapage ; `defisConstate()` à
+  chaque `ecranAccueil` crédite EN SILENCE ce que les résultats déjà rangés auraient dû rapporter (titre, podium,
+  montée, coupes, carrière). Un défi réussi en jeu s'annonce au debrief : « 🎯 DÉFI RÉUSSI : … · +N pts » (`notif`).
+- **Où ils vivent** : `prog().defis` = `[{id, t, pid}]`, dans la progression (`PROGKEY`), donc par compte et en
+  ligne avec les clés. **Les points ne sont JAMAIS stockés** (`pointsDefis()` les somme), comme les clés : la fusion
+  de deux appareils est une réunion (`progFusionne`, la plus ancienne réussite fait foi), `progEmpreinte` les compte,
+  `progNette` ne garde que les identifiants propres. Aucun changement de `schema.sql` : `pousse_progression` accepte
+  l'objet tel quel. Une progression d'avant la v2.75 (sans `defis`) fusionne sans broncher.
+- **La salle des trophées** (`ecranTrophees`) : bandeau « 🏆 Salle des trophées · ⭐ N » sur l'accueil (`#bTrophees`,
+  `.trPorte`), juste au-dessus du choix du pays. L'écran montre les points, la **vitrine** (`vitrine()` : titres de D1,
+  titres de D2, coupes nationales, C1/C2/C3, lus dans `prog().resultats`, donc les saisons finies depuis la v2.22)
+  avec les **blasons des clubs sacrés** (×2 au-delà d'un titre), puis les défis par famille, cochés ou grisés avec leurs
+  points. Pas de mode d'emploi à l'écran (consigne « on fait découvrir »).
+- Gardé par **`harness-trophees.cjs`** (sections A à J, dont une carrière de six saisons où chaque défi de match
+  réussi est contrôlé contre le score du soir).
+
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
 
 La 90ᵉ tire parfois une respiration comique qui ne touche à rien : ni au score, ni à un joueur, ni à une
