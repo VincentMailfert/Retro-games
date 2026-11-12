@@ -2221,6 +2221,31 @@ toujours « raconter quelque chose ».
   par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
+- **LA CARRIÈRE D'ENTRAÎNEUR (chantier `chantier/carriere-entraineur`, ouvert le 10/11/2026, livraison 1 en v2.62,
+  PAS ENCORE SUR MAIN : c'est l'auteur qui fusionne)**. Demande de l'auteur : un entraîneur qui part de tout en bas
+  et grimpe, ou redescend, selon ses résultats. Plan validé en six livraisons : (1) signer son premier contrat ;
+  (2) le temps qui passe (chaque été, le club tel qu'il était VRAIMENT l'année suivante : vrai effectif, vraie
+  division ; verdict dépassé/tenu/raté, réputation, prolongation ou offres) ; (3) le naufrage (avertissement du
+  président, puis licenciement, fin de saison simulée, club plus faible ensuite) ; (4) les offres de l'étranger ;
+  (5) le livre d'or et l'écran de bilan quand il n'y a plus de saison ; (6) l'écart avec l'histoire (vrais
+  classements finaux à relever par script sur Wikipédia, ils ne sont PAS dans le jeu ; les listes `D1_ANG…`
+  semblent rangées au vrai classement, les françaises non). Arbitrages de l'auteur : quand on RESTE au club, stade,
+  centre, staff et argent sont gardés (on repart de ceux du nouveau club si l'on change) ; le cadenas ne joue
+  qu'au DÉPART, les saisons suivantes s'enchaînent même fermées.
+  **Livraison 1** : bouton « 🧑‍💼 Carrière d'entraîneur » dans le panneau de la saison de départ (grisé sur une saison
+  fermée) → `ecranEntraineur` (overlay `#fiche`) tend les trois effectifs les plus faibles de la D2 (`offresDebut`,
+  au `forceReelle` = 4-4-2 des meilleures notes réelles, poste court complété à 60) → `contratEntraineur` : le mot
+  du président (`motPresident`), la durée (1 ou 2 saisons, tirée à l'ouverture et figée dans `ENTR_OFFRES` tant
+  qu'on regarde la même saison) et l'objectif → « Signer » appelle `nouvellePartie(id, k, offre)`, dont le
+  troisième argument déclenche `signeContrat`. Sans lui, la fonction fait exactement ce qu'elle faisait.
+  **L'objectif se lit au RANG DE FORCE dans la division** (`nivDuRang` : 1-2 titre, 3-6 montée en D2 ou Europe
+  top 5 en D1, 7-12 première moitié top 10, 13-20 maintien top 17), jamais au prestige ; l'intersaison le relit
+  par `objectifDuClub` en mode entraîneur. **Piège** : l'état de grâce tombe APRÈS la parole du président
+  (bonus secret), le président ne le connaît pas, c'est voulu. État : `G.mode="entraineur"`, `G.coach={rep,
+  repMax, saisons, contrat:{club, saison, duree, reste, obj}}` ; réputation 0-100 montrée en étoiles (`etoiles`,
+  un cran par 20, départ `COACH_REP0`=20, une étoile) dans le bandeau du jeu (encre du bandeau, PAS jaune : le
+  bandeau est jaune) et sur la carte de l'accueil (`ficheDe` → `entr`). Livraison 1 seule : l'intersaison reste
+  celle du mode de toujours (joueurs gardés), et le renvoi aussi. Gardé par `harness-entraineur.cjs`.
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le
