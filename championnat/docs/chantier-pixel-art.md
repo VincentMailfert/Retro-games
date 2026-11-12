@@ -52,3 +52,18 @@ canvas). L'auteur a tranché : le pixel art REMPLACERA la maquette actuelle sur 
 `peintStades()` le peint après la pose de l'écran Club. Vérifié dans une vraie partie, au téléphone et sur ordinateur.
 Harnais verts : stade, général, centre, multiplex. Restent en dessin vectoriel : les cartes de livraison, le choix du
 style (`vueVille`) et tout le centre d'entraînement.
+
+## Le centre d'entraînement en vrai pixel art (prototype, 12/11/2026)
+
+`docs/prototype-centre-pixel.html`, moteur `CAMPUSPIX`, frère de `STADEPIX` : même grille de 320 x 224, même façon
+de poser les pixels (polygones pleins, contours à l'encre, aucun filtre), palette du stade complétée des matériaux du
+campus (brique, tuile, verre, pierre, ardoise, eau, orange de chantier), une quarantaine de couleurs. Même plan que la
+maquette d'origine (`docs/prototype-centre.html`) : les quatre terrains, les six familles à trois niveaux et le château,
+aux mêmes coordonnées en mètres, pour que la greffe lise le même état. Dessiné : terrain bosselé et friches, herbe,
+stabilisé ou synthétique selon l'année, pylônes et lumière au sol, la halle ; préfabriqué, vestiaires en brique, maison
+des pros avec terrasse, résidence ; infirmerie, cabinet, clinique avec l'IRM et l'ambulance ; muscu en tôle, balnéo avec
+nageurs, laboratoire et cryothérapie ; tableau, magnétoscope, salle vidéo à parabole, cellule d'analyse et ses mâts ;
+internat, centre agréé, académie avec la tribune des U17 ; le bois, puis le château, ses douves, sa fontaine. La vie sur
+les terrains reprend les séances d'origine (footing, toro, match, slalom des gamins, frappes) à quatre images par
+seconde. Un chantier dessine le niveau en orange avec sa grue. Signature : `CAMPUSPIX.rendre(ctx, R, image)`.
+**Reste à faire** : le regard de l'auteur, puis le branchement dans le jeu à la place de la maquette du Campus.
