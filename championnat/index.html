@@ -624,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.66"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.67"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11170,6 +11170,51 @@ const SAISONS={
  "ANG-1994-95":{ pays:"ANG", an:1994, titre:"1994-95", nom:"Walker a payé", d1:D1_ANG9495, d2:D2_ANG9495, starsD1:STARS_ANG9495, starsD2:STARS_D2_ANG9495, euroC1:["MUN"], euroC2:["CHE","ARS"], euroC3:["BLB","NEW","AVL"],
    sous:"Blackburn Rovers est champion d'Angleterre pour la première fois depuis 1914, et c'est l'argent de Jack Walker, l'industriel de l'acier enfant du club, que Kenny Dalglish a fait fructifier : Alan Shearer marque trente-quatre buts, Chris Sutton, recrue record de l'été, en ajoute quinze, et la presse les appelle SAS. Le titre se joue le dernier jour : Blackburn perd à Anfield, mais Manchester United ne fait que match nul à West Ham et finit à un point. United avait pourtant payé sept millions de livres en janvier pour Andy Cole, qui en marquera cinq contre Ipswich dans un 9-0 au mois de mars ; mais le 25 janvier, à Selhurst Park, Eric Cantona saute à pieds joints sur un supporter de Crystal Palace, et il ne rejouera plus de la saison. Jürgen Klinsmann, arrivé de Monaco à Tottenham, est élu joueur de l'année par la presse, Shearer par ses pairs, et Robbie Fowler meilleur espoir. Everton bat Manchester United en finale de la FA Cup, Liverpool gagne la Coupe de la Ligue, et Arsenal perd sa Coupe des Coupes en finale sur un lob de cinquante mètres de Nayim. En deuxième division, Middlesbrough de Bryan Robson est champion et Bolton monte par les barrages ; Reading, deuxième, reste en bas, car la Premier League passe à vingt clubs et une seule place est directe. La Premier League comptait vingt-deux clubs : les deux derniers s'effacent. L'échelon du dessous en comptait vingt-quatre, et les quatre écartés ne sont pas les quatre derniers : Stoke, onzième, ne peut pas remplir son effectif en vrais joueurs." },
 };
+/* L'ÉCART AVEC L'HISTOIRE (carrière d'entraîneur, livraison 6) : le VRAI classement final de chaque saison, relevé par
+   script sur la Wikipédia anglaise (module « sports table », pages « AAAA–AA French Division 1 / Ligue 1 / … ») le
+   12/11/2026. « - » = un club que le jeu n'a pas. Pas de D2 française avant 1993-94 (deux groupes). Lu par rangReel. */
+const CLASSEMENT_REEL={
+ "1990-91":{d1:"OM MON AJA CAN LYO LIL MTP CAE PSG BOR BRE MET STE NIC NAN TON NCY SOC TOU REN"},
+ "1991-92":{d1:"OM MON PSG AJA CAE MTP LEH LEN NAN STE TOU MET LIL TON NIM LYO SOC REN CAN NCY"},
+ "1992-93":{d1:"OM PSG MON BOR NAN AJA STE STR LEN MTP CAE MET TOU LYO LEH SOC LIL VAN TON NIM"},
+ "1993-94":{d1:"PSG OM AJA BOR NAN CAN MTP LYO MON LEN STE MET STR SOC LIL CAE LEH MAR TOU ANG", d2:"NIC REN BAS NIM RST BRI LAV DUN CHV ALE SED NCY GUE MUL VAL BEA LMN NIO ROU VAN - -"},
+ "1994-95":{d1:"NAN LYO PSG AJA LEN MON BOR MET CAN STR MAR LEH REN LIL BAS NIC MTP STE CAE SOC", d2:"OM GUI GUE TOU CHA RST NCY DUN AMI ALE CHV LMN VAL MUL LAV PER NIO ANG BRI BEA - -"},
+ "1995-96":{d1:"AJA PSG MON MET LEN MTP NAN REN STR GUI LYO NIC LEH CAN BAS BOR LIL GUE STE MAR", d2:"CAE OM NCY LAV TOU LMN RST PER CHA SOC LOU LOR AMI MUL VAL NIO CHV EPI POI DUN - -"},
+ "1996-97":{d1:"MON PSG NAN BOR MET AJA BAS LYO STR MTP OM GUI LEN LEH CAN REN CAE NCY LIL NIC", d2:"CHA TOU MAR GUE NIO LMN BEA LAV LOR VAL SOC MUL RST TON AMI PER STE - - TRO EPI BRI"},
+ "1997-98":{d1:"LEN MET MON OM BOR LYO AJA PSG BAS LEH NAN MTP STR REN TOU GUI CHA CAN", d2:"NCY LOR SOC LIL TRO LMN VAL RST CAE NIO GUE AMI LAV NIC NIM BEA STE WAS LOU TON MAR MUL"},
+ "1998-99":{d1:"BOR OM LYO MON REN LEN NAN MTP PSG MET NCY STR BAS AJA LEH LOR SOC TOU", d2:"STE SED TRO LIL CAE GUE GUI CHA ACA LAV NIO CAN NIM NIC WAS AMI LMN VAL RST BEA"},
+ "1999-00":{d1:"MON PSG LYO BOR LEN STE SED AJA STR BAS MET NAN REN TRO OM NCY LEH MTP", d2:"LIL GUI TOU SOC GUE CAE ACA CHA LMN LAV NIC CAN LOR NIM NIO WAS CRE AMI VAL LOU"},
+ "2000-01":{d1:"NAN LYO LIL BOR SED REN TRO BAS PSG GUI MON MET AJA LEN OM TOU STE STR", d2:"SOC LOR MTP NIO NCY CHA LEH NIM LAV GUE BEA ACA WAS LMN NIC CRE CAE MAR CAN ANG"},
+ "2001-02":{d1:"LYO LEN AJA PSG LIL BOR TRO SOC OM NAN BAS REN MTP SED MON GUI MET LOR", d2:"ACA STR NIC LEH LMN CAE BEA CHA NCY LAV NIO AMI STE GUE WAS GRE IST CRE NIM MAR"},
+ "2002-03":{d1:"LYO MON OM BOR SOC AJA GUI LEN NAN NIC PSG BAS STR LIL REN MTP ACA LEH SED TRO", d2:"TOU LMN MET LOR CHA NIO CAE LAV STE AMI GUE GRE VAL CLE NCY IST CRE BEA WAS REI"},
+ "2003-04":{d1:"LYO PSG MON AJA SOC NAN OM LEN REN LIL NIC BOR STR MET ACA TOU BAS GUI LMN MTP", d2:"STE CAE IST LOR SED NCY LEH NIO AMI TRO CHA CRE ANG CLE GRE GUE LAV VAL BES ROU"},
+ "2004-05":{d1:"LYO LIL MON REN OM STE LEN AJA PSG SOC STR NIC TOU ACA BOR MET NAN CAE BAS IST", d2:"NCY LMN TRO DIJ CHA SED GUI MTP BRE LOR GRE GUE AMI LAV CRE REI LEH CLE NIO ANG"},
+ "2005-06":{d1:"LYO BOR LIL LEN OM AJA REN NIC PSG MON LMN NCY STE NAN SOC TOU TRO ACA STR MET", d2:"VAN SED LOR CAE DIJ BAS LEH CRE GUI GRE GUE MTP IST REI CHA AMI BRE CLE LAV SET"},
+ "2006-07":{d1:"LYO OM TOU REN LEN BOR SOC AJA MON LIL STE LMN NCY LOR PSG NIC VAN TRO SED NAN", d2:"MET CAE STR AMI GRE LEH CHA DIJ BAS GUE REI ACA GUI BRE MTP NIO LIB CRE IST TRS"},
+ "2007-08":{d1:"LYO BOR OM NCY STE REN LIL NIC LMN LOR CAE MON VAN SOC AJA PSG TOU LEN STR MET", d2:"LEH NAN GRE SED CLE TRO BRE MTP ACA ANG BAS GUI REI AMI CHA BLG DIJ NIO LIB GUE"},
+ "2008-09":{d1:"BOR OM LYO TOU LIL PSG REN AJA NIC LOR MON VAN GRE SOC NCY LMN STE CAE NAN LEH", d2:"LEN MTP BLG STR MET TRS ANG DIJ SED VNS BAS CLE GUI BRE CHA ACA NIM AMI TRO REI"},
+ "2009-10":{d1:"OM LYO AJA LIL MTP BOR LOR MON REN VAN LEN NCY PSG TOU NIC SOC STE LMN BLG GRE", d2:"CAE BRE ARL MET ANG CLE LEH LAV DIJ NIM TRS SED ACA VNS NAN CHA IST GUI STR BAS"},
+ "ANG-1995-96":{d1:"MUN NEW LIV AVL ARS EVE BLB TOT FOR WHU CHE MID LEE WIM SHW COV SOU MCI QPR BOL", d2:"SUN DER CPL STK LEI CHL IPS HUD SHU BNS WBA PTV TRM SND BIR NOR GRI OLD RDG WOL - - - -"},
+ "ANG-1996-97":{d1:"MUN NEW ARS LIV AVL CHE SHW WIM LEI TOT LEE DER BLB WHU EVE SOU COV SUN MID FOR", d2:"BOL BNS WOL IPS SHU CPL POR PTV QPR BIR TRM STK NOR MCI CHL WBA OXF RDG SWI HUD - - - -"},
+ "ANG-1997-98":{d1:"ARS MUN LIV CHE LEE BLB AVL WHU DER LEI COV SOU NEW TOT WIM SHW EVE BOL BNS CPL", d2:"FOR MID SUN CHL IPS SHU BIR SKP WOL WBA CRW OXF BRD TRM NOR HUD BRY SWI PTV POR - - - -"},
+ "ANG-1998-99":{d1:"MUN ARS CHE LEE WHU AVL LIV DER MID LEI TOT SHW NEW EVE COV WIM SOU CHL BLB FOR", d2:"SUN BRD IPS BIR WAT BOL WOL SHU NOR HUD GRI WBA BNS CPL TRM SKP SWI CRW POR QPR - - - -"},
+ "ANG-1999-00":{d1:"MUN ARS LEE LIV CHE AVL SUN LEI WHU TOT NEW MID EVE COV SOU DER BRD WIM SHW WAT", d2:"CHL MCI IPS BNS BIR BOL WOL HUD FUL QPR BLB NOR TRM FOR CPL SHU SKP POR CRW GRI - - - -"},
+ "ANG-2000-01":{d1:"MUN ARS LIV LEE IPS CHE SUN AVL CHL SOU NEW TOT LEI MID WHU EVE DER MCI COV BRD", d2:"FUL BLB BOL PNE BIR WBA BUR WIM WAT SHU FOR WOL GIL CRW NOR BNS SHW GRI SKP POR - - - -"},
+ "ANG-2001-02":{d1:"ARS LIV MUN NEW LEE CHE WHU AVL TOT BLB SOU MID FUL CHL EVE BOL SUN IPS DER LEI", d2:"MCI WBA WOL MIW BIR NOR BUR PNE WIM CPL COV GIL SHU WAT BRD FOR POR WAL GRI SHW - - - -"},
+ "ANG-2002-03":{d1:"MUN ARS NEW CHE LIV BLB EVE SOU MCI TOT MID CHL BIR FUL LEE AVL BOL WHU WBA SUN", d2:"POR LEI SHU RDG WOL FOR IPS NOR MIW WIM GIL PNE WAT CPL ROT BUR WAL DER BRD COV - - - -"},
+ "ANG-2003-04":{d1:"ARS CHE MUN LIV NEW AVL CHL BOL FUL BIR MID SOU POR TOT BLB MCI EVE LEI LEE WOL", d2:"NOR WBA SUN WHU IPS CPL WIG SHU RDG MIW STK COV CAR FOR PNE WAT ROT CRW - DER GIL - - -"},
+ "ANG-2004-05":{d1:"CHE ARS MUN EVE LIV BOL MID MCI TOT AVL CHL BIR FUL NEW BLB POR WBA CPL NOR SOU", d2:"SUN WIG IPS DER PNE WHU RDG SHU WOL MIW QPR STK BUR LEE LEI CAR PLY WAT COV BHA - - - -"},
+ "ANG-2005-06":{d1:"CHE MUN LIV ARS TOT BLB NEW BOL WHU WIG EVE FUL CHL MID MCI AVL POR BIR WBA SUN", d2:"RDG SHU WAT PNE LEE CPL WOL COV NOR LUT CAR SOU STK PLY IPS LEI BUR HUL SHW DER - - - -"},
+ "ANG-2006-07":{d1:"MUN CHE LIV ARS TOT EVE BOL RDG POR BLB AVL MID NEW MCI WHU FUL WIG SHU CHL WAT", d2:"SUN BIR DER WBA WOL SOU PNE STK SHW COL PLY CPL CAR IPS BUR NOR COV QPR LEI BNS - - - -"},
+ "ANG-2007-08":{d1:"MUN CHE ARS LIV EVE AVL BLB POR MCI WHU TOT NEW MID WIG SUN BOL FUL RDG BIR DER", d2:"WBA STK HUL BSC CPL WAT WOL IPS SHU PLY CHL CAR BUR QPR PNE SHW NOR BNS BLP SOU - - - -"},
+ "ANG-2008-09":{d1:"MUN LIV CHE ARS EVE AVL FUL TOT WHU MCI WIG STK BOL POR BLB SUN HUL NEW MID WBA", d2:"WOL BIR SHU RDG BUR PNE CAR SWA IPS BSC QPR SHW WAT DON CPL BLP COV DER FOR BNS - - - -"},
+ "ANG-2009-10":{d1:"CHE MUN ARS TOT MCI AVL LIV EVE BIR BLB STK FUL SUN BOL WOL WIG WHU BUR HUL POR", d2:"NEW WBA FOR CAR LEI BLP SWA SHU RDG BSC MID DON QPR DER IPS WAT PNE BNS COV SCU - - - -"},
+ "ANG-1990-91":{d1:"ARS LIV CPL LEE MCI MUN WIM FOR EVE TOT CHE QPR SHU SOU NOR COV AVL LUT SUN DER", d2:"OLD WHU SHW NTC MIW - MID BNS BSC OXF NEW WOL - IPS PTV CHL POR PLY BLB WAT - - WBA HUL"},
+ "ANG-1991-92":{d1:"LEE MUN SHW ARS MCI LIV AVL FOR SHU CPL QPR EVE WIM CHE TOT SOU OLD NOR COV LUT - -", d2:"IPS MID DER LEI CAM - CHL SWI POR WAT WOL - BSR TRM MIW - BSC SUN GRI NEW - - BHA PTV"},
+ "ANG-1992-93":{d1:"MUN AVL NOR BLB QPR LIV SHW TOT MCI ARS CHE WIM EVE SHU COV IPS LEE SOU OLD CPL - -", d2:"NEW WHU POR - SWI LEI MIW DER - PET WOL CHL BNS OXF BSC WAT NTC - BIR LUT SUN BTF CAM -"},
+ "ANG-1993-94":{d1:"MUN BLB NEW ARS LEE WIM SHW LIV QPR AVL COV NOR WHU CHE TOT MCI EVE SOU IPS SHU - -", d2:"CPL FOR MIW LEI - DER NTC WOL - STK CHL SUN BSC BOL SND GRI POR BNS WAT LUT WBA BIR - -"},
+ "ANG-1994-95":{d1:"BLB MUN FOR LIV LEE NEW TOT QPR WIM SOU CHE ARS SHW WHU EVE COV MCI AVL CPL NOR - -", d2:"MID RDG BOL WOL TRM BNS WAT SHU DER GRI - MIW SND OLD CHL LUT - POR WBA SUN - BUR BSC -"},
+};
 const SAISON_DEFAUT="1995-96";
 let SAISON_ACCUEIL=SAISON_DEFAUT; // saison sélectionnée à l'écran d'accueil
 
@@ -21672,6 +21717,15 @@ function contratEntraineur(o){
    L'échelle des clubs (`echelle`) range les quarante clubs d'une saison par la force de leur effectif réel, la
    première division devant à force égale. */
 const REP_GAIN={depasse:12, cran:6, tenu:6, rate:-10, vire:-15, titreD1:10, titreD2:4};
+/* LIVRAISON 6 : L'ÉCART AVEC L'HISTOIRE. `CLASSEMENT_REEL` (sous SAISONS) donne, saison par saison, les clubs dans
+   l'ordre du VRAI classement final, « - » pour un club que le jeu n'a pas. `rangReel` lit la vraie place d'un club
+   dans la division qu'il joue : un club repêché dans le jeu (qui a vraiment joué l'autre division) n'en a pas, et
+   la D2 française à deux groupes (jusqu'en 1992-93) non plus. */
+const ECART_HISTOIRE=5; // places gagnées sur l'histoire pour que le président compte l'objectif comme dépassé
+function rangReel(k, id, div){
+  const R=k&&CLASSEMENT_REEL[k], l=R&&R["d"+div]; if(!l) return null;
+  const i=l.split(" ").indexOf(id); return i<0?null:i+1;
+}
 function cleSaison(pays, an){ return Object.keys(SAISONS).find(k=>(SAISONS[k].pays||"FR")===pays && SAISONS[k].an===an)||null; }
 function divReelle(S, id){ return S.d1.includes(id)?1 : S.d2.includes(id)?2 : 0; }
 function objectifReel(S, id){ // l'objectif qu'appelle le vrai niveau d'un club, dans sa vraie division
@@ -21688,6 +21742,10 @@ function verdictSaison(rang, obj, div, n){
 function finSaisonEntr(rang){ // appelée par finDeSaison
   const C=G.coach, n=G.clubs.length, o=C.obj||Object.assign({niv:0}, G.objectif);
   const vd=C.vire ? {v:"vire", crans:0} : verdictSaison(rang, o, G.div, n); // renvoyé en cours de route : la saison est perdue pour lui
+  // L'ÉCART AVEC L'HISTOIRE (livraison 6) : la vraie place du club cette saison-là. Finir au moins ECART_HISTOIRE
+  // places mieux que lui compte comme un objectif dépassé ; ça ne rend jamais un verdict plus sévère.
+  const reel=rangReel(cleSaison(G.pays, anneeJeu()), G.monClub, G.div);
+  if(reel!=null && !C.vire && vd.v!=="depasse" && reel-rang>=ECART_HISTOIRE){ vd.v="depasse"; vd.crans=1; vd.histoire=true; }
   let d = vd.v==="vire" ? REP_GAIN.vire : vd.v==="rate" ? REP_GAIN.rate : vd.v==="tenu" ? REP_GAIN.tenu : REP_GAIN.depasse+REP_GAIN.cran*(vd.crans-1);
   if(rang===1 && !C.vire) d+=G.div===1?REP_GAIN.titreD1:REP_GAIN.titreD2;
   const avant=C.rep;
@@ -21695,8 +21753,8 @@ function finSaisonEntr(rang){ // appelée par finDeSaison
   C.contrat.reste=C.vire ? 0 : Math.max(0,(C.contrat.reste||1)-1);
   const moi=clubById(G.monClub);
   C.saisons.push({s:G.saison, pays:G.pays, club:G.monClub, nom:moi?moi.nom:"", div:G.div, rang, obj:o.label, v:vd.v, rep:C.rep, vireJ:C.vire?C.vire.j:null,
-    pal:trophees((G.palmares||[]).filter(p=>p.includes(G.saison)))}); // les trophées de la saison, pour le livre d'or
-  C.bilan={v:vd.v, crans:vd.crans, avant, apres:C.rep, rang, obj:o.label};
+    pal:trophees((G.palmares||[]).filter(p=>p.includes(G.saison))), reel}); // les trophées de la saison, et la vraie place du club
+  C.bilan={v:vd.v, crans:vd.crans, avant, apres:C.rep, rang, obj:o.label, reel, histoire:!!vd.histoire};
   C.vire=null; C.avert=null; // la page est tournée : l'été décide de la suite
 }
 const LIB_VERDICT={depasse:"OBJECTIF DÉPASSÉ", tenu:"OBJECTIF TENU", rate:"OBJECTIF MANQUÉ", vire:"RENVOYÉ"};
@@ -21764,7 +21822,12 @@ function finitSansVous(){ // l'intérim joue tout ce qui reste ; on n'y touche p
 }
 function ligneEtoiles(b){ return etoiles(b.avant)+(etoiles(b.apres)!==etoiles(b.avant)?" → "+etoiles(b.apres):""); }
 function ligneVerdict(b){ // une ligne sous le verdict de l'almanach
-  return `<p class="${(b.v==="rate"||b.v==="vire")?"rouge":"fort"}" style="margin-top:4px"><b>${LIB_VERDICT[b.v]}</b> <span class="dim">(${esc(b.obj)})</span> · ${ligneEtoiles(b)}</p>`;
+  return `<p class="${(b.v==="rate"||b.v==="vire")?"rouge":"fort"}" style="margin-top:4px"><b>${LIB_VERDICT[b.v]}</b> <span class="dim">(${esc(b.obj)})</span> · ${ligneEtoiles(b)}</p>`+ligneHistoire(b);
+}
+function ligneHistoire(b){ // la vraie place du club cette saison-là, quand on la connaît
+  if(b.reel==null) return "";
+  const d=b.reel-b.rang;
+  return `<p class="dim" style="margin-top:2px">Le vrai club avait fini ${b.reel}ᵉ${d>0?`, vous faites <b class="fort">${d} place${d>1?"s":""} mieux</b>`:d<0?`, vous faites ${-d} place${d<-1?"s":""} moins bien`:", comme vous"}.${b.histoire?" Le président s'en souviendra.":""}</p>`;
 }
 function echelle(S){
   return S.d1.map(id=>({id,div:1})).concat(S.d2.map(id=>({id,div:2})))
@@ -21857,7 +21920,7 @@ function ecranEte(){
       <p style="margin-top:8px"><button class="big bEteSigne" data-i="${i}" style="width:100%">${esc(bouton)}</button></p></div>`; };
   chrome("calendrier", `<div class="panel ctr">
       <h2 class="${b&&(b.v==="rate"||b.v==="vire")?"rouge":""}">${b?LIB_VERDICT[b.v]:"L'ÉTÉ"}</h2>
-      ${b?`<p>${b.rang}ᵉ place · <span class="dim">${esc(b.obj)}</span></p><p style="font-size:18px;letter-spacing:1px;margin-top:4px">${ligneEtoiles(b)}</p>`:""}
+      ${b?`<p>${b.rang}ᵉ place · <span class="dim">${esc(b.obj)}</span></p>${ligneHistoire(b)}<p style="font-size:18px;letter-spacing:1px;margin-top:4px">${ligneEtoiles(b)}</p>`:""}
       <p style="margin-top:8px">${esc(tete)}</p></div>`+E.offres.map(carte).join(""));
   app.querySelectorAll(".bEteSigne").forEach(x=>x.onclick=()=>basculeSaison(E.offres[+x.dataset.i]));
 }
@@ -21874,7 +21937,7 @@ function livreDorHTML(){
   if(!C.saisons.length) return `<p class="dim" style="font-size:13px">La première page s'écrit cette saison.</p>`;
   const lignes=C.saisons.map(s=>{ const P=PAYS[s.pays||"FR"]||PAYS.FR, an=+String(s.s).slice(0,4), t=trophees(s.pal).length;
     return `<tr><td class="dim">${esc(s.s)}</td><td>${P.drapeau} ${esc(s.nom)}</td><td class="dim">${esc(P[s.div===1?"tag1":"tag2"](an))}</td>
-      <td class="num"><b>${s.rang}ᵉ</b></td><td class="${(s.v==="rate"||s.v==="vire")?"rouge":"fort"}">${esc(LIB_COURT[s.v]||"")}${s.vireJ?" J"+s.vireJ:""}</td><td>${"🏆".repeat(t)}</td></tr>`; }).join("");
+      <td class="num"><b>${s.rang}ᵉ</b>${s.reel!=null?`<span class="dim" title="La vraie place du club"> /${s.reel}</span>`:""}</td><td class="${(s.v==="rate"||s.v==="vire")?"rouge":"fort"}">${esc(LIB_COURT[s.v]||"")}${s.vireJ?" J"+s.vireJ:""}</td><td>${"🏆".repeat(t)}</td></tr>`; }).join("");
   return `<table class="fit" style="font-size:13px;margin-top:4px">${lignes}</table>`;
 }
 function panneauLivreDor(){ // en tête de « Direction & mémoire », pour une carrière d'entraîneur

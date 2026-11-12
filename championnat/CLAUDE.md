@@ -2298,6 +2298,22 @@ toujours « raconter quelque chose ».
   (étoiles, record, contrat en cours, tableau) ouvre le panneau « Direction & mémoire » de l'onglet Club (sous-onglet
   Direction au téléphone). Quand il n'y a plus de saison, `ecranFinCarriere` : meilleure réputation en grand, nombre
   de saisons, de clubs et de pays, les clubs avec leur drapeau, la liste des trophées, puis le livre d'or.
+  **Livraison 6 (v2.67) : l'écart avec l'histoire.** `CLASSEMENT_REEL` (juste sous `SAISONS`) : pour chaque clé de
+  saison, `d1`/`d2` = les codes du jeu dans l'ordre du VRAI classement final, séparés par des espaces, « - » pour un
+  club que le jeu n'a pas. Relevé le 12/11/2026 par script (zéro jeton) sur la Wikipédia anglaise, module « sports
+  table » des pages « AAAA–AA French Division 1 / Ligue 1 / French Division 2 / Ligue 2 / Football League First
+  Division / FA Premier League / Premier League / Football League Championship » ; deux écritures du module
+  (`team1=…` et `team_order=…`, piège : un bloc doit s'arrêter au module suivant), une table rangée dans un modèle
+  (`Template:1991–92 French Division 1 table`), et Wikipédia freine au-delà d'une requête toutes les ~2 s (HTTP 429).
+  Association des noms : mots distinctifs obligatoires, mots génériques (United, City, Wednesday, Albion…) qui ne font
+  que départager, et jamais deux génériques différents (Bristol City n'est pas Bristol Rovers). Vérifié : vrais
+  champions (Auxerre 96, Lens 98, Bordeaux 09, United 96, Arsenal 04), et les seuls clubs sans vraie place sont les
+  repêchés et ajouts connus du jeu (D1 à 18 de 1997 à 2002, Louhans/Martigues 98-99, WBA 91-92…). **Pas de D2
+  française avant 1993-94** (deux groupes, `d2` absent). `rangReel(k, id, div)` lit la vraie place dans la division
+  que le club JOUE (un repêché n'en a pas). `finSaisonEntr` : finir au moins `ECART_HISTOIRE`=5 places mieux que le
+  vrai club fait passer le verdict à DÉPASSÉ (`histoire:true`, un cran) ; jamais l'inverse, jamais pour un renvoyé.
+  Affichage : `ligneHistoire` (almanach et été : « Le vrai club avait fini 19ᵉ, vous faites 8 places mieux. Le
+  président s'en souviendra. »), et « /19 » discret à côté de la place dans le livre d'or.
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le

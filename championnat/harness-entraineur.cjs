@@ -14,6 +14,7 @@
    K) le naufrage : l'avertissement, sa levée, le renvoi, la fin de saison sans vous, l'été d'un renvoyé (livraison 3)
    L) les offres de l'étranger : un été sur deux, une offre d'un autre pays ; signer change de pays, pas de saison de départ (livraison 4)
    M) le livre d'or et le grand bilan de fin de carrière (livraison 5)
+   N) l'écart avec l'histoire : les vrais classements, la vraie place, le bonus au verdict, l'affichage (livraison 6)
    Usage : node harness-entraineur.cjs                                                               */
 const fs = require("fs");
 const path = require("path");
@@ -52,7 +53,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,classement,sauvegardeLocale,chargeLocale,partiesListe," +
   "ecranAccueil,SAISONS,SAISONS_OUVERTES,saisonOuverte,offresDebut,forceReelle,forceEffectif,nivDuRang,objectifEntr,objectifDuClub," +
-  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier,offresEte,ecranClub,livreDorHTML,seuilNaufrage,surveillePresident,finitSansVous,forceReelle2:forceReelle," +
+  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier,offresEte,ecranClub,livreDorHTML,rangReel,CLASSEMENT_REEL,finSaisonEntr,metaClub,seuilNaufrage,surveillePresident,finitSansVous,forceReelle2:forceReelle," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 function reel(fn) { global.window.__TEST__ = false; try { return fn(); } finally { global.window.__TEST__ = true; } }
@@ -446,6 +447,54 @@ console.log("M) le livre d'or et le grand bilan (livraison 5)");
   ok(APP._h.includes("FIN DE CARRIÈRE") && APP._h.includes("LIVRE D'OR"), "l'écran de fin de carrière, avec le livre d'or");
   ok(APP._h.includes("3 saisons · 3 clubs · 2 pays") && APP._h.includes(api.etoiles(40)), "trois saisons, trois clubs, deux pays, la meilleure réputation");
   ok(APP._h.includes("🏆 Champion de Division 2 1995-96") && APP._h.includes("🏆 Vainqueur de la Coupe de France 1995-96"), "la liste des trophées");
+  ok(!/—/.test(APP._h), "aucun tiret long");
+}
+
+console.log("N) l'écart avec l'histoire (livraison 6)");
+{
+  const CR = api.CLASSEMENT_REEL;
+  // les données : toutes les saisons du jeu, des codes connus, aucun doublon, des tailles de vraie division
+  let inconnu = [], doublon = [], taille = [], couverture = [];
+  for (const k of cles) {
+    const R = CR[k]; if (!R) { inconnu.push(k + " : absente"); continue; }
+    for (const div of [1, 2]) {
+      const s = R["d" + div]; if (!s) continue;
+      const l = s.split(" "), ids = l.filter(x => x !== "-");
+      if (ids.some(id => !api.metaClub(id))) inconnu.push(k + " D" + div);
+      if (new Set(ids).size !== ids.length) doublon.push(k + " D" + div);
+      if (l.length < 16 || l.length > 24) taille.push(k + " D" + div + " (" + l.length + ")");
+      const jeu = S[k]["d" + div], vus = jeu.filter(id => ids.includes(id)).length;
+      if (vus < jeu.length - 2) couverture.push(k + " D" + div + " (" + vus + "/" + jeu.length + ")");
+    }
+  }
+  ok(!inconnu.length, "chaque saison du jeu a son vrai classement, en codes du jeu" + (inconnu.length ? " : " + inconnu.join(", ") : ""));
+  ok(!doublon.length && !taille.length, "aucun doublon, des divisions de 16 à 24 clubs" + (doublon.concat(taille).length ? " : " + doublon.concat(taille).join(", ") : ""));
+  ok(!couverture.length, "au plus deux clubs du jeu sans vraie place par division (repêchés, ajoutés)" + (couverture.length ? " : " + couverture.join(", ") : ""));
+  const premier = (k, d) => CR[k]["d" + d].split(" ")[0];
+  ok(premier("1995-96", 1) === "AJA" && premier("1997-98", 1) === "LEN" && premier("2008-09", 1) === "BOR" && premier("ANG-1995-96", 1) === "MUN" && premier("ANG-2003-04", 1) === "ARS" && premier("ANG-2001-02", 2) === "MCI",
+    "les vrais champions : Auxerre 96, Lens 98, Bordeaux 09, United 96, Arsenal 04, City en D2 anglaise 02");
+  ok(api.rangReel("1995-96", "AJA", 1) === 1 && api.rangReel("1995-96", "MAR", 1) === 20, "la vraie place : Auxerre 1er, Martigues 20e en 1995-96");
+  ok(api.rangReel("1997-98", "NCY", 1) === null && api.rangReel("1990-91", "BRE", 2) === null && api.rangReel(null, "AJA", 1) === null,
+    "pas de vraie place pour un club repêché, ni pour la D2 à deux groupes");
+  // le bonus au verdict
+  const S95 = S["1995-96"], id = S95.d2.find(x => (api.rangReel("1995-96", x, 2) || 0) >= 10), rr = api.rangReel("1995-96", id, 2);
+  const fin = (rang, niv, vire) => { api.nouvellePartie(id, "1995-96", { id, k: "1995-96", duree: 1, obj: api.objectifEntr(niv, 2, 20) });
+    const G = api.getG(); if (vire) G.coach.vire = { j: 15, rang }; api.finSaisonEntr(rang); return G.coach.bilan; };
+  let b = fin(rr - 5, 3);
+  ok(b.v === "depasse" && b.histoire && b.crans === 1 && b.reel === rr, "objectif titre manqué, mais " + (rr - 5) + "e quand le vrai club finit " + rr + "e : dépassé, grâce à l'histoire");
+  b = fin(rr - 4, 3);
+  ok(b.v === "rate" && !b.histoire, "quatre places de mieux seulement : l'objectif reste manqué");
+  b = fin(rr - 6, 3, true);
+  ok(b.v === "vire", "un renvoyé reste renvoyé");
+  b = fin(1, 0);
+  ok(b.v === "depasse" && b.crans === 3 && !b.histoire, "un objectif déjà dépassé garde ses crans, sans l'histoire");
+  b = fin(Math.min(17, rr + 3), 0);
+  ok(b.v !== "rate" || Math.min(17, rr + 3) > 17, "faire moins bien que l'histoire n'aggrave rien (" + b.v + ")");
+  // l'affichage : l'almanach et le livre d'or
+  b = fin(rr - 5, 3); const G = api.getG(); G.finie = true;
+  APP._h = ""; api.ecranBilan();
+  ok(APP._h.includes("Le vrai club avait fini " + rr + "ᵉ") && APP._h.includes("5 places mieux") && APP._h.includes("Le président s'en souviendra"), "l'almanach le dit");
+  ok(api.livreDorHTML().includes(" /" + rr + "<"), "le livre d'or montre la vraie place");
   ok(!/—/.test(APP._h), "aucun tiret long");
 }
 
