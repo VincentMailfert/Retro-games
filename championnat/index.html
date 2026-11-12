@@ -624,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.68"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.69"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11388,6 +11388,10 @@ function recupJoueur(j, c){
 function reposHebdo(c){ if(!c||!c.joueurs) return;
   // campus (votre club seulement) : la halle rend 3 points par semaine l'hiver (J16 à J26), le laboratoire 2 toute l'année
   let bonus=0; if(c.id===G.monClub && G.campus){ const e=campusEff(), J=(G.journee||0)+1; bonus=(J>=16&&J<=26?e.hiver:0)+e.fraich; }
+  /* LE PRÉPARATEUR PHYSIQUE FAIT RÉCUPÉRER TOUT LE MONDE (v2.69, demande de l'auteur) : +1 point de fraîcheur par
+     semaine et par étoile, à tout l'effectif. Avant, il ne comblait qu'une part du déficit de l'âge (recupJoueur),
+     donc rien de visible sous 29 ans. Cela compte surtout les semaines à deux matchs (coupe, Europe). */
+  if(c.id===G.monClub) bonus+=coachTier("physique");
   for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)+bonus); } // ceinture : on balaie aussi la D2 et l'Europe, et une vieille sauvegarde peut y porter un club sans effectif
 function useFraich(j, cout){ j.fraich=Math.max(0, fraich(j)-cout); }
 /* CE QUE LA FATIGUE COÛTE — quatre paliers, barème posé par l'auteur (v1.01) :
@@ -18439,7 +18443,7 @@ const STAFF_POSTES=[
   {id:"defense",  nom:"Coach de la défense",     pic:"🛡️", eff:t=>"Vous encaissez "+(2*t)+" % de moins · fait progresser vos défenseurs"},
   {id:"gardien",  nom:"Entraîneur des gardiens", pic:"🧤", eff:t=>"Gardien plus sûr ("+(1.5*t)+" % de buts en moins, penaltys contre) · fait progresser vos gardiens"},
   {id:"cpa",      nom:"Spécialiste des coups de pied arrêtés", pic:"🎯", eff:t=>"Penaltys et coups francs mieux convertis (+"+(5*t)+" pts)"},
-  {id:"physique", nom:"Préparateur physique",    pic:"💪", eff:t=>"Blessures −"+(12*t)+" %"},
+  {id:"physique", nom:"Préparateur physique",    pic:"💪", eff:t=>"Blessures −"+(12*t)+" % · récupération +"+t+" de fraîcheur par semaine"},
   {id:"mental",   nom:"Préparateur mental",      pic:"🧠", eff:t=>"Moral du vestiaire entretenu (+"+(0.4*t).toFixed(1)+"/journée)"},
 ];
 const COACH_PRENOMS=["Gérard","Guy","Raymond","Roger","Aimé","Robert","Marcel","Henri","Bernard","Jean-Claude","José","Daniel","Michel","Pierre","Lucien","Bruno","Francis","Gilbert","René","Claude"];
@@ -22582,7 +22586,7 @@ function ecranCalendrier(){
   const offre=(G.offreExt&&offreJ)?`<div class="panel">
      <h2>Offre venue de l'étranger</h2>
      <p><b class="fort">${esc(G.offreExt.club)}</b> propose <b class="fort">${MM(G.offreExt.prix,1)}</b> pour
-       <b>${esc(offreJ.nom)}</b> (${offreJ.pos}, ${offreJ.age} ans, note ${offreJ.note}), qui n'est pourtant pas à vendre.</p>
+       <b>${esc(offreJ.nom)}</b> (${offreJ.pos}, ${offreJ.age} ans, note ${offreJ.note}, valeur ${MM(valeur(offreJ),1)}), qui n'est pourtant pas à vendre.</p>
      <p class="dim">Leur recruteur a vu quelque chose. L'offre expire après la prochaine journée.</p>
      ${blocOffre?`<p class="rouge">Vous ne pouvez pas accepter : ${esc(blocOffre)}</p>`:""}
      <p style="margin-top:8px"><button class="act" id="bExtAcc" ${blocOffre?"disabled":""}>Accepter (${MM(G.offreExt.prix,1)})</button>
