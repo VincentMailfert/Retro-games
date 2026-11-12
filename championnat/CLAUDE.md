@@ -3932,8 +3932,22 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
   (`ficheClubAccueil`) affiche ses défis (`defisClubDe`, cadre jaune `.trFiche`, ✅ une fois réussi). Dans la salle des
   trophées, une quatrième famille « Les défis de club », par pays, blason devant. Ajouter un défi = une ligne dans la
   table ; vérifier que le club existe dans une saison de son championnat (section K du harnais le contrôle).
-- Gardé par **`harness-trophees.cjs`** (sections A à K, dont une carrière de six saisons où chaque défi de match
-  réussi est contrôlé contre le score du soir).
+- **LA BOUTIQUE À POINTS (v2.77, demande de l'auteur du 12/11/2026)** : les points se dépensent, jamais d'argent réel.
+  La table **`BOUTIQUE`** a deux rayons. **Avantages permanents** (`perm`, achetés une fois, valables pour toutes les
+  carrières LANCÉES APRÈS l'achat, appliqués par `boutiqueAuDepart` dans `nouvellePartie` hors été d'entraîneur,
+  avant `inferStade`) : une tribune de plus (+3 000 places, 1 500 pts), trésor de guerre (+10 M au budget transferts,
+  1 000), un président qui vous aime (confiance +15, 600). **Coups de pouce** (`coup`, carrière en cours, effet
+  immédiat par `appliqueCoup`, une fois par saison chacun) : vider l'infirmerie (`bless`=0, 150), l'amnistie
+  (`susp`=0, 100), tournée générale (moral +15, 80), la rallonge du président (+5 M, 250). Les achats vivent dans
+  `prog().achats` = `[{id, art, t}]` ; **l'`id` porte la limite** (l'article seul pour un permanent,
+  `article-carrière-saison` pour un coup de pouce), donc la fusion de deux appareils (réunion par `id`) ne compte
+  jamais un achat deux fois. **Le solde n'est pas stocké** : `soldePoints()` = points gagnés − prix des achats,
+  jamais sous zéro (deux appareils qui ont dépensé chacun de leur côté peuvent dépasser, on s'arrête à zéro).
+  Où : dans la salle des trophées (panneau « La boutique », les coups de pouce y disent « En partie »), et en jeu
+  par le bouton « ⭐ Boutique » du pied de page (`montre("boutique")` → `ecranBoutique`). Chaque achat passe par
+  `confirme`. Le bandeau de l'accueil et le haut de la salle montrent le SOLDE, « N gagnés » en dessous.
+- Gardé par **`harness-trophees.cjs`** (sections A à L, dont une carrière de six saisons où chaque défi de match
+  réussi est contrôlé contre le score du soir, et la boutique en L).
 
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
 

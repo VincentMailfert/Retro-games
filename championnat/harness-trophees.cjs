@@ -12,6 +12,7 @@
    I) l'écran : la vitrine, les blasons des clubs sacrés, les trois familles de défis
    J) une vraie carrière de six saisons : pas d'erreur, chaque défi de match réussi est justifié par un score
    K) les défis de club (v2.76) : clubs réels du bon championnat, règles, fin de saison, rattrapage, fiche, écran
+   L) la boutique (v2.77) : solde, limites d'achat, effets des coups de pouce et des avantages permanents, fusion
    Usage : node harness-trophees.cjs                                                            */
 const fs = require("fs");
 const path = require("path");
@@ -50,7 +51,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,classement,clubById,SAISONS,prog,progMag,progVide,progNette," +
   "progFusionne,progEmpreinte,ecranAccueil,ecranTrophees,DEFIS,DEFI_DE,defiReussi,pointsDefis,defiGagne,mesMatchs," +
-  "defisJournee,defisFinSaison,defisCarriere,defisConstate,vitrine,DEFIS_CLUB,defiClubRempli,defisClubDe,ficheClubAccueil,metaClub," +
+  "defisJournee,defisFinSaison,defisCarriere,defisConstate,vitrine,DEFIS_CLUB,defiClubRempli,defisClubDe,ficheClubAccueil,metaClub,BOUTIQUE,soldePoints,depensePoints,achete,achatPossible,acquis,boutiqueHTML,clubById," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 
@@ -285,6 +286,56 @@ console.log("K) Les défis de club");
   ok(/Les défis de club/.test(h) && (h.match(/trDefiClub/g) || []).length === DC.length, "la salle liste tous les défis de club");
   ok(/✅ <svg[\s\S]*?Newcastle/.test(h) || /trDefi ok"><span class="trDefiClub">✅/.test(h), "le défi de Newcastle est coché");
   ok(new RegExp(`/${api.DEFIS.length + DC.length} défis`).test(h), "le compteur compte toutes les familles");
+}
+
+/* ===== L) la boutique ===== */
+console.log("L) La boutique à points");
+{
+  api = appareil(nouveauLS()); const p = api.prog();
+  const S0 = api.SAISONS["1995-96"], club = S0.d1[3];
+  ok(api.soldePoints() === 0 && api.achatPossible("tresor") === "points", "sans points, rien ne s'achète");
+  ok(api.BOUTIQUE.every(a => a.prix > 0 && ["perm", "coup"].includes(a.ray) && !/—/.test(a.nom + a.sous)), "chaque article a un rayon, un prix, et pas de tiret long");
+  p.defis = [{ id: "titre", t: 1 }, { id: "europe", t: 2 }, { id: "invincibles", t: 3 }, { id: "double", t: 4 }]; // 2 300 pts
+  ok(api.soldePoints() === 2300, "2 300 points gagnés, 2 300 à dépenser");
+  ok(api.achatPossible("infirmerie") === "partie", "un coup de pouce exige une partie en cours");
+  ok(api.achete("tresor") && api.acquis("tresor") && api.soldePoints() === 1300, "le trésor de guerre coûte 1 000 points");
+  ok(api.achete("tresor") === false && api.soldePoints() === 1300, "un avantage permanent ne s'achète qu'une fois");
+  p.defis.push({ id: "fidele", t: 5 }, { id: "decennie", t: 6 }); // +400 → 1 700 à dépenser
+  ok(api.achete("tribune") && api.soldePoints() === 200, "la tribune coûte 1 500 points, il en reste 200");
+  ok(api.achatPossible("president") === "points" && api.achete("president") === false, "plus assez de points : refusé");
+  p.achats.push({ id: "president", art: "president", t: 9 }); // comme après la fusion de deux appareils qui ont chacun dépensé
+  ok(api.depensePoints() === 3100 && api.soldePoints() === 0, "dépensé plus que gagné : le solde s'arrête à zéro, jamais en dessous");
+  /* les avantages permanents s'appliquent aux carrières neuves */
+  const sansAvant = (() => { const a2 = appareil(nouveauLS()); a2.nouvellePartie(club, "1995-96"); const G2 = a2.getG(); return { b: G2.budget, cap: a2.clubById(club).cap }; })();
+  api.nouvellePartie(club, "1995-96"); let G = api.getG();
+  ok(G.budget === sansAvant.b + 10e6, `trésor : +10 M au départ (${sansAvant.b / 1e6} → ${G.budget / 1e6})`);
+  ok(api.clubById(club).cap === sansAvant.cap + 3000, `tribune : +3 000 places (${sansAvant.cap} → ${api.clubById(club).cap})`);
+  ok(G.news.some(n => /Vos avantages vous suivent/.test(n)), "une dépêche le dit");
+  /* les coups de pouce */
+  for (const id of ["deuxPays", "cles3", "montee", "coupe", "podium", "serie6", "murs10", "buts70", "forteresse"]) p.defis.push({ id, t: 10 }); // +1 900 → 1 500 à dépenser
+  const moi = api.clubById(G.monClub), j0 = moi.joueurs[0], j1 = moi.joueurs[1];
+  j0.bless = 4; j1.susp = 2; j0.moral = 40;
+  ok(api.achete("infirmerie") && j0.bless === 0, "vider l'infirmerie soigne tout le monde");
+  ok(api.achatPossible("infirmerie") === "saison" && api.achete("infirmerie") === false, "une fois par saison");
+  ok(api.achete("amnistie") && j1.susp === 0, "l'amnistie lève les suspensions");
+  ok(api.achete("tournee") && j0.moral === 55, "la tournée remonte le moral de 15");
+  const b0 = G.budget; ok(api.achete("rallonge") && G.budget === b0 + 5e6, "la rallonge ajoute 5 M");
+  G.saisonIdx = 2; j0.bless = 3;
+  ok(api.achatPossible("infirmerie") === (api.soldePoints() >= 150 ? null : "points"), "la saison suivante, le coup de pouce revient");
+  /* fusion et nettoyage */
+  const a = api.progVide(), b = api.progVide();
+  a.achats = [{ id: "tresor", art: "tresor", t: 1 }, { id: "rallonge-X-1", art: "rallonge", t: 2 }];
+  b.achats = [{ id: "tresor", art: "tresor", t: 5 }, { id: "rallonge-X-2", art: "rallonge", t: 3 }];
+  const f = api.progFusionne(a, b);
+  ok(f.achats.length === 3, "la fusion compte un achat une seule fois (même identifiant)");
+  ok(api.progEmpreinte(a) !== api.progEmpreinte(f), "un achat de plus change l'empreinte");
+  const n = api.progNette({ achats: [{ id: "tresor", art: "tresor" }, { id: "<x>", art: "tresor" }, { id: "y", art: "Tresor!" }, null] });
+  ok(n.achats.length === 1, "seuls les achats propres passent");
+  /* l'écran */
+  const h = api.boutiqueHTML(false);
+  ok(/Pour toutes vos carrières/.test(h) && /Pour la saison en cours/.test(h), "les deux rayons");
+  ok(/✅ Acquis/.test(h) && (h.match(/class="boArt/g) || []).length === api.BOUTIQUE.length, "chaque article, les acquis marqués");
+  api.ecranTrophees(); ok(/La boutique/.test(APP.innerHTML) && /gagnés/.test(APP.innerHTML), "la salle des trophées porte la boutique et le solde");
 }
 
 console.log(FAILS ? `\n${FAILS} ÉCHEC(S)` : "\nTOUT EST VERT");

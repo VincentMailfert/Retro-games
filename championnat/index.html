@@ -630,6 +630,12 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .trPays{margin:10px 0 2px;font-size:13px;}
   .trFiche{margin-top:6px;padding:6px 8px;border:1px solid #ffd24a;font-size:14px;}
   .trFiche.ok{border-color:#38507a;opacity:.7;}
+  .boArt{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1d2c45;}
+  .boArt.ok{opacity:.6;}
+  .boIco{font-size:22px;width:28px;text-align:center;}
+  .boTxt{flex:1;display:flex;flex-direction:column;font-size:14px;}
+  .boTxt .dim{font-size:13px;}
+  .boAch{white-space:nowrap;min-height:40px;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -648,7 +654,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.76"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.77"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11338,6 +11344,7 @@ function nouvellePartie(clubId, saisonKey, entr, suite){ // entr : l'offre sign�
     records:{}, serieInv:0, affJ:[], affS:[], // le mur du club, la série en cours, le baromètre des tribunes
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
+  if(!suite) boutiqueAuDepart(clubId); // les avantages permanents achetés à la boutique (avant le stade, qui se déduit de la capacité)
   if(entr) signeContrat(entr, saisonKey); // la carrière d'entraîneur : le contrat du président remplace l'objectif au prestige
   clubs.find(c=>c.id===clubId).joueurs.forEach(j=>ouvreBio(j,"origine")); // la fiche de vie s'ouvre pour tout l'effectif de départ
   G.intro=S.an; // mot d'ouverture de la toute première saison de la carrière
@@ -21420,7 +21427,7 @@ function cleDepart(o){ // la clé de la saison de départ d'une carrière (G ou 
   const pays=o.pays||"FR", an=+o.anBase||1995;
   return Object.keys(SAISONS).find(k=>SAISONS[k].an===an && (SAISONS[k].pays||"FR")===pays)||null;
 }
-function progVide(){ return {gagnees:[], ouvertes:[], resultats:[], defis:[], maj:0, envoye:0}; }
+function progVide(){ return {gagnees:[], ouvertes:[], resultats:[], defis:[], achats:[], maj:0, envoye:0}; }
 function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde que la forme attendue
   const o=progVide(); if(!p || typeof p!=="object") return o;
   const cle=k=>typeof k==="string" && k.length<=24 && /^[A-Z0-9-]+$/.test(k);
@@ -21430,6 +21437,8 @@ function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde
   o.resultats=(Array.isArray(p.resultats)?p.resultats:[]).filter(r=>r && typeof r==="object" && !Array.isArray(r)).slice(-PROG_RES_MAX);
   o.defis=(Array.isArray(p.defis)?p.defis:[]).filter(d=>d && typeof d.id==="string" && d.id.length<=24 && /^[A-Za-z0-9]+$/.test(d.id))
     .map(d=>({id:d.id, t:+d.t||0, pid:typeof d.pid==="string"?d.pid.slice(0,64):null}));
+  o.achats=(Array.isArray(p.achats)?p.achats:[]).filter(a=>a && typeof a.id==="string" && a.id.length<=96 && /^[A-Za-z0-9_-]+$/.test(a.id) && typeof a.art==="string" && /^[a-z]+$/.test(a.art))
+    .map(a=>({id:a.id, art:a.art, t:+a.t||0}));
   o.maj=+p.maj||0; o.envoye=+p.envoye||0;
   return o;
 }
@@ -21514,10 +21523,12 @@ function progFusionne(a, b){
   o.resultats=Object.values(r).sort((x,y)=>(x.t||0)-(y.t||0)).slice(-PROG_RES_MAX);
   const d={}; for(const x of (a.defis||[]).concat(b?(b.defis||[]):[])){ const y=d[x.id]; if(!y || (x.t && (!y.t || x.t<y.t))) d[x.id]=x; }
   o.defis=Object.values(d).sort((x,y)=>(x.t||0)-(y.t||0)); // un défi réussi l'est pour toujours, le premier appareil fait foi
+  const h={}; for(const x of (a.achats||[]).concat(b?(b.achats||[]):[])) if(!h[x.id]) h[x.id]=x;
+  o.achats=Object.values(h).sort((x,y)=>(x.t||0)-(y.t||0)); // un achat a un identifiant unique : la réunion ne le compte jamais deux fois
   return o;
 }
 function progEmpreinte(p){ // deux progressions qui disent la même chose ont la même empreinte
-  return JSON.stringify([p.gagnees.map(g=>g.k).sort(), p.ouvertes.slice().sort(), p.resultats.map(x=>x.pid+"|"+x.an).sort(), (p.defis||[]).map(d=>d.id).sort()]);
+  return JSON.stringify([p.gagnees.map(g=>g.k).sort(), p.ouvertes.slice().sort(), p.resultats.map(x=>x.pid+"|"+x.an).sort(), (p.defis||[]).map(d=>d.id).sort(), (p.achats||[]).map(a=>a.id).sort()]);
 }
 /* LA PROGRESSION EN LIGNE : on lit la ligne du compte, on fusionne, et l'on ne renvoie que si la fusion
    apporte quelque chose au serveur. Concurrence optimiste comme les carrières : pousse_progression ne
@@ -21534,12 +21545,12 @@ function progSynchronise(){
       if(!compteLit() || compteLit().uid!==s.uid) return "aucun"; // déconnecté (ou changé de compte) entre-temps
       const ligne=r.donnees[0]||null, dist=ligne?progNette(assainit(ligne.donnees)):null, mDist=ligne?+ligne.maj||0:0;
       p=prog(); const f=progFusionne(p, dist), neuf=progEmpreinte(f)!==progEmpreinte(p);
-      Object.assign(p, {gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis});
+      Object.assign(p, {gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis, achats:f.achats});
       if(progEmpreinte(f)===progEmpreinte(dist||progVide())){ // le serveur sait déjà tout (ou il n'y a rien à dire)
         p.maj=mDist; p.envoye=mDist; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
       const maj=Math.max(Date.now(), mDist+1);
       const e=await nuageAppel("/rest/v1/rpc/pousse_progression", "POST",
-        {p_attendu:mDist, p_maj:maj, p_donnees:{gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis}, p_version:VERSION}, true);
+        {p_attendu:mDist, p_maj:maj, p_donnees:{gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis, achats:f.achats}, p_version:VERSION}, true);
       if(!e.ok) return "attente";
       const d=e.donnees||{};
       if(d.ok){ p.maj=maj; p.envoye=maj; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
@@ -21757,6 +21768,82 @@ function vitrine(){
   }
   return v;
 }
+/* ---------- LA BOUTIQUE À POINTS (v2.77, demande de l'auteur du 12/11/2026) ----------
+   Les points gagnés aux défis se dépensent ici, jamais avec de l'argent réel. Deux rayons :
+   - les AVANTAGES PERMANENTS (`perm`), achetés une fois, valent pour toutes les carrières LANCÉES APRÈS l'achat
+     (appliqués par `boutiqueAuDepart` dans `nouvellePartie`, jamais sur une carrière déjà commencée) ;
+   - les COUPS DE POUCE (`coup`), pour la carrière en cours, appliqués tout de suite, une fois par saison chacun.
+   Les achats vivent dans la progression (`prog().achats` = [{id, art, t}]). L'`id` porte la règle de limite :
+   l'article pour un avantage permanent, `article-carrière-saison` pour un coup de pouce, si bien que la réunion de
+   deux appareils ne compte jamais un achat deux fois et qu'un coup de pouce ne se rachète pas dans la même saison.
+   Le SOLDE n'est pas stocké : points gagnés − prix des achats (`soldePoints`), jamais affiché sous zéro. */
+const BOUTIQUE=[
+  {art:"tribune",    ray:"perm", ico:"🏟️", nom:"Une tribune de plus",          sous:"+3 000 places au stade, dès le départ",        prix:1500},
+  {art:"tresor",     ray:"perm", ico:"💰", nom:"Trésor de guerre",             sous:"+10 M au budget transferts, dès le départ",    prix:1000},
+  {art:"president",  ray:"perm", ico:"🤝", nom:"Un président qui vous aime",   sous:"La confiance du président démarre plus haut", prix:600},
+  {art:"infirmerie", ray:"coup", ico:"🩹", nom:"Vider l'infirmerie",           sous:"Tous vos blessés reviennent",                  prix:150},
+  {art:"amnistie",   ray:"coup", ico:"🟨", nom:"L'amnistie",                   sous:"Toutes vos suspensions sont levées",           prix:100},
+  {art:"tournee",    ray:"coup", ico:"🍻", nom:"Tournée générale",             sous:"Le moral du vestiaire remonte",                prix:80},
+  {art:"rallonge",   ray:"coup", ico:"💼", nom:"La rallonge du président",     sous:"+5 M au budget transferts",                    prix:250},
+];
+const ART_DE=Object.fromEntries(BOUTIQUE.map(a=>[a.art,a]));
+function depensePoints(){ return prog().achats.reduce((n,a)=>n+((ART_DE[a.art]||{}).prix||0), 0); }
+function soldePoints(){ return Math.max(0, pointsDefis()-depensePoints()); }
+function acquis(art){ return prog().achats.some(a=>a.art===art && a.id===art); }
+function idAchat(art){ const A=ART_DE[art]; if(!A) return null;
+  if(A.ray==="perm") return art;
+  if(!G || !G.pid) return null;
+  return art+"-"+String(G.pid).replace(/[^A-Za-z0-9_]/g,"").slice(0,48)+"-"+(G.saisonIdx||1); }
+function achatPossible(art){ // null si on peut acheter, sinon la raison (courte)
+  const A=ART_DE[art]; if(!A) return "inconnu";
+  if(A.ray==="perm" && acquis(art)) return "acquis";
+  if(A.ray==="coup"){ const id=idAchat(art); if(!id) return "partie"; if(prog().achats.some(a=>a.id===id)) return "saison"; }
+  if(soldePoints()<A.prix) return "points";
+  return null;
+}
+function achete(art){ // vrai si l'achat est fait (et son effet appliqué pour un coup de pouce)
+  if(achatPossible(art)) return false;
+  const A=ART_DE[art], id=idAchat(art);
+  prog().achats.push({id, art, t:Date.now()}); progSauve(true); progPlanifie();
+  if(A.ray==="coup") appliqueCoup(art);
+  return true;
+}
+function appliqueCoup(art){
+  const moi=clubById(G.monClub); if(!moi) return;
+  if(art==="infirmerie"){ moi.joueurs.forEach(j=>{ j.bless=0; }); G.news.unshift("🩹 L'infirmerie se vide : tout le monde est apte."); }
+  if(art==="amnistie"){ moi.joueurs.forEach(j=>{ j.susp=0; }); G.news.unshift("🟨 La commission de discipline passe l'éponge : plus aucun suspendu."); }
+  if(art==="tournee"){ moi.joueurs.forEach(j=>{ j.moral=Math.min(100,(j.moral||65)+15); }); G.news.unshift("🍻 Tournée générale au club-house : le vestiaire a retrouvé le sourire."); }
+  if(art==="rallonge"){ G.budget+=5e6; G.news.unshift("💼 Le président remet au pot : "+MM(5e6,0)+" de plus pour les transferts."); }
+}
+function boutiqueAuDepart(clubId){ // appelée par nouvellePartie, une carrière NEUVE : les avantages permanents acquis
+  const moi=G.clubs.find(c=>c.id===clubId); if(!moi) return;
+  const faits=[];
+  if(acquis("tribune")){ moi.cap+=3000; faits.push("une tribune de plus"); }
+  if(acquis("tresor")){ G.budget+=10e6; faits.push("un trésor de guerre"); }
+  if(acquis("president")){ G.confiance=Math.min(100, G.confiance+15); faits.push("un président acquis à votre cause"); }
+  if(faits.length) G.news.push("⭐ Vos avantages vous suivent : "+faits.join(", ")+".");
+}
+function boutiqueHTML(enJeu){
+  const carte=A=>{ const r=achatPossible(A.art), ok=!r;
+    const etat=r==="acquis"?`<span class="fort">✅ Acquis</span>`
+      : r==="saison"?`<span class="dim">Pris cette saison</span>`
+      : r==="partie"?`<span class="dim">En partie</span>`
+      : `<button class="act boAch" data-art="${A.art}"${ok?"":" disabled"}>⭐ ${FMT(A.prix)}</button>`;
+    return `<div class="boArt${r==="acquis"?" ok":""}"><span class="boIco">${A.ico}</span><span class="boTxt"><b>${esc(A.nom)}</b><span class="dim">${esc(A.sous)}</span></span>${etat}</div>`; };
+  return `<h3>Pour toutes vos carrières</h3>${BOUTIQUE.filter(a=>a.ray==="perm").map(carte).join("")}
+    <h3 style="margin-top:12px">Pour la saison en cours</h3>${BOUTIQUE.filter(a=>a.ray==="coup").map(carte).join("")}`;
+}
+function cableBoutique(redessine){
+  app.querySelectorAll(".boAch").forEach(b=>b.onclick=()=>{ const A=ART_DE[b.dataset.art]; if(!A || achatPossible(A.art)) return;
+    confirme({titre:A.ico+" "+A.nom.toUpperCase()+" ?", coul:"#ffd24a",
+      texte:A.sous+". Il vous restera "+FMT(soldePoints()-A.prix)+" points.",
+      oui:"Acheter", non:"Pas maintenant", onOui:()=>{ if(achete(A.art)) redessine(); }}); });
+}
+function ecranBoutique(){ // en jeu
+  chrome("boutique", `<div class="panel ctr"><h2>⭐ LA BOUTIQUE</h2><p class="trPts">⭐ ${FMT(soldePoints())} <span class="dim">pts</span></p></div>
+    <div class="panel">${boutiqueHTML(true)}</div>`);
+  cableBoutique(ecranBoutique);
+}
 function clubsDefis(){ // la quatrième famille : un défi par ligne, précédé du blason de son club
   const n=DEFIS_CLUB.filter(d=>defiReussi(d.id)).length;
   return `<h3 style="display:flex;justify-content:space-between"><span>Les défis de club</span><span class="dim">${n}/${DEFIS_CLUB.length}</span></h3>
@@ -21777,8 +21864,12 @@ function ecranTrophees(){
   const corps=`
    <div class="panel ctr">
      <h2>🏆 SALLE DES TROPHÉES</h2>
-     <p class="trPts">⭐ ${FMT(pts)} <span class="dim">pts</span></p>
-     <p class="dim" style="font-size:13px">${faits}/${DEFIS.length+DEFIS_CLUB.length} défis</p>
+     <p class="trPts">⭐ ${FMT(soldePoints())} <span class="dim">pts</span></p>
+     <p class="dim" style="font-size:13px">${FMT(pts)} gagnés · ${faits}/${DEFIS.length+DEFIS_CLUB.length} défis</p>
+   </div>
+   <div class="panel">
+     <h2>La boutique</h2>
+     ${boutiqueHTML(false)}
    </div>
    <div class="panel">
      <h2>La vitrine</h2>
@@ -21795,6 +21886,7 @@ function ecranTrophees(){
    </div>`;
   app.innerHTML=`<p style="margin:0 0 10px"><button class="act" id="bRetourAcc">← Accueil</button></p>${corps}`;
   document.getElementById("bRetourAcc").onclick=ecranAccueil; window.scrollTo(0,0);
+  cableBoutique(ecranTrophees);
 }
 
 /* =====================================================================
@@ -22490,7 +22582,7 @@ function ecranAccueil(){
        <button class="porte2" id="bChoisir">Choisir mon club</button>
      </div>
    </div>`}
-   <button class="trPorte" id="bTrophees"><span>🏆 Salle des trophées</span><span class="fort">⭐ ${FMT(pointsDefis())}</span></button>
+   <button class="trPorte" id="bTrophees"><span>🏆 Salle des trophées</span><span class="fort">⭐ ${FMT(soldePoints())}</span></button>
    <div class="panel">
      <div class="accPaysRang" role="group" aria-label="Pays">${boutonsPays}</div>
      <label style="display:block;font-size:13px"><span style="display:flex;justify-content:space-between"><b>Saison de départ</b><span class="dim" id="accCles" title="Clés">🔑 ${cles}</span></span>
@@ -22591,6 +22683,7 @@ function chrome(actif, corps){
    <div id="corps">${corps}</div>
    <p class="footer">MULTIPLEX · v${VERSION} ·
      <button class="act" id="bMenu">📁 Mes carrières</button>
+     <button class="act" id="bBoutique">⭐ Boutique</button>
      <button class="act" id="bCompte">${esc(libIndicateur())}</button>
      <button class="act" id="bApropos">À propos</button>
      · ${liensReseaux()}
@@ -22601,6 +22694,7 @@ function chrome(actif, corps){
   document.getElementById("bApropos").onclick=()=>montre("apropos");
   document.getElementById("bCompte").onclick=fenetreCompte;
   document.getElementById("bMenu").onclick=retourAccueil;
+  document.getElementById("bBoutique").onclick=()=>montre("boutique");
   document.getElementById("bAccueil").onclick=retourAccueil; // le même retour, en haut, bien visible (v2.70)
 }
 
@@ -22858,6 +22952,7 @@ function montre(ecran){
   if(ecran==="finances")   return ecranFinances();
   if(ecran==="club")       return ecranClub();
   if(ecran==="apropos")    return ecranApropos();
+  if(ecran==="boutique")   return ecranBoutique();
 }
 
 /* ---- Calendrier / match ---- */
