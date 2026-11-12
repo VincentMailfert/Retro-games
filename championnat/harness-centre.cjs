@@ -223,8 +223,8 @@ try {
   // prime de signature : lue dans la vraie fenêtre (un faux DOM le temps de l'appel)
   const lirePrime = (etat) => { pose(etat); const els = {}; global.document = { getElementById: id => (els[id] = els[id] || { style: {}, innerHTML: "" }), querySelectorAll: () => [] };
     try { api.demandePrime(autre.joueurs[0], 10e6, 1e6); } finally { global.document = STUB; }
-    const m = /signature de <b class="fort">([\d,]+) MF/.exec(els.fiche.innerHTML); return m ? +m[1].replace(",", ".") : NaN; }; // virgule décimale depuis le 29/10/2026
-  ok(lirePrime(ZERO) === 1 && lirePrime({ ...ZERO, vie: 1 }) === 0.9 && lirePrime({ ...ZERO, vie: 3 }) === 0.7, "prime à la signature : 1,00 → 0,90 → 0,70 MF");
+    const m = /signature de <b class="fort">([\d,]+) M\b/.exec(els.fiche.innerHTML); return m ? +m[1].replace(",", ".") : NaN; }; // virgule décimale depuis le 29/10/2026
+  ok(lirePrime(ZERO) === 1 && lirePrime({ ...ZERO, vie: 1 }) === 0.9 && lirePrime({ ...ZERO, vie: 3 }) === 0.7, "prime à la signature : 1,00 → 0,90 → 0,70 M");
 
   // montées du centre : l'académie ajoute note et potentiel
   c.pres = 4; // un prestige moyen : les bornes du jeu (45 à 72) ne rognent pas la mesure

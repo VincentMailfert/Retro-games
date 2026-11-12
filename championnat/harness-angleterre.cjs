@@ -306,10 +306,8 @@ for (const cle of CLES) {
     `${cle} : la coupe nationale est la FA Cup, la coupe de la ligue la League Cup`);
   ok(api.libChampion() === "champion d'Angleterre", `${cle} : « ${api.libChampion()} »`);
   ok(api.natPays() === "ANG", `${cle} : la sélection nationale appelle la nationalité ANG`);
-  ok(/£/.test(api.UU(70)) && /M£/.test(api.MM(1e8)), `${cle} : les montants s'écrivent en livres (${api.UU(70)}, ${api.MM(1e8)})`);
-  /* Huit francs la livre : un billet de 70 FF fait 9 £ et non 70. */
-  const n = Number(String(api.UU(70)).replace(/[^\d.,]/g, "").replace(",", "."));
-  ok(n > 7 && n < 10, `${cle} : 70 francs s'affichent ${api.UU(70)}, au taux de huit francs la livre`);
+  /* Plus de devise depuis la v2.73 : une somme se lit en Angleterre comme en France. */
+  ok(api.UU(70) === "70" && api.MM(1e8) === "100,0 M", `${cle} : les montants s'écrivent sans devise, à l'échelle française (${api.UU(70)}, ${api.MM(1e8)})`);
   /* L'été international se raconte d'Angleterre, et AUCUN été anglais ne porte le marqueur de sacre. */
   const ete = api.honneurEte(S.an + 2);
   if (ete) {

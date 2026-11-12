@@ -243,7 +243,13 @@ toujours « raconter quelque chose ».
   Ne plus jamais écrire une encre en dur dans `blason()` : un nouveau blason se lit tout seul.
 - Constantes de données en MAJUSCULES (`CLUBS`, `STARS`, `INCIDENTS`, `SPONSORS_SULFUREUX`…).
 - Helpers courts en camelCase (`clubById`, `onze`, `majReput`, `tireIncident`…).
-- Montants en francs (FF) ou millions de francs (MF). Époque oblige.
+- **PLUS DE DEVISE (v2.73, choix de l'auteur du 12/11/2026)** : ni francs, ni livres, ni lires. Tous les
+  championnats comptent dans la même monnaie sans nom, **à la même échelle** (100 M en France = 100 M en Angleterre
+  et en Italie : `taux` vaut 1 partout, `millions` vaut « M », `unite` est vide). `MM`/`MMv`/`MMC` écrivent « 12,0 M » ;
+  `UU` écrit un petit prix (moins de 1 000, un billet, une place) en chiffre seul (« 70 ») et tout le reste en
+  millions (« 0,05 M » pour un salaire hebdomadaire, « 1,2 M »). Un montant écrit en dur dans un texte s'écrit « 8 M »,
+  jamais « 8 MF ». La question de la lire et du passage à l'euro (ITA-B) n'a donc plus d'objet. Gardé par la
+  section D de `harness-pays.cjs`. Les commentaires du code peuvent encore parler de francs (calibrage d'origine).
 - **Style visuel (refonte d'interface du 23/09/2026, direction « Vestiaire de nuit »)** : fond bleu nuit
   `#0b1626`, texte `--txt`, blanc cassé `--clair` `#f2f5fa`, gris `--dim`. **Le jaune `#ffd24a` ne veut dire
   que trois choses** : VOTRE club (le « XI », le capitaine, votre ligne, vos victoires), l'ACTION offerte (bouton

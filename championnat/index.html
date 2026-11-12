@@ -628,9 +628,9 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.72"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.73"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
-const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
+const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
    Première étape du lot structure qui précède l'Angleterre. Le moteur reste français : les montants sont
    comptés en FRANCS, les divisions sont G.div 1 et 2, le championnat a vingt clubs et trente-huit journées,
@@ -649,7 +649,7 @@ const PAYS={
        chantier-saisons.md). C'est la garantie qu'une partie française ne bouge pas d'un pixel. */
     div1:()=>"Division 1", div2:()=>"Division 2", tag1:()=>"D1", tag2:()=>"D2",
     coupe:"Coupe de France", coupeLigue:"Coupe de la Ligue", champion:"champion de France",
-    taux:1, unite:"FF", millions:"MF", monNom:"francs", piece:"un franc" },
+    taux:1, unite:"", millions:"M", monNom:"millions", piece:"" },
   ANG:{ code:"ANG", nom:"Angleterre", adj:"anglaise", adjM:"anglais", le:"l'Angleterre", du:"d'Angleterre",
     /* `nat` est la nationalité LOCALE, celle que porte un joueur généré et celle que la sélection
        nationale appelle (cf. selections) : un joker français signé en Angleterre garde « FR » et ne
@@ -669,21 +669,21 @@ const PAYS={
        (choix auteur, 14/10/2026). Avant 1992, « D1 » est bien l'élite et le reste. */
     tag2:an=>an>=2004?"CH":(an>=1992?"DIV1":"D2"),
     coupe:"FA Cup", coupeLigue:"League Cup", champion:"champion d'Angleterre",
-    /* Huit francs valaient une livre dans les années 90 : moyennes annuelles de la Réserve fédérale,
-       1995 = 4,9864 FF/$ × 1,5785 $/£ = 7,87 ; 1996 = 5,1158 × 1,5607 = 7,99. Le chiffre est juste
-       d'époque et rond à retenir, et il rend un budget de 100 MF en 12,5 M£, un billet de 70 FF en 9 £. */
-    taux:1/8, unite:"£", millions:"M£", monNom:"livres", piece:"un penny" },
+    /* PLUS DE DEVISE (v2.73, choix de l'auteur) : ni francs, ni livres, ni lires. Tous les championnats
+       comptent dans la même monnaie sans nom, écrite « M » pour les millions, à la même échelle : 100 M en
+       France valent 100 M en Angleterre et en Italie. `taux` reste à 1 partout ; il ne sert plus qu'à
+       garder la porte ouverte si l'auteur revenait un jour à des devises. */
+    taux:1, unite:"", millions:"M", monNom:"millions", piece:"" },
   /* L'ITALIE ENTRE DANS LA TABLE AVANT SES SAISONS (v2.68, demande de l'auteur) : son drapeau s'affiche à
      l'accueil, grisé et « bientôt », tant qu'aucune saison ITA- n'est dans SAISONS, puis s'allume tout seul.
      Même règle pour chaque championnat suivant : il entre ici dès que son chantier commence.
      Serie A et Serie B portent ces noms sur toute la fenêtre 1990-2012. Pas de coupe de la ligue en Italie :
-     `coupeLigue` n'est lu par aucun écran. La lire : 1 FF ≈ 300 L (parité de l'euro, 295,2), montant à
-     trancher avec le lot monnaie de l'Italie (les journaux comptaient en milliards). */
+     `coupeLigue` n'est lu par aucun écran. Montants en « M », sans devise, comme partout (v2.73). */
   ITA:{ code:"ITA", nom:"Italie", adj:"italienne", adjM:"italien", le:"l'Italie", du:"d'Italie",
     nat:"ITA", titre:"Champion d'Italie", triomphe:"L'ITALIE SACRÉE", drapeau:'<svg class="drap" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></svg>',
     div1:()=>"Serie A", div2:()=>"Serie B", tag1:()=>"SA", tag2:()=>"SB",
     coupe:"Coppa Italia", coupeLigue:"Supercoppa", champion:"champion d'Italie",
-    taux:300, unite:"L", millions:"M L", monNom:"lires", piece:"une lire" },
+    taux:1, unite:"", millions:"M", monNom:"millions", piece:"" },
 };
 /* LE PAYS REGARDÉ, et non le pays joué. L'accueil affiche des libellés et des montants avant qu'aucune
    carrière n'existe, et il peut montrer une saison anglaise alors que G porte encore une carrière française
@@ -762,12 +762,15 @@ function honneurEte(an){ const t=HONNEURS_PAYS[paysVu().code]||HONNEURS_PAYS.FR;
    UU  : un montant à l'unité (salaires, billets, tarifs journaliers).
    Le point et la virgule qui cohabitent sont une VERRUE héritée des cent dix sites d'origine, pas une
    décision : la régulariser un jour se fera en touchant à MM et MMv, et à rien d'autre. */
-// virgule décimale partout (« 42,0 MF », « 3,5 M£ ») : le jeu parle français, même quand il compte en livres (29/10/2026)
+// virgule décimale partout (« 42,0 M », « 3,5 M£ ») : le jeu parle français, même quand il compte en livres (29/10/2026)
 function MM(n, d=1){ const p=paysVu(); return MMn(n,d)+" "+p.millions; }
 function MMn(n, d=1){ return (n*paysVu().taux/1e6).toFixed(d).replace(".",","); } // le nombre seul : l'unité est dite ailleurs (en-tête de colonne, phrase voisine)
 function MMv(n, d=1){ return MM(n,d).replace(".",","); }
 function MMC(n){ const p=paysVu(); return MF_C(n*p.taux/1e6)+" "+p.millions; }
-function UU(n){ const p=paysVu(); return FMT(n*p.taux)+" "+p.unite; }
+function UU(n){ // v2.73 : sans devise. Un petit prix (billet, place) s'écrit en chiffre seul ; tout le reste en « M »
+  const p=paysVu(), v=n*p.taux; if(Math.abs(v)<1000) return FMT(v);
+  const m=v/1e6, d=Math.abs(m)<0.01?3:(Math.abs(m)<1?2:1), t=(Math.round(m*10**d)/10**d).toFixed(d).replace(/\.?0+$/,"").replace(".",",");
+  return t+" "+p.millions; }
 const RND = (a,b)=>a+Math.random()*(b-a);
 const RNDI=(a,b)=>Math.floor(RND(a,b+1));
 const PICK=a=>a[Math.floor(Math.random()*a.length)];
@@ -14265,8 +14268,8 @@ function finirJournee(delta){
       G.risque=0;
       const moi=clubById(G.monClub);
       moi.pts=Math.max(0,moi.pts-6); G.tresorerie-=8e6; G.confiance=Math.max(0,G.confiance-35);
-      G.news.unshift("L'AFFAIRE ÉCLATE ! Perquisitions au siège : 6 points de pénalité, 8 MF d'amende. Le président est livide.");
-      notif("⚖️ L'AFFAIRE A ÉCLATÉ : 6 points de pénalité, 8 MF d'amende.");
+      G.news.unshift("L'AFFAIRE ÉCLATE ! Perquisitions au siège : 6 points de pénalité, 8 M d'amende. Le président est livide.");
+      notif("⚖️ L'AFFAIRE A ÉCLATÉ : 6 points de pénalité, 8 M d'amende.");
       G.presse.unshift("« SCANDALE : des valises, des matches, des questions, la justice s'invite à "+clubById(G.monClub).nom+". »");
     } else if(--G.risque<=0){
       G.risque=0;
@@ -14449,7 +14452,7 @@ const INCIDENTS=[
   txt:j=>`${j.nom} a filé trois jours à Ibiza en pleine semaine, sans prévenir. Il revient bronzé.`,
   choix:[
    {lib:"Suspension d'un match", issue:j=>{eff(j,{susp:+1,moral:-10,conf:+3}); return `Mis au placard pour la prochaine journée. Le message est clair.`;}},
-   {lib:"Grosse amende", issue:j=>{eff(j,{arg:+0.8e6,moral:-5}); return `0,8 MF retenus sur salaire. ${j.nom} fait la moue mais paie.`;}},
+   {lib:"Grosse amende", issue:j=>{eff(j,{arg:+0.8e6,moral:-5}); return `0,8 M retenus sur salaire. ${j.nom} fait la moue mais paie.`;}},
    {lib:"« Tu étais en repos, après tout »", issue:j=>{eff(j,{moral:+5,groupe:-5,conf:-3}); return `Vous laissez filer. Le vestiaire prend note qu'on peut s'absenter impunément.`;}},
   ]},
  {id:"asso", pondJeune:1, test:j=>true, bon:true,
@@ -14461,7 +14464,7 @@ const INCIDENTS=[
  {id:"salaire", pondJeune:1.2, test:j=>j.note>=76,
   txt:j=>`Un club rival a fait à ${j.nom} une offre salariale démentielle. Son agent attend votre réponse.`,
   choix:[
-   {lib:"S'aligner (coûteux mais fidèle)", issue:j=>{eff(j,{arg:-1.5e6,moral:+10}); return `Vous cassez la tirelire. ${j.nom} prolonge, ému. 1,5 MF de prime de fidélité.`;}},
+   {lib:"S'aligner (coûteux mais fidèle)", issue:j=>{eff(j,{arg:-1.5e6,moral:+10}); return `Vous cassez la tirelire. ${j.nom} prolonge, ému. 1,5 M de prime de fidélité.`;}},
    {lib:"Proposer un compromis", issue:j=>{const ok=Math.random()<0.55; eff(j,{arg:-0.6e6,moral:ok?+4:-8}); return ok?`Compromis trouvé, ${j.nom} reste apaisé.`:`${j.nom} accepte du bout des lèvres, la rancœur couve.`;}},
    {lib:"Refuser net", issue:j=>{eff(j,{moral:-12, groupe:-1}); return `Fin de non-recevoir. ${j.nom} encaisse mal et son entourage s'agite.`;}},
   ]},
@@ -14536,7 +14539,7 @@ const INCIDENTS=[
  {id:"superstition", poids:0.7, bon:true, test:()=>true,
   txt:j=>`${j.nom} refuse de jouer sans son maillot porte-bonheur, troué et délavé, contre l'avis de l'équipementier qui menace de couper le contrat.`,
   choix:[
-   {lib:"Défendre votre joueur", issue:j=>{eff(j,{moral:+6,arg:-0.3e6}); return `Vous tenez tête au sponsor (0,3 MF de manque à gagner). ${j.nom} jouera avec sa relique.`;}},
+   {lib:"Défendre votre joueur", issue:j=>{eff(j,{moral:+6,arg:-0.3e6}); return `Vous tenez tête au sponsor (0,3 M de manque à gagner). ${j.nom} jouera avec sa relique.`;}},
    {lib:"Imposer le nouveau maillot", issue:j=>{eff(j,{moral:-5}); return `Règlement avant tout. ${j.nom} obtempère, l'air sombre.`;}},
   ]},
  {id:"jeune_insolent", poids:0.8, de:2010, test:j=>j.age<=21 && (j.ego||5)>=6,
@@ -14567,7 +14570,7 @@ const INCIDENTS=[
   txt:j=>`La cellule anti-fraude s'interroge : ${j.nom} a multiplié les paris sportifs, parfois sur ses propres matchs. L'odeur du soufre.`,
   choix:[
    {lib:"Le suspendre en interne et alerter la Ligue", issue:j=>{eff(j,{susp:+1,moral:-10,conf:+3}); return `Vous prenez les devants. La transparence rassure les instances.`;}},
-   {lib:"Étouffer discrètement l'affaire", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{moral:+3,groupe:-2}); return `Pour l'instant, ça passe. Mais vous dormez d'un œil.`;} else {eff(j,{arg:-3e6}); G.confiance=Math.max(0,G.confiance-12); return `L'affaire fuite quand même : 3 MF d'amende et un président furieux.`;}}},
+   {lib:"Étouffer discrètement l'affaire", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{moral:+3,groupe:-2}); return `Pour l'instant, ça passe. Mais vous dormez d'un œil.`;} else {eff(j,{arg:-3e6}); G.confiance=Math.max(0,G.confiance-12); return `L'affaire fuite quand même : 3 M d'amende et un président furieux.`;}}},
   ]},
  {id:"dopage", poids:0.6, test:j=>true,
   txt:j=>`Coup de tonnerre : ${j.nom} est positif à un contrôle antidopage. La presse s'enflamme, la fédération ouvre une procédure : suspension lourde en vue.`,
@@ -14601,7 +14604,7 @@ const INCIDENTS=[
  {id:"marabout", poids:0.5, club:true, test:()=>true,
   txt:()=>`Un homme se présentant comme doté de pouvoirs surnaturels vous propose, contre quelques billets, de jeter un sort sur votre rival du week-end.`,
   choix:[
-   {lib:"Financer ses déplacements (on ne sait jamais)", issue:()=>{G.tresorerie-=0.2e6; const moi=clubById(G.monClub); moi.joueurs.forEach(x=>x.moral=Math.min(100,(x.moral||65)+2)); return `0,2 MF pour un porte-bonheur. Le vestiaire y croit, c'est déjà ça. « Et puis un jour, ça n'a plus marché. »`;}},
+   {lib:"Financer ses déplacements (on ne sait jamais)", issue:()=>{G.tresorerie-=0.2e6; const moi=clubById(G.monClub); moi.joueurs.forEach(x=>x.moral=Math.min(100,(x.moral||65)+2)); return `0,2 M pour un porte-bonheur. Le vestiaire y croit, c'est déjà ça. « Et puis un jour, ça n'a plus marché. »`;}},
    {lib:"Le raccompagner poliment", issue:()=>{return `Vous déclinez la sorcellerie. Le rationalisme a ses vertus.`;}},
   ]},
  {id:"compteurs", poids:0.6, club:true, test:()=>true,
@@ -14693,7 +14696,7 @@ const INCIDENTS=[
   choix:[
    {lib:"Le convaincre de jouer « pour le plaisir »", issue:j=>{eff(j,{moral:+8,ego:+1}); return `Libéré de tout souci d'argent, ${j.nom} rejoue comme un gamin. Il offre la tournée à la buvette chaque vendredi.`;}},
    {lib:"Le vendre avant qu'il ne raccroche", issue:j=>{eff(j,{vend:0.75}); return `Transféré avant le premier trou de golf. L'acheteur ignore que sa recrue est millionnaire et s'en moque éperdument du foot.`;}},
-   {lib:"Lui suggérer d'investir dans le club", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{arg:+1.2e6,moral:+4,conf:+2}); return `Marché conclu : ${j.nom} injecte 1,2 MF et se découvre une âme de dirigeant. Il joue ET signe les chèques.`;} else {eff(j,{moral:-5}); return `« Je gagne au Loto et vous me tendez la sébile ? » Vexé, il repart en limousine.`;}}},
+   {lib:"Lui suggérer d'investir dans le club", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{arg:+1.2e6,moral:+4,conf:+2}); return `Marché conclu : ${j.nom} injecte 1,2 M et se découvre une âme de dirigeant. Il joue ET signe les chèques.`;} else {eff(j,{moral:-5}); return `« Je gagne au Loto et vous me tendez la sébile ? » Vexé, il repart en limousine.`;}}},
   ]},
  {id:"chasse", poids:0.5, duo:true, test:j=>j.age>=24,
   txt:(j,k)=>`${j.nom} a emmené ${k.nom} à l'ouverture de la chasse dans son village. Bilan : zéro faisan, mais ${k.nom} revient avec trois plombs dans le mollet. « Un buisson qui a bougé », jure ${j.nom}.`,
@@ -15703,7 +15706,7 @@ function acheter(j){
     else finaliseAchat(j, prix, 0);
   };
   // On ne signe JAMAIS en un seul clic : récapitulatif d'abord (retour de playtest, v1.02 — un
-  // « Acheter » dans l'effectif adverse engageait 23 MF sans rien demander).
+  // « Acheter » dans l'effectif adverse engageait 23 M sans rien demander).
   const vd=clubById(j.club);
   modalSignature({
     titre:"✍️ Signer "+nomLong(j.nom)+" ?",
@@ -22599,7 +22602,7 @@ function ecranCalendrier(){
   const affaire=G.affaire?`<div class="panel" style="border-color:#b86a2e">
      <h2>Un intermédiaire vous approche...</h2>
      <p>« Le match de cette semaine ? Considérez-le comme... acquis. ${MM(G.affaire.prix,0)}, en liquide, et personne n'en saura rien. »</p>
-     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Si l'affaire éclate : 6 points de pénalité, 8 MF d'amende, et un président furieux.</p>
+     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Si l'affaire éclate : 6 points de pénalité, 8 M d'amende, et un président furieux.</p>
      <p style="margin-top:8px"><button class="act" id="bMalAcc">Accepter la mallette (${MM(G.affaire.prix,0)})</button>
      <button class="act" id="bMalRef">Éconduire l'intermédiaire</button></p></div>`:"";
   chrome("calendrier",`
@@ -23757,9 +23760,9 @@ const ARCS={
          {lib:"Refuser la départementale (défier les dieux)", go:a=>({res:"« Le coach défie les dieux du bitume », s'inquiète-t-on à voix basse. On saura vite qui avait raison.", eff:{moral:-4}, next:"b3", gap:2})},
        ]};
      return {
-       txt:"Toujours rien. Un homme en boubou impeccable attend devant le vestiaire : Professeur Wamba, guérisseur agréé (par lui-même), carte de visite plastifiée, « Retour de l'être aimé, permis de conduire, maintien en Division 1 ». Il propose de lever le sort pour 300 000 francs : cérémonie au rond central, un jeudi, à la pleine lune.",
+       txt:"Toujours rien. Un homme en boubou impeccable attend devant le vestiaire : Professeur Wamba, guérisseur agréé (par lui-même), carte de visite plastifiée, « Retour de l'être aimé, permis de conduire, maintien en Division 1 ». Il propose de lever le sort pour 0,3 M : cérémonie au rond central, un jeudi, à la pleine lune.",
        choix:[
-         {lib:"Payer la cérémonie (0,3 MF)", go:a=>{ return Math.random()<0.4
+         {lib:"Payer la cérémonie (0,3 M)", go:a=>{ return Math.random()<0.4
              ? {res:"Bougies et incantations sous la pleine lune. Le lendemain, la presse titre : « Le club a un sorcier salarié. » Le président s'étrangle avec son café.", eff:{arg:-0.3e6, moral:8, buzz:1, reput:-1}, next:"b3", gap:2}
              : {res:"Encens, poudre et formules au rond central, à la nuit tombée. Le vestiaire y croit dur comme fer, et ça, curieusement, ça soulève une équipe.", eff:{arg:-0.3e6, moral:8, buzz:1}, next:"b3", gap:2}; }},
          {lib:"Refuser tout net", go:a=>({res:"Vous éconduisez le Professeur. Les joueurs, eux, se cotisent en douce pour la cérémonie, et ça finit dans la presse. Vous voilà le dernier informé de votre propre club.", eff:{moral:-4, buzz:1, reput:-1}, next:"b3", gap:2})},
@@ -23770,7 +23773,7 @@ const ARCS={
      if(_arcGagneDepuis(a)) return {
        txt:"Tout le monde avait fait sa part : le short à l'envers, la merguez d'origine, le chat nourri (par superstition, pas par tendresse, jure l'intendant). Et ça a payé, LA VICTOIRE EST REVENUE ! Le sort est levé.",
        choix:[
-         {lib:"Savourer la délivrance", go:a=>({res:"La buvette rebaptise sa merguez « La Victorieuse » (et la majore de 2 francs au passage). Le chat, lui, reste : on l'appelle désormais Kopa, il a son rond de serviette dans la légende du club.", eff:{moral:10, buzz:2, reput:2, presse:clubById(G.monClub).nom+" a levé le sortilège de la buvette, et adopté un chat nommé Kopa."}})},
+         {lib:"Savourer la délivrance", go:a=>({res:"La buvette rebaptise sa merguez « La Victorieuse » (et en profite pour augmenter le prix). Le chat, lui, reste : on l'appelle désormais Kopa, il a son rond de serviette dans la légende du club.", eff:{moral:10, buzz:2, reput:2, presse:clubById(G.monClub).nom+" a levé le sortilège de la buvette, et adopté un chat nommé Kopa."}})},
        ]};
      return {
        txt:"Toujours pas de victoire. Le Professeur Wamba, joint au téléphone, est catégorique : il fallait la formule PREMIUM. « Vous comprenez, un sort de tribune Est, c'est du lourd. » La presse titre : « Points envolés, merguez avalées. »",
@@ -23808,7 +23811,7 @@ const ARCS={
      choix:[
        {lib:"Refus net, par fax, en majuscules", go:a=>({res:"« PAS À VENDRE. » Le président adore la fermeté. "+a.nom+", beaucoup moins : il s'enferme dans un mutisme boudeur.", eff:{conf:2, moralJ:-8, egoJ:2}, data:{route:"bouderie"}, next:"b3", gap:2})},
        {lib:"Écouter... et faire monter les enchères", go:a=>({res:"Vous décrochez le téléphone. Puisqu'on en est là, autant en tirer le meilleur prix.", eff:{egoJ:2}, data:{route:"poker"}, next:"b3", gap:2})},
-       {lib:"Le prolonger d'abord (prime 1,2 MF), on parlera ensuite", go:a=>({res:a.nom+" signe un nouveau bail, ému. Sa cote grimpe, et vous négocierez en position de force.", eff:{arg:-1.2e6, moralJ:10, egoJ:1}, data:{route:"poker", offreBonus:1.4}, next:"b3", gap:2})},
+       {lib:"Le prolonger d'abord (prime 1,2 M), on parlera ensuite", go:a=>({res:a.nom+" signe un nouveau bail, ému. Sa cote grimpe, et vous négocierez en position de force.", eff:{arg:-1.2e6, moralJ:10, egoJ:1}, data:{route:"poker", offreBonus:1.4}, next:"b3", gap:2})},
      ]}),
    b3:(a)=>{
      const prix=Math.round(_momeOffre(a))*1e6;
@@ -23866,7 +23869,7 @@ const ARCS={
              ? {res:"Il craque à demi-mot, en nettoyant ses lunettes fumées. Vous tenez un début d'aveu.", data:{preuves:true}, next:"b3", gap:2}
              : {res:"Il nie tout, impassible derrière ses verres teintés. Ce sera votre parole contre la sienne.", data:{preuves:false}, next:"b3", gap:2}; }},
          {lib:"L'arrangement : tu rembourses, tu disparais", go:a=>{ return Math.random()<(chaud?0.7:0.5)
-             ? {res:"Gégé livre 1,5 MF en liquide dans un sac Shopi, sur le parking, à la nuit tombée. Affaire classée entre gens de bonne compagnie.", eff:{arg:+1.5e6, reput:-1}}
+             ? {res:"Gégé livre 1,5 M en liquide dans un sac Shopi, sur le parking, à la nuit tombée. Affaire classée entre gens de bonne compagnie.", eff:{arg:+1.5e6, reput:-1}}
              : {res:"Gégé livre son sac Shopi bourré de billets... mais le pigiste de La Dépêche a tout vu depuis sa 205 garée en face.", eff:{arg:+1.5e6}, data:{route:"enterre"}, next:"bEclate", gap:3}; }},
        ]};
    },
@@ -23874,17 +23877,17 @@ const ARCS={
      txt:"Tout est sur la table. Gégé Brémont est assis en face de vous. Pour la première fois en six ans, il a ôté ses lunettes fumées : il a les yeux de quelqu'un qui compte très vite."+(a.preuves?" Et cette fois, vous avez les preuves.":" Mais vous n'avez, au fond, que des soupçons."),
      choix:[
        {lib:"Le livrer au président", go:a=>{ return a.preuves
-           ? {res:"Preuves à l'appui, le président tranche : Gégé démissionne « pour raisons de santé » et rembourse 2,4 MF. Mme Josiane est augmentée, le vestiaire respire, un club propre, ça se sent jusqu'à la pelouse.", eff:{arg:+2.4e6, conf:8, reput:3, moral:2, presse:"Enfin un club qui n'attend pas les juges : "+clubById(G.monClub).nom+" fait le ménage."}}
-           : {res:"Sans preuve, le beau-frère s'en tire par une pirouette : il « démissionne pour convenances personnelles » et ne rembourse que 0,8 MF. Mieux que rien.", eff:{arg:+0.8e6, conf:2, reput:1}}; }},
-       {lib:"Le livrer à la presse", go:a=>({res:"La Dépêche sort quatre pages, lunettes fumées en une. Le public adore le courage, mais le président ne vous pardonne pas le linge sale lavé dehors. Gégé remboursera 1,8 MF, en 36 mensualités.", eff:{reput:5, conf:-8, buzz:1, arg:+0.3e6, presse:"« Lunettes fumées » : "+clubById(G.monClub).nom+" déballe l'affaire de la billetterie."}})},
+           ? {res:"Preuves à l'appui, le président tranche : Gégé démissionne « pour raisons de santé » et rembourse 2,4 M. Mme Josiane est augmentée, le vestiaire respire, un club propre, ça se sent jusqu'à la pelouse.", eff:{arg:+2.4e6, conf:8, reput:3, moral:2, presse:"Enfin un club qui n'attend pas les juges : "+clubById(G.monClub).nom+" fait le ménage."}}
+           : {res:"Sans preuve, le beau-frère s'en tire par une pirouette : il « démissionne pour convenances personnelles » et ne rembourse que 0,8 M. Mieux que rien.", eff:{arg:+0.8e6, conf:2, reput:1}}; }},
+       {lib:"Le livrer à la presse", go:a=>({res:"La Dépêche sort quatre pages, lunettes fumées en une. Le public adore le courage, mais le président ne vous pardonne pas le linge sale lavé dehors. Gégé remboursera 1,8 M, en 36 mensualités.", eff:{reput:5, conf:-8, buzz:1, arg:+0.3e6, presse:"« Lunettes fumées » : "+clubById(G.monClub).nom+" déballe l'affaire de la billetterie."}})},
        {lib:"Étouffer contre remboursement intégral", go:a=>{ return Math.random()<0.7
-           ? {res:"Marché conclu en coulisses : Gégé rembourse 2,4 MF et l'affaire n'existe plus. Le président vous en sera discrètement reconnaissant.", eff:{arg:+2.4e6, conf:2}}
+           ? {res:"Marché conclu en coulisses : Gégé rembourse 2,4 M et l'affaire n'existe plus. Le président vous en sera discrètement reconnaissant.", eff:{arg:+2.4e6, conf:2}}
            : {res:"Vous empochez le remboursement... mais un dossier pareil finit toujours par ressortir.", eff:{arg:+2.4e6}, data:{route:"enterre"}, next:"bEclate", gap:3}; }},
      ]}),
    bEclate:(a)=>({
      txt:"Un contrôleur, venu à l'origine pour une banale histoire de photocopieuse, tombe sur TOUT le reste : souches, sacs Shopi, parking en liquide. Le pot aux roses éclate au grand jour, et cette fois, vous êtes en première ligne pour l'avoir su.",
      choix:[
-       {lib:"Encaisser le scandale", go:a=>({res:"Amende de 3 MF, réputation écornée, président furieux. Gégé, lui, s'en tire par une pirouette dont il a le secret : trois mois plus tard, on le retrouve derrière la buvette... vendeur de merguez.", eff:{arg:-3e6, reput:-6, conf:-10, presse:"Scandale de la billetterie à "+clubById(G.monClub).nom+" : la facture est salée."}})},
+       {lib:"Encaisser le scandale", go:a=>({res:"Amende de 3 M, réputation écornée, président furieux. Gégé, lui, s'en tire par une pirouette dont il a le secret : trois mois plus tard, on le retrouve derrière la buvette... vendeur de merguez.", eff:{arg:-3e6, reput:-6, conf:-10, presse:"Scandale de la billetterie à "+clubById(G.monClub).nom+" : la facture est salée."}})},
      ]}),
   },
  },
@@ -24764,7 +24767,7 @@ function momentTacle(mo,moi,resoudre,suite){
         "Le capitaine plaide, l'arbitre tergiverse... JAUNE seulement pour "+j.nom+" ! Incroyable.", bContester);
     } else {
       j.susp=(j.susp||0)+3; G.tresorerie-=1e6; G.confiance=Math.max(0,G.confiance-2);
-      conclure("🟥 Rouge CONFIRMÉ, et le rapport au délégué vous coûte 1 MF d'amende. Le président fulmine.","rouge",
+      conclure("🟥 Rouge CONFIRMÉ, et le rapport au délégué vous coûte 1 M d'amende. Le président fulmine.","rouge",
         "ROUGE confirmé pour "+j.nom+", et la contestation finit au rapport. L'addition sera salée.", bContester);
     }
   };
@@ -24881,7 +24884,7 @@ function ecranEffectif(){
   /* LE TABLEAU TIENT SUR UNE LIGNE PAR JOUEUR (v1.09, retour de playtest « les lignes sont trop larges »,
      capture iPhone à l'appui : 225 px par joueur). Trois causes, trois remèdes. (1) La jauge de forme et
      son mot d'époque → un chiffre coloré et un émoji (`FRAICH_PALIERS`), le mot passe en infobulle et
-     dans la fiche. (2) « 50.6 MF » se coupait en deux lignes → l'unité monte dans l'en-tête. (3) Quatre
+     dans la fiche. (2) « 50.6 M » se coupait en deux lignes → l'unité monte dans l'en-tête. (3) Quatre
      boutons sur deux cellules s'empilaient en trois étages → une seule barre de quatre boutons collés
      (★ 🛌 🏷️ 📤), pictos seuls — nommés par l'infobulle et par la légende sous le tableau : avec leurs
      libellés, le tableau débordait de 130 px même sur ordinateur —, l'état « en cours » allumé en
@@ -24900,7 +24903,7 @@ function ecranEffectif(){
       +`</span>`;
   };
   chrome("effectif",`<div class="panel"><h2>Effectif · ${esc(c.nom)}</h2>
-   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num effAge">Âge</th><th class="num">Note</th><th class="num">Forme</th><th class="num effMor">Moral</th><th class="num effVal" title="Valeur marchande, en millions de ${paysVu().monNom}">Valeur ${paysVu().millions}</th><th></th></tr>
+   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num effAge">Âge</th><th class="num">Note</th><th class="num">Forme</th><th class="num effMor">Moral</th><th class="num effVal" title="Valeur marchande, en millions">Valeur ${paysVu().millions}</th><th></th></tr>
    ${js.map(j=>{ const i=c.joueurs.indexOf(j), lf=libFraich(j), f=Math.round(fraich(j));
      const etats=[
        j.bless>0?`<span class="rouge">blessé ${j.bless} j.</span>`:"",

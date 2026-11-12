@@ -318,10 +318,9 @@ Le cadre posé pour l'Angleterre sert à tout le monde ; il ne reste que ce qui 
       ITALIENS » dans `CLAUDE.md`.*
 - [ ] **ITA-B — Le cadre local** : Serie A / Serie B, Coppa Italia, sièges européens italiens par saison,
       textes et sélection italienne.
-      **Reprend la monnaie laissée par ITA-A (10/11/2026)** : `PAYS.ITA` avec les lires puis les euros, ce
-      qui attend deux réponses de l'auteur — comment écrire la lire alors que `harness-pays.cjs` plafonne le
-      taux d'affichage à 1 (environ 295 lires pour un franc), et à quelle saison passer à l'euro
-      (proposition : 2002-03, première saison entière en euros).
+      **La monnaie est TRANCHÉE par l'auteur (12/11/2026, v2.73) : plus de devise du tout.** Ni lires ni euros :
+      tous les championnats comptent en « M », à la même échelle (`PAYS.ITA` est déjà en place, `taux:1`,
+      `millions:"M"`). ITA-B n'a donc plus rien à attendre de ce côté et reprend le reste de son lot.
 - [ ] **ITA-C — Le harnais** : `harness-italie.cjs`.
 
 ### Italie — 20 saisons
