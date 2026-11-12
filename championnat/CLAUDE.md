@@ -3932,6 +3932,10 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
   (`ficheClubAccueil`) affiche ses défis (`defisClubDe`, cadre jaune `.trFiche`, ✅ une fois réussi). Dans la salle des
   trophées, une quatrième famille « Les défis de club », par pays, blason devant. Ajouter un défi = une ligne dans la
   table ; vérifier que le club existe dans une saison de son championnat (section K du harnais le contrôle).
+  **v2.78, piège des D1 à 18** : le rattrapage croyait toutes les D1 à 20 clubs, si bien qu'un 16e ou 17e d'une D1 à
+  18 (France 1997-98 à 2001-02), pourtant descendu, recevait « Se maintenir » à l'accueil. Le résultat rangé porte
+  désormais `n` (clubs de la division, posé par `progFinDeSaison`) ; sans `n` (résultat d'avant), le maintien ne se
+  juge pas au rattrapage. `defiClubRempli` exige `n` pour le maintien, jamais de valeur par défaut. Section K.
 - **LA BOUTIQUE À POINTS (v2.77, demande de l'auteur du 12/11/2026)** : les points se dépensent, jamais d'argent réel.
   La table **`BOUTIQUE`** a deux rayons. **Avantages permanents** (`perm`, achetés une fois, valables pour toutes les
   carrières LANCÉES APRÈS l'achat, appliqués par `boutiqueAuDepart` dans `nouvellePartie` hors été d'entraîneur,

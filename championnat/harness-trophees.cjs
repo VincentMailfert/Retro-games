@@ -274,6 +274,16 @@ console.log("K) Les défis de club");
   vide(api); api.prog().resultats = [{ pid: "x", ch: "ANG", dep: "ANG-1995-96", an: 2, club: "NEW", div: 1, rang: 1, coupes: [] }];
   api.defisConstate();
   ok(api.defiReussi("cNEW1") && api.defiReussi("titre"), "un titre de Newcastle déjà rangé rapporte son défi de club");
+  vide(api); api.prog().resultats = [{ pid: "y", ch: "FR", dep: "1997-98", an: 3, club: "GUI", div: 1, rang: 16, n: 18, coupes: [] }];
+  api.defisConstate();
+  ok(!api.defiReussi("cGUI1"), "Guingamp 16e d'une D1 à 18 est descendu : pas de maintien au rattrapage");
+  api.prog().resultats[0].rang = 15; api.defisConstate();
+  ok(api.defiReussi("cGUI1"), "15e d'une D1 à 18 : maintenu au rattrapage");
+  vide(api); api.prog().resultats = [{ pid: "z", ch: "FR", dep: "1995-96", an: 2, club: "GUI", div: 1, rang: 10, coupes: [] }];
+  api.defisConstate();
+  ok(!api.defiReussi("cGUI1"), "sans le nombre de clubs (résultat d'avant), le maintien ne se juge pas au rattrapage");
+  vide(api); api.prog().resultats = [{ pid: "x", ch: "ANG", dep: "ANG-1995-96", an: 2, club: "NEW", div: 1, rang: 1, coupes: [] }];
+  api.defisConstate(); // la suite (l'écran) regarde le titre de Newcastle
   /* la fiche du club à l'accueil */
   api.setAccueil("1995-96"); api.ficheClubAccueil("OM");
   ok(/🎯 <b>Remonter en première division dès la première saison<\/b>/.test(FICHE.innerHTML) && /Gagner la Ligue des champions/.test(FICHE.innerHTML), "la fiche de l'OM en 1995-96 montre ses deux défis");
