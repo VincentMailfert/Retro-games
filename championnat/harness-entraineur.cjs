@@ -11,6 +11,7 @@
    H) une saison entière : le verdict, la réputation, l'almanach, l'été
    I) les offres de l'été, cas par cas (suite, prolongation, clubs plus forts ou plus modestes, club disparu, fin)
    J) signer l'été : la vraie saison suivante, le vrai effectif, la même carrière
+   K) le naufrage : l'avertissement, sa levée, le renvoi, la fin de saison sans vous, l'été d'un renvoyé (livraison 3)
    Usage : node harness-entraineur.cjs                                                               */
 const fs = require("fs");
 const path = require("path");
@@ -47,9 +48,9 @@ global.alert = () => {}; global.confirm = () => true; global.prompt = () => null
 global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,sauvegardeLocale,chargeLocale,partiesListe," +
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,classement,sauvegardeLocale,chargeLocale,partiesListe," +
   "ecranAccueil,SAISONS,SAISONS_OUVERTES,saisonOuverte,offresDebut,forceReelle,forceEffectif,nivDuRang,objectifEntr,objectifDuClub," +
-  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier," +
+  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier,seuilNaufrage,surveillePresident,finitSansVous,forceReelle2:forceReelle," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 function reel(fn) { global.window.__TEST__ = false; try { return fn(); } finally { global.window.__TEST__ = true; } }
@@ -179,7 +180,7 @@ console.log("G) le verdict de la saison (livraison 2)");
 /* Joue une saison entière de la carrière en cours, sans le renvoi en cours de saison (livraison 3) */
 function joueSaison(a) {
   let G = a.getG();
-  while (G.journee < 38 && !G.finie) { G.confiance = Math.max(G.confiance, 50); a.jouerJournee(); G = a.getG(); }
+  while (G.journee < 38 && !G.finie) { G.confiance = Math.max(G.confiance, 50); if (G.coach) G.coach.avert = null; a.jouerJournee(); G = a.getG(); }
   return G;
 }
 
@@ -304,6 +305,68 @@ console.log("J) signer l'été : la vraie saison suivante");
     ok(G.monClub === autre && G.budget === a.clubById(autre).budget && G.tresorerie === 12e6, "nouveau club : son argent à lui");
     ok(G.saisonIdx === 3 && G.coach.contrat.club === autre && G.coach.contrat.reste === 2, "troisième saison, nouveau contrat de deux saisons");
   }
+}
+
+console.log("K) le naufrage (livraison 3)");
+{
+  ok(api.seuilNaufrage(17, 20) === 19 && api.seuilNaufrage(10, 20) === 15 && api.seuilNaufrage(3, 20) === 8 && api.seuilNaufrage(1, 20) === 6,
+    "le seuil : les deux dernières places pour le maintien, cinq places sous l'objectif sinon");
+  const neuve = () => { const o = Object.assign({}, api.offresDebut("1995-96")[0], { duree: 2, obj: api.objectifEntr(0, 2, 20) });
+    api.nouvellePartie(o.id, "1995-96", o); const G = api.getG(); G.confiance = 50; return G; };
+  let G = neuve();
+  G.journee = 9; api.surveillePresident(20, 17, 20);
+  ok(!G.coach.avert, "avant la 10e journée, le président ne dit rien");
+  G.journee = 10; api.surveillePresident(18, 17, 20);
+  ok(!G.coach.avert, "18e pour un maintien : pas encore un naufrage");
+  api.surveillePresident(19, 17, 20);
+  ok(G.coach.avert && G.coach.avert.j === 10 && /AVERTISSEMENT/.test(G.news[0]), "19e : l'avertissement");
+  G.journee = 14; api.surveillePresident(19, 17, 20);
+  ok(G.coach.avert && !G.coach.vire, "quatre journées plus tard, il attend encore");
+  G.journee = 15; api.surveillePresident(18, 17, 20);
+  ok(!G.coach.avert && G.coach.vire && G.coach.vire.j === 15 && G.coach.vire.rang === 18, "cinq journées sans redressement : renvoyé");
+  G = neuve(); G.journee = 12; api.surveillePresident(20, 17, 20); G.journee = 14; api.surveillePresident(16, 17, 20);
+  ok(!G.coach.avert && !G.coach.vire && /respire/.test(G.news[0]), "remonté à la 16e : l'avertissement est levé");
+  G.journee = 20; api.surveillePresident(19, 17, 20);
+  ok(G.coach.avert && G.coach.avert.j === 20, "et il peut revenir");
+  G = neuve(); G.journee = 12; G.confiance = 5; api.surveillePresident(12, 10, 20);
+  ok(!!G.coach.avert, "la confiance presque morte suffit quand on est sous l'objectif (12e pour un top 10)");
+  G = neuve(); G.journee = 12; G.confiance = 5; api.surveillePresident(8, 10, 20);
+  ok(!G.coach.avert, "mais pas quand on le tient (8e pour un top 10)");
+  // le chemin du jeu : une journée jouée avec la confiance à zéro ne renvoie plus d'un coup
+  G = neuve(); for (let i = 0; i < 10; i++) { G.confiance = 50; G.coach.avert = null; api.jouerJournee(); }
+  G.confiance = -10; api.jouerJournee(); G = api.getG();
+  const rangJ = api.classement().findIndex(c => c.id === G.monClub) + 1;
+  ok(!G.vire && !G.coach.vire && (!!G.coach.avert === rangJ > G.objectif.place), "confiance à zéro : plus de renvoi immédiat (avertissement si l'on est sous l'objectif, ici " + rangJ + "e)");
+  // le mode de toujours : rien ne change
+  api.nouvellePartie("OM", "1995-96"); G = api.getG();
+  for (let i = 0; i < 10; i++) { G.confiance = 50; api.jouerJournee(); }
+  G.confiance = -10; api.jouerJournee(); G = api.getG();
+  ok(G.vire === "confiance", "le mode de toujours renvoie toujours à confiance nulle");
+  // renvoyé à la 15e : écran, fin de saison sans vous, verdict, été
+  G = neuve(); const v0 = api.forceReelle(api.SAISONS["1995-96"], G.monClub);
+  for (let i = 0; i < 15; i++) { G.confiance = 50; G.coach.avert = null; api.jouerJournee(); }
+  G.coach.vire = { j: 15, rang: 20 };
+  APP._h = ""; G.intro = null; api.ecranCalendrier();
+  ok(APP._h.includes("LIMOGÉ") && APP._h.includes("sans vous") && !/—/.test(APP._h), "l'écran du renvoi");
+  let err = null; try { api.finitSansVous(); } catch (e) { err = e; }
+  G = api.getG();
+  ok(!err && G.finie && G.journee === 38 && !G._pend, "la fin de saison se joue sans vous" + (err ? " : " + err.stack : ""));
+  ok(!(G.coupe && G.coupe.aJouer) && !(G.euro && G.euro.aJouer), "la coupe et l'Europe aussi");
+  const b = G.coach.bilan;
+  ok(b && b.v === "vire" && G.coach.rep === 5 && G.coach.saisons[0].vireJ === 15 && G.coach.contrat.reste === 0 && !G.coach.vire,
+    "verdict : renvoyé, la réputation chute (20 → " + G.coach.rep + "), le contrat s'arrête");
+  APP._h = ""; api.ecranBilan();
+  ok(APP._h.includes("RENVOYÉ"), "l'almanach le dit");
+  api.preparerEte(); const E = api.getG().ete;
+  const S96 = api.SAISONS["1996-97"], ech = api.echelle(S96), bas3 = ech.slice(0, 3).map(x => x.id);
+  const val = id => api.forceReelle(S96, id) + (S96.d1.includes(id) ? 3 : 0);
+  ok(E.cas === "vire" && E.offres.length === 3 && E.offres.every(o => val(o.id) < v0 || bas3.includes(o.id)), "l'été : trois clubs plus faibles (ou les plus faibles de tous)");
+  APP._h = ""; api.ecranCalendrier();
+  ok(APP._h.includes("RENVOYÉ") && (APP._h.match(/bEteSigne/g) || []).length === 3, "l'écran de l'été d'un renvoyé");
+  // le bandeau d'avertissement, sur l'écran du match
+  // (les notifications ouvrent la fenêtre du debrief, que le faux #fiche du harnais ne sait pas tenir : on les vide)
+  G = neuve(); G.journee = 12; api.surveillePresident(20, 17, 20); G.intro = null; G.notifs = []; APP._h = ""; api.ecranCalendrier();
+  ok(APP._h.includes("Le président vous a prévenu") && APP._h.includes("5 journées"), "le bandeau rouge et le délai qui court");
 }
 
 console.log(FAILS ? "\n✗ " + FAILS + " échec(s)" : "\n✓ tout est vert");

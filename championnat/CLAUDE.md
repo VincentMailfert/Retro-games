@@ -2267,6 +2267,19 @@ toujours « raconter quelque chose ».
   capacité/le prestige bâtis. Aucun joueur n'est gardé : c'est le vrai effectif de l'année. **Piège du harnais** :
   `montre()` ne dessine RIEN sous le harnais (`EN_TEST`) ; pour tester un écran du jeu, appeler `ecranCalendrier()`
   directement (un test des étoiles de la livraison 1 passait à tort sur un reste de l'accueil).
+  **Livraison 3 (v2.64) : le naufrage.** Dans `finirJournee`, le mode entraîneur appelle `surveillePresident` à la
+  place du renvoi « confiance à zéro » du mode de toujours (qui, lui, ne bouge pas). À partir de la 10e journée
+  (`AVERT.des`), le club COULE s'il pointe au seuil (`seuilNaufrage` = objectif + 5, au plus l'avant-dernière place :
+  les deux dernières pour un maintien) ou si la confiance est presque morte (≤ 8) ALORS qu'il est sous son objectif
+  (un entraîneur qui tient son objectif ne coule jamais : attrapé en capture, un 2e renvoyé sur une confiance
+  forcée). Premier constat : AVERTISSEMENT (`G.coach.avert={j, seuil}`, dépêche, presse, notification, bandeau
+  rouge `bandeauAvert` sous la navigation de tous les écrans). Remonté de trois places au-dessus du seuil : levé
+  (il peut revenir). Cinq journées sans redressement : RENVOYÉ (`G.coach.vire={j, rang}`, écran `ecranLimoge`
+  avec l'image `vire`, branché dans `ecranCalendrier` après l'été). « La fin de saison sans vous » (`finitSansVous`)
+  joue tout le reste au moteur : coupe et Europe tranchées par `coupeResoutTour(false)`/`euroResoutTour(false)`,
+  les moments d'un match laissé en suspens résolus par `autoMoment`, puis les fenêtres en suspens effacées. Le
+  verdict est `vire` (« RENVOYÉ », −15 de réputation, pas de bonus de titre, contrat arrêté, `vireJ` dans
+  l'historique), et l'été passe au cas `vire` : trois clubs plus faibles.
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le
