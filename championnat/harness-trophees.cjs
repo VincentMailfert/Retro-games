@@ -11,6 +11,7 @@
    H) le nettoyage de ce qui vient du navigateur ou du serveur
    I) l'écran : la vitrine, les blasons des clubs sacrés, les trois familles de défis
    J) une vraie carrière de six saisons : pas d'erreur, chaque défi de match réussi est justifié par un score
+   K) les défis de club (v2.76) : clubs réels du bon championnat, règles, fin de saison, rattrapage, fiche, écran
    Usage : node harness-trophees.cjs                                                            */
 const fs = require("fs");
 const path = require("path");
@@ -49,8 +50,8 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,classement,clubById,SAISONS,prog,progMag,progVide,progNette," +
   "progFusionne,progEmpreinte,ecranAccueil,ecranTrophees,DEFIS,DEFI_DE,defiReussi,pointsDefis,defiGagne,mesMatchs," +
-  "defisJournee,defisFinSaison,defisCarriere,defisConstate,vitrine," +
-  "getG:function(){return G;},setG:function(x){G=x;}};";
+  "defisJournee,defisFinSaison,defisCarriere,defisConstate,vitrine,DEFIS_CLUB,defiClubRempli,defisClubDe,ficheClubAccueil,metaClub," +
+  "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 
 let FAILS = 0;
@@ -206,7 +207,7 @@ console.log("I) La salle des trophées");
   ok(/SALLE DES TROPHÉES/.test(h) && /⭐ /.test(h), "le titre et les points");
   ok(/class="trBlason"/.test(h) && /×2/.test(h), "le blason du club sacré, marqué ×2");
   ok(/Premiers pas/.test(h) && /La saison/.test(h) && /La carrière/.test(h), "les trois familles de défis");
-  ok((h.match(/class="trDefi/g) || []).length === api.DEFIS.length, "tous les défis sont listés");
+  ok((h.match(/class="trDefi[ "]/g) || []).length === api.DEFIS.length + api.DEFIS_CLUB.length, "tous les défis sont listés, ceux des clubs compris");
   ok(/trDefi ok/.test(h) && /✅ Champion de première division/.test(h), "un défi rattrapé est coché");
   ok(!/—/.test(h.replace(/<[^>]+>/g, "")), "aucun tiret long à l'écran");
   ok(/id="bRetourAcc"/.test(h), "un retour à l'accueil");
@@ -237,6 +238,53 @@ console.log("J) Une carrière de six saisons");
   ok(api.prog().resultats.length === 6, "six fins de saison rangées");
   ok(api.defiReussi("vic") && api.defiReussi("fidele"), "au moins une victoire, et la fidélité après cinq saisons");
   console.log("    défis : " + ids(api).join(", ") + " · " + api.pointsDefis() + " pts");
+}
+
+/* ===== K) les défis de club ===== */
+console.log("K) Les défis de club");
+{
+  const DC = api.DEFIS_CLUB, S = api.SAISONS;
+  ok(DC.length >= 40 && new Set(DC.map(d => d.id)).size === DC.length, `${DC.length} défis de club, identifiants uniques`);
+  ok(DC.every(d => /^[A-Za-z0-9]+$/.test(d.id) && d.id.length <= 24), "des identifiants que la progression accepte");
+  ok(!DC.some(d => api.DEFIS.some(x => x.id === d.id)), "aucun identifiant partagé avec les défis généraux");
+  const absents = DC.filter(d => !Object.keys(S).some(k => (S[k].pays || "FR") === d.ch && S[k].d1.concat(S[k].d2).includes(d.club)));
+  ok(absents.length === 0, "chaque club existe dans une saison de son championnat" + (absents.length ? " : " + absents.map(d => d.id).join(", ") : ""));
+  ok(DC.every(d => !d.dep || (S[d.dep] && S[d.dep].d1.concat(S[d.dep].d2).includes(d.club))), "une saison de départ imposée existe et contient le club");
+  ok(DC.every(d => ["titre", "maintien", "montee", "top", "coupe", "europe", "c1", "double", "invincibles"].includes(d.q) && d.pts > 0), "chaque défi a une règle connue et des points");
+  ok(!DC.some(d => /—/.test(d.nom)), "aucun tiret long");
+  const R = (o) => Object.assign({ club: "GUI", ch: "FR", div: 1, rang: 10, an: 3, dep: "1995-96", coupes: [] }, o);
+  const D = id => api.DEFI_DE[id];
+  ok(api.defiClubRempli(D("cGUI1"), R({ rang: 17 }), null, 20) && !api.defiClubRempli(D("cGUI1"), R({ rang: 18 }), null, 20), "maintien : 17ᵉ oui, 18ᵉ non");
+  ok(!api.defiClubRempli(D("cGUI1"), R({ div: 2, rang: 1 }), null, 20), "le maintien ne se joue qu'en première division");
+  ok(!api.defiClubRempli(D("cGUI1"), R({ club: "LEN" }), null, 20), "un autre club ne remplit pas le défi de Guingamp");
+  ok(!api.defiClubRempli(D("cLIV1"), R({ club: "LIV", ch: "FR", rang: 1 }), null, 20), "le championnat compte : un LIV français ne sert pas Liverpool");
+  ok(api.defiClubRempli(D("cOM1"), R({ club: "OM", div: 2, rang: 2, an: 1 }), null, 20), "l'OM remonte dès 1995-96");
+  ok(!api.defiClubRempli(D("cOM1"), R({ club: "OM", div: 2, rang: 2, an: 2 }), null, 20), "pas en deuxième année");
+  ok(!api.defiClubRempli(D("cOM1"), R({ club: "OM", div: 2, rang: 2, an: 1, dep: "1994-95" }), null, 20), "pas depuis une autre saison de départ");
+  ok(api.defiClubRempli(D("cAJA1"), R({ club: "AJA", rang: 1, coupes: ["CN"] }), null, 20) && !api.defiClubRempli(D("cAJA1"), R({ club: "AJA", rang: 1 }), null, 20), "le doublé exige la coupe");
+  ok(api.defiClubRempli(D("cMON1"), R({ club: "MON", coupes: ["C1"] })) && !api.defiClubRempli(D("cMON1"), R({ club: "MON", coupes: ["C3"] })), "la C1, pas une autre coupe");
+  ok(api.defiClubRempli(D("cARS1"), R({ club: "ARS", ch: "ANG", rang: 1 }), true) && !api.defiClubRempli(D("cARS1"), R({ club: "ARS", ch: "ANG", rang: 1 }), null), "les invincibles ne se rattrapent pas sans les matchs");
+  /* en fin de saison, dans une vraie partie */
+  api.nouvellePartie("GUI", "1995-96"); const G = api.getG(); vide(api); G.notifs = []; G.histo = []; G.div = 1;
+  api.defisFinSaison(15, []);
+  ok(api.defiReussi("cGUI1") && G.notifs.some(n => /Se maintenir en première division · \+400 pts/.test(n)), "Guingamp 15ᵉ : défi de club réussi, annoncé au debrief");
+  ok(!api.defiReussi("cGUI2") && !api.defiReussi("cLEN1"), "rien d'autre");
+  /* rattrapage */
+  vide(api); api.prog().resultats = [{ pid: "x", ch: "ANG", dep: "ANG-1995-96", an: 2, club: "NEW", div: 1, rang: 1, coupes: [] }];
+  api.defisConstate();
+  ok(api.defiReussi("cNEW1") && api.defiReussi("titre"), "un titre de Newcastle déjà rangé rapporte son défi de club");
+  /* la fiche du club à l'accueil */
+  api.setAccueil("1995-96"); api.ficheClubAccueil("OM");
+  ok(/🎯 <b>Remonter en première division dès la première saison<\/b>/.test(FICHE.innerHTML) && /Gagner la Ligue des champions/.test(FICHE.innerHTML), "la fiche de l'OM en 1995-96 montre ses deux défis");
+  api.setAccueil("1990-91"); api.ficheClubAccueil("OM");
+  ok(!/dès la première saison/.test(FICHE.innerHTML) && /Gagner la Ligue des champions/.test(FICHE.innerHTML), "en 1990-91, le défi de la remontée n'apparaît pas");
+  api.setAccueil("1995-96"); api.ficheClubAccueil("AUX" in {} ? "AUX" : api.SAISONS["1995-96"].d1.find(id => !DC.some(d => d.club === id)));
+  ok(!/🎯/.test(FICHE.innerHTML), "un club sans défi n'affiche rien");
+  /* l'écran */
+  api.ecranTrophees(); const h = APP.innerHTML;
+  ok(/Les défis de club/.test(h) && (h.match(/trDefiClub/g) || []).length === DC.length, "la salle liste tous les défis de club");
+  ok(/✅ <svg[\s\S]*?Newcastle/.test(h) || /trDefi ok"><span class="trDefiClub">✅/.test(h), "le défi de Newcastle est coché");
+  ok(new RegExp(`/${api.DEFIS.length + DC.length} défis`).test(h), "le compteur compte toutes les familles");
 }
 
 console.log(FAILS ? `\n${FAILS} ÉCHEC(S)` : "\nTOUT EST VERT");

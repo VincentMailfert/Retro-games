@@ -625,6 +625,11 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .trBlason i{position:absolute;right:-6px;bottom:-4px;font-style:normal;font-size:11px;background:#ffd24a;color:#16243c;padding:0 3px;font-weight:bold;}
   .trDefi{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:4px 0;border-bottom:1px solid #1d2c45;opacity:.55;}
   .trDefi.ok{opacity:1;}
+  .trDefiClub{display:flex;align-items:center;gap:6px;}
+  .trDefi>span:last-child{white-space:nowrap;}
+  .trPays{margin:10px 0 2px;font-size:13px;}
+  .trFiche{margin-top:6px;padding:6px 8px;border:1px solid #ffd24a;font-size:14px;}
+  .trFiche.ok{border-color:#38507a;opacity:.7;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -643,7 +648,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.75"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.76"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -21587,7 +21592,89 @@ const DEFIS=[
   {id:"cles3",       fam:"carriere", nom:"Ouvrir trois saisons fermées",             pts:200},
   {id:"deuxPays",    fam:"carriere", nom:"Champion dans deux championnats",          pts:500},
 ];
-const DEFI_DE=Object.fromEntries(DEFIS.map(d=>[d.id,d]));
+/* LES DÉFIS DE CLUB (v2.76, choix de l'auteur du 12/11/2026) : écrits à la main, un ou deux par club, tirés de son
+   histoire. Chacun vaut pour UN club d'UN championnat ({club, ch}) et se juge en fin de saison sur `q` :
+   titre · maintien (D1, hors des trois dernières places) · montee (3 premiers de D2) · top (D1, dans les `n` premiers)
+   · coupe (coupe nationale) · europe (n'importe quelle coupe d'Europe) · c1 · double (titre et coupe) · invincibles.
+   `prem` : dès la première saison de la carrière ; `dep` : seulement depuis cette saison de départ. Ils vivent dans
+   `prog().defis` comme les autres (un id ne se renomme jamais) et rapportent leurs points de la même façon. */
+const DEFIS_CLUB=[
+  // France
+  {id:"cOM1",  club:"OM",  ch:"FR", nom:"Remonter en première division dès la première saison", q:"montee", prem:1, dep:"1995-96", pts:500},
+  {id:"cOM2",  club:"OM",  ch:"FR", nom:"Gagner la Ligue des champions",                       q:"c1",     pts:1500},
+  {id:"cPSG1", club:"PSG", ch:"FR", nom:"Champion dès la première saison",                     q:"titre",  prem:1, pts:600},
+  {id:"cPSG2", club:"PSG", ch:"FR", nom:"Gagner une coupe d'Europe",                           q:"europe", pts:800},
+  {id:"cAJA1", club:"AJA", ch:"FR", nom:"Le doublé championnat et coupe",                      q:"double", pts:1000},
+  {id:"cNAN1", club:"NAN", ch:"FR", nom:"Champion dès la première saison",                     q:"titre",  prem:1, pts:600},
+  {id:"cLEN1", club:"LEN", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:700},
+  {id:"cMET1", club:"MET", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:1000},
+  {id:"cSTE1", club:"STE", ch:"FR", nom:"Remonter en première division",                       q:"montee", pts:400},
+  {id:"cSTE2", club:"STE", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:900},
+  {id:"cBOR1", club:"BOR", ch:"FR", nom:"Gagner une coupe d'Europe",                           q:"europe", pts:900},
+  {id:"cMON1", club:"MON", ch:"FR", nom:"Gagner la Ligue des champions",                       q:"c1",     pts:1500},
+  {id:"cLYO1", club:"LYO", ch:"FR", nom:"Champion dès la première saison",                     q:"titre",  prem:1, pts:500},
+  {id:"cLIL1", club:"LIL", ch:"FR", nom:"Sur le podium de première division",                  q:"top", n:3, pts:400},
+  {id:"cREN1", club:"REN", ch:"FR", nom:"Sur le podium de première division",                  q:"top", n:3, pts:600},
+  {id:"cGUI1", club:"GUI", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:400},
+  {id:"cGUI2", club:"GUI", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:800},
+  {id:"cSOC1", club:"SOC", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:500},
+  {id:"cSTR1", club:"STR", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:500},
+  {id:"cNCY1", club:"NCY", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:700},
+  {id:"cMTP1", club:"MTP", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:1000},
+  {id:"cBAS1", club:"BAS", ch:"FR", nom:"Finir dans les cinq premiers",                        q:"top", n:5, pts:600},
+  {id:"cCAN1", club:"CAN", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:400},
+  {id:"cTRO1", club:"TRO", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:400},
+  {id:"cTOU1", club:"TOU", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:300},
+  {id:"cGUE1", club:"GUE", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:600},
+  {id:"cCHA1", club:"CHA", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:500},
+  {id:"cSED1", club:"SED", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:500},
+  {id:"cLMN1", club:"LMN", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:500},
+  {id:"cAMI1", club:"AMI", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:600},
+  {id:"cNIO1", club:"NIO", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:700},
+  {id:"cLAV1", club:"LAV", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:700},
+  {id:"cRST1", club:"RST", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:800},
+  // Angleterre
+  {id:"cMUN1", club:"MUN", ch:"ANG", nom:"Champion dès la première saison",                    q:"titre",  prem:1, pts:500},
+  {id:"cMUN2", club:"MUN", ch:"ANG", nom:"Gagner la Ligue des champions",                      q:"c1",     pts:1200},
+  {id:"cLIV1", club:"LIV", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:700},
+  {id:"cARS1", club:"ARS", ch:"ANG", nom:"Champion sans perdre un match",                      q:"invincibles", pts:1500},
+  {id:"cCHE1", club:"CHE", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:700},
+  {id:"cNEW1", club:"NEW", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:1000},
+  {id:"cTOT1", club:"TOT", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:1000},
+  {id:"cBLB1", club:"BLB", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:800},
+  {id:"cLEE1", club:"LEE", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:800},
+  {id:"cEVE1", club:"EVE", ch:"ANG", nom:"Sur le podium de première division",                 q:"top", n:3, pts:700},
+  {id:"cAVL1", club:"AVL", ch:"ANG", nom:"Gagner une coupe d'Europe",                          q:"europe", pts:1000},
+  {id:"cNOR1", club:"NOR", ch:"ANG", nom:"Sur le podium de première division",                 q:"top", n:3, pts:900},
+  {id:"cIPS1", club:"IPS", ch:"ANG", nom:"Finir dans les cinq premiers",                       q:"top", n:5, pts:800},
+  {id:"cWIM1", club:"WIM", ch:"ANG", nom:"Se maintenir en première division",                  q:"maintien", pts:500},
+  {id:"cWIM2", club:"WIM", ch:"ANG", nom:"Gagner la coupe nationale",                          q:"coupe",  pts:900},
+  {id:"cSUN1", club:"SUN", ch:"ANG", nom:"Se maintenir en première division",                  q:"maintien", pts:500},
+  {id:"cMCI1", club:"MCI", ch:"ANG", nom:"Remonter en première division",                      q:"montee", pts:400},
+  {id:"cFUL1", club:"FUL", ch:"ANG", nom:"Monter en première division",                        q:"montee", pts:500},
+];
+const DEFI_DE=Object.fromEntries(DEFIS.concat(DEFIS_CLUB).map(d=>[d.id,d]));
+/* Une saison (G en fin de saison, ou un résultat rangé r = {club, ch, div, rang, an, dep, coupes}) remplit-elle ce défi ?
+   `inv` : la saison s'est jouée sans défaite (null quand on ne le sait pas, au rattrapage). n : clubs dans la division. */
+function defiClubRempli(d, r, inv, n){
+  if(d.club!==r.club || d.ch!==(r.ch||"FR")) return false;
+  if(d.prem && (+r.an||0)!==1) return false;
+  if(d.dep && d.dep!==r.dep) return false;
+  const c=r.coupes||[], ch=r.div===1 && r.rang===1;
+  switch(d.q){
+    case "titre": return ch;
+    case "maintien": return r.div===1 && r.rang<=(n||20)-3;
+    case "montee": return r.div===2 && r.rang<=3;
+    case "top": return r.div===1 && r.rang<=(d.n||3);
+    case "coupe": return c.includes("CN");
+    case "europe": return c.some(x=>x!=="CN");
+    case "c1": return c.includes("C1");
+    case "double": return ch && c.includes("CN");
+    case "invincibles": return ch && inv===true;
+  }
+  return false;
+}
+function defisClubDe(club, ch, dep){ return DEFIS_CLUB.filter(d=>d.club===club && d.ch===(ch||"FR") && (!d.dep || !dep || d.dep===dep)); }
 function defiReussi(id){ return prog().defis.some(d=>d.id===id); }
 function pointsDefis(){ return prog().defis.reduce((n,d)=>n+((DEFI_DE[d.id]||{}).pts||0), 0); }
 function defiGagne(id, pid, muet){ // vrai si le défi vient d'être réussi (il ne l'était pas) ; muet : pas de notification (rattrapage)
@@ -21629,7 +21716,10 @@ function defisFinSaison(rang, coupes){ // appelée par progFinDeSaison, la progr
   if(cn) g("coupe");
   if((coupes||[]).some(c=>c!=="CN")) g("europe");
   if(champion && cn) g("double");
-  if(champion && ms.length>=30 && ms.every(m=>m.bp>=m.bc)) g("invincibles");
+  const invaincu=ms.length>=30 && ms.every(m=>m.bp>=m.bc);
+  if(champion && invaincu) g("invincibles");
+  const r={club:G.monClub, ch:G.pays||"FR", div:G.div, rang, an:G.saisonIdx||1, dep:cleDepart(G), coupes};
+  for(const d of DEFIS_CLUB) if(defiClubRempli(d, r, invaincu, (G.clubs||[]).length||20)) g(d.id);
   defisCarriere(G.pid, false);
 }
 function defisCarriere(pid, muet){ // les défis qui se lisent dans les résultats rangés : fin de saison et rattrapage
@@ -21651,6 +21741,7 @@ function defisConstate(){ // à l'accueil : ce que les saisons déjà rangées a
     if(cn) g("coupe", r.pid);
     if((r.coupes||[]).some(c=>c!=="CN")) g("europe", r.pid);
     if(ch && cn) g("double", r.pid);
+    for(const d of DEFIS_CLUB) if(defiClubRempli(d, r, null, 20)) g(d.id, r.pid);
   }
   defisCarriere(null, true);
   if(p.defis.length>avant){ progSauve(true); progPlanifie(); }
@@ -21666,6 +21757,13 @@ function vitrine(){
   }
   return v;
 }
+function clubsDefis(){ // la quatrième famille : un défi par ligne, précédé du blason de son club
+  const n=DEFIS_CLUB.filter(d=>defiReussi(d.id)).length;
+  return `<h3 style="display:flex;justify-content:space-between"><span>Les défis de club</span><span class="dim">${n}/${DEFIS_CLUB.length}</span></h3>
+    ${["FR","ANG"].map(ch=>{ const ds=DEFIS_CLUB.filter(d=>d.ch===ch); if(!ds.length) return "";
+      return `<p class="dim trPays">${(PAYS[ch]||PAYS.FR).drapeau} ${esc((PAYS[ch]||PAYS.FR).nom)}</p>`+ds.map(d=>{ const ok=defiReussi(d.id), c=metaClub(d.club)||{id:d.club, nom:d.club};
+        return `<p class="trDefi${ok?" ok":""}"><span class="trDefiClub">${ok?"✅":"⬜"} ${blason(c,18)} <span><b>${esc(c.nom)}</b> · ${esc(d.nom)}</span></span><span class="${ok?"fort":"dim"}">${FMT(d.pts)}</span></p>`; }).join(""); }).join("")}`;
+}
 function ecranTrophees(){
   defisConstate();
   const v=vitrine(), pts=pointsDefis(), faits=prog().defis.length;
@@ -21680,7 +21778,7 @@ function ecranTrophees(){
    <div class="panel ctr">
      <h2>🏆 SALLE DES TROPHÉES</h2>
      <p class="trPts">⭐ ${FMT(pts)} <span class="dim">pts</span></p>
-     <p class="dim" style="font-size:13px">${faits}/${DEFIS.length} défis</p>
+     <p class="dim" style="font-size:13px">${faits}/${DEFIS.length+DEFIS_CLUB.length} défis</p>
    </div>
    <div class="panel">
      <h2>La vitrine</h2>
@@ -21693,6 +21791,7 @@ function ecranTrophees(){
    <div class="panel">
      <h2>Les défis</h2>
      ${DEFIS_FAM.map(famille).join("")}
+     ${clubsDefis()}
    </div>`;
   app.innerHTML=`<p style="margin:0 0 10px"><button class="act" id="bRetourAcc">← Accueil</button></p>${corps}`;
   document.getElementById("bRetourAcc").onclick=ecranAccueil; window.scrollTo(0,0);
@@ -22241,6 +22340,7 @@ function ficheClubAccueil(id){
     <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="fort">${esc(st.obj.label)}</b></p>
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${MM(c.budget,0)}</p>
     ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="fort">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
+    ${defisClubDe(c.id, S.pays||"FR", SAISON_ACCUEIL).map(d=>`<p class="trFiche${defiReussi(d.id)?" ok":""}">${defiReussi(d.id)?"✅":"🎯"} <b>${esc(d.nom)}</b> <span class="dim">· ${FMT(d.pts)} pts</span></p>`).join("")}
     ${riv?`<p><span class="dim">Rival historique :</span> <b class="rouge">${esc(riv.nom)}</b> · ${esc(nomRivalite(c.id,riv.id))}</p>`:""}
     ${malediction(c.id,S.an)?`<p style="margin-top:8px;font-style:italic;border-left:2px solid ${st.coul};padding-left:8px">« ${esc(malediction(c.id,S.an))} »</p>`:""}
     ${(()=>{

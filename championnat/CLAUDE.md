@@ -3922,7 +3922,17 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
   titres de D2, coupes nationales, C1/C2/C3, lus dans `prog().resultats`, donc les saisons finies depuis la v2.22)
   avec les **blasons des clubs sacrés** (×2 au-delà d'un titre), puis les défis par famille, cochés ou grisés avec leurs
   points. Pas de mode d'emploi à l'écran (consigne « on fait découvrir »).
-- Gardé par **`harness-trophees.cjs`** (sections A à J, dont une carrière de six saisons où chaque défi de match
+- **LES DÉFIS DE CLUB (v2.76, choix de l'auteur du 12/11/2026)** : la table **`DEFIS_CLUB`**, écrite à la main, un ou
+  deux défis par club tirés de son histoire (51 : 33 en France, 18 en Angleterre), chacun lié à `{club, ch}` et jugé en
+  fin de saison par `defiClubRempli(d, r, inv, n)` selon `q` (titre, maintien = D1 hors des trois dernières, montee =
+  trois premiers de D2, top `n`, coupe, europe, c1, double, invincibles), avec `prem` (dès la première saison) et `dep`
+  (seulement depuis cette saison de départ, ex. l'OM qui remonte depuis 1995-96). Ils partagent `DEFI_DE`, la
+  progression, les points et le debrief des autres ; le rattrapage les relit dans les résultats rangés (sauf
+  « invincibles », qui exige les matchs). **Le crochet qui fait choisir un club** : la fiche d'un club à l'accueil
+  (`ficheClubAccueil`) affiche ses défis (`defisClubDe`, cadre jaune `.trFiche`, ✅ une fois réussi). Dans la salle des
+  trophées, une quatrième famille « Les défis de club », par pays, blason devant. Ajouter un défi = une ligne dans la
+  table ; vérifier que le club existe dans une saison de son championnat (section K du harnais le contrôle).
+- Gardé par **`harness-trophees.cjs`** (sections A à K, dont une carrière de six saisons où chaque défi de match
   réussi est contrôlé contre le score du soir).
 
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
