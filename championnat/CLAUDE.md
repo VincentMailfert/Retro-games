@@ -3946,8 +3946,16 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
   Où : dans la salle des trophées (panneau « La boutique », les coups de pouce y disent « En partie »), et en jeu
   par le bouton « ⭐ Boutique » du pied de page (`montre("boutique")` → `ecranBoutique`). Chaque achat passe par
   `confirme`. Le bandeau de l'accueil et le haut de la salle montrent le SOLDE, « N gagnés » en dessous.
-- Gardé par **`harness-trophees.cjs`** (sections A à L, dont une carrière de six saisons où chaque défi de match
-  réussi est contrôlé contre le score du soir, et la boutique en L).
+- **LA JEUNE LÉGENDE (v2.78, choix de l'auteur du 12/11/2026)** : quatrième avantage permanent de la boutique (2 000 pts).
+  À chaque carrière NEUVE, `pepiteDuDepart(moi)` choisit le vrai joueur (`j.reel`) de 20 ans au plus au plus haut
+  potentiel des deux divisions de la saison de départ, hors de votre club, et il change de club comme dans
+  `transfertIA` (retiré de son effectif, `j.club`, ajouté au vôtre ; avant l'ouverture des fiches de vie, donc il a la
+  sienne). **Déterministe** : la pépite d'une saison est toujours la même, c'est ce qui en fait une légende (Zidane en
+  1990-91, Vieira en 1993-94, Henry en 1995-96, Cissé en 1998-99, Essien en 2001-02, Ferdinand en ANG 1995-96, Gerrard
+  en ANG 2000-01). Si vous jouez son club, c'est la suivante. Son club ne la lâche que s'il garde `CIBLE` à ce poste.
+  Une dépêche : « 🌟 Thierry Henry, 18 ans, quitte AS Monaco pour vous rejoindre. »
+- Gardé par **`harness-trophees.cjs`** (sections A à M, dont une carrière de six saisons où chaque défi de match
+  réussi est contrôlé contre le score du soir, la boutique en L, la jeune légende en M).
 
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
 
