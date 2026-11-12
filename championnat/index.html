@@ -624,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.64"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.65"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -21282,6 +21282,8 @@ let PROG_MAG=null, PROG_TIRE=false, PROG_EN_COURS=null;
 
 function chDeSaison(k){ const m=/^([A-Z]+)-\d/.exec(String(k||"")); return m?m[1]:"FR"; } // "ANG-1995-96" → ANG, "1995-96" → FR
 function cleDepart(o){ // la clé de la saison de départ d'une carrière (G ou une sauvegarde relue)
+  // carrière d'entraîneur : il a pu changer de pays en route (livraison 4), le départ est retenu à part
+  if(o.coach && o.coach.depart && SAISONS[o.coach.depart]) return o.coach.depart;
   const pays=o.pays||"FR", an=+o.anBase||1995;
   return Object.keys(SAISONS).find(k=>SAISONS[k].an===an && (SAISONS[k].pays||"FR")===pays)||null;
 }
@@ -21604,7 +21606,7 @@ function motPresident(o, div){
 }
 function signeContrat(o, k){ // appelé par nouvellePartie, G tout juste bâti
   G.mode="entraineur";
-  G.coach={rep:COACH_REP0, repMax:COACH_REP0, saisons:[],
+  G.coach={rep:COACH_REP0, repMax:COACH_REP0, saisons:[], depart:k, // depart : la saison de départ, pour les clés (cf. cleDepart)
     contrat:{club:o.id, saison:(SAISONS[k]||{}).titre||G.saison, duree:o.duree, reste:o.duree, obj:o.obj}, obj:o.obj};
   G.objectif={place:o.obj.place, label:o.obj.label};
   G.news[0]="Contrat signé : "+(o.duree>1?o.duree+" saisons":"une saison")+". Objectif : "+o.obj.label.toLowerCase()+".";
@@ -21775,7 +21777,23 @@ function offreClub(S, k, id){ // l'offre d'un club de la saison k : objectif lu 
 }
 function tire(l, n){ const c=l.slice(), out=[]; while(c.length && out.length<n) out.push(c.splice(Math.floor(Math.random()*c.length),1)[0]); return out; }
 // sens : "haut" (plus forts, jusqu'où la réputation le permet), "bas" (plus modestes), "pareil" (même rang)
+/* LIVRAISON 4 : LES OFFRES DE L'ÉTRANGER. Environ un été sur deux (`OFFRE_ETRANGER`), l'une des trois offres vient
+   d'un autre pays qui a sa saison la même année, tirée selon la même règle (plus fort, plus modeste, même rang) sur
+   SON échelle, comparée à la valeur de votre club. Signer change de pays : `nouvellePartie` pose le pays, ses
+   divisions, sa coupe et sa monnaie. La saison de départ est retenue dans `G.coach.depart` (cf. cleDepart) : la
+   clé d'un titre reste au championnat du départ, même gagné à l'étranger. */
+const OFFRE_ETRANGER=0.5;
 function offresEte(sens, S, k, v0, exclu, rep){
+  const ici=tire(candidatsEte(sens, S, v0, exclu, rep),3).map(x=>offreClub(S,k,x.id));
+  const ailleurs=Object.keys(SAISONS).filter(k2=>SAISONS[k2].an===S.an && (SAISONS[k2].pays||"FR")!==(S.pays||"FR"));
+  if(ici.length && ailleurs.length && Math.random()<OFFRE_ETRANGER){
+    const k2=PICK(ailleurs), S2=SAISONS[k2];
+    const c2=candidatsEte(sens, S2, v0, null, rep).filter(x=>sens==="haut"?x.v>=v0 : sens==="bas"?x.v<v0 : true);
+    if(c2.length) ici[ici.length-1]=offreClub(S2, k2, tire(c2,1)[0].id);
+  }
+  return ici;
+}
+function candidatsEte(sens, S, v0, exclu, rep){
   const L=echelle(S).filter(x=>x.id!==exclu);
   let i0=L.findIndex(x=>x.v>=v0); if(i0<0) i0=L.length; // la place de votre club sur l'échelle de la saison qui vient
   let cand;
@@ -21787,7 +21805,7 @@ function offresEte(sens, S, k, v0, exclu, rep){
     cand=L.slice(Math.max(0,i0-8), i0);
     if(cand.length<3) cand=L.slice(0,3);
   } else cand=L.slice(Math.max(0,i0-3), i0+3);
-  return tire(cand,3).map(x=>offreClub(S,k,x.id));
+  return cand;
 }
 function offreRester(S, k, monte){ // rester au club : la suite du contrat, ou la prolongation (un cran plus haut)
   const id=G.monClub, div=divReelle(S,id), n=(div===1?S.d1:S.d2).length, base=objectifReel(S,id);
@@ -21827,11 +21845,12 @@ function ecranEte(){
     vire:"Plus petits, mais ils appellent.",
     disparu:(moi?moi.nom:"Le club")+" quitte les deux premières divisions.",
   }[E.cas]||"";
-  const carte=(o,i)=>{ const c=metaSaison(o.id,S.an);
+  const carte=(o,i)=>{ const S=SAISONS[o.k]||SAISONS[E.k], P=PAYS[S.pays||"FR"]||PAYS.FR, etr=(S.pays||"FR")!==G.pays; // une offre peut venir d'ailleurs
+    const c=metaSaison(o.id,S.an);
     const bouton=o.suite?"Saison "+S.titre+" →":o.reste?"Prolonger":"Signer";
     return `<div class="panel">
       <h2 style="display:flex;align-items:center;gap:10px">${blason(c,32)}${esc(c.nom)}</h2>
-      <p class="dim">${esc(libDiv(o.div,S.an))} · ${esc(S.titre)}</p>
+      <p class="dim">${etr?P.drapeau+" ":""}${esc(P[o.div===1?"div1":"div2"](S.an))} · ${esc(S.titre)}</p>
       ${o.suite?"":`<p style="font-style:italic;margin-top:6px">« ${esc(motPresident(o,o.div))} »</p>`}
       <p style="margin-top:6px">${o.suite?"":`Contrat : <b class="fort">${o.duree>1?o.duree+" saisons":"une saison"}</b> · `}Objectif : <b class="fort">${esc(o.obj.label)}</b></p>
       <p style="margin-top:8px"><button class="big bEteSigne" data-i="${i}" style="width:100%">${esc(bouton)}</button></p></div>`; };
@@ -21854,6 +21873,8 @@ function ecranFinCarriere(){ // la version courte : le livre d'or et le grand bi
 function basculeSaison(o){ // signer l'offre de l'été : la vraie saison suivante, même carrière
   if(!o || !SAISONS[o.k]) return;
   const old=G, part=PARTIE, meme=o.id===old.monClub, oc=clubById(old.monClub);
+  if(old.coach && !old.coach.depart) old.coach.depart=cleDepart(old); // avant tout changement de pays (carrières d'avant la livraison 4)
+  if(meme && (SAISONS[o.k].pays||"FR")!==old.pays) return; // garde-fou : un même code dans deux pays n'est jamais le même club
   nouvellePartie(o.id, o.k, null, true);
   const N=G, nc=clubById(o.id);
   N.pid=old.pid; N.anBase=old.anBase; N.saisonIdx=(old.saisonIdx||1)+1;

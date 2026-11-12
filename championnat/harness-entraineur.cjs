@@ -12,6 +12,7 @@
    I) les offres de l'été, cas par cas (suite, prolongation, clubs plus forts ou plus modestes, club disparu, fin)
    J) signer l'été : la vraie saison suivante, le vrai effectif, la même carrière
    K) le naufrage : l'avertissement, sa levée, le renvoi, la fin de saison sans vous, l'été d'un renvoyé (livraison 3)
+   L) les offres de l'étranger : un été sur deux, une offre d'un autre pays ; signer change de pays, pas de saison de départ (livraison 4)
    Usage : node harness-entraineur.cjs                                                               */
 const fs = require("fs");
 const path = require("path");
@@ -50,7 +51,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,classement,sauvegardeLocale,chargeLocale,partiesListe," +
   "ecranAccueil,SAISONS,SAISONS_OUVERTES,saisonOuverte,offresDebut,forceReelle,forceEffectif,nivDuRang,objectifEntr,objectifDuClub," +
-  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier,seuilNaufrage,surveillePresident,finitSansVous,forceReelle2:forceReelle," +
+  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier,offresEte,seuilNaufrage,surveillePresident,finitSansVous,forceReelle2:forceReelle," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 function reel(fn) { global.window.__TEST__ = false; try { return fn(); } finally { global.window.__TEST__ = true; } }
@@ -231,19 +232,19 @@ console.log("I) les offres de l'été, cas par cas");
   for (let i = 0; i < 30; i++) {
     E = ete("depasse", 0);
     if (E.cas !== "appels" || E.offres.length !== 4 || E.offres[3].id !== id) rester = false;
-    if (E.offres.slice(0, 3).some(o => valeur(S96, o.id) < v0 || o.id === id)) tousPlusForts = false;
+    if (E.offres.slice(0, 3).some(o => valeur(S[o.k], o.id) < v0 || o.id === id)) tousPlusForts = false;
     E = ete("rate", 0);
-    if (E.cas !== "remercie" || E.offres.length !== 3 || E.offres.some(o => valeur(S96, o.id) >= v0 || o.id === id)) tousPlusModestes = false;
+    if (E.cas !== "remercie" || E.offres.length !== 3 || E.offres.some(o => valeur(S[o.k], o.id) >= v0 || o.id === id)) tousPlusModestes = false;
   }
   ok(rester, "objectif dépassé : trois clubs appellent, et le président propose de prolonger");
   ok(tousPlusForts, "objectif dépassé : ce sont des clubs plus forts");
   ok(tousPlusModestes, "objectif manqué : seulement des clubs plus modestes");
   // la réputation fixe jusqu'où : une étoile n'ouvre jamais le haut de l'échelle, cinq étoiles si
-  const ech = api.echelle(S96), rangE = x => ech.findIndex(e => e.id === x);
+  const rangE = o => api.echelle(S[o.k]).findIndex(e => e.id === o.id), ech = api.echelle(S96); // chaque offre sur l'échelle de son pays
   let hautPetit = 0, hautGrand = 0;
   for (let i = 0; i < 60; i++) {
-    E = ete("depasse", 0, 20); hautPetit = Math.max(hautPetit, ...E.offres.slice(0, 3).map(o => rangE(o.id)));
-    E = ete("depasse", 0, 100); hautGrand = Math.max(hautGrand, ...E.offres.slice(0, 3).map(o => rangE(o.id)));
+    E = ete("depasse", 0, 20); hautPetit = Math.max(hautPetit, ...E.offres.slice(0, 3).map(o => rangE(o)));
+    E = ete("depasse", 0, 100); hautGrand = Math.max(hautGrand, ...E.offres.slice(0, 3).map(o => rangE(o)));
   }
   ok(hautPetit < ech.length * 0.75, "une étoile : pas de grand club (plus haut rang proposé " + (hautPetit + 1) + "/" + ech.length + ")");
   ok(hautGrand > hautPetit, "cinq étoiles : des clubs plus hauts (" + (hautGrand + 1) + "/" + ech.length + ")");
@@ -358,15 +359,55 @@ console.log("K) le naufrage (livraison 3)");
   APP._h = ""; api.ecranBilan();
   ok(APP._h.includes("RENVOYÉ"), "l'almanach le dit");
   api.preparerEte(); const E = api.getG().ete;
-  const S96 = api.SAISONS["1996-97"], ech = api.echelle(S96), bas3 = ech.slice(0, 3).map(x => x.id);
-  const val = id => api.forceReelle(S96, id) + (S96.d1.includes(id) ? 3 : 0);
-  ok(E.cas === "vire" && E.offres.length === 3 && E.offres.every(o => val(o.id) < v0 || bas3.includes(o.id)), "l'été : trois clubs plus faibles (ou les plus faibles de tous)");
+  const S96 = api.SAISONS["1996-97"];
+  const val = o => api.forceReelle(api.SAISONS[o.k], o.id) + (api.SAISONS[o.k].d1.includes(o.id) ? 3 : 0), bas3 = o => api.echelle(api.SAISONS[o.k]).slice(0, 3).map(x => x.id).includes(o.id);
+  ok(E.cas === "vire" && E.offres.length === 3 && E.offres.every(o => val(o) < v0 || bas3(o)), "l'été : trois clubs plus faibles (ou les plus faibles de tous)");
   APP._h = ""; api.ecranCalendrier();
   ok(APP._h.includes("RENVOYÉ") && (APP._h.match(/bEteSigne/g) || []).length === 3, "l'écran de l'été d'un renvoyé");
   // le bandeau d'avertissement, sur l'écran du match
   // (les notifications ouvrent la fenêtre du debrief, que le faux #fiche du harnais ne sait pas tenir : on les vide)
   G = neuve(); G.journee = 12; api.surveillePresident(20, 17, 20); G.intro = null; G.notifs = []; APP._h = ""; api.ecranCalendrier();
   ok(APP._h.includes("Le président vous a prévenu") && APP._h.includes("5 journées"), "le bandeau rouge et le délai qui court");
+}
+
+console.log("L) les offres de l'étranger (livraison 4)");
+{
+  const S96 = S["1996-97"], v0 = api.forceReelle(S["1995-96"], "LAV");
+  const pays = o => S[o.k].pays || "FR";
+  let etes = 0, avecEtranger = 0, troisEtrangers = 0, sensFaux = 0;
+  for (let i = 0; i < 300; i++) for (const sens of ["haut", "bas", "pareil"]) {
+    const l = api.offresEte(sens, S96, "1996-97", v0, "LAV", 50); etes++;
+    const e = l.filter(o => pays(o) !== "FR");
+    if (e.length) avecEtranger++;
+    if (e.length > 1) troisEtrangers++;
+    for (const o of e) { const v = api.forceReelle(S[o.k], o.id) + (S[o.k].d1.includes(o.id) ? 3 : 0);
+      if (S[o.k].an !== 1996 || (sens === "haut" && v < v0) || (sens === "bas" && v >= v0)) sensFaux++; }
+  }
+  ok(avecEtranger / etes > 0.4 && avecEtranger / etes < 0.6, "environ un été sur deux, une offre vient de l'étranger (" + (100 * avecEtranger / etes).toFixed(0) + " %)");
+  ok(troisEtrangers === 0, "jamais plus d'une");
+  ok(sensFaux === 0, "même année, et la même règle : plus fort vers le haut, plus modeste vers le bas");
+  // signer en Angleterre
+  const ls = nouveauLS(), a = appareil(ls);
+  const o = a.offresDebut("1995-96")[0]; a.nouvellePartie(o.id, "1995-96", o);
+  let G = a.getG(); const pid = G.pid;
+  G.finie = true; G.coach.contrat.reste = 0; G.coach.bilan = { v: "depasse", crans: 1, avant: 20, apres: 32, rang: 6, obj: o.obj.label }; G.coach.rep = 32;
+  const SA = a.SAISONS["ANG-1996-97"], idA = SA.d2[5];
+  a.basculeSaison({ id: idA, k: "ANG-1996-97", div: 2, duree: 2, obj: a.objectifEntr(1, 2, SA.d2.length) });
+  G = a.getG();
+  ok(G.pays === "ANG" && G.monClub === idA && G.saison === "1996-97" && G.div === 2, "on entraîne en Angleterre, en deuxième division, en 1996-97");
+  ok(G.clubs.every(c => SA.d2.includes(c.id)) && (SA.starsD2[idA] || []).every(s => a.clubById(idA).joueurs.some(j => j.nom === s[0])), "la vraie D2 anglaise et le vrai effectif");
+  ok(G.pid === pid && G.coach.rep === 32 && G.coach.depart === "1995-96" && a.cleDepart(G) === "1995-96", "même carrière, et la saison de départ reste 1995-96 (France)");
+  let err = null; try { G.intro = null; for (let i = 0; i < 3; i++) a.jouerJournee(); } catch (e) { err = e; }
+  ok(!err, "la saison anglaise se joue" + (err ? " : " + err.message : ""));
+  ok(reel(() => a.sauvegardeLocale(true)) && a.partiesListe().length === 1 && a.partiesListe()[0].pays === "ANG", "une seule carrière, la carte de l'accueil passe au drapeau anglais");
+  // l'été suivant regarde l'Angleterre de 1997-98
+  G.finie = true; G.coach.contrat.reste = 1; G.coach.bilan = { v: "tenu", crans: 0, avant: 32, apres: 38, rang: 8, obj: "x" };
+  a.preparerEte();
+  ok(a.getG().ete.k === "ANG-1997-98", "l'été suivant regarde la saison anglaise de 1997-98");
+  // l'écran de l'été montre le drapeau d'une offre étrangère
+  a.getG().ete.offres.push({ id: S["1997-98"].d2[0], k: "1997-98", div: 2, duree: 1, exig: false, obj: a.objectifEntr(0, 2, 20) });
+  APP._h = ""; a.ecranCalendrier();
+  ok(APP._h.includes('class="drap"') && APP._h.includes("Division 2"), "une offre de France porte son drapeau et le nom de sa division");
 }
 
 console.log(FAILS ? "\n✗ " + FAILS + " échec(s)" : "\n✓ tout est vert");

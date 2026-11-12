@@ -2279,7 +2279,17 @@ toujours « raconter quelque chose ».
   joue tout le reste au moteur : coupe et Europe tranchées par `coupeResoutTour(false)`/`euroResoutTour(false)`,
   les moments d'un match laissé en suspens résolus par `autoMoment`, puis les fenêtres en suspens effacées. Le
   verdict est `vire` (« RENVOYÉ », −15 de réputation, pas de bonus de titre, contrat arrêté, `vireJ` dans
-  l'historique), et l'été passe au cas `vire` : trois clubs plus faibles.
+  l'historique), et l'été passe au cas `vire` : trois clubs plus faibles. Réputation à zéro étoile possible
+  (choix de l'auteur : un renvoi doit se voir).
+  **Livraison 4 (v2.65) : les offres de l'étranger.** `offresEte` tire trois offres du pays (`candidatsEte` donne
+  les candidats sur l'échelle) puis, une fois sur deux (`OFFRE_ETRANGER`), remplace la dernière par une offre d'un
+  autre pays qui a sa saison LA MÊME ANNÉE, prise sur l'échelle de ce pays et filtrée par la même règle (≥ votre
+  valeur vers le haut, < vers le bas) ; jamais plus d'une. Les forces des deux championnats sont comparées telles
+  quelles (même barème de notes). La carte d'une offre lit le pays de SA saison (`o.k`) : drapeau et nom de division
+  de ce pays. Signer passe par `nouvellePartie` qui pose le pays (libellés, coupe, monnaie) ; `G.pays` change.
+  **La saison de départ vit dans `G.coach.depart`** (posée à la signature, rattrapée dans `basculeSaison` pour une
+  carrière plus ancienne) et `cleDepart` la lit d'abord : la clé d'un titre gagné à l'étranger va au championnat du
+  départ. L'Italie entrera seule quand ses saisons seront dans `SAISONS`.
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le
