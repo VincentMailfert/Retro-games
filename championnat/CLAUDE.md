@@ -233,6 +233,18 @@ toujours « raconter quelque chose ».
   `type="text/javascript"` pour qu'elle ne soit **pas** capturée par le motif `<script>` *nu* de la commande
   d'extraction (validation §1). Ne pas lui retirer cet attribut, et ne jamais ajouter d'autre bloc `<script>`
   nu hors du gros script de jeu, sinon l'extraction du JS attrape le mauvais bloc.
+- **LA MESURE DU PARCOURS (v2.74, premier chantier du plan « 10 000 joueurs »)** : le compteur ne voyait que l'arrivée
+  sur la page. Le jeu envoie désormais à GoatCounter huit **événements** (`MESURE_EVTS`), chacun **une seule fois par
+  navigateur**, sous les chemins `parcours/…` : `premiere-visite`, `partie-lancee` (`nouvellePartie`, sauf l'été d'une
+  carrière d'entraîneur), `premier-match` (`finirJournee`), `saison-finie` (`finDeSaison`), `compte-cree`
+  (`compteInscription`), et `retour-j1`/`retour-j7`/`retour-j30` (écart en jours de calendrier avec la première visite,
+  `mesureRetoursDus`, PUR). `mesure(evt)` ne part que sur l'URL publique HTTPS et jamais au harnais (`EN_TEST`) ; si le
+  script de GoatCounter n'est pas encore là, il réessaie dix secondes puis abandonne SANS noter l'événement, qui repartira
+  à la prochaine occasion. Le carnet `MESURE_KEY` (`d1manager_mesure_v1`) ne garde que la date de première visite et les
+  événements envoyés ; rien de personnel ne part (un nom d'événement, c'est tout), pas de cookie. `mesureDemarrage()`
+  est appelée 0,8 s après le lancement. Lire les chiffres dans le tableau GoatCounter, ligne par ligne `parcours/…`.
+  Gardé par **`harness-mesure.cjs`** (sections A à F) ; vérifié dans un vrai navigateur (Chromium, page servie en
+  https://multiplex.club/ avec un faux compteur) : première visite, partie lancée, et rien de renvoyé au rechargement.
 
 ## Conventions de code
 - **Éditions chirurgicales** : modifier le strict nécessaire, préserver l'art ASCII, les blasons SVG,

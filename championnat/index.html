@@ -628,7 +628,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.73"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.74"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11253,8 +11253,50 @@ function construitDivision(listeClubs, starsMap){
   }
   return clubs;
 }
+/* ---------- LA MESURE DU PARCOURS (v2.74, plan « 10 000 joueurs ») ----------
+   Le compteur GoatCounter du <head> ne voyait que l'arrivée sur la page. Le jeu lui envoie désormais
+   quelques ÉVÉNEMENTS, chacun UNE SEULE FOIS par navigateur : la première visite, la partie lancée, le
+   premier match joué, la première saison finie, le compte créé, et le retour à J1, J7 et J30 (écart avec
+   la première visite, en jours de calendrier). Rien de personnel ne part : un nom d'événement, c'est tout.
+   Le carnet (`MESURE_KEY`) ne garde que la date de première visite et les événements déjà envoyés.
+   Mêmes garde-fous que le compteur : rien en local (file://, localhost), rien au harnais (EN_TEST), et si
+   GoatCounter n'est pas encore chargé, l'événement attend (dix secondes au plus) puis repart à la
+   prochaine occasion, puisqu'il n'est noté qu'une fois envoyé. Lu dans GoatCounter sous les chemins
+   « parcours/… ». Gardé par harness-mesure.cjs. */
+const MESURE_KEY="d1manager_mesure_v1";
+const MESURE_EVTS=["premiere-visite","partie-lancee","premier-match","saison-finie","compte-cree","retour-j1","retour-j7","retour-j30"];
+function mesurePublic(){ return typeof location!=="undefined" && location.protocol==="https:" &&
+  !/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname||""); }
+function mesureLit(){ try{ const o=JSON.parse(localStorage.getItem(MESURE_KEY)||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function mesureEcrit(o){ try{ localStorage.setItem(MESURE_KEY, JSON.stringify(o)); }catch(e){} }
+function mesureJour(d){ const x=d||new Date(); return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); }
+function mesureEcart(de, a){ return Math.round((Date.parse(a+"T12:00:00")-Date.parse(de+"T12:00:00"))/864e5); }
+/* Les événements dus à cette date, pour un carnet donné : PUR (testable au harnais). */
+function mesureRetoursDus(o, aujourdhui){
+  if(!o.premier) return [];
+  const j=mesureEcart(o.premier, aujourdhui), dus=[];
+  for(const [n,e] of [[1,"retour-j1"],[7,"retour-j7"],[30,"retour-j30"]]) if(j>=n && !(o.vus&&o.vus[e])) dus.push(e);
+  return dus;
+}
+function mesure(evt, essai){
+  if(!MESURE_EVTS.includes(evt) || EN_TEST() || !mesurePublic()) return false;
+  const o=mesureLit(); if(o.vus && o.vus[evt]) return false;
+  const gc=typeof window!=="undefined" && window.goatcounter;
+  if(!gc || typeof gc.count!=="function"){ if((essai||0)<10) setTimeout(()=>mesure(evt,(essai||0)+1), 1000); return false; }
+  try{ gc.count({path:"parcours/"+evt, title:evt, event:true}); }catch(e){ return false; }
+  o.vus=o.vus||{}; o.vus[evt]=mesureJour(); mesureEcrit(o); return true;
+}
+function mesureDemarrage(){
+  if(EN_TEST() || !mesurePublic()) return;
+  const o=mesureLit();
+  if(!o.premier){ o.premier=mesureJour(); mesureEcrit(o); }
+  mesure("premiere-visite");
+  for(const e of mesureRetoursDus(o, mesureJour())) mesure(e);
+}
+
 function nouvellePartie(clubId, saisonKey, entr, suite){ // entr : l'offre signée d'une carrière d'entraîneur (sinon, le mode de toujours) ; suite : l'été d'une carrière d'entraîneur (cf. basculeSaison)
   const S=SAISONS[saisonKey]||SAISONS[SAISON_DEFAUT]; // saison de départ choisie (vrais effectifs d'époque)
+  if(!suite) mesure("partie-lancee"); // une fois par navigateur (cf. LA MESURE DU PARCOURS) ; l'été d'une carrière n'est pas un lancement
   voitPays(S.pays||"FR", S.an, true); // le pays de la carrière : libellés de divisions, coupe, monnaie d'affichage
   MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*", page:1, sel:null}; // filtres mercato à neuf
   const d1=construitDivision(S.d1.map(id=>metaSaison(id,S.an)), S.starsD1);
@@ -14104,6 +14146,7 @@ function autoMoment(mo){ // résolution sans intervention (tests, abandon de ban
 /* phase B : application du résultat de mon match et toute la vie du championnat */
 function finirJournee(delta){
   const P=G._pend; if(!P) return; G._pend=null;
+  mesure("premier-match");
   CHANGEMENTS={}; // le coup de sifflet est acté : la coupe et l'Europe qui suivent composent avec onze(), comme avant
   const {res,pend}=P;
   if(pend){
@@ -20116,6 +20159,7 @@ function retireDEurope(nom){ // un joker signé qui porte le nom d'un joueur eur
 }
 
 function finDeSaison(){
+  mesure("saison-finie");
   for(const p of G.prets.slice()) retourPret(p);
   G.prets=[];
   const cl=classement();
@@ -21020,6 +21064,7 @@ function adresseRetour(){ // où ramènent les liens des emails (confirmation, m
 async function compteInscription(email, mdp){
   const r=await nuageAppel("/auth/v1/signup?redirect_to="+encodeURIComponent(adresseRetour()), "POST", {email, password:mdp}, false);
   if(!r.ok) return {ok:false, code:codeErreur(r)};
+  mesure("compte-cree");
   if(r.donnees && r.donnees.access_token){ compteEcrit(sessionDe(r.donnees)); return {ok:true}; }
   return {ok:true, confirmer:true}; // l'adresse doit être confirmée par le lien reçu
 }
@@ -26730,6 +26775,7 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="hidden") return;
     if(G) sauvegardeLocale(true); nuagePlanifie("cache"); });
   window.addEventListener("online",()=>nuagePlanifie("reseau"));
+  setTimeout(mesureDemarrage, 800); // la mesure du parcours : première visite et retours (cf. LA MESURE DU PARCOURS)
   if(compteLit()) setTimeout(()=>nuagePlanifie("demarrage"), 1500); // un joueur connecté : ce qui attendait depuis la dernière fois
 }
 </script>
