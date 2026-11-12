@@ -67,8 +67,8 @@
   /* La division, sur le bandeau JAUNE : pastille inversée, fond sombre et texte jaune. Un simple .jaune y
      était invisible (jaune sur jaune). D1 et D2 portent la même pastille : le chiffre suffit (chantier interface, lot 1). */
   .topbar .divTag{background:#16243c; color:var(--jaune); padding:0 5px; letter-spacing:0;}
-  /* retour à l'accueil (v2.70) : même pastille sombre que la division, assez grande pour un pouce */
-  .topbar .tbAccueil{background:#16243c; color:var(--jaune); border:0; border-radius:3px; font:inherit; font-size:13px;
+  /* retour à l'accueil (v2.70, logo Multiplex v2.71) : même pastille sombre que la division, assez grande pour un pouce */
+  .topbar .tbAccueil{display:inline-flex; align-items:center; gap:6px; background:#16243c; color:var(--jaune); border:0; border-radius:3px; font:inherit; font-size:13px;
     letter-spacing:0; padding:2px 8px; min-height:28px; cursor:pointer;}
   .topbar .tbAccueil:hover{background:#0b1626;}
   /* quatre onglets soulignés ; le jaune ne marque que l'onglet où l'on est */
@@ -628,7 +628,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.70"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.71"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -22259,7 +22259,7 @@ function chrome(actif, corps){
   const c=clubById(G.monClub);
   app.innerHTML=`
    <div class="topbar">
-     <span style="display:flex;align-items:center;gap:8px"><button class="tbAccueil" id="bAccueil" title="Retour à l'accueil (la carrière est sauvegardée)" aria-label="Retour à l'accueil">🏠 Accueil</button>${blason(c,20)}${esc(c.nom).toUpperCase()}${G.mode==="entraineur"&&G.coach?`<span class="tbEtoiles" style="font-size:13px;letter-spacing:1px" title="Réputation de l'entraîneur">${etoiles(G.coach.rep)}</span>`:""}</span>
+     <span style="display:flex;align-items:center;gap:8px"><button class="tbAccueil" id="bAccueil" title="Retour à l'accueil (la carrière est sauvegardée)" aria-label="Retour à l'accueil">${logoMultiplex(18)} Accueil</button>${blason(c,20)}${esc(c.nom).toUpperCase()}${G.mode==="entraineur"&&G.coach?`<span class="tbEtoiles" style="font-size:13px;letter-spacing:1px" title="Réputation de l'entraîneur">${etoiles(G.coach.rep)}</span>`:""}</span>
      <span class="r">${esc(G.saison)} · <b class="divTag${G.div===2?' d2':''}">${esc(tagDiv(G.div||1))}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${MM(G.budget,1)}<span class="tbTreso"> · Trésorerie ${MM(G.tresorerie,1)}</span></span>
    </div>
    ${barreNav(actif)}
