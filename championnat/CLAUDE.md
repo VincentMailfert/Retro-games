@@ -2246,8 +2246,27 @@ toujours « raconter quelque chose ».
   (bonus secret), le président ne le connaît pas, c'est voulu. État : `G.mode="entraineur"`, `G.coach={rep,
   repMax, saisons, contrat:{club, saison, duree, reste, obj}}` ; réputation 0-100 montrée en étoiles (`etoiles`,
   un cran par 20, départ `COACH_REP0`=20, une étoile) dans le bandeau du jeu (encre du bandeau, PAS jaune : le
-  bandeau est jaune) et sur la carte de l'accueil (`ficheDe` → `entr`). Livraison 1 seule : l'intersaison reste
-  celle du mode de toujours (joueurs gardés), et le renvoi aussi. Gardé par `harness-entraineur.cjs`.
+  bandeau est jaune) et sur la carte de l'accueil (`ficheDe` → `entr`). Gardé par `harness-entraineur.cjs`.
+  **Livraison 2 (v2.63) : le temps qui passe.** `finDeSaison` appelle `finSaisonEntr` : `verdictSaison` (MANQUÉ si
+  rang > place, DÉPASSÉ si la place d'au moins un cran plus ambitieux est tenue, `crans` = combien), réputation par
+  `REP_GAIN` (dépassé +12 et +6 par cran de plus, tenu +6, manqué −10, titre +10 en D1 / +4 en D2), la saison entre
+  dans `G.coach.saisons` (matière du futur livre d'or), `contrat.reste` décompte. Le renvoi « objectif manqué » du
+  mode de toujours ne joue PAS dans ce mode. Le bouton de l'almanach appelle `preparerEte` au lieu d'`intersaison`
+  (qui n'est plus jamais appelée en mode entraîneur) : état `G.ete={v, k, fin, cas, offres}`, écran `ecranEte`
+  (branché dans `ecranCalendrier` juste après le renvoi). Cas : `suite` (contrat en cours), `prolonge` (tenu :
+  `offreRester` un cran plus haut, règle selon que le club monte ou descend VRAIMENT), `appels` (dépassé : trois clubs
+  plus forts + la prolongation), `remercie` (manqué : trois clubs plus modestes), `disparu` (le club n'est plus dans
+  les deux divisions de la vraie saison suivante ; offres selon le verdict), `fin` (`cleSaison` ne trouve pas
+  l'année suivante : `ecranFinCarriere`, version courte en attendant la livraison 5). **L'échelle** (`echelle`) range
+  les quarante clubs d'une saison par `forceReelle`, +3 en D1 ; vers le haut, `offresEte` puise entre votre place et
+  un plafond fixé par la réputation (35 % de l'échelle + 65 % × rep/100), au moins les trois clubs juste au-dessus.
+  **Signer** (`basculeSaison`) rappelle `nouvellePartie(id, k, null, true)` (le 4e argument `suite` saute la
+  création de carrière et l'écran), puis recopie la carrière : même `pid`, `anBase` du DÉPART (la clé d'un titre
+  va toujours à la saison de départ), `saisonIdx`+1, coach, palmarès, formation, consigne, prix du billet ; si l'on
+  RESTE au club, aussi stade, chantier, campus, staff, budget, trésorerie, image, records, affluences, et la
+  capacité/le prestige bâtis. Aucun joueur n'est gardé : c'est le vrai effectif de l'année. **Piège du harnais** :
+  `montre()` ne dessine RIEN sous le harnais (`EN_TEST`) ; pour tester un écran du jeu, appeler `ecranCalendrier()`
+  directement (un test des étoiles de la livraison 1 passait à tort sur un reste de l'accueil).
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le

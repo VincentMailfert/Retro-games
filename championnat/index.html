@@ -624,7 +624,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.62"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.63"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11190,7 +11190,7 @@ function construitDivision(listeClubs, starsMap){
   }
   return clubs;
 }
-function nouvellePartie(clubId, saisonKey, entr){ // entr : l'offre signée d'une carrière d'entraîneur (sinon, le mode de toujours)
+function nouvellePartie(clubId, saisonKey, entr, suite){ // entr : l'offre signée d'une carrière d'entraîneur (sinon, le mode de toujours) ; suite : l'été d'une carrière d'entraîneur (cf. basculeSaison)
   const S=SAISONS[saisonKey]||SAISONS[SAISON_DEFAUT]; // saison de départ choisie (vrais effectifs d'époque)
   voitPays(S.pays||"FR", S.an, true); // le pays de la carrière : libellés de divisions, coupe, monnaie d'affichage
   MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*", page:1, sel:null}; // filtres mercato à neuf
@@ -11239,6 +11239,7 @@ function nouvellePartie(clubId, saisonKey, entr){ // entr : l'offre signée d'un
   // `construitDivision` de l'Europe, il ignorait les remplaçants générés des clubs européens, et l'on
   // voyait un joueur de village porter le nom d'un homme de la Juventus (attrapé par harness-coupes, section I).
   coupeInit();       // tirage de la Coupe de France de la saison, et des effectifs de village
+  if(suite) return;  // carrière d'entraîneur, été suivant : `basculeSaison` reprend la main (même carrière, pas d'écran)
   PARTIE=partieNeuve(); G.pid=PARTIE.id; // une carrière DE PLUS : celles déjà ouvertes sont conservées
   majTitre(); montre("calendrier");
 }
@@ -20073,7 +20074,9 @@ function finDeSaison(){
   progFinDeSaison(rang); // la clé d'un titre de D1, et le résultat de la saison (cf. les saisons verrouillées)
   soldeBio(); // la saison entre dans la fiche de vie de chacun AVANT que razStatsClub ne remette tout à zéro
   // verdict du président : être relégué ne licencie plus (on continue en D2) ; seul un objectif manqué de loin coûte la place
-  if(rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
+  // carrière d'entraîneur : c'est le contrat qui juge (verdict, réputation, offres de l'été), jamais ce renvoi-là
+  if(G.mode==="entraineur" && G.coach) finSaisonEntr(rang);
+  if(G.mode!=="entraineur" && rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
   else if(rang<=G.objectif.place){
     G.budget+=15e6; G.confiance=Math.min(100,G.confiance+20);
     G.news.unshift("Le président savoure : objectif atteint. Rallonge de "+MM(15e6,0)+" au budget transferts.");
@@ -20323,6 +20326,7 @@ function ecranBilan(){
      <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
      ${imgBilan?`<img class="momImg" style="max-height:240px;margin-top:6px" src="${imgBilan}" alt="">`:""}
      <p style="font-size:17px">Vous terminez à la <b class="jaune">${B.rang}ᵉ place</b>. ${esc(verdict)}</p>
+     ${G.mode==="entraineur"&&G.coach&&G.coach.bilan?ligneVerdict(G.coach.bilan):""}
      ${cleDuBilan()?`<p class="fort" style="margin-top:4px">🔑 Champion : une clé de plus au trousseau.</p>`:""}
      ${moi?`<p class="dim" style="margin-top:4px">${moi.g} victoires · ${moi.n} nuls · ${moi.p} défaites, ${moi.bp} buts marqués, ${moi.bc} encaissés (${moi.bp-moi.bc>0?"+":""}${moi.bp-moi.bc}).</p>`:""}
      <p class="dim" style="margin-top:2px">Champion de ${esc(libDiv(B.div))} : <b>${esc(B.champion?B.champion.nom:"")}</b> avec ${B.champion?B.champion.pts:0} points.</p>
@@ -20377,7 +20381,8 @@ function ecranBilan(){
        : `<p><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>`}
      ${propCompte("saison")}
    </div>`);
-  document.getElementById("bInter").onclick=()=>{ if(!G.vire) intersaison(); montre("calendrier"); };
+  // carrière d'entraîneur : l'été n'est pas l'intersaison de toujours, c'est le bureau du président (preparerEte)
+  document.getElementById("bInter").onclick=()=>{ if(!G.vire){ if(G.mode==="entraineur") preparerEte(); else intersaison(); } montre("calendrier"); };
   cablePropCompte(app, ()=>{});
   { const bP=document.getElementById("bPartSaison"); if(bP) bP.onclick=()=>partageSaison(B, verdict); } // piste 1
 }
@@ -21598,7 +21603,7 @@ function motPresident(o, div){
 function signeContrat(o, k){ // appelé par nouvellePartie, G tout juste bâti
   G.mode="entraineur";
   G.coach={rep:COACH_REP0, repMax:COACH_REP0, saisons:[],
-    contrat:{club:o.id, saison:(SAISONS[k]||{}).titre||G.saison, duree:o.duree, reste:o.duree, obj:o.obj}};
+    contrat:{club:o.id, saison:(SAISONS[k]||{}).titre||G.saison, duree:o.duree, reste:o.duree, obj:o.obj}, obj:o.obj};
   G.objectif={place:o.obj.place, label:o.obj.label};
   G.news[0]="Contrat signé : "+(o.duree>1?o.duree+" saisons":"une saison")+". Objectif : "+o.obj.label.toLowerCase()+".";
 }
@@ -21642,6 +21647,163 @@ function contratEntraineur(o){
     fermeFiche(); ENTR_OFFRES=null; nouvellePartie(o.id, o.k, o);
   };
   document.getElementById("bRetour").onclick=ecranEntraineur;
+}
+
+/* ---------- LIVRAISON 2 : LE TEMPS QUI PASSE ----------
+   À la fin de chaque saison, le contrat juge : objectif DÉPASSÉ (au moins un cran d'ambition au-dessus, ex. top 10
+   quand on visait le maintien), TENU, ou MANQUÉ (`verdictSaison`). La réputation bouge (`REP_GAIN`), la saison
+   entre dans `G.coach.saisons` (le futur livre d'or). Puis l'été (`preparerEte`, état `G.ete`, écran `ecranEte`) :
+   - contrat en cours : on continue au même club ;
+   - fin de contrat, objectif tenu : le président prolonge, objectif un cran plus haut ;
+   - fin de contrat, objectif dépassé : des clubs plus forts appellent (la réputation fixe jusqu'où), et le
+     président propose aussi de prolonger ;
+   - fin de contrat, objectif manqué : remercié, seuls des clubs plus modestes appellent ;
+   - le club a quitté les deux divisions du jeu (vraie descente en National, en Conference…) : des clubs de
+     même rang appellent ;
+   - plus de saison dans le jeu : fin de carrière.
+   Signer (`basculeSaison`) recharge la VRAIE saison suivante : le club dans sa vraie division, avec son vrai
+   effectif. On ne garde aucun joueur. Rester au club garde ce qu'on y a bâti (stade, centre, staff, argent :
+   choix de l'auteur) ; en changer repart de ce qu'avait le nouveau club. `anBase` reste celle du départ (la
+   clé d'un titre va toujours à la saison de départ, cf. cleDepart) et `saisonIdx` avance.
+   L'échelle des clubs (`echelle`) range les quarante clubs d'une saison par la force de leur effectif réel, la
+   première division devant à force égale. */
+const REP_GAIN={depasse:12, cran:6, tenu:6, rate:-10, titreD1:10, titreD2:4};
+function cleSaison(pays, an){ return Object.keys(SAISONS).find(k=>(SAISONS[k].pays||"FR")===pays && SAISONS[k].an===an)||null; }
+function divReelle(S, id){ return S.d1.includes(id)?1 : S.d2.includes(id)?2 : 0; }
+function objectifReel(S, id){ // l'objectif qu'appelle le vrai niveau d'un club, dans sa vraie division
+  const div=divReelle(S,id), l=div===1?S.d1:S.d2;
+  const tri=l.slice().sort((a,b)=>forceReelle(S,b)-forceReelle(S,a));
+  return objectifEntr(nivDuRang(tri.indexOf(id)+1, l.length), div, l.length);
+}
+function verdictSaison(rang, obj, div, n){
+  if(rang>obj.place) return {v:"rate", crans:0};
+  let crans=0;
+  for(let t=obj.niv+1; t<=3 && rang<=objectifEntr(t,div,n).place; t++) crans++;
+  return {v:crans?"depasse":"tenu", crans};
+}
+function finSaisonEntr(rang){ // appelée par finDeSaison
+  const C=G.coach, n=G.clubs.length, o=C.obj||Object.assign({niv:0}, G.objectif);
+  const vd=verdictSaison(rang, o, G.div, n);
+  let d = vd.v==="rate" ? REP_GAIN.rate : vd.v==="tenu" ? REP_GAIN.tenu : REP_GAIN.depasse+REP_GAIN.cran*(vd.crans-1);
+  if(rang===1) d+=G.div===1?REP_GAIN.titreD1:REP_GAIN.titreD2;
+  const avant=C.rep;
+  C.rep=Math.max(0,Math.min(100,avant+d)); C.repMax=Math.max(C.repMax||0,C.rep);
+  C.contrat.reste=Math.max(0,(C.contrat.reste||1)-1);
+  const moi=clubById(G.monClub);
+  C.saisons.push({s:G.saison, pays:G.pays, club:G.monClub, nom:moi?moi.nom:"", div:G.div, rang, obj:o.label, v:vd.v, rep:C.rep});
+  C.bilan={v:vd.v, crans:vd.crans, avant, apres:C.rep, rang, obj:o.label};
+}
+const LIB_VERDICT={depasse:"OBJECTIF DÉPASSÉ", tenu:"OBJECTIF TENU", rate:"OBJECTIF MANQUÉ"};
+function ligneEtoiles(b){ return etoiles(b.avant)+(etoiles(b.apres)!==etoiles(b.avant)?" → "+etoiles(b.apres):""); }
+function ligneVerdict(b){ // une ligne sous le verdict de l'almanach
+  return `<p class="${b.v==="rate"?"rouge":"fort"}" style="margin-top:4px"><b>${LIB_VERDICT[b.v]}</b> <span class="dim">(${esc(b.obj)})</span> · ${ligneEtoiles(b)}</p>`;
+}
+function echelle(S){
+  return S.d1.map(id=>({id,div:1})).concat(S.d2.map(id=>({id,div:2})))
+    .map(o=>Object.assign(o,{v:forceReelle(S,o.id)+(o.div===1?3:0)})).sort((a,b)=>a.v-b.v);
+}
+function offreClub(S, k, id){ // l'offre d'un club de la saison k : objectif lu à son vrai niveau, président parfois exigeant
+  const div=divReelle(S,id), n=(div===1?S.d1:S.d2).length;
+  let obj=objectifReel(S,id); const exig=obj.niv<3 && Math.random()<PRES_EXIGEANT;
+  if(exig) obj=objectifEntr(obj.niv+1, div, n);
+  return {id, k, div, duree:Math.random()<0.5?1:2, exig, obj};
+}
+function tire(l, n){ const c=l.slice(), out=[]; while(c.length && out.length<n) out.push(c.splice(Math.floor(Math.random()*c.length),1)[0]); return out; }
+// sens : "haut" (plus forts, jusqu'où la réputation le permet), "bas" (plus modestes), "pareil" (même rang)
+function offresEte(sens, S, k, v0, exclu, rep){
+  const L=echelle(S).filter(x=>x.id!==exclu);
+  let i0=L.findIndex(x=>x.v>=v0); if(i0<0) i0=L.length; // la place de votre club sur l'échelle de la saison qui vient
+  let cand;
+  if(sens==="haut"){
+    const plafond=Math.floor((0.35+0.65*(rep||0)/100)*(L.length-1)); // la réputation ouvre les portes, une à une
+    cand=L.slice(i0, Math.max(i0+3, Math.min(L.length, plafond+1))); // au moins les trois clubs juste au-dessus
+    if(cand.length<3) cand=L.slice(Math.max(0,L.length-3));
+  } else if(sens==="bas"){
+    cand=L.slice(Math.max(0,i0-8), i0);
+    if(cand.length<3) cand=L.slice(0,3);
+  } else cand=L.slice(Math.max(0,i0-3), i0+3);
+  return tire(cand,3).map(x=>offreClub(S,k,x.id));
+}
+function offreRester(S, k, monte){ // rester au club : la suite du contrat, ou la prolongation (un cran plus haut)
+  const id=G.monClub, div=divReelle(S,id), n=(div===1?S.d1:S.d2).length, base=objectifReel(S,id);
+  let niv=base.niv;
+  if(monte){ const prev=(G.coach.obj||{niv:0}).niv;
+    niv = div===G.div ? Math.min(3, Math.max(prev+1, base.niv)) // même division : au moins un cran de plus
+        : div<G.div ? base.niv                                  // le club monte pour de vrai : son niveau d'élite suffit
+        : Math.min(3, base.niv+1); }                            // le club descend pour de vrai : on vise plus haut que l'effectif
+  return {id, k, div, duree:monte?(Math.random()<0.5?1:2):G.coach.contrat.reste, reste:true, suite:!monte, exig:false, obj:objectifEntr(niv,div,n)};
+}
+function preparerEte(){ // appelée au sortir de l'almanach, une fois par été
+  const C=G.coach, b=C.bilan||{}, k=cleSaison(G.pays, anneeJeu()+1), S=k&&SAISONS[k];
+  const E={v:b.v||null, k, fin:!S, cas:null, offres:[]};
+  if(S){
+    const S0=SAISONS[cleSaison(G.pays, anneeJeu())];
+    const v0=S0&&divReelle(S0,G.monClub) ? forceReelle(S0,G.monClub)+(divReelle(S0,G.monClub)===1?3:0)
+           : forceEffectif(clubById(G.monClub).joueurs)+(G.div===1?3:0);
+    const ici=divReelle(S,G.monClub)>0, fini=C.contrat.reste<=0;
+    if(!ici){ E.cas="disparu"; E.offres=offresEte(b.v==="depasse"?"haut":b.v==="rate"?"bas":"pareil",S,k,v0,G.monClub,C.rep); } // le verdict compte aussi quand le club disparaît
+    else if(!fini){ E.cas="suite"; E.offres=[offreRester(S,k,false)]; }
+    else if(b.v==="rate"){ E.cas="remercie"; E.offres=offresEte("bas",S,k,v0,G.monClub,C.rep); }
+    else if(b.v==="tenu"){ E.cas="prolonge"; E.offres=[offreRester(S,k,true)]; }
+    else { E.cas="appels"; E.offres=offresEte("haut",S,k,v0,G.monClub,C.rep).concat([offreRester(S,k,true)]); }
+  }
+  G.ete=E;
+}
+function ecranEte(){
+  const E=G.ete, C=G.coach, b=C.bilan;
+  if(E.fin) return ecranFinCarriere();
+  const S=SAISONS[E.k], moi=clubById(G.monClub);
+  const tete={
+    suite:"Le contrat court encore "+(C.contrat.reste>1?C.contrat.reste+" saisons.":"une saison."),
+    prolonge:"Le président veut continuer avec vous.",
+    appels:"Le téléphone sonne.",
+    remercie:"Le président vous remercie. D'autres appellent.",
+    disparu:(moi?moi.nom:"Le club")+" quitte les deux premières divisions.",
+  }[E.cas]||"";
+  const carte=(o,i)=>{ const c=metaSaison(o.id,S.an);
+    const bouton=o.suite?"Saison "+S.titre+" →":o.reste?"Prolonger":"Signer";
+    return `<div class="panel">
+      <h2 style="display:flex;align-items:center;gap:10px">${blason(c,32)}${esc(c.nom)}</h2>
+      <p class="dim">${esc(libDiv(o.div,S.an))} · ${esc(S.titre)}</p>
+      ${o.suite?"":`<p style="font-style:italic;margin-top:6px">« ${esc(motPresident(o,o.div))} »</p>`}
+      <p style="margin-top:6px">${o.suite?"":`Contrat : <b class="fort">${o.duree>1?o.duree+" saisons":"une saison"}</b> · `}Objectif : <b class="fort">${esc(o.obj.label)}</b></p>
+      <p style="margin-top:8px"><button class="big bEteSigne" data-i="${i}" style="width:100%">${esc(bouton)}</button></p></div>`; };
+  chrome("calendrier", `<div class="panel ctr">
+      <h2 class="${b&&b.v==="rate"?"rouge":""}">${b?LIB_VERDICT[b.v]:"L'ÉTÉ"}</h2>
+      ${b?`<p>${b.rang}ᵉ place · <span class="dim">${esc(b.obj)}</span></p><p style="font-size:18px;letter-spacing:1px;margin-top:4px">${ligneEtoiles(b)}</p>`:""}
+      <p style="margin-top:8px">${esc(tete)}</p></div>`+E.offres.map(carte).join(""));
+  app.querySelectorAll(".bEteSigne").forEach(x=>x.onclick=()=>basculeSaison(E.offres[+x.dataset.i]));
+}
+function ecranFinCarriere(){ // la version courte : le livre d'or et le grand bilan viendront avec la livraison 5
+  const C=G.coach, clubs=[...new Set(C.saisons.map(s=>s.nom))], titres=(G.palmares||[]).filter(p=>/^Champion/.test(p));
+  chrome("calendrier", `<div class="panel ctr"><h2>FIN DE CARRIÈRE</h2>
+    <p class="dim">Il n'y a plus de saison à jouer.</p>
+    <p style="margin-top:10px">${C.saisons.length} saison${C.saisons.length>1?"s":""} · ${esc(clubs.join(", "))}</p>
+    <p style="margin-top:4px">${titres.length?esc(titres.join(" · ")):"Aucun titre."}</p>
+    <p style="margin-top:4px">Meilleure réputation : ${etoiles(C.repMax)}</p>
+    <p style="margin-top:12px"><button class="big" id="bFinC">Retour à l'accueil</button></p></div>`);
+  document.getElementById("bFinC").onclick=retourAccueil;
+}
+function basculeSaison(o){ // signer l'offre de l'été : la vraie saison suivante, même carrière
+  if(!o || !SAISONS[o.k]) return;
+  const old=G, part=PARTIE, meme=o.id===old.monClub, oc=clubById(old.monClub);
+  nouvellePartie(o.id, o.k, null, true);
+  const N=G, nc=clubById(o.id);
+  N.pid=old.pid; N.anBase=old.anBase; N.saisonIdx=(old.saisonIdx||1)+1;
+  N.mode="entraineur"; N.coach=old.coach; N.palmares=old.palmares||[];
+  N.formation=old.formation; N.consigne=old.consigne; N.prixBillet=old.prixBillet;
+  if(meme){ // ce qu'on a bâti au club reste au club (choix de l'auteur)
+    for(const f of ["stade","chantier","campus","livraisonCentre","staff","budget","tresorerie","reput","records","affS"]) if(old[f]!==undefined) N[f]=old[f];
+    if(oc && nc){ nc.cap=Math.max(nc.cap, oc.cap); nc.pres=Math.min(10, nc.pres+((old.stade&&+old.stade.presStade)||0)); }
+  }
+  const C=N.coach;
+  if(!o.suite) C.contrat={club:o.id, saison:SAISONS[o.k].titre, duree:o.duree, reste:o.duree, obj:o.obj};
+  C.obj=o.obj; C.bilan=null;
+  N.objectif={place:o.obj.place, label:o.obj.label};
+  N.ete=null;
+  N.news=[(o.suite?"Saison "+N.saison+". ":"Contrat signé : "+(o.duree>1?o.duree+" saisons":"une saison")+". ")+"Objectif : "+o.obj.label.toLowerCase()+"."];
+  PARTIE=part;
+  majTitre(); montre("calendrier");
 }
 
 function ficheClubAccueil(id){
@@ -22187,6 +22349,7 @@ function ecranCalendrier(){
     { const bB=document.getElementById("bBil"); if(bB) bB.onclick=ecranBilan; }
     return;
   }
+  if(G.ete) return ecranEte(); // carrière d'entraîneur : l'été, le verdict et les offres
   if(G.recap){
     const moiR=clubById(G.monClub), adieu=G.recap.some(l=>/^JUBILÉ : /.test(l) || (moiR && l.startsWith("Retraite : ") && l.includes("("+moiR.nom+",")));
     chrome("calendrier",`<div class="panel"><h2>Intersaison ${esc(G.saison)}</h2>

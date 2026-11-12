@@ -7,7 +7,10 @@
    D) le mode de toujours ne bouge pas : sans offre, ni `mode` ni `coach`, l'objectif au prestige
    E) la carrière d'entraîneur se sauvegarde, se recharge, et l'accueil montre ses étoiles
    F) l'écran : le bouton de l'accueil (fermé sur une saison fermée), les trois clubs, le contrat, les étoiles
-   G) une saison entière se joue, et l'intersaison garde le mode et relit l'objectif au rang de force
+   G) le verdict de la saison : dépassé, tenu, manqué (livraison 2)
+   H) une saison entière : le verdict, la réputation, l'almanach, l'été
+   I) les offres de l'été, cas par cas (suite, prolongation, clubs plus forts ou plus modestes, club disparu, fin)
+   J) signer l'été : la vraie saison suivante, le vrai effectif, la même carrière
    Usage : node harness-entraineur.cjs                                                               */
 const fs = require("fs");
 const path = require("path");
@@ -46,7 +49,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,clubById,sauvegardeLocale,chargeLocale,partiesListe," +
   "ecranAccueil,SAISONS,SAISONS_OUVERTES,saisonOuverte,offresDebut,forceReelle,forceEffectif,nivDuRang,objectifEntr,objectifDuClub," +
-  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre," +
+  "objectifPour,ecranEntraineur,contratEntraineur,etoiles,montre,verdictSaison,preparerEte,basculeSaison,echelle,ecranBilan,cleDepart,ecranCalendrier," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 function reel(fn) { global.window.__TEST__ = false; try { return fn(); } finally { global.window.__TEST__ = true; } }
@@ -120,7 +123,8 @@ console.log("D) le mode de toujours ne bouge pas");
     const G = api.getG(), c = api.clubById(id);
     ok(G.mode === undefined && G.coach === undefined, id + " : ni mode ni entraîneur");
     ok(G.objectif.label === api.objectifPour(c.pres).label, id + " : l'objectif au prestige (« " + G.objectif.label + " »)");
-    ok(!/☆/.test(APP._h), id + " : pas d'étoiles dans le bandeau");
+    G.intro = null; APP._h = ""; api.ecranCalendrier(); // montre() ne dessine rien sous le harnais : on dessine l'écran du match
+    ok(APP._h.includes("JOUER LE MATCH") && !/☆/.test(APP._h), id + " : pas d'étoiles dans le bandeau");
   }
 }
 
@@ -158,25 +162,148 @@ console.log("F) l'écran");
   const ex = Object.assign({}, o, { exig: true, obj: api.objectifEntr(1, 2, 20) }); api.contratEntraineur(ex);
   ok(FICHE._h.includes("La première moitié (top 10)") && FICHE._h.includes("Pas une place de moins"), "le président exigeant parle de la première moitié");
   ok(!/—/.test(FICHE._h), "aucun tiret long dans le contrat");
-  api.nouvellePartie(o.id, "1995-96", o); api.getG().intro = null; api.montre("calendrier");
+  api.nouvellePartie(o.id, "1995-96", o); api.getG().intro = null; APP._h = ""; api.ecranCalendrier();
   ok(APP._h.includes("★☆☆☆☆"), "les étoiles dans le bandeau du jeu");
 }
 
-console.log("G) une saison entière, puis l'intersaison");
+console.log("G) le verdict de la saison (livraison 2)");
 {
-  const o = api.offresDebut("1998-99")[2];
-  api.nouvellePartie(o.id, "1998-99", o);
-  let G = api.getG(), err = null;
-  try { while (G.journee < 38 && !G.finie) { api.jouerJournee(); G = api.getG(); } } catch (e) { err = e; }
+  const v = (r, niv, div) => api.verdictSaison(r, api.objectifEntr(niv, div, 20), div, 20);
+  ok(v(17, 0, 2).v === "tenu" && v(18, 0, 2).v === "rate", "maintien : 17e tenu, 18e manqué");
+  ok(v(10, 0, 2).v === "depasse" && v(10, 0, 2).crans === 1, "maintien : 10e, dépassé d'un cran");
+  ok(v(3, 0, 2).crans === 2 && v(1, 0, 2).crans === 3, "maintien : 3e (la montée) deux crans, 1er trois crans");
+  ok(v(1, 3, 1).v === "tenu" && v(2, 3, 1).v === "rate", "titre : champion tenu, deuxième manqué");
+  ok(v(5, 2, 1).v === "tenu" && v(6, 2, 1).v === "rate", "Europe : 5e tenu, 6e manqué");
+}
+
+/* Joue une saison entière de la carrière en cours, sans le renvoi en cours de saison (livraison 3) */
+function joueSaison(a) {
+  let G = a.getG();
+  while (G.journee < 38 && !G.finie) { G.confiance = Math.max(G.confiance, 50); a.jouerJournee(); G = a.getG(); }
+  return G;
+}
+
+console.log("H) une saison entière, le verdict et l'été");
+{
+  const o = Object.assign({}, api.offresDebut("1995-96")[0], { duree: 1 });
+  api.nouvellePartie(o.id, "1995-96", o);
+  let err = null, G;
+  try { G = joueSaison(api); } catch (e) { err = e; }
   ok(!err, "trente-huit journées jouées" + (err ? " : " + err.stack : ""));
-  ok(G.finie, "la saison est finie");
-  G.vire = null; api.intersaison(); G = api.getG();
-  ok(G.mode === "entraineur" && G.coach && G.coach.rep === 20, "l'entraîneur est toujours là");
-  // l'état de grâce tombe APRÈS la parole du président (un joueur vit la saison de sa vie, en secret) : le
-  // président ne le connaît pas, on le retire donc avant de refaire son calcul
-  const sansGrace = G.clubs.map(c => ({ id: c.id, joueurs: c.joueurs.map(j => ({ pos: j.pos, note: j.note - (j.grace ? j.graceBonus : 0) })) }));
-  const att = api.objectifDuClub(sansGrace.find(c => c.id === G.monClub), sansGrace, G.div);
-  ok(G.objectif.label === att.label && G.objectif.place === att.place, "l'objectif est relu au rang de force : « " + G.objectif.label + " »");
+  G = api.getG();
+  ok(G.finie && G.vire !== "objectif", "la saison est finie, sans le renvoi « objectif manqué » du mode de toujours");
+  const b = G.coach.bilan;
+  ok(b && ["depasse", "tenu", "rate"].includes(b.v) && b.obj === o.obj.label, "le verdict est posé : " + (b && b.v) + " (" + (b && b.rang) + "e)");
+  const att = b.v === "rate" ? 10 : b.v === "tenu" ? 26 : 32 + 6 * (b.crans - 1) + (b.rang === 1 ? 4 : 0);
+  ok(G.coach.rep === Math.min(100, att), "la réputation suit le verdict (" + b.avant + " → " + G.coach.rep + ")");
+  ok(G.coach.saisons.length === 1 && G.coach.saisons[0].s === "1995-96" && G.coach.contrat.reste === 0, "la saison entre dans l'historique, le contrat d'une saison est fini");
+  api.ecranBilan();
+  ok(/OBJECTIF (DÉPASSÉ|TENU|MANQUÉ)/.test(APP._h), "l'almanach dit le verdict");
+  api.preparerEte();
+  const E = api.getG().ete;
+  ok(E && E.k === "1996-97" && !E.fin, "l'été regarde la vraie saison suivante (1996-97)");
+  const cas = { depasse: "appels", tenu: "prolonge", rate: "remercie" }[b.v];
+  ok(E.cas === cas || (E.cas === "disparu"), "le cas de l'été suit le verdict : " + E.cas);
+}
+
+console.log("I) les offres de l'été, cas par cas");
+{
+  const S96 = S["1996-97"], S95 = S["1995-96"];
+  const valeur = (s, id) => api.forceReelle(s, id) + (s.d1.includes(id) ? 3 : 0);
+  // un club présent les deux années, en D2, dans la moitié faible
+  const id = S95.d2.filter(x => S96.d2.includes(x)).sort((a, b) => valeur(S95, a) - valeur(S95, b))[2];
+  const ete = (v, reste, rep) => {
+    const o = { id, k: "1995-96", duree: 1, obj: api.objectifEntr(0, 2, 20) };
+    api.nouvellePartie(id, "1995-96", o);
+    const G = api.getG();
+    G.coach.contrat.reste = reste; G.coach.bilan = { v, crans: 1, avant: 20, apres: 20, rang: 10, obj: o.obj.label };
+    if (rep != null) G.coach.rep = rep;
+    api.preparerEte(); return api.getG().ete;
+  };
+  let E = ete("rate", 1);
+  ok(E.cas === "suite" && E.offres.length === 1 && E.offres[0].id === id && E.offres[0].suite, "contrat en cours : on continue au même club");
+  E = ete("tenu", 0);
+  ok(E.cas === "prolonge" && E.offres.length === 1 && E.offres[0].id === id && E.offres[0].reste && !E.offres[0].suite, "objectif tenu : le président prolonge");
+  ok(E.offres[0].obj.niv >= 1, "la prolongation vise plus haut (« " + E.offres[0].obj.label + " »)");
+  const v0 = valeur(S95, id);
+  let tousPlusForts = true, tousPlusModestes = true, rester = true;
+  for (let i = 0; i < 30; i++) {
+    E = ete("depasse", 0);
+    if (E.cas !== "appels" || E.offres.length !== 4 || E.offres[3].id !== id) rester = false;
+    if (E.offres.slice(0, 3).some(o => valeur(S96, o.id) < v0 || o.id === id)) tousPlusForts = false;
+    E = ete("rate", 0);
+    if (E.cas !== "remercie" || E.offres.length !== 3 || E.offres.some(o => valeur(S96, o.id) >= v0 || o.id === id)) tousPlusModestes = false;
+  }
+  ok(rester, "objectif dépassé : trois clubs appellent, et le président propose de prolonger");
+  ok(tousPlusForts, "objectif dépassé : ce sont des clubs plus forts");
+  ok(tousPlusModestes, "objectif manqué : seulement des clubs plus modestes");
+  // la réputation fixe jusqu'où : une étoile n'ouvre jamais le haut de l'échelle, cinq étoiles si
+  const ech = api.echelle(S96), rangE = x => ech.findIndex(e => e.id === x);
+  let hautPetit = 0, hautGrand = 0;
+  for (let i = 0; i < 60; i++) {
+    E = ete("depasse", 0, 20); hautPetit = Math.max(hautPetit, ...E.offres.slice(0, 3).map(o => rangE(o.id)));
+    E = ete("depasse", 0, 100); hautGrand = Math.max(hautGrand, ...E.offres.slice(0, 3).map(o => rangE(o.id)));
+  }
+  ok(hautPetit < ech.length * 0.75, "une étoile : pas de grand club (plus haut rang proposé " + (hautPetit + 1) + "/" + ech.length + ")");
+  ok(hautGrand > hautPetit, "cinq étoiles : des clubs plus hauts (" + (hautGrand + 1) + "/" + ech.length + ")");
+  // un club qui a quitté les deux divisions
+  const parti = S95.d2.find(x => !S96.d1.includes(x) && !S96.d2.includes(x));
+  ok(!!parti, "un club de D2 1995-96 a disparu en 1996-97 (" + parti + ")");
+  { const o = { id: parti, k: "1995-96", duree: 2, obj: api.objectifEntr(0, 2, 20) };
+    api.nouvellePartie(parti, "1995-96", o); const G = api.getG();
+    G.coach.contrat.reste = 1; G.coach.bilan = { v: "tenu", crans: 0, avant: 20, apres: 26, rang: 12, obj: o.obj.label };
+    api.preparerEte(); E = api.getG().ete;
+    ok(E.cas === "disparu" && E.offres.length === 3 && !E.offres.some(x => x.id === parti), "son entraîneur reçoit trois offres d'ailleurs"); }
+  // plus de saison : la fin de carrière
+  { const last = cles.filter(k => (S[k].pays || "FR") === "FR").sort((a, b) => S[b].an - S[a].an)[0];
+    const o = api.offresDebut(last)[0]; api.nouvellePartie(o.id, last, o); const G = api.getG();
+    G.coach.bilan = { v: "tenu", crans: 0, avant: 20, apres: 26, rang: 12, obj: o.obj.label }; G.coach.contrat.reste = 0;
+    api.preparerEte(); APP._h = ""; api.ecranCalendrier();
+    ok(api.getG().ete.fin && APP._h.includes("FIN DE CARRIÈRE") && APP._h.includes("Meilleure réputation"), "après " + last + " : fin de carrière"); }
+  // l'écran de l'été
+  E = ete("depasse", 0); APP._h = ""; api.ecranCalendrier();
+  ok(APP._h.includes("OBJECTIF DÉPASSÉ") && (APP._h.match(/bEteSigne/g) || []).length === 4 && APP._h.includes("Prolonger"), "l'écran de l'été : verdict, trois offres et la prolongation");
+  ok(!/—/.test(APP._h), "aucun tiret long à l'écran de l'été");
+}
+
+console.log("J) signer l'été : la vraie saison suivante");
+{
+  const ls = nouveauLS(), a = appareil(ls);
+  const S95 = a.SAISONS["1995-96"], S96 = a.SAISONS["1996-97"];
+  const id = S95.d2.filter(x => S96.d2.includes(x))[0];
+  const o = { id, k: "1995-96", duree: 1, obj: a.objectifEntr(0, 2, 20) };
+  a.nouvellePartie(id, "1995-96", o);
+  reel(() => a.sauvegardeLocale(true));
+  let G = a.getG(); const pid = G.pid, vieux = new Set(a.clubById(id).joueurs.map(j => j.uid));
+  G.budget = 123e6; G.tresorerie = 45e6; G.finie = true;
+  G.coach.contrat.reste = 0; G.coach.bilan = { v: "tenu", crans: 0, avant: 20, apres: 26, rang: 12, obj: o.obj.label }; G.coach.rep = 26;
+  G.coach.saisons.push({ s: "1995-96", club: id, nom: "x", div: 2, rang: 12, obj: o.obj.label, v: "tenu", rep: 26 });
+  a.preparerEte();
+  const off = a.getG().ete.offres[0];
+  a.basculeSaison(off); G = a.getG();
+  ok(G.saison === "1996-97" && G.anneeJeu === undefined && G.saisonIdx === 2 && G.anBase === 1995, "on passe en 1996-97 (départ toujours 1995, deuxième saison)");
+  ok(G.pid === pid && a.getPARTIE().id === pid, "c'est la même carrière");
+  const club = a.clubById(id), vrais = (S96.starsD2[id] || []).map(s => s[0]);
+  ok(vrais.length > 0 && vrais.every(n => club.joueurs.some(j => j.nom === n)), "le club a son VRAI effectif de 1996-97 (" + vrais.length + " joueurs réels)");
+  ok(!club.joueurs.some(j => vieux.has(j.uid)), "aucun joueur de la saison passée n'est gardé tel quel");
+  ok(G.div === 2 && G.clubs.length === S96.d2.length && G.clubs.every(c => S96.d2.includes(c.id)), "la vraie deuxième division de 1996-97");
+  ok(G.budget === 123e6 && G.tresorerie === 45e6, "même club : l'argent reste");
+  ok(G.coach.rep === 26 && G.coach.saisons.length === 1 && G.coach.contrat.saison === "1996-97" && G.coach.contrat.duree === off.duree, "la réputation, l'historique et le nouveau contrat");
+  ok(G.objectif.label === off.obj.label && G.ete == null && G.intro === 1996 && !G.finie && G.journee === 0, "l'objectif signé, le mot d'ouverture de 1996, journée 1");
+  ok(!G.vire, "personne n'est renvoyé");
+  let err = null; try { G.intro = null; for (let i = 0; i < 4; i++) a.jouerJournee(); } catch (e) { err = e; }
+  ok(!err, "la nouvelle saison se joue" + (err ? " : " + err.message : ""));
+  ok(reel(() => a.sauvegardeLocale(true)) && a.partiesListe().length === 1, "toujours UNE carrière dans le navigateur");
+  const b = appareil(ls); ok(b.chargeLocale(pid) && b.getG().saison === "1996-97" && b.getG().coach.rep === 26 && b.cleDepart(b.getG()) === "1995-96", "elle se recharge, et sa saison de départ reste 1995-96");
+  // changer de club : on repart de ce qu'avait le nouveau club
+  const autre = S96.d2.find(x => x !== id);
+  a.getG().finie = true; a.getG().coach.contrat.reste = 0; a.getG().coach.bilan = { v: "depasse", crans: 1, avant: 26, apres: 38, rang: 5, obj: "x" };
+  a.basculeSaison({ id: autre, k: "1997-98", div: 2, duree: 2, obj: a.objectifEntr(1, 2, 20) });
+  G = a.getG();
+  if (S["1997-98"].d2.includes(autre) || S["1997-98"].d1.includes(autre)) {
+    ok(G.monClub === autre && G.budget === a.clubById(autre).budget && G.tresorerie === 12e6, "nouveau club : son argent à lui");
+    ok(G.saisonIdx === 3 && G.coach.contrat.club === autre && G.coach.contrat.reste === 2, "troisième saison, nouveau contrat de deux saisons");
+  }
 }
 
 console.log(FAILS ? "\n✗ " + FAILS + " échec(s)" : "\n✓ tout est vert");
