@@ -5,8 +5,7 @@
    A) la table PAYS se tient : chaque pays décrit, aucun trou, aucun taux absurde
    B) les libellés de divisions suivent le pays ET l'année, et la France ne bouge jamais
    C) le champ `pays` de SAISONS, et la convention de clé (nue en France, préfixée ailleurs)
-   D) les montants : en France, rendu IDENTIQUE aux expressions remplacées ; en Angleterre, huit francs
-      valent une livre
+   D) les montants : plus de devise (v2.73), « M » et la même échelle dans tous les pays
    E) le pays REGARDÉ n'est pas le pays joué : l'accueil, la carrière, et la vieille sauvegarde
    F) et tout cela arrive jusqu'à l'écran : sélecteur groupé, bandeaux, onglet de coupe
    G) rien d'un libellé ne peut ouvrir une balise
@@ -56,7 +55,7 @@ console.log("A) La table PAYS : un pays décrit, pas un pays esquissé");
   const codes = Object.keys(PAYS);
   ok(codes.length >= 2 && codes.includes("FR") && codes.includes("ANG"),
     `la table connaît ${codes.length} pays, dont la France et l'Angleterre : ${codes.join(", ")}`);
-  const champs = ["code", "nom", "adj", "drapeau", "coupe", "coupeLigue", "champion", "unite", "millions", "monNom"];
+  const champs = ["code", "nom", "adj", "drapeau", "coupe", "coupeLigue", "champion", "millions", "monNom"]  // `unite` est vide depuis la v2.73 : plus de devise;
   const trous = [];
   for (const c of codes) {
     for (const f of champs) if (!PAYS[c][f] || !String(PAYS[c][f]).trim()) trous.push(c + "." + f);
@@ -65,7 +64,8 @@ console.log("A) La table PAYS : un pays décrit, pas un pays esquissé");
   ok(trous.length === 0, `aucun champ vide ni manquant sur aucun pays${trous.length ? " — " + trous.join(", ") : ""}`);
   const codeFaux = codes.filter(c => PAYS[c].code !== c);
   ok(codeFaux.length === 0, `chaque entrée porte son propre code${codeFaux.length ? " — " + codeFaux.join(", ") : ""}`);
-  const tauxFaux = codes.filter(c => !(PAYS[c].taux > 0 && PAYS[c].taux <= 1));
+  // la lire (ITA, v2.68) vaut bien moins qu'un franc : un taux plausible va d'un huitième (la livre) à mille
+  const tauxFaux = codes.filter(c => !(PAYS[c].taux > 0 && PAYS[c].taux <= 1000));
   ok(tauxFaux.length === 0, `tous les taux d'affichage sont plausibles${tauxFaux.length ? " — " + tauxFaux.join(", ") : ""}`);
   ok(PAYS.FR.taux === 1, "la France est la référence : son taux vaut exactement 1, donc elle ne convertit rien");
   // deux pays ne peuvent pas porter la même coupe nationale, sinon le libellé ne distingue plus rien
@@ -145,35 +145,33 @@ console.log("C) Chaque saison dit de quel pays elle est");
 }
 
 /* ===== D) les montants ===== */
-console.log("D) Les montants : rien ne change en France, tout se convertit en Angleterre");
+console.log("D) Les montants : plus de devise depuis la v2.73, « M » partout et la même échelle partout");
 {
+  /* Choix de l'auteur (12/11/2026) : ni francs, ni livres, ni lires. Un montant s'écrit en millions suivis de
+     « M », il vaut la même chose dans tous les championnats, et les petits prix (un billet) restent un chiffre seul. */
   const SOMMES = [0, 1e5, 450000, 2500, 12e6, 23.4e6, 1e8, 78500];
-  voitPays("FR", 1995, false);
-  // la condition de non-régression de la v1.80, écrite noir sur blanc : les expressions d'ORIGINE
   const ecarts = [];
-  for (const v of SOMMES) {
-    for (const d of [0, 1, 2]) {
-      // depuis le 29/10/2026 MM et MMn écrivent la virgule décimale (« 42,0 MF ») : même nombre, séparateur français
-      if (MM(v, d) !== (v / 1e6).toFixed(d).replace(".", ",") + " MF") ecarts.push(`MM(${v},${d})`);
-      if (MMv(v, d) !== (v / 1e6).toFixed(d).replace(".", ",") + " MF") ecarts.push(`MMv(${v},${d})`);
-      if (MMn(v, d) !== (v / 1e6).toFixed(d).replace(".", ",")) ecarts.push(`MMn(${v},${d})`);
+  for (const pays of Object.keys(PAYS)) {
+    voitPays(pays, 1995, false);
+    for (const v of SOMMES) {
+      for (const d of [0, 1, 2]) {
+        if (MM(v, d) !== (v / 1e6).toFixed(d).replace(".", ",") + " M") ecarts.push(`${pays} MM(${v},${d})`);
+        if (MMv(v, d) !== (v / 1e6).toFixed(d).replace(".", ",") + " M") ecarts.push(`${pays} MMv(${v},${d})`);
+        if (MMn(v, d) !== (v / 1e6).toFixed(d).replace(".", ",")) ecarts.push(`${pays} MMn(${v},${d})`);
+      }
+      if (MMC(v) !== MF_C(v / 1e6) + " M") ecarts.push(`${pays} MMC(${v})`);
     }
-    if (MMC(v) !== MF_C(v / 1e6) + " MF") ecarts.push(`MMC(${v})`);
-    if (UU(v) !== FMT(v) + " FF") ecarts.push(`UU(${v})`);
   }
-  ok(ecarts.length === 0,
-    `en France, les cinq helpers rendent exactement ce que rendaient les expressions remplacées, sur ${SOMMES.length} montants × 3 décimales${ecarts.length ? " — " + ecarts.slice(0, 5).join(", ") : ""}`);
-  ok(MM(12e6, 1) === "12,0 MF" && MMv(12e6, 1) === "12,0 MF" && UU(2500) === "2 500 FF",
-    "à l'œil : 12,0 MF, 12,0 MF, 2 500 FF");
-
-  voitPays("ANG", 1990, false);
-  ok(MM(8e6, 1) === "1,0 M£", "en Angleterre, huit millions de francs font un million de livres : « 1,0 M£ »");
-  ok(UU(8000) === "1 000 £", "et huit mille francs font mille livres : « 1 000 £ »");
-  ok(MM(100e6, 1) === "12,5 M£", "un budget de 100 MF se lit 12,5 M£, l'ordre de grandeur d'un club anglais de 1995");
-  ok(UU(70) === "9 £", "un billet à 70 FF se lit 9 £, ce que coûtait une place à Highbury");
-  const unites = new Set([MM(1e6), MMv(1e6), MMC(1e6), UU(1e6)].map(x => x.replace(/[\d.,\s]/g, "")));
-  ok(unites.size === 2 && unites.has("M£") && unites.has("£"), `aucun helper n'oublie de changer d'unité : ${[...unites].join(" / ")}`);
+  ok(ecarts.length === 0, `dans tous les pays, les millions s'écrivent pareil, sur ${SOMMES.length} montants × 3 décimales${ecarts.length ? " — " + ecarts.slice(0, 5).join(", ") : ""}`);
+  const vus = Object.keys(PAYS).map(c => { voitPays(c, 1995, false); return [MM(100e6, 1), UU(70), UU(45000), UU(1.2e6)].join(" | "); });
+  ok(new Set(vus).size === 1, `la même somme se lit pareil en ${Object.keys(PAYS).join(", ")} : ${vus[0]}`);
   voitPays("FR", 1995, false);
+  ok(UU(70) === "70" && UU(10) === "10", "un petit prix, comme un billet, reste un chiffre seul : « 70 »");
+  ok(UU(45000) === "0,05 M" && UU(150000) === "0,15 M" && UU(1.2e6) === "1,2 M" && UU(12e6) === "12 M" && UU(2500) === "0,003 M",
+    `un salaire ou un sponsor passe en millions : ${UU(45000)}, ${UU(150000)}, ${UU(1.2e6)}, ${UU(12e6)}, ${UU(2500)}`);
+  const unites = new Set([MM(1e6), MMv(1e6), MMC(1e6), UU(1e6)].map(x => x.replace(/[\d.,\s]/g, "")));
+  ok(unites.size === 1 && unites.has("M"), `aucun helper n'écrit de devise : ${[...unites].join(" / ")}`);
+  ok(!/FF|MF|£|\bL\b/.test([MM(1e6), UU(70), UU(5e5), MMC(3e6)].join(" ")), "plus aucun FF, MF, £ ni L à l'écran");
 }
 
 /* ===== E) le pays regardé n'est pas le pays joué ===== */
@@ -215,8 +213,16 @@ console.log("F) L'écran : sélecteur de pays, puis de saison, bandeaux au bon l
   const btnFR = (page.match(/<button class="mChip accPays[^"]*" data-pays="FR"[^>]*>/) || [""])[0];
   const btnANG = (page.match(/<button class="mChip accPays[^"]*" data-pays="ANG"[^>]*>/) || [""])[0];
   ok(/accPays on"/.test(btnFR) && !/disabled/.test(btnFR), "la rangée de pays s'ouvre sur la France, allumée");
-  ok(btnANG && !/disabled/.test(btnANG) && !/accPays on"/.test(btnANG) && !page.includes("bientôt"),
+  const btnPays = code => (page.match(new RegExp('<button class="mChip accPays[^"]*" data-pays="' + code + '"[\\s\\S]*?</button>')) || [""])[0];
+  ok(btnANG && !/disabled/.test(btnANG) && !/accPays on"/.test(btnANG) && !btnPays("ANG").includes("bientôt"),
     "l'Angleterre a sa saison : son bouton est cliquable, éteint, et plus « bientôt »");
+  /* L'ITALIE AVANT SES SAISONS (v2.68) : un pays de la table sans saison jouable reste visible, grisé et
+     « bientôt » ; le jour où sa première saison entre dans SAISONS, ce contrôle s'inverse tout seul. */
+  for (const code of Object.keys(PAYS).filter(c => c !== "FR" && c !== "ANG")) {
+    const b = btnPays(code), aSaison = cles.some(k => SAISONS[k].pays === code);
+    ok(b && (aSaison ? !/disabled/.test(b) && !b.includes("bientôt") : /disabled/.test(b) && b.includes("bientôt")),
+      `${PAYS[code].nom} a son drapeau à l'accueil, ${aSaison ? "cliquable" : "grisé et « bientôt »"}`);
+  }
   ok(!page.includes("<optgroup"), "le sélecteur de saison n'est plus groupé : le pays se choisit au-dessus");
   ok((page.match(/<option /g) || []).length === clesFR.length && !page.includes('value="ANG-'),
     `la France regardée, il liste ses ${clesFR.length} saisons et pas une anglaise`);
@@ -280,7 +286,7 @@ console.log("G) Aucun libellé ne peut ouvrir une balise");
   const tous = [];
   for (const c of Object.keys(PAYS)) {
     const p = PAYS[c];
-    tous.push(p.nom, p.adj, p.coupe, p.coupeLigue, p.champion, p.unite, p.millions, p.monNom);
+    tous.push(p.nom, p.adj, p.coupe, p.coupeLigue, p.champion, p.millions, p.monNom); // `unite` vide depuis la v2.73
     for (const a of [1990, 1992, 2004, 2009]) tous.push(p.div1(a), p.div2(a), p.tag1(a), p.tag2(a));
   }
   const sales = tous.filter(t => /[<>&"]/.test(String(t)));

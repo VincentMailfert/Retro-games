@@ -233,6 +233,18 @@ toujours « raconter quelque chose ».
   `type="text/javascript"` pour qu'elle ne soit **pas** capturée par le motif `<script>` *nu* de la commande
   d'extraction (validation §1). Ne pas lui retirer cet attribut, et ne jamais ajouter d'autre bloc `<script>`
   nu hors du gros script de jeu, sinon l'extraction du JS attrape le mauvais bloc.
+- **LA MESURE DU PARCOURS (v2.74, premier chantier du plan « 10 000 joueurs »)** : le compteur ne voyait que l'arrivée
+  sur la page. Le jeu envoie désormais à GoatCounter huit **événements** (`MESURE_EVTS`), chacun **une seule fois par
+  navigateur**, sous les chemins `parcours/…` : `premiere-visite`, `partie-lancee` (`nouvellePartie`, sauf l'été d'une
+  carrière d'entraîneur), `premier-match` (`finirJournee`), `saison-finie` (`finDeSaison`), `compte-cree`
+  (`compteInscription`), et `retour-j1`/`retour-j7`/`retour-j30` (écart en jours de calendrier avec la première visite,
+  `mesureRetoursDus`, PUR). `mesure(evt)` ne part que sur l'URL publique HTTPS et jamais au harnais (`EN_TEST`) ; si le
+  script de GoatCounter n'est pas encore là, il réessaie dix secondes puis abandonne SANS noter l'événement, qui repartira
+  à la prochaine occasion. Le carnet `MESURE_KEY` (`d1manager_mesure_v1`) ne garde que la date de première visite et les
+  événements envoyés ; rien de personnel ne part (un nom d'événement, c'est tout), pas de cookie. `mesureDemarrage()`
+  est appelée 0,8 s après le lancement. Lire les chiffres dans le tableau GoatCounter, ligne par ligne `parcours/…`.
+  Gardé par **`harness-mesure.cjs`** (sections A à F) ; vérifié dans un vrai navigateur (Chromium, page servie en
+  https://multiplex.club/ avec un faux compteur) : première visite, partie lancée, et rien de renvoyé au rechargement.
 
 ## Conventions de code
 - **Éditions chirurgicales** : modifier le strict nécessaire, préserver l'art ASCII, les blasons SVG,
@@ -243,7 +255,13 @@ toujours « raconter quelque chose ».
   Ne plus jamais écrire une encre en dur dans `blason()` : un nouveau blason se lit tout seul.
 - Constantes de données en MAJUSCULES (`CLUBS`, `STARS`, `INCIDENTS`, `SPONSORS_SULFUREUX`…).
 - Helpers courts en camelCase (`clubById`, `onze`, `majReput`, `tireIncident`…).
-- Montants en francs (FF) ou millions de francs (MF). Époque oblige.
+- **PLUS DE DEVISE (v2.73, choix de l'auteur du 12/11/2026)** : ni francs, ni livres, ni lires. Tous les
+  championnats comptent dans la même monnaie sans nom, **à la même échelle** (100 M en France = 100 M en Angleterre
+  et en Italie : `taux` vaut 1 partout, `millions` vaut « M », `unite` est vide). `MM`/`MMv`/`MMC` écrivent « 12,0 M » ;
+  `UU` écrit un petit prix (moins de 1 000, un billet, une place) en chiffre seul (« 70 ») et tout le reste en
+  millions (« 0,05 M » pour un salaire hebdomadaire, « 1,2 M »). Un montant écrit en dur dans un texte s'écrit « 8 M »,
+  jamais « 8 MF ». La question de la lire et du passage à l'euro (ITA-B) n'a donc plus d'objet. Gardé par la
+  section D de `harness-pays.cjs`. Les commentaires du code peuvent encore parler de francs (calibrage d'origine).
 - **Style visuel (refonte d'interface du 23/09/2026, direction « Vestiaire de nuit »)** : fond bleu nuit
   `#0b1626`, texte `--txt`, blanc cassé `--clair` `#f2f5fa`, gris `--dim`. **Le jaune `#ffd24a` ne veut dire
   que trois choses** : VOTRE club (le « XI », le capitaine, votre ligne, vos victoires), l'ACTION offerte (bouton
@@ -2221,6 +2239,99 @@ toujours « raconter quelque chose ».
   par une — sont dans `chantier-saisons.md`.**
 - **Relégation = on continue en D2** (plus de game over) : `finDeSaison` ne licencie QUE sur objectif
   manqué de loin + confiance < 40 ; la relégation seule fait jouer la saison suivante en D2 (remontada).
+- **LA CARRIÈRE D'ENTRAÎNEUR (chantier `chantier/carriere-entraineur`, ouvert le 10/11/2026, livraison 1 en v2.62,
+  PAS ENCORE SUR MAIN : c'est l'auteur qui fusionne)**. Demande de l'auteur : un entraîneur qui part de tout en bas
+  et grimpe, ou redescend, selon ses résultats. Plan validé en six livraisons : (1) signer son premier contrat ;
+  (2) le temps qui passe (chaque été, le club tel qu'il était VRAIMENT l'année suivante : vrai effectif, vraie
+  division ; verdict dépassé/tenu/raté, réputation, prolongation ou offres) ; (3) le naufrage (avertissement du
+  président, puis licenciement, fin de saison simulée, club plus faible ensuite) ; (4) les offres de l'étranger ;
+  (5) le livre d'or et l'écran de bilan quand il n'y a plus de saison ; (6) l'écart avec l'histoire (vrais
+  classements finaux à relever par script sur Wikipédia, ils ne sont PAS dans le jeu ; les listes `D1_ANG…`
+  semblent rangées au vrai classement, les françaises non). Arbitrages de l'auteur : quand on RESTE au club, stade,
+  centre, staff et argent sont gardés (on repart de ceux du nouveau club si l'on change) ; le cadenas ne joue
+  qu'au DÉPART, les saisons suivantes s'enchaînent même fermées.
+  **Livraison 1** : bouton « 🧑‍💼 Carrière d'entraîneur » dans le panneau de la saison de départ (grisé sur une saison
+  fermée) → `ecranEntraineur` (overlay `#fiche`) tend les trois effectifs les plus faibles de la D2 (`offresDebut`,
+  au `forceReelle` = 4-4-2 des meilleures notes réelles, poste court complété à 60) → `contratEntraineur` : le mot
+  du président (`motPresident`), la durée (1 ou 2 saisons, tirée à l'ouverture et figée dans `ENTR_OFFRES` tant
+  qu'on regarde la même saison) et l'objectif (**le président exigeant**, choix de l'auteur du 12/11/2026 :
+  `PRES_EXIGEANT`=0,2, environ une offre sur cinq vise un cran au-dessus de l'effectif, la première moitié au
+  lieu du maintien, champ `exig` de l'offre) → « Signer » appelle `nouvellePartie(id, k, offre)`, dont le
+  troisième argument déclenche `signeContrat`. Sans lui, la fonction fait exactement ce qu'elle faisait.
+  **L'objectif se lit au RANG DE FORCE dans la division** (`nivDuRang` : 1-2 titre, 3-6 montée en D2 ou Europe
+  top 5 en D1, 7-12 première moitié top 10, 13-20 maintien top 17), jamais au prestige ; l'intersaison le relit
+  par `objectifDuClub` en mode entraîneur. **Piège** : l'état de grâce tombe APRÈS la parole du président
+  (bonus secret), le président ne le connaît pas, c'est voulu. État : `G.mode="entraineur"`, `G.coach={rep,
+  repMax, saisons, contrat:{club, saison, duree, reste, obj}}` ; réputation 0-100 montrée en étoiles (`etoiles`,
+  un cran par 20, départ `COACH_REP0`=20, une étoile) dans le bandeau du jeu (encre du bandeau, PAS jaune : le
+  bandeau est jaune) et sur la carte de l'accueil (`ficheDe` → `entr`). Gardé par `harness-entraineur.cjs`.
+  **Livraison 2 (v2.63) : le temps qui passe.** `finDeSaison` appelle `finSaisonEntr` : `verdictSaison` (MANQUÉ si
+  rang > place, DÉPASSÉ si la place d'au moins un cran plus ambitieux est tenue, `crans` = combien), réputation par
+  `REP_GAIN` (dépassé +12 et +6 par cran de plus, tenu +6, manqué −10, titre +10 en D1 / +4 en D2), la saison entre
+  dans `G.coach.saisons` (matière du futur livre d'or), `contrat.reste` décompte. Le renvoi « objectif manqué » du
+  mode de toujours ne joue PAS dans ce mode. Le bouton de l'almanach appelle `preparerEte` au lieu d'`intersaison`
+  (qui n'est plus jamais appelée en mode entraîneur) : état `G.ete={v, k, fin, cas, offres}`, écran `ecranEte`
+  (branché dans `ecranCalendrier` juste après le renvoi). Cas : `suite` (contrat en cours), `prolonge` (tenu :
+  `offreRester` un cran plus haut, règle selon que le club monte ou descend VRAIMENT), `appels` (dépassé : trois clubs
+  plus forts + la prolongation), `remercie` (manqué : trois clubs plus modestes), `disparu` (le club n'est plus dans
+  les deux divisions de la vraie saison suivante ; offres selon le verdict), `fin` (`cleSaison` ne trouve pas
+  l'année suivante : `ecranFinCarriere`, version courte en attendant la livraison 5). **L'échelle** (`echelle`) range
+  les quarante clubs d'une saison par `forceReelle`, +3 en D1 ; vers le haut, `offresEte` puise entre votre place et
+  un plafond fixé par la réputation (35 % de l'échelle + 65 % × rep/100), au moins les trois clubs juste au-dessus.
+  **Signer** (`basculeSaison`) rappelle `nouvellePartie(id, k, null, true)` (le 4e argument `suite` saute la
+  création de carrière et l'écran), puis recopie la carrière : même `pid`, `anBase` du DÉPART (la clé d'un titre
+  va toujours à la saison de départ), `saisonIdx`+1, coach, palmarès, formation, consigne, prix du billet ; si l'on
+  RESTE au club, aussi stade, chantier, campus, staff, budget, trésorerie, image, records, affluences, et la
+  capacité/le prestige bâtis. Aucun joueur n'est gardé : c'est le vrai effectif de l'année. **Piège du harnais** :
+  `montre()` ne dessine RIEN sous le harnais (`EN_TEST`) ; pour tester un écran du jeu, appeler `ecranCalendrier()`
+  directement (un test des étoiles de la livraison 1 passait à tort sur un reste de l'accueil).
+  **Livraison 3 (v2.64) : le naufrage.** Dans `finirJournee`, le mode entraîneur appelle `surveillePresident` à la
+  place du renvoi « confiance à zéro » du mode de toujours (qui, lui, ne bouge pas). À partir de la 10e journée
+  (`AVERT.des`), le club COULE s'il pointe au seuil (`seuilNaufrage` = objectif + 5, au plus l'avant-dernière place :
+  les deux dernières pour un maintien) ou si la confiance est presque morte (≤ 8) ALORS qu'il est sous son objectif
+  (un entraîneur qui tient son objectif ne coule jamais : attrapé en capture, un 2e renvoyé sur une confiance
+  forcée). Premier constat : AVERTISSEMENT (`G.coach.avert={j, seuil}`, dépêche, presse, notification, bandeau
+  rouge `bandeauAvert` sous la navigation de tous les écrans). Remonté de trois places au-dessus du seuil : levé
+  (il peut revenir). Cinq journées sans redressement : RENVOYÉ (`G.coach.vire={j, rang}`, écran `ecranLimoge`
+  avec l'image `vire`, branché dans `ecranCalendrier` après l'été). « La fin de saison sans vous » (`finitSansVous`)
+  joue tout le reste au moteur : coupe et Europe tranchées par `coupeResoutTour(false)`/`euroResoutTour(false)`,
+  les moments d'un match laissé en suspens résolus par `autoMoment`, puis les fenêtres en suspens effacées. Le
+  verdict est `vire` (« RENVOYÉ », −15 de réputation, pas de bonus de titre, contrat arrêté, `vireJ` dans
+  l'historique), et l'été passe au cas `vire` : trois clubs plus faibles. Réputation à zéro étoile possible
+  (choix de l'auteur : un renvoi doit se voir).
+  **Livraison 4 (v2.65) : les offres de l'étranger.** `offresEte` tire trois offres du pays (`candidatsEte` donne
+  les candidats sur l'échelle) puis, une fois sur deux (`OFFRE_ETRANGER`), remplace la dernière par une offre d'un
+  autre pays qui a sa saison LA MÊME ANNÉE, prise sur l'échelle de ce pays et filtrée par la même règle (≥ votre
+  valeur vers le haut, < vers le bas) ; jamais plus d'une. Les forces des deux championnats sont comparées telles
+  quelles (même barème de notes). La carte d'une offre lit le pays de SA saison (`o.k`) : drapeau et nom de division
+  de ce pays. Signer passe par `nouvellePartie` qui pose le pays (libellés, coupe, monnaie) ; `G.pays` change.
+  **La saison de départ vit dans `G.coach.depart`** (posée à la signature, rattrapée dans `basculeSaison` pour une
+  carrière plus ancienne) et `cleDepart` la lit d'abord : la clé d'un titre gagné à l'étranger va au championnat du
+  départ. L'Italie entrera seule quand ses saisons seront dans `SAISONS`.
+  **Livraison 5 (v2.66) : le livre d'or et le grand bilan.** Chaque ligne de `G.coach.saisons` retient aussi `pal`,
+  les trophées de CETTE saison (titres de champion et coupes gagnées : `trophees`, filtre « Champion… »/« Vainqueur… »
+  sur les entrées du palmarès qui portent la saison). `livreDorHTML` en fait un tableau d'une ligne par saison :
+  saison, drapeau et club, division dans les mots de son pays (`PAYS[p].tag1/tag2(an)` : D2, PL, CH…), place,
+  verdict court (`LIB_COURT`, avec « J15 » pour un renvoi), une 🏆 par trophée. Pendant la carrière, `panneauLivreDor`
+  (étoiles, record, contrat en cours, tableau) ouvre le panneau « Direction & mémoire » de l'onglet Club (sous-onglet
+  Direction au téléphone). Quand il n'y a plus de saison, `ecranFinCarriere` : meilleure réputation en grand, nombre
+  de saisons, de clubs et de pays, les clubs avec leur drapeau, la liste des trophées, puis le livre d'or.
+  **Livraison 6 (v2.67) : l'écart avec l'histoire.** `CLASSEMENT_REEL` (juste sous `SAISONS`) : pour chaque clé de
+  saison, `d1`/`d2` = les codes du jeu dans l'ordre du VRAI classement final, séparés par des espaces, « - » pour un
+  club que le jeu n'a pas. Relevé le 12/11/2026 par script (zéro jeton) sur la Wikipédia anglaise, module « sports
+  table » des pages « AAAA–AA French Division 1 / Ligue 1 / French Division 2 / Ligue 2 / Football League First
+  Division / FA Premier League / Premier League / Football League Championship » ; deux écritures du module
+  (`team1=…` et `team_order=…`, piège : un bloc doit s'arrêter au module suivant), une table rangée dans un modèle
+  (`Template:1991–92 French Division 1 table`), et Wikipédia freine au-delà d'une requête toutes les ~2 s (HTTP 429).
+  Association des noms : mots distinctifs obligatoires, mots génériques (United, City, Wednesday, Albion…) qui ne font
+  que départager, et jamais deux génériques différents (Bristol City n'est pas Bristol Rovers). Vérifié : vrais
+  champions (Auxerre 96, Lens 98, Bordeaux 09, United 96, Arsenal 04), et les seuls clubs sans vraie place sont les
+  repêchés et ajouts connus du jeu (D1 à 18 de 1997 à 2002, Louhans/Martigues 98-99, WBA 91-92…). **Pas de D2
+  française avant 1993-94** (deux groupes, `d2` absent). `rangReel(k, id, div)` lit la vraie place dans la division
+  que le club JOUE (un repêché n'en a pas). `finSaisonEntr` : finir au moins `ECART_HISTOIRE`=5 places mieux que le
+  vrai club fait passer le verdict à DÉPASSÉ (`histoire:true`, un cran) ; jamais l'inverse, jamais pour un renvoyé.
+  Affichage : `ligneHistoire` (almanach et été : « Le vrai club avait fini 19ᵉ, vous faites 8 places mieux. Le
+  président s'en souviendra. »), et « /19 » discret à côté de la place dans le livre d'or.
 - **Moteur** : 38 journées, `simuleMatch` calibré à ~2,3 buts/match (calibrage à préserver). Un **carton
   rouge en cours de match fait jouer l'équipe réduite à dix** pour les minutes restantes (`mulH`/`mulA` :
   attaque en baisse, on encaisse plus ; malus d'autant plus fort que le rouge tombe tôt ; gardien expulsé que le
@@ -3823,6 +3934,61 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
 - Gardé par **`harness-cadenas.cjs`** (sections A à I) et la **section N de `harness-compte.cjs`** (le faux serveur
   imite `pousse_progression`).
 
+### LES DÉFIS ET LA SALLE DES TROPHÉES (v2.75, chantier de l'auteur du 12/11/2026)
+Premier étage du plan de fidélisation inspiré de Retro Football Management (points, défis, salle des trophées ;
+la boutique à points et les défis de club viendront après). **Pas d'argent réel** : tout se gagne en jouant.
+- **Les défis** : la constante **`DEFIS`** (21 entrées `{id, fam, nom, pts}`), trois familles (`DEFIS_FAM`) :
+  « Premiers pas » (un match : victoire, victoire dehors, cage inviolée, trois buts d'écart, cinq buts ; 10 à 30 pts),
+  « La saison » (six victoires d'affilée, dix sans défaite, dix sans encaisser, 70 buts, invaincu à domicile, montée,
+  podium, titre, coupe nationale, coupe d'Europe, doublé, champion invaincu ; 100 à 1 000 pts), « La carrière » (cinq
+  puis dix saisons dans une même carrière, trois saisons ouvertes, champion dans deux championnats ; 100 à 500 pts).
+  Changer un barème ou ajouter un défi ne touche que cette table (un `id` ne se renomme jamais : il est stocké).
+- **Où on les relève** : `defisJournee()` juste après `G.histo.push` dans `jouerJournee` (le championnat seul,
+  `mesMatchs()` lit G.histo) ; `defisFinSaison(rang, coupes)` dans `progFinDeSaison` (G.histo est encore plein, il
+  n'est vidé qu'à l'intersaison) ; `defisCarriere` à chaque fin de saison et au rattrapage ; `defisConstate()` à
+  chaque `ecranAccueil` crédite EN SILENCE ce que les résultats déjà rangés auraient dû rapporter (titre, podium,
+  montée, coupes, carrière). Un défi réussi en jeu s'annonce au debrief : « 🎯 DÉFI RÉUSSI : … · +N pts » (`notif`).
+- **Où ils vivent** : `prog().defis` = `[{id, t, pid}]`, dans la progression (`PROGKEY`), donc par compte et en
+  ligne avec les clés. **Les points ne sont JAMAIS stockés** (`pointsDefis()` les somme), comme les clés : la fusion
+  de deux appareils est une réunion (`progFusionne`, la plus ancienne réussite fait foi), `progEmpreinte` les compte,
+  `progNette` ne garde que les identifiants propres. Aucun changement de `schema.sql` : `pousse_progression` accepte
+  l'objet tel quel. Une progression d'avant la v2.75 (sans `defis`) fusionne sans broncher.
+- **La salle des trophées** (`ecranTrophees`) : bandeau « 🏆 Salle des trophées · ⭐ N » sur l'accueil (`#bTrophees`,
+  `.trPorte`), juste au-dessus du choix du pays. L'écran montre les points, la **vitrine** (`vitrine()` : titres de D1,
+  titres de D2, coupes nationales, C1/C2/C3, lus dans `prog().resultats`, donc les saisons finies depuis la v2.22)
+  avec les **blasons des clubs sacrés** (×2 au-delà d'un titre), puis les défis par famille, cochés ou grisés avec leurs
+  points. Pas de mode d'emploi à l'écran (consigne « on fait découvrir »).
+- **LES DÉFIS DE CLUB (v2.76, choix de l'auteur du 12/11/2026)** : la table **`DEFIS_CLUB`**, écrite à la main, un ou
+  deux défis par club tirés de son histoire (51 : 33 en France, 18 en Angleterre), chacun lié à `{club, ch}` et jugé en
+  fin de saison par `defiClubRempli(d, r, inv, n)` selon `q` (titre, maintien = D1 hors des trois dernières, montee =
+  trois premiers de D2, top `n`, coupe, europe, c1, double, invincibles), avec `prem` (dès la première saison) et `dep`
+  (seulement depuis cette saison de départ, ex. l'OM qui remonte depuis 1995-96). Ils partagent `DEFI_DE`, la
+  progression, les points et le debrief des autres ; le rattrapage les relit dans les résultats rangés (sauf
+  « invincibles », qui exige les matchs). **Le crochet qui fait choisir un club** : la fiche d'un club à l'accueil
+  (`ficheClubAccueil`) affiche ses défis (`defisClubDe`, cadre jaune `.trFiche`, ✅ une fois réussi). Dans la salle des
+  trophées, une quatrième famille « Les défis de club », par pays, blason devant. Ajouter un défi = une ligne dans la
+  table ; vérifier que le club existe dans une saison de son championnat (section K du harnais le contrôle).
+  **v2.78, piège des D1 à 18** : le rattrapage croyait toutes les D1 à 20 clubs, si bien qu'un 16e ou 17e d'une D1 à
+  18 (France 1997-98 à 2001-02), pourtant descendu, recevait « Se maintenir » à l'accueil. Le résultat rangé porte
+  désormais `n` (clubs de la division, posé par `progFinDeSaison`) ; sans `n` (résultat d'avant), le maintien ne se
+  juge pas au rattrapage. `defiClubRempli` exige `n` pour le maintien, jamais de valeur par défaut. Section K.
+- **LA BOUTIQUE À POINTS (v2.77, demande de l'auteur du 12/11/2026)** : les points se dépensent, jamais d'argent réel.
+  La table **`BOUTIQUE`** a deux rayons. **Avantages permanents** (`perm`, achetés une fois, valables pour toutes les
+  carrières LANCÉES APRÈS l'achat, appliqués par `boutiqueAuDepart` dans `nouvellePartie` hors été d'entraîneur,
+  avant `inferStade`) : une tribune de plus (+3 000 places, 1 500 pts), trésor de guerre (+10 M au budget transferts,
+  1 000), un président qui vous aime (confiance +15, 600). **Coups de pouce** (`coup`, carrière en cours, effet
+  immédiat par `appliqueCoup`, une fois par saison chacun) : vider l'infirmerie (`bless`=0, 150), l'amnistie
+  (`susp`=0, 100), tournée générale (moral +15, 80), la rallonge du président (+5 M, 250). Les achats vivent dans
+  `prog().achats` = `[{id, art, t}]` ; **l'`id` porte la limite** (l'article seul pour un permanent,
+  `article-carrière-saison` pour un coup de pouce), donc la fusion de deux appareils (réunion par `id`) ne compte
+  jamais un achat deux fois. **Le solde n'est pas stocké** : `soldePoints()` = points gagnés − prix des achats,
+  jamais sous zéro (deux appareils qui ont dépensé chacun de leur côté peuvent dépasser, on s'arrête à zéro).
+  Où : dans la salle des trophées (panneau « La boutique », les coups de pouce y disent « En partie »), et en jeu
+  par le bouton « ⭐ Boutique » du pied de page (`montre("boutique")` → `ecranBoutique`). Chaque achat passe par
+  `confirme`. Le bandeau de l'accueil et le haut de la salle montrent le SOLDE, « N gagnés » en dessous.
+- Gardé par **`harness-trophees.cjs`** (sections A à L, dont une carrière de six saisons où chaque défi de match
+  réussi est contrôlé contre le score du soir, et la boutique en L).
+
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
 
 La 90ᵉ tire parfois une respiration comique qui ne touche à rien : ni au score, ni à un joueur, ni à une
@@ -3951,7 +4117,12 @@ paramétrée par pays, et c'est volontaire : un moteur qui se plie par pays se c
 **La table `PAYS`** (en tête de script, juste sous `VERSION`) décrit chaque pays : son nom, son adjectif, son
 drapeau, les libellés de ses deux divisions (en fonction de l'année, voir plus bas), les étiquettes courtes du
 bandeau, sa coupe nationale, sa coupe de la ligue, la formule « champion de … », son unité monétaire et son
-**taux d'affichage**. Deux entrées pour l'instant, `FR` et `ANG`.
+**taux d'affichage**. Trois entrées : `FR`, `ANG` et, depuis la v2.68, `ITA`.
+**Règle de l'auteur (12/11/2026) : un championnat entre dans `PAYS` DÈS QUE SON CHANTIER COMMENCE**, avant sa
+première saison. Son drapeau apparaît alors dans la rangée de l'accueil, grisé et « bientôt », et s'allume tout
+seul quand sa première saison entre dans `SAISONS`. L'Italie y est ainsi depuis la v2.68 (lire à 300 pour un franc,
+provisoire jusqu'au lot monnaie italien) ; l'Espagne et les suivants feront pareil. `harness-pays` vérifie que
+chaque pays autre que FR et ANG a son bouton, grisé sans saison, cliquable avec.
 **Piège de vocabulaire, à ne pas confondre** : `CLUBS_EUROPE` porte DÉJÀ un champ `pays`, qui contient un nom de
 pays en français (« Angleterre », « Pays-Bas ») et sert à la présentation d'un adversaire de Coupe d'Europe. Le
 champ `pays` de `SAISONS` est d'une autre nature : c'est un **code** (`"FR"`, `"ANG"`), clé de la table `PAYS`.

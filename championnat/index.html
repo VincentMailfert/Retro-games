@@ -67,6 +67,10 @@
   /* La division, sur le bandeau JAUNE : pastille inversée, fond sombre et texte jaune. Un simple .jaune y
      était invisible (jaune sur jaune). D1 et D2 portent la même pastille : le chiffre suffit (chantier interface, lot 1). */
   .topbar .divTag{background:#16243c; color:var(--jaune); padding:0 5px; letter-spacing:0;}
+  /* retour à l'accueil (v2.70, logo Multiplex v2.71) : même pastille sombre que la division, assez grande pour un pouce */
+  .topbar .tbAccueil{display:inline-flex; align-items:center; gap:6px; background:#16243c; color:var(--jaune); border:0; border-radius:3px; font:inherit; font-size:13px;
+    letter-spacing:0; padding:2px 8px 2px 3px; min-height:30px; cursor:pointer;}
+  .topbar .tbAccueil:hover{background:#0b1626;}
   /* quatre onglets soulignés ; le jaune ne marque que l'onglet où l'on est */
   nav{display:flex; gap:26px; margin:2px 0 0; padding:0 4px; border-bottom:1px solid var(--line);}
   nav button{
@@ -612,6 +616,32 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .effTab th.effNom::after, .effTab td.effNom::after{content:""; position:absolute; top:0; bottom:0; right:0;
     width:1px; background:var(--line);}
 }
+  /* LA SALLE DES TROPHÉES (v2.75) */
+  .trPorte{display:flex;justify-content:space-between;align-items:center;width:100%;margin:0 0 12px;padding:12px 14px;
+    background:#0b1626;border:2px solid #ffd24a;color:#dfe9ff;font-family:inherit;font-size:15px;cursor:pointer;}
+  .trPorte:hover{background:#13223a;}
+  .trPts{font-size:30px;letter-spacing:1px;margin:8px 0 2px;color:#ffd24a;}
+  .trGrille{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+  .trCase{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1px solid #38507a;font-size:12px;text-align:center;}
+  .trCase b{font-size:22px;color:#ffd24a;}
+  .trCase .trEmo{font-size:22px;}
+  .trVide{opacity:.35;}
+  .trClubs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+  .trBlason{position:relative;display:inline-flex;}
+  .trBlason i{position:absolute;right:-6px;bottom:-4px;font-style:normal;font-size:11px;background:#ffd24a;color:#16243c;padding:0 3px;font-weight:bold;}
+  .trDefi{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:4px 0;border-bottom:1px solid #1d2c45;opacity:.55;}
+  .trDefi.ok{opacity:1;}
+  .trDefiClub{display:flex;align-items:center;gap:6px;}
+  .trDefi>span:last-child{white-space:nowrap;}
+  .trPays{margin:10px 0 2px;font-size:13px;}
+  .trFiche{margin-top:6px;padding:6px 8px;border:1px solid #ffd24a;font-size:14px;}
+  .trFiche.ok{border-color:#38507a;opacity:.7;}
+  .boArt{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1d2c45;}
+  .boArt.ok{opacity:.6;}
+  .boIco{font-size:22px;width:28px;text-align:center;}
+  .boTxt{flex:1;display:flex;flex-direction:column;font-size:14px;}
+  .boTxt .dim{font-size:13px;}
+  .boAch{white-space:nowrap;min-height:40px;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -630,9 +660,9 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.63"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.78"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
-const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" MF" : "-"; // repli : un montant absent s'écrit —, jamais « NaN MF »
+const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
    Première étape du lot structure qui précède l'Angleterre. Le moteur reste français : les montants sont
    comptés en FRANCS, les divisions sont G.div 1 et 2, le championnat a vingt clubs et trente-huit journées,
@@ -651,7 +681,7 @@ const PAYS={
        chantier-saisons.md). C'est la garantie qu'une partie française ne bouge pas d'un pixel. */
     div1:()=>"Division 1", div2:()=>"Division 2", tag1:()=>"D1", tag2:()=>"D2",
     coupe:"Coupe de France", coupeLigue:"Coupe de la Ligue", champion:"champion de France",
-    taux:1, unite:"FF", millions:"MF", monNom:"francs", piece:"un franc" },
+    taux:1, unite:"", millions:"M", monNom:"millions", piece:"" },
   ANG:{ code:"ANG", nom:"Angleterre", adj:"anglaise", adjM:"anglais", le:"l'Angleterre", du:"d'Angleterre",
     /* `nat` est la nationalité LOCALE, celle que porte un joueur généré et celle que la sélection
        nationale appelle (cf. selections) : un joker français signé en Angleterre garde « FR » et ne
@@ -671,10 +701,21 @@ const PAYS={
        (choix auteur, 14/10/2026). Avant 1992, « D1 » est bien l'élite et le reste. */
     tag2:an=>an>=2004?"CH":(an>=1992?"DIV1":"D2"),
     coupe:"FA Cup", coupeLigue:"League Cup", champion:"champion d'Angleterre",
-    /* Huit francs valaient une livre dans les années 90 : moyennes annuelles de la Réserve fédérale,
-       1995 = 4,9864 FF/$ × 1,5785 $/£ = 7,87 ; 1996 = 5,1158 × 1,5607 = 7,99. Le chiffre est juste
-       d'époque et rond à retenir, et il rend un budget de 100 MF en 12,5 M£, un billet de 70 FF en 9 £. */
-    taux:1/8, unite:"£", millions:"M£", monNom:"livres", piece:"un penny" },
+    /* PLUS DE DEVISE (v2.73, choix de l'auteur) : ni francs, ni livres, ni lires. Tous les championnats
+       comptent dans la même monnaie sans nom, écrite « M » pour les millions, à la même échelle : 100 M en
+       France valent 100 M en Angleterre et en Italie. `taux` reste à 1 partout ; il ne sert plus qu'à
+       garder la porte ouverte si l'auteur revenait un jour à des devises. */
+    taux:1, unite:"", millions:"M", monNom:"millions", piece:"" },
+  /* L'ITALIE ENTRE DANS LA TABLE AVANT SES SAISONS (v2.68, demande de l'auteur) : son drapeau s'affiche à
+     l'accueil, grisé et « bientôt », tant qu'aucune saison ITA- n'est dans SAISONS, puis s'allume tout seul.
+     Même règle pour chaque championnat suivant : il entre ici dès que son chantier commence.
+     Serie A et Serie B portent ces noms sur toute la fenêtre 1990-2012. Pas de coupe de la ligue en Italie :
+     `coupeLigue` n'est lu par aucun écran. Montants en « M », sans devise, comme partout (v2.73). */
+  ITA:{ code:"ITA", nom:"Italie", adj:"italienne", adjM:"italien", le:"l'Italie", du:"d'Italie",
+    nat:"ITA", titre:"Champion d'Italie", triomphe:"L'ITALIE SACRÉE", drapeau:'<svg class="drap" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></svg>',
+    div1:()=>"Serie A", div2:()=>"Serie B", tag1:()=>"SA", tag2:()=>"SB",
+    coupe:"Coppa Italia", coupeLigue:"Supercoppa", champion:"champion d'Italie",
+    taux:1, unite:"", millions:"M", monNom:"millions", piece:"" },
 };
 /* LE PAYS REGARDÉ, et non le pays joué. L'accueil affiche des libellés et des montants avant qu'aucune
    carrière n'existe, et il peut montrer une saison anglaise alors que G porte encore une carrière française
@@ -753,12 +794,15 @@ function honneurEte(an){ const t=HONNEURS_PAYS[paysVu().code]||HONNEURS_PAYS.FR;
    UU  : un montant à l'unité (salaires, billets, tarifs journaliers).
    Le point et la virgule qui cohabitent sont une VERRUE héritée des cent dix sites d'origine, pas une
    décision : la régulariser un jour se fera en touchant à MM et MMv, et à rien d'autre. */
-// virgule décimale partout (« 42,0 MF », « 3,5 M£ ») : le jeu parle français, même quand il compte en livres (29/10/2026)
+// virgule décimale partout (« 42,0 M », « 3,5 M£ ») : le jeu parle français, même quand il compte en livres (29/10/2026)
 function MM(n, d=1){ const p=paysVu(); return MMn(n,d)+" "+p.millions; }
 function MMn(n, d=1){ return (n*paysVu().taux/1e6).toFixed(d).replace(".",","); } // le nombre seul : l'unité est dite ailleurs (en-tête de colonne, phrase voisine)
 function MMv(n, d=1){ return MM(n,d).replace(".",","); }
 function MMC(n){ const p=paysVu(); return MF_C(n*p.taux/1e6)+" "+p.millions; }
-function UU(n){ const p=paysVu(); return FMT(n*p.taux)+" "+p.unite; }
+function UU(n){ // v2.73 : sans devise. Un petit prix (billet, place) s'écrit en chiffre seul ; tout le reste en « M »
+  const p=paysVu(), v=n*p.taux; if(Math.abs(v)<1000) return FMT(v);
+  const m=v/1e6, d=Math.abs(m)<0.01?3:(Math.abs(m)<1?2:1), t=(Math.round(m*10**d)/10**d).toFixed(d).replace(/\.?0+$/,"").replace(".",",");
+  return t+" "+p.millions; }
 const RND = (a,b)=>a+Math.random()*(b-a);
 const RNDI=(a,b)=>Math.floor(RND(a,b+1));
 const PICK=a=>a[Math.floor(Math.random()*a.length)];
@@ -11176,6 +11220,51 @@ const SAISONS={
  "ANG-1994-95":{ pays:"ANG", an:1994, titre:"1994-95", nom:"Walker a payé", d1:D1_ANG9495, d2:D2_ANG9495, starsD1:STARS_ANG9495, starsD2:STARS_D2_ANG9495, euroC1:["MUN"], euroC2:["CHE","ARS"], euroC3:["BLB","NEW","AVL"],
    sous:"Blackburn Rovers est champion d'Angleterre pour la première fois depuis 1914, et c'est l'argent de Jack Walker, l'industriel de l'acier enfant du club, que Kenny Dalglish a fait fructifier : Alan Shearer marque trente-quatre buts, Chris Sutton, recrue record de l'été, en ajoute quinze, et la presse les appelle SAS. Le titre se joue le dernier jour : Blackburn perd à Anfield, mais Manchester United ne fait que match nul à West Ham et finit à un point. United avait pourtant payé sept millions de livres en janvier pour Andy Cole, qui en marquera cinq contre Ipswich dans un 9-0 au mois de mars ; mais le 25 janvier, à Selhurst Park, Eric Cantona saute à pieds joints sur un supporter de Crystal Palace, et il ne rejouera plus de la saison. Jürgen Klinsmann, arrivé de Monaco à Tottenham, est élu joueur de l'année par la presse, Shearer par ses pairs, et Robbie Fowler meilleur espoir. Everton bat Manchester United en finale de la FA Cup, Liverpool gagne la Coupe de la Ligue, et Arsenal perd sa Coupe des Coupes en finale sur un lob de cinquante mètres de Nayim. En deuxième division, Middlesbrough de Bryan Robson est champion et Bolton monte par les barrages ; Reading, deuxième, reste en bas, car la Premier League passe à vingt clubs et une seule place est directe. La Premier League comptait vingt-deux clubs : les deux derniers s'effacent. L'échelon du dessous en comptait vingt-quatre, et les quatre écartés ne sont pas les quatre derniers : Stoke, onzième, ne peut pas remplir son effectif en vrais joueurs." },
 };
+/* L'ÉCART AVEC L'HISTOIRE (carrière d'entraîneur, livraison 6) : le VRAI classement final de chaque saison, relevé par
+   script sur la Wikipédia anglaise (module « sports table », pages « AAAA–AA French Division 1 / Ligue 1 / … ») le
+   12/11/2026. « - » = un club que le jeu n'a pas. Pas de D2 française avant 1993-94 (deux groupes). Lu par rangReel. */
+const CLASSEMENT_REEL={
+ "1990-91":{d1:"OM MON AJA CAN LYO LIL MTP CAE PSG BOR BRE MET STE NIC NAN TON NCY SOC TOU REN"},
+ "1991-92":{d1:"OM MON PSG AJA CAE MTP LEH LEN NAN STE TOU MET LIL TON NIM LYO SOC REN CAN NCY"},
+ "1992-93":{d1:"OM PSG MON BOR NAN AJA STE STR LEN MTP CAE MET TOU LYO LEH SOC LIL VAN TON NIM"},
+ "1993-94":{d1:"PSG OM AJA BOR NAN CAN MTP LYO MON LEN STE MET STR SOC LIL CAE LEH MAR TOU ANG", d2:"NIC REN BAS NIM RST BRI LAV DUN CHV ALE SED NCY GUE MUL VAL BEA LMN NIO ROU VAN - -"},
+ "1994-95":{d1:"NAN LYO PSG AJA LEN MON BOR MET CAN STR MAR LEH REN LIL BAS NIC MTP STE CAE SOC", d2:"OM GUI GUE TOU CHA RST NCY DUN AMI ALE CHV LMN VAL MUL LAV PER NIO ANG BRI BEA - -"},
+ "1995-96":{d1:"AJA PSG MON MET LEN MTP NAN REN STR GUI LYO NIC LEH CAN BAS BOR LIL GUE STE MAR", d2:"CAE OM NCY LAV TOU LMN RST PER CHA SOC LOU LOR AMI MUL VAL NIO CHV EPI POI DUN - -"},
+ "1996-97":{d1:"MON PSG NAN BOR MET AJA BAS LYO STR MTP OM GUI LEN LEH CAN REN CAE NCY LIL NIC", d2:"CHA TOU MAR GUE NIO LMN BEA LAV LOR VAL SOC MUL RST TON AMI PER STE - - TRO EPI BRI"},
+ "1997-98":{d1:"LEN MET MON OM BOR LYO AJA PSG BAS LEH NAN MTP STR REN TOU GUI CHA CAN", d2:"NCY LOR SOC LIL TRO LMN VAL RST CAE NIO GUE AMI LAV NIC NIM BEA STE WAS LOU TON MAR MUL"},
+ "1998-99":{d1:"BOR OM LYO MON REN LEN NAN MTP PSG MET NCY STR BAS AJA LEH LOR SOC TOU", d2:"STE SED TRO LIL CAE GUE GUI CHA ACA LAV NIO CAN NIM NIC WAS AMI LMN VAL RST BEA"},
+ "1999-00":{d1:"MON PSG LYO BOR LEN STE SED AJA STR BAS MET NAN REN TRO OM NCY LEH MTP", d2:"LIL GUI TOU SOC GUE CAE ACA CHA LMN LAV NIC CAN LOR NIM NIO WAS CRE AMI VAL LOU"},
+ "2000-01":{d1:"NAN LYO LIL BOR SED REN TRO BAS PSG GUI MON MET AJA LEN OM TOU STE STR", d2:"SOC LOR MTP NIO NCY CHA LEH NIM LAV GUE BEA ACA WAS LMN NIC CRE CAE MAR CAN ANG"},
+ "2001-02":{d1:"LYO LEN AJA PSG LIL BOR TRO SOC OM NAN BAS REN MTP SED MON GUI MET LOR", d2:"ACA STR NIC LEH LMN CAE BEA CHA NCY LAV NIO AMI STE GUE WAS GRE IST CRE NIM MAR"},
+ "2002-03":{d1:"LYO MON OM BOR SOC AJA GUI LEN NAN NIC PSG BAS STR LIL REN MTP ACA LEH SED TRO", d2:"TOU LMN MET LOR CHA NIO CAE LAV STE AMI GUE GRE VAL CLE NCY IST CRE BEA WAS REI"},
+ "2003-04":{d1:"LYO PSG MON AJA SOC NAN OM LEN REN LIL NIC BOR STR MET ACA TOU BAS GUI LMN MTP", d2:"STE CAE IST LOR SED NCY LEH NIO AMI TRO CHA CRE ANG CLE GRE GUE LAV VAL BES ROU"},
+ "2004-05":{d1:"LYO LIL MON REN OM STE LEN AJA PSG SOC STR NIC TOU ACA BOR MET NAN CAE BAS IST", d2:"NCY LMN TRO DIJ CHA SED GUI MTP BRE LOR GRE GUE AMI LAV CRE REI LEH CLE NIO ANG"},
+ "2005-06":{d1:"LYO BOR LIL LEN OM AJA REN NIC PSG MON LMN NCY STE NAN SOC TOU TRO ACA STR MET", d2:"VAN SED LOR CAE DIJ BAS LEH CRE GUI GRE GUE MTP IST REI CHA AMI BRE CLE LAV SET"},
+ "2006-07":{d1:"LYO OM TOU REN LEN BOR SOC AJA MON LIL STE LMN NCY LOR PSG NIC VAN TRO SED NAN", d2:"MET CAE STR AMI GRE LEH CHA DIJ BAS GUE REI ACA GUI BRE MTP NIO LIB CRE IST TRS"},
+ "2007-08":{d1:"LYO BOR OM NCY STE REN LIL NIC LMN LOR CAE MON VAN SOC AJA PSG TOU LEN STR MET", d2:"LEH NAN GRE SED CLE TRO BRE MTP ACA ANG BAS GUI REI AMI CHA BLG DIJ NIO LIB GUE"},
+ "2008-09":{d1:"BOR OM LYO TOU LIL PSG REN AJA NIC LOR MON VAN GRE SOC NCY LMN STE CAE NAN LEH", d2:"LEN MTP BLG STR MET TRS ANG DIJ SED VNS BAS CLE GUI BRE CHA ACA NIM AMI TRO REI"},
+ "2009-10":{d1:"OM LYO AJA LIL MTP BOR LOR MON REN VAN LEN NCY PSG TOU NIC SOC STE LMN BLG GRE", d2:"CAE BRE ARL MET ANG CLE LEH LAV DIJ NIM TRS SED ACA VNS NAN CHA IST GUI STR BAS"},
+ "ANG-1995-96":{d1:"MUN NEW LIV AVL ARS EVE BLB TOT FOR WHU CHE MID LEE WIM SHW COV SOU MCI QPR BOL", d2:"SUN DER CPL STK LEI CHL IPS HUD SHU BNS WBA PTV TRM SND BIR NOR GRI OLD RDG WOL - - - -"},
+ "ANG-1996-97":{d1:"MUN NEW ARS LIV AVL CHE SHW WIM LEI TOT LEE DER BLB WHU EVE SOU COV SUN MID FOR", d2:"BOL BNS WOL IPS SHU CPL POR PTV QPR BIR TRM STK NOR MCI CHL WBA OXF RDG SWI HUD - - - -"},
+ "ANG-1997-98":{d1:"ARS MUN LIV CHE LEE BLB AVL WHU DER LEI COV SOU NEW TOT WIM SHW EVE BOL BNS CPL", d2:"FOR MID SUN CHL IPS SHU BIR SKP WOL WBA CRW OXF BRD TRM NOR HUD BRY SWI PTV POR - - - -"},
+ "ANG-1998-99":{d1:"MUN ARS CHE LEE WHU AVL LIV DER MID LEI TOT SHW NEW EVE COV WIM SOU CHL BLB FOR", d2:"SUN BRD IPS BIR WAT BOL WOL SHU NOR HUD GRI WBA BNS CPL TRM SKP SWI CRW POR QPR - - - -"},
+ "ANG-1999-00":{d1:"MUN ARS LEE LIV CHE AVL SUN LEI WHU TOT NEW MID EVE COV SOU DER BRD WIM SHW WAT", d2:"CHL MCI IPS BNS BIR BOL WOL HUD FUL QPR BLB NOR TRM FOR CPL SHU SKP POR CRW GRI - - - -"},
+ "ANG-2000-01":{d1:"MUN ARS LIV LEE IPS CHE SUN AVL CHL SOU NEW TOT LEI MID WHU EVE DER MCI COV BRD", d2:"FUL BLB BOL PNE BIR WBA BUR WIM WAT SHU FOR WOL GIL CRW NOR BNS SHW GRI SKP POR - - - -"},
+ "ANG-2001-02":{d1:"ARS LIV MUN NEW LEE CHE WHU AVL TOT BLB SOU MID FUL CHL EVE BOL SUN IPS DER LEI", d2:"MCI WBA WOL MIW BIR NOR BUR PNE WIM CPL COV GIL SHU WAT BRD FOR POR WAL GRI SHW - - - -"},
+ "ANG-2002-03":{d1:"MUN ARS NEW CHE LIV BLB EVE SOU MCI TOT MID CHL BIR FUL LEE AVL BOL WHU WBA SUN", d2:"POR LEI SHU RDG WOL FOR IPS NOR MIW WIM GIL PNE WAT CPL ROT BUR WAL DER BRD COV - - - -"},
+ "ANG-2003-04":{d1:"ARS CHE MUN LIV NEW AVL CHL BOL FUL BIR MID SOU POR TOT BLB MCI EVE LEI LEE WOL", d2:"NOR WBA SUN WHU IPS CPL WIG SHU RDG MIW STK COV CAR FOR PNE WAT ROT CRW - DER GIL - - -"},
+ "ANG-2004-05":{d1:"CHE ARS MUN EVE LIV BOL MID MCI TOT AVL CHL BIR FUL NEW BLB POR WBA CPL NOR SOU", d2:"SUN WIG IPS DER PNE WHU RDG SHU WOL MIW QPR STK BUR LEE LEI CAR PLY WAT COV BHA - - - -"},
+ "ANG-2005-06":{d1:"CHE MUN LIV ARS TOT BLB NEW BOL WHU WIG EVE FUL CHL MID MCI AVL POR BIR WBA SUN", d2:"RDG SHU WAT PNE LEE CPL WOL COV NOR LUT CAR SOU STK PLY IPS LEI BUR HUL SHW DER - - - -"},
+ "ANG-2006-07":{d1:"MUN CHE LIV ARS TOT EVE BOL RDG POR BLB AVL MID NEW MCI WHU FUL WIG SHU CHL WAT", d2:"SUN BIR DER WBA WOL SOU PNE STK SHW COL PLY CPL CAR IPS BUR NOR COV QPR LEI BNS - - - -"},
+ "ANG-2007-08":{d1:"MUN CHE ARS LIV EVE AVL BLB POR MCI WHU TOT NEW MID WIG SUN BOL FUL RDG BIR DER", d2:"WBA STK HUL BSC CPL WAT WOL IPS SHU PLY CHL CAR BUR QPR PNE SHW NOR BNS BLP SOU - - - -"},
+ "ANG-2008-09":{d1:"MUN LIV CHE ARS EVE AVL FUL TOT WHU MCI WIG STK BOL POR BLB SUN HUL NEW MID WBA", d2:"WOL BIR SHU RDG BUR PNE CAR SWA IPS BSC QPR SHW WAT DON CPL BLP COV DER FOR BNS - - - -"},
+ "ANG-2009-10":{d1:"CHE MUN ARS TOT MCI AVL LIV EVE BIR BLB STK FUL SUN BOL WOL WIG WHU BUR HUL POR", d2:"NEW WBA FOR CAR LEI BLP SWA SHU RDG BSC MID DON QPR DER IPS WAT PNE BNS COV SCU - - - -"},
+ "ANG-1990-91":{d1:"ARS LIV CPL LEE MCI MUN WIM FOR EVE TOT CHE QPR SHU SOU NOR COV AVL LUT SUN DER", d2:"OLD WHU SHW NTC MIW - MID BNS BSC OXF NEW WOL - IPS PTV CHL POR PLY BLB WAT - - WBA HUL"},
+ "ANG-1991-92":{d1:"LEE MUN SHW ARS MCI LIV AVL FOR SHU CPL QPR EVE WIM CHE TOT SOU OLD NOR COV LUT - -", d2:"IPS MID DER LEI CAM - CHL SWI POR WAT WOL - BSR TRM MIW - BSC SUN GRI NEW - - BHA PTV"},
+ "ANG-1992-93":{d1:"MUN AVL NOR BLB QPR LIV SHW TOT MCI ARS CHE WIM EVE SHU COV IPS LEE SOU OLD CPL - -", d2:"NEW WHU POR - SWI LEI MIW DER - PET WOL CHL BNS OXF BSC WAT NTC - BIR LUT SUN BTF CAM -"},
+ "ANG-1993-94":{d1:"MUN BLB NEW ARS LEE WIM SHW LIV QPR AVL COV NOR WHU CHE TOT MCI EVE SOU IPS SHU - -", d2:"CPL FOR MIW LEI - DER NTC WOL - STK CHL SUN BSC BOL SND GRI POR BNS WAT LUT WBA BIR - -"},
+ "ANG-1994-95":{d1:"BLB MUN FOR LIV LEE NEW TOT QPR WIM SOU CHE ARS SHW WHU EVE COV MCI AVL CPL NOR - -", d2:"MID RDG BOL WOL TRM BNS WAT SHU DER GRI - MIW SND OLD CHL LUT - POR WBA SUN - BUR BSC -"},
+};
 const SAISON_DEFAUT="1995-96";
 let SAISON_ACCUEIL=SAISON_DEFAUT; // saison sélectionnée à l'écran d'accueil
 
@@ -11196,8 +11285,50 @@ function construitDivision(listeClubs, starsMap){
   }
   return clubs;
 }
-function nouvellePartie(clubId, saisonKey){
+/* ---------- LA MESURE DU PARCOURS (v2.74, plan « 10 000 joueurs ») ----------
+   Le compteur GoatCounter du <head> ne voyait que l'arrivée sur la page. Le jeu lui envoie désormais
+   quelques ÉVÉNEMENTS, chacun UNE SEULE FOIS par navigateur : la première visite, la partie lancée, le
+   premier match joué, la première saison finie, le compte créé, et le retour à J1, J7 et J30 (écart avec
+   la première visite, en jours de calendrier). Rien de personnel ne part : un nom d'événement, c'est tout.
+   Le carnet (`MESURE_KEY`) ne garde que la date de première visite et les événements déjà envoyés.
+   Mêmes garde-fous que le compteur : rien en local (file://, localhost), rien au harnais (EN_TEST), et si
+   GoatCounter n'est pas encore chargé, l'événement attend (dix secondes au plus) puis repart à la
+   prochaine occasion, puisqu'il n'est noté qu'une fois envoyé. Lu dans GoatCounter sous les chemins
+   « parcours/… ». Gardé par harness-mesure.cjs. */
+const MESURE_KEY="d1manager_mesure_v1";
+const MESURE_EVTS=["premiere-visite","partie-lancee","premier-match","saison-finie","compte-cree","retour-j1","retour-j7","retour-j30"];
+function mesurePublic(){ return typeof location!=="undefined" && location.protocol==="https:" &&
+  !/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname||""); }
+function mesureLit(){ try{ const o=JSON.parse(localStorage.getItem(MESURE_KEY)||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function mesureEcrit(o){ try{ localStorage.setItem(MESURE_KEY, JSON.stringify(o)); }catch(e){} }
+function mesureJour(d){ const x=d||new Date(); return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); }
+function mesureEcart(de, a){ return Math.round((Date.parse(a+"T12:00:00")-Date.parse(de+"T12:00:00"))/864e5); }
+/* Les événements dus à cette date, pour un carnet donné : PUR (testable au harnais). */
+function mesureRetoursDus(o, aujourdhui){
+  if(!o.premier) return [];
+  const j=mesureEcart(o.premier, aujourdhui), dus=[];
+  for(const [n,e] of [[1,"retour-j1"],[7,"retour-j7"],[30,"retour-j30"]]) if(j>=n && !(o.vus&&o.vus[e])) dus.push(e);
+  return dus;
+}
+function mesure(evt, essai){
+  if(!MESURE_EVTS.includes(evt) || EN_TEST() || !mesurePublic()) return false;
+  const o=mesureLit(); if(o.vus && o.vus[evt]) return false;
+  const gc=typeof window!=="undefined" && window.goatcounter;
+  if(!gc || typeof gc.count!=="function"){ if((essai||0)<10) setTimeout(()=>mesure(evt,(essai||0)+1), 1000); return false; }
+  try{ gc.count({path:"parcours/"+evt, title:evt, event:true}); }catch(e){ return false; }
+  o.vus=o.vus||{}; o.vus[evt]=mesureJour(); mesureEcrit(o); return true;
+}
+function mesureDemarrage(){
+  if(EN_TEST() || !mesurePublic()) return;
+  const o=mesureLit();
+  if(!o.premier){ o.premier=mesureJour(); mesureEcrit(o); }
+  mesure("premiere-visite");
+  for(const e of mesureRetoursDus(o, mesureJour())) mesure(e);
+}
+
+function nouvellePartie(clubId, saisonKey, entr, suite){ // entr : l'offre signée d'une carrière d'entraîneur (sinon, le mode de toujours) ; suite : l'été d'une carrière d'entraîneur (cf. basculeSaison)
   const S=SAISONS[saisonKey]||SAISONS[SAISON_DEFAUT]; // saison de départ choisie (vrais effectifs d'époque)
+  if(!suite) mesure("partie-lancee"); // une fois par navigateur (cf. LA MESURE DU PARCOURS) ; l'été d'une carrière n'est pas un lancement
   voitPays(S.pays||"FR", S.an, true); // le pays de la carrière : libellés de divisions, coupe, monnaie d'affichage
   MERCF={posF:"*", txtF:"", ageF:99, favSeul:false, triCle:"note", triDir:-1, divF:"*", page:1, sel:null}; // filtres mercato à neuf
   const d1=construitDivision(S.d1.map(id=>metaSaison(id,S.an)), S.starsD1);
@@ -11219,6 +11350,8 @@ function nouvellePartie(clubId, saisonKey){
     records:{}, serieInv:0, affJ:[], affS:[], // le mur du club, la série en cours, le baromètre des tribunes
   };
   G.objectif=objectifPour(clubs.find(c=>c.id===clubId).pres);
+  if(!suite) boutiqueAuDepart(clubId); // les avantages permanents achetés à la boutique (avant le stade, qui se déduit de la capacité)
+  if(entr) signeContrat(entr, saisonKey); // la carrière d'entraîneur : le contrat du président remplace l'objectif au prestige
   clubs.find(c=>c.id===clubId).joueurs.forEach(j=>ouvreBio(j,"origine")); // la fiche de vie s'ouvre pour tout l'effectif de départ
   G.intro=S.an; // mot d'ouverture de la toute première saison de la carrière
   G.stade=inferStade(clubs.find(c=>c.id===clubId)); G.chantier=null; // état du stade déduit de sa taille de départ
@@ -11244,6 +11377,7 @@ function nouvellePartie(clubId, saisonKey){
   // `construitDivision` de l'Europe, il ignorait les remplaçants générés des clubs européens, et l'on
   // voyait un joueur de village porter le nom d'un homme de la Juventus (attrapé par harness-coupes, section I).
   coupeInit();       // tirage de la Coupe de France de la saison, et des effectifs de village
+  if(suite) return;  // carrière d'entraîneur, été suivant : `basculeSaison` reprend la main (même carrière, pas d'écran)
   PARTIE=partieNeuve(); G.pid=PARTIE.id; // une carrière DE PLUS : celles déjà ouvertes sont conservées
   majTitre(); montre("calendrier");
 }
@@ -11336,6 +11470,10 @@ function recupJoueur(j, c){
 function reposHebdo(c){ if(!c||!c.joueurs) return;
   // campus (votre club seulement) : la halle rend 3 points par semaine l'hiver (J16 à J26), le laboratoire 2 toute l'année
   let bonus=0; if(c.id===G.monClub && G.campus){ const e=campusEff(), J=(G.journee||0)+1; bonus=(J>=16&&J<=26?e.hiver:0)+e.fraich; }
+  /* LE PRÉPARATEUR PHYSIQUE FAIT RÉCUPÉRER TOUT LE MONDE (v2.69, demande de l'auteur) : +1 point de fraîcheur par
+     semaine et par étoile, à tout l'effectif. Avant, il ne comblait qu'une part du déficit de l'âge (recupJoueur),
+     donc rien de visible sous 29 ans. Cela compte surtout les semaines à deux matchs (coupe, Europe). */
+  if(c.id===G.monClub) bonus+=coachTier("physique");
   for(const j of c.joueurs) j.fraich=Math.min(100, fraich(j)+FRAICH_SEM*recupJoueur(j,c)+bonus); } // ceinture : on balaie aussi la D2 et l'Europe, et une vieille sauvegarde peut y porter un club sans effectif
 function useFraich(j, cout){ j.fraich=Math.max(0, fraich(j)-cout); }
 /* CE QUE LA FATIGUE COÛTE — quatre paliers, barème posé par l'auteur (v1.01) :
@@ -14041,6 +14179,7 @@ function autoMoment(mo){ // résolution sans intervention (tests, abandon de ban
 /* phase B : application du résultat de mon match et toute la vie du championnat */
 function finirJournee(delta){
   const P=G._pend; if(!P) return; G._pend=null;
+  mesure("premier-match");
   CHANGEMENTS={}; // le coup de sifflet est acté : la coupe et l'Europe qui suivent composent avec onze(), comme avant
   const {res,pend}=P;
   if(pend){
@@ -14096,7 +14235,7 @@ function finirJournee(delta){
         G.promoBillets=false; // opération ponctuelle : à réactiver au prochain match
       } else {
         recette=aff*pb.prix;
-        libBill="Billetterie ("+pb.nom.toLowerCase()+", "+UU(pb.prix)+") : "+FMT(aff)+" spectateurs, recette "+MM(recette,2)+".";
+        libBill="Billetterie ("+pb.nom.toLowerCase()+", "+UU(pb.prix)+" la place) : "+FMT(aff)+" spectateurs, recette "+MM(recette,2)+".";
       }
       G.tresorerie += recette;
       { const annexe=stadeRecetteMatch(Math.min(1, aff/Math.max(1,h.cap))); // loges, buvettes, restaurant : les recettes du soir de match
@@ -14195,7 +14334,9 @@ function finirJournee(delta){
     if(f[f.length-1]===1) G.confiance+=1.0; // une victoire apaise toujours
   }
   G.confiance=Math.max(0,Math.min(100,G.confiance));
-  if(G.confiance<=0 && G.journee>8){ G.vire="confiance";
+  // carrière d'entraîneur : le président prévient avant de renvoyer, et seulement en cas de naufrage (livraison 3)
+  if(G.mode==="entraineur" && G.coach) surveillePresident(rang0, obj, cl0.length);
+  else if(G.confiance<=0 && G.journee>8){ G.vire="confiance";
     G.news.unshift("LIMOGEAGE : le président vous remercie. La "+tagDiv(1)+" est cruelle."); }
   // le scandale ne peut éclater que tant que l'enquête est chaude (fenêtre bornée) — sinon la piste se refroidit et vous passez à travers
   if(G.risque>0){
@@ -14203,8 +14344,8 @@ function finirJournee(delta){
       G.risque=0;
       const moi=clubById(G.monClub);
       moi.pts=Math.max(0,moi.pts-6); G.tresorerie-=8e6; G.confiance=Math.max(0,G.confiance-35);
-      G.news.unshift("L'AFFAIRE ÉCLATE ! Perquisitions au siège : 6 points de pénalité, 8 MF d'amende. Le président est livide.");
-      notif("⚖️ L'AFFAIRE A ÉCLATÉ : 6 points de pénalité, 8 MF d'amende.");
+      G.news.unshift("L'AFFAIRE ÉCLATE ! Perquisitions au siège : 6 points de pénalité, 8 M d'amende. Le président est livide.");
+      notif("⚖️ L'AFFAIRE A ÉCLATÉ : 6 points de pénalité, 8 M d'amende.");
       G.presse.unshift("« SCANDALE : des valises, des matches, des questions, la justice s'invite à "+clubById(G.monClub).nom+". »");
     } else if(--G.risque<=0){
       G.risque=0;
@@ -14313,6 +14454,7 @@ function finirJournee(delta){
   // (passés par référence), soit ~100 Ko de sauvegarde par journée. En milieu de saison le fichier
   // dépassait le quota du navigateur et la sauvegarde automatique échouait en silence.
   G.histo.push(res.map(e=>({h:e.h.id, a:e.a.id, sh:e.sh, sa:e.sa, mien:!!e.mien})));
+  defisJournee(); // un défi relevé ce samedi ? (cf. LES DÉFIS ET LA SALLE DES TROPHÉES)
   G.multiplex=bilanJournee(res); // la carte de fin de journée, figée ici (cf. bilanJournee)
   if(G.news.length>60) G.news.length=60; // on n'affiche que les 10 dernières dépêches : le reste est du poids mort
   genPresse(res);
@@ -14387,7 +14529,7 @@ const INCIDENTS=[
   txt:j=>`${j.nom} a filé trois jours à Ibiza en pleine semaine, sans prévenir. Il revient bronzé.`,
   choix:[
    {lib:"Suspension d'un match", issue:j=>{eff(j,{susp:+1,moral:-10,conf:+3}); return `Mis au placard pour la prochaine journée. Le message est clair.`;}},
-   {lib:"Grosse amende", issue:j=>{eff(j,{arg:+0.8e6,moral:-5}); return `0,8 MF retenus sur salaire. ${j.nom} fait la moue mais paie.`;}},
+   {lib:"Grosse amende", issue:j=>{eff(j,{arg:+0.8e6,moral:-5}); return `0,8 M retenus sur salaire. ${j.nom} fait la moue mais paie.`;}},
    {lib:"« Tu étais en repos, après tout »", issue:j=>{eff(j,{moral:+5,groupe:-5,conf:-3}); return `Vous laissez filer. Le vestiaire prend note qu'on peut s'absenter impunément.`;}},
   ]},
  {id:"asso", pondJeune:1, test:j=>true, bon:true,
@@ -14399,7 +14541,7 @@ const INCIDENTS=[
  {id:"salaire", pondJeune:1.2, test:j=>j.note>=76,
   txt:j=>`Un club rival a fait à ${j.nom} une offre salariale démentielle. Son agent attend votre réponse.`,
   choix:[
-   {lib:"S'aligner (coûteux mais fidèle)", issue:j=>{eff(j,{arg:-1.5e6,moral:+10}); return `Vous cassez la tirelire. ${j.nom} prolonge, ému. 1,5 MF de prime de fidélité.`;}},
+   {lib:"S'aligner (coûteux mais fidèle)", issue:j=>{eff(j,{arg:-1.5e6,moral:+10}); return `Vous cassez la tirelire. ${j.nom} prolonge, ému. 1,5 M de prime de fidélité.`;}},
    {lib:"Proposer un compromis", issue:j=>{const ok=Math.random()<0.55; eff(j,{arg:-0.6e6,moral:ok?+4:-8}); return ok?`Compromis trouvé, ${j.nom} reste apaisé.`:`${j.nom} accepte du bout des lèvres, la rancœur couve.`;}},
    {lib:"Refuser net", issue:j=>{eff(j,{moral:-12, groupe:-1}); return `Fin de non-recevoir. ${j.nom} encaisse mal et son entourage s'agite.`;}},
   ]},
@@ -14474,7 +14616,7 @@ const INCIDENTS=[
  {id:"superstition", poids:0.7, bon:true, test:()=>true,
   txt:j=>`${j.nom} refuse de jouer sans son maillot porte-bonheur, troué et délavé, contre l'avis de l'équipementier qui menace de couper le contrat.`,
   choix:[
-   {lib:"Défendre votre joueur", issue:j=>{eff(j,{moral:+6,arg:-0.3e6}); return `Vous tenez tête au sponsor (0,3 MF de manque à gagner). ${j.nom} jouera avec sa relique.`;}},
+   {lib:"Défendre votre joueur", issue:j=>{eff(j,{moral:+6,arg:-0.3e6}); return `Vous tenez tête au sponsor (0,3 M de manque à gagner). ${j.nom} jouera avec sa relique.`;}},
    {lib:"Imposer le nouveau maillot", issue:j=>{eff(j,{moral:-5}); return `Règlement avant tout. ${j.nom} obtempère, l'air sombre.`;}},
   ]},
  {id:"jeune_insolent", poids:0.8, de:2010, test:j=>j.age<=21 && (j.ego||5)>=6,
@@ -14505,7 +14647,7 @@ const INCIDENTS=[
   txt:j=>`La cellule anti-fraude s'interroge : ${j.nom} a multiplié les paris sportifs, parfois sur ses propres matchs. L'odeur du soufre.`,
   choix:[
    {lib:"Le suspendre en interne et alerter la Ligue", issue:j=>{eff(j,{susp:+1,moral:-10,conf:+3}); return `Vous prenez les devants. La transparence rassure les instances.`;}},
-   {lib:"Étouffer discrètement l'affaire", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{moral:+3,groupe:-2}); return `Pour l'instant, ça passe. Mais vous dormez d'un œil.`;} else {eff(j,{arg:-3e6}); G.confiance=Math.max(0,G.confiance-12); return `L'affaire fuite quand même : 3 MF d'amende et un président furieux.`;}}},
+   {lib:"Étouffer discrètement l'affaire", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{moral:+3,groupe:-2}); return `Pour l'instant, ça passe. Mais vous dormez d'un œil.`;} else {eff(j,{arg:-3e6}); G.confiance=Math.max(0,G.confiance-12); return `L'affaire fuite quand même : 3 M d'amende et un président furieux.`;}}},
   ]},
  {id:"dopage", poids:0.6, test:j=>true,
   txt:j=>`Coup de tonnerre : ${j.nom} est positif à un contrôle antidopage. La presse s'enflamme, la fédération ouvre une procédure : suspension lourde en vue.`,
@@ -14539,7 +14681,7 @@ const INCIDENTS=[
  {id:"marabout", poids:0.5, club:true, test:()=>true,
   txt:()=>`Un homme se présentant comme doté de pouvoirs surnaturels vous propose, contre quelques billets, de jeter un sort sur votre rival du week-end.`,
   choix:[
-   {lib:"Financer ses déplacements (on ne sait jamais)", issue:()=>{G.tresorerie-=0.2e6; const moi=clubById(G.monClub); moi.joueurs.forEach(x=>x.moral=Math.min(100,(x.moral||65)+2)); return `0,2 MF pour un porte-bonheur. Le vestiaire y croit, c'est déjà ça. « Et puis un jour, ça n'a plus marché. »`;}},
+   {lib:"Financer ses déplacements (on ne sait jamais)", issue:()=>{G.tresorerie-=0.2e6; const moi=clubById(G.monClub); moi.joueurs.forEach(x=>x.moral=Math.min(100,(x.moral||65)+2)); return `0,2 M pour un porte-bonheur. Le vestiaire y croit, c'est déjà ça. « Et puis un jour, ça n'a plus marché. »`;}},
    {lib:"Le raccompagner poliment", issue:()=>{return `Vous déclinez la sorcellerie. Le rationalisme a ses vertus.`;}},
   ]},
  {id:"compteurs", poids:0.6, club:true, test:()=>true,
@@ -14631,7 +14773,7 @@ const INCIDENTS=[
   choix:[
    {lib:"Le convaincre de jouer « pour le plaisir »", issue:j=>{eff(j,{moral:+8,ego:+1}); return `Libéré de tout souci d'argent, ${j.nom} rejoue comme un gamin. Il offre la tournée à la buvette chaque vendredi.`;}},
    {lib:"Le vendre avant qu'il ne raccroche", issue:j=>{eff(j,{vend:0.75}); return `Transféré avant le premier trou de golf. L'acheteur ignore que sa recrue est millionnaire et s'en moque éperdument du foot.`;}},
-   {lib:"Lui suggérer d'investir dans le club", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{arg:+1.2e6,moral:+4,conf:+2}); return `Marché conclu : ${j.nom} injecte 1,2 MF et se découvre une âme de dirigeant. Il joue ET signe les chèques.`;} else {eff(j,{moral:-5}); return `« Je gagne au Loto et vous me tendez la sébile ? » Vexé, il repart en limousine.`;}}},
+   {lib:"Lui suggérer d'investir dans le club", issue:j=>{const ok=Math.random()<0.5; if(ok){eff(j,{arg:+1.2e6,moral:+4,conf:+2}); return `Marché conclu : ${j.nom} injecte 1,2 M et se découvre une âme de dirigeant. Il joue ET signe les chèques.`;} else {eff(j,{moral:-5}); return `« Je gagne au Loto et vous me tendez la sébile ? » Vexé, il repart en limousine.`;}}},
   ]},
  {id:"chasse", poids:0.5, duo:true, test:j=>j.age>=24,
   txt:(j,k)=>`${j.nom} a emmené ${k.nom} à l'ouverture de la chasse dans son village. Bilan : zéro faisan, mais ${k.nom} revient avec trois plombs dans le mollet. « Un buisson qui a bougé », jure ${j.nom}.`,
@@ -15641,7 +15783,7 @@ function acheter(j){
     else finaliseAchat(j, prix, 0);
   };
   // On ne signe JAMAIS en un seul clic : récapitulatif d'abord (retour de playtest, v1.02 — un
-  // « Acheter » dans l'effectif adverse engageait 23 MF sans rien demander).
+  // « Acheter » dans l'effectif adverse engageait 23 M sans rien demander).
   const vd=clubById(j.club);
   modalSignature({
     titre:"✍️ Signer "+nomLong(j.nom)+" ?",
@@ -18385,7 +18527,7 @@ const STAFF_POSTES=[
   {id:"defense",  nom:"Coach de la défense",     pic:"🛡️", eff:t=>"Vous encaissez "+(2*t)+" % de moins · fait progresser vos défenseurs"},
   {id:"gardien",  nom:"Entraîneur des gardiens", pic:"🧤", eff:t=>"Gardien plus sûr ("+(1.5*t)+" % de buts en moins, penaltys contre) · fait progresser vos gardiens"},
   {id:"cpa",      nom:"Spécialiste des coups de pied arrêtés", pic:"🎯", eff:t=>"Penaltys et coups francs mieux convertis (+"+(5*t)+" pts)"},
-  {id:"physique", nom:"Préparateur physique",    pic:"💪", eff:t=>"Blessures −"+(12*t)+" %"},
+  {id:"physique", nom:"Préparateur physique",    pic:"💪", eff:t=>"Blessures −"+(12*t)+" % · récupération +"+t+" de fraîcheur par semaine"},
   {id:"mental",   nom:"Préparateur mental",      pic:"🧠", eff:t=>"Moral du vestiaire entretenu (+"+(0.4*t).toFixed(1)+"/journée)"},
 ];
 const COACH_PRENOMS=["Gérard","Guy","Raymond","Roger","Aimé","Robert","Marcel","Henri","Bernard","Jean-Claude","José","Daniel","Michel","Pierre","Lucien","Bruno","Francis","Gilbert","René","Claude"];
@@ -20051,6 +20193,7 @@ function retireDEurope(nom){ // un joker signé qui porte le nom d'un joueur eur
 }
 
 function finDeSaison(){
+  mesure("saison-finie");
   for(const p of G.prets.slice()) retourPret(p);
   G.prets=[];
   const cl=classement();
@@ -20078,7 +20221,9 @@ function finDeSaison(){
   progFinDeSaison(rang); // la clé d'un titre de D1, et le résultat de la saison (cf. les saisons verrouillées)
   soldeBio(); // la saison entre dans la fiche de vie de chacun AVANT que razStatsClub ne remette tout à zéro
   // verdict du président : être relégué ne licencie plus (on continue en D2) ; seul un objectif manqué de loin coûte la place
-  if(rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
+  // carrière d'entraîneur : c'est le contrat qui juge (verdict, réputation, offres de l'été), jamais ce renvoi-là
+  if(G.mode==="entraineur" && G.coach) finSaisonEntr(rang);
+  if(G.mode!=="entraineur" && rang>G.objectif.place+3 && G.confiance<40){ G.vire="objectif"; }
   else if(rang<=G.objectif.place){
     G.budget+=15e6; G.confiance=Math.min(100,G.confiance+20);
     G.news.unshift("Le président savoure : objectif atteint. Rallonge de "+MM(15e6,0)+" au budget transferts.");
@@ -20328,6 +20473,7 @@ function ecranBilan(){
      <h2 style="font-size:26px;line-height:1.1;margin:6px 0 4px">ALMANACH ${esc(B.saison)}</h2>
      ${imgBilan?`<img class="momImg" style="max-height:240px;margin-top:6px" src="${imgBilan}" alt="">`:""}
      <p style="font-size:17px">Vous terminez à la <b class="jaune">${B.rang}ᵉ place</b>. ${esc(verdict)}</p>
+     ${G.mode==="entraineur"&&G.coach&&G.coach.bilan?ligneVerdict(G.coach.bilan):""}
      ${cleDuBilan()?`<p class="fort" style="margin-top:4px">🔑 Champion : une clé de plus au trousseau.</p>`:""}
      ${moi?`<p class="dim" style="margin-top:4px">${moi.g} victoires · ${moi.n} nuls · ${moi.p} défaites, ${moi.bp} buts marqués, ${moi.bc} encaissés (${moi.bp-moi.bc>0?"+":""}${moi.bp-moi.bc}).</p>`:""}
      <p class="dim" style="margin-top:2px">Champion de ${esc(libDiv(B.div))} : <b>${esc(B.champion?B.champion.nom:"")}</b> avec ${B.champion?B.champion.pts:0} points.</p>
@@ -20382,7 +20528,8 @@ function ecranBilan(){
        : `<p><button class="big" id="bInter">PASSER À L'INTERSAISON →</button></p>`}
      ${propCompte("saison")}
    </div>`);
-  document.getElementById("bInter").onclick=()=>{ if(!G.vire) intersaison(); montre("calendrier"); };
+  // carrière d'entraîneur : l'été n'est pas l'intersaison de toujours, c'est le bureau du président (preparerEte)
+  document.getElementById("bInter").onclick=()=>{ if(!G.vire){ if(G.mode==="entraineur") preparerEte(); else intersaison(); } montre("calendrier"); };
   cablePropCompte(app, ()=>{});
   { const bP=document.getElementById("bPartSaison"); if(bP) bP.onclick=()=>partageSaison(B, verdict); } // piste 1
 }
@@ -20480,7 +20627,8 @@ function intersaison(){
   const modernesActifs=sponsorsDe(SPONSORS_SULFUREUX, SPONSORS_SULFUREUX_ANG).filter(s=>s.moderne && s.de===an);
   if(modernesActifs.length) G.nouvelleEre=modernesActifs[0];
   G.confiance=65;
-  G.objectif=objectifPour(presObjectif(clubById(G.monClub)));
+  // carrière d'entraîneur : l'objectif se lit au rang de l'effectif dans la division, pas au prestige
+  G.objectif=G.mode==="entraineur" ? objectifDuClub(clubById(G.monClub), G.clubs, G.div) : objectifPour(presObjectif(clubById(G.monClub)));
   G.intro=anneeJeu(); // le mot d'ouverture de la nouvelle saison, affiché après le bilan d'intersaison
   // état de grâce : chaque saison, ~40 % de chance qu'un joueur du club vive la saison de sa vie
   const moi=clubById(G.monClub);
@@ -20715,7 +20863,7 @@ function ficheDe(o){ // carte d'identité d'une carrière, lue dans la sauvegard
   // dans l'index — l'accueil la lit sans rouvrir les 500 Ko de la sauvegarde.
   return {clubId:o.monClub, club:c?c.nom:"Club inconnu", saison:o.saison||"?",
           journee:Math.min((o.journee||0)+1,38), div:o.div||1, titres:(o.palmares||[]).length, pays:o.pays||"FR",
-          enjeu:ligneEnjeu(o)};
+          enjeu:ligneEnjeu(o), entr:(o.mode==="entraineur"&&o.coach)?o.coach.rep:null}; // entr : la réputation d'une carrière d'entraîneur
 }
 function clesParties(){ // balayage des clés du navigateur (pour récupérer une carrière absente de l'index)
   const out=[];
@@ -20950,6 +21098,7 @@ function adresseRetour(){ // où ramènent les liens des emails (confirmation, m
 async function compteInscription(email, mdp){
   const r=await nuageAppel("/auth/v1/signup?redirect_to="+encodeURIComponent(adresseRetour()), "POST", {email, password:mdp}, false);
   if(!r.ok) return {ok:false, code:codeErreur(r)};
+  mesure("compte-cree");
   if(r.donnees && r.donnees.access_token){ compteEcrit(sessionDe(r.donnees)); return {ok:true}; }
   return {ok:true, confirmer:true}; // l'adresse doit être confirmée par le lien reçu
 }
@@ -21279,10 +21428,12 @@ let PROG_MAG=null, PROG_TIRE=false, PROG_EN_COURS=null;
 
 function chDeSaison(k){ const m=/^([A-Z]+)-\d/.exec(String(k||"")); return m?m[1]:"FR"; } // "ANG-1995-96" → ANG, "1995-96" → FR
 function cleDepart(o){ // la clé de la saison de départ d'une carrière (G ou une sauvegarde relue)
+  // carrière d'entraîneur : il a pu changer de pays en route (livraison 4), le départ est retenu à part
+  if(o.coach && o.coach.depart && SAISONS[o.coach.depart]) return o.coach.depart;
   const pays=o.pays||"FR", an=+o.anBase||1995;
   return Object.keys(SAISONS).find(k=>SAISONS[k].an===an && (SAISONS[k].pays||"FR")===pays)||null;
 }
-function progVide(){ return {gagnees:[], ouvertes:[], resultats:[], maj:0, envoye:0}; }
+function progVide(){ return {gagnees:[], ouvertes:[], resultats:[], defis:[], achats:[], maj:0, envoye:0}; }
 function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde que la forme attendue
   const o=progVide(); if(!p || typeof p!=="object") return o;
   const cle=k=>typeof k==="string" && k.length<=24 && /^[A-Z0-9-]+$/.test(k);
@@ -21290,6 +21441,10 @@ function progNette(p){ // ce qui vient du navigateur ou du serveur : on ne garde
     .map(g=>({k:g.k, pid:typeof g.pid==="string"?g.pid.slice(0,64):null, t:+g.t||0, an:+g.an||0}));
   o.ouvertes=(Array.isArray(p.ouvertes)?p.ouvertes:[]).filter(cle);
   o.resultats=(Array.isArray(p.resultats)?p.resultats:[]).filter(r=>r && typeof r==="object" && !Array.isArray(r)).slice(-PROG_RES_MAX);
+  o.defis=(Array.isArray(p.defis)?p.defis:[]).filter(d=>d && typeof d.id==="string" && d.id.length<=24 && /^[A-Za-z0-9]+$/.test(d.id))
+    .map(d=>({id:d.id, t:+d.t||0, pid:typeof d.pid==="string"?d.pid.slice(0,64):null}));
+  o.achats=(Array.isArray(p.achats)?p.achats:[]).filter(a=>a && typeof a.id==="string" && a.id.length<=96 && /^[A-Za-z0-9_-]+$/.test(a.id) && typeof a.art==="string" && /^[a-z]+$/.test(a.art))
+    .map(a=>({id:a.id, art:a.art, t:+a.t||0}));
   o.maj=+p.maj||0; o.envoye=+p.envoye||0;
   return o;
 }
@@ -21358,8 +21513,9 @@ function progFinDeSaison(rang){
   const coupes=[];
   if(G.coupe && G.coupe.vainqueur===G.monClub) coupes.push("CN");
   if(G.euro && G.euro.vainqueur===G.monClub && G.euro.compet) coupes.push(G.euro.compet);
-  const p=prog(), r={pid:G.pid||null, ch:G.pays||"FR", dep:k, an, s:G.saison, club:G.monClub, div:G.div, rang, coupes, t:Date.now()};
+  const p=prog(), r={pid:G.pid||null, ch:G.pays||"FR", dep:k, an, s:G.saison, club:G.monClub, div:G.div, rang, n:(G.clubs||[]).length||null, coupes, t:Date.now()}; // n : clubs de la division (le maintien au rattrapage, D1 à 18 ou à 22)
   p.resultats=p.resultats.filter(x=>!(x.pid===r.pid && x.an===an)).concat([r]).slice(-PROG_RES_MAX); // une saison rejouée remplace la précédente
+  defisFinSaison(rang, coupes); // les défis de la saison et de la carrière (cf. LES DÉFIS ET LA SALLE DES TROPHÉES)
   progSauve(true); progPlanifie();
 }
 /* LA FUSION DE DEUX APPAREILS : le meilleur des deux, c'est-à-dire la réunion des saisons gagnées (la plus
@@ -21371,10 +21527,14 @@ function progFusionne(a, b){
   o.ouvertes=[...new Set(a.ouvertes.concat(b?b.ouvertes:[]))];
   for(const x of a.resultats.concat(b?b.resultats:[])) r[x.pid+"|"+x.an]=x;
   o.resultats=Object.values(r).sort((x,y)=>(x.t||0)-(y.t||0)).slice(-PROG_RES_MAX);
+  const d={}; for(const x of (a.defis||[]).concat(b?(b.defis||[]):[])){ const y=d[x.id]; if(!y || (x.t && (!y.t || x.t<y.t))) d[x.id]=x; }
+  o.defis=Object.values(d).sort((x,y)=>(x.t||0)-(y.t||0)); // un défi réussi l'est pour toujours, le premier appareil fait foi
+  const h={}; for(const x of (a.achats||[]).concat(b?(b.achats||[]):[])) if(!h[x.id]) h[x.id]=x;
+  o.achats=Object.values(h).sort((x,y)=>(x.t||0)-(y.t||0)); // un achat a un identifiant unique : la réunion ne le compte jamais deux fois
   return o;
 }
 function progEmpreinte(p){ // deux progressions qui disent la même chose ont la même empreinte
-  return JSON.stringify([p.gagnees.map(g=>g.k).sort(), p.ouvertes.slice().sort(), p.resultats.map(x=>x.pid+"|"+x.an).sort()]);
+  return JSON.stringify([p.gagnees.map(g=>g.k).sort(), p.ouvertes.slice().sort(), p.resultats.map(x=>x.pid+"|"+x.an).sort(), (p.defis||[]).map(d=>d.id).sort(), (p.achats||[]).map(a=>a.id).sort()]);
 }
 /* LA PROGRESSION EN LIGNE : on lit la ligne du compte, on fusionne, et l'on ne renvoie que si la fusion
    apporte quelque chose au serveur. Concurrence optimiste comme les carrières : pousse_progression ne
@@ -21391,12 +21551,12 @@ function progSynchronise(){
       if(!compteLit() || compteLit().uid!==s.uid) return "aucun"; // déconnecté (ou changé de compte) entre-temps
       const ligne=r.donnees[0]||null, dist=ligne?progNette(assainit(ligne.donnees)):null, mDist=ligne?+ligne.maj||0:0;
       p=prog(); const f=progFusionne(p, dist), neuf=progEmpreinte(f)!==progEmpreinte(p);
-      Object.assign(p, {gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats});
+      Object.assign(p, {gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis, achats:f.achats});
       if(progEmpreinte(f)===progEmpreinte(dist||progVide())){ // le serveur sait déjà tout (ou il n'y a rien à dire)
         p.maj=mDist; p.envoye=mDist; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
       const maj=Math.max(Date.now(), mDist+1);
       const e=await nuageAppel("/rest/v1/rpc/pousse_progression", "POST",
-        {p_attendu:mDist, p_maj:maj, p_donnees:{gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats}, p_version:VERSION}, true);
+        {p_attendu:mDist, p_maj:maj, p_donnees:{gagnees:f.gagnees, ouvertes:f.ouvertes, resultats:f.resultats, defis:f.defis, achats:f.achats}, p_version:VERSION}, true);
       if(!e.ok) return "attente";
       const d=e.donnees||{};
       if(d.ok){ p.maj=maj; p.envoye=maj; PROG_TIRE=true; progSauve(false); return neuf?"recu":"ok"; }
@@ -21407,6 +21567,333 @@ function progSynchronise(){
   return PROG_EN_COURS;
 }
 function progPlanifie(){ if(nuageAllume()) progSynchronise(); }
+
+/* =====================================================================
+   LES DÉFIS ET LA SALLE DES TROPHÉES (v2.75, chantier de l'auteur du 12/11/2026)
+   Inspiré de Retro Football Management : une partie n'est jamais « juste une partie ». Des défis rapportent
+   des POINTS (la monnaie du jeu, gagnée en jouant, jamais achetée) ; une salle des trophées, à l'accueil,
+   réunit tout ce que le joueur a gagné, toutes carrières confondues.
+   - Les défis réussis vivent dans la progression (`prog().defis`, [{id,t,pid}]) : un défi réussi l'est pour
+     toujours, une seule fois, et la fusion de deux appareils en est la réunion. Les POINTS NE SONT JAMAIS
+     STOCKÉS : ils se déduisent des défis réussis (`pointsDefis`), comme les clés des saisons gagnées.
+   - Trois familles : « Premiers pas » (un match, au soir de chaque journée, `defisJournee`), « La saison »
+     (à la fin de la saison, `defisFinSaison`, qui lit G.histo, le rang et les coupes), « La carrière »
+     (sur la durée, relevés aussi à la fin de chaque saison, et rattrapés à l'accueil par `defisConstate`
+     à partir des résultats de fin de saison déjà rangés dans la progression).
+   - Le championnat seul compte pour les défis de match (G.histo n'archive que lui).
+   - La salle des trophées (`ecranTrophees`) lit les RÉSULTATS de fin de saison (`prog().resultats`) :
+     elle ne voit donc que les saisons finies depuis la v2.22. Les titres de champion de D1 y forment une
+     collection de blasons, un par club sacré. Rien ne s'y achète encore (la boutique viendra après).
+   ===================================================================== */
+const DEFIS_FAM=[["pas","Premiers pas"],["saison","La saison"],["carriere","La carrière"]];
+const DEFIS=[
+  {id:"vic",         fam:"pas",      nom:"Une première victoire",                    pts:10},
+  {id:"ext",         fam:"pas",      nom:"Gagner à l'extérieur",                     pts:10},
+  {id:"zero",        fam:"pas",      nom:"Un match sans encaisser",                  pts:10},
+  {id:"large",       fam:"pas",      nom:"Gagner par trois buts d'écart",            pts:20},
+  {id:"cinq",        fam:"pas",      nom:"Cinq buts dans un match",                  pts:30},
+  {id:"serie6",      fam:"saison",   nom:"Six victoires d'affilée",                  pts:150},
+  {id:"invaincu10",  fam:"saison",   nom:"Dix matchs sans défaite",                  pts:100},
+  {id:"murs10",      fam:"saison",   nom:"Dix matchs sans encaisser en une saison",  pts:150},
+  {id:"buts70",      fam:"saison",   nom:"Soixante-dix buts en une saison",          pts:200},
+  {id:"forteresse",  fam:"saison",   nom:"Invaincu à domicile toute une saison",     pts:250},
+  {id:"montee",      fam:"saison",   nom:"Monter en première division",              pts:150},
+  {id:"podium",      fam:"saison",   nom:"Sur le podium de première division",       pts:100},
+  {id:"titre",       fam:"saison",   nom:"Champion de première division",            pts:300},
+  {id:"coupe",       fam:"saison",   nom:"Gagner la coupe nationale",                pts:200},
+  {id:"europe",      fam:"saison",   nom:"Gagner une coupe d'Europe",                pts:500},
+  {id:"double",      fam:"saison",   nom:"Le doublé championnat et coupe",           pts:500},
+  {id:"invincibles", fam:"saison",   nom:"Champion sans perdre un match",            pts:1000},
+  {id:"fidele",      fam:"carriere", nom:"Cinq saisons dans une même carrière",      pts:100},
+  {id:"decennie",    fam:"carriere", nom:"Dix saisons dans une même carrière",       pts:300},
+  {id:"cles3",       fam:"carriere", nom:"Ouvrir trois saisons fermées",             pts:200},
+  {id:"deuxPays",    fam:"carriere", nom:"Champion dans deux championnats",          pts:500},
+];
+/* LES DÉFIS DE CLUB (v2.76, choix de l'auteur du 12/11/2026) : écrits à la main, un ou deux par club, tirés de son
+   histoire. Chacun vaut pour UN club d'UN championnat ({club, ch}) et se juge en fin de saison sur `q` :
+   titre · maintien (D1, hors des trois dernières places) · montee (3 premiers de D2) · top (D1, dans les `n` premiers)
+   · coupe (coupe nationale) · europe (n'importe quelle coupe d'Europe) · c1 · double (titre et coupe) · invincibles.
+   `prem` : dès la première saison de la carrière ; `dep` : seulement depuis cette saison de départ. Ils vivent dans
+   `prog().defis` comme les autres (un id ne se renomme jamais) et rapportent leurs points de la même façon. */
+const DEFIS_CLUB=[
+  // France
+  {id:"cOM1",  club:"OM",  ch:"FR", nom:"Remonter en première division dès la première saison", q:"montee", prem:1, dep:"1995-96", pts:500},
+  {id:"cOM2",  club:"OM",  ch:"FR", nom:"Gagner la Ligue des champions",                       q:"c1",     pts:1500},
+  {id:"cPSG1", club:"PSG", ch:"FR", nom:"Champion dès la première saison",                     q:"titre",  prem:1, pts:600},
+  {id:"cPSG2", club:"PSG", ch:"FR", nom:"Gagner une coupe d'Europe",                           q:"europe", pts:800},
+  {id:"cAJA1", club:"AJA", ch:"FR", nom:"Le doublé championnat et coupe",                      q:"double", pts:1000},
+  {id:"cNAN1", club:"NAN", ch:"FR", nom:"Champion dès la première saison",                     q:"titre",  prem:1, pts:600},
+  {id:"cLEN1", club:"LEN", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:700},
+  {id:"cMET1", club:"MET", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:1000},
+  {id:"cSTE1", club:"STE", ch:"FR", nom:"Remonter en première division",                       q:"montee", pts:400},
+  {id:"cSTE2", club:"STE", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:900},
+  {id:"cBOR1", club:"BOR", ch:"FR", nom:"Gagner une coupe d'Europe",                           q:"europe", pts:900},
+  {id:"cMON1", club:"MON", ch:"FR", nom:"Gagner la Ligue des champions",                       q:"c1",     pts:1500},
+  {id:"cLYO1", club:"LYO", ch:"FR", nom:"Champion dès la première saison",                     q:"titre",  prem:1, pts:500},
+  {id:"cLIL1", club:"LIL", ch:"FR", nom:"Sur le podium de première division",                  q:"top", n:3, pts:400},
+  {id:"cREN1", club:"REN", ch:"FR", nom:"Sur le podium de première division",                  q:"top", n:3, pts:600},
+  {id:"cGUI1", club:"GUI", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:400},
+  {id:"cGUI2", club:"GUI", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:800},
+  {id:"cSOC1", club:"SOC", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:500},
+  {id:"cSTR1", club:"STR", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:500},
+  {id:"cNCY1", club:"NCY", ch:"FR", nom:"Gagner la coupe nationale",                           q:"coupe",  pts:700},
+  {id:"cMTP1", club:"MTP", ch:"FR", nom:"Champion de France",                                  q:"titre",  pts:1000},
+  {id:"cBAS1", club:"BAS", ch:"FR", nom:"Finir dans les cinq premiers",                        q:"top", n:5, pts:600},
+  {id:"cCAN1", club:"CAN", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:400},
+  {id:"cTRO1", club:"TRO", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:400},
+  {id:"cTOU1", club:"TOU", ch:"FR", nom:"Se maintenir en première division",                   q:"maintien", pts:300},
+  {id:"cGUE1", club:"GUE", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:600},
+  {id:"cCHA1", club:"CHA", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:500},
+  {id:"cSED1", club:"SED", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:500},
+  {id:"cLMN1", club:"LMN", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:500},
+  {id:"cAMI1", club:"AMI", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:600},
+  {id:"cNIO1", club:"NIO", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:700},
+  {id:"cLAV1", club:"LAV", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:700},
+  {id:"cRST1", club:"RST", ch:"FR", nom:"Monter en première division",                         q:"montee", pts:800},
+  // Angleterre
+  {id:"cMUN1", club:"MUN", ch:"ANG", nom:"Champion dès la première saison",                    q:"titre",  prem:1, pts:500},
+  {id:"cMUN2", club:"MUN", ch:"ANG", nom:"Gagner la Ligue des champions",                      q:"c1",     pts:1200},
+  {id:"cLIV1", club:"LIV", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:700},
+  {id:"cARS1", club:"ARS", ch:"ANG", nom:"Champion sans perdre un match",                      q:"invincibles", pts:1500},
+  {id:"cCHE1", club:"CHE", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:700},
+  {id:"cNEW1", club:"NEW", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:1000},
+  {id:"cTOT1", club:"TOT", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:1000},
+  {id:"cBLB1", club:"BLB", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:800},
+  {id:"cLEE1", club:"LEE", ch:"ANG", nom:"Champion d'Angleterre",                              q:"titre",  pts:800},
+  {id:"cEVE1", club:"EVE", ch:"ANG", nom:"Sur le podium de première division",                 q:"top", n:3, pts:700},
+  {id:"cAVL1", club:"AVL", ch:"ANG", nom:"Gagner une coupe d'Europe",                          q:"europe", pts:1000},
+  {id:"cNOR1", club:"NOR", ch:"ANG", nom:"Sur le podium de première division",                 q:"top", n:3, pts:900},
+  {id:"cIPS1", club:"IPS", ch:"ANG", nom:"Finir dans les cinq premiers",                       q:"top", n:5, pts:800},
+  {id:"cWIM1", club:"WIM", ch:"ANG", nom:"Se maintenir en première division",                  q:"maintien", pts:500},
+  {id:"cWIM2", club:"WIM", ch:"ANG", nom:"Gagner la coupe nationale",                          q:"coupe",  pts:900},
+  {id:"cSUN1", club:"SUN", ch:"ANG", nom:"Se maintenir en première division",                  q:"maintien", pts:500},
+  {id:"cMCI1", club:"MCI", ch:"ANG", nom:"Remonter en première division",                      q:"montee", pts:400},
+  {id:"cFUL1", club:"FUL", ch:"ANG", nom:"Monter en première division",                        q:"montee", pts:500},
+];
+const DEFI_DE=Object.fromEntries(DEFIS.concat(DEFIS_CLUB).map(d=>[d.id,d]));
+/* Une saison (G en fin de saison, ou un résultat rangé r = {club, ch, div, rang, an, dep, coupes}) remplit-elle ce défi ?
+   `inv` : la saison s'est jouée sans défaite (null quand on ne le sait pas, au rattrapage). n : clubs dans la division. */
+function defiClubRempli(d, r, inv, n){
+  if(d.club!==r.club || d.ch!==(r.ch||"FR")) return false;
+  if(d.prem && (+r.an||0)!==1) return false;
+  if(d.dep && d.dep!==r.dep) return false;
+  const c=r.coupes||[], ch=r.div===1 && r.rang===1;
+  switch(d.q){
+    case "titre": return ch;
+    case "maintien": return r.div===1 && n>0 && r.rang<=n-3; // sans le nombre de clubs (résultat d'avant la v2.78), on ne juge pas : une D1 à 18 fait descendre le 16e
+    case "montee": return r.div===2 && r.rang<=3;
+    case "top": return r.div===1 && r.rang<=(d.n||3);
+    case "coupe": return c.includes("CN");
+    case "europe": return c.some(x=>x!=="CN");
+    case "c1": return c.includes("C1");
+    case "double": return ch && c.includes("CN");
+    case "invincibles": return ch && inv===true;
+  }
+  return false;
+}
+function defisClubDe(club, ch, dep){ return DEFIS_CLUB.filter(d=>d.club===club && d.ch===(ch||"FR") && (!d.dep || !dep || d.dep===dep)); }
+function defiReussi(id){ return prog().defis.some(d=>d.id===id); }
+function pointsDefis(){ return prog().defis.reduce((n,d)=>n+((DEFI_DE[d.id]||{}).pts||0), 0); }
+function defiGagne(id, pid, muet){ // vrai si le défi vient d'être réussi (il ne l'était pas) ; muet : pas de notification (rattrapage)
+  if(!DEFI_DE[id] || defiReussi(id)) return false;
+  prog().defis.push({id, t:Date.now(), pid:pid||null});
+  if(!muet && typeof G!=="undefined" && G) notif("🎯 DÉFI RÉUSSI : "+DEFI_DE[id].nom+" · +"+DEFI_DE[id].pts+" pts");
+  return true;
+}
+function mesMatchs(){ // les matchs de championnat du club, dans l'ordre : {dom, bp, bc}
+  const out=[];
+  for(const jour of (G.histo||[])) for(const e of (jour||[])){
+    if(!e || !(e.mien || e.h===G.monClub || e.a===G.monClub)) continue;
+    const dom=e.h===G.monClub; out.push({dom, bp:dom?e.sh:e.sa, bc:dom?e.sa:e.sh});
+  }
+  return out;
+}
+function plusLongueSerie(ms, test){ let n=0, m=0; for(const x of ms){ n=test(x)?n+1:0; if(n>m) m=n; } return m; }
+function defisJournee(){
+  const ms=mesMatchs(), x=ms[ms.length-1]; if(!x) return;
+  let neuf=false; const g=(id)=>{ if(defiGagne(id, G.pid)) neuf=true; };
+  if(x.bp>x.bc) g("vic");
+  if(x.bp>x.bc && !x.dom) g("ext");
+  if(x.bc===0) g("zero");
+  if(x.bp-x.bc>=3) g("large");
+  if(x.bp>=5) g("cinq");
+  if(plusLongueSerie(ms, m=>m.bp>m.bc)>=6) g("serie6");
+  if(plusLongueSerie(ms, m=>m.bp>=m.bc)>=10) g("invaincu10");
+  if(ms.filter(m=>m.bc===0).length>=10) g("murs10");
+  if(ms.reduce((n,m)=>n+m.bp,0)>=70) g("buts70");
+  if(neuf) progSauve(true);
+}
+function defisFinSaison(rang, coupes){ // appelée par progFinDeSaison, la progression est sauvée juste après
+  const ms=mesMatchs(), g=id=>defiGagne(id, G.pid), champion=G.div===1 && rang===1, cn=(coupes||[]).includes("CN");
+  const dom=ms.filter(m=>m.dom);
+  if(dom.length>=15 && dom.every(m=>m.bp>=m.bc)) g("forteresse");
+  if(G.div===2 && rang<=3) g("montee");
+  if(G.div===1 && rang<=3) g("podium");
+  if(champion) g("titre");
+  if(cn) g("coupe");
+  if((coupes||[]).some(c=>c!=="CN")) g("europe");
+  if(champion && cn) g("double");
+  const invaincu=ms.length>=30 && ms.every(m=>m.bp>=m.bc);
+  if(champion && invaincu) g("invincibles");
+  const r={club:G.monClub, ch:G.pays||"FR", div:G.div, rang, an:G.saisonIdx||1, dep:cleDepart(G), coupes};
+  for(const d of DEFIS_CLUB) if(defiClubRempli(d, r, invaincu, (G.clubs||[]).length||20)) g(d.id);
+  defisCarriere(G.pid, false);
+}
+function defisCarriere(pid, muet){ // les défis qui se lisent dans les résultats rangés : fin de saison et rattrapage
+  const p=prog(), R=p.resultats, g=id=>defiGagne(id, pid, muet), parPid={};
+  for(const r of R) if(r.pid) parPid[r.pid]=Math.max(parPid[r.pid]||0, +r.an||0);
+  const plus=Math.max(0, ...Object.values(parPid));
+  if(plus>=5) g("fidele");
+  if(plus>=10) g("decennie");
+  if(p.ouvertes.length>=3) g("cles3");
+  if(new Set(R.filter(r=>r.div===1 && r.rang===1).map(r=>r.ch||"FR")).size>=2) g("deuxPays");
+}
+function defisConstate(){ // à l'accueil : ce que les saisons déjà rangées auraient dû rapporter (sans notification)
+  const p=prog(), avant=p.defis.length, g=(id,pid)=>defiGagne(id, pid, true);
+  for(const r of p.resultats){
+    const ch=r.div===1 && r.rang===1, cn=(r.coupes||[]).includes("CN");
+    if(r.div===2 && r.rang<=3) g("montee", r.pid);
+    if(r.div===1 && r.rang<=3) g("podium", r.pid);
+    if(ch) g("titre", r.pid);
+    if(cn) g("coupe", r.pid);
+    if((r.coupes||[]).some(c=>c!=="CN")) g("europe", r.pid);
+    if(ch && cn) g("double", r.pid);
+    for(const d of DEFIS_CLUB) if(defiClubRempli(d, r, null, +r.n||0)) g(d.id, r.pid);
+  }
+  defisCarriere(null, true);
+  if(p.defis.length>avant){ progSauve(true); progPlanifie(); }
+  return p.defis.length-avant;
+}
+/* LA VITRINE : ce que les résultats de fin de saison ont rapporté, toutes carrières confondues. */
+function vitrine(){
+  const R=prog().resultats, v={d1:0, d2:0, cn:0, C1:0, C2:0, C3:0, clubs:{}, saisons:R.length};
+  for(const r of R){
+    if(r.rang===1 && r.div===1){ v.d1++; const k=(r.ch||"FR")+"|"+r.club; v.clubs[k]=(v.clubs[k]||0)+1; }
+    if(r.rang===1 && r.div===2) v.d2++;
+    for(const c of (r.coupes||[])){ if(c==="CN") v.cn++; else if(v[c]!=null) v[c]++; }
+  }
+  return v;
+}
+/* ---------- LA BOUTIQUE À POINTS (v2.77, demande de l'auteur du 12/11/2026) ----------
+   Les points gagnés aux défis se dépensent ici, jamais avec de l'argent réel. Deux rayons :
+   - les AVANTAGES PERMANENTS (`perm`), achetés une fois, valent pour toutes les carrières LANCÉES APRÈS l'achat
+     (appliqués par `boutiqueAuDepart` dans `nouvellePartie`, jamais sur une carrière déjà commencée) ;
+   - les COUPS DE POUCE (`coup`), pour la carrière en cours, appliqués tout de suite, une fois par saison chacun.
+   Les achats vivent dans la progression (`prog().achats` = [{id, art, t}]). L'`id` porte la règle de limite :
+   l'article pour un avantage permanent, `article-carrière-saison` pour un coup de pouce, si bien que la réunion de
+   deux appareils ne compte jamais un achat deux fois et qu'un coup de pouce ne se rachète pas dans la même saison.
+   Le SOLDE n'est pas stocké : points gagnés − prix des achats (`soldePoints`), jamais affiché sous zéro. */
+const BOUTIQUE=[
+  {art:"tribune",    ray:"perm", ico:"🏟️", nom:"Une tribune de plus",          sous:"+3 000 places au stade, dès le départ",        prix:1500},
+  {art:"tresor",     ray:"perm", ico:"💰", nom:"Trésor de guerre",             sous:"+10 M au budget transferts, dès le départ",    prix:1000},
+  {art:"president",  ray:"perm", ico:"🤝", nom:"Un président qui vous aime",   sous:"La confiance du président démarre plus haut", prix:600},
+  {art:"infirmerie", ray:"coup", ico:"🩹", nom:"Vider l'infirmerie",           sous:"Tous vos blessés reviennent",                  prix:150},
+  {art:"amnistie",   ray:"coup", ico:"🟨", nom:"L'amnistie",                   sous:"Toutes vos suspensions sont levées",           prix:100},
+  {art:"tournee",    ray:"coup", ico:"🍻", nom:"Tournée générale",             sous:"Le moral du vestiaire remonte",                prix:80},
+  {art:"rallonge",   ray:"coup", ico:"💼", nom:"La rallonge du président",     sous:"+5 M au budget transferts",                    prix:250},
+];
+const ART_DE=Object.fromEntries(BOUTIQUE.map(a=>[a.art,a]));
+function depensePoints(){ return prog().achats.reduce((n,a)=>n+((ART_DE[a.art]||{}).prix||0), 0); }
+function soldePoints(){ return Math.max(0, pointsDefis()-depensePoints()); }
+function acquis(art){ return prog().achats.some(a=>a.art===art && a.id===art); }
+function idAchat(art){ const A=ART_DE[art]; if(!A) return null;
+  if(A.ray==="perm") return art;
+  if(!G || !G.pid) return null;
+  return art+"-"+String(G.pid).replace(/[^A-Za-z0-9_]/g,"").slice(0,48)+"-"+(G.saisonIdx||1); }
+function achatPossible(art){ // null si on peut acheter, sinon la raison (courte)
+  const A=ART_DE[art]; if(!A) return "inconnu";
+  if(A.ray==="perm" && acquis(art)) return "acquis";
+  if(A.ray==="coup"){ const id=idAchat(art); if(!id) return "partie"; if(prog().achats.some(a=>a.id===id)) return "saison"; }
+  if(soldePoints()<A.prix) return "points";
+  return null;
+}
+function achete(art){ // vrai si l'achat est fait (et son effet appliqué pour un coup de pouce)
+  if(achatPossible(art)) return false;
+  const A=ART_DE[art], id=idAchat(art);
+  prog().achats.push({id, art, t:Date.now()}); progSauve(true); progPlanifie();
+  if(A.ray==="coup") appliqueCoup(art);
+  return true;
+}
+function appliqueCoup(art){
+  const moi=clubById(G.monClub); if(!moi) return;
+  if(art==="infirmerie"){ moi.joueurs.forEach(j=>{ j.bless=0; }); G.news.unshift("🩹 L'infirmerie se vide : tout le monde est apte."); }
+  if(art==="amnistie"){ moi.joueurs.forEach(j=>{ j.susp=0; }); G.news.unshift("🟨 La commission de discipline passe l'éponge : plus aucun suspendu."); }
+  if(art==="tournee"){ moi.joueurs.forEach(j=>{ j.moral=Math.min(100,(j.moral||65)+15); }); G.news.unshift("🍻 Tournée générale au club-house : le vestiaire a retrouvé le sourire."); }
+  if(art==="rallonge"){ G.budget+=5e6; G.news.unshift("💼 Le président remet au pot : "+MM(5e6,0)+" de plus pour les transferts."); }
+}
+function boutiqueAuDepart(clubId){ // appelée par nouvellePartie, une carrière NEUVE : les avantages permanents acquis
+  const moi=G.clubs.find(c=>c.id===clubId); if(!moi) return;
+  const faits=[];
+  if(acquis("tribune")){ moi.cap+=3000; faits.push("une tribune de plus"); }
+  if(acquis("tresor")){ G.budget+=10e6; faits.push("un trésor de guerre"); }
+  if(acquis("president")){ G.confiance=Math.min(100, G.confiance+15); faits.push("un président acquis à votre cause"); }
+  if(faits.length) G.news.push("⭐ Vos avantages vous suivent : "+faits.join(", ")+".");
+}
+function boutiqueHTML(enJeu){
+  const carte=A=>{ const r=achatPossible(A.art), ok=!r;
+    const etat=r==="acquis"?`<span class="fort">✅ Acquis</span>`
+      : r==="saison"?`<span class="dim">Pris cette saison</span>`
+      : r==="partie"?`<span class="dim">En partie</span>`
+      : `<button class="act boAch" data-art="${A.art}"${ok?"":" disabled"}>⭐ ${FMT(A.prix)}</button>`;
+    return `<div class="boArt${r==="acquis"?" ok":""}"><span class="boIco">${A.ico}</span><span class="boTxt"><b>${esc(A.nom)}</b><span class="dim">${esc(A.sous)}</span></span>${etat}</div>`; };
+  return `<h3>Pour toutes vos carrières</h3>${BOUTIQUE.filter(a=>a.ray==="perm").map(carte).join("")}
+    <h3 style="margin-top:12px">Pour la saison en cours</h3>${BOUTIQUE.filter(a=>a.ray==="coup").map(carte).join("")}`;
+}
+function cableBoutique(redessine){
+  app.querySelectorAll(".boAch").forEach(b=>b.onclick=()=>{ const A=ART_DE[b.dataset.art]; if(!A || achatPossible(A.art)) return;
+    confirme({titre:A.ico+" "+A.nom.toUpperCase()+" ?", coul:"#ffd24a",
+      texte:A.sous+". Il vous restera "+FMT(soldePoints()-A.prix)+" points.",
+      oui:"Acheter", non:"Pas maintenant", onOui:()=>{ if(achete(A.art)) redessine(); }}); });
+}
+function ecranBoutique(){ // en jeu
+  chrome("boutique", `<div class="panel ctr"><h2>⭐ LA BOUTIQUE</h2><p class="trPts">⭐ ${FMT(soldePoints())} <span class="dim">pts</span></p></div>
+    <div class="panel">${boutiqueHTML(true)}</div>`);
+  cableBoutique(ecranBoutique);
+}
+function clubsDefis(){ // la quatrième famille : un défi par ligne, précédé du blason de son club
+  const n=DEFIS_CLUB.filter(d=>defiReussi(d.id)).length;
+  return `<h3 style="display:flex;justify-content:space-between"><span>Les défis de club</span><span class="dim">${n}/${DEFIS_CLUB.length}</span></h3>
+    ${["FR","ANG"].map(ch=>{ const ds=DEFIS_CLUB.filter(d=>d.ch===ch); if(!ds.length) return "";
+      return `<p class="dim trPays">${(PAYS[ch]||PAYS.FR).drapeau} ${esc((PAYS[ch]||PAYS.FR).nom)}</p>`+ds.map(d=>{ const ok=defiReussi(d.id), c=metaClub(d.club)||{id:d.club, nom:d.club};
+        return `<p class="trDefi${ok?" ok":""}"><span class="trDefiClub">${ok?"✅":"⬜"} ${blason(c,18)} <span><b>${esc(c.nom)}</b> · ${esc(d.nom)}</span></span><span class="${ok?"fort":"dim"}">${FMT(d.pts)}</span></p>`; }).join(""); }).join("")}`;
+}
+function ecranTrophees(){
+  defisConstate();
+  const v=vitrine(), pts=pointsDefis(), faits=prog().defis.length;
+  const case_=(emo,n,lib)=>`<div class="trCase${n?"":" trVide"}"><span class="trEmo">${emo}</span><b>${n}</b><span class="dim">${lib}</span></div>`;
+  const clubs=Object.keys(v.clubs).map(k=>{ const [ch,id]=k.split("|"), c=metaClub(id)||{id, nom:id};
+    return `<span class="trBlason" title="${esc(c.nom||id)}${v.clubs[k]>1?" ×"+v.clubs[k]:""}">${blason(c,34)}${v.clubs[k]>1?`<i>×${v.clubs[k]}</i>`:""}</span>`; }).join("");
+  const famille=([f,lib])=>{ const ds=DEFIS.filter(d=>d.fam===f), n=ds.filter(d=>defiReussi(d.id)).length;
+    return `<h3 style="display:flex;justify-content:space-between"><span>${esc(lib)}</span><span class="dim">${n}/${ds.length}</span></h3>
+      ${ds.map(d=>{ const ok=defiReussi(d.id);
+        return `<p class="trDefi${ok?" ok":""}"><span>${ok?"✅":"⬜"} ${esc(d.nom)}</span><span class="${ok?"fort":"dim"}">${FMT(d.pts)}</span></p>`; }).join("")}`; };
+  const corps=`
+   <div class="panel ctr">
+     <h2>🏆 SALLE DES TROPHÉES</h2>
+     <p class="trPts">⭐ ${FMT(soldePoints())} <span class="dim">pts</span></p>
+     <p class="dim" style="font-size:13px">${FMT(pts)} gagnés · ${faits}/${DEFIS.length+DEFIS_CLUB.length} défis</p>
+   </div>
+   <div class="panel">
+     <h2>La boutique</h2>
+     ${boutiqueHTML(false)}
+   </div>
+   <div class="panel">
+     <h2>La vitrine</h2>
+     <div class="trGrille">
+       ${case_("🏆", v.d1, "Champion")}${case_("🥈", v.d2, "Champion D2")}${case_("🏅", v.cn, "Coupe")}
+       ${case_("⭐", v.C1, "C1")}${case_("🔷", v.C2, "C2")}${case_("🔶", v.C3, "C3")}
+     </div>
+     ${clubs?`<div class="trClubs">${clubs}</div>`:""}
+   </div>
+   <div class="panel">
+     <h2>Les défis</h2>
+     ${DEFIS_FAM.map(famille).join("")}
+     ${clubsDefis()}
+   </div>`;
+  app.innerHTML=`<p style="margin:0 0 10px"><button class="act" id="bRetourAcc">← Accueil</button></p>${corps}`;
+  document.getElementById("bRetourAcc").onclick=ecranAccueil; window.scrollTo(0,0);
+  cableBoutique(ecranTrophees);
+}
 
 /* =====================================================================
    INTERFACE
@@ -21539,6 +22026,405 @@ function deClub(nom, pays){
   if(pays==="FR") return "du "+nom;
   return (/^[AEIOUÂÉÈÊÎÔ]/i.test(nom)?"d'":"de ")+nom;
 }
+/* ============================================================================
+   LA CARRIÈRE D'ENTRAÎNEUR (chantier carriere-entraineur, livraison 1, demande de l'auteur du 10/11/2026)
+   Le joueur n'incarne plus un club mais un entraîneur qui part d'en bas. Il choisit un pays et une année (le
+   panneau de la saison de départ, cadenas compris) ; le jeu lui tend les TROIS EFFECTIFS LES PLUS FAIBLES de
+   la division la plus basse, et le président de celui qu'il retient annonce une durée (une ou deux saisons)
+   et un objectif lu au NIVEAU RÉEL de l'effectif (son rang de force dans la division, pas son prestige).
+   La réputation de l'entraîneur (`G.coach.rep`, 0-100, montrée en étoiles) le suivra toute sa carrière.
+   LE MODE DE TOUJOURS NE BOUGE PAS : sans offre signée, `nouvellePartie` fait exactement ce qu'elle faisait,
+   et `G.mode` reste indéfini. État propre au mode : `G.mode="entraineur"` et
+   `G.coach={rep, repMax, saisons:[], contrat:{club, saison, duree, reste, obj}}`.
+   Gardé par `harness-entraineur.cjs`.
+   ============================================================================ */
+const COACH_REP0=20; // une étoile : l'inconnu qu'un club de deuxième division va chercher
+const PRES_EXIGEANT=0.2; // la part des présidents qui demandent un cran de plus que leur effectif
+function etoiles(rep){ const n=Math.max(0,Math.min(5,Math.round((rep||0)/20))); return "★".repeat(n)+"☆".repeat(5-n); }
+/* La force d'un effectif au 4-4-2 de référence : le meilleur gardien, les quatre meilleurs défenseurs, les
+   quatre meilleurs milieux, les deux meilleurs attaquants. Un poste trop court se complète à 60, la note
+   d'un joueur généré de bas de tableau. Même formule pour l'effectif réel (accueil) et l'effectif en jeu. */
+function forceEffectif(liste){
+  let t=0;
+  for(const pos of ["G","D","M","A"]){
+    const n=(liste||[]).filter(j=>j.pos===pos).map(j=>j.note).sort((a,b)=>b-a).slice(0,FORMATION[pos]);
+    while(n.length<FORMATION[pos]) n.push(60);
+    t+=n.reduce((s,x)=>s+x,0);
+  }
+  return t/11;
+}
+function forceReelle(S, id){ const st=S.starsD1[id]||S.starsD2[id]||[]; return forceEffectif(st.map(s=>({pos:s[1], note:s[3]}))); }
+// le rang de force (1 = le plus fort) donne l'ambition : les deux premiers jouent le titre, puis la montée
+// (ou l'Europe en première division), la première moitié, et la moitié du bas joue le maintien
+function nivDuRang(r, n){ const q=r/(n||20); return q<=0.1?3 : q<=0.3?2 : q<=0.6?1 : 0; }
+function objectifEntr(niv, div, n){
+  n=n||20;
+  const place=[n-3, Math.floor(n/2), div===2?3:5, 1][niv];
+  const lib=["Le maintien","La première moitié", div===2?"La montée":"L'Europe", "Le titre"][niv];
+  return {niv, place, label:lib+(niv===3?"":" (top "+place+")")};
+}
+function objectifDuClub(c, clubs, div){
+  const tri=clubs.slice().sort((a,b)=>forceEffectif(b.joueurs)-forceEffectif(a.joueurs));
+  return objectifEntr(nivDuRang(tri.findIndex(x=>x.id===c.id)+1, clubs.length), div, clubs.length);
+}
+// les trois offres du premier été : les trois effectifs les plus faibles de la deuxième division
+function offresDebut(k){
+  const S=SAISONS[k]; if(!S) return [];
+  const n=S.d2.length, tri=S.d2.slice().sort((a,b)=>forceReelle(S,a)-forceReelle(S,b));
+  // LE PRÉSIDENT EXIGEANT (choix de l'auteur) : environ une fois sur cinq, un petit club vise un cran plus haut
+  // que son effectif (la première moitié au lieu du maintien). Le départ est plus dur, l'échec plus probable.
+  return tri.slice(0,3).map((id,i)=>{ const niv=nivDuRang(n-i,n), exig=niv<3 && Math.random()<PRES_EXIGEANT;
+    return {id, k, duree:Math.random()<0.5?1:2, exig, obj:objectifEntr(niv+(exig?1:0),2,n)}; });
+}
+const MOT_PRESIDENT=[
+  "Pas d'argent, pas de vedettes. Sauvez-nous, je ne demande rien d'autre.",
+  "Je veux voir ce club dans la première moitié. Pas une place de moins.",
+  null, // la montée ou l'Europe : selon la division, cf. motPresident
+  "On joue pour le titre. Le reste ne m'intéresse pas.",
+];
+function motPresident(o, div){
+  if(o.obj.niv!==2) return MOT_PRESIDENT[o.obj.niv];
+  return div===2 ? "Ce club n'a rien à faire à cet étage. Faites-le monter." : "J'ai promis l'Europe aux supporters. Ne me faites pas mentir.";
+}
+function signeContrat(o, k){ // appelé par nouvellePartie, G tout juste bâti
+  G.mode="entraineur";
+  G.coach={rep:COACH_REP0, repMax:COACH_REP0, saisons:[], depart:k, // depart : la saison de départ, pour les clés (cf. cleDepart)
+    contrat:{club:o.id, saison:(SAISONS[k]||{}).titre||G.saison, duree:o.duree, reste:o.duree, obj:o.obj}, obj:o.obj};
+  G.objectif={place:o.obj.place, label:o.obj.label};
+  G.news[0]="Contrat signé : "+(o.duree>1?o.duree+" saisons":"une saison")+". Objectif : "+o.obj.label.toLowerCase()+".";
+}
+let ENTR_OFFRES=null; // les trois offres de l'été, figées tant qu'on regarde la même saison
+function ecranEntraineur(){
+  const k=SAISON_ACCUEIL, S=SAISONS[k]; if(!S) return;
+  if(!ENTR_OFFRES || ENTR_OFFRES.k!==k) ENTR_OFFRES={k, l:offresDebut(k)};
+  const P=PAYS[S.pays]||PAYS.FR;
+  const carte=o=>{ const c=metaSaison(o.id,S.an);
+    return `<button class="startclub entrClub" data-id="${o.id}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left">${blason(c,26)}<span class="ccNom"><b>${esc(c.nom)}</b><span class="sous">${esc(c.stade)} · ${FMT(c.cap)} places</span></span></button>`; };
+  const fiche=document.getElementById("fiche");
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:90vh;overflow-y:auto">
+    <h2>🧑‍💼 Carrière d'entraîneur</h2>
+    <p class="fort" style="margin-top:2px">${P.drapeau} ${esc(P.div2(S.an))} · ${esc(S.titre)}</p>
+    <p class="dim" style="margin:8px 0">Trois clubs ont répondu.</p>
+    ${ENTR_OFFRES.l.map(carte).join("")}
+    <p class="ficheActions"><button class="act" id="bRetour" style="display:block;width:100%">← Retour</button></p></div>`;
+  fiche.style.display="flex";
+  fiche.querySelectorAll(".entrClub").forEach(b=>b.onclick=()=>contratEntraineur(ENTR_OFFRES.l.find(o=>o.id===b.dataset.id)));
+  document.getElementById("bRetour").onclick=fermeFiche;
+}
+function contratEntraineur(o){
+  if(!o) return;
+  const S=SAISONS[o.k], c=metaSaison(o.id,S.an);
+  const fiche=document.getElementById("fiche");
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px;max-height:90vh;overflow-y:auto">
+    <h2 style="display:flex;align-items:center;gap:10px">${blason(c,40)}${esc(c.nom)}</h2>
+    <p class="dim" style="margin-top:10px">Le président :</p>
+    <p style="font-size:17px;font-style:italic;margin-top:2px">« ${esc(motPresident(o,2))} »</p>
+    <p style="margin-top:10px">Contrat : <b class="fort">${o.duree>1?o.duree+" saisons":"une saison"}</b> · Objectif : <b class="fort">${esc(o.obj.label)}</b></p>
+    <p class="ficheActions">
+      ${saisonOuverte(o.k)
+        ? `<button class="big" id="bSigne" style="display:block;width:100%;margin-bottom:6px">Signer</button>`
+        : `<button class="big" id="bSigne" disabled style="display:block;width:100%;margin-bottom:6px">🔒 SAISON FERMÉE</button>`}
+      <button class="act" id="bRetour" style="display:block;width:100%">← Les autres clubs</button>
+    </p></div>`;
+  fiche.style.display="flex";
+  document.getElementById("bSigne").onclick=()=>{
+    if(!saisonOuverte(o.k)) return; // revérifié au clic
+    if(!placeDispo()) return;
+    fermeFiche(); ENTR_OFFRES=null; nouvellePartie(o.id, o.k, o);
+  };
+  document.getElementById("bRetour").onclick=ecranEntraineur;
+}
+
+/* ---------- LIVRAISON 2 : LE TEMPS QUI PASSE ----------
+   À la fin de chaque saison, le contrat juge : objectif DÉPASSÉ (au moins un cran d'ambition au-dessus, ex. top 10
+   quand on visait le maintien), TENU, ou MANQUÉ (`verdictSaison`). La réputation bouge (`REP_GAIN`), la saison
+   entre dans `G.coach.saisons` (le futur livre d'or). Puis l'été (`preparerEte`, état `G.ete`, écran `ecranEte`) :
+   - contrat en cours : on continue au même club ;
+   - fin de contrat, objectif tenu : le président prolonge, objectif un cran plus haut ;
+   - fin de contrat, objectif dépassé : des clubs plus forts appellent (la réputation fixe jusqu'où), et le
+     président propose aussi de prolonger ;
+   - fin de contrat, objectif manqué : remercié, seuls des clubs plus modestes appellent ;
+   - le club a quitté les deux divisions du jeu (vraie descente en National, en Conference…) : des clubs de
+     même rang appellent ;
+   - plus de saison dans le jeu : fin de carrière.
+   Signer (`basculeSaison`) recharge la VRAIE saison suivante : le club dans sa vraie division, avec son vrai
+   effectif. On ne garde aucun joueur. Rester au club garde ce qu'on y a bâti (stade, centre, staff, argent :
+   choix de l'auteur) ; en changer repart de ce qu'avait le nouveau club. `anBase` reste celle du départ (la
+   clé d'un titre va toujours à la saison de départ, cf. cleDepart) et `saisonIdx` avance.
+   L'échelle des clubs (`echelle`) range les quarante clubs d'une saison par la force de leur effectif réel, la
+   première division devant à force égale. */
+const REP_GAIN={depasse:12, cran:6, tenu:6, rate:-10, vire:-15, titreD1:10, titreD2:4};
+/* LIVRAISON 6 : L'ÉCART AVEC L'HISTOIRE. `CLASSEMENT_REEL` (sous SAISONS) donne, saison par saison, les clubs dans
+   l'ordre du VRAI classement final, « - » pour un club que le jeu n'a pas. `rangReel` lit la vraie place d'un club
+   dans la division qu'il joue : un club repêché dans le jeu (qui a vraiment joué l'autre division) n'en a pas, et
+   la D2 française à deux groupes (jusqu'en 1992-93) non plus. */
+const ECART_HISTOIRE=5; // places gagnées sur l'histoire pour que le président compte l'objectif comme dépassé
+function rangReel(k, id, div){
+  const R=k&&CLASSEMENT_REEL[k], l=R&&R["d"+div]; if(!l) return null;
+  const i=l.split(" ").indexOf(id); return i<0?null:i+1;
+}
+function cleSaison(pays, an){ return Object.keys(SAISONS).find(k=>(SAISONS[k].pays||"FR")===pays && SAISONS[k].an===an)||null; }
+function divReelle(S, id){ return S.d1.includes(id)?1 : S.d2.includes(id)?2 : 0; }
+function objectifReel(S, id){ // l'objectif qu'appelle le vrai niveau d'un club, dans sa vraie division
+  const div=divReelle(S,id), l=div===1?S.d1:S.d2;
+  const tri=l.slice().sort((a,b)=>forceReelle(S,b)-forceReelle(S,a));
+  return objectifEntr(nivDuRang(tri.indexOf(id)+1, l.length), div, l.length);
+}
+function verdictSaison(rang, obj, div, n){
+  if(rang>obj.place) return {v:"rate", crans:0};
+  let crans=0;
+  for(let t=obj.niv+1; t<=3 && rang<=objectifEntr(t,div,n).place; t++) crans++;
+  return {v:crans?"depasse":"tenu", crans};
+}
+function finSaisonEntr(rang){ // appelée par finDeSaison
+  const C=G.coach, n=G.clubs.length, o=C.obj||Object.assign({niv:0}, G.objectif);
+  const vd=C.vire ? {v:"vire", crans:0} : verdictSaison(rang, o, G.div, n); // renvoyé en cours de route : la saison est perdue pour lui
+  // L'ÉCART AVEC L'HISTOIRE (livraison 6) : la vraie place du club cette saison-là. Finir au moins ECART_HISTOIRE
+  // places mieux que lui compte comme un objectif dépassé ; ça ne rend jamais un verdict plus sévère.
+  const reel=rangReel(cleSaison(G.pays, anneeJeu()), G.monClub, G.div);
+  if(reel!=null && !C.vire && vd.v!=="depasse" && reel-rang>=ECART_HISTOIRE){ vd.v="depasse"; vd.crans=1; vd.histoire=true; }
+  let d = vd.v==="vire" ? REP_GAIN.vire : vd.v==="rate" ? REP_GAIN.rate : vd.v==="tenu" ? REP_GAIN.tenu : REP_GAIN.depasse+REP_GAIN.cran*(vd.crans-1);
+  if(rang===1 && !C.vire) d+=G.div===1?REP_GAIN.titreD1:REP_GAIN.titreD2;
+  const avant=C.rep;
+  C.rep=Math.max(0,Math.min(100,avant+d)); C.repMax=Math.max(C.repMax||0,C.rep);
+  C.contrat.reste=C.vire ? 0 : Math.max(0,(C.contrat.reste||1)-1);
+  const moi=clubById(G.monClub);
+  C.saisons.push({s:G.saison, pays:G.pays, club:G.monClub, nom:moi?moi.nom:"", div:G.div, rang, obj:o.label, v:vd.v, rep:C.rep, vireJ:C.vire?C.vire.j:null,
+    pal:trophees((G.palmares||[]).filter(p=>p.includes(G.saison))), reel}); // les trophées de la saison, et la vraie place du club
+  C.bilan={v:vd.v, crans:vd.crans, avant, apres:C.rep, rang, obj:o.label, reel, histoire:!!vd.histoire};
+  C.vire=null; C.avert=null; // la page est tournée : l'été décide de la suite
+}
+const LIB_VERDICT={depasse:"OBJECTIF DÉPASSÉ", tenu:"OBJECTIF TENU", rate:"OBJECTIF MANQUÉ", vire:"RENVOYÉ"};
+
+/* ---------- LIVRAISON 3 : LE NAUFRAGE ----------
+   Le président ne renvoie qu'en cas de NAUFRAGE, et il prévient d'abord. À partir de `AVERT.des` journées, le club
+   coule s'il pointe au-delà du seuil de son objectif (`seuilNaufrage` : cinq places sous l'objectif, au plus les
+   deux dernières, donc la zone rouge quand on vise le maintien) ou si la confiance du président est presque morte.
+   Premier constat : l'AVERTISSEMENT (`G.coach.avert`, bandeau rouge sur tous les écrans, `bandeauAvert`), cinq
+   journées pour remonter au moins trois places au-dessus du seuil. Remonté : l'avertissement tombe (il peut revenir).
+   Délai écoulé sans redressement : RENVOYÉ (`G.coach.vire`, écran `ecranLimoge`). La fin de saison se joue sans vous
+   (`finitSansVous` : championnat, coupe et Europe tranchés par le moteur, moments résolus d'office) ; le verdict est
+   RENVOYÉ (`REP_GAIN.vire`), le contrat s'arrête, et l'été ne propose que des clubs plus faibles (cas `vire`).
+   Dans ce mode, le renvoi « confiance à zéro » du mode de toujours ne joue plus. */
+const AVERT={des:10, delai:5, conf:8, ecart:5, remonte:3};
+function seuilNaufrage(obj, n){ return Math.min(obj+AVERT.ecart, n-1); }
+function surveillePresident(rang, obj, n){ // appelée par finirJournee, à chaque journée
+  const C=G.coach; if(C.vire || G.journee<AVERT.des) return;
+  // un entraîneur qui tient son objectif ne coule jamais, même brouillé avec son président (une affaire, une conférence ratée)
+  const seuil=seuilNaufrage(obj, n), coule=rang>=seuil || (G.confiance<=AVERT.conf && rang>obj);
+  if(!C.avert){
+    if(!coule) return;
+    C.avert={j:G.journee, seuil};
+    G.news.unshift("AVERTISSEMENT : le président vous donne "+AVERT.delai+" journées pour redresser la barre.");
+    G.presse.unshift("« Le président a convoqué son entraîneur. Personne n'a souri en sortant du bureau. »");
+    notif("⚠️ Le président vous a prévenu : "+AVERT.delai+" journées.");
+    return;
+  }
+  if(rang<=C.avert.seuil-AVERT.remonte && (G.confiance>AVERT.conf || rang<=obj)){ // le club a relevé la tête
+    C.avert=null; G.news.unshift("Le président respire. L'avertissement est levé, pour l'instant.");
+    notif("🕊️ L'avertissement est levé."); return;
+  }
+  if(G.journee-C.avert.j>=AVERT.delai){
+    C.vire={j:G.journee, rang}; C.avert=null;
+    G.news.unshift("LIMOGEAGE : le président vous remercie, "+rang+"ᵉ après "+G.journee+" journées.");
+    G.presse.unshift("« L'entraîneur est remercié. L'adjoint assure l'intérim jusqu'à l'été. »");
+  }
+}
+function bandeauAvert(){
+  const C=G&&G.mode==="entraineur"&&G.coach; if(!C||!C.avert||C.vire) return "";
+  const reste=Math.max(1, C.avert.j+AVERT.delai-G.journee);
+  return `<div class="panel" style="border-color:#e0533d;padding:8px 12px;margin-bottom:8px"><b class="rouge">⚠️ Le président vous a prévenu.</b> <span class="dim">${reste>1?reste+" journées":"Une journée"} pour redresser la barre.</span></div>`;
+}
+function ecranLimoge(){
+  const C=G.coach, moi=clubById(G.monClub);
+  chrome("calendrier", `<div class="panel ctr">${IMG_MOMENT.vire?`<img class="momImg" style="max-height:240px" src="${PICK(IMG_MOMENT.vire)}" alt="">`:""}
+    <h2 class="rouge">LIMOGÉ</h2>
+    <p>${esc(moi?moi.nom:"")} · ${C.vire.rang}ᵉ après ${C.vire.j} journées.</p>
+    <p style="margin-top:12px"><button class="big" id="bSansVous">La fin de saison sans vous →</button></p></div>`);
+  document.getElementById("bSansVous").onclick=()=>{ finitSansVous(); montre("calendrier"); };
+}
+function finitSansVous(){ // l'intérim joue tout ce qui reste ; on n'y touche plus
+  const W=(typeof window!=="undefined")?window._diffEnDirect:false;
+  if(typeof window!=="undefined") window._diffEnDirect=false;
+  try{
+    for(let garde=0; !G.finie && garde<200; garde++){
+      if(G.euro && G.euro.aJouer) euroResoutTour(false);
+      if(G.coupe && G.coupe.aJouer) coupeResoutTour(false);
+      if(G.journee>=38) break;
+      jouerJournee();
+      if(G._pend){ const P=G._pend, m=P.pend&&P.pend.r&&P.pend.r.moment; finirJournee(m?autoMoment(m):null); }
+    }
+    G.flash=null; G.offreExt=null; G.offrePret=null; G.affaire=null; // rien ne reste en suspens pour un entraîneur parti
+  } finally { if(typeof window!=="undefined") window._diffEnDirect=W; }
+}
+function ligneEtoiles(b){ return etoiles(b.avant)+(etoiles(b.apres)!==etoiles(b.avant)?" → "+etoiles(b.apres):""); }
+function ligneVerdict(b){ // une ligne sous le verdict de l'almanach
+  return `<p class="${(b.v==="rate"||b.v==="vire")?"rouge":"fort"}" style="margin-top:4px"><b>${LIB_VERDICT[b.v]}</b> <span class="dim">(${esc(b.obj)})</span> · ${ligneEtoiles(b)}</p>`+ligneHistoire(b);
+}
+function ligneHistoire(b){ // la vraie place du club cette saison-là, quand on la connaît
+  if(b.reel==null) return "";
+  const d=b.reel-b.rang;
+  return `<p class="dim" style="margin-top:2px">Le vrai club avait fini ${b.reel}ᵉ${d>0?`, vous faites <b class="fort">${d} place${d>1?"s":""} mieux</b>`:d<0?`, vous faites ${-d} place${d<-1?"s":""} moins bien`:", comme vous"}.${b.histoire?" Le président s'en souviendra.":""}</p>`;
+}
+function echelle(S){
+  return S.d1.map(id=>({id,div:1})).concat(S.d2.map(id=>({id,div:2})))
+    .map(o=>Object.assign(o,{v:forceReelle(S,o.id)+(o.div===1?3:0)})).sort((a,b)=>a.v-b.v);
+}
+function offreClub(S, k, id){ // l'offre d'un club de la saison k : objectif lu à son vrai niveau, président parfois exigeant
+  const div=divReelle(S,id), n=(div===1?S.d1:S.d2).length;
+  let obj=objectifReel(S,id); const exig=obj.niv<3 && Math.random()<PRES_EXIGEANT;
+  if(exig) obj=objectifEntr(obj.niv+1, div, n);
+  return {id, k, div, duree:Math.random()<0.5?1:2, exig, obj};
+}
+function tire(l, n){ const c=l.slice(), out=[]; while(c.length && out.length<n) out.push(c.splice(Math.floor(Math.random()*c.length),1)[0]); return out; }
+// sens : "haut" (plus forts, jusqu'où la réputation le permet), "bas" (plus modestes), "pareil" (même rang)
+/* LIVRAISON 4 : LES OFFRES DE L'ÉTRANGER. Environ un été sur deux (`OFFRE_ETRANGER`), l'une des trois offres vient
+   d'un autre pays qui a sa saison la même année, tirée selon la même règle (plus fort, plus modeste, même rang) sur
+   SON échelle, comparée à la valeur de votre club. Signer change de pays : `nouvellePartie` pose le pays, ses
+   divisions, sa coupe et sa monnaie. La saison de départ est retenue dans `G.coach.depart` (cf. cleDepart) : la
+   clé d'un titre reste au championnat du départ, même gagné à l'étranger. */
+const OFFRE_ETRANGER=0.5;
+function offresEte(sens, S, k, v0, exclu, rep){
+  const ici=tire(candidatsEte(sens, S, v0, exclu, rep),3).map(x=>offreClub(S,k,x.id));
+  const ailleurs=Object.keys(SAISONS).filter(k2=>SAISONS[k2].an===S.an && (SAISONS[k2].pays||"FR")!==(S.pays||"FR"));
+  if(ici.length && ailleurs.length && Math.random()<OFFRE_ETRANGER){
+    const k2=PICK(ailleurs), S2=SAISONS[k2];
+    const c2=candidatsEte(sens, S2, v0, null, rep).filter(x=>sens==="haut"?x.v>=v0 : sens==="bas"?x.v<v0 : true);
+    if(c2.length) ici[ici.length-1]=offreClub(S2, k2, tire(c2,1)[0].id);
+  }
+  return ici;
+}
+function candidatsEte(sens, S, v0, exclu, rep){
+  const L=echelle(S).filter(x=>x.id!==exclu);
+  let i0=L.findIndex(x=>x.v>=v0); if(i0<0) i0=L.length; // la place de votre club sur l'échelle de la saison qui vient
+  let cand;
+  if(sens==="haut"){
+    const plafond=Math.floor((0.35+0.65*(rep||0)/100)*(L.length-1)); // la réputation ouvre les portes, une à une
+    cand=L.slice(i0, Math.max(i0+3, Math.min(L.length, plafond+1))); // au moins les trois clubs juste au-dessus
+    if(cand.length<3) cand=L.slice(Math.max(0,L.length-3));
+  } else if(sens==="bas"){
+    cand=L.slice(Math.max(0,i0-8), i0);
+    if(cand.length<3) cand=L.slice(0,3);
+  } else cand=L.slice(Math.max(0,i0-3), i0+3);
+  return cand;
+}
+function offreRester(S, k, monte){ // rester au club : la suite du contrat, ou la prolongation (un cran plus haut)
+  const id=G.monClub, div=divReelle(S,id), n=(div===1?S.d1:S.d2).length, base=objectifReel(S,id);
+  let niv=base.niv;
+  if(monte){ const prev=(G.coach.obj||{niv:0}).niv;
+    niv = div===G.div ? Math.min(3, Math.max(prev+1, base.niv)) // même division : au moins un cran de plus
+        : div<G.div ? base.niv                                  // le club monte pour de vrai : son niveau d'élite suffit
+        : Math.min(3, base.niv+1); }                            // le club descend pour de vrai : on vise plus haut que l'effectif
+  return {id, k, div, duree:monte?(Math.random()<0.5?1:2):G.coach.contrat.reste, reste:true, suite:!monte, exig:false, obj:objectifEntr(niv,div,n)};
+}
+function preparerEte(){ // appelée au sortir de l'almanach, une fois par été
+  const C=G.coach, b=C.bilan||{}, k=cleSaison(G.pays, anneeJeu()+1), S=k&&SAISONS[k];
+  const E={v:b.v||null, k, fin:!S, cas:null, offres:[]};
+  if(S){
+    const S0=SAISONS[cleSaison(G.pays, anneeJeu())];
+    const v0=S0&&divReelle(S0,G.monClub) ? forceReelle(S0,G.monClub)+(divReelle(S0,G.monClub)===1?3:0)
+           : forceEffectif(clubById(G.monClub).joueurs)+(G.div===1?3:0);
+    const ici=divReelle(S,G.monClub)>0, fini=C.contrat.reste<=0;
+    if(b.v==="vire"){ E.cas="vire"; E.offres=offresEte("bas",S,k,v0,G.monClub,C.rep); } // renvoyé : un club plus faible
+    else if(!ici){ E.cas="disparu"; E.offres=offresEte(b.v==="depasse"?"haut":b.v==="rate"?"bas":"pareil",S,k,v0,G.monClub,C.rep); } // le verdict compte aussi quand le club disparaît
+    else if(!fini){ E.cas="suite"; E.offres=[offreRester(S,k,false)]; }
+    else if(b.v==="rate"){ E.cas="remercie"; E.offres=offresEte("bas",S,k,v0,G.monClub,C.rep); }
+    else if(b.v==="tenu"){ E.cas="prolonge"; E.offres=[offreRester(S,k,true)]; }
+    else { E.cas="appels"; E.offres=offresEte("haut",S,k,v0,G.monClub,C.rep).concat([offreRester(S,k,true)]); }
+  }
+  G.ete=E;
+}
+function ecranEte(){
+  const E=G.ete, C=G.coach, b=C.bilan;
+  if(E.fin) return ecranFinCarriere();
+  const S=SAISONS[E.k], moi=clubById(G.monClub);
+  const tete={
+    suite:"Le contrat court encore "+(C.contrat.reste>1?C.contrat.reste+" saisons.":"une saison."),
+    prolonge:"Le président veut continuer avec vous.",
+    appels:"Le téléphone sonne.",
+    remercie:"Le président vous remercie. D'autres appellent.",
+    vire:"Plus petits, mais ils appellent.",
+    disparu:(moi?moi.nom:"Le club")+" quitte les deux premières divisions.",
+  }[E.cas]||"";
+  const carte=(o,i)=>{ const S=SAISONS[o.k]||SAISONS[E.k], P=PAYS[S.pays||"FR"]||PAYS.FR, etr=(S.pays||"FR")!==G.pays; // une offre peut venir d'ailleurs
+    const c=metaSaison(o.id,S.an);
+    const bouton=o.suite?"Saison "+S.titre+" →":o.reste?"Prolonger":"Signer";
+    return `<div class="panel">
+      <h2 style="display:flex;align-items:center;gap:10px">${blason(c,32)}${esc(c.nom)}</h2>
+      <p class="dim">${etr?P.drapeau+" ":""}${esc(P[o.div===1?"div1":"div2"](S.an))} · ${esc(S.titre)}</p>
+      ${o.suite?"":`<p style="font-style:italic;margin-top:6px">« ${esc(motPresident(o,o.div))} »</p>`}
+      <p style="margin-top:6px">${o.suite?"":`Contrat : <b class="fort">${o.duree>1?o.duree+" saisons":"une saison"}</b> · `}Objectif : <b class="fort">${esc(o.obj.label)}</b></p>
+      <p style="margin-top:8px"><button class="big bEteSigne" data-i="${i}" style="width:100%">${esc(bouton)}</button></p></div>`; };
+  chrome("calendrier", `<div class="panel ctr">
+      <h2 class="${b&&(b.v==="rate"||b.v==="vire")?"rouge":""}">${b?LIB_VERDICT[b.v]:"L'ÉTÉ"}</h2>
+      ${b?`<p>${b.rang}ᵉ place · <span class="dim">${esc(b.obj)}</span></p>${ligneHistoire(b)}<p style="font-size:18px;letter-spacing:1px;margin-top:4px">${ligneEtoiles(b)}</p>`:""}
+      <p style="margin-top:8px">${esc(tete)}</p></div>`+E.offres.map(carte).join(""));
+  app.querySelectorAll(".bEteSigne").forEach(x=>x.onclick=()=>basculeSaison(E.offres[+x.dataset.i]));
+}
+/* ---------- LIVRAISON 5 : LE LIVRE D'OR ET LE GRAND BILAN ----------
+   Le livre d'or raconte la carrière, une ligne par saison achevée (`G.coach.saisons`, rempli par finSaisonEntr) :
+   la saison, le drapeau et le club, la division du pays, la place, le verdict (avec la journée du renvoi), et une
+   coupe 🏆 par trophée de la saison (`pal` : titres de champion et coupes gagnées, relevés au palmarès à la fin
+   de la saison). Il vit dans l'onglet Club (Direction & mémoire) pendant la carrière, et il fait le cœur de
+   l'écran de fin de carrière, quand il n'y a plus de saison à jouer. */
+const LIB_COURT={depasse:"Dépassé", tenu:"Tenu", rate:"Manqué", vire:"Renvoyé"};
+function trophees(p){ return (p||[]).filter(x=>/^(Champion|Vainqueur)/.test(x)); }
+function livreDorHTML(){
+  const C=G.coach; if(!C) return "";
+  if(!C.saisons.length) return `<p class="dim" style="font-size:13px">La première page s'écrit cette saison.</p>`;
+  const lignes=C.saisons.map(s=>{ const P=PAYS[s.pays||"FR"]||PAYS.FR, an=+String(s.s).slice(0,4), t=trophees(s.pal).length;
+    return `<tr><td class="dim">${esc(s.s)}</td><td>${P.drapeau} ${esc(s.nom)}</td><td class="dim">${esc(P[s.div===1?"tag1":"tag2"](an))}</td>
+      <td class="num"><b>${s.rang}ᵉ</b>${s.reel!=null?`<span class="dim" title="La vraie place du club"> /${s.reel}</span>`:""}</td><td class="${(s.v==="rate"||s.v==="vire")?"rouge":"fort"}">${esc(LIB_COURT[s.v]||"")}${s.vireJ?" J"+s.vireJ:""}</td><td>${"🏆".repeat(t)}</td></tr>`; }).join("");
+  return `<table class="fit" style="font-size:13px;margin-top:4px">${lignes}</table>`;
+}
+function panneauLivreDor(){ // en tête de « Direction & mémoire », pour une carrière d'entraîneur
+  const C=G.coach, cc=C.contrat||{}, moi=clubById(G.monClub);
+  return `<h3>📖 Livre d'or</h3>
+    <p>${etoiles(C.rep)}${C.repMax>C.rep?` <span class="dim">· au plus haut ${etoiles(C.repMax)}</span>`:""}</p>
+    <p class="dim" style="font-size:13px">Contrat : ${esc(moi?moi.nom:"")}, ${cc.reste>1?cc.reste+" saisons":"dernière saison"}.</p>
+    ${livreDorHTML()}`;
+}
+function ecranFinCarriere(){
+  const C=G.coach, clubs=[], vus={};
+  for(const s of C.saisons) if(!vus[s.club]){ vus[s.club]=1; clubs.push(s); }
+  const titres=[].concat(...C.saisons.map(s=>trophees(s.pal)));
+  const pays=[...new Set(C.saisons.map(s=>s.pays||"FR"))];
+  chrome("calendrier", `<div class="panel ctr"><h2>FIN DE CARRIÈRE</h2>
+    <p class="dim">Il n'y a plus de saison à jouer.</p>
+    <p style="font-size:26px;letter-spacing:2px;margin-top:8px">${etoiles(C.repMax)}</p>
+    <p class="dim">meilleure réputation</p>
+    <p style="margin-top:10px">${C.saisons.length} saison${C.saisons.length>1?"s":""} · ${clubs.length} club${clubs.length>1?"s":""}${pays.length>1?" · "+pays.length+" pays":""}</p>
+    <p style="margin-top:4px">${clubs.map(s=>(PAYS[s.pays||"FR"]||PAYS.FR).drapeau+" "+esc(s.nom)).join(" · ")}</p>
+    <p style="margin-top:8px" class="${titres.length?"fort":"dim"}">${titres.length?titres.map(t=>"🏆 "+esc(t)).join("<br>"):"Aucun trophée."}</p>
+    </div>
+    <div class="panel"><h2>📖 LIVRE D'OR</h2>${livreDorHTML()}</div>
+    <div class="panel ctr"><button class="big" id="bFinC">Retour à l'accueil</button></div>`);
+  document.getElementById("bFinC").onclick=retourAccueil;
+}
+function basculeSaison(o){ // signer l'offre de l'été : la vraie saison suivante, même carrière
+  if(!o || !SAISONS[o.k]) return;
+  const old=G, part=PARTIE, meme=o.id===old.monClub, oc=clubById(old.monClub);
+  if(old.coach && !old.coach.depart) old.coach.depart=cleDepart(old); // avant tout changement de pays (carrières d'avant la livraison 4)
+  if(meme && (SAISONS[o.k].pays||"FR")!==old.pays) return; // garde-fou : un même code dans deux pays n'est jamais le même club
+  nouvellePartie(o.id, o.k, null, true);
+  const N=G, nc=clubById(o.id);
+  N.pid=old.pid; N.anBase=old.anBase; N.saisonIdx=(old.saisonIdx||1)+1;
+  N.mode="entraineur"; N.coach=old.coach; N.palmares=old.palmares||[];
+  N.formation=old.formation; N.consigne=old.consigne; N.prixBillet=old.prixBillet;
+  if(meme){ // ce qu'on a bâti au club reste au club (choix de l'auteur)
+    for(const f of ["stade","chantier","campus","livraisonCentre","staff","budget","tresorerie","reput","records","affS"]) if(old[f]!==undefined) N[f]=old[f];
+    if(oc && nc){ nc.cap=Math.max(nc.cap, oc.cap); nc.pres=Math.min(10, nc.pres+((old.stade&&+old.stade.presStade)||0)); }
+  }
+  const C=N.coach;
+  if(!o.suite) C.contrat={club:o.id, saison:SAISONS[o.k].titre, duree:o.duree, reste:o.duree, obj:o.obj};
+  C.obj=o.obj; C.bilan=null;
+  N.objectif={place:o.obj.place, label:o.obj.label};
+  N.ete=null;
+  N.news=[(o.suite?"Saison "+N.saison+". ":"Contrat signé : "+(o.duree>1?o.duree+" saisons":"une saison")+". ")+"Objectif : "+o.obj.label.toLowerCase()+"."];
+  PARTIE=part;
+  majTitre(); montre("calendrier");
+}
+
 function ficheClubAccueil(id){
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   const c=metaSaison(id,S.an);
@@ -21552,6 +22438,7 @@ function ficheClubAccueil(id){
     <p style="margin-top:8px"><span class="dim">Objectif du président :</span> <b class="fort">${esc(st.obj.label)}</b></p>
     <p><span class="dim">Stade :</span> ${esc(c.stade)} (${FMT(c.cap)} places) · <span class="dim">Prestige</span> ${c.pres}/10 · <span class="dim">Budget</span> ${MM(c.budget,0)}</p>
     ${(()=>{ const k=euroSeedDe(c.id,S); return k?`<p><span class="dim">Coupe d'Europe :</span> <b class="fort">${COMPETS[k].emoji} ${esc(COMPETS[k].nom)}</b> <span class="dim">dès la 1re saison</span></p>`:""; })()}
+    ${defisClubDe(c.id, S.pays||"FR", SAISON_ACCUEIL).map(d=>`<p class="trFiche${defiReussi(d.id)?" ok":""}">${defiReussi(d.id)?"✅":"🎯"} <b>${esc(d.nom)}</b> <span class="dim">· ${FMT(d.pts)} pts</span></p>`).join("")}
     ${riv?`<p><span class="dim">Rival historique :</span> <b class="rouge">${esc(riv.nom)}</b> · ${esc(nomRivalite(c.id,riv.id))}</p>`:""}
     ${malediction(c.id,S.an)?`<p style="margin-top:8px;font-style:italic;border-left:2px solid ${st.coul};padding-left:8px">« ${esc(malediction(c.id,S.an))} »</p>`:""}
     ${(()=>{
@@ -21628,7 +22515,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
      <h2>Reprendre une carrière</h2>
      <p class="dim" style="font-size:13px">Aucune carrière sauvegardée dans ce navigateur, choisissez un club plus bas.</p>
    </div>`;
-  const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}${p.enLigne?" · ☁️ en ligne":""}`;
+  const sous=p=>`${esc(p.saison)} · J${p.journee}/38 · D${p.div}${p.titres?" · 🏆"+p.titres:""}${p.entr!=null?" · "+etoiles(p.entr):""}${p.enLigne?" · ☁️ en ligne":""}`;
   const p0=parties[0], reste=parties.slice(1);
   /* LE BANDEAU DE REPRISE (25/09/2026, « c'est la première chose qu'on voit quand on reprend une partie ») : le blason
      en grand, le club, où en est la saison, l'enjeu du moment, et l'action en jaune. Toute la carte se clique. */
@@ -21638,7 +22525,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
        <span class="repBlason">${blason(metaClub(p0.clubId)||{id:p0.clubId},56)}</span>
        <span class="repCorps">
          <span class="repClub">${esc(p0.nom||p0.club)}</span>
-         <span class="repMeta">${p0.nom&&p0.nom!==p0.club?esc(p0.club)+" · ":""}${esc(p0.saison)} · ${esc(divCarte(p0))} · Journée ${p0.journee}/38${p0.titres?" · 🏆 "+p0.titres:""}${p0.enLigne?" · ☁️ en ligne":""}</span>
+         <span class="repMeta">${p0.nom&&p0.nom!==p0.club?esc(p0.club)+" · ":""}${esc(p0.saison)} · ${esc(divCarte(p0))} · Journée ${p0.journee}/38${p0.titres?" · 🏆 "+p0.titres:""}${p0.entr!=null?" · "+etoiles(p0.entr):""}${p0.enLigne?" · ☁️ en ligne":""}</span>
          ${p0.enjeu?`<span class="repEnjeu">${esc(p0.enjeu)}</span>`:""}
        </span>
        <span class="repGo">▶ Reprendre</span>
@@ -21667,6 +22554,7 @@ const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"
 function liensReseaux(){ return RESEAUX.map(r=>`<a href="${r.url}" target="_blank" rel="noopener" style="color:inherit">${esc(r.nom)}</a>`).join(" · "); }
 const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
 function ecranAccueil(){
+  defisConstate(); // les saisons déjà rangées rapportent leurs défis (une fois, sans bruit)
   const parties=carrieresAffichees();
   const S=SAISONS[SAISON_ACCUEIL]||SAISONS[SAISON_DEFAUT];
   voitPays(S.pays||"FR", S.an, false); // à l'accueil on REGARDE un pays sans le jouer : G peut encore porter une autre carrière
@@ -21700,6 +22588,7 @@ function ecranAccueil(){
        <button class="porte2" id="bChoisir">Choisir mon club</button>
      </div>
    </div>`}
+   <button class="trPorte" id="bTrophees"><span>🏆 Salle des trophées</span><span class="fort">⭐ ${FMT(soldePoints())}</span></button>
    <div class="panel">
      <div class="accPaysRang" role="group" aria-label="Pays">${boutonsPays}</div>
      <label style="display:block;font-size:13px"><span style="display:flex;justify-content:space-between"><b>Saison de départ</b><span class="dim" id="accCles" title="Clés">🔑 ${cles}</span></span>
@@ -21708,6 +22597,7 @@ function ecranAccueil(){
      ${ferme?`<p id="accFerme" style="margin-top:8px;font-size:14px">🔒 <span class="dim">${cles?`${cles} clé${cles>1?"s":""} en poche.`:"Aucune clé en poche. Gagnez un titre de champion en première division pour en gagner une."}</span>${cles?` <button class="act" id="bOuvreSaison">🔑 Ouvrir</button>`:""}</p>`:""}
      <p class="fort" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
      <p class="dim" style="margin-top:3px;font-size:13px">${esc(S.sous)}</p>
+     <p style="margin-top:10px"><button class="porte2" id="bEntr" style="width:100%"${ferme?" disabled":""}>🧑‍💼 Carrière d'entraîneur</button></p>
    </div>
    <div class="panel" id="choixClub">
      <h2>Choisissez votre club</h2>
@@ -21730,6 +22620,7 @@ function ecranAccueil(){
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
+  { const be=document.getElementById("bEntr"); if(be) be.onclick=()=>{ if(saisonOuverte(SAISON_ACCUEIL)) ecranEntraineur(); }; } // la carrière d'entraîneur
   app.querySelectorAll(".startclub:not(.carGo)").forEach(b=>b.onclick=()=>ficheClubAccueil(b.dataset.id)); // .carGo = une carrière, pas un club : son data-id n'est pas un club
   // une saison fermée se regarde (ses clubs restent affichés) ; choisie avec une clé en poche, on propose de l'ouvrir
   const sel=document.getElementById("selSaison"); if(sel) sel.onchange=()=>{ SAISON_ACCUEIL=sel.value; ecranAccueil();
@@ -21746,6 +22637,7 @@ function ecranAccueil(){
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
   app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
   document.getElementById("bAproposAcc").onclick=ecranApropos;
+  { const bt=document.getElementById("bTrophees"); if(bt) bt.onclick=ecranTrophees; }
   const bca=document.getElementById("bCompteAcc"); if(bca) bca.onclick=fenetreCompte;
   const bap=document.getElementById("bAppCompte"); if(bap) bap.onclick=()=>{ COMPTE_ONGLET="inscription"; fenetreCompte(); };
   // connecté : on relit la liste en ligne (au plus toutes les trente secondes), puis on redessine si l'on est
@@ -21789,13 +22681,15 @@ function chrome(actif, corps){
   const c=clubById(G.monClub);
   app.innerHTML=`
    <div class="topbar">
-     <span style="display:flex;align-items:center;gap:8px">${blason(c,20)}${esc(c.nom).toUpperCase()}</span>
+     <span style="display:flex;align-items:center;gap:8px"><button class="tbAccueil" id="bAccueil" title="Retour à l'accueil (la carrière est sauvegardée)" aria-label="Retour à l'accueil">${logoMultiplex(26)} Accueil</button>${blason(c,20)}${esc(c.nom).toUpperCase()}${G.mode==="entraineur"&&G.coach?`<span class="tbEtoiles" style="font-size:13px;letter-spacing:1px" title="Réputation de l'entraîneur">${etoiles(G.coach.rep)}</span>`:""}</span>
      <span class="r">${esc(G.saison)} · <b class="divTag${G.div===2?' d2':''}">${esc(tagDiv(G.div||1))}</b> · J${Math.min(G.journee+1,38)}/38 · Transferts ${MM(G.budget,1)}<span class="tbTreso"> · Trésorerie ${MM(G.tresorerie,1)}</span></span>
    </div>
    ${barreNav(actif)}
+   ${bandeauAvert()}
    <div id="corps">${corps}</div>
    <p class="footer">MULTIPLEX · v${VERSION} ·
      <button class="act" id="bMenu">📁 Mes carrières</button>
+     <button class="act" id="bBoutique">⭐ Boutique</button>
      <button class="act" id="bCompte">${esc(libIndicateur())}</button>
      <button class="act" id="bApropos">À propos</button>
      · ${liensReseaux()}
@@ -21806,6 +22700,8 @@ function chrome(actif, corps){
   document.getElementById("bApropos").onclick=()=>montre("apropos");
   document.getElementById("bCompte").onclick=fenetreCompte;
   document.getElementById("bMenu").onclick=retourAccueil;
+  document.getElementById("bBoutique").onclick=()=>montre("boutique");
+  document.getElementById("bAccueil").onclick=retourAccueil; // le même retour, en haut, bien visible (v2.70)
 }
 
 const CONTACT_MAIL="vincent.mailfert@gmail.com";
@@ -22062,6 +22958,7 @@ function montre(ecran){
   if(ecran==="finances")   return ecranFinances();
   if(ecran==="club")       return ecranClub();
   if(ecran==="apropos")    return ecranApropos();
+  if(ecran==="boutique")   return ecranBoutique();
 }
 
 /* ---- Calendrier / match ---- */
@@ -22080,6 +22977,8 @@ function ecranCalendrier(){
     { const bB=document.getElementById("bBil"); if(bB) bB.onclick=ecranBilan; }
     return;
   }
+  if(G.ete) return ecranEte(); // carrière d'entraîneur : l'été, le verdict et les offres
+  if(G.mode==="entraineur" && G.coach && G.coach.vire && !G.finie) return ecranLimoge(); // renvoyé : la fin de saison se joue sans vous
   if(G.recap){
     const moiR=clubById(G.monClub), adieu=G.recap.some(l=>/^JUBILÉ : /.test(l) || (moiR && l.startsWith("Retraite : ") && l.includes("("+moiR.nom+",")));
     chrome("calendrier",`<div class="panel"><h2>Intersaison ${esc(G.saison)}</h2>
@@ -22117,7 +23016,7 @@ function ecranCalendrier(){
   const offre=(G.offreExt&&offreJ)?`<div class="panel">
      <h2>Offre venue de l'étranger</h2>
      <p><b class="fort">${esc(G.offreExt.club)}</b> propose <b class="fort">${MM(G.offreExt.prix,1)}</b> pour
-       <b>${esc(offreJ.nom)}</b> (${offreJ.pos}, ${offreJ.age} ans, note ${offreJ.note}), qui n'est pourtant pas à vendre.</p>
+       <b>${esc(offreJ.nom)}</b> (${offreJ.pos}, ${offreJ.age} ans, note ${offreJ.note}, valeur ${MM(valeur(offreJ),1)}), qui n'est pourtant pas à vendre.</p>
      <p class="dim">Leur recruteur a vu quelque chose. L'offre expire après la prochaine journée.</p>
      ${blocOffre?`<p class="rouge">Vous ne pouvez pas accepter : ${esc(blocOffre)}</p>`:""}
      <p style="margin-top:8px"><button class="act" id="bExtAcc" ${blocOffre?"disabled":""}>Accepter (${MM(G.offreExt.prix,1)})</button>
@@ -22125,7 +23024,7 @@ function ecranCalendrier(){
   const affaire=G.affaire?`<div class="panel" style="border-color:#b86a2e">
      <h2>Un intermédiaire vous approche...</h2>
      <p>« Le match de cette semaine ? Considérez-le comme... acquis. ${MM(G.affaire.prix,0)}, en liquide, et personne n'en saura rien. »</p>
-     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Si l'affaire éclate : 6 points de pénalité, 8 MF d'amende, et un président furieux.</p>
+     <p class="dim">On se souvient pourtant de ce qui est arrivé à un certain club du sud... Si l'affaire éclate : 6 points de pénalité, 8 M d'amende, et un président furieux.</p>
      <p style="margin-top:8px"><button class="act" id="bMalAcc">Accepter la mallette (${MM(G.affaire.prix,0)})</button>
      <button class="act" id="bMalRef">Éconduire l'intermédiaire</button></p></div>`:"";
   chrome("calendrier",`
@@ -23283,9 +24182,9 @@ const ARCS={
          {lib:"Refuser la départementale (défier les dieux)", go:a=>({res:"« Le coach défie les dieux du bitume », s'inquiète-t-on à voix basse. On saura vite qui avait raison.", eff:{moral:-4}, next:"b3", gap:2})},
        ]};
      return {
-       txt:"Toujours rien. Un homme en boubou impeccable attend devant le vestiaire : Professeur Wamba, guérisseur agréé (par lui-même), carte de visite plastifiée, « Retour de l'être aimé, permis de conduire, maintien en Division 1 ». Il propose de lever le sort pour 300 000 francs : cérémonie au rond central, un jeudi, à la pleine lune.",
+       txt:"Toujours rien. Un homme en boubou impeccable attend devant le vestiaire : Professeur Wamba, guérisseur agréé (par lui-même), carte de visite plastifiée, « Retour de l'être aimé, permis de conduire, maintien en Division 1 ». Il propose de lever le sort pour 0,3 M : cérémonie au rond central, un jeudi, à la pleine lune.",
        choix:[
-         {lib:"Payer la cérémonie (0,3 MF)", go:a=>{ return Math.random()<0.4
+         {lib:"Payer la cérémonie (0,3 M)", go:a=>{ return Math.random()<0.4
              ? {res:"Bougies et incantations sous la pleine lune. Le lendemain, la presse titre : « Le club a un sorcier salarié. » Le président s'étrangle avec son café.", eff:{arg:-0.3e6, moral:8, buzz:1, reput:-1}, next:"b3", gap:2}
              : {res:"Encens, poudre et formules au rond central, à la nuit tombée. Le vestiaire y croit dur comme fer, et ça, curieusement, ça soulève une équipe.", eff:{arg:-0.3e6, moral:8, buzz:1}, next:"b3", gap:2}; }},
          {lib:"Refuser tout net", go:a=>({res:"Vous éconduisez le Professeur. Les joueurs, eux, se cotisent en douce pour la cérémonie, et ça finit dans la presse. Vous voilà le dernier informé de votre propre club.", eff:{moral:-4, buzz:1, reput:-1}, next:"b3", gap:2})},
@@ -23296,7 +24195,7 @@ const ARCS={
      if(_arcGagneDepuis(a)) return {
        txt:"Tout le monde avait fait sa part : le short à l'envers, la merguez d'origine, le chat nourri (par superstition, pas par tendresse, jure l'intendant). Et ça a payé, LA VICTOIRE EST REVENUE ! Le sort est levé.",
        choix:[
-         {lib:"Savourer la délivrance", go:a=>({res:"La buvette rebaptise sa merguez « La Victorieuse » (et la majore de 2 francs au passage). Le chat, lui, reste : on l'appelle désormais Kopa, il a son rond de serviette dans la légende du club.", eff:{moral:10, buzz:2, reput:2, presse:clubById(G.monClub).nom+" a levé le sortilège de la buvette, et adopté un chat nommé Kopa."}})},
+         {lib:"Savourer la délivrance", go:a=>({res:"La buvette rebaptise sa merguez « La Victorieuse » (et en profite pour augmenter le prix). Le chat, lui, reste : on l'appelle désormais Kopa, il a son rond de serviette dans la légende du club.", eff:{moral:10, buzz:2, reput:2, presse:clubById(G.monClub).nom+" a levé le sortilège de la buvette, et adopté un chat nommé Kopa."}})},
        ]};
      return {
        txt:"Toujours pas de victoire. Le Professeur Wamba, joint au téléphone, est catégorique : il fallait la formule PREMIUM. « Vous comprenez, un sort de tribune Est, c'est du lourd. » La presse titre : « Points envolés, merguez avalées. »",
@@ -23334,7 +24233,7 @@ const ARCS={
      choix:[
        {lib:"Refus net, par fax, en majuscules", go:a=>({res:"« PAS À VENDRE. » Le président adore la fermeté. "+a.nom+", beaucoup moins : il s'enferme dans un mutisme boudeur.", eff:{conf:2, moralJ:-8, egoJ:2}, data:{route:"bouderie"}, next:"b3", gap:2})},
        {lib:"Écouter... et faire monter les enchères", go:a=>({res:"Vous décrochez le téléphone. Puisqu'on en est là, autant en tirer le meilleur prix.", eff:{egoJ:2}, data:{route:"poker"}, next:"b3", gap:2})},
-       {lib:"Le prolonger d'abord (prime 1,2 MF), on parlera ensuite", go:a=>({res:a.nom+" signe un nouveau bail, ému. Sa cote grimpe, et vous négocierez en position de force.", eff:{arg:-1.2e6, moralJ:10, egoJ:1}, data:{route:"poker", offreBonus:1.4}, next:"b3", gap:2})},
+       {lib:"Le prolonger d'abord (prime 1,2 M), on parlera ensuite", go:a=>({res:a.nom+" signe un nouveau bail, ému. Sa cote grimpe, et vous négocierez en position de force.", eff:{arg:-1.2e6, moralJ:10, egoJ:1}, data:{route:"poker", offreBonus:1.4}, next:"b3", gap:2})},
      ]}),
    b3:(a)=>{
      const prix=Math.round(_momeOffre(a))*1e6;
@@ -23392,7 +24291,7 @@ const ARCS={
              ? {res:"Il craque à demi-mot, en nettoyant ses lunettes fumées. Vous tenez un début d'aveu.", data:{preuves:true}, next:"b3", gap:2}
              : {res:"Il nie tout, impassible derrière ses verres teintés. Ce sera votre parole contre la sienne.", data:{preuves:false}, next:"b3", gap:2}; }},
          {lib:"L'arrangement : tu rembourses, tu disparais", go:a=>{ return Math.random()<(chaud?0.7:0.5)
-             ? {res:"Gégé livre 1,5 MF en liquide dans un sac Shopi, sur le parking, à la nuit tombée. Affaire classée entre gens de bonne compagnie.", eff:{arg:+1.5e6, reput:-1}}
+             ? {res:"Gégé livre 1,5 M en liquide dans un sac Shopi, sur le parking, à la nuit tombée. Affaire classée entre gens de bonne compagnie.", eff:{arg:+1.5e6, reput:-1}}
              : {res:"Gégé livre son sac Shopi bourré de billets... mais le pigiste de La Dépêche a tout vu depuis sa 205 garée en face.", eff:{arg:+1.5e6}, data:{route:"enterre"}, next:"bEclate", gap:3}; }},
        ]};
    },
@@ -23400,17 +24299,17 @@ const ARCS={
      txt:"Tout est sur la table. Gégé Brémont est assis en face de vous. Pour la première fois en six ans, il a ôté ses lunettes fumées : il a les yeux de quelqu'un qui compte très vite."+(a.preuves?" Et cette fois, vous avez les preuves.":" Mais vous n'avez, au fond, que des soupçons."),
      choix:[
        {lib:"Le livrer au président", go:a=>{ return a.preuves
-           ? {res:"Preuves à l'appui, le président tranche : Gégé démissionne « pour raisons de santé » et rembourse 2,4 MF. Mme Josiane est augmentée, le vestiaire respire, un club propre, ça se sent jusqu'à la pelouse.", eff:{arg:+2.4e6, conf:8, reput:3, moral:2, presse:"Enfin un club qui n'attend pas les juges : "+clubById(G.monClub).nom+" fait le ménage."}}
-           : {res:"Sans preuve, le beau-frère s'en tire par une pirouette : il « démissionne pour convenances personnelles » et ne rembourse que 0,8 MF. Mieux que rien.", eff:{arg:+0.8e6, conf:2, reput:1}}; }},
-       {lib:"Le livrer à la presse", go:a=>({res:"La Dépêche sort quatre pages, lunettes fumées en une. Le public adore le courage, mais le président ne vous pardonne pas le linge sale lavé dehors. Gégé remboursera 1,8 MF, en 36 mensualités.", eff:{reput:5, conf:-8, buzz:1, arg:+0.3e6, presse:"« Lunettes fumées » : "+clubById(G.monClub).nom+" déballe l'affaire de la billetterie."}})},
+           ? {res:"Preuves à l'appui, le président tranche : Gégé démissionne « pour raisons de santé » et rembourse 2,4 M. Mme Josiane est augmentée, le vestiaire respire, un club propre, ça se sent jusqu'à la pelouse.", eff:{arg:+2.4e6, conf:8, reput:3, moral:2, presse:"Enfin un club qui n'attend pas les juges : "+clubById(G.monClub).nom+" fait le ménage."}}
+           : {res:"Sans preuve, le beau-frère s'en tire par une pirouette : il « démissionne pour convenances personnelles » et ne rembourse que 0,8 M. Mieux que rien.", eff:{arg:+0.8e6, conf:2, reput:1}}; }},
+       {lib:"Le livrer à la presse", go:a=>({res:"La Dépêche sort quatre pages, lunettes fumées en une. Le public adore le courage, mais le président ne vous pardonne pas le linge sale lavé dehors. Gégé remboursera 1,8 M, en 36 mensualités.", eff:{reput:5, conf:-8, buzz:1, arg:+0.3e6, presse:"« Lunettes fumées » : "+clubById(G.monClub).nom+" déballe l'affaire de la billetterie."}})},
        {lib:"Étouffer contre remboursement intégral", go:a=>{ return Math.random()<0.7
-           ? {res:"Marché conclu en coulisses : Gégé rembourse 2,4 MF et l'affaire n'existe plus. Le président vous en sera discrètement reconnaissant.", eff:{arg:+2.4e6, conf:2}}
+           ? {res:"Marché conclu en coulisses : Gégé rembourse 2,4 M et l'affaire n'existe plus. Le président vous en sera discrètement reconnaissant.", eff:{arg:+2.4e6, conf:2}}
            : {res:"Vous empochez le remboursement... mais un dossier pareil finit toujours par ressortir.", eff:{arg:+2.4e6}, data:{route:"enterre"}, next:"bEclate", gap:3}; }},
      ]}),
    bEclate:(a)=>({
      txt:"Un contrôleur, venu à l'origine pour une banale histoire de photocopieuse, tombe sur TOUT le reste : souches, sacs Shopi, parking en liquide. Le pot aux roses éclate au grand jour, et cette fois, vous êtes en première ligne pour l'avoir su.",
      choix:[
-       {lib:"Encaisser le scandale", go:a=>({res:"Amende de 3 MF, réputation écornée, président furieux. Gégé, lui, s'en tire par une pirouette dont il a le secret : trois mois plus tard, on le retrouve derrière la buvette... vendeur de merguez.", eff:{arg:-3e6, reput:-6, conf:-10, presse:"Scandale de la billetterie à "+clubById(G.monClub).nom+" : la facture est salée."}})},
+       {lib:"Encaisser le scandale", go:a=>({res:"Amende de 3 M, réputation écornée, président furieux. Gégé, lui, s'en tire par une pirouette dont il a le secret : trois mois plus tard, on le retrouve derrière la buvette... vendeur de merguez.", eff:{arg:-3e6, reput:-6, conf:-10, presse:"Scandale de la billetterie à "+clubById(G.monClub).nom+" : la facture est salée."}})},
      ]}),
   },
  },
@@ -24290,7 +25189,7 @@ function momentTacle(mo,moi,resoudre,suite){
         "Le capitaine plaide, l'arbitre tergiverse... JAUNE seulement pour "+j.nom+" ! Incroyable.", bContester);
     } else {
       j.susp=(j.susp||0)+3; G.tresorerie-=1e6; G.confiance=Math.max(0,G.confiance-2);
-      conclure("🟥 Rouge CONFIRMÉ, et le rapport au délégué vous coûte 1 MF d'amende. Le président fulmine.","rouge",
+      conclure("🟥 Rouge CONFIRMÉ, et le rapport au délégué vous coûte 1 M d'amende. Le président fulmine.","rouge",
         "ROUGE confirmé pour "+j.nom+", et la contestation finit au rapport. L'addition sera salée.", bContester);
     }
   };
@@ -24407,7 +25306,7 @@ function ecranEffectif(){
   /* LE TABLEAU TIENT SUR UNE LIGNE PAR JOUEUR (v1.09, retour de playtest « les lignes sont trop larges »,
      capture iPhone à l'appui : 225 px par joueur). Trois causes, trois remèdes. (1) La jauge de forme et
      son mot d'époque → un chiffre coloré et un émoji (`FRAICH_PALIERS`), le mot passe en infobulle et
-     dans la fiche. (2) « 50.6 MF » se coupait en deux lignes → l'unité monte dans l'en-tête. (3) Quatre
+     dans la fiche. (2) « 50.6 M » se coupait en deux lignes → l'unité monte dans l'en-tête. (3) Quatre
      boutons sur deux cellules s'empilaient en trois étages → une seule barre de quatre boutons collés
      (★ 🛌 🏷️ 📤), pictos seuls — nommés par l'infobulle et par la légende sous le tableau : avec leurs
      libellés, le tableau débordait de 130 px même sur ordinateur —, l'état « en cours » allumé en
@@ -24426,7 +25325,7 @@ function ecranEffectif(){
       +`</span>`;
   };
   chrome("effectif",`<div class="panel"><h2>Effectif · ${esc(c.nom)}</h2>
-   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num effAge">Âge</th><th class="num">Note</th><th class="num">Forme</th><th class="num effMor">Moral</th><th class="num effVal" title="Valeur marchande, en millions de ${paysVu().monNom}">Valeur ${paysVu().millions}</th><th></th></tr>
+   <table class="effTab"><tr><th></th><th class="effNom">Joueur</th><th>P</th><th class="num effAge">Âge</th><th class="num">Note</th><th class="num">Forme</th><th class="num effMor">Moral</th><th class="num effVal" title="Valeur marchande, en millions">Valeur ${paysVu().millions}</th><th></th></tr>
    ${js.map(j=>{ const i=c.joueurs.indexOf(j), lf=libFraich(j), f=Math.round(fraich(j));
      const etats=[
        j.bless>0?`<span class="rouge">blessé ${j.bless} j.</span>`:"",
@@ -26488,7 +27387,7 @@ function ecranClub(){
      <div>${staffHTML()}</div></div>
    </div>
    <div class="panel cp cp-direction"><h2>Direction &amp; mémoire</h2>
-     <h3>Le président</h3>
+     ${G.mode==="entraineur"&&G.coach?panneauLivreDor()+`<h3 style="margin-top:12px">Le président</h3>`:`<h3>Le président</h3>`}
      <p>Objectif ${esc(G.saison)} : <b class="fort">${esc(G.objectif.label)}</b></p>
      <p>Confiance :
        <span style="display:inline-block;width:160px;height:10px;border:1px solid var(--line);vertical-align:middle">
@@ -26551,6 +27450,7 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="hidden") return;
     if(G) sauvegardeLocale(true); nuagePlanifie("cache"); });
   window.addEventListener("online",()=>nuagePlanifie("reseau"));
+  setTimeout(mesureDemarrage, 800); // la mesure du parcours : première visite et retours (cf. LA MESURE DU PARCOURS)
   if(compteLit()) setTimeout(()=>nuagePlanifie("demarrage"), 1500); // un joueur connecté : ce qui attendait depuis la dernière fois
 }
 </script>
