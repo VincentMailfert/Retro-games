@@ -383,15 +383,19 @@ function banniere(gros, nom='', duree=2400){
 }
 function plusProche(liste, p, sauf){ let m=null,d=1e9; for(const j of liste){ if(j===sauf) continue; const e=j.pos.distanceTo(p); if(e<d){d=e;m=j;} } return [m,d]; }
 
+/* la place de chacun au coup d'envoi : chacun dans sa moitié, les deux qui engagent au rond central */
+function postesEnvoi(campQuiEngage){
+  const P=new Map();
+  for(const j of joueurs){ if(j.dehors) continue; const s=sens(j); let x = j.gardien ? -s*(L/2-3) : j.base.x*48*.55*s; if(x*s>-1.5) x=-1.5*s; P.set(j,new THREE.Vector3(x,0,j.gardien?0:j.base.z*30*s)); }
+  const eq=equipe(campQuiEngage).filter(j=>!j.gardien).sort((a,b)=>b.base.x-a.base.x), s=SENS[campQuiEngage];
+  if(eq[0]) P.set(eq[0],new THREE.Vector3(-s*1.2,0,0));
+  if(eq[1]) P.set(eq[1],new THREE.Vector3(-s*3.5,0,s*5));
+  for(const j of equipe(adverse(campQuiEngage))) if(!j.gardien){ const p=P.get(j); if(Math.hypot(p.x,p.z)<10.5){ p.multiplyScalar(10.5/Math.max(1,Math.hypot(p.x,p.z))); } }
+  return {P, eng:eq[0], second:eq[1]};
+}
 function placerCoupEnvoi(campQuiEngage){
-  for(const j of joueurs){
-    if(j.dehors) continue;
-    const s=sens(j); let x=j.base.x*48*.55*s; if(x*s>-1.5) x=-1.5*s;
-    j.pos.set(x, 0, j.base.z*30*s); j.vel.set(0,0,0); j.tombe=0;
-  }
-  const eq=equipe(campQuiEngage).filter(j=>!j.gardien).sort((a,b)=>b.base.x-a.base.x);
-  const eng=eq[0], s=SENS[campQuiEngage]; eng.pos.set(-s*1.2,0,0);
-  if(eq[1]) eq[1].pos.set(-s*1.5,0,s*4);
+  const {P, eng}=postesEnvoi(campQuiEngage);
+  for(const [j,p] of P){ j.pos.copy(p); j.vel.set(0,0,0); j.tombe=0; }
   B.pos.set(0,.62,0); B.porteur=eng; B.vol=null; B.filet=null; B.libre=null;
   etat.decision=alea(.6,1.2); etat.corner=null;
 }
@@ -674,7 +678,8 @@ function issue(){
 /* ================================================================================================
    LE FIL DU DIRECT : une ligne toutes les 2,3 secondes, comme au jeu (vitesse « Normale »)
    ================================================================================================ */
-const TK={ i:-1, horloge:0, prochain:0, md:null };
+const TK={ i:-1, horloge:0, prochain:0, md:null, attente:null };
+const CELEBRATION=2.6, REPLACEMENT=3;    // secondes : la joie du buteur, puis le retour au rond central
 const elFil=document.getElementById('fil');
 function afficheLigne(l){
   const p=document.createElement('p');
@@ -701,9 +706,18 @@ function avanceFil(dt){
   const ev=TK.md.ev; TK.i++;
   const l=ev[TK.i]; if(!l){ TK.md=null; return; }
   afficheLigne(l); appliqueLigne(l);
-  TK.prochain=TK.horloge+R.delai;
-  const n=ev[TK.i+1];
-  if(n && etat.phase!=='fin'){ const info=lireLigne(n); if(info) lanceAction(info, R.delai*.94/1000); }
+  /* après un but, le fil laisse le temps de fêter le but puis de rejouer le coup d'envoi avant la ligne suivante */
+  const pause = l.t==='but' ? (CELEBRATION+REPLACEMENT+.4)*1000 : 0;
+  TK.prochain=TK.horloge+R.delai+pause;
+  const n=ev[TK.i+1]; TK.attente=null;
+  if(n && etat.phase!=='fin'){ const info=lireLigne(n); if(info) TK.attente={info, debut:TK.prochain-R.delai*.94}; }
+}
+/* l'action de la ligne suivante démarre dès que le jeu a repris, et pas avant */
+function lanceAttente(){
+  const a=TK.attente; if(!a || TK.horloge<a.debut) return;
+  if(etat.phase==='but' || etat.phase==='replacement') return;
+  TK.attente=null;
+  const reste=(TK.prochain-TK.horloge)/1000; if(reste>.35) lanceAction(a.info, reste);
 }
 
 /* ================================================================================================
@@ -735,7 +749,7 @@ function ambianceCible(){
    UN MATCH QUI COMMENCE
    ================================================================================================ */
 function chargeMatch(idx){
-  const md=MATCHS[idx]; etat.md=md; TK.md=md; TK.i=-1; TK.horloge=0; TK.prochain=600;
+  const md=MATCHS[idx]; etat.md=md; TK.md=md; TK.i=-1; TK.horloge=0; TK.prochain=600; TK.attente=null;
   ACT=null; etat.phase='avant'; etat.sc=[0,0]; etat.buteur=null; etat.corner=null;
   SENS.dom=1; SENS.ext=-1;
   const T=creerJoueurs(md);
@@ -783,7 +797,15 @@ function majJeu(dt){
   }
 
   if(etat.phase==='pause'){ etat.attente-=dt; if(etat.attente<=0){ SENS.dom*=-1; SENS.ext*=-1; placerCoupEnvoi('ext'); etat.phase='jeu'; } }
-  if(etat.phase==='but'){ etat.celebration+=dt; if(etat.celebration>5.5 && !ACT){ placerCoupEnvoi(adverse(etat.buteur.camp)); etat.phase='jeu'; } }
+  if(etat.phase==='but'){ etat.celebration+=dt;
+    if(etat.celebration>CELEBRATION && !ACT){            // tout le monde rentre, le ballon revient au point central
+      etat.phase='replacement'; etat.replace=0; etat.envoi=postesEnvoi(adverse(etat.buteur.camp));
+      B.filet=null; B.porteur=null; B.vol=null; B.libre={t:0,d:.9,de:B.pos.clone(),a:new THREE.Vector3(0,.62,0),haut:3}; } }
+  if(etat.phase==='replacement'){ etat.replace+=dt;
+    if(etat.replace>REPLACEMENT){                         // coup de sifflet : on engage en jouant en retrait
+      const {eng, second}=etat.envoi; etat.phase='jeu';
+      B.libre=null; B.pos.set(0,.62,0); B.porteur=eng;
+      if(eng && second) passe(eng, second); etat.decision=alea(.8,1.4); } }
 
   /* où chacun veut aller */
   const bx=B.pos.x, bz=B.pos.z;
@@ -802,6 +824,7 @@ function majJeu(dt){
         else j.cible.set(j.base.x*30*s,0,j.base.z*28*s);
         continue;
       }
+      if(etat.phase==='replacement'){ const p=etat.envoi.P.get(j); if(p) j.cible.copy(p); continue; }
       if(etat.phase==='fin'||etat.phase==='pause'){ j.cible.set(-s*4+(j.num-5)*2.2*s*.4, 0, (j.camp==='dom'?-3:3)+(j.num-5)*.2); continue; }
       if(etat.phase==='avant') { j.cible.copy(j.pos); continue; }
       if(etat.corner && B.libre==null && !ACT){ // on se place pour le corner
@@ -825,6 +848,7 @@ function majJeu(dt){
     let vmax = j===B.porteur?6.8 : (B.vol?.recepteur===j?9.5 : 7.8);
     if(etat.phase==='but' && j===etat.buteur) vmax=9;
     if(etat.phase==='fin'||etat.phase==='pause') vmax=3;
+    if(etat.phase==='replacement') vmax=16;
     const voulu = dist>.4 ? d.multiplyScalar(Math.min(vmax,dist*1.6)/dist) : d.set(0,0,0);
     j.vel.lerp(voulu, Math.min(1,dt*4)); j.pos.addScaledVector(j.vel,dt);
     if(j.tient){ j.tient-=dt; if(j.tient<=0) j.tient=0; }
@@ -922,6 +946,7 @@ function boucle(now){
   const dJeu = fige ? 0 : dt*(window.__vit||1);
   avanceFil(dJeu);
   majJeu(dJeu);
+  lanceAttente();
   poserJoueurs(dJeu, now);
   ballon.position.copy(B.pos); if(!fige){ ballon.rotation.x+=dt*8; ballon.rotation.z+=dt*5; }
 
