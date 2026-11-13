@@ -145,15 +145,15 @@ function fabriqueMatch3D(THREE, o){
   /* ================================================================================================
      LE STADE SUR SON ÎLE : celui du club qui reçoit, tel que l'écran Club le décrit (o.stade = l'état du jeu :
      cap, aff, virages, toit, ecran, eclairage 1 à 3, kop 0 à 3, loges, led, boutique, buvette, restaurant,
-     musee, hotel, transport 0 à 3, legende et son style). Les deux côtés tournés vers la caméra restent bas,
-     comme une maquette coupée, pour qu'on voie toujours le jeu.
+     musee, hotel, transport 0 à 3, legende et son style). Tribunes, toit et façade font le tour complet : la vue
+     plongeante laisse voir tout le jeu.
      ================================================================================================ */
   const L = 105, Lg = 68;
   const ST = Object.assign({cap:25000, aff:.8, virages:0, toit:0, ecran:0, eclairage:1, kop:0, loges:0, led:0,
     boutique:0, buvette:0, restaurant:0, musee:0, hotel:0, transport:0, legende:0, style:'lumiere'}, o.stade||{});
   const cap = ST.cap||25000, bol = !!ST.virages;
   const nFond = bol ? clamp(Math.round(3+cap/6500), 4, 16) : clamp(Math.round(2+cap/3000), 3, 9);   // rangs des côtés du fond
-  const nAvant = Math.min(nFond, bol ? 4 : 3);                                                          // rangs des côtés coupés
+  const nAvant = nFond;                                                                                  // tous les côtés à la même hauteur (choix de l'auteur)
   const RX = L/2+9, RZ = Lg/2+9, PAS = 2.2, MARCHE = 1.2;
   const profX = RX + nFond*PAS, profZ = RZ + nFond*PAS;
   const ileL = Math.max(168, Math.ceil(2*profX + 44)), ileP = Math.max(128, Math.ceil(2*profZ + 46));
@@ -275,13 +275,13 @@ function fabriqueMatch3D(THREE, o){
     }
   } else {
     for(let r=0;r<nFond;r++) rangDroit('N', r, -L/2-4, L/2+4);
-    for(let r=0;r<nAvant;r++) rangDroit('S', r, -L/2+6, L/2-6);
+    for(let r=0;r<nAvant;r++) rangDroit('S', r, -L/2-4, L/2+4);
   }
   /* le mur de dos des côtés du fond (ou la façade de légende, plus bas) */
   const hHaut = MARCHE*nFond, prof = n => n*PAS;
   if(!ST.legende){
-    box(2*RX+(bol?0:-2*RX+L+8), hHaut+1.5, .8, betonSombre, 0, (hHaut+1.5)/2, -(RZ+prof(nFond)+.4));
-    if(bol) box(.8, hHaut+1.5, 2*RZ, betonSombre, -(RX+prof(nFond)+.4), (hHaut+1.5)/2, 0);
+    for(const sz of [-1,1]) box(bol?2*RX:L+8, hHaut+1.5, .8, betonSombre, 0, (hHaut+1.5)/2, sz*(RZ+prof(nFond)+.4));
+    if(bol) for(const sx of [-1,1]) box(.8, hHaut+1.5, 2*RZ, betonSombre, sx*(RX+prof(nFond)+.4), (hHaut+1.5)/2, 0);
   }
 
   /* les loges : une rangée vitrée au milieu de la tribune du fond */
@@ -294,23 +294,30 @@ function fabriqueMatch3D(THREE, o){
   let ecranTex=null, ecranCanvas=null;
   const rampe = [];
   if(ST.toit){
-    const dz0 = RZ + prof(nFond)*.42, larg = prof(nFond)*.62 + 2;
-    box(bol?2*RX:L+8, .9, larg, matToit, 0, hToit, -(dz0+larg/2-1));
-    for(let i=0;i<8;i++) box(.7, hToit, .7, matToitDessous, -RX+6+i*(2*RX-12)/7, hToit/2, -(RZ+prof(nFond)+.2));
-    if(bol){
-      const dx0 = RX + prof(nFond)*.42;
-      box(larg, .9, 2*RZ, matToit, -(dx0+larg/2-1), hToit, 0);
-      for(let i=0;i<5;i++) box(.7, hToit, .7, matToitDessous, -(RX+prof(nFond)+.2), hToit/2, -RZ+6+i*(2*RZ-12)/4);
-      // le coin du fond, en quart d'anneau
-      const segs=6, rIn=prof(nFond)*.42, rOut=rIn+larg;
-      for(let i=0;i<segs;i++){ const a=-Math.PI+(Math.PI/2)*(i+.5)/segs, rm=(rIn+rOut)/2;
-        const m=new THREE.Mesh(new THREE.BoxGeometry((Math.PI/2)*rm/segs*1.1,.9,larg), matToit);
-        m.position.set(-RX+Math.cos(a)*rm, hToit, -RZ+Math.sin(a)*rm); m.rotation.y=-a+Math.PI/2; m.castShadow=true; scene.add(m); }
+    const dz0 = RZ + prof(nFond)*.42, larg = prof(nFond)*.62 + 2, dx0 = RX + prof(nFond)*.42;
+    const matRampe = new THREE.MeshLambertMaterial({color:0x444444, emissive:0x000000});
+    /* l'anneau du toit sur les quatre côtés, et des quarts d'anneau aux coins s'il y a des virages */
+    for(const sz of [-1,1]){
+      box(bol?2*RX:L+8, .9, larg, matToit, 0, hToit, sz*(dz0+larg/2-1));
+      for(let i=0;i<8;i++) box(.7, hToit, .7, matToitDessous, -RX+6+i*(2*RX-12)/7, hToit/2, sz*(RZ+prof(nFond)+.2));
+      box(bol?2*RX:L+8, .5, .5, M(0xc8312f), 0, hToit-.6, sz*(dz0-1));
+      if(ST.eclairage>=3) rampe.push(box(bol?2*RX-4:L+4, .5, .6, matRampe, 0, hToit-1.1, sz*(dz0-.6), scene, false));
     }
-    box(bol?2*RX:L+8, .5, .5, M(0xc8312f), 0, hToit-.6, -(dz0-1));
-    if(ST.eclairage>=3){                                        // la rampe de toit : une ligne de lumière au bord du toit
-      const lr=box(bol?2*RX-4:L+4, .5, .6, new THREE.MeshLambertMaterial({color:0x444444, emissive:0x000000}), 0, hToit-1.1, -(dz0-.6), scene, false); rampe.push(lr);
-      if(bol){ const lr2=box(.6, .5, 2*RZ-4, lr.material, -(RX+prof(nFond)*.42-.6), hToit-1.1, 0, scene, false); rampe.push(lr2); }
+    if(bol){
+      for(const sx of [-1,1]){
+        box(larg, .9, 2*RZ, matToit, sx*(dx0+larg/2-1), hToit, 0);
+        for(let i=0;i<5;i++) box(.7, hToit, .7, matToitDessous, sx*(RX+prof(nFond)+.2), hToit/2, -RZ+6+i*(2*RZ-12)/4);
+        box(.5, .5, 2*RZ, M(0xc8312f), sx*(dx0-1), hToit-.6, 0);
+        if(ST.eclairage>=3) rampe.push(box(.6, .5, 2*RZ-4, matRampe, sx*(dx0-.6), hToit-1.1, 0, scene, false));
+      }
+      const segs=6, rIn=prof(nFond)*.42, rm=rIn+larg/2;
+      for(const sx of [-1,1]) for(const sz of [-1,1]){
+        const debut = sz>0 ? Math.PI/2 : -Math.PI/2, fin = sx>0 ? 0 : Math.PI;
+        let da=fin-debut; if(da>Math.PI) da-=2*Math.PI; if(da<-Math.PI) da+=2*Math.PI;
+        for(let i=0;i<segs;i++){ const a=debut+da*(i+.5)/segs;
+          const m=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(da)*rm/segs*1.1,.9,larg), matToit);
+          m.position.set(sx*RX+Math.cos(a)*rm, hToit, sz*RZ+Math.sin(a)*rm); m.rotation.y=-a+Math.PI/2; m.castShadow=true; scene.add(m); }
+      }
     }
     if(ST.ecran){
       ecranCanvas = document.createElement('canvas'); ecranCanvas.width=128; ecranCanvas.height=32;
@@ -363,7 +370,7 @@ function fabriqueMatch3D(THREE, o){
      de dehors), et les flèches ou les poutres qui dépassent du toit se dressent aussi côté fond */
   const matFacade=[matVitre];
   if(ST.legende){
-    const st=ST.style, hA=MARCHE*nAvant+4.5, dS=RZ+prof(nAvant)+.7, dE=RX+prof(nAvant)+.7;
+    const st=ST.style, hA=MARCHE*nFond+(ST.toit?6.5:4.5), dS=RZ+prof(nFond)+.7, dE=RX+prof(nFond)+.7;
     const murs=[{x:0, z:dS, l:2*RX, ry:0, h:hA}];
     if(bol) murs.push({x:dE, z:0, l:2*RZ, ry:1, h:hA});
     const pilier=(x,z,w,h,mat)=>box(w,h,w,mat,x,h/2,z);
@@ -422,10 +429,10 @@ function fabriqueMatch3D(THREE, o){
   const matLampe = new THREE.MeshLambertMaterial({color:0x333333, emissive:0x000000});
   const niveauLum = ST.eclairage>=3 && ST.toit ? 3 : Math.max(1, Math.min(2, ST.eclairage|0 || 1));
   if(niveauLum===3){
-    const pts=[[-RX*.7,-(RZ+prof(nFond)*.4)],[0,-(RZ+prof(nFond)*.4)],[RX*.7,-(RZ+prof(nFond)*.4)]];
-    if(bol) pts.push([-(RX+prof(nFond)*.4),-RZ*.5],[-(RX+prof(nFond)*.4),RZ*.5]);
+    const pts=[]; for(const sz of [-1,1]) pts.push([-RX*.5,sz*(RZ+prof(nFond)*.4)],[RX*.5,sz*(RZ+prof(nFond)*.4)]);
+    if(bol) for(const sx of [-1,1]) pts.push([sx*(RX+prof(nFond)*.4),0]);
     for(const [x,z] of pts){
-      const spot=new THREE.SpotLight(0xfff3d0, 0, 0, 0.9, 0.7, 0); spot.position.set(x,hToit-1,z); spot.target.position.set(x*.15,0,z*.05+(z<-RZ?10:0)); scene.add(spot, spot.target); pylones.push(spot); }
+      const spot=new THREE.SpotLight(0xfff3d0, 0, 0, 0.9, 0.7, 0); spot.position.set(x,hToit-1,z); spot.target.position.set(x*.15,0,z*.1); scene.add(spot, spot.target); pylones.push(spot); }
     for(const l of rampe) l.material=matLampe;
   } else {
     const hP = niveauLum===2 ? 44 : 32, ecart = niveauLum===2 ? 1.25 : 1;
