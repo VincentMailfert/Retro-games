@@ -2774,8 +2774,18 @@ toujours « raconter quelque chose ».
   déjà dessiné en orange avec sa grue). `peintStades()` peint les deux toiles : un tic de 250 ms, le stade à deux images par
   seconde (`PX_IMAGE>>1`), le campus à quatre ; une toile déjà peinte et cachée par un sous-onglet attend d'être revue.
   Le badge du chantier du campus vit HORS de la zone qui défile au téléphone (`badgeCentre()`, dans `.cadreCw`), sinon la
-  maquette, ouverte centrée, le coupait. **Restent en dessin vectoriel** : les cartes de livraison du stade et du campus
-  (`CENTRE3D.scene`) et le choix du style du stade. Notes de chantier : `docs/chantier-pixel-art.md`.
+  maquette, ouverte centrée, le coupait. Notes de chantier : `docs/chantier-pixel-art.md`.
+  **Les cartes de livraison suivent (v2.80, demande de l'auteur du 13/11/2026)** : les deux moteurs savent cadrer serré sur
+  un élément (`o.focus`), en redessinant les petits sujets à l'échelle du zoom (la finesse `E` est multipliée par le rapport
+  de zoom) au lieu de grossir les pixels. Stade : `STADEPIX.rendre(ctx, R, image, E, {focus:id, niv})`, cadre sur l'hôtel,
+  la boutique, le musée, le restaurant, la buvette, les accès ou le kop, et sur le stade entier pour tout le reste ; l'état
+  d'avant glisse vers l'état d'après grue dressée, puis le public bouge à deux images par seconde. Campus :
+  `CAMPUSPIX.zoneLivraison(fam, niv)` donne le cadre, `{aube:true}` met le ciel du lundi en bandes, `{fete:true}` le feu
+  d'artifice du château, porté par la carte elle-même (`data-fete` de `.livrScene`) ; avant et après en deux toiles,
+  fondu en six paliers (`steps(6)`). **Seul l'aperçu du choix de style du stade reste en dessin vectoriel**
+  (`STADE3D.vueVille`, dans `cableChoixStyle`). Le contrôle de la carte d'inauguration de `harness-centre.cjs` a été
+  réécrit pour la carte en pixel art (il cherchait les marques du dessin vectoriel) : il vérifie le surtitre, le feu
+  d'artifice porté par la scène et les deux toiles, et qu'une livraison ordinaire n'en a pas.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente

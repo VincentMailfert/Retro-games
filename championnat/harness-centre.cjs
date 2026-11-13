@@ -170,7 +170,9 @@ try {
   ok(G.palmares.length === pal0 + 1 && G.palmares[G.palmares.length - 1] === "Saison " + G.saison + " : le club s'offre un château", `palmarès : « ${G.palmares[G.palmares.length - 1]} »`);
   ok(C3.palier(api.etatCampus()) === "Le Château" && api.motifCentre("chateau") === "Le château est construit", "le centre s'appelle désormais « Le Château », et on ne l'achète pas deux fois");
   const html = api.carteLivraisonCentre(l);
-  ok(propre(html) && html.includes("INAUGURATION · LE CHÂTEAU") && html.includes("ctOr") && html.includes("cEclat"), "carte d'inauguration : surtitre, lumière dorée, feu d'artifice");
+  // v2.80 : la carte est en pixel art (CAMPUSPIX) ; le feu d'artifice est porté par la scène (data-fete) et peint dans ses deux toiles
+  ok(propre(html) && html.includes("INAUGURATION · LE CHÂTEAU") && html.includes('data-fete="1"') && (html.match(/canvas class="pxLivr"/g)||[]).length === 2, "carte d'inauguration : surtitre, feu d'artifice, deux toiles avant et après");
+  ok(!api.carteLivraisonCentre({ fam: "vie", niv: 1, avant: { ...api.etatCampus(), vie: 0 }, apres: { ...api.etatCampus(), vie: 1 } }).includes('data-fete="1"'), "pas de feu d'artifice pour une livraison ordinaire");
 } catch (e) { fail("exception E : " + e.stack); }
 
 /* ===== F) effets bornés ===== */

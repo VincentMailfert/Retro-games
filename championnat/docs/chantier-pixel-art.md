@@ -83,3 +83,10 @@ voitures, drapeaux, parasols), à vingt pixels près identique à l'ancien rendu
 a été ramenée dans cette branche (seul conflit : la ligne `VERSION`). Les deux moteurs sont greffés, l'écran Club les
 peint en 640 ; vérifié dans Chrome sur ordinateur et au format téléphone, zéro erreur ; harnais stade, centre, multiplex,
 sauvegardes, fenêtres et général verts. Restent en dessin vectoriel : les cartes de livraison et le choix du style.
+
+## Les cartes de livraison en pixel art (v2.80, 13/11/2026)
+
+Demandées par l'auteur dans la foulée. Les deux moteurs cadrent serré sur ce qui vient d'être livré, sujets redessinés à
+l'échelle du zoom. Campus à l'aube (ciel en bandes) et feu d'artifice pour le château ; stade un soir de match, l'état
+d'avant glisse vers l'état d'après avec la grue. Vérifié dans Chrome (résidence, hôtel, château), ordinateur et téléphone,
+zéro erreur. Reste en dessin vectoriel : l'aperçu du choix de style du stade.

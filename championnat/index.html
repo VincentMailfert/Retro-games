@@ -398,6 +398,7 @@
     overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.6); padding:0 !important; animation:livrEntre .35s ease-out;}
   @keyframes livrEntre{from{transform:translateY(18px) scale(.97); opacity:0;}}
   .livrScene svg{display:block; width:100%; height:auto;}
+  .livrScene canvas{display:block; width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;} /* v2.80 : cartes en pixel art */
   .livrTexte{padding:16px 20px 18px; display:grid; grid-template-columns:1fr auto; gap:4px 18px; align-items:end;}
   .livrSur{font-family:'Silkscreen','VT323',monospace; font-size:12px; color:#c9a63a; grid-column:1 / -1; margin:0;}
   .livrTexte h3{font-family:'VT323',monospace; font-weight:normal; font-size:34px; line-height:1; color:var(--jaune); margin:0;}
@@ -418,7 +419,7 @@
   .cVapeur{animation:cVapeur 4.5s steps(9,jump-none) infinite; transform-box:fill-box;} .cVapeur.b{animation-delay:-1.5s;} .cVapeur.c{animation-delay:-3s;}
   @keyframes cVapeur{0%{transform:translateY(6px); opacity:0;} 40%{opacity:.9;} 100%{transform:translateY(-16px); opacity:0;}}
   .livrC .livrScene{position:relative;}
-  .livrC .livrScene .apres{position:absolute; inset:0; animation:cApparait 1.5s .6s both;} @keyframes cApparait{from{opacity:0;}}
+  .livrC .livrScene .apres{position:absolute; inset:0; animation:cApparait 1.5s .6s steps(6) both;} @keyframes cApparait{from{opacity:0;}}
   .livrC .livrChiffres{line-height:1.15;}
   .livrPalier{font-family:'VT323',monospace; font-size:22px; color:var(--vert); grid-column:1; margin:0;}
   .glisse{display:none; font-size:13px; margin:0 0 6px;}
@@ -661,7 +662,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.79"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.80"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -16320,11 +16321,12 @@ function avanceChantierCentre(){
    Le château a sa carte d'inauguration (lumière dorée et feu d'artifice : le mode aube du prototype s'en charge). */
 function carteLivraisonCentre(l){
   const chat=l.fam==="chateau", f=chat?null:CENTRE3D.FAM[l.fam];
-  const a=CENTRE3D.scene(l.apres,{focus:l.fam, aube:true}), b=CENTRE3D.scene(l.avant,{focus:l.fam, vb:a.vb, aube:true});
+  // v2.80 : le campus en pixel art (CAMPUSPIX), cadré serré sur ce qui vient d'être livré ; peint par peintLivraisonCentre
+  const [w,h]=pxTaille(CAMPUSPIX.cadre(1)), toile=(R,cl)=>`<div class="${cl}"><canvas class="pxLivr" width="${w}" height="${h}" data-r='${JSON.stringify(R)}' role="img" aria-label="${esc(cl==="apres"?"Le campus après la livraison":"Le campus avant la livraison")}"></canvas></div>`;
   const titre=chat?"Le château":CENTRE3D.nomNiveau(f, l.niv, l.apres.annee), sous=chat?CHATEAU_SOUS:f.sous[l.niv], chif=chat?CHATEAU_EFF:f.eff[l.niv];
   const pa=CENTRE3D.palier(l.avant), pp=CENTRE3D.palier(l.apres);
   return `<div class="fbox livr livrC" role="dialog" aria-modal="true" aria-labelledby="livrTitre">
-    <div class="livrScene"><div class="avant">${b.svg}</div><div class="apres">${a.svg}</div></div>
+    <div class="livrScene" data-fete="${chat?1:0}">${toile(l.avant,"avant")}${toile(l.apres,"apres")}</div>
     <div class="livrTexte"><p class="livrSur">${chat?"INAUGURATION · LE CHÂTEAU":"LIVRAISON · LUNDI, 7 H 30 · CENTRE D'ENTRAÎNEMENT"}</p>
       <h3 id="livrTitre">${esc(titre)}</h3>
       <p class="livrSous">${esc(sous)}</p><p class="livrChiffres">${esc(chif)}</p>
@@ -16338,8 +16340,12 @@ function ouvreLivraisonCentre(suite){
   if(!fiche || !fiche.style) return suite();
   fiche.innerHTML=carteLivraisonCentre(l);
   fiche.style.display="flex"; window._penEnCours=true;
+  // les deux toiles : l'aube du lundi, et pour le château un feu d'artifice ; quatre images par seconde tant que la carte est ouverte
+  const sc=fiche.querySelector(".livrScene"), o={focus:CAMPUSPIX.zoneLivraison(l.fam, l.niv), aube:true, fete:!!(sc&&sc.dataset.fete==="1")}, toiles=[...fiche.querySelectorAll("canvas.pxLivr")];
+  let img=0, tic=null; const peint=()=>{ toiles.forEach(cv=>{ try{ CAMPUSPIX.rendre(cv.getContext("2d"),JSON.parse(cv.dataset.r),img,PX_FIN,o); }catch(e){} }); img++; };
+  peint(); if(!REDUIT) tic=setInterval(peint,250);
   const bt=document.getElementById("bLivrOk");
-  bt.onclick=()=>{ window._penEnCours=false; fermeFiche(); suite(); };
+  bt.onclick=()=>{ if(tic) clearInterval(tic); window._penEnCours=false; fermeFiche(); suite(); };
   if(bt.focus) bt.focus({preventScroll:true});
 }
 function badgeCentre(){ const ch=G.campus&&G.campus.chantier; if(!ch) return "";
@@ -18483,12 +18489,14 @@ function ouvreLivraison(suite){
   const fiche=document.getElementById("fiche");
   if(!fiche || !fiche.style) return suite();
   fiche.innerHTML=`<div class="fbox livr" role="dialog" aria-modal="true" aria-labelledby="livrTitre">
-    <div class="livrScene" id="livrScene"></div>
+    <div class="livrScene" id="livrScene"><canvas class="pxLivr" width="${pxTaille(STADEPIX)[0]}" height="${pxTaille(STADEPIX)[1]}" role="img" aria-label="${esc(l.titre)}"></canvas></div>
     <div class="livrTexte"><p class="livrSur">CHANTIER LIVRÉ</p><h3 id="livrTitre">${esc(l.titre)}</h3>
       <p class="livrSous">${esc(l.sous)}</p>${l.chiffres?`<p class="livrChiffres">${esc(l.chiffres)}</p>`:""}
       <button class="big" id="bLivrOk">Continuer</button></div></div>`;
   fiche.style.display="flex"; window._penEnCours=true;
-  const sc=document.getElementById("livrScene"), avant=l.avant||l.apres, apres=l.apres;
+  const sc=document.getElementById("livrScene"), cv=sc.querySelector("canvas"), avant=l.avant||l.apres, apres=l.apres;
+  let img=0, finAnim=false, dernier=null; const oL={focus:l.id||"tribune", niv:l.niv};
+  const ticL=REDUIT?null:setInterval(()=>{ img++; if(fini){ clearInterval(ticL); return; } if(finAnim&&dernier) STADEPIX.rendre(cv.getContext("2d"),dernier,img>>1,PX_FIN,oL); },250); // une fois la grue partie, le public bouge
   const calme=typeof matchMedia==="function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const t0=performance.now()+350, dur=calme?0:1900, ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
   let fini=false;
@@ -18496,8 +18504,8 @@ function ouvreLivraison(suite){
     const u=dur?Math.max(0,Math.min(1,(now-t0)/dur)):1, e=ease(u), E={};
     for(const k in apres) E[k]=typeof apres[k]==="number"&&typeof avant[k]==="number"?avant[k]+(apres[k]-avant[k])*e:apres[k];
     E.chantier=calme?0:(u<.75?1:Math.max(0,1-(u-.75)/.2)); E.cible=null;
-    sc.innerHTML=STADE3D.vueVille(E,"n",l.id||"_");
-    if(u<1||E.chantier>0) requestAnimationFrame(pas); };
+    STADEPIX.rendre(cv.getContext("2d"),E,img>>1,PX_FIN,oL); dernier=E; // v2.80 : en pixel art, cadré sur l'élément livré
+    if(u<1||E.chantier>0) requestAnimationFrame(pas); else finAnim=true; };
   pas(performance.now());
   const b=document.getElementById("bLivrOk");
   // une tribune neuve s'inaugure (v2.17) : ruban, ciseaux dorés et fanfare, juste après la grue
@@ -25710,7 +25718,7 @@ const C=Object.fromEntries(Object.entries({
 }).map(([k,v])=>[k,hex(v)]));
 const hasard=(a,b)=>{ let t=(a*374761393+b*668265263)|0; t=(t^(t>>>13))*1274126177|0; return ((t^(t>>>16))>>>0)/4294967296; };
 
-function rendre(ctx, R, image, E){
+function rendre(ctx, R, image, E, o){
   // E = la finesse : 1 donne la grille de base (320 x 224), 2 une grille deux fois plus fine (640 x 448). Le plan ne
   // bouge pas ; les petits sujets (public, arbres, projecteurs, drapeaux, voitures) sont redessinés, pas grossis.
   E=E||1; const GW=Math.round(320*E), GH=Math.round(224*E), S=n=>Math.max(1,Math.round(n*E));
@@ -25730,8 +25738,16 @@ function rendre(ctx, R, image, E){
   const hN=nN*RZ, hS=nS*RZ, hE=nE*RZ, hO=nO*RZ, zMax=Math.max(hN,hS,hE,hO)+(toit?8:0)+(ecl===2?30:10);
   const G=1.4+Math.max(0,Math.min(1,(R.cap-5000)/95000))*.5;   // les annexes grossissent avec le stade, pour rester lisibles quand la vue recule
   const m=16+12*G, xa=-(nO*D+m), xb=L+nE*D+m, ya=-(nN*D+m), yb=W+nS*D+m;
-  const k=Math.min(1.3*E, (GW-6*E)/((xb-ya)-(xa-yb)), (GH-26*E)/(((xb+yb)-(xa+ya))/2+zMax*1.05)), kz=k*1.05;
-  const ox=GW/2-((xb-ya)+(xa-yb))/2*k, oy=(GH-14*E)/2-((xb+yb)+(xa+ya))/4*k+zMax*kz/2+2*E;
+  let k=Math.min(1.3*E, (GW-6*E)/((xb-ya)-(xa-yb)), (GH-26*E)/(((xb+yb)-(xa+ya))/2+zMax*1.05)), kz=k*1.05;
+  let ox=GW/2-((xb-ya)+(xa-yb))/2*k, oy=(GH-14*E)/2-((xb+yb)+(xa+ya))/4*k+zMax*kz/2+2*E;
+  // la carte de livraison : un cadre serré sur ce qui vient d'être livré ; les petits sujets suivent le zoom (redessinés, pas grossis)
+  if(o&&o.focus){ const Xg=-nO*D, Xd=L+nE*D, Yb=W+nS*D, XM0=-4, hM=Math.max(hN,hS,hE,hO), dM=Math.max(nN,nS,nE,nO)*D;
+    const F={hotel:[Xd+7,Xd+7+14*G,0,14*G,28*G], boutique:[Xd+7,Xd+7+17*G,W+8-18*G,W+8,16*G], musee:[XM0,XM0+22*G,Yb+8,Yb+8+13*G,10*G],
+      restaurant:[XM0+24*G,XM0+42*G,Yb+8,Yb+8+12*G,14*G], buvette:[XM0+44*G,XM0+66*G,Yb+8,Yb+8+14*G,9*G],
+      transport:o.niv===1?[Xg-30,Xg-6,4,W-4,4]:[Xg-30,Xd-20,Yb-20,yb+12,10], kop:[-dM-6,30,-dM-6,25,hM+12]}[o.focus]||[Xg-3,Xd+3,-nN*D-3,Yb+3,hM+(toit?8:0)];
+    const [x0,x1,y0,y1,zt]=F, zh=(zt||12)*1.05, k0=k;
+    k=Math.min(GW*.8/((x1-y0)-(x0-y1)), GH*.72/(((x1+y1)-(x0+y0))/2+zh), 6*E); kz=k*1.05;
+    ox=GW/2-((x1-y0)+(x0-y1))/2*k; oy=GH*.52-(((x0+y0)+(x1+y1))/4*k-zh*kz/2); E=E*k/k0; }
   let T=null;   // loupe posée sur une annexe : {x, y, g} grossit tout autour de son point d'ancrage
   const P=(x,y,z)=>{ z=z||0; if(T){ x=T.x+(x-T.x)*T.g; y=T.y+(y-T.y)*T.g; z*=T.g; } return [Math.round(ox+(x-y)*k), Math.round(oy+(x+y)*k/2-z*kz)]; };
   const quad=(pts,c,bord)=>poly(pts.map(p=>P(p[0],p[1],p[2])),c,bord);
@@ -26876,8 +26892,21 @@ function cadre(E){ const GW=Math.round(320*E), GH=Math.round(224*E);
   const ox=Math.round(GW/2-((XB-YA)+(XA-YB))/2*CS*k), oy=Math.round(4*E+ZM*kz-(XA+YA)*.5*k);
   return {GW,GH,k,kz,P:(x,y,z)=>[Math.round(ox+(x-y)*CS*k), Math.round(oy+(x+y)*.5*k-(z||0)*kz)]}; }
 
-function peindre(R, image, E){
-  E=E||1; const {GW,GH,k,kz,P}=cadre(E), S=n=>Math.max(1,Math.round(n*E));
+// la carte de livraison : un cadre serré sur ce qui vient d'être livré, f = [x0, x1, y0, y1, hauteur] en mètres
+function cadreSur(E,f){ const {GW,GH}=cadre(E), [x0,x1,y0,y1,zt]=f, zh=(zt||12)*1.1;
+  const k=Math.min(GW*.8/(((x1-y0)-(x0-y1))*CS), GH*.74/(((x1+y1)-(x0+y0))*.5+zh), 7*E), kz=k*1.1;
+  const ox=Math.round(GW/2-((x1-y0)+(x0-y1))/2*CS*k), oy=Math.round(GH*.52-(((x0+y0)+(x1+y1))*.25*k-zh*kz*.5));
+  return {k,kz,P:(x,y,z)=>[Math.round(ox+(x-y)*CS*k), Math.round(oy+(x+y)*.5*k-(z||0)*kz)]}; }
+// ce que chaque livraison montre : la famille, et pour les terrains le niveau
+function zoneLivraison(id,n){
+  if(id==='terrains') return n===1?[150,225,60,120,6]:n===2?[60,225,132,192,24]:[140,232,120,200,22];
+  return {vie:[50,100,10,50,24], medical:[104,140,8,52,15], physique:[144,196,10,42,18], video:[196,236,10,58,46],
+    academie:n===3?[10,58,56,192,16]:[10,48,56,110,15], chateau:[2,60,114,200,42]}[id]||null; }
+
+function peindre(R, image, E, o){
+  E=E||1; o=o||{}; const base=cadre(E), {GW,GH}=base; let {k,kz,P}=base;
+  if(o.focus){ const z=cadreSur(E,o.focus); E=E*z.k/k; k=z.k; kz=z.kz; P=z.P; }   // les petits sujets suivent le zoom : redessinés, pas grossis
+  const S=n=>Math.max(1,Math.round(n*E));
   const buf=new Uint8ClampedArray(GW*GH*4);
   const px=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return; const i=(y*GW+x)*4; buf[i]=c[0]; buf[i+1]=c[1]; buf[i+2]=c[2]; buf[i+3]=255; };
   const est=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return false; const i=(y*GW+x)*4; return buf[i]===c[0]&&buf[i+1]===c[1]&&buf[i+2]===c[2]; };
@@ -26944,7 +26973,11 @@ function peindre(R, image, E){
 
   // ---------------- le sol ----------------
   for(let i=0;i<GW*GH;i++){ buf[i*4]=C.nuit[0]; buf[i*4+1]=C.nuit[1]; buf[i*4+2]=C.nuit[2]; buf[i*4+3]=255; }
-  sol(-60,300,-60,260,C.nuit);
+  // l'aube du lundi : le ciel en bandes franches, sans fondu, comme une console qui n'avait pas assez de couleurs
+  if(o.aube){ const ciel=['#141d3d','#1f2a55','#3b3a68','#6a4a70','#a25f6a','#d8835a','#f0ad5c'].map(hex);
+    for(let y=0;y<GH;y++){ const c=y<GH*.5?ciel[Math.min(6,Math.floor(y/(GH*.5)*7))]:C.nuit; for(let x=0;x<GW;x++) px(x,y,c); }
+    sol(-60,300,-60,260,hex('#101a35')); }
+  else sol(-60,300,-60,260,C.nuit);
   sol(-60,300,-22,-8,C.route); for(let x=-56;x<296;x+=10) seg3([x,-15,0],[x+5,-15,0],C.marque);
   sol(0,240,0,200,C.gazon);
   for(let i=0;i<Math.round(260*E*E);i++){ const x=hasard(i,3)*240, y=hasard(i,7)*200; pt(x,y,0,C.gazon2); }
@@ -27143,10 +27176,13 @@ function peindre(R, image, E){
   }
 
   objets.sort((a,b)=>a[0]-b[0]); for(const [,fn] of objets){ CH=false; fn(); }
+  // le château s'inaugure : un feu d'artifice en gros pixels, une gerbe qui s'ouvre puis retombe, image par image
+  if(o.fete) for(let g=0;g<4;g++){ const t=(image+g*3)%10; if(t>6) continue; const cx=Math.round(GW*(.18+g*.22)), cy=Math.round(GH*(.16+(g%2)*.1)), r=S(2)+t*S(2.2), c=[C.jaune,C.rouge,C.blanc,C.bleu][g];
+    for(let a=0;a<14;a++){ const u=a/14*Math.PI*2, x=Math.round(cx+r*Math.cos(u)), y=Math.round(cy+r*Math.sin(u)*.8+(t>4?(t-4)*S(2):0)); for(let i=0;i<S(1);i++) for(let j=0;j<S(1);j++) px(x+i,y+j,t>5?C.jaune:c); } }
   return buf;
 }
-function rendre(ctx,R,image,E){ E=E||1; const {GW,GH}=cadre(E); ctx.putImageData(new ImageData(peindre(R,image,E),GW,GH),0,0); }
-return {rendre,peindre,cadre};
+function rendre(ctx,R,image,E,o){ E=E||1; const {GW,GH}=cadre(E); ctx.putImageData(new ImageData(peindre(R,image,E,o),GW,GH),0,0); }
+return {rendre,peindre,cadre,zoneLivraison};
 })();
 /* ---- CAMPUSPIX : FIN ---- */
 /* ---- CENTRE3D : DÉBUT (v1.53) ----

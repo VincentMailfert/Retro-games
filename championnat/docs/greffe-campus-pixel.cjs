@@ -5,7 +5,7 @@
 const fs=require('fs'), path=require('path');
 const dir=process.argv[2]||'.';
 const proto=fs.readFileSync(path.join(dir,'docs/prototype-centre-pixel.html'),'utf8').replace(/\r\n/g,'\n');
-const A='const CAMPUSPIX=(()=>{', B='return {rendre,peindre,cadre};\n})();';
+const A='const CAMPUSPIX=(()=>{', B='return {rendre,peindre,cadre,zoneLivraison};\n})();';
 const a=proto.indexOf(A), b=proto.indexOf(B);
 if(a<0||b<0||b<a) throw new Error('bornes CAMPUSPIX du prototype introuvables');
 const code=proto.slice(a,b+B.length);

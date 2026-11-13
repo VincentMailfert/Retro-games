@@ -100,8 +100,21 @@ function cadre(E){ const GW=Math.round(320*E), GH=Math.round(224*E);
   const ox=Math.round(GW/2-((XB-YA)+(XA-YB))/2*CS*k), oy=Math.round(4*E+ZM*kz-(XA+YA)*.5*k);
   return {GW,GH,k,kz,P:(x,y,z)=>[Math.round(ox+(x-y)*CS*k), Math.round(oy+(x+y)*.5*k-(z||0)*kz)]}; }
 
-function peindre(R, image, E){
-  E=E||1; const {GW,GH,k,kz,P}=cadre(E), S=n=>Math.max(1,Math.round(n*E));
+// la carte de livraison : un cadre serré sur ce qui vient d'être livré, f = [x0, x1, y0, y1, hauteur] en mètres
+function cadreSur(E,f){ const {GW,GH}=cadre(E), [x0,x1,y0,y1,zt]=f, zh=(zt||12)*1.1;
+  const k=Math.min(GW*.8/(((x1-y0)-(x0-y1))*CS), GH*.74/(((x1+y1)-(x0+y0))*.5+zh), 7*E), kz=k*1.1;
+  const ox=Math.round(GW/2-((x1-y0)+(x0-y1))/2*CS*k), oy=Math.round(GH*.52-(((x0+y0)+(x1+y1))*.25*k-zh*kz*.5));
+  return {k,kz,P:(x,y,z)=>[Math.round(ox+(x-y)*CS*k), Math.round(oy+(x+y)*.5*k-(z||0)*kz)]}; }
+// ce que chaque livraison montre : la famille, et pour les terrains le niveau
+function zoneLivraison(id,n){
+  if(id==='terrains') return n===1?[150,225,60,120,6]:n===2?[60,225,132,192,24]:[140,232,120,200,22];
+  return {vie:[50,100,10,50,24], medical:[104,140,8,52,15], physique:[144,196,10,42,18], video:[196,236,10,58,46],
+    academie:n===3?[10,58,56,192,16]:[10,48,56,110,15], chateau:[2,60,114,200,42]}[id]||null; }
+
+function peindre(R, image, E, o){
+  E=E||1; o=o||{}; const base=cadre(E), {GW,GH}=base; let {k,kz,P}=base;
+  if(o.focus){ const z=cadreSur(E,o.focus); E=E*z.k/k; k=z.k; kz=z.kz; P=z.P; }   // les petits sujets suivent le zoom : redessinés, pas grossis
+  const S=n=>Math.max(1,Math.round(n*E));
   const buf=new Uint8ClampedArray(GW*GH*4);
   const px=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return; const i=(y*GW+x)*4; buf[i]=c[0]; buf[i+1]=c[1]; buf[i+2]=c[2]; buf[i+3]=255; };
   const est=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return false; const i=(y*GW+x)*4; return buf[i]===c[0]&&buf[i+1]===c[1]&&buf[i+2]===c[2]; };
@@ -168,7 +181,11 @@ function peindre(R, image, E){
 
   // ---------------- le sol ----------------
   for(let i=0;i<GW*GH;i++){ buf[i*4]=C.nuit[0]; buf[i*4+1]=C.nuit[1]; buf[i*4+2]=C.nuit[2]; buf[i*4+3]=255; }
-  sol(-60,300,-60,260,C.nuit);
+  // l'aube du lundi : le ciel en bandes franches, sans fondu, comme une console qui n'avait pas assez de couleurs
+  if(o.aube){ const ciel=['#141d3d','#1f2a55','#3b3a68','#6a4a70','#a25f6a','#d8835a','#f0ad5c'].map(hex);
+    for(let y=0;y<GH;y++){ const c=y<GH*.5?ciel[Math.min(6,Math.floor(y/(GH*.5)*7))]:C.nuit; for(let x=0;x<GW;x++) px(x,y,c); }
+    sol(-60,300,-60,260,hex('#101a35')); }
+  else sol(-60,300,-60,260,C.nuit);
   sol(-60,300,-22,-8,C.route); for(let x=-56;x<296;x+=10) seg3([x,-15,0],[x+5,-15,0],C.marque);
   sol(0,240,0,200,C.gazon);
   for(let i=0;i<Math.round(260*E*E);i++){ const x=hasard(i,3)*240, y=hasard(i,7)*200; pt(x,y,0,C.gazon2); }
@@ -367,10 +384,13 @@ function peindre(R, image, E){
   }
 
   objets.sort((a,b)=>a[0]-b[0]); for(const [,fn] of objets){ CH=false; fn(); }
+  // le château s'inaugure : un feu d'artifice en gros pixels, une gerbe qui s'ouvre puis retombe, image par image
+  if(o.fete) for(let g=0;g<4;g++){ const t=(image+g*3)%10; if(t>6) continue; const cx=Math.round(GW*(.18+g*.22)), cy=Math.round(GH*(.16+(g%2)*.1)), r=S(2)+t*S(2.2), c=[C.jaune,C.rouge,C.blanc,C.bleu][g];
+    for(let a=0;a<14;a++){ const u=a/14*Math.PI*2, x=Math.round(cx+r*Math.cos(u)), y=Math.round(cy+r*Math.sin(u)*.8+(t>4?(t-4)*S(2):0)); for(let i=0;i<S(1);i++) for(let j=0;j<S(1);j++) px(x+i,y+j,t>5?C.jaune:c); } }
   return buf;
 }
-function rendre(ctx,R,image,E){ E=E||1; const {GW,GH}=cadre(E); ctx.putImageData(new ImageData(peindre(R,image,E),GW,GH),0,0); }
-return {rendre,peindre,cadre};
+function rendre(ctx,R,image,E,o){ E=E||1; const {GW,GH}=cadre(E); ctx.putImageData(new ImageData(peindre(R,image,E,o),GW,GH),0,0); }
+return {rendre,peindre,cadre,zoneLivraison};
 })();
 
 /* ============================================================
