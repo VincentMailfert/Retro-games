@@ -54,6 +54,7 @@
   </div>
   <div class="pupitre" id="pupitre">
     <div class="bas">
+      <div style="grid-column:1 / -1"><div class="titre">Finesse du dessin</div><div class="seg" id="segFin"><button type="button" data-e="1" aria-pressed="true">320 · comme le stade</button><button type="button" data-e="1.5" aria-pressed="false">480</button><button type="button" data-e="2" aria-pressed="false">640</button></div></div>
       <div><label class="r" for="rAn">Saison <output id="anOut"></output></label><input type="range" id="rAn" min="1990" max="2010" step="1" value="1996"></div>
       <div><div class="titre">Chantier en cours</div><select id="sCh"></select></div>
       <div><div class="titre">Raccourcis</div><div class="seg"><button type="button" id="bZero">Tout à zéro</button><button type="button" id="bMax">Tout au max</button></div></div>
@@ -69,7 +70,7 @@
    chateau : 0/1, annee, chantier : null | {id, n}}. image = compteur, quatre images par seconde.
    ============================================================ */
 const CAMPUSPIX=(()=>{
-const GW=320, GH=224, CS=0.8660254;
+const CS=0.8660254;
 const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
 // La palette : celle du stade, plus les matériaux du campus. Une trentaine de couleurs, pas une de plus.
 const C=Object.fromEntries(Object.entries({
@@ -89,13 +90,18 @@ const MAT={
   pierre:[C.pierre,C.pierre,C.pierre2], chantier:[C.chantier,C.chantier,C.chantier2]
 };
 // Le cadrage : le campus fait 240 m sur 200, on garde une marge pour la route et les arbres.
+// E = la finesse de la grille : 1 donne 320 x 224 (celle du stade), 2 donne 640 x 448. Le plan et les règles ne
+// bougent pas ; à finesse double, on voit deux fois plus de pixels sur le même campus, et les petits sujets
+// (joueurs, arbres, fanions, projecteurs) sont redessinés avec plus de détails au lieu d'être simplement grossis.
 const XA=-14, XB=254, YA=-18, YB=214, ZM=50;
-const k=Math.min((GW-8)/(((XB-YA)-(XA-YB))*CS), (GH-8)/(((XB+YB)-(XA+YA))*.5+ZM*1.1)), kz=k*1.1;
-const ox=Math.round(GW/2-((XB-YA)+(XA-YB))/2*CS*k), oy=Math.round(4+ZM*kz-(XA+YA)*.5*k);
-const P=(x,y,z)=>[Math.round(ox+(x-y)*CS*k), Math.round(oy+(x+y)*.5*k-(z||0)*kz)];
 const T=[[60,60,135,120],[150,60,225,120],[60,132,135,192],[150,132,225,192]];
+function cadre(E){ const GW=Math.round(320*E), GH=Math.round(224*E);
+  const k=Math.min((GW-8*E)/(((XB-YA)-(XA-YB))*CS), (GH-8*E)/(((XB+YB)-(XA+YA))*.5+ZM*1.1)), kz=k*1.1;
+  const ox=Math.round(GW/2-((XB-YA)+(XA-YB))/2*CS*k), oy=Math.round(4*E+ZM*kz-(XA+YA)*.5*k);
+  return {GW,GH,k,kz,P:(x,y,z)=>[Math.round(ox+(x-y)*CS*k), Math.round(oy+(x+y)*.5*k-(z||0)*kz)]}; }
 
-function peindre(R, image){
+function peindre(R, image, E){
+  E=E||1; const {GW,GH,k,kz,P}=cadre(E), S=n=>Math.max(1,Math.round(n*E));
   const buf=new Uint8ClampedArray(GW*GH*4);
   const px=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return; const i=(y*GW+x)*4; buf[i]=c[0]; buf[i+1]=c[1]; buf[i+2]=c[2]; buf[i+3]=255; };
   const est=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return false; const i=(y*GW+x)*4; return buf[i]===c[0]&&buf[i+1]===c[1]&&buf[i+2]===c[2]; };
@@ -118,22 +124,41 @@ function peindre(R, image){
     quad([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],c[1],C.encre);
     quad([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],c[2],C.encre);
     quad([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],c[0],C.encre);
+    // à grille fine, le toit-terrasse a son acrotère et ses édicules
+    if(E>=1.5&&!CH&&x1-x0>8&&y1-y0>8){ const m=1.2; quad([[x0+m,y0+m,z1],[x1-m,y0+m,z1],[x1-m,y1-m,z1],[x0+m,y1-m,z1]],c[0],c[2]);
+      const ex=x0+(x1-x0)*.3, ey=y0+(y1-y0)*.35; quad([[ex,ey+3,z1],[ex+4,ey+3,z1],[ex+4,ey+3,z1+1.4],[ex,ey+3,z1+1.4]],c[1],C.encre); quad([[ex+4,ey,z1],[ex+4,ey+3,z1],[ex+4,ey+3,z1+1.4],[ex+4,ey,z1+1.4]],c[2],C.encre); quad([[ex,ey,z1+1.4],[ex+4,ey,z1+1.4],[ex+4,ey+3,z1+1.4],[ex,ey+3,z1+1.4]],c[0],C.encre); }
     if(CH){ for(let x=x0+3;x<x1-1;x+=4) seg3([x,y1,z0],[x,y1,z1],C.chantier2); for(let y=y0+3;y<y1-1;y+=4) seg3([x1,y,z0],[x1,y,z1],C.chantier2); } };
   // les fenêtres : un pixel par vitre, allumée ou noire, sur la façade avant et la façade est
+  // une vitre = un pixel ; à grille fine, deux pixels de haut et un appui sous la vitre
+  const fen=(x,y,z,c)=>{ const q=P(x,y,z); px(q[0],q[1],c); if(E>=1.8){ px(q[0],q[1]-1,c); if(c!==C.encre) px(q[0],q[1]+1,C.encre); } };
   const vitres=(x0,x1,y0,y1,z0,z1,g,frac,c)=>{ if(CH) return; const pas=Math.max(2.2,2/k), pz=Math.max(2.6,2.2/kz), f=frac==null?.7:frac;
-    for(let z=z0+2;z<z1-.8;z+=pz){ for(let x=x0+1.6;x<x1-1;x+=pas) pt(x,y1,z,hasard(Math.round(x*3)+g,Math.round(z*3))<f?(c||C.jaune):C.encre);
-      for(let y=y0+1.6;y<y1-1;y+=pas) pt(x1,y,z,hasard(Math.round(y*3)+g+5,Math.round(z*3))<f?(c||C.jaune):C.encre); } };
+    for(let z=z0+2;z<z1-.8;z+=pz){ for(let x=x0+1.6;x<x1-1;x+=pas) fen(x,y1,z,hasard(Math.round(x*3)+g,Math.round(z*3))<f?(c||C.jaune):C.encre);
+      for(let y=y0+1.6;y<y1-1;y+=pas) fen(x1,y,z,hasard(Math.round(y*3)+g+5,Math.round(z*3))<f?(c||C.jaune):C.encre); } };
   const toit2=(x0,x1,y0,y1,z,hz)=>{ const xm=(x0+x1)/2, c=CH?[C.chantier,C.chantier2]:[C.tuile,C.brique2];
-    quad([[x1,y0,z],[x1,y1,z],[xm,y1,z+hz],[xm,y0,z+hz]],c[0],C.encre); quad([[x0,y1,z],[x1,y1,z],[xm,y1,z+hz]],c[1],C.encre); };
+    quad([[x1,y0,z],[x1,y1,z],[xm,y1,z+hz],[xm,y0,z+hz]],c[0],C.encre); quad([[x0,y1,z],[x1,y1,z],[xm,y1,z+hz]],c[1],C.encre);
+    if(E>=1.5&&!CH) for(let u=.25;u<1;u+=.25) seg3([x1+(xm-x1)*u,y0+.4,z+hz*u],[x1+(xm-x1)*u,y1-.4,z+hz*u],c[1]); };
   const pyramide=(x0,x1,y0,y1,z,hz,cA,cB)=>{ const xm=(x0+x1)/2, ym=(y0+y1)/2;
     quad([[x0,y1,z],[x1,y1,z],[xm,ym,z+hz]],cA,C.encre); quad([[x1,y0,z],[x1,y1,z],[xm,ym,z+hz]],cB,C.encre); };
   const enseigne=(x0,x1,y,z,c)=>{ if(!CH) seg3([x0,y,z],[x1,y,z],c||C.jaune); };
-  const arbre=(x,y,g)=>{ const p=P(x,y,0); px(p[0],p[1],C.encre); px(p[0],p[1]-1,C.bois);
-    const F=g?[[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-3],[-1,-3],[0,-3],[1,-3],[2,-3],[-1,-4],[0,-4],[1,-4],[-1,-5],[0,-5],[1,-5],[0,-6]]
-             :[[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]];
-    for(const [dx,dy] of F) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); if(g){ px(p[0]-1,p[1]-5,C.arbre2); px(p[0]+1,p[1]-2,C.arbre2); } };
-  const cypres=(x,y)=>{ const p=P(x,y,0); px(p[0],p[1],C.encre); for(let d=1;d<=6;d++){ px(p[0],p[1]-d,C.arbre); if(d>1&&d<6) px(p[0]+(d%2?1:-1),p[1]-d,d%2?C.arbre2:C.arbre); } };
-  const fanion=(x,y,z,c)=>{ if(CH) return; const b=P(x,y,z); for(let d=0;d<5;d++) px(b[0],b[1]-d,C.clair); const v=image%2; px(b[0]+1,b[1]-4,c); px(b[0]+2,b[1]-4+v,c); px(b[0]+1,b[1]-3,c); };
+  // l'arbre : à grille fine, un houppier rond, éclairé en haut à gauche, ombré et cerné en bas à droite, avec un tronc
+  const arbre=(x,y,g)=>{ const p=P(x,y,0);
+    if(E<1.5){ px(p[0],p[1],C.encre); px(p[0],p[1]-1,C.bois);
+      const F=g?[[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-3],[-1,-3],[0,-3],[1,-3],[2,-3],[-1,-4],[0,-4],[1,-4],[-1,-5],[0,-5],[1,-5],[0,-6]]
+               :[[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]];
+      for(const [dx,dy] of F) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); if(g){ px(p[0]-1,p[1]-5,C.arbre2); px(p[0]+1,p[1]-2,C.arbre2); } return; }
+    const r=(g?2.7:1.9)*E, tr=Math.round((g?1.8:1.3)*E), cy=p[1]-tr-Math.round(r*.8);
+    for(let d=0;d<=tr;d++){ px(p[0],p[1]-d,C.bois); px(p[0]+1,p[1]-d,C.encre); }
+    for(let dx=-2;dx<=2;dx++) px(p[0]+dx+1,p[1]+1,C.encre);
+    const R2=Math.ceil(r*1.15);
+    for(let dy=-Math.ceil(r);dy<=Math.ceil(r);dy++) for(let dx=-R2;dx<=R2;dx++){ const q=(dx/(r*1.15))**2+(dy/r)**2; if(q>1) continue;
+      const bord=q>.7&&dx+dy>0, clair=dx+dy<-r*.6, h=hasard(p[0]*3+dx,p[1]*5+dy);
+      px(p[0]+dx,cy+dy, bord?C.encre:clair?(h<.25?C.herbe:C.arbre2):(h<.12?C.arbre2:C.arbre)); } };
+  const cypres=(x,y)=>{ const p=P(x,y,0), h=Math.round(6*E), w=E>=1.5?Math.round(1.3*E):1; px(p[0],p[1],C.encre);
+    for(let d=1;d<=h;d++){ if(w===1){ px(p[0],p[1]-d,C.arbre); if(d>1&&d<6) px(p[0]+(d%2?1:-1),p[1]-d,d%2?C.arbre2:C.arbre); continue; }
+      const lw=Math.round(w*Math.sin(Math.PI*d/(h+1))); for(let dx=-lw;dx<=lw;dx++) px(p[0]+dx,p[1]-d, dx===lw?C.encre:dx<0?C.arbre2:C.arbre); } };
+  const fanion=(x,y,z,c)=>{ if(CH) return; const b=P(x,y,z), L=S(5), fw=S(2.4), fh=S(1.6), v=image%2;
+    for(let d=0;d<L;d++) px(b[0],b[1]-d,C.clair);
+    for(let i=1;i<=fw;i++) for(let j=0;j<fh;j++) px(b[0]+i,b[1]-L+1+j+((i+v)%2&&i>fw/2?1:0),c); };
   const grue=(x,y)=>{ const h=34, b=P(x,y,0), t=P(x,y,h); ligne([b[0]-1,b[1]],[t[0]-1,t[1]],C.chantier); ligne([b[0]+1,b[1]],[t[0]+1,t[1]],C.chantier);
     for(let z=3;z<h;z+=4){ const a=P(x,y,z), c=P(x,y,z+2); px(a[0],a[1],C.chantier2); px(c[0]-1,c[1],C.chantier2); }
     seg3([x-10,y,h],[x+26,y,h],C.chantier); seg3([x-10,y,h+1],[x+26,y,h+1],C.chantier2);
@@ -146,7 +171,7 @@ function peindre(R, image){
   sol(-60,300,-60,260,C.nuit);
   sol(-60,300,-22,-8,C.route); for(let x=-56;x<296;x+=10) seg3([x,-15,0],[x+5,-15,0],C.marque);
   sol(0,240,0,200,C.gazon);
-  for(let i=0;i<260;i++){ const x=hasard(i,3)*240, y=hasard(i,7)*200; pt(x,y,0,C.gazon2); }
+  for(let i=0;i<Math.round(260*E*E);i++){ const x=hasard(i,3)*240, y=hasard(i,7)*200; pt(x,y,0,C.gazon2); }
   // allées, parking, portail
   sol(4,238,48,56,C.route); sol(137,148,56,198,C.route); sol(48,238,122,130,C.route); sol(14,30,-8,48,C.route);
   sol(6,46,6,46,C.route,C.marque); for(let x=10;x<46;x+=6){ seg3([x,8,0],[x,20,0],C.marque); seg3([x,32,0],[x,44,0],C.marque); }
@@ -180,11 +205,11 @@ function peindre(R, image){
 
   // ---------------- ce qui dépasse ----------------
   const pylone=(x,y)=>{ add(x+y,()=>{ const b=P(x,y,0), h=P(x,y,24); ligne(b,h,C.beton3); ligne([b[0]+1,b[1]],[h[0]+1,h[1]],C.beton2);
-    for(let d=-2;d<=2;d++){ px(h[0]+d,h[1]-1,C.encre); px(h[0]+d,h[1]-2,d%2?C.blanc:C.jaune); px(h[0]+d,h[1]-3,C.encre); } }); };
+    const w=S(2), hh=S(1); for(let d=-w;d<=w;d++){ px(h[0]+d,h[1]-1,C.encre); for(let j=0;j<hh;j++) px(h[0]+d,h[1]-2-j,(d+w)%2?C.blanc:C.jaune); px(h[0]+d,h[1]-2-hh,C.encre); } }); };
   const projos=[];
   if(t===2&&neuf!==2) projos.push([147,129],[228,129],[147,195],[228,195]);
   if(t>=3) projos.push([58,58],[137,58],[58,122],[137,122]);
-  for(const [x,y] of projos){ eclaire(x+(x<100||x<145&&x>140?8:-8),y+(y<100?8:-8),9); pylone(x,y); }
+  for(const [x,y] of projos){ eclaire(x+(x<100||x<145&&x>140?8:-8),y+(y<100?8:-8),Math.round(9*E)); pylone(x,y); }
 
   // la halle couverte, sur le quatrième terrain
   if(t>=3) add(425,()=>{ const x0=146,x1=229,y0=128,y1=196,zw=8,hv=13,N=10, wasCH=CH; CH=chT&&chN===3;
@@ -208,11 +233,11 @@ function peindre(R, image){
     if(n===1){ add(138,sur(ch,()=>{ boite(54,98,14,40,0,6.5,'brique'); vitres(54,98,14,40,0,6.5,11,.75); })); return; }
     add(140,sur(ch,()=>{ boite(54,98,12,42,0,13,'clair'); vitres(54,98,12,42,0,13,21);
       if(n===3){ boite(54,80,12,34,13,24,'clair'); vitres(54,80,12,34,13,24,31,.8); enseigne(58,76,34,26); }
-      if(!CH){ sol(58,96,42,49,C.bois,null,.3); for(const [x,c] of [[64,C.jaune],[76,C.blanc],[88,C.rouge]]){ const p=P(x,46,0), h=P(x,46,3); ligne(p,h,C.clair); for(let d=-2;d<=2;d++) px(h[0]+d,h[1]-(d===0?1:0),c); } } }));
+      if(!CH){ sol(58,96,42,49,C.bois,null,.3); for(const [x,c] of [[64,C.jaune],[76,C.blanc],[88,C.rouge]]){ const p=P(x,46,0), h=P(x,46,3); ligne(p,h,C.clair); const n=S(2); for(let d=-n;d<=n;d++){ px(h[0]+d,h[1]-(Math.abs(d)<n/2?1:0),c); if(E>=1.8) px(h[0]+d,h[1]+1-(Math.abs(d)<n/2?1:0),c); } } } }));
   });
   // médical
   fam('medical',(n,ch)=>{
-    const croix=(x,y,z)=>{ if(CH) return; const p=P(x,y,z); for(let d=-1;d<=1;d++){ px(p[0]+d,p[1],C.rouge); px(p[0],p[1]+d,C.rouge); } };
+    const croix=(x,y,z)=>{ if(CH) return; const p=P(x,y,z); const n=S(1); for(let d=-n;d<=n;d++) for(let e=0;e<(E>=1.8?2:1);e++){ px(p[0]+d,p[1]+e,C.rouge); px(p[0]+e,p[1]+d,C.rouge); } };
     if(n===1) add(168,sur(ch,()=>{ boite(112,132,18,36,0,5,'clair'); vitres(112,132,18,36,0,5,41,.6); croix(122,27,5); }));
     if(n===2) add(176,sur(ch,()=>{ boite(108,136,12,40,0,10,'clair'); vitres(108,136,12,40,0,10,51); croix(136,26,7.5); }));
     if(n===3){ add(179,sur(ch,()=>{ boite(107,137,10,42,0,14,'verre'); vitres(107,137,10,42,0,14,61,.85); croix(137,26,10); }));
@@ -276,7 +301,8 @@ function peindre(R, image){
 
   // décor fixe : portail, voitures, car du club, arbres
   add(30,()=>{ boite(12,15,-2,1,0,6.5,'pierre'); boite(29,32,-2,1,0,6.5,'pierre'); boite(12,32,-1.5,.5,6.5,8.2,'pierre'); seg3([16,.5,7.4],[28,.5,7.4],C.jaune); });
-  [[11,10,C.rouge],[23,10,C.bleu],[35,34,C.beton3],[17,34,C.arbre2],[41,10,C.blanc]].forEach(([x,y,c])=>add(x+y+7,()=>{ const p=P(x+1.7,y+3.5,0); for(const [dx,dy] of [[-1,0],[0,0],[1,0],[0,-1],[-1,-1]]) px(p[0]+dx,p[1]+dy,c); px(p[0]+1,p[1]-1,C.encre); }));
+  [[11,10,C.rouge],[23,10,C.bleu],[35,34,C.beton3],[17,34,C.arbre2],[41,10,C.blanc]].forEach(([x,y,c])=>add(x+y+7,()=>{ const p=P(x+1.7,y+3.5,0); if(E<1.5){ for(const [dx,dy] of [[-1,0],[0,0],[1,0],[0,-1],[-1,-1]]) px(p[0]+dx,p[1]+dy,c); px(p[0]+1,p[1]-1,C.encre); return; }
+    const L=S(1.6), H=S(.9); for(let dx=-L;dx<=L;dx++){ px(p[0]+dx,p[1]+1,C.encre); for(let dy=0;dy<H;dy++) px(p[0]+dx,p[1]-dy,c); } for(let dx=-L+1;dx<=1;dx++){ px(p[0]+dx,p[1]-H,C.verre2); px(p[0]+dx,p[1]-H-1,c); } px(p[0]+L,p[1]-1,C.jaune); }));
   add(126,()=>{ const x0=70,x1=83,y0=49.3,y1=54.2; quad([[x1,y0,.9],[x1,y1,.9],[x1,y1,5.4],[x1,y0,5.4]],C.verre2,C.encre); quad([[x0,y1,.9],[x1,y1,.9],[x1,y1,5.4],[x0,y1,5.4]],C.bleu,C.encre); quad([[x0,y0,5.4],[x1,y0,5.4],[x1,y1,5.4],[x0,y1,5.4]],C.clair,C.encre);
     seg3([x0+.5,y1,2.4],[x1-.5,y1,2.4],C.jaune); for(let x=x0+1.5;x<x1-2;x+=2) pt(x,y1,4,C.verre); });
   for(const [x,y] of [[-6,20],[-7,48],[-6,76],[-8,104],[-6,132],[-7,160],[-6,188],[60,-4],[100,-5],[150,-4],[200,-5],[246,-4]]) add(x+y,()=>arbre(x,y,true));
@@ -287,9 +313,20 @@ function peindre(R, image){
 
   // ---------------- la vie sur les terrains ----------------
   const sec=image/4;
-  const gars=(x,y,c,petit)=>add(x+y+.5,()=>{ const p=P(x,y,0); px(p[0],p[1],C.encre); px(p[0],p[1]-1,c); if(!petit) px(p[0],p[1]-2,c); px(p[0],p[1]-(petit?2:3),C.peau); });
-  const ballon=(x,y)=>add(x+y+.6,()=>pt(x,y,.6,C.blanc));
-  const plot=(x,y)=>add(x+y,()=>pt(x,y,0,C.chantier));
+  // un joueur : trois pixels à la grille du stade ; à grille fine, des jambes qui courent, un short, un maillot, une tête
+  const gars=(x,y,c,petit)=>add(x+y+.5,()=>{ const p=P(x,y,0);
+    if(E<1.5){ px(p[0],p[1],C.encre); px(p[0],p[1]-1,c); if(!petit) px(p[0],p[1]-2,c); px(p[0],p[1]-(petit?2:3),C.peau); return; }
+    const H=Math.round((petit?2.5:3.3)*E), w=E>=1.8&&!petit?2:1, pas=(image+Math.round(x*7+y*3))%2;
+    const jb=Math.max(1,Math.round(H*.3)), sh=Math.max(1,Math.round(H*.14)), tt=Math.max(1,Math.round(H*.22)), bu=Math.max(1,H-jb-sh-tt);
+    const shortC=c===C.herbe3?C.encre:c===C.clair?C.beton:C.ardoise;
+    for(let dx=-1;dx<=w;dx++) px(p[0]+dx,p[1]+1,C.encre);
+    let yy=p[1];
+    for(let i=0;i<jb;i++,yy--){ const ch=i===0?c:C.peau; px(p[0]-(pas&&i<jb-1?1:0),yy,ch); px(p[0]+w-1+(pas?0:(i<jb-1?1:0)),yy,ch); }
+    for(let i=0;i<sh;i++,yy--) for(let dx=0;dx<w;dx++) px(p[0]+dx,yy,shortC);
+    for(let i=0;i<bu;i++,yy--){ for(let dx=0;dx<w;dx++) px(p[0]+dx,yy,c); if(i===bu-1&&w>1){ px(p[0]-1,yy,c); px(p[0]+w,yy,c); } }
+    for(let i=0;i<tt;i++,yy--) for(let dx=0;dx<w;dx++) px(p[0]+dx,yy,i===tt-1&&tt>1?C.encre:C.peau); });
+  const ballon=(x,y)=>add(x+y+.6,()=>{ const q=P(x,y,.6), n=E>=1.8?2:1; for(let i=0;i<n;i++) for(let j=0;j<n;j++) px(q[0]+i,q[1]-j,(i+j)%3===2?C.encre:C.blanc); });
+  const plot=(x,y)=>add(x+y,()=>{ const q=P(x,y,0); px(q[0],q[1],C.chantier); if(E>=1.5){ px(q[0]-1,q[1],C.chantier); px(q[0]+1,q[1],C.chantier2); px(q[0],q[1]-1,C.chantier); if(E>=1.8) px(q[0],q[1]-2,C.blanc); } });
   const chemin=(Q,dur,del)=>{ const L=[]; let tot=0; for(let i=0;i+1<Q.length;i++){ const d=Math.hypot(Q[i+1][0]-Q[i][0],Q[i+1][1]-Q[i][1]); L.push(d); tot+=d; }
     let u=(((sec+(del||0))%dur)/dur)*tot; for(let i=0;i<L.length;i++){ if(u<=L[i]){ const f=L[i]?u/L[i]:0; return [Q[i][0]+(Q[i+1][0]-Q[i][0])*f, Q[i][1]+(Q[i+1][1]-Q[i][1])*f]; } u-=L[i]; } return Q[Q.length-1]; };
   const MAILLOT=C.jaune, CHASUBLE=C.rouge, GARDIEN=C.herbe3, GAMIN=C.bleu, COACH=C.clair;
@@ -332,8 +369,8 @@ function peindre(R, image){
   objets.sort((a,b)=>a[0]-b[0]); for(const [,fn] of objets){ CH=false; fn(); }
   return buf;
 }
-function rendre(ctx,R,image){ const buf=peindre(R,image); ctx.putImageData(new ImageData(buf,GW,GH),0,0); }
-return {GW,GH,rendre,peindre};
+function rendre(ctx,R,image,E){ E=E||1; const {GW,GH}=cadre(E); ctx.putImageData(new ImageData(peindre(R,image,E),GW,GH),0,0); }
+return {rendre,peindre,cadre};
 })();
 
 /* ============================================================
@@ -357,8 +394,10 @@ const saison=a=>a+'-'+String((a+1)%100).padStart(2,'0');
 const R={terrains:1,physique:1,medical:1,vie:2,academie:1,video:1,chateau:0,annee:1996,chantier:null};
 const $=id=>document.getElementById(id);
 const ctx=$('ecran').getContext('2d');
-let image=0;
-function peins(){ CAMPUSPIX.rendre(ctx,R,image); }
+let image=0, FIN=1;
+function peins(){ CAMPUSPIX.rendre(ctx,R,image,FIN); }
+function finesse(e){ FIN=e; const c=CAMPUSPIX.cadre(e); $('ecran').width=c.GW; $('ecran').height=c.GH;
+  document.querySelectorAll('#segFin button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.e===e))); peins(); }
 
 function construirePupitre(){
   const pp=$('pupitre'), bas=pp.querySelector('.bas');
@@ -371,6 +410,7 @@ function construirePupitre(){
   $('rAn').oninput=e=>{ R.annee=+e.target.value; for(const f of FAMS) R[f.id]=Math.min(R[f.id],nivMax(f,R.annee)); if(!chateauOuvert(R)) R.chateau=0; maj(); };
   $('bZero').onclick=()=>{ for(const f of FAMS) R[f.id]=0; R.chateau=0; R.chantier=null; maj(); };
   $('bMax').onclick=()=>{ R.annee=Math.max(R.annee,2004); for(const f of FAMS) R[f.id]=3; R.chateau=1; maj(); };
+  $('segFin').onclick=e=>{ const b=e.target.closest('button'); if(b) finesse(+b.dataset.e); };
   $('sCh').onchange=e=>{ const v=e.target.value; R.chantier=v?{id:v,n:v==='chateau'?1:R[v]}:null; maj(); };
 }
 function maj(){

@@ -67,3 +67,10 @@ internat, centre agréé, académie avec la tribune des U17 ; le bois, puis le c
 les terrains reprend les séances d'origine (footing, toro, match, slalom des gamins, frappes) à quatre images par
 seconde. Un chantier dessine le niveau en orange avec sa grue. Signature : `CAMPUSPIX.rendre(ctx, R, image)`.
 **Reste à faire** : le regard de l'auteur, puis le branchement dans le jeu à la place de la maquette du Campus.
+**Finesse (13/11/2026)** : l'auteur demande « plus détaillé, moins pixelisé, toujours rétro ». Le moteur prend
+désormais une finesse `E` (`CAMPUSPIX.rendre(ctx, R, image, E)`, `cadre(E)` donne la taille du canevas) : 1 = 320 x 224
+comme le stade, 1,5 = 480 x 336, 2 = 640 x 448. Le plan ne bouge pas ; à grille fine, les petits sujets sont redessinés
+au lieu d'être grossis (joueurs avec jambes qui courent, short et maillot ; arbres ronds ombrés et cernés ; vitres sur
+deux pixels avec appui ; tuiles ; acrotère et édicule sur les toits-terrasses ; voitures, croix, parasols, plots). Un
+choix « Finesse du dessin » sur le pupitre. Mesuré dans Chrome : 12 à 24 ms par image, quelle que soit la finesse.
+À trancher avec l'auteur avant la greffe, et le stade devra suivre la même finesse sur l'écran Club.
