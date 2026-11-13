@@ -665,7 +665,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.83"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.84"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -21879,7 +21879,7 @@ function pointsDefis(){ return prog().defis.reduce((n,d)=>n+((DEFI_DE[d.id]||{})
 function defiGagne(id, pid, muet){ // vrai si le défi vient d'être réussi (il ne l'était pas) ; muet : pas de notification (rattrapage)
   if(!DEFI_DE[id] || defiReussi(id)) return false;
   prog().defis.push({id, t:Date.now(), pid:pid||null});
-  if(!muet && typeof G!=="undefined" && G) notif("🎯 DÉFI RÉUSSI : "+DEFI_DE[id].nom+" · +"+DEFI_DE[id].pts+" pts");
+  if(!muet && typeof G!=="undefined" && G) (G.defisNeufs=G.defisNeufs||[]).push(id); // annoncé par sa fenêtre après le match (ouvreDefis), pas au debrief
   return true;
 }
 function mesMatchs(){ // les matchs de championnat du club, dans l'ordre : {dom, bp, bc}
@@ -21891,14 +21891,45 @@ function mesMatchs(){ // les matchs de championnat du club, dans l'ordre : {dom,
   return out;
 }
 function plusLongueSerie(ms, test){ let n=0, m=0; for(const x of ms){ n=test(x)?n+1:0; if(n>m) m=n; } return m; }
-function defisJournee(){
-  const ms=mesMatchs(), x=ms[ms.length-1]; if(!x) return;
-  let neuf=false; const g=(id)=>{ if(defiGagne(id, G.pid)) neuf=true; };
+/* LES CINQ DÉFIS D'UN MATCH (v2.81, demande de l'auteur du 13/11/2026) : le samedi, la coupe nationale et l'Europe.
+   x = {dom, bp, bc, neutre} ; une finale sur terrain neutre n'est pas un match à l'extérieur. Les séries (six victoires
+   d'affilée, dix sans défaite…) restent des défis de championnat : elles lisent G.histo. */
+function defisUnMatch(x, sansSauver){
+  let neuf=false; const g=id=>{ if(defiGagne(id, G.pid)) neuf=true; };
   if(x.bp>x.bc) g("vic");
-  if(x.bp>x.bc && !x.dom) g("ext");
+  if(x.bp>x.bc && !x.dom && !x.neutre) g("ext");
   if(x.bc===0) g("zero");
   if(x.bp-x.bc>=3) g("large");
   if(x.bp>=5) g("cinq");
+  if(neuf && !sansSauver) progSauve(true);
+  return neuf;
+}
+/* Un soir de coupe ou d'Europe, au coup de sifflet (le score est alors définitif : une consigne changée en direct peut
+   l'avoir réécrit). h, a : les deux clubs ; sh, sa : le score (prolongations comprises, pas les tirs au but). */
+function defisSoir(h, a, sh, sa, neutre){
+  if(!G || (h!==G.monClub && a!==G.monClub)) return false;
+  const dom=h===G.monClub;
+  return defisUnMatch({dom, neutre:!!neutre, bp:dom?sh:sa, bc:dom?sa:sh});
+}
+/* LA FENÊTRE DU DÉFI RÉUSSI : juste après le match, la bonne nouvelle a sa fenêtre. Ce qui n'a pas pu s'annoncer
+   après un match (les défis de fin de saison) s'ouvre au retour au calendrier, avant le debrief. */
+function ouvreDefis(suite){
+  suite=suite||(()=>{});
+  const ids=(G && G.defisNeufs||[]).filter(id=>DEFI_DE[id]); if(G) G.defisNeufs=[];
+  if(!ids.length || EN_TEST()) return suite();
+  const fiche=document.getElementById("fiche"); if(!fiche) return suite();
+  const club=d=>{ const c=d.club?(metaClub(d.club)||{nom:d.club}):null; return c?`<b>${esc(c.nom)}</b> · `:""; };
+  fiche.innerHTML=`<div class="fbox ctr" style="max-width:420px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:18px">
+      <h2 style="color:#ffd24a">🎯 ${ids.length>1?"DÉFIS RÉUSSIS":"DÉFI RÉUSSI"}</h2>
+      ${ids.map(id=>{ const d=DEFI_DE[id]; return `<p style="margin-top:10px;font-size:17px">${club(d)}${esc(d.nom)}</p><p class="trPts" style="font-size:24px;margin:2px 0">+${FMT(d.pts)} <span class="dim">pts</span></p>`; }).join("")}
+      <p class="dim" style="margin-top:8px">⭐ ${FMT(soldePoints())} pts</p>
+      <p style="margin-top:12px"><button class="big" id="bDefiOk">Génial !</button></p></div>`;
+  fiche.style.display="flex";
+  fiche.querySelector("#bDefiOk").onclick=()=>{ fermeFiche(); suite(); };
+}
+function defisJournee(){
+  const ms=mesMatchs(), x=ms[ms.length-1]; if(!x) return;
+  let neuf=defisUnMatch(x, true); const g=(id)=>{ if(defiGagne(id, G.pid)) neuf=true; };
   if(plusLongueSerie(ms, m=>m.bp>m.bc)>=6) g("serie6");
   if(plusLongueSerie(ms, m=>m.bp>=m.bc)>=10) g("invaincu10");
   if(ms.filter(m=>m.bc===0).length>=10) g("murs10");
@@ -23360,7 +23391,7 @@ function ecranCalendrier(){
   // à la place du match du samedi (panneauRdv), et la semaine passe d'abord — on compose son équipe de coupe en
   // sachant qui est blessé. Seule la promo billets attend : elle concerne le samedi, pas le mercredi.
   // Chaque étape se consume (G.incident, G.confPresse, G.notifs… remis à zéro) : revenir sur l'écran ne rejoue rien.
-  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDebrief(rdv?null:ouvrePromo)));
+  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDefis(()=>ouvreDebrief(rdv?null:ouvrePromo))));
   ouvreLivraison(()=>ouvreLivraisonCentre(()=>{
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); } }));
@@ -23903,6 +23934,7 @@ function directSemaine(o){
       tk.insertAdjacentHTML("afterbegin", feuilleRdvHTML(H, A, r.sh, r.sa, r.tab, lignes, o.affSoir, o.stade, R?hdmRdv(Hc, Ac, R):null));
       tk.scrollTop=0;
       o.fin(tk);
+      defisSoir(H.id, A.id, r.sh, r.sa, o.neutre); ouvreDefis(); // les défis de match comptent aussi en coupe et en Europe (v2.81)
     });
   };
   /* LE MOMENT DE LA 90e (v2.56), comme le samedi : la même fenêtre (ouvreMoment) pour les six moments à choix, le même
@@ -24170,7 +24202,7 @@ function lanceEuroLeg(H, A, ed, legScore){
       else ed.tie=euroClotureAvec(ed.aid, ed.bid, ed.tie.l1, [r.sh, r.sa], tabR); // au retour, l'hôte est b : [buts b, buts a]
     }
   };
-  directSemaine({compet:"EU", neutre:!!ed.finale, H, A, Hc:euroClub(H.id)||H, Ac:euroClub(A.id)||A, S, r, gen, instant:!!ed._instant, onzeFn:onzeEuro,
+  directSemaine({compet:"EU", H, A, Hc:euroClub(H.id)||H, Ac:euroClub(A.id)||A, S, r, gen, instant:!!ed._instant, onzeFn:onzeEuro, neutre:!!ed.finale,
     lignes:R ? R.ev : gen.ev, affSoir:R ? R.aff : gen.aff, stade:H.stade||"le stade",
     // le reste du match se rejoue SOUS LE MAILLOT EUROPÉEN : les buts effacés sortent de butsC, pas du championnat
     rejoue:(from, mNow, mh, ma)=>euroRejoue(S, H.id, A.id, from, mNow, mh, ma),
@@ -24796,6 +24828,7 @@ function lanceMatch(instant){
       // Le bouton de sortie vit désormais au bas de la seconde carte : on passe donc par elle.
       tk.scrollTop=0;
       rendMultiplex(document.getElementById("mpxHote"), 1, ()=>montre("calendrier"));
+      ouvreDefis(); // un défi relevé ce samedi : sa fenêtre, tout de suite (v2.81)
     };
     // coup(s) du chapeau du match : une fenêtre dédiée avant la feuille, le héros repart avec le ballon
     const chaps=[...new Set(buts.filter(l=>l.g&&l.g.chapeau).map(l=>l.g.but))]

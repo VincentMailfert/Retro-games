@@ -12,6 +12,7 @@
    I) l'écran : la vitrine, les blasons des clubs sacrés, les trois familles de défis
    J) une vraie carrière de six saisons : pas d'erreur, chaque défi de match réussi est justifié par un score
    K) les défis de club (v2.76) : clubs réels du bon championnat, règles, fin de saison, rattrapage, fiche, écran
+   N) v2.81 : les cinq défis de match comptent en coupe et en Europe ; la fenêtre du défi réussi après le match
    L) la boutique (v2.77) : solde, limites d'achat, effets des coups de pouce et des avantages permanents, fusion
    M) la jeune légende (v2.80) : la pépite de la saison change de club au départ, sans doublon ni trou
    Usage : node harness-trophees.cjs                                                            */
@@ -52,7 +53,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,classement,clubById,SAISONS,prog,progMag,progVide,progNette," +
   "progFusionne,progEmpreinte,ecranAccueil,ecranTrophees,DEFIS,DEFI_DE,defiReussi,pointsDefis,defiGagne,mesMatchs," +
-  "defisJournee,defisFinSaison,defisCarriere,defisConstate,vitrine,DEFIS_CLUB,defiClubRempli,defisClubDe,ficheClubAccueil,metaClub,BOUTIQUE,soldePoints,depensePoints,achete,achatPossible,acquis,boutiqueHTML,clubById,pepiteDuDepart," +
+  "defisJournee,defisFinSaison,defisSoir,ouvreDefis,defisCarriere,defisConstate,vitrine,DEFIS_CLUB,defiClubRempli,defisClubDe,ficheClubAccueil,metaClub,BOUTIQUE,soldePoints,depensePoints,achete,achatPossible,acquis,boutiqueHTML,clubById,pepiteDuDepart," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 
@@ -82,18 +83,18 @@ let api = appareil(nouveauLS());
 /* ===== B) les défis de match ===== */
 console.log("B) Les défis de match tombent au soir de la journée");
 {
-  api.nouvellePartie(api.SAISONS["1995-96"].d1[0], "1995-96"); const G = api.getG(); G.histo = []; vide(api); G.notifs = [];
+  api.nouvellePartie(api.SAISONS["1995-96"].d1[0], "1995-96"); const G = api.getG(); G.histo = []; vide(api); G.notifs = []; G.defisNeufs = [];
   journee(G, true, 1, 1); api.defisJournee();
   ok(ids(api).length === 0, "un nul 1-1 ne rapporte rien");
   journee(G, true, 2, 1); api.defisJournee();
   ok(ids(api).join() === "vic", "une victoire à domicile : « Une première victoire » seulement");
-  ok(G.notifs.some(n => /DÉFI RÉUSSI : Une première victoire · \+10 pts/.test(n)), "le debrief l'annonce");
+  ok(G.defisNeufs.join() === "vic" && !G.notifs.some(n => /DÉFI/.test(n)), "sa fenêtre l'annonce, pas le debrief");
   journee(G, false, 1, 0); api.defisJournee();
   ok(api.defiReussi("ext") && api.defiReussi("zero"), "1-0 dehors : gagner à l'extérieur, et sans encaisser");
   journee(G, true, 5, 2); api.defisJournee();
   ok(api.defiReussi("large") && api.defiReussi("cinq"), "5-2 : trois buts d'écart, cinq buts");
-  const avant = G.notifs.length; journee(G, true, 3, 0); api.defisJournee();
-  ok(G.notifs.length === avant, "rien de neuf, rien d'annoncé");
+  const avant = G.defisNeufs.length; journee(G, true, 3, 0); api.defisJournee();
+  ok(G.defisNeufs.length === avant, "rien de neuf, rien d'annoncé");
   ok(!api.defiReussi("serie6"), "quatre victoires d'affilée, pas encore six");
   journee(G, true, 1, 0); journee(G, true, 1, 0); api.defisJournee();
   ok(api.defiReussi("serie6"), "six victoires d'affilée");
@@ -157,7 +158,7 @@ console.log("E) Les défis de la carrière");
 /* ===== F) le rattrapage ===== */
 console.log("F) Le rattrapage depuis les résultats déjà rangés");
 {
-  const G = api.getG(); vide(api); G.notifs = []; const p = api.prog();
+  const G = api.getG(); vide(api); G.notifs = []; G.defisNeufs = []; const p = api.prog();
   p.resultats = [
     { pid: "A", ch: "FR", an: 1, club: "AUX", div: 2, rang: 2, coupes: [] },
     { pid: "A", ch: "FR", an: 2, club: "AUX", div: 1, rang: 1, coupes: ["CN"] },
@@ -165,7 +166,7 @@ console.log("F) Le rattrapage depuis les résultats déjà rangés");
   ];
   const n = api.defisConstate();
   ok(["montee", "podium", "titre", "coupe", "double", "europe"].every(api.defiReussi), `six défis rattrapés (${n})`);
-  ok(G.notifs.length === 0, "sans un mot au debrief");
+  ok(G.notifs.length === 0 && G.defisNeufs.length === 0, "sans un mot, ni au debrief ni en fenêtre");
   ok(api.defisConstate() === 0, "repasser ne rapporte plus rien");
   ok(!api.defiReussi("vic") && !api.defiReussi("forteresse"), "un défi de match ou de G.histo ne se rattrape pas");
 }
@@ -267,9 +268,9 @@ console.log("K) Les défis de club");
   ok(api.defiClubRempli(D("cMON1"), R({ club: "MON", coupes: ["C1"] })) && !api.defiClubRempli(D("cMON1"), R({ club: "MON", coupes: ["C3"] })), "la C1, pas une autre coupe");
   ok(api.defiClubRempli(D("cARS1"), R({ club: "ARS", ch: "ANG", rang: 1 }), true) && !api.defiClubRempli(D("cARS1"), R({ club: "ARS", ch: "ANG", rang: 1 }), null), "les invincibles ne se rattrapent pas sans les matchs");
   /* en fin de saison, dans une vraie partie */
-  api.nouvellePartie("GUI", "1995-96"); const G = api.getG(); vide(api); G.notifs = []; G.histo = []; G.div = 1;
+  api.nouvellePartie("GUI", "1995-96"); const G = api.getG(); vide(api); G.notifs = []; G.defisNeufs = []; G.histo = []; G.div = 1;
   api.defisFinSaison(15, []);
-  ok(api.defiReussi("cGUI1") && G.notifs.some(n => /Se maintenir en première division · \+400 pts/.test(n)), "Guingamp 15ᵉ : défi de club réussi, annoncé au debrief");
+  ok(api.defiReussi("cGUI1") && G.defisNeufs.includes("cGUI1"), "Guingamp 15ᵉ : défi de club réussi, sa fenêtre l'annoncera");
   ok(!api.defiReussi("cGUI2") && !api.defiReussi("cLEN1"), "rien d'autre");
   /* rattrapage */
   vide(api); api.prog().resultats = [{ pid: "x", ch: "ANG", dep: "ANG-1995-96", an: 2, club: "NEW", div: 1, rang: 1, coupes: [] }];
@@ -381,6 +382,26 @@ console.log("M) La jeune légende");
   /* une saison jouée avec elle, sans erreur */
   let err = null; try { while (!G.finie) a2.jouerJournee(); } catch (e) { err = e; }
   ok(!err, "une saison entière avec la légende, sans erreur" + (err ? " : " + err.message : ""));
+}
+
+/* ===== N) les défis de match en coupe et en Europe, et leur fenêtre (v2.81) ===== */
+console.log("N) Coupe, Europe et fenêtre du défi réussi");
+{
+  api.nouvellePartie("GUI", "1995-96"); const G = api.getG(); vide(api); G.notifs = []; G.defisNeufs = []; G.histo = [];
+  const moi = G.monClub;
+  ok(api.defisSoir("NAN", "PSG", 5, 0) === false && ids(api).length === 0, "un match de coupe sans votre club ne rapporte rien");
+  api.defisSoir("NAN", moi, 2, 2);
+  ok(ids(api).length === 0, "un nul en coupe (même gagné aux tirs au but) n'est pas une victoire");
+  api.defisSoir(moi, "NAN", 1, 0, true);
+  ok(api.defiReussi("vic") && api.defiReussi("zero") && !api.defiReussi("ext"), "une finale gagnée 1-0 sur terrain neutre : victoire et cage inviolée, pas l'extérieur");
+  api.defisSoir("NAN", moi, 0, 5);
+  ok(api.defiReussi("ext") && api.defiReussi("large") && api.defiReussi("cinq"), "5-0 chez l'adversaire en coupe : l'extérieur, trois buts d'écart, cinq buts");
+  ok(G.defisNeufs.join() === "vic,zero,ext,large,cinq", "les cinq attendent leur fenêtre, dans l'ordre");
+  ok(!api.defiReussi("serie6") && G.histo.length === 0, "la coupe ne touche ni aux séries ni au championnat");
+  let suivi = false; api.ouvreDefis(() => { suivi = true; });
+  ok(suivi && G.defisNeufs.length === 0, "la fenêtre consomme la file et rend la main");
+  api.ouvreDefis(); ok(G.defisNeufs.length === 0, "repasser n'ouvre rien");
+  ok(!G.notifs.some(n => /DÉFI/.test(n)), "rien au debrief");
 }
 
 console.log(FAILS ? `\n${FAILS} ÉCHEC(S)` : "\nTOUT EST VERT");
