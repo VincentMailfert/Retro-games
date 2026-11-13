@@ -74,3 +74,12 @@ au lieu d'être grossis (joueurs avec jambes qui courent, short et maillot ; arb
 deux pixels avec appui ; tuiles ; acrotère et édicule sur les toits-terrasses ; voitures, croix, parasols, plots). Un
 choix « Finesse du dessin » sur le pupitre. Mesuré dans Chrome : 12 à 24 ms par image, quelle que soit la finesse.
 À trancher avec l'auteur avant la greffe, et le stade devra suivre la même finesse sur l'écran Club.
+
+## Branché dans le jeu en 640 (v2.79, 13/11/2026)
+
+L'auteur a choisi la grille fine, pour le stade comme pour le campus. `STADEPIX` a reçu la même finesse réglable que
+`CAMPUSPIX` (public avec têtes et bras levés, quatre rangées par gradin, arbres ronds, projecteurs à lampes en damier,
+voitures, drapeaux, parasols), à vingt pixels près identique à l'ancien rendu en finesse 1. Avant la greffe, main (v2.78)
+a été ramenée dans cette branche (seul conflit : la ligne `VERSION`). Les deux moteurs sont greffés, l'écran Club les
+peint en 640 ; vérifié dans Chrome sur ordinateur et au format téléphone, zéro erreur ; harnais stade, centre, multiplex,
+sauvegardes, fenêtres et général verts. Restent en dessin vectoriel : les cartes de livraison et le choix du style.

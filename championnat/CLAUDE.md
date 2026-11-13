@@ -2765,6 +2765,17 @@ toujours « raconter quelque chose ».
   garde plus qu'une courte chaîne. **`STADE3D.vueMaquette` n'est plus appelée par le jeu** (les harnais la lisent encore) ;
   **`STADE3D.vueVille` sert toujours** aux cartes de livraison et au choix du style, qui restent en dessin vectoriel :
   les passer en pixel art est la suite prévue, avec le centre d'entraînement.
+- **STADE ET CAMPUS EN PIXEL ART, GRILLE FINE (v2.79, 13/11/2026)** : l'écran Club dessine ses deux maquettes en vrai pixel
+  art, à la finesse choisie par l'auteur (« plus détaillé, moins pixelisé, toujours rétro ») : `PX_FIN` = 2, soit une grille
+  de 640 x 448 au lieu de 320 x 224. Le stade vient de `STADEPIX` (v2.63, regreffé : `rendre(ctx, R, image, E)`), le campus
+  de `CAMPUSPIX`, greffé depuis `docs/prototype-centre-pixel.html` par `node docs/greffe-campus-pixel.cjs .` (ne jamais
+  retoucher le bloc à la main). Le modèle du campus (coûts, effets, paliers) reste dans `CENTRE3D` : CAMPUSPIX ne fait que
+  dessiner, et `maquetteCentre()` rend désormais une toile `canvas.pxCampus` (état dans `data-r`, le niveau en chantier y est
+  déjà dessiné en orange avec sa grue). `peintStades()` peint les deux toiles : un tic de 250 ms, le stade à deux images par
+  seconde (`PX_IMAGE>>1`), le campus à quatre ; une toile déjà peinte et cachée par un sous-onglet attend d'être revue.
+  Le badge du chantier du campus vit HORS de la zone qui défile au téléphone (`badgeCentre()`, dans `.cadreCw`), sinon la
+  maquette, ouverte centrée, le coupait. **Restent en dessin vectoriel** : les cartes de livraison du stade et du campus
+  (`CENTRE3D.scene`) et le choix du style du stade. Notes de chantier : `docs/chantier-pixel-art.md`.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente

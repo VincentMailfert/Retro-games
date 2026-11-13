@@ -377,9 +377,10 @@
   .maquette{margin:4px 0 10px; border-radius:0; overflow:hidden; background:#000924; border:4px solid #1b2c49; box-shadow:inset 0 0 0 2px #000, 0 0 0 2px #000, 4px 4px 0 2px rgba(0,0,0,.55);} /* v2.62 : cadre à angles droits, façon console */
   .maquette svg{display:block; width:100%; height:auto;}
   .maquette{position:relative;} /* v2.63 : la maquette du stade est un canvas en pixel art, légende et badge posés dessus */
-  .maquette canvas.pxStade{display:block; width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
+  .maquette canvas.pxStade, .maquette canvas.pxCampus{display:block; width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
   .pxLeg{position:absolute; left:10px; right:10px; bottom:7px; display:flex; justify-content:space-between; gap:10px; font-family:var(--font-led); font-size:13px; pointer-events:none;}
   .pxLeg b{font-weight:normal; color:var(--jaune); text-shadow:0 0 2px currentColor,0 1px 0 rgba(0,0,0,.6);} .pxLeg span{color:var(--clair); text-shadow:0 1px 0 rgba(0,0,0,.6);}
+  .cadreCw{position:relative;} .cadreCw>.pxBadge{left:12px; top:12px;}
   .pxBadge{position:absolute; left:8px; top:8px; max-width:calc(100% - 16px); padding:3px 8px; background:#1a1300; border:2px solid var(--jaune); color:var(--jaune); font-family:var(--font-ui); font-size:19px; line-height:1.1;}
   .pxCible{position:absolute; min-width:44px; min-height:44px; padding:0; background:none; border:0; cursor:pointer;}
   .pxCible:hover,.pxCible:focus-visible{background:rgba(255,210,74,.18); outline:2px solid var(--jaune);}
@@ -421,7 +422,7 @@
   .livrC .livrChiffres{line-height:1.15;}
   .livrPalier{font-family:'VT323',monospace; font-size:22px; color:var(--vert); grid-column:1; margin:0;}
   .glisse{display:none; font-size:13px; margin:0 0 6px;}
-  @media (max-width:600px){ .cadreC{overflow-x:auto; overscroll-behavior-x:contain;} .cadreC svg{width:190%; max-width:none;} .glisse{display:block;} }
+  @media (max-width:600px){ .cadreC{overflow-x:auto; overscroll-behavior-x:contain;} .cadreC svg, .cadreC canvas.pxCampus{width:190%; max-width:none;} .glisse{display:block;} }
   .campTete{display:flex; align-items:baseline; gap:8px; margin-top:6px;}
   .campPts{font-family:'Silkscreen','VT323',monospace; font-size:24px; color:var(--jaune); font-variant-numeric:tabular-nums;}
   .campJauge{height:8px; background:var(--panel2); border:1px solid var(--line); border-radius:4px; overflow:hidden; margin:4px 0 10px;}
@@ -660,7 +661,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.78"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.79"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -16341,19 +16342,22 @@ function ouvreLivraisonCentre(suite){
   bt.onclick=()=>{ window._penEnCours=false; fermeFiche(); suite(); };
   if(bt.focus) bt.focus({preventScroll:true});
 }
+function badgeCentre(){ const ch=G.campus&&G.campus.chantier; if(!ch) return "";
+  const nom=ch.fam==="chateau"?"Le château":CENTRE3D.nomNiveau(CENTRE3D.FAM[ch.fam], ch.niv, anneeJeu());
+  return `<div class="pxBadge">🏗 ${esc(nom)} · J-${ch.reste}</div>`; }
 /* La maquette de l'écran Club, en cache comme celle du stade : elle ne se redessine que si le campus a bougé. */
 let CACHE_CENTRE={k:null, svg:""};
 function maquetteCentre(){
   const R=etatCampus(), ch=G.campus&&G.campus.chantier;
   const k=JSON.stringify(R)+"|"+(ch?ch.fam+"|"+ch.niv+"|"+ch.reste:"");
   if(CACHE_CENTRE.k===k) return CACHE_CENTRE.svg;
-  let svg=CENTRE3D.scene(R, ch?{ch:{fam:ch.fam, niv:ch.niv}}:{}).svg;
-  if(ch){ // badge de travaux dans le coin haut-gauche, comme au stade
-    const nom=ch.fam==="chateau"?"Le château":CENTRE3D.nomNiveau(CENTRE3D.FAM[ch.fam], ch.niv, R.annee);
-    const txt="🏗 "+nom+" · J-"+ch.reste, bw=Math.min(660, 26+txt.length*8.2);
-    svg=svg.replace(/<\/svg>$/, `<g><rect x="48" y="44" width="${bw.toFixed(0)}" height="26" rx="3" fill="#1a1300" stroke="#ffd24a" stroke-width="1.4"/>
-      <text x="58" y="63" fill="#ffd24a" font-family="VT323,monospace" font-size="19">${esc(txt)}</text></g></svg>`);
-  }
+  // v2.79 : le campus en pixel art (CAMPUSPIX), peint par peintStades() comme le stade. Pendant un chantier, le
+  // niveau en travaux se dessine déjà, en orange et avec sa grue.
+  const Rp=Object.assign({}, R, {chantier:null});
+  if(ch){ if(ch.fam==="chateau") Rp.chateau=1; else Rp[ch.fam]=ch.niv; Rp.chantier={id:ch.fam, n:ch.fam==="chateau"?1:ch.niv}; }
+  const [w,h]=pxTaille(CAMPUSPIX.cadre(1));
+  let svg=`<canvas class="pxCampus" width="${w}" height="${h}" data-r='${JSON.stringify(Rp)}' role="img" aria-label="${esc("Maquette du campus, "+CENTRE3D.palier(R))}"></canvas>`;
+  // le badge du chantier vit hors de la zone qui défile au téléphone (badgeCentre), sinon il part avec la maquette
   CACHE_CENTRE={k, svg};
   return svg;
 }
@@ -16371,7 +16375,7 @@ function centreHTML(){
   const chateau=R.chateau?"":`<button class="bChateau${mc?" off":""}" id="bChateau"${mc?` aria-disabled="true" title="${esc(mc)}"`:""}>Acheter le château<small>${bloque?esc(mc):`${MMC(C.cout*1e6)} · ${C.duree} journées · définitif`}</small></button>`;
   return `<h3 style="margin-top:14px">${esc(pal)}</h3>
      <p class="dim" style="font-size:13px">${esc(CENTRE3D.SOUS_PALIER[pal]||"")}</p>
-     <div class="maquette cadreC" id="cadreC">${maquetteCentre()}</div>
+     <div class="cadreCw"><div class="maquette cadreC" id="cadreC">${maquetteCentre()}</div>${badgeCentre()}</div>
      <p class="glisse dim">Faites glisser la maquette du doigt pour faire le tour du campus.</p>
      <div class="campTete"><span class="campPts">${p}</span><span class="dim">/ 18</span></div>
      <div class="campJauge"><i style="width:${Math.round(jauge)}%"></i></div>
@@ -25706,7 +25710,10 @@ const C=Object.fromEntries(Object.entries({
 }).map(([k,v])=>[k,hex(v)]));
 const hasard=(a,b)=>{ let t=(a*374761393+b*668265263)|0; t=(t^(t>>>13))*1274126177|0; return ((t^(t>>>16))>>>0)/4294967296; };
 
-function rendre(ctx, R, image){
+function rendre(ctx, R, image, E){
+  // E = la finesse : 1 donne la grille de base (320 x 224), 2 une grille deux fois plus fine (640 x 448). Le plan ne
+  // bouge pas ; les petits sujets (public, arbres, projecteurs, drapeaux, voitures) sont redessinés, pas grossis.
+  E=E||1; const GW=Math.round(320*E), GH=Math.round(224*E), S=n=>Math.max(1,Math.round(n*E));
   const buf=new Uint8ClampedArray(GW*GH*4);
   const px=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return; const i=(y*GW+x)*4; buf[i]=c[0]; buf[i+1]=c[1]; buf[i+2]=c[2]; buf[i+3]=255; };
   const lit=(x,y)=>{ const i=(y*GW+x)*4; return [buf[i],buf[i+1],buf[i+2]]; };
@@ -25723,8 +25730,8 @@ function rendre(ctx, R, image){
   const hN=nN*RZ, hS=nS*RZ, hE=nE*RZ, hO=nO*RZ, zMax=Math.max(hN,hS,hE,hO)+(toit?8:0)+(ecl===2?30:10);
   const G=1.4+Math.max(0,Math.min(1,(R.cap-5000)/95000))*.5;   // les annexes grossissent avec le stade, pour rester lisibles quand la vue recule
   const m=16+12*G, xa=-(nO*D+m), xb=L+nE*D+m, ya=-(nN*D+m), yb=W+nS*D+m;
-  const k=Math.min(1.3, (GW-6)/((xb-ya)-(xa-yb)), (GH-26)/(((xb+yb)-(xa+ya))/2+zMax*1.05)), kz=k*1.05;
-  const ox=GW/2-((xb-ya)+(xa-yb))/2*k, oy=(GH-14)/2-((xb+yb)+(xa+ya))/4*k+zMax*kz/2+2;
+  const k=Math.min(1.3*E, (GW-6*E)/((xb-ya)-(xa-yb)), (GH-26*E)/(((xb+yb)-(xa+ya))/2+zMax*1.05)), kz=k*1.05;
+  const ox=GW/2-((xb-ya)+(xa-yb))/2*k, oy=(GH-14*E)/2-((xb+yb)+(xa+ya))/4*k+zMax*kz/2+2*E;
   let T=null;   // loupe posée sur une annexe : {x, y, g} grossit tout autour de son point d'ancrage
   const P=(x,y,z)=>{ z=z||0; if(T){ x=T.x+(x-T.x)*T.g; y=T.y+(y-T.y)*T.g; z*=T.g; } return [Math.round(ox+(x-y)*k), Math.round(oy+(x+y)*k/2-z*kz)]; };
   const quad=(pts,c,bord)=>poly(pts.map(p=>P(p[0],p[1],p[2])),c,bord);
@@ -25733,9 +25740,13 @@ function rendre(ctx, R, image){
   const X0=-nO*D, X1=L+nE*D, Y1=W+nS*D, XM=-4, niv=f=>Math.max(0,Math.min(3,Math.round(R[f]||0)));
   const boite=(x0,x1,y0,y1,z0,z1,cT,cF,cE)=>{ quad([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],cF,C.encre); quad([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],cE,C.encre); quad([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],cT,C.encre); };
   const vitres=(x0,x1,y0,y1,z0,z1,g,c)=>{ const ke=k*(T?T.g:1), pasX=Math.max(2.2/(T?T.g:1),1.9/ke), pasZ=Math.max(2.8/(T?T.g:1),2.2/ke);
-    for(let z=z0+2;z<z1-1;z+=pasZ){ for(let x=x0+1.4;x<x1-.8;x+=pasX){ const q=P(x,y1,z); px(q[0],q[1],hasard(Math.round(x*3)+g,Math.round(z*3))<.7?c:C.encre); }
-      for(let y=y0+1.4;y<y1-.8;y+=pasX){ const q=P(x1,y,z); px(q[0],q[1],hasard(Math.round(y*3)+g+5,Math.round(z*3))<.7?c:C.encre); } } };
+    for(let z=z0+2;z<z1-1;z+=pasZ){ for(let x=x0+1.4;x<x1-.8;x+=pasX){ const q=P(x,y1,z); fen(q[0],q[1],hasard(Math.round(x*3)+g,Math.round(z*3))<.7?c:C.encre); }
+      for(let y=y0+1.4;y<y1-.8;y+=pasX){ const q=P(x1,y,z); fen(q[0],q[1],hasard(Math.round(y*3)+g+5,Math.round(z*3))<.7?c:C.encre); } } };
   const point=(x,y,z,c)=>{ const q=P(x,y,z); px(q[0],q[1],c); };
+  const bloc=(x,y,c)=>{ const s=S(1); for(let i=0;i<s;i++) for(let j=0;j<s;j++) px(x+i,y+j,c); };          // un pixel de la grille de base
+  const fen=(x,y,c)=>{ px(x,y,c); if(E>=1.8){ px(x,y-1,c); if(c!==C.encre) px(x,y+1,C.encre); } };            // une vitre, sur deux pixels à grille fine
+  const drapeau=(h,d,c)=>{ const w=S(2), hh=S(1.5); for(let i=1;i<=w;i++) for(let j=0;j<hh;j++) px(h[0]+d*i,h[1]+j+(E>=1.5&&i>w/2&&(i+image)%2?1:0),c); if(E<1.5) px(h[0]+2*d,h[1]+1,C.encre); };
+  const parasol=(q,c)=>{ const m=S(1); for(let d=0;d<S(2);d++) bloc(q[0],q[1]-d*1,C.beton3); for(let dx=-m;dx<=m;dx++){ px(q[0]+dx,q[1]-S(2),c); if(E>=1.5&&Math.abs(dx)<m) px(q[0]+dx,q[1]-S(2)-1,c); } };
 
   // --- le quartier : nuit, parvis, route, arbres
   for(let i=0;i<GW*GH;i++){ buf[i*4]=C.nuit[0]; buf[i*4+1]=C.nuit[1]; buf[i*4+2]=C.nuit[2]; buf[i*4+3]=255; }
@@ -25743,20 +25754,28 @@ function rendre(ctx, R, image){
   quad([[xa+6,ya+6,0],[xb-6,ya+6,0],[xb-6,yb-6,0],[xa+6,yb-6,0]],C.parvis,R.legende?C.jaune:C.marque);
   quad([[xa-60,yb+2,0],[xb+60,yb+2,0],[xb+60,yb+11,0],[xa-60,yb+11,0]],C.route);
   for(let x=xa-56;x<xb+56;x+=9) ligne(P(x,yb+6.5,0),P(x+4,yb+6.5,0),C.marque);
-  const arbre=(x,y)=>{ const p=P(x,y,0); px(p[0],p[1],C.encre); for(const [dx,dy] of [[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]]) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); };
+  const arbre=(x,y)=>{ const p=P(x,y,0); if(E>=1.5){ const r=2.2*E, tr=Math.round(1.4*E), cy=p[1]-tr-Math.round(r*.8), R2=Math.ceil(r*1.15);
+      for(let d=0;d<=tr;d++){ px(p[0],p[1]-d,C.encre); }
+      for(let dy=-Math.ceil(r);dy<=Math.ceil(r);dy++) for(let dx=-R2;dx<=R2;dx++){ const q=(dx/(r*1.15))**2+(dy/r)**2; if(q>1) continue; const h=hasard(p[0]*3+dx,p[1]*5+dy);
+        px(p[0]+dx,cy+dy, q>.7&&dx+dy>0?C.encre:dx+dy<-r*.6?(h<.25?C.herbe:C.arbre2):(h<.12?C.arbre2:C.arbre)); } return; }
+    px(p[0],p[1],C.encre); for(const [dx,dy] of [[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]]) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); };
   for(let x=xa+2;x<xb;x+=17) arbre(x,ya+2); for(let y=ya+19;y<yb;y+=17) arbre(xa+2,y);
 
   // transports, niveau 1 et plus : le parking, à l'ouest
   if(niv('transport')>=1){ const px0=X0-27, px1=X0-9; quad([[px0,8,0],[px1,8,0],[px1,W-8,0],[px0,W-8,0]],C.route,C.marque);
-    for(let y=11;y<W-10;y+=4.5) for(const x of [px0+3,px0+10]){ if(hasard(Math.round(x),Math.round(y))<.78){ const q=P(x,y,0), c=[C.rouge,C.blanc,C.jaune,C.siege2,C.beton3][Math.floor(hasard(Math.round(y),Math.round(x))*5)]; px(q[0],q[1],c); px(q[0]+1,q[1],c); px(q[0]+2,q[1]+1,c); px(q[0]+1,q[1]+1,C.encre); } } }
+    for(let y=11;y<W-10;y+=4.5) for(const x of [px0+3,px0+10]){ if(hasard(Math.round(x),Math.round(y))<.78){ const q=P(x,y,0), c=[C.rouge,C.blanc,C.jaune,C.siege2,C.beton3][Math.floor(hasard(Math.round(y),Math.round(x))*5)]; if(E<1.5){ px(q[0],q[1],c); px(q[0]+1,q[1],c); px(q[0]+2,q[1]+1,c); px(q[0]+1,q[1]+1,C.encre); continue; }
+      const lg=S(1.6), ht=S(.8); for(let dx=-lg;dx<=lg;dx++){ px(q[0]+dx,q[1]+1,C.encre); for(let dy=0;dy<ht;dy++) px(q[0]+dx,q[1]-dy,c); } for(let dx=-lg+1;dx<=1;dx++){ px(q[0]+dx,q[1]-ht,C.siege); px(q[0]+dx,q[1]-ht-1,c); } } } }
   const lampes=[];
   // public : un pixel par supporter, posé sur les gradins
   const public_=(Q,graine,kop)=>{ const long=Math.hypot(Q[1][0]-Q[0][0],Q[1][1]-Q[0][1]), pas=Math.max(1.6,1.15/k);
-    for(let u=.8;u<long-.4;u+=pas) for(const v of [.3,.72]){ const t=u/long, x=(Q[0][0]+(Q[1][0]-Q[0][0])*t)*(1-v)+(Q[3][0]+(Q[2][0]-Q[3][0])*t)*v, y=(Q[0][1]+(Q[1][1]-Q[0][1])*t)*(1-v)+(Q[3][1]+(Q[2][1]-Q[3][1])*t)*v,
+    const rangees=E>=1.5?[.16,.4,.64,.86]:[.3,.72];
+    for(let u=.8;u<long-.4;u+=pas) for(const v of rangees){ const t=u/long, x=(Q[0][0]+(Q[1][0]-Q[0][0])*t)*(1-v)+(Q[3][0]+(Q[2][0]-Q[3][0])*t)*v, y=(Q[0][1]+(Q[1][1]-Q[0][1])*t)*(1-v)+(Q[3][1]+(Q[2][1]-Q[3][1])*t)*v,
         p=P(x,y,Q[0][2]), h=hasard(p[0]*7+graine,p[1]*13+graine);
-        if(kop||h<R.aff*.92){ const c=h*31%1; px(p[0],p[1]-1,kop?(c<.5?C.blanc:c<.85?C.rouge:C.jaune):c<.34?C.jaune:c<.6?C.blanc:c<.8?C.peau:C.rouge);
-          if(image%2 && hasard(p[0]+image,p[1])<.06) px(p[0],p[1]-2,C.blanc); } } };
-  const fenetres=(a,b,z0,z1,g)=>{ const n=Math.floor(Math.hypot(b[0]-a[0],b[1]-a[1])/4); for(let i=1;i<n;i++) for(let z=z0+3;z<z1-2;z+=4.2){ const p=P(a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n,z); px(p[0],p[1],hasard(i+g,Math.round(z))<.62?C.jaune:C.encre); } };
+        if(kop||h<R.aff*.92){ const c=h*31%1, col=kop?(c<.5?C.blanc:c<.85?C.rouge:C.jaune):c<.34?C.jaune:c<.6?C.blanc:c<.8?C.siege2:C.rouge;
+          if(E<1.5){ px(p[0],p[1]-1,kop||col!==C.siege2?col:C.peau); if(image%2 && hasard(p[0]+image,p[1])<.06) px(p[0],p[1]-2,C.blanc); continue; }
+          px(p[0],p[1]-1,col); px(p[0],p[1]-2,col); px(p[0],p[1]-3,C.peau); if(E>=1.8&&h<.5) px(p[0]+1,p[1]-1,col);
+          if(hasard(p[0]+image,p[1])<(kop?.18:.06)){ px(p[0]-1,p[1]-3,C.peau); px(p[0]+1,p[1]-4,C.peau); } } } };
+  const fenetres=(a,b,z0,z1,g)=>{ const n=Math.floor(Math.hypot(b[0]-a[0],b[1]-a[1])/4); for(let i=1;i<n;i++) for(let z=z0+3;z<z1-2;z+=4.2){ const p=P(a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n,z); fen(p[0],p[1],hasard(i+g,Math.round(z))<.62?C.jaune:C.encre); } };
   const pub=(a,b,z)=>{ const n=Math.max(3,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/(R.led?7:14))); for(let i=0;i<n;i++){ const u=i/n, v=(i+1)/n, q0=[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u], q1=[a[0]+(b[0]-a[0])*v,a[1]+(b[1]-a[1])*v];
       quad([[q0[0],q0[1],0],[q1[0],q1[1],0],[q1[0],q1[1],z],[q0[0],q0[1],z]],R.led?[C.blanc,C.jaune,C.rouge,C.siege2][(i+image)%4]:[C.jaune,C.blanc,C.rouge][i%3],C.encre); } };
 
@@ -25789,12 +25808,13 @@ function rendre(ctx, R, image){
   const pylone=(sx,sy)=>{ if(ecl===3) return; const [x,y]=coin(sx,sy), h=ecl===2?Math.max(34,Math.max(hN,hS,hE,hO)+16):16, a=P(x,y,0), b=P(x,y,h);
     ligne(a,b,C.beton3); ligne([a[0]+1,a[1]],[b[0]+1,b[1]],C.beton);
     const face=-(sx+sy);                    // > 0 : la pelouse est vers nous, on voit les lampes ; < 0 : on voit le dos
-    if(ecl===1){ px(b[0],b[1]-1,C.encre); px(b[0]+(sx>0?-1:1)*(sy>0?-1:1)*(face?0:1)+(face>0?0:0),b[1]-1+(face>0?1:0),face<0?C.beton2:C.jaune); if(face>0) lampes.push([b[0],b[1],4]); return; }
-    if(face!==0){ for(let dx=-3;dx<=3;dx++) for(let dy=-5;dy<=0;dy++) px(b[0]+dx,b[1]+dy,C.encre);
-      if(face>0){ for(let dx=-2;dx<=2;dx++) for(let dy=-4;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,(dx+dy)%2?C.blanc:C.jaune); lampes.push([b[0],b[1]-2,9]); }
-      else for(let dx=-2;dx<=2;dx++) for(let dy=-4;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,dy===-4||dx===-2?C.beton2:C.beton); }
-    else { const s=sx>0?-1:1;                // de profil : une tranche, les lampes du côté de la pelouse
-      for(let dy=-6;dy<=0;dy++){ px(b[0],b[1]+dy,C.encre); px(b[0]-s,b[1]+dy,C.beton); if(dy<0&&dy>-6) px(b[0]+s,b[1]+dy,dy%2?C.jaune:C.blanc); } } };
+    if(ecl===1){ const u=S(1); bloc(b[0],b[1]-u,C.encre); bloc(b[0]+((sx>0?-1:1)*(sy>0?-1:1)*(face?0:1))*u,b[1]-u+(face>0?u:0),face<0?C.beton2:C.jaune); if(face>0) lampes.push([b[0],b[1],4]); return; }
+    const a3=S(3), a5=S(5), a2=S(2), a4=S(4);
+    if(face!==0){ for(let dx=-a3;dx<=a3;dx++) for(let dy=-a5;dy<=0;dy++) px(b[0]+dx,b[1]+dy,C.encre);
+      if(face>0){ for(let dx=-a2;dx<=a2;dx++) for(let dy=-a4;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,(dx+dy)%2?C.blanc:C.jaune); lampes.push([b[0],b[1]-a2,9]); }
+      else for(let dx=-a2;dx<=a2;dx++) for(let dy=-a4;dy<=-1;dy++) px(b[0]+dx,b[1]+dy,dy===-a4||dx===-a2?C.beton2:C.beton); }
+    else { const s=sx>0?-1:1, a6=S(6);         // de profil : une tranche, les lampes du côté de la pelouse
+      for(let dy=-a6;dy<=0;dy++){ for(let w=0;w<S(1);w++){ px(b[0]+s*w,b[1]+dy,C.encre); px(b[0]-s*(1+w),b[1]+dy,C.beton); } if(dy<0&&dy>-a6) px(b[0]+s*S(1),b[1]+dy,dy%2?C.jaune:C.blanc); } } };
   // la lumière tombe sur la pelouse, au pied de chaque projecteur : un damier d'herbe claire
   const flaque=(sx,sy)=>{ if(ecl===3) return; const c=P(sx<0?16:L-16, sy<0?13:W-13, 0), rx=Math.round((ecl===2?22:11)*k), ry=Math.max(2,Math.round(rx*.5));
     for(let dx=-rx;dx<=rx;dx++) for(let dy=-ry;dy<=ry;dy++){ const X=c[0]+dx, Y=c[1]+dy; if(X<0||Y<0||X>=GW||Y>=GH||(X+Y)%2||(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry)>1) continue;
@@ -25803,14 +25823,14 @@ function rendre(ctx, R, image){
   // le chantier : la grue se pose devant la prochaine tribune, et le gabarit du rang à venir se dessine en pointillé
   const cs=Math.max(0,Math.floor((R.cap-PLACES_VIRAGES*vir-5000)/3500+1e-6))%4, coteNom=['N','S','E','O'][cs];
   const pointille=(a,b,c)=>{ let [x0,y0]=a,[x1,y1]=b; const dx=Math.abs(x1-x0), dy=-Math.abs(y1-y0), sx=x0<x1?1:-1, sy=y0<y1?1:-1; let e=dx+dy, q=0;
-    for(;;){ if(q++%4<2) px(x0,y0,c); if(x0===x1&&y0===y1) break; const e2=2*e; if(e2>=dy){ e+=dy; x0+=sx; } if(e2<=dx){ e+=dx; y0+=sy; } } };
+    for(;;){ if(q++%S(4)<S(2)) px(x0,y0,c); if(x0===x1&&y0===y1) break; const e2=2*e; if(e2>=dy){ e+=dy; x0+=sx; } if(e2<=dx){ e+=dx; y0+=sy; } } };
   let zone=null;   // la boîte (en pixels de grille) du rang à venir : le jeu y pose son bouton « agrandir »
   const grue=()=>{ const g=segs.find(u=>u.nom===coteNom), n=g.n, t8=coteNom==='S'?.12:.5, c=[g.a.ax+(g.b.ax-g.a.ax)*t8+g.mx*(n*D+11),g.a.ay+(g.b.ay-g.a.ay)*t8+g.my*(n*D+11)], H=Math.max(hN,hS,hE,hO)+26;
     const z=(n+1)*RZ, q=[pt(g.a,n*D,z),pt(g.b,n*D,z),pt(g.b,(n+1)*D,z),pt(g.a,(n+1)*D,z)].map(u=>P(u[0],u[1],u[2])); for(let j=0;j<4;j++) pointille(q[j],q[(j+1)%4],C.jaune);
     zone=[Math.min(...q.map(u=>u[0])),Math.min(...q.map(u=>u[1])),Math.max(...q.map(u=>u[0])),Math.max(...q.map(u=>u[1]))]; if(!R.chantier) return;
     const b=P(c[0],c[1],0), t=P(c[0],c[1],H), f=P(c[0]-g.mx*30,c[1]-g.my*30,H), ar=P(c[0]+g.mx*9,c[1]+g.my*9,H), cr=P(c[0]-g.mx*24,c[1]-g.my*24,H-14), ch=P(c[0]-g.mx*24,c[1]-g.my*24,H);
-    ligne(b,t,C.jaune); ligne([b[0]+1,b[1]],[t[0]+1,t[1]],C.or); ligne(ar,f,C.jaune); ligne(ch,cr,C.beton3); px(cr[0],cr[1]+1,C.beton3); px(cr[0]-1,cr[1]+1,C.beton3);
-    px(ar[0],ar[1]+1,C.or); px(ar[0]+1,ar[1]+1,C.or); if(image%2) px(t[0],t[1]-1,C.rouge); };
+    ligne(b,t,C.jaune); ligne([b[0]+1,b[1]],[t[0]+1,t[1]],C.or); ligne(ar,f,C.jaune); ligne(ch,cr,C.beton3); bloc(cr[0]-S(1),cr[1]+1,C.beton3); bloc(cr[0],cr[1]+1,C.beton3);
+    bloc(ar[0],ar[1]+1,C.or); bloc(ar[0]+S(1),ar[1]+1,C.or); if(image%2) bloc(t[0],t[1]-S(1),C.rouge); };
   if((R.chantier||R.cible)&&(coteNom==='N'||coteNom==='O')) grue();
   pylone(-1,-1);
   // --- au fond : on voit les gradins et leurs contremarches, du haut vers la pelouse
@@ -25825,8 +25845,8 @@ function rendre(ctx, R, image){
   if(toit) loin.forEach(toitDe);
   if(kopN){ const ks=segs.filter(u=>u.nom==='NO'), mil=ks[Math.floor(ks.length/2)], r=Math.max(0,mil.n-2);
     [.15,.5,.85].forEach((t,j)=>{ const g=ks[Math.min(ks.length-1,Math.floor(t*ks.length))], e=pt(g.a,(r+.5)*D,(r+1)*RZ), b=P(e[0],e[1],e[2]), h=P(e[0],e[1],e[2]+5.5), c=[C.blanc,C.jaune,C.rouge][j], d=(image+j)%2?1:-1;
-      ligne(b,h,C.encre); px(h[0]+d,h[1],c); px(h[0]+2*d,h[1],c); px(h[0]+d,h[1]+1,c); px(h[0]+2*d,h[1]+1,C.encre); });
-    if(kopN>=3) for(const g of [ks[0],ks[ks.length-1]]){ const e=pt(g.a,g.a.n*D-1,g.a.n*RZ), q=P(e[0],e[1],e[2]); for(let dy=-4;dy<=-1;dy++){ px(q[0],q[1]+dy,C.encre); px(q[0]+1,q[1]+dy,C.encre); } px(q[0],q[1]-3,C.beton3); px(q[0]+1,q[1]-2,C.beton3); } }
+      ligne(b,h,C.encre); drapeau(h,d,c); });
+    if(kopN>=3) for(const g of [ks[0],ks[ks.length-1]]){ const e=pt(g.a,g.a.n*D-1,g.a.n*RZ), q=P(e[0],e[1],e[2]); for(let dy=-S(4);dy<=-1;dy++) for(let w=0;w<S(2);w++) px(q[0]+w,q[1]+dy,C.encre); bloc(q[0],q[1]-S(3),C.beton3); bloc(q[0]+S(1),q[1]-S(2),C.beton3); } }
   // l'écran géant : posé sur le haut de la tribune Nord, ou suspendu SOUS la toiture quand il y en a une (sinon le public ne le voit pas)
   if(R.ecran){ const y=toit?-nN*D*.45+.3:-nN*D, haut=toit?hN+5.4:hN+12, z=haut-9.5, x=L/2-13;
     if(toit) for(const xs of [x+3,x+23]) ligne(P(xs,y,haut),P(xs,y,hN+7),C.beton3);
@@ -25869,12 +25889,12 @@ function rendre(ctx, R, image){
   { const n=niv('hotel'); if(n){ const w=[10,12,14][n-1], h=[12,20,28][n-1], x0=X1+7, y0=0; T={x:x0,y:y0,g:G};
       boite(x0,x0+w,y0,y0+w,0,h,n===3?C.clair:C.beton3,C.beton,C.beton2); vitres(x0,x0+w,y0,y0+w,0,h,11,C.jaune);
       if(n>=2) quad([[x0,y0+w,h-2.4],[x0+w,y0+w,h-2.4],[x0+w,y0+w,h],[x0,y0+w,h]],C.rouge,C.encre);
-      if(n===3){ quad([[x0+3,y0+3,h],[x0+w-3,y0+3,h],[x0+w-3,y0+w-3,h],[x0+3,y0+w-3,h]],C.jaune,C.encre); ligne(P(x0+w/2,y0+w/2,h),P(x0+w/2,y0+w/2,h+6),C.blanc); point(x0+w/2,y0+w/2,h+6,C.rouge); } T=null; } }
+      if(n===3){ quad([[x0+3,y0+3,h],[x0+w-3,y0+3,h],[x0+w-3,y0+w-3,h],[x0+3,y0+w-3,h]],C.jaune,C.encre); ligne(P(x0+w/2,y0+w/2,h),P(x0+w/2,y0+w/2,h+6),C.blanc); const q=P(x0+w/2,y0+w/2,h+6); bloc(q[0],q[1],C.rouge); } T=null; } }
   { const n=niv('boutique'); if(n){ const x0=X1+7, y1=W+8; T={x:x0,y:y1,g:G};
       if(n===1){ boite(x0,x0+6,y1-6,y1,0,3.6,C.rouge,C.blanc,C.beton3); quad([[x0+1,y1,1.2],[x0+5,y1,1.2],[x0+5,y1,2.8],[x0+1,y1,2.8]],C.jaune); }
       if(n===2){ boite(x0,x0+12,y1-12,y1,0,6,C.beton3,C.beton,C.beton2); quad([[x0+1.5,y1,1],[x0+10.5,y1,1],[x0+10.5,y1,4],[x0+1.5,y1,4]],C.jaune,C.encre); quad([[x0,y1,4.6],[x0+12,y1,4.6],[x0+12,y1,6],[x0,y1,6]],C.rouge,C.encre); }
       if(n===3){ boite(x0,x0+17,y1-18,y1,0,11,C.clair,C.siege,C.siege2); vitres(x0,x0+17,y1-18,y1,0,9,23,C.clair); quad([[x0,y1,8.6],[x0+17,y1,8.6],[x0+17,y1,11],[x0,y1,11]],C.jaune,C.encre); quad([[x0+6,y1,0],[x0+11,y1,0],[x0+11,y1,4],[x0+6,y1,4]],C.jaune,C.encre);
-        for(const [i,c] of [[0,C.rouge],[1,C.blanc],[2,C.jaune]]){ const fx=x0+3+i*5; ligne(P(fx,y1-9,11),P(fx,y1-9,16),C.blanc); const q=P(fx,y1-9,16); px(q[0]+1,q[1],c); px(q[0]+2,q[1],c); px(q[0]+1,q[1]+1,c); } } T=null; } }
+        for(const [i,c] of [[0,C.rouge],[1,C.blanc],[2,C.jaune]]){ const fx=x0+3+i*5; ligne(P(fx,y1-9,11),P(fx,y1-9,16),C.blanc); drapeau(P(fx,y1-9,16),1,c); } } T=null; } }
   pylone(1,1);
   // --- au sud, côté rue : le musée, le restaurant, la buvette
   { const n=niv('musee'); if(n){ const x0=XM, y0=Y1+8; T={x:x0,y:y0,g:G};
@@ -25882,34 +25902,34 @@ function rendre(ctx, R, image){
       else { const w=n===2?16:22, h=n===2?7:9; boite(x0,x0+w,y0,y0+10,0,h,C.clair,C.beton3,C.beton2);
         for(let x=x0+1.5;x<x0+w;x+=Math.max(2.4,2/k)) ligne(P(x,y0+10,.6),P(x,y0+10,h-1.4),C.blanc);
         quad([[x0,y0+10,h-1.2],[x0+w,y0+10,h-1.2],[x0+w,y0+10,h],[x0,y0+10,h]],C.clair,C.encre); quad([[x0-1,y0+10,0],[x0+w+1,y0+10,0],[x0+w+1,y0+11.5,0],[x0-1,y0+11.5,0]],C.beton3);
-        if(n===3) for(const fx of [x0+4,x0+w/2,x0+w-4]){ const q=P(fx,y0+13.5,0); px(q[0],q[1],C.beton3); px(q[0],q[1]-1,C.jaune); px(q[0],q[1]-2,C.jaune); px(q[0],q[1]-3,C.jaune); lampes.push([q[0],q[1]-2,3]); } } T=null; } }
+        if(n===3) for(const fx of [x0+4,x0+w/2,x0+w-4]){ const q=P(fx,y0+13.5,0), u=S(1); bloc(q[0],q[1],C.beton3); for(let d=1;d<=3;d++) bloc(q[0],q[1]-d*u,C.jaune); lampes.push([q[0],q[1]-2*u,3]); } } T=null; } }
   { const n=niv('restaurant'); if(n){ const x0=XM+24*G, y0=Y1+8; T={x:x0,y:y0,g:G};
       if(n===1){ boite(x0,x0+14,y0,y0+8,0,5,C.beton2,C.beton,C.beton); for(let x=x0;x<x0+14;x+=1/k){ const q=P(x,y0+8,5); px(q[0],q[1]+1,Math.round(x*k)%2?C.arbre2:C.blanc); } quad([[x0+1,y0+8,.8],[x0+13,y0+8,.8],[x0+13,y0+8,3.2],[x0+1,y0+8,3.2]],C.jaune);
-        for(const [i,c] of [[0,C.rouge],[1,C.blanc],[2,C.arbre2]]){ const q=P(x0+2.5+i*4.5,y0+11.5,0); px(q[0],q[1],C.beton3); px(q[0],q[1]-1,C.beton3); px(q[0]-1,q[1]-2,c); px(q[0],q[1]-2,c); px(q[0]+1,q[1]-2,c); } }
+        for(const [i,c] of [[0,C.rouge],[1,C.blanc],[2,C.arbre2]]){ parasol(P(x0+2.5+i*4.5,y0+11.5,0),c); } }
       if(n===2){ boite(x0,x0+16,y0,y0+9,0,10,C.beton3,C.siege,C.siege2); vitres(x0,x0+16,y0,y0+9,0,10,31,C.jaune); quad([[x0,y0+9,8.4],[x0+16,y0+9,8.4],[x0+16,y0+9,10],[x0,y0+9,10]],C.clair,C.encre); }
       if(n===3){ boite(x0,x0+18,y0,y0+10,0,6,C.clair,C.beton2,C.beton); quad([[x0+1,y0+10,1],[x0+17,y0+10,1],[x0+17,y0+10,4.4],[x0+1,y0+10,4.4]],C.jaune,C.encre); boite(x0+3,x0+15,y0+1.5,y0+8.5,6,10,C.clair,C.beton2,C.beton); vitres(x0+3,x0+15,y0+1.5,y0+8.5,6,10.6,37,C.jaune);
-        const q=P(x0+9,y0+5,13.5); for(const [dx,dy] of [[0,0],[-1,0],[1,0],[0,-1],[0,1],[-2,0],[2,0],[0,-2],[0,2]]) px(q[0]+dx,q[1]+dy,C.jaune); lampes.push([q[0],q[1],4]); } T=null; } }
+        const q=P(x0+9,y0+5,13.5), u=S(1); for(const [dx,dy] of [[0,0],[-1,0],[1,0],[0,-1],[0,1],[-2,0],[2,0],[0,-2],[0,2]]) bloc(q[0]+dx*u,q[1]+dy*u,C.jaune); lampes.push([q[0],q[1],4]); } T=null; } }
   { const n=niv('buvette'); if(n){ const x0=XM+44*G, y0=Y1+8; T={x:x0,y:y0,g:G};
       if(n===1){ boite(x0+6,x0+13,y0+2,y0+6,.6,4,C.blanc,C.blanc,C.beton3); quad([[x0+6,y0+6,1.8],[x0+13,y0+6,1.8],[x0+13,y0+6,2.6],[x0+6,y0+6,2.6]],C.rouge); point(x0+7.5,y0+6,.2,C.encre); point(x0+11.5,y0+6,.2,C.encre); }
       if(n===2) [[0,C.rouge],[8,C.blanc],[16,C.rouge]].forEach(([dx,c])=>{ boite(x0+dx,x0+dx+5.5,y0+1,y0+6.5,0,4,c,C.beton,C.beton2); quad([[x0+dx+.8,y0+6.5,1.4],[x0+dx+4.7,y0+6.5,1.4],[x0+dx+4.7,y0+6.5,2.8],[x0+dx+.8,y0+6.5,2.8]],C.jaune); });
       if(n===3){ const a=[x0+11,y0+5,9]; boite(x0,x0+22,y0,y0+10,0,3.6,C.blanc,C.clair,C.beton3);
         quad([[x0,y0+10,3.6],[x0+22,y0+10,3.6],a],C.blanc,C.encre); quad([[x0+22,y0,3.6],[x0+22,y0+10,3.6],a],C.clair,C.encre);
         for(let x=x0+1;x<x0+22;x+=Math.max(2,1.8/k)){ const q=P(x,y0+10,3.2); px(q[0],q[1],C.jaune); }
-        for(const [i,c] of [[0,C.rouge],[1,C.jaune],[2,C.blanc]]){ const q=P(x0+4+i*7,y0+13,0); px(q[0],q[1],C.beton3); px(q[0]-1,q[1]-1,c); px(q[0],q[1]-1,c); px(q[0]+1,q[1]-1,c); } } T=null; } }
+        for(const [i,c] of [[0,C.rouge],[1,C.jaune],[2,C.blanc]]){ parasol(P(x0+4+i*7,y0+13,0),c); } } T=null; } }
   if((R.chantier||R.cible)&&(coteNom==='S'||coteNom==='E')) grue();
   // --- transports, niveaux 2 et 3 : le tram sur la rue, puis la gare
   { const n=niv('transport'), yr=yb+4.5;
     if(n>=2){ ligne(P(xa-56,yr,0),P(xb+56,yr,0),C.beton3); ligne(P(xa-56,yr+2.4,0),P(xb+56,yr+2.4,0),C.beton3);
       const tx=n===3?L/2-30:L/2-13, tl=n===3?44:26; boite(tx,tx+tl,yr-.3,yr+2.7,.6,4.4,C.clair,C.blanc,C.beton3);
       quad([[tx,yr+2.7,1.4],[tx+tl,yr+2.7,1.4],[tx+tl,yr+2.7,2.2],[tx,yr+2.7,2.2]],C.rouge);
-      for(let x=tx+1.5;x<tx+tl-1;x+=Math.max(2.2,1.8/k)){ const q=P(x,yr+2.7,3.2); px(q[0],q[1],C.jaune); } }
+      for(let x=tx+1.5;x<tx+tl-1;x+=Math.max(2.2,1.8/k)){ const q=P(x,yr+2.7,3.2); fen(q[0],q[1],C.jaune); } }
     if(n===3){ const gx=XM-3-24, gy=Y1+11; T={x:gx+24,y:gy,g:G}; boite(gx,gx+24,gy,gy+8,0,7,C.beton3,C.beton2,C.beton); vitres(gx,gx+24,gy,gy+8,0,6,41,C.jaune);
       quad([[gx-1,gy+8,5.6],[gx+25,gy+8,5.6],[gx+25,gy+11,5],[gx-1,gy+11,5]],C.clair,C.encre);
-      const q=P(gx+12,gy+8,9.5); for(const [dx,dy] of [[0,0],[1,0],[0,1],[1,1]]) px(q[0]+dx,q[1]+dy,C.jaune); ligne(P(gx+12,gy+4,7),P(gx+12,gy+4,9),C.beton3); T=null; } }
+      const q=P(gx+12,gy+8,9.5); for(let dx=0;dx<S(2);dx++) for(let dy=0;dy<S(2);dy++) px(q[0]+dx,q[1]+dy,C.jaune); ligne(P(gx+12,gy+4,7),P(gx+12,gy+4,9),C.beton3); T=null; } }
 
   // --- la lumière : un damier clair autour de chaque lampe, jamais de fondu
-  for(const [gx,gy,r] of lampes) for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++){ const X=gx+dx, Y=gy+dy; if(X<0||Y<0||X>=GW||Y>=GH||(X+Y)%2||dx*dx+dy*dy>r*r) continue;
-    const c=lit(X,Y); if(c[0]+c[1]+c[2]<150) px(X,Y,C.lueur); }
+  for(const [gx,gy,r0] of lampes){ const r=Math.round(r0*E); for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++){ const X=gx+dx, Y=gy+dy; if(X<0||Y<0||X>=GW||Y>=GH||(X+Y)%2||dx*dx+dy*dy>r*r) continue;
+    const c=lit(X,Y); if(c[0]+c[1]+c[2]<150) px(X,Y,C.lueur); } }
   ctx.putImageData(new ImageData(buf,GW,GH),0,0);
   return {zone};
 }
@@ -26819,6 +26839,316 @@ const STADE3D=(()=>{
   }
   return {vueMaquette, vueVille, capTribunes, coteSuivante};
 })(); /* ---- fin de la maquette ---- */
+/* ---- CAMPUSPIX : DÉBUT (v2.79) ----
+   Le centre d'entraînement en vrai pixel art, frère de STADEPIX : palette fermée, contours à l'encre, aucun filtre.
+   Moteur repris TEL QUEL du prototype validé par l'auteur (championnat/docs/prototype-centre-pixel.html).
+   CAMPUSPIX.rendre(ctx, R, image, E) peint un canvas ; R = etatCampus() + {chantier:{id,n}}, E = la finesse
+   (CAMPUSPIX.cadre(E) donne la taille du canevas), image = quatre par seconde.
+   Pour le régénérer depuis le prototype : node docs/greffe-campus-pixel.cjs . (depuis championnat/). */
+const CAMPUSPIX=(()=>{
+const CS=0.8660254;
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+// La palette : celle du stade, plus les matériaux du campus. Une trentaine de couleurs, pas une de plus.
+const C=Object.fromEntries(Object.entries({
+  encre:'#05070f', nuit:'#080d1f', gazon:'#10241c', gazon2:'#15301f', route:'#1a2b3f', marque:'#3d4877',
+  herbe:'#1f6b3a', herbe2:'#2a8347', herbe3:'#49a85c', friche:'#18301f', terre:'#5a4330', terre2:'#7d6b3e', stab:'#8a6a45',
+  trait:'#dfe6f5', beton:'#454d75', beton2:'#5a6390', beton3:'#8a93bd', clair:'#c9cfe6',
+  brique:'#8a5a44', brique2:'#6b4535', tuile:'#a3593f', verre:'#7fa3c4', verre2:'#35658f',
+  pierre:'#cdbf9f', pierre2:'#a3977f', ardoise:'#2f3d54', ardoise2:'#232e41', eau:'#3f8fcf', eau2:'#244e74',
+  chantier:'#d98a3a', chantier2:'#a5622b', jaune:'#ffd24a', rouge:'#d8433a', blanc:'#f2f5fa', peau:'#e2b58f',
+  bleu:'#3a6fc9', arbre:'#1a4a33', arbre2:'#256b45', bois:'#4b3a2a', lueur:'#3a4370'
+}).map(([k,v])=>[k,hex(v)]));
+const hasard=(a,b)=>{ let t=(a*374761393+b*668265263)|0; t=(t^(t>>>13))*1274126177|0; return ((t^(t>>>16))>>>0)/4294967296; };
+// Les matériaux : [toit, face avant, face est]
+const MAT={
+  prefab:[C.beton3,C.beton2,C.beton], brique:[C.tuile,C.brique,C.brique2], clair:[C.clair,C.beton3,C.beton2],
+  beton:[C.beton3,C.beton2,C.beton], tole:[C.beton2,C.beton,C.lueur], verre:[C.verre,C.verre2,C.eau2],
+  pierre:[C.pierre,C.pierre,C.pierre2], chantier:[C.chantier,C.chantier,C.chantier2]
+};
+// Le cadrage : le campus fait 240 m sur 200, on garde une marge pour la route et les arbres.
+// E = la finesse de la grille : 1 donne 320 x 224 (celle du stade), 2 donne 640 x 448. Le plan et les règles ne
+// bougent pas ; à finesse double, on voit deux fois plus de pixels sur le même campus, et les petits sujets
+// (joueurs, arbres, fanions, projecteurs) sont redessinés avec plus de détails au lieu d'être simplement grossis.
+const XA=-14, XB=254, YA=-18, YB=214, ZM=50;
+const T=[[60,60,135,120],[150,60,225,120],[60,132,135,192],[150,132,225,192]];
+function cadre(E){ const GW=Math.round(320*E), GH=Math.round(224*E);
+  const k=Math.min((GW-8*E)/(((XB-YA)-(XA-YB))*CS), (GH-8*E)/(((XB+YB)-(XA+YA))*.5+ZM*1.1)), kz=k*1.1;
+  const ox=Math.round(GW/2-((XB-YA)+(XA-YB))/2*CS*k), oy=Math.round(4*E+ZM*kz-(XA+YA)*.5*k);
+  return {GW,GH,k,kz,P:(x,y,z)=>[Math.round(ox+(x-y)*CS*k), Math.round(oy+(x+y)*.5*k-(z||0)*kz)]}; }
+
+function peindre(R, image, E){
+  E=E||1; const {GW,GH,k,kz,P}=cadre(E), S=n=>Math.max(1,Math.round(n*E));
+  const buf=new Uint8ClampedArray(GW*GH*4);
+  const px=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return; const i=(y*GW+x)*4; buf[i]=c[0]; buf[i+1]=c[1]; buf[i+2]=c[2]; buf[i+3]=255; };
+  const est=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return false; const i=(y*GW+x)*4; return buf[i]===c[0]&&buf[i+1]===c[1]&&buf[i+2]===c[2]; };
+  const ligne=(a,b,c,pointille)=>{ let [x0,y0]=a,[x1,y1]=b; const dx=Math.abs(x1-x0), dy=-Math.abs(y1-y0), sx=x0<x1?1:-1, sy=y0<y1?1:-1; let e=dx+dy, n=0;
+    for(;;){ if(!pointille||(n++%pointille)===0) px(x0,y0,c); if(x0===x1&&y0===y1) break; const e2=2*e; if(e2>=dy){ e+=dy; x0+=sx; } if(e2<=dx){ e+=dx; y0+=sy; } } };
+  const poly=(Q,c,bord)=>{ let y0=GH, y1=0; for(const p of Q){ y0=Math.min(y0,p[1]); y1=Math.max(y1,p[1]); }
+    for(let y=Math.max(0,y0); y<=Math.min(GH-1,y1); y++){ const xs=[];
+      for(let i=0;i<Q.length;i++){ const a=Q[i], b=Q[(i+1)%Q.length]; if((a[1]<=y&&b[1]>y)||(b[1]<=y&&a[1]>y)) xs.push(Math.round(a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0]))); }
+      xs.sort((u,v)=>u-v); for(let i=0;i+1<xs.length;i+=2) for(let x=xs[i]; x<=xs[i+1]; x++) px(x,y,c); }
+    if(bord) for(let i=0;i<Q.length;i++) ligne(Q[i],Q[(i+1)%Q.length],bord); };
+  const quad=(Q,c,bord)=>poly(Q.map(q=>P(...q)),c,bord);
+  const sol=(x0,x1,y0,y1,c,bord,z)=>quad([[x0,y0,z||0],[x1,y0,z||0],[x1,y1,z||0],[x0,y1,z||0]],c,bord);
+  const seg3=(a,b,c,p)=>ligne(P(...a),P(...b),c,p);
+  const pt=(x,y,z,c)=>{ const q=P(x,y,z); px(q[0],q[1],c); };
+
+  // --- la scène se peint en deux temps : le sol d'abord, puis tout ce qui dépasse, trié de l'arrière vers l'avant
+  const objets=[]; const add=(cle,fn)=>objets.push([cle,fn]);
+  let CH=false; const mat=m=>CH?MAT.chantier:MAT[m];
+  const boite=(x0,x1,y0,y1,z0,z1,m)=>{ const c=mat(m);
+    quad([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],c[1],C.encre);
+    quad([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],c[2],C.encre);
+    quad([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],c[0],C.encre);
+    // à grille fine, le toit-terrasse a son acrotère et ses édicules
+    if(E>=1.5&&!CH&&x1-x0>8&&y1-y0>8){ const m=1.2; quad([[x0+m,y0+m,z1],[x1-m,y0+m,z1],[x1-m,y1-m,z1],[x0+m,y1-m,z1]],c[0],c[2]);
+      const ex=x0+(x1-x0)*.3, ey=y0+(y1-y0)*.35; quad([[ex,ey+3,z1],[ex+4,ey+3,z1],[ex+4,ey+3,z1+1.4],[ex,ey+3,z1+1.4]],c[1],C.encre); quad([[ex+4,ey,z1],[ex+4,ey+3,z1],[ex+4,ey+3,z1+1.4],[ex+4,ey,z1+1.4]],c[2],C.encre); quad([[ex,ey,z1+1.4],[ex+4,ey,z1+1.4],[ex+4,ey+3,z1+1.4],[ex,ey+3,z1+1.4]],c[0],C.encre); }
+    if(CH){ for(let x=x0+3;x<x1-1;x+=4) seg3([x,y1,z0],[x,y1,z1],C.chantier2); for(let y=y0+3;y<y1-1;y+=4) seg3([x1,y,z0],[x1,y,z1],C.chantier2); } };
+  // les fenêtres : un pixel par vitre, allumée ou noire, sur la façade avant et la façade est
+  // une vitre = un pixel ; à grille fine, deux pixels de haut et un appui sous la vitre
+  const fen=(x,y,z,c)=>{ const q=P(x,y,z); px(q[0],q[1],c); if(E>=1.8){ px(q[0],q[1]-1,c); if(c!==C.encre) px(q[0],q[1]+1,C.encre); } };
+  const vitres=(x0,x1,y0,y1,z0,z1,g,frac,c)=>{ if(CH) return; const pas=Math.max(2.2,2/k), pz=Math.max(2.6,2.2/kz), f=frac==null?.7:frac;
+    for(let z=z0+2;z<z1-.8;z+=pz){ for(let x=x0+1.6;x<x1-1;x+=pas) fen(x,y1,z,hasard(Math.round(x*3)+g,Math.round(z*3))<f?(c||C.jaune):C.encre);
+      for(let y=y0+1.6;y<y1-1;y+=pas) fen(x1,y,z,hasard(Math.round(y*3)+g+5,Math.round(z*3))<f?(c||C.jaune):C.encre); } };
+  const toit2=(x0,x1,y0,y1,z,hz)=>{ const xm=(x0+x1)/2, c=CH?[C.chantier,C.chantier2]:[C.tuile,C.brique2];
+    quad([[x1,y0,z],[x1,y1,z],[xm,y1,z+hz],[xm,y0,z+hz]],c[0],C.encre); quad([[x0,y1,z],[x1,y1,z],[xm,y1,z+hz]],c[1],C.encre);
+    if(E>=1.5&&!CH) for(let u=.25;u<1;u+=.25) seg3([x1+(xm-x1)*u,y0+.4,z+hz*u],[x1+(xm-x1)*u,y1-.4,z+hz*u],c[1]); };
+  const pyramide=(x0,x1,y0,y1,z,hz,cA,cB)=>{ const xm=(x0+x1)/2, ym=(y0+y1)/2;
+    quad([[x0,y1,z],[x1,y1,z],[xm,ym,z+hz]],cA,C.encre); quad([[x1,y0,z],[x1,y1,z],[xm,ym,z+hz]],cB,C.encre); };
+  const enseigne=(x0,x1,y,z,c)=>{ if(!CH) seg3([x0,y,z],[x1,y,z],c||C.jaune); };
+  // l'arbre : à grille fine, un houppier rond, éclairé en haut à gauche, ombré et cerné en bas à droite, avec un tronc
+  const arbre=(x,y,g)=>{ const p=P(x,y,0);
+    if(E<1.5){ px(p[0],p[1],C.encre); px(p[0],p[1]-1,C.bois);
+      const F=g?[[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-3],[-1,-3],[0,-3],[1,-3],[2,-3],[-1,-4],[0,-4],[1,-4],[-1,-5],[0,-5],[1,-5],[0,-6]]
+               :[[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]];
+      for(const [dx,dy] of F) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); if(g){ px(p[0]-1,p[1]-5,C.arbre2); px(p[0]+1,p[1]-2,C.arbre2); } return; }
+    const r=(g?2.7:1.9)*E, tr=Math.round((g?1.8:1.3)*E), cy=p[1]-tr-Math.round(r*.8);
+    for(let d=0;d<=tr;d++){ px(p[0],p[1]-d,C.bois); px(p[0]+1,p[1]-d,C.encre); }
+    for(let dx=-2;dx<=2;dx++) px(p[0]+dx+1,p[1]+1,C.encre);
+    const R2=Math.ceil(r*1.15);
+    for(let dy=-Math.ceil(r);dy<=Math.ceil(r);dy++) for(let dx=-R2;dx<=R2;dx++){ const q=(dx/(r*1.15))**2+(dy/r)**2; if(q>1) continue;
+      const bord=q>.7&&dx+dy>0, clair=dx+dy<-r*.6, h=hasard(p[0]*3+dx,p[1]*5+dy);
+      px(p[0]+dx,cy+dy, bord?C.encre:clair?(h<.25?C.herbe:C.arbre2):(h<.12?C.arbre2:C.arbre)); } };
+  const cypres=(x,y)=>{ const p=P(x,y,0), h=Math.round(6*E), w=E>=1.5?Math.round(1.3*E):1; px(p[0],p[1],C.encre);
+    for(let d=1;d<=h;d++){ if(w===1){ px(p[0],p[1]-d,C.arbre); if(d>1&&d<6) px(p[0]+(d%2?1:-1),p[1]-d,d%2?C.arbre2:C.arbre); continue; }
+      const lw=Math.round(w*Math.sin(Math.PI*d/(h+1))); for(let dx=-lw;dx<=lw;dx++) px(p[0]+dx,p[1]-d, dx===lw?C.encre:dx<0?C.arbre2:C.arbre); } };
+  const fanion=(x,y,z,c)=>{ if(CH) return; const b=P(x,y,z), L=S(5), fw=S(2.4), fh=S(1.6), v=image%2;
+    for(let d=0;d<L;d++) px(b[0],b[1]-d,C.clair);
+    for(let i=1;i<=fw;i++) for(let j=0;j<fh;j++) px(b[0]+i,b[1]-L+1+j+((i+v)%2&&i>fw/2?1:0),c); };
+  const grue=(x,y)=>{ const h=34, b=P(x,y,0), t=P(x,y,h); ligne([b[0]-1,b[1]],[t[0]-1,t[1]],C.chantier); ligne([b[0]+1,b[1]],[t[0]+1,t[1]],C.chantier);
+    for(let z=3;z<h;z+=4){ const a=P(x,y,z), c=P(x,y,z+2); px(a[0],a[1],C.chantier2); px(c[0]-1,c[1],C.chantier2); }
+    seg3([x-10,y,h],[x+26,y,h],C.chantier); seg3([x-10,y,h+1],[x+26,y,h+1],C.chantier2);
+    const cab=P(x-8,y,h); px(cab[0],cab[1]+1,C.beton2); px(cab[0]+1,cab[1]+1,C.beton2);
+    const cr=x+8+((image>>2)%4)*3; seg3([cr,y,h],[cr,y,h-12],C.clair); pt(cr,y,h-13,C.chantier);
+    if(image%2===0) px(t[0],t[1]-2,C.rouge); };
+
+  // ---------------- le sol ----------------
+  for(let i=0;i<GW*GH;i++){ buf[i*4]=C.nuit[0]; buf[i*4+1]=C.nuit[1]; buf[i*4+2]=C.nuit[2]; buf[i*4+3]=255; }
+  sol(-60,300,-60,260,C.nuit);
+  sol(-60,300,-22,-8,C.route); for(let x=-56;x<296;x+=10) seg3([x,-15,0],[x+5,-15,0],C.marque);
+  sol(0,240,0,200,C.gazon);
+  for(let i=0;i<Math.round(260*E*E);i++){ const x=hasard(i,3)*240, y=hasard(i,7)*200; pt(x,y,0,C.gazon2); }
+  // allées, parking, portail
+  sol(4,238,48,56,C.route); sol(137,148,56,198,C.route); sol(48,238,122,130,C.route); sol(14,30,-8,48,C.route);
+  sol(6,46,6,46,C.route,C.marque); for(let x=10;x<46;x+=6){ seg3([x,8,0],[x,20,0],C.marque); seg3([x,32,0],[x,44,0],C.marque); }
+  for(let x=0;x<=240;x+=2){ pt(x,0,0,C.marque); pt(x,200,0,C.marque); } for(let y=0;y<=200;y+=2){ pt(0,y,0,C.marque); pt(240,y,0,C.marque); }
+
+  // les terrains
+  const terrain=(x0,y0,x1,y1,sorte,tonte)=>{
+    const K={herbe:[C.herbe,C.herbe2], pele:[C.herbe,C.herbe2], stab:[C.stab,C.terre2], synth:[C.herbe2,C.herbe3], terre:[C.terre,C.terre]}[sorte];
+    if(tonte) K[0]=C.herbe2, K[1]=C.herbe3;
+    for(let b=0;b<8;b++) sol(x0+(x1-x0)*b/8,x0+(x1-x0)*(b+1)/8,y0,y1,K[b%2]);
+    if(sorte==='terre'){ for(let y=y0+4;y<y1;y+=5) seg3([x0+2,y,0],[x1-2,y,0],C.terre2,2); return; }
+    if(sorte==='pele'){ const tache=(cx,cy,rx,ry)=>{ for(let a=-rx;a<=rx;a+=.7) for(let b=-ry;b<=ry;b+=.7) if((a*a)/(rx*rx)+(b*b)/(ry*ry)<1&&hasard(Math.round((cx+a)*3),Math.round((cy+b)*3))<.75) pt(cx+a,cy+b,0,C.terre2); };
+      const my=(y0+y1)/2, mx=(x0+x1)/2; tache(x0+5,my,4,8); tache(x1-5,my,4,8); tache(mx,my,7,5); tache(mx-18,y0+12,3,3); tache(mx+14,y1-10,4,3); }
+    const lc=sorte==='stab'?C.pierre:C.trait, pp=sorte==='pele'?2:0, X0=x0+2,X1=x1-2,Y0=y0+2,Y1=y1-2,mx=(X0+X1)/2,my=(Y0+Y1)/2;
+    seg3([X0,Y0,0],[X1,Y0,0],lc,pp); seg3([X1,Y0,0],[X1,Y1,0],lc,pp); seg3([X1,Y1,0],[X0,Y1,0],lc,pp); seg3([X0,Y1,0],[X0,Y0,0],lc,pp); seg3([mx,Y0,0],[mx,Y1,0],lc,pp);
+    for(let a=0;a<16;a++){ const t=a/16*Math.PI*2, u=(a+1)/16*Math.PI*2; seg3([mx+6*Math.cos(t),my+6*Math.sin(t),0],[mx+6*Math.cos(u),my+6*Math.sin(u),0],lc,pp); }
+    for(const [xe,sg] of [[X0,1],[X1,-1]]){ seg3([xe,my-13,0],[xe+sg*11,my-13,0],lc,pp); seg3([xe+sg*11,my-13,0],[xe+sg*11,my+13,0],lc,pp); seg3([xe+sg*11,my+13,0],[xe,my+13,0],lc,pp); } };
+  // les buts se dessinent avec les objets, pour passer devant les joueurs qui sont derrière
+  const buts=(x0,y0,x1,y1)=>{ const X0=x0+2,X1=x1-2,my=(y0+y1)/2;
+    for(const xe of [X0,X1]) add(xe+my,()=>{ seg3([xe,my-3.6,0],[xe,my-3.6,2.4],C.blanc); seg3([xe,my+3.6,0],[xe,my+3.6,2.4],C.blanc); seg3([xe,my-3.6,2.4],[xe,my+3.6,2.4],C.blanc); }); };
+  const friche=(x0,y0,x1,y1)=>{ sol(x0,x1,y0,y1,C.friche); for(let i=0;i<40;i++){ const x=x0+3+hasard(i+x0,y0)*(x1-x0-6), y=y0+3+hasard(y0,i+x0)*(y1-y0-6); pt(x,y,0,C.gazon2); pt(x+1.4,y,0,C.gazon2); } };
+  const eclaire=(x,y,r)=>{ const c=P(x,y,0); const M=[[C.herbe,C.herbe2],[C.herbe2,C.herbe3],[C.stab,C.terre2],[C.terre2,C.pierre2],[C.friche,C.gazon2],[C.gazon,C.gazon2]];
+    for(let dy=-r;dy<=r;dy++) for(let dx=-2*r;dx<=2*r;dx++){ if((dx*dx)/(4*r*r)+(dy*dy)/(r*r)>1||((c[0]+dx+c[1]+dy)&1)) continue; for(const [a,b] of M) if(est(c[0]+dx,c[1]+dy,a)){ px(c[0]+dx,c[1]+dy,b); break; } } };
+
+  const t=R.terrains|0, chId=R.chantier&&R.chantier.id, chN=R.chantier&&R.chantier.n, chT=chId==='terrains', k4=(R.annee||1996)<2002?'stab':'synth';
+  const neuf=chT?chN:-1;
+  terrain(...T[0], neuf===1?'terre':(t===0?'pele':'herbe'), t>=3);
+  if(t>=1) terrain(...T[1], neuf===1?'terre':'herbe', t>=3); else friche(...T[1]);
+  if(t>=2){ terrain(...T[2], neuf===2?'terre':'herbe'); terrain(...T[3], neuf===2?'terre':k4); } else { friche(...T[2]); friche(...T[3]); }
+  for(const q of T.slice(0,t>=2?4:t>=1?2:1)) buts(...q);
+
+  // ---------------- ce qui dépasse ----------------
+  const pylone=(x,y)=>{ add(x+y,()=>{ const b=P(x,y,0), h=P(x,y,24); ligne(b,h,C.beton3); ligne([b[0]+1,b[1]],[h[0]+1,h[1]],C.beton2);
+    const w=S(2), hh=S(1); for(let d=-w;d<=w;d++){ px(h[0]+d,h[1]-1,C.encre); for(let j=0;j<hh;j++) px(h[0]+d,h[1]-2-j,(d+w)%2?C.blanc:C.jaune); px(h[0]+d,h[1]-2-hh,C.encre); } }); };
+  const projos=[];
+  if(t===2&&neuf!==2) projos.push([147,129],[228,129],[147,195],[228,195]);
+  if(t>=3) projos.push([58,58],[137,58],[58,122],[137,122]);
+  for(const [x,y] of projos){ eclaire(x+(x<100||x<145&&x>140?8:-8),y+(y<100?8:-8),Math.round(9*E)); pylone(x,y); }
+
+  // la halle couverte, sur le quatrième terrain
+  if(t>=3) add(425,()=>{ const x0=146,x1=229,y0=128,y1=196,zw=8,hv=13,N=10, wasCH=CH; CH=chT&&chN===3;
+    const arc=[]; for(let q=0;q<=N;q++){ const u=q/N; arc.push([y0+(y1-y0)*u, zw+hv*Math.sin(Math.PI*u)]); }
+    quad([[x0,y1,0],[x1,y1,0],[x1,y1,zw],[x0,y1,zw]],CH?C.chantier2:C.beton,C.encre);
+    for(let q=0;q<N;q++){ const a=arc[q], b=arc[q+1]; quad([[x0,a[0],a[1]],[x1,a[0],a[1]],[x1,b[0],b[1]],[x0,b[0],b[1]]],CH?(q<N/2?C.chantier:C.chantier2):(q<N/2?C.beton3:C.beton2)); }
+    if(!CH) for(let x=x0+8;x<x1;x+=10) for(let q=0;q<N;q++) seg3([x,arc[q][0],arc[q][1]],[x,arc[q+1][0],arc[q+1][1]],C.clair,2);
+    quad([[x1,y0,0],...arc.map(a=>[x1,a[0],a[1]]),[x1,y1,0]],CH?C.chantier2:C.verre2,C.encre);
+    if(!CH){ for(let y=y0+6;y<y1-4;y+=4) for(let z=2;z<zw+hv*Math.sin(Math.PI*(y-y0)/(y1-y0))-2;z+=3) pt(x1,y,z,hasard(y,z)<.75?C.jaune:C.eau2);
+      for(let x=x0+3;x<x1-2;x+=2) pt(x,y1,4,C.jaune); enseigne(x1,x1,176,zw+4); }
+    CH=wasCH; });
+
+  // une famille se dessine en chantier si c'est elle qu'on construit
+  const fam=(id,dess)=>{ const n=R[id]|0, ch=chId===id; CH=false; dess(n,ch); };
+  const posG={vie:[100,30],medical:[141,46],physique:[194,46],video:[236,46],academie:[50,84],terrains:[141,126],chateau:[50,140]};
+  const sur=(ch,fn)=>()=>{ const w=CH; CH=ch; fn(); CH=w; };
+
+  // vie de groupe
+  fam('vie',(n,ch)=>{
+    if(n===0){ add(120,sur(ch,()=>{ boite(62,84,22,36,0,5,'prefab'); vitres(62,84,22,36,0,5,3,.5); })); return; }
+    if(n===1){ add(138,sur(ch,()=>{ boite(54,98,14,40,0,6.5,'brique'); vitres(54,98,14,40,0,6.5,11,.75); })); return; }
+    add(140,sur(ch,()=>{ boite(54,98,12,42,0,13,'clair'); vitres(54,98,12,42,0,13,21);
+      if(n===3){ boite(54,80,12,34,13,24,'clair'); vitres(54,80,12,34,13,24,31,.8); enseigne(58,76,34,26); }
+      if(!CH){ sol(58,96,42,49,C.bois,null,.3); for(const [x,c] of [[64,C.jaune],[76,C.blanc],[88,C.rouge]]){ const p=P(x,46,0), h=P(x,46,3); ligne(p,h,C.clair); const n=S(2); for(let d=-n;d<=n;d++){ px(h[0]+d,h[1]-(Math.abs(d)<n/2?1:0),c); if(E>=1.8) px(h[0]+d,h[1]+1-(Math.abs(d)<n/2?1:0),c); } } } }));
+  });
+  // médical
+  fam('medical',(n,ch)=>{
+    const croix=(x,y,z)=>{ if(CH) return; const p=P(x,y,z); const n=S(1); for(let d=-n;d<=n;d++) for(let e=0;e<(E>=1.8?2:1);e++){ px(p[0]+d,p[1]+e,C.rouge); px(p[0]+e,p[1]+d,C.rouge); } };
+    if(n===1) add(168,sur(ch,()=>{ boite(112,132,18,36,0,5,'clair'); vitres(112,132,18,36,0,5,41,.6); croix(122,27,5); }));
+    if(n===2) add(176,sur(ch,()=>{ boite(108,136,12,40,0,10,'clair'); vitres(108,136,12,40,0,10,51); croix(136,26,7.5); }));
+    if(n===3){ add(179,sur(ch,()=>{ boite(107,137,10,42,0,14,'verre'); vitres(107,137,10,42,0,14,61,.85); croix(137,26,10); }));
+      add(200,sur(ch,()=>{ boite(107,124,42,50,0,6,'clair'); vitres(107,124,42,50,0,6,63,.6); }));
+      if(!ch) add(183,()=>{ boite(127,135,44.5,48.5,0,3.2,'clair'); seg3([127,48.5,1.4],[135,48.5,1.4],C.rouge); if(image%2) pt(131,46.5,3.4,C.bleu); }); }
+  });
+  // préparation physique
+  fam('physique',(n,ch)=>{
+    if(n===1) add(216,sur(ch,()=>{ boite(148,178,14,38,0,7,'tole'); if(!CH){ for(let x=150;x<178;x+=2.5) seg3([x,38,0],[x,38,6.8],C.lueur); sol(156,166,38,38.2,C.encre); quad([[156,38,0],[166,38,0],[166,38,5],[156,38,5]],C.encre); } }));
+    if(n>=2){ add(216,sur(ch,()=>{ boite(146,176,12,40,0,10,'beton'); vitres(146,176,12,40,0,10,71);
+      if(n===3){ boite(150,172,16,36,10,17,'verre'); vitres(150,172,16,36,10,17,73,.9,C.blanc); } }));
+      if(!ch) add(205,()=>{ sol(179,193,13,31,C.pierre2,C.encre,.2); sol(180.5,191.5,14.5,29.5,C.eau,null,.3);
+        for(let y=16;y<29;y+=3) for(let x=182;x<191;x+=2.5) if(hasard(x+image,y)<.3) pt(x,y,.3,C.blanc);
+        for(const [x,y,v] of [[183,19,1],[188,25,-1],[185,27,1]]) pt(x+((image>>1)%4)*v*.8,y,.4,C.peau); });
+      if(n===3&&!ch) add(225,()=>{ boite(182,188,33,39,0,6,'clair'); for(let i=0;i<3;i++){ const p=P(184+i,35,7+((image+i)%3)); px(p[0],p[1],C.blanc); } }); }
+  });
+  // vidéo
+  fam('video',(n,ch)=>{
+    if(n===1) add(254,sur(ch,()=>{ boite(206,222,20,32,0,5,'prefab'); vitres(206,222,20,32,0,5,81,.5); if(!CH){ seg3([214,26,5],[214,26,11],C.clair); seg3([211,26,10],[217,26,10],C.clair); seg3([212,26,8.5],[216,26,8.5],C.clair); } }));
+    if(n===2) add(268,sur(ch,()=>{ boite(200,230,14,38,0,8,'beton'); vitres(200,230,14,38,0,8,91,.35);
+      if(!CH){ boite(221,227,18,24,8,10,'tole'); const p=P(224,21,14); for(let dx=-3;dx<=3;dx++) for(let dy=-1;dy<=1;dy++) if(Math.abs(dx)+Math.abs(dy)*2<4) px(p[0]+dx,p[1]+dy-dx*.4|0,C.clair); px(p[0]+1,p[1],C.beton2); } }));
+    if(n===3){ add(272,sur(ch,()=>{ boite(198,232,12,40,0,8,'beton'); vitres(198,232,12,40,0,8,95,.35);
+      boite(206,224,18,34,8,30,'beton'); vitres(206,224,18,34,8,30,97,.65); boite(205,225,17,35,30,37,'verre'); vitres(205,225,17,35,30,37,99,1,C.blanc);
+      if(!CH){ seg3([215,26,37],[215,26,46],C.beton3); if(image%2===0) pt(215,26,47,C.rouge); } }));
+      if(!ch) for(const [x,y] of [[233,55],[53,55]]) add(x+y,()=>{ seg3([x,y,0],[x,y,32],C.beton3); const h=P(x,y,32); for(let d=-2;d<=1;d++) px(h[0]+d,h[1],C.encre); px(h[0]-2,h[1]-1,C.beton2); px(h[0]+1,h[1]-1,image%2?C.rouge:C.encre); }); }
+  });
+  // académie
+  const chat=R.chateau?1:0;
+  fam('academie',(n,ch)=>{
+    if(n===1) add(120,sur(ch,()=>{ boite(14,30,78,106,0,5.5,'beton'); vitres(14,30,78,106,0,5.5,101,.8); toit2(14,30,78,106,5.5,4); }));
+    if(n>=2){ add(132,sur(ch,()=>{ boite(12,32,58,108,0,9,'beton'); vitres(12,32,58,108,0,9,101,.75);
+        if(n===3){ boite(12,32,58,108,9,14,'beton'); vitres(12,32,58,108,9,14,103,.8); toit2(12,32,58,108,14,3.5); } else toit2(12,32,58,108,9,3.5); }));
+      add(110,sur(ch,()=>{ boite(32,46,58,72,0,9,'beton'); vitres(32,46,58,72,0,9,105); fanion(48,60,9,C.jaune); })); }
+    if(n===3){ add(130,sur(ch,()=>{ boite(32,44,84,100,0,12,'verre'); vitres(32,44,84,100,0,12,107,.95,C.blanc); enseigne(32,44,100,13.5); }));
+      const tranches=chat?[[134,150],[161,190]]:[[134,190]];
+      for(const [ya,yb] of tranches) add(52+(ya+yb)/2,sur(ch,()=>{ boite(46,49.5,ya,yb,0,4.5,'beton'); boite(49.5,53,ya,yb,0,3,'beton'); boite(53,57,ya,yb,0,1.5,'beton');
+        if(!CH){ for(const [xa,z] of [[47.5,4.5],[51,3],[54.8,1.5]]) for(let y=ya+2;y<yb-1;y+=2.2){ const h=hasard(Math.round(y*3),Math.round(xa)); if(h<.55) pt(xa,y,z+.6,[C.jaune,C.blanc,C.rouge,C.bleu][Math.floor(h*7.2)%4]); }
+          quad([[44.5,ya-1,9],[51,ya-1,9],[51,yb+1,9],[44.5,yb+1,9]],C.beton2,C.encre); seg3([46,yb,4.5],[46,yb,9],C.beton3); } })); }
+  });
+  // le château, ou à défaut le bois
+  if(!R.chateau&&chId!=='chateau'){ [[14,126],[26,124],[38,128],[20,138],[33,140],[12,152],[26,150],[40,154],[18,166],[32,168],[42,178],[14,182],[27,186],[38,192]].forEach(([x,y],i)=>add(x+y,()=>arbre(x,y,i%3===0))); }
+  else { const ch=chId==='chateau';
+    sol(3,46,116,199,C.arbre); sol(6,44,127,189,ch?C.terre:C.eau2); sol(9,41,130,186,C.arbre2);
+    if(!ch) for(let y=131;y<186;y+=4) pt(7,y+(image%2),0,C.eau);
+    sol(41,59,152,160,C.pierre2,C.encre);
+    if(!ch){ for(let a=0;a<12;a++){ const u=a/12*Math.PI*2; pt(51.5+3*Math.cos(u),156+3*Math.sin(u),.2,C.pierre2); } pt(51.5,156,.3,C.eau); const j=P(51.5,156,0); for(let d=1;d<=3+(image%2);d++) px(j[0],j[1]-d,C.blanc);
+      for(const [x,y] of [[11,133],[39,133],[11,183],[39,183]]) add(x+y,()=>cypres(x,y));
+      for(const [x,y] of [[8,194],[18,195],[28,194],[38,195],[5,122],[16,121],[28,122],[40,121]]) add(x+y,()=>arbre(x,y,false)); }
+    const tour=(cx,cy,r,h,hc,c)=>{ boite(cx-r,cx+r,cy-r,cy+r,0,h,'pierre'); if(!CH){ pt(cx+r,cy,h*.45,C.jaune); pt(cx,cy+r,h*.7,C.jaune); }
+      pyramide(cx-r-.6,cx+r+.6,cy-r-.6,cy+r+.6,h,hc,CH?C.chantier:C.ardoise,CH?C.chantier2:C.ardoise2); if(c) fanion(cx,cy,h+hc,c); };
+    add(155,sur(ch,()=>tour(13,142,3.4,18,10,C.blanc)));
+    add(176,sur(ch,()=>tour(19,158,4.2,30,12,C.jaune)));
+    add(190,sur(ch,()=>{ boite(13,33,142,174,0,13,'pierre'); vitres(13,33,142,174,0,13,121,.85);
+      const r=CH?[C.chantier,C.chantier2]:[C.ardoise,C.ardoise2];
+      quad([[33,142,13],[33,174,13],[25,168,21],[25,148,21]],r[0],C.encre); quad([[13,174,13],[33,174,13],[25,168,21],[21,168,21]],r[1],C.encre);
+      if(!CH){ for(const y of [150,158,166]) pt(30,y,16,C.jaune); quad([[33,155,0],[33,161,0],[33,161,5],[33,155,5]],C.bois,C.encre); pt(33,158,2,C.jaune); pt(33,158,3,C.jaune); } }));
+    add(191,sur(ch,()=>tour(13,174,3.4,18,10)));
+    add(192,sur(ch,()=>tour(33,142,3.4,18,10,C.rouge)));
+    add(209,sur(ch,()=>tour(33,174,3.4,18,10)));
+  }
+
+  // décor fixe : portail, voitures, car du club, arbres
+  add(30,()=>{ boite(12,15,-2,1,0,6.5,'pierre'); boite(29,32,-2,1,0,6.5,'pierre'); boite(12,32,-1.5,.5,6.5,8.2,'pierre'); seg3([16,.5,7.4],[28,.5,7.4],C.jaune); });
+  [[11,10,C.rouge],[23,10,C.bleu],[35,34,C.beton3],[17,34,C.arbre2],[41,10,C.blanc]].forEach(([x,y,c])=>add(x+y+7,()=>{ const p=P(x+1.7,y+3.5,0); if(E<1.5){ for(const [dx,dy] of [[-1,0],[0,0],[1,0],[0,-1],[-1,-1]]) px(p[0]+dx,p[1]+dy,c); px(p[0]+1,p[1]-1,C.encre); return; }
+    const L=S(1.6), H=S(.9); for(let dx=-L;dx<=L;dx++){ px(p[0]+dx,p[1]+1,C.encre); for(let dy=0;dy<H;dy++) px(p[0]+dx,p[1]-dy,c); } for(let dx=-L+1;dx<=1;dx++){ px(p[0]+dx,p[1]-H,C.verre2); px(p[0]+dx,p[1]-H-1,c); } px(p[0]+L,p[1]-1,C.jaune); }));
+  add(126,()=>{ const x0=70,x1=83,y0=49.3,y1=54.2; quad([[x1,y0,.9],[x1,y1,.9],[x1,y1,5.4],[x1,y0,5.4]],C.verre2,C.encre); quad([[x0,y1,.9],[x1,y1,.9],[x1,y1,5.4],[x0,y1,5.4]],C.bleu,C.encre); quad([[x0,y0,5.4],[x1,y0,5.4],[x1,y1,5.4],[x0,y1,5.4]],C.clair,C.encre);
+    seg3([x0+.5,y1,2.4],[x1-.5,y1,2.4],C.jaune); for(let x=x0+1.5;x<x1-2;x+=2) pt(x,y1,4,C.verre); });
+  for(const [x,y] of [[-6,20],[-7,48],[-6,76],[-8,104],[-6,132],[-7,160],[-6,188],[60,-4],[100,-5],[150,-4],[200,-5],[246,-4]]) add(x+y,()=>arbre(x,y,true));
+  for(const [x,y] of [[70,206],[110,207],[160,206],[205,207],[246,40],[247,90],[246,150]]) add(x+y,()=>arbre(x,y,false));
+
+  // la grue du chantier
+  if(chId&&posG[chId]) { const [gx,gy]=posG[chId]; add(gx+gy,()=>grue(gx,gy)); }
+
+  // ---------------- la vie sur les terrains ----------------
+  const sec=image/4;
+  // un joueur : trois pixels à la grille du stade ; à grille fine, des jambes qui courent, un short, un maillot, une tête
+  const gars=(x,y,c,petit)=>add(x+y+.5,()=>{ const p=P(x,y,0);
+    if(E<1.5){ px(p[0],p[1],C.encre); px(p[0],p[1]-1,c); if(!petit) px(p[0],p[1]-2,c); px(p[0],p[1]-(petit?2:3),C.peau); return; }
+    const H=Math.round((petit?2.5:3.3)*E), w=E>=1.8&&!petit?2:1, pas=(image+Math.round(x*7+y*3))%2;
+    const jb=Math.max(1,Math.round(H*.3)), sh=Math.max(1,Math.round(H*.14)), tt=Math.max(1,Math.round(H*.22)), bu=Math.max(1,H-jb-sh-tt);
+    const shortC=c===C.herbe3?C.encre:c===C.clair?C.beton:C.ardoise;
+    for(let dx=-1;dx<=w;dx++) px(p[0]+dx,p[1]+1,C.encre);
+    let yy=p[1];
+    for(let i=0;i<jb;i++,yy--){ const ch=i===0?c:C.peau; px(p[0]-(pas&&i<jb-1?1:0),yy,ch); px(p[0]+w-1+(pas?0:(i<jb-1?1:0)),yy,ch); }
+    for(let i=0;i<sh;i++,yy--) for(let dx=0;dx<w;dx++) px(p[0]+dx,yy,shortC);
+    for(let i=0;i<bu;i++,yy--){ for(let dx=0;dx<w;dx++) px(p[0]+dx,yy,c); if(i===bu-1&&w>1){ px(p[0]-1,yy,c); px(p[0]+w,yy,c); } }
+    for(let i=0;i<tt;i++,yy--) for(let dx=0;dx<w;dx++) px(p[0]+dx,yy,i===tt-1&&tt>1?C.encre:C.peau); });
+  const ballon=(x,y)=>add(x+y+.6,()=>{ const q=P(x,y,.6), n=E>=1.8?2:1; for(let i=0;i<n;i++) for(let j=0;j<n;j++) px(q[0]+i,q[1]-j,(i+j)%3===2?C.encre:C.blanc); });
+  const plot=(x,y)=>add(x+y,()=>{ const q=P(x,y,0); px(q[0],q[1],C.chantier); if(E>=1.5){ px(q[0]-1,q[1],C.chantier); px(q[0]+1,q[1],C.chantier2); px(q[0],q[1]-1,C.chantier); if(E>=1.8) px(q[0],q[1]-2,C.blanc); } });
+  const chemin=(Q,dur,del)=>{ const L=[]; let tot=0; for(let i=0;i+1<Q.length;i++){ const d=Math.hypot(Q[i+1][0]-Q[i][0],Q[i+1][1]-Q[i][1]); L.push(d); tot+=d; }
+    let u=(((sec+(del||0))%dur)/dur)*tot; for(let i=0;i<L.length;i++){ if(u<=L[i]){ const f=L[i]?u/L[i]:0; return [Q[i][0]+(Q[i+1][0]-Q[i][0])*f, Q[i][1]+(Q[i+1][1]-Q[i][1])*f]; } u-=L[i]; } return Q[Q.length-1]; };
+  const MAILLOT=C.jaune, CHASUBLE=C.rouge, GARDIEN=C.herbe3, GAMIN=C.bleu, COACH=C.clair;
+  const seance=(sorte,x0,y0,x1,y1,famille,g)=>{ const mx=(x0+x1)/2, my=(y0+y1)/2;
+    if(sorte==='footing'){ const tour=[[x0-3,y0-3],[x1+3,y0-3],[x1+3,y1+3],[x0-3,y1+3],[x0-3,y0-3]];
+      for(let i=0;i<6;i++){ const [x,y]=chemin(tour,40,i*1.2); gars(x,y,MAILLOT); } gars(x0-2,y0-7,COACH); return; }
+    if(sorte==='toro'){ const cx=x0+24, R0=10, pos=[]; for(let i=0;i<7;i++){ const a=i/7*Math.PI*2; pos.push([cx+R0*Math.cos(a),my+R0*Math.sin(a)]); }
+      pos.forEach(([x,y])=>gars(x,y,MAILLOT));
+      const ordre=[0,3,6,2,5,1,4], j=Math.floor(sec/.75)%7, f=(sec%.75)/.75, a=pos[ordre[j]], b=pos[ordre[(j+1)%7]];
+      ballon(a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f);
+      gars(cx-2+(a[0]+(b[0]-a[0])*f-cx)*.4, my+(a[1]+(b[1]-a[1])*f-my)*.4, CHASUBLE);
+      gars(cx+2-(a[0]-cx)*.3, my+1-(a[1]-my)*.3, CHASUBLE);
+      for(const [x,y] of [[cx-13,my-13],[cx+13,my-13],[cx-13,my+13],[cx+13,my+13]]) plot(x,y);
+      gars(x1-16,y0+9,COACH); for(let i=0;i<5;i++) ballon(x1-12+i*1.6, my+12+hasard(i,g)*5); return; }
+    if(sorte==='match'){ const pts=[];
+      for(const [c,xa,xb,s] of [[MAILLOT,x0+14,mx-3,0],[CHASUBLE,mx+3,x1-14,5]]) for(let i=0;i<5;i++){
+        const bx=xa+hasard(i+s,g)*(xb-xa), by=y0+9+hasard(g,i+s)*(y1-y0-18), w=2.6+hasard(i+s,g+1)*2.4;
+        const x=bx+Math.sin(sec*2*Math.PI/w+i)*6, y=by+Math.cos(sec*2*Math.PI/(w*1.3)+i)*4; pts.push([x,y]); gars(x,y,c); }
+      gars(x0+5,my+Math.sin(sec*2)*5,GARDIEN); gars(x1-5,my-Math.sin(sec*1.7)*5,GARDIEN);
+      const [bx,by]=chemin([[mx,my],pts[2],pts[6],pts[8],[x1-8,my+2],pts[4],pts[1],[x0+8,my-2],pts[3],[mx,my]],9,0); ballon(bx,by);
+      gars(mx,y1+3,COACH); return; }
+    if(sorte==='slalom'){ const c=famille==='academie'?GAMIN:MAILLOT, petit=famille==='academie';
+      for(let j=0;j<2;j++){ const y=my-9+j*18; for(let i=0;i<7;i++) plot(x0+16+i*6,y);
+        const zig=[[x0+10,y]]; for(let q=0;q<=7;q++) zig.push([x0+16+q*6,y+(q%2?2.6:-2.6)]); zig.push([x0+62,y],[x0+62,y+5.5],[x0+10,y+5.5],[x0+10,y]);
+        for(let i=0;i<3;i++){ const [x,yy]=chemin(zig,11,i*11/3+j*1.7); gars(x,yy,c,petit); } }
+      gars(x0+66,my,COACH); return; }
+    if(sorte==='frappes'){ const gx=x1-5, cyc=sec%2.4, tireur=Math.floor(sec/2.4)%5;
+      gars(gx,my+Math.sin(sec*3)*3,GARDIEN);
+      for(let i=0;i<5;i++) gars(x1-26-i*2.6, my-6+i*2.8, MAILLOT);
+      const sx=x1-26-tireur*2.6+2, sy=my-6+tireur*2.8; if(cyc<1.2){ const f=cyc/1.2; ballon(sx+(gx-1-sx)*f, sy+(my+(tireur%3-1)*3-sy)*f); } else ballon(sx,sy); return; }
+  };
+  const ac=R.academie|0;
+  if(t===0){ if(!chT) seance('footing',...T[0],'terrains',3); }
+  else if(!(chT&&t===1)){
+    seance('toro',...T[0],'terrains',5); seance('match',...T[1],'terrains',9);
+    if(t>=2&&!(chT&&t===2)){ seance('slalom',...T[2],ac>=1?'academie':'terrains',13); if(t===2) seance('frappes',...T[3],'terrains',17); }
+    else if(ac>=1) for(let i=0;i<5;i++){ const [x,y]=chemin([[50,64],[50,102],[54,102],[54,64],[50,64]],20,i*4); gars(x,y,GAMIN,true); }
+  }
+
+  objets.sort((a,b)=>a[0]-b[0]); for(const [,fn] of objets){ CH=false; fn(); }
+  return buf;
+}
+function rendre(ctx,R,image,E){ E=E||1; const {GW,GH}=cadre(E); ctx.putImageData(new ImageData(peindre(R,image,E),GW,GH),0,0); }
+return {rendre,peindre,cadre};
+})();
+/* ---- CAMPUSPIX : FIN ---- */
 /* ---- CENTRE3D : DÉBUT (v1.53) ----
    Catalogue (FAMS, PALIERS, CHATEAU), calculs et moteur de dessin du campus, repris TELS QUELS du prototype validé
    par l'auteur (championnat/docs/prototype-centre.html), enfermés dans CENTRE3D pour que leurs noms courts (T, P, PI,
@@ -27329,6 +27659,9 @@ function etatStade3D(c, aff, o){
     ferme:s.ferme|0, legende:s.legende|0, style:s.style||"lumiere", chantier:o.chantier?1:0, cible:o.cible||null};
 }
 let CACHE_STADE={k:null, svg:""};
+// LA FINESSE DES MAQUETTES (v2.79, choix de l'auteur du 13/11/2026) : stade et campus se dessinent sur une grille deux fois
+// plus fine que celle d'origine (640 x 448 au lieu de 320 x 224). Même plan, plus de détails : public, joueurs, arbres, toits.
+const PX_FIN=2, pxTaille=M=>[Math.round(M.GW*PX_FIN), Math.round(M.GH*PX_FIN)];
 // LA MAQUETTE EN PIXEL ART (v2.63) : maquetteStade ne rend plus un SVG mais un canvas vide qui porte son état (data-r) ;
 // peintStades() le peint ensuite avec STADEPIX, deux images par seconde tant qu'il est à l'écran.
 // chInfo = {label,reste} du chantier en cours (badge) ; cible = {id,label} : le rang à venir, cliquable
@@ -27336,7 +27669,7 @@ function maquetteStade(c, aff, chInfo, cible){
   const R=etatStade3D(c, Math.round((aff==null?0.6:aff)*20)/20, {chantier:!!chInfo, cible:cible?1:null});
   const k=JSON.stringify(R)+"|"+(chInfo?chInfo.label+"|"+chInfo.reste:"")+"|"+(cible?cible.label:"");
   if(CACHE_STADE.k===k) return CACHE_STADE.svg;
-  const svg=`<canvas class="pxStade" width="${STADEPIX.GW}" height="${STADEPIX.GH}" data-r='${JSON.stringify(R)}' role="img" aria-label="Maquette du stade, ${FMT(c.cap)} places"></canvas>`
+  const svg=`<canvas class="pxStade" width="${pxTaille(STADEPIX)[0]}" height="${pxTaille(STADEPIX)[1]}" data-r='${JSON.stringify(R)}' role="img" aria-label="Maquette du stade, ${FMT(c.cap)} places"></canvas>`
     +`<div class="pxLeg"><b>${esc(etapeStade(c.cap,G.stade).toUpperCase())}</b><span>${FMT(c.cap)} PLACES</span></div>`
     +(chInfo?`<div class="pxBadge">🏗 ${esc(chInfo.label)} · J-${chInfo.reste}</div>`:"")
     +(cible?`<button class="stTrib pxCible" data-id="${esc(cible.id)}" title="${esc("Lancer : "+cible.label)}" aria-label="${esc("Lancer : "+cible.label)}"></button>`:"");
@@ -27346,13 +27679,16 @@ function maquetteStade(c, aff, chInfo, cible){
 let PX_IMAGE=0, PX_TIC=null;
 function peintStades(){
   if(typeof document==="undefined") return;
-  const cs=document.querySelectorAll("canvas.pxStade");
-  if(!cs.length){ if(PX_TIC){ clearInterval(PX_TIC); PX_TIC=null; } return; }
-  cs.forEach(cv=>{ let R; try{ R=JSON.parse(cv.dataset.r); }catch(e){ return; }
-    const out=STADEPIX.rendre(cv.getContext("2d"),R,PX_IMAGE), b=cv.parentNode&&cv.parentNode.querySelector(".pxCible");
-    if(b&&out&&out.zone){ const z=out.zone, W=STADEPIX.GW, H=STADEPIX.GH; // le bouton recouvre le rang à venir, élargi pour rester touchable
-      b.style.left=Math.max(0,(z[0]-6)/W*100)+"%"; b.style.top=Math.max(0,(z[1]-6)/H*100)+"%"; b.style.width=(z[2]-z[0]+12)/W*100+"%"; b.style.height=(z[3]-z[1]+12)/H*100+"%"; } });
-  if(!PX_TIC && !REDUIT) PX_TIC=setInterval(()=>{ PX_IMAGE++; peintStades(); },500);
+  const cs=document.querySelectorAll("canvas.pxStade"), cc=document.querySelectorAll("canvas.pxCampus");
+  if(!cs.length && !cc.length){ if(PX_TIC){ clearInterval(PX_TIC); PX_TIC=null; } return; }
+  const cache=cv=>PX_TIC && cv.offsetParent===null && cv.dataset.peint; // déjà peinte et dans un sous-onglet caché : on attend qu'elle revienne
+  cs.forEach(cv=>{ let R; try{ R=JSON.parse(cv.dataset.r); }catch(e){ return; } if(cache(cv)) return;
+    const out=STADEPIX.rendre(cv.getContext("2d"),R,PX_IMAGE>>1,PX_FIN), b=cv.parentNode&&cv.parentNode.querySelector(".pxCible"); cv.dataset.peint=1;
+    if(b&&out&&out.zone){ const z=out.zone, [W,H]=pxTaille(STADEPIX), m=6*PX_FIN; // le bouton recouvre le rang à venir, élargi pour rester touchable
+      b.style.left=Math.max(0,(z[0]-m)/W*100)+"%"; b.style.top=Math.max(0,(z[1]-m)/H*100)+"%"; b.style.width=(z[2]-z[0]+2*m)/W*100+"%"; b.style.height=(z[3]-z[1]+2*m)/H*100+"%"; } });
+  cc.forEach(cv=>{ let R; try{ R=JSON.parse(cv.dataset.r); }catch(e){ return; } if(cache(cv)) return;
+    CAMPUSPIX.rendre(cv.getContext("2d"),R,PX_IMAGE,PX_FIN); cv.dataset.peint=1; });
+  if(!PX_TIC && !REDUIT) PX_TIC=setInterval(()=>{ PX_IMAGE++; peintStades(); },250);
 }
 
 /* ---- Club ---- */
