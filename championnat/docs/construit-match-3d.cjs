@@ -28,6 +28,7 @@ function equipe(id) { const c = api.clubById(id);
   return { id: c.id, nom: c.nom, stade: c.stade, cap: c.cap, couleurs: api.BLASONS[c.id], xi: api.onze(c).map(j => ({ nom: j.nom, pos: j.pos })) }; }
 function cherche(h, a, meteo, heure) {
   for (let k = 0; k < 6000; k++) {
+    for (const c of [api.clubById(h), api.clubById(a)]) for (const j of c.joueurs) { j.susp = 0; j.bless = 0; } // chaque essai repart d'effectifs frais
     const r = api.simuleMatch(api.clubById(h), api.clubById(a), true), ev = r.ev, x0 = ev[0].x;
     const ok = (r.sh + r.sa) >= 3 && (r.sh + r.sa) <= 6 && r.sh > 0 && r.sa > 0 && ev.some(e => e.ca) && ev.some(e => e.c)
       && ev.some(e => /POTEAU|BARRE|transversale/i.test(e.x)) && (meteo ? meteo.test(x0) : !/spectateurs\. \S/.test(x0));

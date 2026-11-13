@@ -381,6 +381,8 @@
   /* le stade en direct (v2.83) : une bande 2:1 sous le tableau d'affichage, cadrée sur la pelouse et le kop */
   .stDirect{position:relative; aspect-ratio:2 / 1; overflow:hidden; margin:8px 0 2px; border:2px solid #1d2633; border-radius:4px; background:#070b1a;}
   .stDirect canvas{display:block; width:100%; height:100%; object-fit:cover; object-position:50% 22%; image-rendering:pixelated; image-rendering:crisp-edges;}
+  .stDirect.en3d canvas:not(.st3d){display:none;}
+  .stDirect canvas.st3d{position:absolute; inset:0; object-fit:fill; touch-action:pan-y;}
   .pxLeg{position:absolute; left:10px; right:10px; bottom:7px; display:flex; justify-content:space-between; gap:10px; font-family:var(--font-led); font-size:13px; pointer-events:none;}
   .pxLeg b{font-weight:normal; color:var(--jaune); text-shadow:0 0 2px currentColor,0 1px 0 rgba(0,0,0,.6);} .pxLeg span{color:var(--clair); text-shadow:0 1px 0 rgba(0,0,0,.6);}
   .cadreCw{position:relative;} .cadreCw>.pxBadge{left:12px; top:12px;}
@@ -665,7 +667,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.84"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.85"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -23919,7 +23921,7 @@ function directSemaine(o){
   if(ctl && !instant){ ctl.style.display=""; tickerDelai=2300; PAUSE_DIRECT=false; surligneVitesse(); }
   document.getElementById("tabScore").innerHTML=tabScoreHTML(H, A, blasonAff);
   document.getElementById("tabButs").innerHTML="";
-  stadeDirectOuvre(H, A, {neutre:!!o.neutre});
+  stadeDirectOuvre(H, A, {neutre:!!o.neutre, semaine:true, onzeFn:o.onzeFn});
   const majTab=l=>{ if(!l||!l.g) return;
     tabScoreMaj(l.g.sh, l.g.sa);
     tabButAjoute(l.g.cote===H.id?"tBuH":"tBuA", l.g.but, l.m, l.g.cf?" (cf)":l.g.pen?" (sp)":"");
@@ -24020,6 +24022,7 @@ function directSemaine(o){
       const txt=etape===1 ? monteeUn(info,lignes,campA,campD,lg.m)
         : monteeDeux(info,lignes,R ? gardienDe(info.cote===H.id?Ac:Hc, lg.m) : gardienAff(campD, o.onzeFn));
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
+      match3dAnnonce(lg, (3-etape)*Math.max(650,tickerDelai)); // la maquette lance l'action pour qu'elle finisse avec la ligne
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
     if(lg && lg.tab && R && !lignes._tabJouee){ // LA SÉANCE SE JOUE (v2.51) : le direct s'arrête au premier tir au but
@@ -24040,7 +24043,7 @@ function directSemaine(o){
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
-        detail:lg.x}, ()=>apres(courante,300));
+        detail:lg.x}, ()=>{ const d=match3dActif()?Math.max(300,tickerDelai):300; match3dSuite(lignes[i], d); apres(courante,d); }); // avec la maquette, le temps de rejouer l'engagement
       return;
     }
     if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE
@@ -24065,6 +24068,7 @@ function directSemaine(o){
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
+    match3dSuite(lignes[i], tickerDelai);
     apres(courante, tickerDelai);
   };
   tickerDelai=2300; tic();
@@ -24940,6 +24944,7 @@ function lanceMatch(instant){
       if(etape===1){ txt=monteeUn(info,lignes,campA,campD,lg.m); }
       else { txt=monteeDeux(info,lignes,gardienDe(campD,lg.m)); }
       ajouteLigne(tk,{m:lg.m,t:"amb",x:txt}); tk.scrollTop=0;
+      match3dAnnonce(lg, (3-etape)*Math.max(650,tickerDelai)); // la maquette lance l'action pour qu'elle finisse avec la ligne
       tickerTimer=setTimeout(tic, Math.max(650,tickerDelai)); return;
     }
     const courante=i;
@@ -24959,7 +24964,7 @@ function lanceMatch(instant){
       celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(eM.h.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
-        detail:lg.x}, ()=>apres(courante,300));
+        detail:lg.x}, ()=>{ const d=match3dActif()?Math.max(300,tickerDelai):300; match3dSuite(lignes[i], d); apres(courante,d); }); // avec la maquette, le temps de rejouer l'engagement
       return;
     }
     if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE
@@ -25025,6 +25030,7 @@ function lanceMatch(instant){
         detail:lg.x}, ()=>{ tickerTimer=setTimeout(tic,300); });
       return;
     }
+    match3dSuite(lignes[i], tickerDelai);
     apres(courante, tickerDelai);
   };
   tic();
@@ -28097,7 +28103,924 @@ function peintStades(){
    vingt-deux sur la pelouse. Tout est relu au fil : tabScoreMaj donne le score (et donc les buts), ajouteLigne les rouges et
    l'affluence de la ligne du coup d'envoi. Purement cosmétique : sans DOM (harnais), rien ne se passe et rien ne lève.
    Chez vous, c'est VOTRE stade (G.stade) ; ailleurs, un stade à la mesure de la capacité du club qui reçoit. */
+/* ---- MATCH3D : DÉBUT ----
+   LE MATCH EN MAQUETTE 3D. Tout ce bloc est recopié tel quel dans le jeu par docs/greffe-match-3d.cjs : on ne le
+   retouche jamais dans index.html, on le retouche ici et on relance la greffe.
+   fabriqueMatch3D(THREE, o) pose une scène dans o.canvas et rend {annonce, ligne, camera, ferme}.
+   o = { canvas, pixels (taille d'un pixel de jeu, 1,5 par défaut), decalage (part de l'écran couverte en bas),
+         camera ("auto", "large", "ballon"), heure ("jour", "soir", "nuit"),
+         meteo ("sec", "pluie", "boue", "neige", "gel", "brouillard"), stade ({cap, toit, ecran, pylones}),
+         dom / ext ({id, maillot, short, xi:[{nom, pos}]}), enPause (fonction), banniere (fonction, facultative),
+         erreur (fonction, facultative) }
+   LA SCÈNE NE DÉCIDE DE RIEN : le moteur du jeu écrit le fil, la scène le met en image. annonce(l, ms) prévient
+   qu'une ligne s'affichera dans ms millisecondes (l'action démarre et s'arrête juste avant le tir) ;
+   ligne(l) dit qu'elle s'affiche (le tir part, le score change, la mi-temps tombe). */
+function fabriqueMatch3D(THREE, o){
+  o = Object.assign({pixels:1.5, decalage:0, camera:'auto', heure:'jour', meteo:'sec', stade:{}, enPause:()=>false}, o||{});
+  const canvas = o.canvas;
+  const reduit = typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:false, powerPreference:'high-performance'});
+  renderer.setPixelRatio(1);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.BasicShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1,1,1,-1,1,800);
+  let vivant = true, idRaf = 0;
+  const signale = e => { if(signale.vu) return; signale.vu=true; try{ console.error(e); }catch(_){} if(o.erreur) o.erreur(e); };
+
+  const M = c => new THREE.MeshLambertMaterial({color:c, flatShading:true});
+  const box = (w,h,d,mat,x=0,y=0,z=0,parent=scene,ombre=true) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+    m.position.set(x,y,z); m.castShadow=ombre; m.receiveShadow=true; parent.add(m); return m;
+  };
+  const alea = (a,b)=>a+Math.random()*(b-a);
+  const signe = ()=>Math.random()<.5?-1:1;
+  let graine = 7; const rnd = ()=>{ graine=(graine*16807)%2147483647; return graine/2147483647; };
+  const clamp = THREE.MathUtils.clamp;
+  const hexInt = h => parseInt(String(h).slice(1),16);
+
+  /* ---------- lumières ---------- */
+  const hemi = new THREE.HemisphereLight(0xfff4dc, 0x4a5a3a, 1.4); scene.add(hemi);
+  const soleil = new THREE.DirectionalLight(0xfff1d6, 2.6);
+  soleil.position.set(-60,110,70); soleil.castShadow = true;
+  soleil.shadow.mapSize.set(1536,1536);
+  Object.assign(soleil.shadow.camera,{left:-110,right:110,top:110,bottom:-110,near:10,far:400});
+  soleil.shadow.bias = -0.0015;
+  scene.add(soleil);
+
+  /* ================================================================================================
+     LE STADE SUR SON ÎLE, à la mesure du club qui reçoit
+     ================================================================================================ */
+  const L = 105, Lg = 68, ileL = 168, ileP = 128;
+  const ST = o.stade||{}, cap = ST.cap||25000;
+  const rangsP = clamp(Math.round(cap/6000)+2, 4, 9), rangsV = clamp(Math.round(cap/9000)+1, 2, 6), rangsC = clamp(Math.round(cap/14000)+1, 2, 4);
+  const herbeBord = M(0x4f8f3a);
+  box(ileL, 3, ileP, herbeBord, 0, -1.5, 0);
+  const terre = [M(0x7a4a2a), M(0x5e3a22), M(0x6b6b63), M(0x55554f)];
+  [[0.97,6,-6],[0.9,7,-12.5],[0.76,8,-20],[0.55,9,-28.5],[0.3,8,-37]].forEach(([k,h,y],i)=>{
+    box(ileL*k, h, ileP*k, terre[Math.min(i,3)], (rnd()-.5)*8, y, (rnd()-.5)*8).castShadow=false;
+    for(let j=0;j<5;j++) box(8+rnd()*14, h*(.6+rnd()*.6), 8+rnd()*14, terre[Math.min(i+1,3)], (rnd()-.5)*ileL*k, y-1-rnd()*3, (rnd()-.5)*ileP*k).castShadow=false;
+  });
+
+  function texturePelouse(neige=0, boue=0){
+    const ppm=4, W=(L+10)*ppm, H=(Lg+10)*ppm, c=document.createElement('canvas'); c.width=W; c.height=H;
+    const x=c.getContext('2d');
+    for(let i=0;i<14;i++){ x.fillStyle = i%2 ? '#5aa143' : '#4e9439'; x.fillRect(i*W/14,0,W/14+1,H); }
+    for(let i=0;i<W*H/14;i++){ x.fillStyle = Math.random()<.5?'rgba(0,0,0,.06)':'rgba(255,255,255,.05)'; x.fillRect((Math.random()*W)|0,(Math.random()*H)|0,1,1); }
+    if(boue>0){
+      x.fillStyle=`rgba(110,80,45,${boue})`;
+      for(const [cx,cy,r] of [[13*ppm,H/2,10*ppm],[W-13*ppm,H/2,10*ppm],[W/2,H/2,8*ppm]]){ x.beginPath(); x.ellipse(cx,cy,r,r*1.3,0,0,Math.PI*2); x.fill(); }
+    }
+    if(neige>0){ x.fillStyle=`rgba(240,244,248,${neige})`; x.fillRect(0,0,W,H); }
+    x.strokeStyle = neige>0.5 ? '#c9d3dc' : '#f2f2ea'; x.lineWidth=2; x.fillStyle=x.strokeStyle;
+    const o5=5*ppm, P=v=>v*ppm;
+    x.strokeRect(o5,o5,P(L),P(Lg));
+    x.beginPath(); x.moveTo(o5+P(L/2),o5); x.lineTo(o5+P(L/2),o5+P(Lg)); x.stroke();
+    x.beginPath(); x.arc(o5+P(L/2),o5+P(Lg/2),P(9.15),0,Math.PI*2); x.stroke();
+    for(const s of [0,1]){
+      x.strokeRect(s? o5+P(L)-P(16.5) : o5, o5+P(Lg/2-20.16), P(16.5), P(40.32));
+      x.strokeRect(s? o5+P(L)-P(5.5): o5, o5+P(Lg/2-9.16), P(5.5), P(18.32));
+      const sx = s? o5+P(L-11): o5+P(11);
+      x.fillRect(sx-2,o5+P(Lg/2)-2,4,4);
+      x.beginPath(); x.arc(sx,o5+P(Lg/2),P(9.15), s? Math.PI*0.7:-Math.PI*0.3, s? Math.PI*1.3:Math.PI*0.3); x.stroke();
+    }
+    x.fillRect(o5+P(L/2)-2,o5+P(Lg/2)-2,4,4);
+    const t = new THREE.CanvasTexture(c);
+    t.magFilter = t.minFilter = THREE.NearestFilter; t.generateMipmaps=false; t.colorSpace=THREE.SRGBColorSpace;
+    return t;
+  }
+  const matPelouse = new THREE.MeshLambertMaterial({map:texturePelouse()});
+  const pelouse = new THREE.Mesh(new THREE.PlaneGeometry(L+10, Lg+10), matPelouse);
+  pelouse.rotation.x = -Math.PI/2; pelouse.position.y = 0.02; pelouse.receiveShadow = true; scene.add(pelouse);
+  box(L+22, .2, 4, M(0x9a6b4a), 0, .1, -(Lg/2+7), scene, false);
+  box(L+22, .2, 4, M(0x9a6b4a), 0, .1, (Lg/2+7), scene, false);
+  const pubs = [0xc8312f,0xffd24a,0x1d2b5a,0xf4edd8,0x2f6b3a,0xe07b2a];
+  for(let i=0;i<12;i++) box(9, 1.6, .5, M(pubs[i%pubs.length]), -L/2+4.5+i*(L-9)/11, .8, -(Lg/2+5));
+
+  /* les buts, filets en texture ajourée */
+  const canvasFilet = (()=>{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d');
+    x.strokeStyle='#ffffff'; for(let i=0;i<32;i+=4){x.beginPath();x.moveTo(i+.5,0);x.lineTo(i+.5,32);x.stroke();x.beginPath();x.moveTo(0,i+.5);x.lineTo(32,i+.5);x.stroke();}
+    const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,2); return t; })();
+  const matFilet = new THREE.MeshLambertMaterial({map:canvasFilet, transparent:true, alphaTest:.5, side:THREE.DoubleSide, color:0xf0f0f0});
+  const blanc = M(0xf6f6f0);
+  const BUT_L = 13, BUT_H = 5, BUT_P = 4;
+  const filets = [];
+  for(const s of [-1,1]){
+    const g = new THREE.Group(); g.position.set(s*L/2,0,0); scene.add(g);
+    box(.5,BUT_H,.5,blanc,0,BUT_H/2,-BUT_L/2,g); box(.5,BUT_H,.5,blanc,0,BUT_H/2,BUT_L/2,g); box(.5,.5,BUT_L+.5,blanc,0,BUT_H,0,g);
+    const fond = new THREE.Mesh(new THREE.PlaneGeometry(BUT_L,BUT_H), matFilet); fond.rotation.y=Math.PI/2; fond.position.set(s*BUT_P,BUT_H/2,0); g.add(fond);
+    const toit = new THREE.Mesh(new THREE.PlaneGeometry(BUT_P,BUT_L), matFilet); toit.rotation.x=-Math.PI/2; toit.position.set(s*BUT_P/2,BUT_H,0); g.add(toit);
+    for(const z of [-1,1]){ const cote=new THREE.Mesh(new THREE.PlaneGeometry(BUT_P,BUT_H),matFilet); cote.position.set(s*BUT_P/2,BUT_H/2,z*BUT_L/2); g.add(cote); }
+    filets.push({fond, s});
+  }
+  for(const sx of [-1,1]) for(const sz of [-1,1]){ box(.25,2.4,.25,blanc,sx*L/2,1.2,sz*Lg/2); box(.9,.6,.05,M(0xffd24a),sx*L/2+(sx>0?-.45:.45),2.1,sz*Lg/2); }
+
+  /* tribunes et public : la grande tribune grandit avec la capacité du stade */
+  const beton = M(0x9c9a8f), betonClair = M(0xb9b6a8), toitMat = M(0x2d3f33);
+  const places = [];
+  function tribune(cx, cz, longueur, rangs, orient){
+    const g = new THREE.Group(); g.position.set(cx,0,cz); scene.add(g);
+    const surX = Math.abs(orient[0])>0;
+    for(let r=0;r<rangs;r++){
+      const h = 1.2*(r+1), recul = r*2.2;
+      const ox = surX? -orient[0]*recul : 0, oz = surX? 0 : -orient[1]*recul;
+      box(surX?2.2:longueur, h, surX?longueur:2.2, r%2?beton:betonClair, ox, h/2, oz, g);
+      const n = Math.floor(longueur/1.35);
+      for(let i=0;i<n;i++){
+        if(rnd()<.12) continue;
+        const t = -longueur/2 + .7 + i*1.35;
+        places.push({ x: cx+ox+(surX?0:t), y: h+.75, z: cz+oz+(surX?t:0), ph: rnd()*6.28, k: .6+rnd()*.8, camp: 0 });
+      }
+    }
+  }
+  tribune(0, -(Lg/2+12), L+8, rangsP, [0,1]);
+  tribune(0, (Lg/2+11), L-10, rangsC, [0,-1]);
+  tribune(-(L/2+12), 0, Lg-6, rangsV, [1,0]);
+  tribune((L/2+12), 0, Lg-6, rangsV, [-1,0]);
+  const zFond = -(Lg/2+12) - (rangsP-1)*2.2, hFond = 1.2*rangsP;
+  let ecranTex=null, ecranCanvas=null;
+  if(ST.toit!==false){
+    const hT = hFond+5;
+    for(let i=0;i<7;i++) box(.7, hT, .7, toitMat, -L/2+2+i*(L-4)/6, hT/2, zFond-1.5);
+    box(L+12, .8, 13, toitMat, 0, hT+.4, zFond+4);
+    box(L+12, 1.4, .6, M(0xc8312f), 0, hT-.3, zFond+10.4);
+    if(ST.ecran!==false){
+      ecranCanvas = document.createElement('canvas'); ecranCanvas.width=128; ecranCanvas.height=32;
+      ecranTex = new THREE.CanvasTexture(ecranCanvas); ecranTex.magFilter=ecranTex.minFilter=THREE.NearestFilter; ecranTex.colorSpace=THREE.SRGBColorSpace;
+      const ecran = new THREE.Mesh(new THREE.PlaneGeometry(18,4.5), new THREE.MeshBasicMaterial({map:ecranTex}));
+      ecran.position.set(0, hT-3.4, zFond+10.6); scene.add(ecran);
+      box(18.8, 5.3, .5, M(0x111111), 0, hT-3.4, zFond+10.3);
+    }
+  }
+  const publicMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(.8,1.3,.8), new THREE.MeshLambertMaterial({flatShading:true}), places.length);
+  publicMesh.castShadow = false; publicMesh.receiveShadow = true;
+  const tmpM = new THREE.Matrix4(), tmpC = new THREE.Color();
+  scene.add(publicMesh);
+
+  /* pylônes d'éclairage : seule la face tournée vers la pelouse s'allume */
+  const pylones = [];
+  const matLampe = new THREE.MeshLambertMaterial({color:0x333333, emissive:0x000000});
+  if(ST.pylones!==false) for(const sx of [-1,1]) for(const sz of [-1,1]){
+    const x = sx*(L/2+22), z = sz*(Lg/2+20);
+    box(1.2, 34, 1.2, M(0x4a4a46), x, 17, z);
+    const tete = new THREE.Group(); tete.position.set(x,34.5,z); scene.add(tete);
+    box(6, 3.6, 1, M(0x2f2f2c), 0,0,0, tete);
+    box(5.4, 3, .25, matLampe, 0,0,.6, tete, false);
+    tete.lookAt(0,0,0);
+    const spot = new THREE.SpotLight(0xfff3d0, 0, 0, 0.62, 0.6, 0);
+    spot.position.set(x,34,z); spot.target.position.set(sx*-8,0,sz*-6); scene.add(spot, spot.target);
+    pylones.push(spot);
+  }
+
+  /* décor : sapins, club-house */
+  const arbreGeo1 = new THREE.ConeGeometry(3.2,7,6), arbreGeo2 = new THREE.ConeGeometry(2.4,5.5,6), troncGeo = new THREE.BoxGeometry(.8,2,.8);
+  const matSapin = M(0x2f6b3a), matSapinFonce = M(0x255a30), matTronc = M(0x5a3a22);
+  function arbre(x,z,k=1){
+    const g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(k); scene.add(g);
+    const t=new THREE.Mesh(troncGeo,matTronc); t.position.y=1; g.add(t);
+    const a=new THREE.Mesh(arbreGeo1,matSapinFonce); a.position.y=5; a.castShadow=true; g.add(a);
+    const b=new THREE.Mesh(arbreGeo2,matSapin); b.position.y=8.4; b.castShadow=true; g.add(b);
+  }
+  for(let i=0;i<26;i++) arbre(-ileL/2+4+i*(ileL-8)/25 + (rnd()-.5)*3, -ileP/2+3+rnd()*3, .9+rnd()*.5);
+  for(let i=0;i<9;i++) arbre(-ileL/2+3+rnd()*4, -ileP/2+16+i*11, .8+rnd()*.4);
+  for(let i=0;i<6;i++) arbre(ileL/2-3-rnd()*4, -ileP/2+14+i*10, .8+rnd()*.4);
+  const club = new THREE.Group(); club.position.set(-58, 0, ileP/2-10); scene.add(club);
+  box(16,6,10,M(0xe8dcc0),0,3,0,club);
+  box(16.4,.5,10.4,M(0xcfc2a4),0,.25,0,club);
+  { const forme=new THREE.Shape(); forme.moveTo(-6.4,0); forme.lineTo(6.4,0); forme.lineTo(0,4.2); forme.lineTo(-6.4,0);
+    const geo=new THREE.ExtrudeGeometry(forme,{depth:17.4, bevelEnabled:false}); geo.translate(0,0,-8.7);
+    const toit=new THREE.Mesh(geo, M(0xb8322a)); toit.rotation.y=Math.PI/2; toit.position.y=6; toit.castShadow=true; toit.receiveShadow=true; club.add(toit); }
+  box(1.4,3.4,1.4,M(0x8a3a2a),4.5,9.6,-1.5,club);
+  box(2.2,3.4,.2,M(0x5a3a22),0,1.7,5.06,club);
+  for(const x of [-5.2,5.2]){ box(2.6,2,.2,M(0x3d5a80),x,3.6,5.06,club); box(3,.3,.3,M(0xf4edd8),x,2.5,5.15,club); }
+
+  /* pluie, neige, brouillard */
+  const NP = 1600;
+  const goutte = []; for(let i=0;i<NP;i++) goutte.push({x:alea(-ileL/2,ileL/2), y:alea(0,90), z:alea(-ileP/2,ileP/2), v:alea(70,95)});
+  const pluieGeo = new THREE.BufferGeometry(), pluiePos = new Float32Array(NP*6);
+  pluieGeo.setAttribute('position', new THREE.BufferAttribute(pluiePos,3));
+  const pluie = new THREE.LineSegments(pluieGeo, new THREE.LineBasicMaterial({color:0xaec4d8, transparent:true, opacity:.4}));
+  pluieGeo.setDrawRange(0, 550*2);
+  pluie.frustumCulled=false; scene.add(pluie);
+  const neigeGeo = new THREE.BufferGeometry(), neigePos = new Float32Array(NP*3);
+  neigeGeo.setAttribute('position', new THREE.BufferAttribute(neigePos,3));
+  const flocons = new THREE.Points(neigeGeo, new THREE.PointsMaterial({color:0xffffff, size:1.6, sizeAttenuation:false, transparent:true, opacity:.75}));
+  neigeGeo.setDrawRange(0, 650);
+  flocons.frustumCulled=false; scene.add(flocons);
+
+  /* ================================================================================================
+     LES ÉTIQUETTES : le nom au-dessus du joueur décisif, le carton de l'arbitre
+     ================================================================================================ */
+  function etiquette(texte, fond='#05080d', encre='#f2f5fa'){
+    const c=document.createElement('canvas'), x=c.getContext('2d');
+    const f='8px "Silkscreen", monospace'; x.font=f;
+    const w=Math.ceil(x.measureText(texte).width)+6; c.width=w; c.height=12;
+    x.font=f; x.fillStyle=fond; x.fillRect(0,0,w,12); x.fillStyle=encre; x.textBaseline='middle'; x.fillText(texte,3,6.5);
+    const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.colorSpace=THREE.SRGBColorSpace;
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false}));
+    s.userData.ratio=w/12; s.renderOrder=10; scene.add(s); return s;
+  }
+  function carton(rouge){
+    const c=document.createElement('canvas'); c.width=6; c.height=8; const x=c.getContext('2d');
+    x.fillStyle='#05080d'; x.fillRect(0,0,6,8); x.fillStyle=rouge?'#e0262b':'#ffd24a'; x.fillRect(1,1,4,6);
+    const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.colorSpace=THREE.SRGBColorSpace;
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false})); s.userData.ratio=.75; s.renderOrder=11; scene.add(s); return s;
+  }
+
+  /* ================================================================================================
+     LES JOUEURS : les onze de la feuille de match, en petites figurines
+     ================================================================================================ */
+  const PEAU = [0xf0c8a0,0xd9a77a,0x8d5a3b,0xc48b5e,0x5a3a26];
+  const CHEVEUX = [0x2b1d12,0x6b4423,0xd8b46a,0x111111,0x8a5a2b];
+  const ECHELLE = 2.3;
+  const joueurs = [], gardiens = {};
+  const SENS = {dom:1, ext:-1};
+  const adverse = c => c==='dom'?'ext':'dom';
+  const distanceCouleur=(u,v)=>{ const q=h=>[1,3,5].map(i=>parseInt(String(h).slice(i,i+2),16)); const a=q(u), b=q(v); return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]); };
+  const EQ = { dom:o.dom, ext:o.ext };
+  const choixGK=['#2f8f5a','#e07b2a','#6a6a6a','#7a3fa0','#111111','#3ab0c8'].sort((a,b)=>
+    Math.min(distanceCouleur(b,EQ.dom.maillot),distanceCouleur(b,EQ.ext.maillot))-Math.min(distanceCouleur(a,EQ.dom.maillot),distanceCouleur(a,EQ.ext.maillot)));
+  EQ.dom.gk=choixGK[0]; EQ.ext.gk=choixGK[1];
+  function figurine(tenue, gardien){
+    const g = new THREE.Group(); g.scale.setScalar(ECHELLE);
+    const peau = M(PEAU[(rnd()*PEAU.length)|0]);
+    const maillot = M(hexInt(gardien?tenue.gk:tenue.maillot)), short = M(hexInt(gardien?'#1a1a1a':tenue.short));
+    const jambeG = new THREE.Group(), jambeD = new THREE.Group();
+    jambeG.position.set(-.18,.85,0); jambeD.position.set(.18,.85,0);
+    box(.24,.5,.24,peau,0,-.3,0,jambeG); box(.26,.32,.26,maillot,0,-.68,0,jambeG);
+    box(.24,.5,.24,peau,0,-.3,0,jambeD); box(.26,.32,.26,maillot,0,-.68,0,jambeD);
+    g.add(jambeG,jambeD);
+    box(.66,.34,.4,short,0,.92,0,g);
+    box(.72,.7,.42,maillot,0,1.42,0,g);
+    const brasG=box(.2,.62,.22,maillot,-.48,1.4,0,g), brasD=box(.2,.62,.22,maillot,.48,1.4,0,g);
+    box(.44,.44,.44,peau,0,2.02,0,g);
+    box(.48,.16,.48,M(CHEVEUX[(rnd()*CHEVEUX.length)|0]),0,2.28,-.02,g);
+    scene.add(g);
+    return {g, jambeG, jambeD, brasG, brasD};
+  }
+  function placesFormation(xi){
+    const X={G:-.93, D:-.6, M:-.25, A:.12}, par={G:[],D:[],M:[],A:[]};
+    xi.forEach((p,i)=>par[p.pos in par?p.pos:'M'].push(i));
+    const out=[];
+    for(const k of ['G','D','M','A']){
+      const n=par[k].length, larg = n>=5?.74:n===4?.64:n===3?.5:n===2?.22:0;
+      par[k].forEach((idx,i)=>{ const z = n===1?0 : -larg + 2*larg*i/(n-1); const creux = (k==='M'&&n>=4&&(i===0||i===n-1))?.06:0; out[idx]={x:X[k]+creux, z}; });
+    }
+    return out;
+  }
+  for(const camp of ['dom','ext']){
+    const xi=(EQ[camp].xi||[]).slice(0,11), pl=placesFormation(xi);
+    xi.forEach((p,i)=>{
+      const f=figurine(EQ[camp], p.pos==='G');
+      const j={...f, camp, nom:p.nom, poste:p.pos, gardien:p.pos==='G', base:pl[i], pos:new THREE.Vector3(), vel:new THREE.Vector3(), cible:new THREE.Vector3(), phase:rnd()*6.28, num:i, dehors:false, tombe:0, lab:null, crt:null, labT:0, crtT:0};
+      joueurs.push(j); if(j.gardien) gardiens[camp]=j;
+    });
+  }
+  const equipe = c => joueurs.filter(j=>j.camp===c && !j.dehors);
+  const sens = j => SENS[j.camp];
+
+  /* le public aux couleurs des deux clubs, le club qui reçoit en nombre, un virage aux visiteurs */
+  { const cd=[EQ.dom.maillot,EQ.dom.maillot,EQ.dom.short,'#f4edd8','#2b2b2b','#3d5a80','#d9d2c0'], ce=[EQ.ext.maillot,EQ.ext.short];
+    places.forEach((p,i)=>{ tmpM.makeTranslation(p.x,p.y,p.z); publicMesh.setMatrixAt(i,tmpM);
+      const visiteur = p.x>L/2+6 && p.z<0; p.camp = visiteur ? 1 : 0;
+      publicMesh.setColorAt(i,tmpC.set(visiteur? ce[(rnd()*ce.length)|0] : cd[(rnd()*cd.length)|0])); });
+    publicMesh.instanceMatrix.needsUpdate=true; if(publicMesh.instanceColor) publicMesh.instanceColor.needsUpdate=true; }
+
+  /* ---------- le ballon ---------- */
+  const ballon = new THREE.Mesh(new THREE.IcosahedronGeometry(.62,0), new THREE.MeshLambertMaterial({color:0xfafafa, flatShading:true}));
+  ballon.castShadow = true; scene.add(ballon);
+  const B = { pos:new THREE.Vector3(0,.62,0), porteur:null, vol:null, filet:null, libre:null };
+
+  /* ================================================================================================
+     L'ÉTAT DU MATCH
+     ================================================================================================ */
+  const etat = { phase:'avant', buteur:null, decision:1, corner:null, sc:[0,0], celebration:0, attente:0, replace:0, envoi:null };
+  const CELEBRATION=2.6, REPLACEMENT=3;
+  function dessinerEcran(){
+    if(!ecranCanvas) return;
+    const x = ecranCanvas.getContext('2d');
+    x.fillStyle='#0a0f0a'; x.fillRect(0,0,128,32);
+    x.font='bold 10px "Silkscreen", monospace'; x.textBaseline='middle'; x.textAlign='center';
+    x.fillStyle='#f2f5fa'; x.fillText(EQ.dom.id||'',22,16); x.fillText(EQ.ext.id||'',106,16);
+    x.font='bold 16px "Silkscreen", monospace'; x.fillStyle='#ffd24a'; x.fillText(etat.sc[0]+'-'+etat.sc[1],64,17);
+    ecranTex.needsUpdate = true;
+  }
+  const banniere = (g,n,d) => { if(o.banniere) o.banniere(g,n,d); };
+  function plusProche(liste, p, sauf){ let m=null,d=1e9; for(const j of liste){ if(j===sauf) continue; const e=j.pos.distanceTo(p); if(e<d){d=e;m=j;} } return [m,d]; }
+
+  function postesEnvoi(campQuiEngage){
+    const P=new Map();
+    for(const j of joueurs){ if(j.dehors) continue; const s=sens(j); let x = j.gardien ? -s*(L/2-3) : j.base.x*48*.55*s; if(x*s>-1.5) x=-1.5*s; P.set(j,new THREE.Vector3(x,0,j.gardien?0:j.base.z*30*s)); }
+    const eq=equipe(campQuiEngage).filter(j=>!j.gardien).sort((a,b)=>b.base.x-a.base.x), s=SENS[campQuiEngage];
+    if(eq[0]) P.set(eq[0],new THREE.Vector3(-s*1.2,0,0));
+    if(eq[1]) P.set(eq[1],new THREE.Vector3(-s*3.5,0,s*5));
+    for(const j of equipe(adverse(campQuiEngage))) if(!j.gardien){ const p=P.get(j); if(Math.hypot(p.x,p.z)<10.5){ p.multiplyScalar(10.5/Math.max(1,Math.hypot(p.x,p.z))); } }
+    return {P, eng:eq[0], second:eq[1]};
+  }
+  function placerCoupEnvoi(campQuiEngage){
+    const {P, eng}=postesEnvoi(campQuiEngage);
+    for(const [j,p] of P){ j.pos.copy(p); j.vel.set(0,0,0); j.tombe=0; }
+    B.pos.set(0,.62,0); B.porteur=eng; B.vol=null; B.filet=null; B.libre=null;
+    etat.decision=alea(.6,1.2); etat.corner=null;
+  }
+
+  /* ================================================================================================
+     LE JEU D'ATTENTE : entre deux lignes, on se passe le ballon sans jamais tirer
+     ================================================================================================ */
+  function passe(de, vers, lob=false){
+    const dep=de.pos.clone(); dep.y=.62;
+    const arr=vers.pos.clone().addScaledVector(vers.vel,.6); arr.y=.62;
+    arr.x=clamp(arr.x,-L/2+2,L/2-2); arr.z=clamp(arr.z,-Lg/2+1,Lg/2-1);
+    const dist=dep.distanceTo(arr);
+    const adv=equipe(adverse(de.camp)); const seg=new THREE.Line3(dep,arr); let coupeur=null, pt=null;
+    for(const a of adv){ if(a.gardien) continue; const q=new THREE.Vector3(); seg.closestPointToPoint(a.pos,true,q); if(a.pos.distanceTo(q)<3 && Math.random()<.4){ coupeur=a; pt=q; break; } }
+    B.porteur=null;
+    if(coupeur) B.vol={de:dep, a:pt, t:0, d:Math.max(.25,dep.distanceTo(pt)/24), haut:.6, recepteur:coupeur};
+    else B.vol={de:dep, a:arr, t:0, d:Math.max(.3,dist/(lob?20:25)), haut: lob||dist>32 ? Math.min(9,dist*.18) : .5, recepteur:vers};
+  }
+  function decider(p){
+    const s=sens(p), coeq=equipe(p.camp).filter(j=>j!==p && !j.gardien), adv=equipe(adverse(p.camp));
+    const haut=p.pos.x*s>L/2-28;
+    let meilleur=null, note=-1e9;
+    for(const c of coeq){
+      const d=c.pos.distanceTo(p.pos); if(d<6||d>46) continue;
+      const [,marquage]=plusProche(adv,c.pos);
+      const gain=(c.pos.x-p.pos.x)*s;
+      const n=(haut? -Math.abs(gain+8)*.6 : gain*.8) + Math.min(marquage,10)*1.2 - d*.08 + alea(0,12);
+      if(n>note){note=n;meilleur=c;}
+    }
+    if(meilleur) passe(p,meilleur);
+    etat.decision=alea(.7,1.8);
+  }
+
+  /* ================================================================================================
+     LES ACTIONS : une ligne d'occasion, de but ou de carton devient une petite scène, décrite dans le
+     repère de l'attaque (ax vers le but adverse, à +52,5 ; z la largeur)
+     ================================================================================================ */
+  let ACT=null, ATT=null;           // l'action en cours ; l'action annoncée qui attend la reprise du jeu
+  const CODE_FIN=/\(([A-Z]{2,4})\)\s*$/;
+  function trouveNom(texte, liste){ let best=null; for(const j of liste){ if(j.nom && texte.includes(j.nom) && (!best || j.nom.length>best.nom.length)) best=j; } return best; }
+  const campDe = code => code===EQ.dom.id?'dom':code===EQ.ext.id?'ext':null;
+  function lireLigne(l){
+    if(!l) return null;
+    const x=l.x||'';
+    const code = (l.g&&l.g.cote)||(l.q&&l.q.cote)||(l.c&&l.c.cote)||((CODE_FIN.exec(x)||[])[1]);
+    let camp = code?campDe(code):null;
+    if(!camp){ const j=trouveNom(x, joueurs); if(j) camp=j.camp; }
+    let genre=null;
+    if(l.c) genre='carton';
+    else if(l.ca) genre='corner-annonce';
+    else if(/hors-jeu|drapeau (du juge de touche )?(se l[eè]ve|est lev)|juge de touche/i.test(x)) genre='horsjeu';
+    else if(l.t==='but') genre='but';
+    else if(l.t==='occ' && (l.ic==='arret'||l.ic==='rate')){
+      if(/POTEAU|BARRE|transversale|montant|poteau|sur la barre|le bois/i.test(x)) genre='poteau';
+      else if(l.ic==='rate' && /intercept|le perd|perd le ballon|bien lu|coupe la trajectoire|repris par la défense|contré|dégagé/i.test(x)) genre='perdu';
+      else if(l.ic==='arret' || /gants|capte|s'empare|bloque|claque|détourne|sauve|parade/i.test(x)) genre='arret';
+      else genre='rate';
+    }
+    if(!genre || !camp) return null;
+    const ph=(l.g&&l.g.ph)||(l.q&&l.q.ph)||'';
+    let voie='combi';
+    if((l.g&&l.g.pen) || /penalty|point de penalty|onze mètres/i.test(x)) voie='pen';
+    else if(ph==='cf' || (l.g&&l.g.cf) || /coup franc|pose le ballon à|le mur/i.test(x)) voie='cf';
+    else if(/corner/i.test(x)) voie='corner';
+    else if(ph==='loin' || /trente mètres|vingt-cinq mètres|de loin|lointaine|mine|obus|praline|frappe sèche de/i.test(x)) voie='loin';
+    else if(ph==='aile') voie='aile';
+    else if(ph==='centre' || /centre|de la tête|tête plongeante/i.test(x)) voie='centre';
+    else if(ph==='lob' || /lob/i.test(x)) voie='lob';
+    else if(ph==='face' || ph==='drib' || /seul face|face-à-face|percée|déboule|slalom/i.test(x)) voie='face';
+    const att = genre==='carton' ? adverse(camp) : camp;
+    return {genre, voie, camp, att, def:adverse(att), nomTireur:(l.g&&l.g.but)||(l.q&&l.q.but)||(l.c&&l.c.nom)||null,
+      nomPasseur:(l.g&&l.g.pas)||null, rouge:!!(l.c&&l.c.rouge), ligne:l};
+  }
+  /* un nom que la scène ne connaît pas (un remplaçant entré en cours de match) : on le prête à une figurine du bon poste */
+  function porteNom(j, nom){ if(j && nom && j.nom!==nom){ j.nom=nom; if(j.lab){ scene.remove(j.lab); j.lab=null; } } return j; }
+
+  function lanceAction(info, T){
+    ACT=null;
+    if(etat.phase==='but' || etat.phase==='replacement'){ placerCoupEnvoi(adverse(etat.buteur.camp)); etat.phase='jeu'; }
+    if(etat.phase!=='jeu') return;
+    const s=SENS[info.att], att=equipe(info.att), def=equipe(info.def);
+    const gk=gardiens[info.def] && !gardiens[info.def].dehors ? gardiens[info.def] : null;
+    const champ=att.filter(j=>!j.gardien); if(!champ.length) return;
+    const parNom=n=>n?champ.find(j=>j.nom===n)||trouveNom(n, champ):null;
+    let fautif=null;
+    if(info.genre==='carton'){
+      const leurs=equipe(info.camp);
+      fautif = leurs.find(j=>j.nom===info.nomTireur) || porteNom(leurs.filter(j=>!j.gardien)[(Math.random()*Math.max(1,leurs.length-1))|0], info.nomTireur);
+      if(!fautif) return;
+    }
+    let A = info.genre==='carton' ? null : (parNom(info.nomTireur) || trouveNom(info.ligne.x||'', champ));
+    if(!A && info.genre!=='carton'){ A = champ.filter(j=>j.poste==='A')[0] || champ[champ.length-1]; porteNom(A, info.nomTireur); }
+    const P0 = B.pos.clone();
+    const porteur = B.porteur && B.porteur.camp===info.att && !B.porteur.gardien ? B.porteur : plusProche(champ, P0, A)[0] || A;
+    const Pn = parNom(info.nomPasseur);
+    const P = Pn && Pn!==A ? Pn : porteur;
+    const autres = champ.filter(j=>j!==A && j!==P);
+    const side = Math.sign(P0.z*s) || signe();
+    const K=new Map(), S=[];
+    const key=(j,u,ax,z)=>{ if(!j) return; if(!K.has(j)) K.set(j,[]); K.get(j).push({u, x:s*ax, z:s*z}); };
+    const pied=(u0,u1,j)=>S.push({u0,u1,j});
+    const vol=(u0,u1,ax,z,y,haut)=>S.push({u0,u1,a:new THREE.Vector3(s*ax,y,s*z),haut});
+    const ax0 = clamp(P0.x*s, -40, 30), z0 = clamp(P0.z*s, -28, 28);
+    let uTir=.8, depart=null, fini=false;
+    const v=info.voie;
+
+    if(info.genre==='carton'){
+      const V = plusProche(champ, fautif.pos)[0] || porteur;
+      const vx=clamp(ax0+4,-35,38), vz=clamp(z0,-26,26);
+      key(V,.15,vx,vz); pied(0,.7,V); key(V,.7,vx+9,vz+2*side);
+      key(fautif,.4,vx+4,vz+side*6); key(fautif,.7,vx+8.6,vz+2*side+.4);
+      S.push({u0:.7,u1:1,a:new THREE.Vector3(s*(vx+11),.62,s*(vz+3*side)),haut:.3});
+      ACT={info,s,K,S,T,u:0,uTir:2,gk:null,A:V,fautif,victime:V}; fini=true;
+    }
+    else if(info.genre==='corner-annonce'){
+      key(P,.12,clamp(ax0+3,-30,30),z0); pied(0,.25,P);
+      vol(.25,.45,34,side*29,.62,1.2); key(A,.45,34,side*29);
+      pied(.45,.78,A); key(A,.78,48,side*30);
+      const D=plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*49,0,s*side*28))[0]; key(D,.78,49.5,side*27);
+      vol(.78,1,L/2+3,side*30,.62,2);
+      ACT={info,s,K,S,T,u:0,uTir:2,gk:null,A,side}; fini=true;
+    }
+    else if(v==='cf'){
+      const bx=clamp(28+alea(-3,4),20,33), bz=alea(-12,12);
+      depart={ax:bx,z:bz,y:.62};
+      key(A,.3,bx-2.6,bz-.8); key(A,.72,bx-2.6,bz-.8); key(A,.79,bx-.3,bz);
+      S.push({u0:0,u1:.3,a:new THREE.Vector3(s*bx,.62,s*bz),haut:.8});
+      const vise=new THREE.Vector2(L/2-bx, -bz).normalize();
+      def.filter(j=>!j.gardien).slice(1,5).forEach((d,i)=>{ const wx=bx+vise.x*9.15, wz=bz+vise.y*9.15+(i-1.5)*1.1; key(d,.3,wx,wz); key(d,.8,wx,wz); });
+      uTir=.79;
+    }
+    else if(v==='pen'){
+      depart={ax:L/2-11,z:0,y:.62};
+      S.push({u0:0,u1:.35,a:new THREE.Vector3(s*(L/2-11),.62,0),haut:.6});
+      key(A,.4,L/2-14,-1); key(A,.72,L/2-14,-1); key(A,.8,L/2-11.4,0);
+      for(const j of [...autres, ...def.filter(d=>!d.gardien)]) { const ax=Math.min(j.pos.x*s, L/2-19); key(j,.4,ax,j.pos.z*s); key(j,1,ax,j.pos.z*s); }
+    }
+    else if(v==='corner' || etat.corner){
+      const c=etat.corner || {side, tireur:P};
+      const T2=c.tireur && !c.tireur.dehors && c.tireur.camp===info.att ? c.tireur : P;
+      if(A===T2) A = autres.find(j=>j!==T2 && j.poste==='A') || autres.find(j=>j!==T2) || A;
+      const autresC = autres.filter(j=>j!==T2 && j!==A);
+      const fx=L/2-.6, fz=c.side*(Lg/2-.6);
+      key(T2,0.02,fx-.8,fz-c.side*.6); key(T2,.22,fx-.8,fz-c.side*.6);
+      S.push({u0:0,u1:.22,a:new THREE.Vector3(s*fx,.62,s*fz),haut:.2});
+      const cible={ax:L/2-7.5, z:-c.side*1.2};
+      key(A,.25,cible.ax-6,cible.z+c.side*5); key(A,.62,cible.ax,cible.z);
+      vol(.25,.62,cible.ax,cible.z,2.6,4.5);
+      autresC.slice(0,3).forEach((j,i)=>{ key(j,.4,L/2-10-i*2.5,(i-1)*5); key(j,1,L/2-10-i*2.5,(i-1)*5); });
+      def.filter(d=>!d.gardien).slice(0,4).forEach((d,i)=>{ key(d,.4,L/2-6-i*1.5,(i-1.5)*3.4); key(d,1,L/2-6.5-i*1.5,(i-1.5)*3.4); });
+      depart={ax:cible.ax,z:cible.z,y:2.4}; uTir=.74;
+      S.push({u0:.62,u1:.74,a:new THREE.Vector3(s*cible.ax,2.4,s*cible.z),haut:0});
+    }
+    else if(v==='centre' || v==='aile'){
+      const W = v==='aile' ? A : (P!==A?P:autres[0]);
+      const tete = v==='aile' ? plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*(L/2-8),0,0))[0] : A;
+      const C = v==='aile' ? (autres.find(j=>j.poste==='A')||autres[0]) : null;
+      key(porteur,.12,clamp(ax0+4,-30,28),z0); pied(0,.2,porteur);
+      vol(.2,.36,30,side*29,.62,1.5); key(W,.36,30,side*29);
+      pied(.36,.6,W); key(W,.6,46,side*30);
+      const cx=L/2-8, cz=-side*1.5;
+      vol(.6,.8,cx,cz,2.2,4);
+      key(tete,.45,cx-9,cz-side*6); key(tete,.8,cx,cz);
+      if(C){ key(C,.5,cx-8,cz+side*3); key(C,.8,cx-1.5,cz+side*2.5); }
+      depart={ax:cx,z:cz,y:2.2};
+    }
+    else if(v==='loin'){
+      const az=clamp(z0*.5,-14,14);
+      key(porteur,.15,clamp(ax0+4,-30,20),z0); pied(0,.28,porteur);
+      vol(.28,.46,20,az,.62,1); key(A,.46,20,az);
+      pied(.46,.72,A); key(A,.72,25.5,az*.8);
+      depart={ax:26.5,z:az*.8,y:.62}; uTir=.72;
+    }
+    else if(v==='face' || v==='lob' || info.genre==='horsjeu' || info.genre==='perdu'){
+      const az=alea(-10,10);
+      key(porteur,.12,clamp(ax0+5,-30,24),z0); pied(0,.22,porteur);
+      vol(.22,.42,36,az,.62,v==='lob'?3:1); key(A,.3,30,az+side*2); key(A,.42,36,az);
+      pied(.42,.8,A); key(A,.8,45,az*.35);
+      depart={ax:46,z:az*.35,y:.62};
+      if(gk) { key(gk,.55,L/2-1.8,0); key(gk,.8,L/2-(v==='lob'?7:4.5),az*.25); }
+      if(info.genre==='horsjeu' || info.genre==='perdu'){
+        S.push({u0:.8,u1:1,a:new THREE.Vector3(s*47,.62,s*az*.3),haut:.2});
+        const D=plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*44,0,s*az*.4))[0]; if(D && info.genre==='perdu') key(D,.95,46,az*.35);
+        ACT={info,s,K,S,T,u:0,uTir:2,gk:null,A}; fini=true;
+      }
+    }
+    else {
+      const M2=autres[0]||P, az=alea(-8,8);
+      key(porteur,.12,clamp(ax0+5,-30,24),z0); pied(0,.22,porteur);
+      vol(.22,.38,28,-side*9,.62,.6); key(M2,.38,28,-side*9);
+      pied(.38,.5,M2); key(M2,.5,32,-side*7);
+      vol(.5,.66,40,az,.62,.6); key(A,.4,35,az+side*4); key(A,.66,40,az);
+      pied(.66,.8,A); key(A,.8,43,az*.7);
+      depart={ax:44,z:az*.7,y:.62};
+    }
+
+    if(!fini){
+      const g=info.genre; let tz, ty, ax=L/2;
+      if(g==='but'){ tz=alea(1,BUT_L/2-1.4)*signe(); ty=alea(.5,BUT_H-1.4); }
+      else if(g==='arret'){ tz=alea(-4,4); ty=alea(.5,2.6); }
+      else if(g==='poteau'){ if(Math.random()<.5){ tz=signe()*BUT_L/2; ty=alea(1,3.5); } else { tz=alea(-4,4); ty=BUT_H; } }
+      else { if(Math.random()<.65){ tz=signe()*alea(BUT_L/2+1.5,BUT_L/2+6); ty=alea(.5,3); } else { tz=alea(-4,4); ty=alea(6,8); } ax=L/2+1; }
+      const hauteur = v==='cf'?4.6 : v==='lob'?6 : v==='loin'?2.2 : .8;
+      S.push({u0:uTir,u1:1,a:new THREE.Vector3(s*ax,ty,s*tz),haut:hauteur});
+      let dir=0;
+      if(gk){
+        const z0g=clamp(depart?depart.z*.25:0,-3,3);
+        const plonge = g==='arret' ? tz : g==='but' ? clamp(tz - Math.sign(tz||1)*alea(3,6),-6,6) : clamp(tz*.6,-5,5);
+        if(!K.has(gk)) key(gk, Math.max(uTir-.1,.3), L/2-1.8, z0g);
+        key(gk, 1, L/2-1.8, plonge);
+        dir = Math.sign(s*(plonge-z0g)) || 1;
+      }
+      ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir};
+    }
+    for(const [j,ks] of K){ ks.sort((a,b)=>a.u-b.u); ks.unshift({u:0,x:j.pos.x,z:j.pos.z}); j.tombe=0; }
+    B.porteur=null; B.vol=null; B.filet=null; B.libre=null;
+    if(ACT.A && info.genre!=='carton') montrerNom(ACT.A, ACT.T+1.6);
+    etat.corner=null;
+  }
+  function montrerNom(j, duree){ if(!j) return; if(!j.lab) j.lab=etiquette(String(j.nom).toUpperCase()); j.labT=duree; }
+
+  /* l'action avance avec le temps, mais garde le tir en suspens tant que la ligne n'est pas tombée */
+  const SUSPENS=.94;
+  function avanceAction(dt){
+    const a=ACT;
+    const vitesse = a.recue ? Math.max(1/a.T, (1-a.u)/.22) : 1/a.T;
+    a.u=Math.min(a.recue?1:SUSPENS, a.u + dt*vitesse);
+    for(const [j,ks] of a.K){
+      let k=0; while(k<ks.length-2 && ks[k+1].u<a.u) k++;
+      const p=ks[k], q=ks[Math.min(k+1,ks.length-1)];
+      const f = q.u>p.u ? clamp((a.u-p.u)/(q.u-p.u),0,1) : 1;
+      const nx=p.x+(q.x-p.x)*f, nz=p.z+(q.z-p.z)*f;
+      if(dt>0){ j.vel.set((nx-j.pos.x)/dt,0,(nz-j.pos.z)/dt); if(j.vel.length()>16) j.vel.setLength(16); }
+      j.pos.set(nx,0,nz);
+    }
+    const seg=a.S.find(s=>a.u>=s.u0 && a.u<=s.u1) || a.S[a.S.length-1];
+    if(seg){
+      if(seg.j){ const p=seg.j, dir=p.vel.lengthSq()>.1?p.vel.clone().normalize():new THREE.Vector3(a.s,0,0); B.pos.set(p.pos.x+dir.x*1.3,.62,p.pos.z+dir.z*1.3); }
+      else { if(!seg.de) seg.de=B.pos.clone(); const f=clamp((a.u-seg.u0)/Math.max(1e-6,seg.u1-seg.u0),0,1);
+        B.pos.lerpVectors(seg.de, seg.a, f); B.pos.y = seg.de.y+(seg.a.y-seg.de.y)*f + Math.sin(f*Math.PI)*seg.haut; }
+    }
+    if(a.gk && a.dir && a.u>a.uTir+(1-a.uTir)*.35) a.gk.plongeF = clamp((a.u-a.uTir)/(1-a.uTir),0,1)*a.dir;
+    if(a.u>=1) issue();
+  }
+
+  function issue(){
+    const a=ACT, info=a.info, s=a.s; ACT=null;
+    if(a.gk) a.gk.plongeReste=.8;
+    const g=info.genre;
+    if(g==='carton'){
+      a.victime.tombe=1.6;
+      const f=a.fautif; if(!f.crt) f.crt=carton(info.rouge); f.crtT=2.8; montrerNom(f,2.8);
+      if(info.rouge) f.sortie=true;
+      const repr=plusProche(equipe(info.att).filter(j=>j!==a.victime && !j.gardien), B.pos)[0];
+      B.porteur=repr||a.victime; etat.decision=1.4; return;
+    }
+    if(g==='corner-annonce'){
+      etat.corner={side:a.side, tireur:trouveNom(info.ligne.x||'', equipe(info.att)) || a.A};
+      B.libre={t:0, d:.5, de:B.pos.clone(), a:new THREE.Vector3(s*(L/2-.6),.62,s*a.side*(Lg/2-.6))};
+      return;
+    }
+    if(g==='horsjeu' || g==='perdu'){
+      if(g==='horsjeu') banniere('HORS-JEU','',1400);
+      B.porteur=plusProche(equipe(info.def).filter(j=>!j.gardien), B.pos)[0]; etat.decision=1.2; return;
+    }
+    if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; etat.phase='but'; etat.buteur=a.A; etat.celebration=0; montrerNom(a.A, 4); return; }
+    if(g==='arret'){ if(a.gk){ B.porteur=a.gk; a.gk.tient=1.1; etat.decision=1.1; } return; }
+    if(g==='poteau'){ B.libre={t:0, d:.55, de:B.pos.clone(), a:new THREE.Vector3(s*(L/2-12), .62, s*alea(-10,10)), haut:2, ensuite:'def', camp:info.def}; return; }
+    const sortie=B.pos.clone(); sortie.x=s*(L/2+5); sortie.y=.62;
+    B.libre={t:0, d:.45, de:B.pos.clone(), a:sortie, haut:.6, ensuite:'six', camp:info.def};
+  }
+
+  /* ================================================================================================
+     CE QUE LE DIRECT DIT À LA SCÈNE
+     ================================================================================================ */
+  let horloge=0;
+  function annonce(l, ms){
+    if(!vivant || !l || etat.phase==='fin') return;
+    if((ACT && ACT.info.ligne===l) || (ATT && ATT.info.ligne===l)) return;     // déjà en route (la montée de tension l'annonce deux fois)
+    const info=lireLigne(l); if(!info) return;
+    ATT={info, quand:horloge+Math.max(0,ms)/1000};
+  }
+  function lanceAttente(){
+    if(!ATT) return;
+    if(etat.phase==='but' || etat.phase==='replacement'){            // le direct reprend plus vite que prévu : on engage tout de suite
+      if(ATT.quand-horloge<3.2){ placerCoupEnvoi(adverse(etat.buteur.camp)); etat.phase='jeu'; } else return;
+    }
+    if(etat.phase!=='jeu') return;
+    const reste=ATT.quand-horloge, info=ATT.info; ATT=null;
+    lanceAction(info, Math.max(.6, reste));
+  }
+  function ligne(l){
+    if(!vivant || !l) return;
+    const x=l.x||'';
+    if(ACT && ACT.info.ligne===l) ACT.recue=true;                              // le tir part
+    else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
+    if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
+      if(!(ACT && ACT.info.ligne===l) && etat.phase==='jeu'){
+        const j=joueurs.find(p=>p.nom===l.g.but); if(j){ etat.phase='but'; etat.buteur=j; etat.celebration=0; montrerNom(j,4); } } }
+    if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; banniere('FIN DU MATCH','',4000); }
+    else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
+    else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.phase='jeu'; placerCoupEnvoi('dom'); }
+  }
+
+  /* ================================================================================================
+     LES AMBIANCES
+     ================================================================================================ */
+  const AMB = {
+    jour:{fond:0xe9e1cf, soleil:[0xfff1d6,2.6], hemi:[0xfff4dc,0x4a5a3a,1.4], spots:0, pos:[-60,110,70]},
+    soir:{fond:0xe7b98d, soleil:[0xffa060,1.6], hemi:[0xffd2a8,0x3a3048,.9], spots:1.6, pos:[-120,40,40]},
+    nuit:{fond:0x121a2a, soleil:[0x8aa0d0,.35], hemi:[0x3a4a70,0x101418,.35], spots:4.2, pos:[60,110,-60]}
+  };
+  const HEURE = AMB[o.heure] ? o.heure : 'jour';
+  const CIEL = o.meteo==='boue' ? 'pluie' : (o.meteo||'sec');
+  { const neige = CIEL==='neige'?.5 : CIEL==='gel'?.22 : 0, boue = o.meteo==='boue'?.55 : CIEL==='pluie'?.18 : 0;
+    if(neige||boue){ matPelouse.map.dispose(); matPelouse.map=texturePelouse(neige,boue); matPelouse.needsUpdate=true; }
+    if(CIEL==='brouillard') scene.fog=new THREE.Fog(0xb9bcc0, 230, 330); }
+  function ambianceCible(){
+    const a=AMB[HEURE], c=CIEL, gris = c==='pluie'?.55 : c==='neige'?.8 : c==='brouillard'?.65 : 1;
+    return { fond:new THREE.Color(a.fond).lerp(new THREE.Color(HEURE==='nuit'?0x0d121c:0x9aa3a8),1-gris), sCol:new THREE.Color(a.soleil[0]), sI:a.soleil[1]*gris,
+      hCiel:new THREE.Color(a.hemi[0]), hSol:new THREE.Color(a.hemi[1]), hI:a.hemi[2]*(c==='sec'?1:.85), spots:a.spots*(c==='sec'?1:1.15), pos:new THREE.Vector3(...a.pos) };
+  }
+  const ambC = ambianceCible();                          // on part directement de la bonne lumière
+  const blancNeige = CIEL==='neige'||CIEL==='gel';
+  if(blancNeige){ herbeBord.color.setHex(0xdfe6ea); matSapin.color.setHex(0xcfdcd8); }
+  if(CIEL==='pluie') matPelouse.color.setHex(0x9fb0a0);
+
+  /* ================================================================================================
+     LA SIMULATION DE CHAQUE IMAGE
+     ================================================================================================ */
+  function majJeu(dt){
+    if(ACT) avanceAction(dt);
+    else if(B.vol){
+      const v=B.vol; v.t+=dt/v.d; const k=Math.min(1,v.t);
+      B.pos.lerpVectors(v.de,v.a,k); B.pos.y=v.de.y+(v.a.y-v.de.y)*k+Math.sin(k*Math.PI)*v.haut;
+      if(k>=1){ B.vol=null; B.porteur=v.recepteur; etat.decision=alea(.5,1.6); }
+    } else if(B.filet){
+      B.filet.t+=dt; const f=B.filet, k=Math.min(1,f.t/.35);
+      B.pos.set(f.a.x+f.s*BUT_P*.85*k, Math.max(.62,f.a.y*(1-k*1.3)), f.a.z);
+    } else if(B.libre){
+      const b=B.libre; b.t+=dt; const k=Math.min(1,b.t/b.d);
+      B.pos.lerpVectors(b.de,b.a,k); B.pos.y=b.de.y+(b.a.y-b.de.y)*k+Math.sin(k*Math.PI)*(b.haut||0);
+      if(k>=1 && b.t>b.d+.35){
+        B.libre=null;
+        if(b.ensuite==='six'){ const gk=gardiens[b.camp]; if(gk && !gk.dehors){ gk.pos.set(-SENS[b.camp]*(L/2-5.5),0,alea(-6,6)); B.porteur=gk; gk.tient=.8; etat.decision=.8; } }
+        else if(b.ensuite==='def'){ B.porteur=plusProche(equipe(b.camp).filter(j=>!j.gardien), B.pos)[0]; etat.decision=.6; }
+      }
+    } else if(B.porteur){
+      const p=B.porteur, dir=p.vel.lengthSq()>.1?p.vel.clone().normalize():new THREE.Vector3(sens(p),0,0);
+      if(p.gardien && p.tient>0) B.pos.set(p.pos.x+dir.x*.5,1.6,p.pos.z+dir.z*.5);
+      else B.pos.set(p.pos.x+dir.x*1.4,.62,p.pos.z+dir.z*1.4);
+    }
+
+    if(etat.phase==='pause'){ etat.attente-=dt; if(etat.attente<=0){ SENS.dom*=-1; SENS.ext*=-1; placerCoupEnvoi('ext'); etat.phase='jeu'; } }
+    if(etat.phase==='but'){ etat.celebration+=dt;
+      if(etat.celebration>CELEBRATION && !ACT){
+        etat.phase='replacement'; etat.replace=0; etat.envoi=postesEnvoi(adverse(etat.buteur.camp));
+        B.filet=null; B.porteur=null; B.vol=null; B.libre={t:0,d:.9,de:B.pos.clone(),a:new THREE.Vector3(0,.62,0),haut:3}; } }
+    if(etat.phase==='replacement'){ etat.replace+=dt;
+      if(etat.replace>REPLACEMENT){
+        const {eng, second}=etat.envoi; etat.phase='jeu';
+        B.libre=null; B.pos.set(0,.62,0); B.porteur=eng;
+        if(eng && second) passe(eng, second); etat.decision=alea(.8,1.4); } }
+
+    const bx=B.pos.x, bz=B.pos.z;
+    const campBallon = ACT ? ACT.info.att : (B.porteur?.camp ?? B.vol?.recepteur?.camp ?? null);
+    for(const c of ['dom','ext']){
+      const eq=equipe(c);
+      const presseur = (campBallon && campBallon!==c && etat.phase==='jeu') ? plusProche(eq.filter(j=>!j.gardien && !(ACT&&ACT.K.has(j))), B.pos)[0] : null;
+      for(const j of eq){
+        if(ACT && ACT.K.has(j)) continue;
+        const s=sens(j);
+        if(j.sortie){ j.cible.set(j.pos.x, 0, Lg/2+9); if(j.pos.z>Lg/2+7){ j.dehors=true; j.g.visible=false; if(j.lab) j.lab.visible=false; if(j.crt) j.crt.visible=false; } continue; }
+        if(etat.phase==='but'){
+          const b=etat.buteur, sb=sens(b);
+          if(j===b) j.cible.set(sb*(L/2-3),0,Math.sign(b.pos.z||1)*(Lg/2-3));
+          else if(j.camp===b.camp && !j.gardien) j.cible.copy(b.pos).add(new THREE.Vector3(Math.cos(j.num)*3.5,0,Math.sin(j.num)*3.5));
+          else j.cible.set(j.base.x*30*s,0,j.base.z*28*s);
+          continue;
+        }
+        if(etat.phase==='replacement'){ const p=etat.envoi.P.get(j); if(p) j.cible.copy(p); continue; }
+        if(etat.phase==='fin'||etat.phase==='pause'){ j.cible.set(-s*4+(j.num-5)*2.2*s*.4, 0, (j.camp==='dom'?-3:3)+(j.num-5)*.2); continue; }
+        if(etat.phase==='avant') { j.cible.copy(j.pos); continue; }
+        if(etat.corner && B.libre==null && !ACT){
+          const sc=SENS[etat.corner.tireur.camp];
+          if(j===etat.corner.tireur){ j.cible.set(sc*(L/2-1.4),0,sc*etat.corner.side*(Lg/2-1.2)); continue; }
+          if(!j.gardien){ j.cible.set(sc*(L/2-6-(j.num%4)*2.5), 0, sc*((j.num%5)-2)*3.2+(j.camp==='dom'?.8:-.8)); continue; }
+        }
+        if(j.gardien){ j.cible.set(-s*(L/2-2.5),0,clamp(bz*.18,-4,4)); continue; }
+        if(j===B.porteur){ j.cible.set(j.pos.x+s*10,0,j.pos.z*.85); continue; }
+        if(B.vol && B.vol.recepteur===j){ j.cible.copy(B.vol.a); j.cible.y=0; continue; }
+        if(j===presseur){ j.cible.set(bx,0,bz); continue; }
+        const attaque = campBallon===c ? 1 : 0;
+        const x=j.base.x*48*.72*s + bx*.42 + s*attaque*9, z=j.base.z*30*.9*s + bz*.28;
+        j.cible.set(clamp(x,-L/2+3,L/2-3),0,clamp(z,-Lg/2+2,Lg/2-2));
+      }
+    }
+    for(const j of joueurs){
+      if(j.dehors || (ACT && ACT.K.has(j))) continue;
+      if(j.tombe>0){ j.tombe-=dt; j.vel.multiplyScalar(.85); continue; }
+      const d=j.cible.clone().sub(j.pos); d.y=0; const dist=d.length();
+      let vmax = j===B.porteur?6.8 : (B.vol?.recepteur===j?9.5 : 7.8);
+      if(etat.phase==='but' && j===etat.buteur) vmax=9;
+      if(etat.phase==='fin'||etat.phase==='pause') vmax=3;
+      if(etat.phase==='replacement') vmax=16;
+      const voulu = dist>.4 ? d.multiplyScalar(Math.min(vmax,dist*1.6)/dist) : d.set(0,0,0);
+      j.vel.lerp(voulu, Math.min(1,dt*4)); j.pos.addScaledVector(j.vel,dt);
+      if(j.tient){ j.tient-=dt; if(j.tient<=0) j.tient=0; }
+    }
+    for(let a=0;a<joueurs.length;a++) for(let b=a+1;b<joueurs.length;b++){
+      const A=joueurs[a], Bj=joueurs[b]; if(A.dehors||Bj.dehors) continue;
+      if(ACT && (ACT.K.has(A)||ACT.K.has(Bj))) continue;
+      const dx=A.pos.x-Bj.pos.x, dz=A.pos.z-Bj.pos.z, d2=dx*dx+dz*dz;
+      if(d2<4 && d2>1e-4){ const d=Math.sqrt(d2), k=(2-d)*.5/d; A.pos.x+=dx*k; A.pos.z+=dz*k; Bj.pos.x-=dx*k; Bj.pos.z-=dz*k; }
+    }
+    if(etat.phase==='jeu' && !ACT && B.porteur){
+      const p=B.porteur; etat.decision-=dt;
+      if(etat.decision<=0 && !p.tient){
+        if(p.gardien){ const c=equipe(p.camp).filter(j=>!j.gardien); if(c.length) passe(p,c[(Math.random()*c.length)|0],true); etat.decision=alea(.8,1.6); }
+        else decider(p);
+      }
+      if(B.porteur && !B.porteur.gardien){
+        const [adv,d]=plusProche(equipe(adverse(p.camp)).filter(j=>!j.gardien), p.pos);
+        if(adv && d<1.9 && Math.random()<dt*.7){ B.porteur=adv; etat.decision=alea(.4,1.2); }
+      }
+    }
+  }
+
+  function poserJoueurs(dt, now){
+    const k = 12*2*cam.demi/Math.max(40, Math.floor(taille().h/o.pixels));   // une étiquette fait toujours 12 pixels de jeu de haut, en plein écran comme dans la petite bande du direct
+    for(const j of joueurs){
+      if(j.dehors) continue;
+      j.g.position.copy(j.pos);
+      const v=j.vel.length();
+      if(j.gardien && (j.plongeF || (ACT && ACT.gk===j && ACT.u>ACT.uTir-.1))) j.g.rotation.y = sens(j)>0 ? Math.PI/2 : -Math.PI/2;
+      else if(v>.3) j.g.rotation.y=Math.atan2(j.vel.x,j.vel.z);
+      j.phase+=dt*v*1.25;
+      const a=Math.min(.9,v*.11)*Math.sin(j.phase);
+      j.jambeG.rotation.x=a; j.jambeD.rotation.x=-a; j.brasG.rotation.x=-a*.8; j.brasD.rotation.x=a*.8;
+      j.g.position.y=Math.abs(Math.sin(j.phase))*Math.min(.25,v*.03);
+      j.brasG.rotation.z=0; j.brasD.rotation.z=0; j.g.rotation.x=0; j.g.rotation.z=0;
+      if(etat.phase==='but' && etat.buteur && j.camp===etat.buteur.camp && !j.gardien){
+        j.brasG.rotation.z=-2.6; j.brasD.rotation.z=2.6; j.brasG.rotation.x=j.brasD.rotation.x=0;
+        j.g.position.y+=Math.abs(Math.sin(now/180+j.num))*.5;
+      }
+      if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
+      if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
+      if(j.gardien && j.plongeF){ j.g.rotation.z = 1.35*Math.min(1,Math.abs(j.plongeF)*2)*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9; }
+      if(j.lab){ j.labT-=dt; j.lab.visible = j.labT>0; j.lab.position.set(j.pos.x, 7.2+k*.6, j.pos.z); j.lab.scale.set(k*j.lab.userData.ratio, k, 1); }
+      if(j.crt){ j.crtT-=dt; j.crt.visible = j.crtT>0; j.crt.position.set(j.pos.x, 7.2+k*1.9, j.pos.z); j.crt.scale.set(k*1.1*.75, k*1.1, 1); }
+    }
+  }
+
+  /* ---------- caméra isométrique : en mode auto, elle suit l'action et recule sur les temps morts ---------- */
+  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, cible:new THREE.Vector3(), demi:80, mode:o.camera };
+  const taille = () => ({w:Math.max(1,canvas.clientWidth||300), h:Math.max(1,canvas.clientHeight||150)});
+  function cadrage(){
+    const {w,h}=taille(), asp=w/h;
+    const large = {cible:new THREE.Vector3(0,-4,0), demi:Math.max(72,104/asp)};
+    if(cam.mode==='large' && etat.phase!=='but') return large;
+    const pres = Math.max(28, 40/asp);
+    const p = (etat.phase==='but' && etat.buteur) ? etat.buteur.pos : B.pos;
+    if(cam.mode==='ballon') return {cible:new THREE.Vector3(p.x*.85,0,p.z*.85), demi:pres*(etat.phase==='but'?.8:1)};
+    const chaud = ACT || etat.phase==='but' || etat.corner || (ATT && ATT.quand-horloge<1.2);
+    if(chaud) return {cible:new THREE.Vector3(p.x*.85,0,p.z*.85), demi:pres*(etat.phase==='but'?.8:1)};
+    if(etat.phase==='pause'||etat.phase==='fin'||etat.phase==='avant'||etat.phase==='replacement') return {cible:new THREE.Vector3(0,-2,0), demi:Math.min(large.demi, pres*2.1)};
+    return {cible:new THREE.Vector3(p.x*.5,0,p.z*.4), demi:pres*1.6};
+  }
+  function placerCamera(dt){
+    const c=cadrage(), k=Math.min(1,dt*(etat.phase==='but'||ACT?2:1.1));
+    cam.cible.lerp(c.cible,k); cam.demi+=(c.demi-cam.demi)*k;
+    cam.angle+=(cam.angleCible-cam.angle)*Math.min(1,dt*6);
+    const el=.6, D=300;
+    camera.position.set(cam.cible.x+Math.sin(cam.angle)*Math.cos(el)*D, cam.cible.y+Math.sin(el)*D, cam.cible.z+Math.cos(cam.angle)*Math.cos(el)*D);
+    camera.lookAt(cam.cible);
+    const {w,h}=taille(), asp=w/h, dec=o.decalage||0;
+    camera.left=-cam.demi*asp; camera.right=cam.demi*asp; camera.top=cam.demi*(1-dec); camera.bottom=-cam.demi*(1+dec);
+    camera.updateProjectionMatrix();
+  }
+  let glisse=null;
+  const surDown=e=>{ glisse={x:e.clientX,a:cam.angleCible}; try{ canvas.setPointerCapture(e.pointerId); }catch(_){} };
+  const surMove=e=>{ if(glisse) cam.angleCible=glisse.a-(e.clientX-glisse.x)*0.008; };
+  const surUp=()=>{ glisse=null; };
+  canvas.addEventListener('pointerdown',surDown); canvas.addEventListener('pointermove',surMove);
+  canvas.addEventListener('pointerup',surUp); canvas.addEventListener('pointercancel',surUp);
+  canvas.addEventListener('webglcontextlost', e=>e.preventDefault());
+
+  let dernierW=0, dernierH=0;
+  function redimensionner(){
+    const {w,h}=taille(); if(w===dernierW && h===dernierH) return; dernierW=w; dernierH=h;
+    renderer.setSize(Math.max(80,Math.floor(w/o.pixels)), Math.max(40,Math.floor(h/o.pixels)), false);
+  }
+
+  /* ---------- boucle ---------- */
+  let avant=performance.now();
+  function image(now){
+    redimensionner();
+    const dt=Math.min(.05,(now-avant)/1000); avant=now;
+    const fige = !!o.enPause();
+    const dJeu = fige ? 0 : dt*(typeof window!=='undefined' && window.__vit || 1);
+    horloge+=dJeu;
+    majJeu(dJeu);
+    lanceAttente();
+    poserJoueurs(dJeu, now);
+    ballon.position.copy(B.pos); if(!fige){ ballon.rotation.x+=dt*8; ballon.rotation.z+=dt*5; }
+    const c=ambianceCible(), k=Math.min(1,dt*2);
+    ambC.fond.lerp(c.fond,k); ambC.sCol.lerp(c.sCol,k); ambC.sI+=(c.sI-ambC.sI)*k; ambC.hCiel.lerp(c.hCiel,k); ambC.hSol.lerp(c.hSol,k);
+    ambC.hI+=(c.hI-ambC.hI)*k; ambC.spots+=(c.spots-ambC.spots)*k; ambC.pos.lerp(c.pos,k);
+    scene.background=ambC.fond; if(scene.fog) scene.fog.color.copy(ambC.fond);
+    soleil.color.copy(ambC.sCol); soleil.intensity=ambC.sI; soleil.position.copy(ambC.pos);
+    hemi.color.copy(ambC.hCiel); hemi.groundColor.copy(ambC.hSol); hemi.intensity=ambC.hI;
+    for(const s of pylones) s.intensity=ambC.spots;
+    matLampe.emissive.setHex(ambC.spots>.5?0xfff2c8:0x000000);
+    const tt=now/1000, fete = etat.phase==='but' ? (etat.buteur.camp==='dom'?0:1) : -1;
+    for(let i=0;i<places.length;i++){
+      const p=places[i];
+      const saut = p.camp===fete ? Math.max(0,Math.sin(tt*9*p.k+p.ph))*1.4 : Math.max(0,Math.sin(tt*1.3*p.k+p.ph)-.92)*3;
+      tmpM.makeTranslation(p.x,p.y+saut,p.z); publicMesh.setMatrixAt(i,tmpM);
+    }
+    publicMesh.instanceMatrix.needsUpdate=true;
+    for(const f of filets){ const s=B.filet&&B.filet.s===f.s?Math.max(0,1-B.filet.t/1.2):0; f.fond.position.x=f.s*(BUT_P+s*1.4*Math.sin(tt*40)); }
+    pluie.visible=CIEL==='pluie'; flocons.visible=CIEL==='neige';
+    if(pluie.visible && !reduit){ for(let i=0;i<550;i++){ const g=goutte[i]; g.y-=g.v*dt; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} pluiePos.set([g.x,g.y,g.z,g.x+.6,g.y+3.2,g.z+.4],i*6); } pluieGeo.attributes.position.needsUpdate=true; }
+    if(flocons.visible && !reduit){ for(let i=0;i<650;i++){ const g=goutte[i]; g.y-=g.v*.09*dt; g.x+=Math.sin(tt+i)*dt*2; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} neigePos.set([g.x,g.y,g.z],i*3); } neigeGeo.attributes.position.needsUpdate=true; }
+    placerCamera(dt);
+    renderer.render(scene,camera);
+  }
+  function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); try{ image(now); }catch(e){ signale(e); } }
+
+  placerCoupEnvoi('dom'); B.porteur=null;
+  dessinerEcran();
+  if(typeof document!=='undefined' && document.fonts) document.fonts.ready.then(()=>{ if(vivant) dessinerEcran(); });
+  cam.demi=cadrage().demi;
+  idRaf=requestAnimationFrame(boucle);
+
+  return {
+    annonce, ligne,
+    camera(m){ cam.mode=m; },
+    ferme(){
+      if(!vivant) return; vivant=false; cancelAnimationFrame(idRaf);
+      canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
+      canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp);
+      scene.traverse(x=>{ if(x.geometry) x.geometry.dispose(); const m=x.material; if(m){ (Array.isArray(m)?m:[m]).forEach(mm=>{ if(mm.map) mm.map.dispose(); mm.dispose(); }); } });
+      renderer.dispose(); try{ renderer.forceContextLoss(); }catch(_){}
+    }
+  };
+}
+/* ---- MATCH3D : FIN ---- */
 let STD=null;
+/* LE MATCH EN MAQUETTE 3D (v2.85, choix de l'auteur du 13/11/2026, prototype docs/prototype-match-3d.html, chantier
+   docs/chantier-match-3d.md). La bande du stade en direct montre le match en 3D : le moteur MATCH3D (bloc greffé juste
+   au-dessus par docs/greffe-match-3d.cjs, à ne jamais retoucher ici) lit le fil du direct et met chaque ligne en scène,
+   sans rien décider. Three.js arrive de jsDelivr à la demande, au premier direct : c'est cosmétique comme les fontes,
+   et sans lui (pas de réseau, pas de WebGL, mouvement réduit, harnais) la bande 2D de toujours reste à l'écran.
+   Le direct parle à la scène par trois appels : match3dLigne (chaque ligne lue, depuis stadeDirectLigne),
+   match3dAnnonce / match3dSuite (la ligne suivante et dans combien de temps elle tombe, depuis les deux boucles tic). */
+const MATCH3D_URL="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+let M3D=null, M3D_THREE=null;
+function match3dActif(){ return !!(M3D && M3D.sc); }
+function match3dCharge(){
+  if(!M3D_THREE) M3D_THREE=import(MATCH3D_URL).catch(e=>{ M3D_THREE=null; throw e; });
+  return M3D_THREE;
+}
+function heureDuMatch(o){ if(o && o.semaine) return "nuit"; const j=(G && G.journee)||1; return (j<=6 || j>=33) ? "jour" : "soir"; }
+function meteoDuMatch(){ const c=METEO_MATCH && METEO_MATCH.cle;
+  return c==="neige"?"neige" : c==="pluie"?"pluie" : c==="boue"?"boue" : c==="brouillard"?"brouillard" : c==="froid"?"gel" : "sec"; }
+function xiDuMatch(c, fn){
+  let xi=null; try{ xi=fn ? fn(c) : enJeu(c, 1); }catch(e){}
+  if(!xi || xi.length<7){ try{ xi=onze(c); }catch(e){ xi=[]; } }
+  return (xi||[]).filter(Boolean).map(j=>({nom:j.nom, pos:j.pos}));
+}
+function match3dOuvre(H, A, o, dom, ext, R){
+  match3dFerme();
+  if(typeof document==="undefined" || EN_TEST() || REDUIT || typeof WebGLRenderingContext==="undefined") return;
+  const jeton={}; M3D={jeton, sc:null, cv:null, file:[], veille:null};
+  const heure=heureDuMatch(o), eteIndien=!!(METEO_MATCH && METEO_MATCH.cle==="eteIndien"), cap=(R && R.cap)||H.cap||20000;
+  const reglages={ pixels:1.5, camera:"auto", heure: eteIndien && heure==="jour" ? "soir" : heure, meteo:meteoDuMatch(),
+    stade:{cap, toit:!!(R && R.toit) || cap>=30000, ecran:!!(R && R.ecran), pylones:!!(R && R.eclairage)},
+    dom:{id:H.id, maillot:dom[0], short:dom[1], xi:xiDuMatch(H, o && o.onzeFn)},
+    ext:{id:A.id, maillot:ext[0], short:ext[1], xi:xiDuMatch(A, o && o.onzeFn)},
+    enPause:()=>PAUSE_DIRECT };
+  match3dCharge().then(THREE=>{
+    if(!M3D || M3D.jeton!==jeton) return;
+    const bande=document.getElementById("stDirect"); if(!bande) return;
+    const cv=document.createElement("canvas"); cv.className="st3d"; cv.setAttribute("role","img"); cv.setAttribute("aria-label","Le match en maquette");
+    bande.appendChild(cv);
+    let sc=null; try{ sc=fabriqueMatch3D(THREE, Object.assign({canvas:cv}, reglages)); }catch(e){ cv.remove(); M3D=null; return; }
+    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d");
+    if(STD && STD.tic){ clearInterval(STD.tic); STD.tic=null; } // la bande 2D s'efface et ne se repeint plus
+    for(const [f,a] of M3D.file){ try{ sc[f](...a); }catch(e){} }
+    M3D.file=[];
+    M3D.veille=setInterval(()=>{ if(!M3D || !M3D.cv || !M3D.cv.isConnected) match3dFerme(); }, 1500);
+  }).catch(()=>{ if(M3D && M3D.jeton===jeton) M3D=null; });
+}
+function match3dEnvoie(f, args){ if(!M3D) return; if(M3D.sc){ try{ M3D.sc[f](...args); }catch(e){} } else M3D.file.push([f, args]); }
+function match3dLigne(l){ if(l) match3dEnvoie("ligne", [l]); }
+function match3dAnnonce(l, ms){ if(l) match3dEnvoie("annonce", [l, ms]); }
+/* la ligne qui suit : une ligne qui aura sa montée de tension sera annoncée par la montée elle-même */
+function match3dSuite(l, ms){ if(!l) return; if((l.g || (l.q && l.q.bu)) && (l._monte||0)<2) return; match3dAnnonce(l, ms); }
+function match3dFerme(){ if(!M3D) return; const m=M3D; M3D=null; if(m.veille) clearInterval(m.veille); if(m.sc){ try{ m.sc.ferme(); }catch(e){} } if(m.cv) m.cv.remove(); }
 function stadeAutre(cap){ const s=stadeDefaut(); cap=cap||12000;
   return {cap, aff:.8, virages:cap>=22000?1:0, eclairage:cap>=30000?2:1, toit:cap>=42000?1:0, loges:cap>=35000?1:0, ecran:cap>=28000?1:0,
     chauffante:0, led:cap>=45000?1:0, boutique:0, buvette:cap>=15000?1:0, restaurant:0, musee:0, hotel:0, transport:cap>=40000?1:0,
@@ -28122,6 +29045,7 @@ function stadeDirectOuvre(H, A, o){
     stadeDirectPeint();
     if(!REDUIT) STD.tic=setInterval(()=>{ if(!STD || !STD.cv.isConnected){ stadeDirectFerme(); return; }
       STD.img++; if(STD.evt){ STD.evt.t++; if(STD.evt.t>40) STD.evt=null; } stadeDirectPeint(); },250);
+    match3dOuvre(H, A, o, dom, ext, R); // la maquette 3D prend la place de la bande dès qu'elle est prête
   }catch(e){ STD=null; }
 }
 function stadeDirectPeint(){
@@ -28129,7 +29053,7 @@ function stadeDirectPeint(){
   try{ STADEPIX.rendre(STD.cv.getContext("2d"), STD.R, STD.img, PX_FIN,
     {focus:"pelouse", direct:{sc:STD.sc, rouges:STD.rouges, evt:STD.evt, dom:STD.dom, ext:STD.ext}}); }catch(e){}
 }
-function stadeDirectFerme(){ if(STD && STD.tic) clearInterval(STD.tic); STD=null; }
+function stadeDirectFerme(){ match3dFerme(); if(STD && STD.tic) clearInterval(STD.tic); STD=null; }
 function stadeDirectScore(sh, sa){
   if(!STD) return;
   const [h,a]=STD.sc;
@@ -28137,6 +29061,7 @@ function stadeDirectScore(sh, sa){
   STD.sc=[sh, sa]; if(REDUIT) stadeDirectPeint();
 }
 function stadeDirectLigne(l){
+  match3dLigne(l);
   if(!STD || !l) return;
   if(l.c && l.c.rouge){ const k=l.c.cote===STD.hid?0:1; STD.rouges[k]=Math.min(4,STD.rouges[k]+1); STD.evt={type:"rouge", cote:k?"ext":"dom", t:0}; }
   if(l.m===0 && l.t==="sys"){ const m=/devant ([\d\s ]+) spectateurs/.exec(l.x||""); // l'affluence du soir remplit les tribunes

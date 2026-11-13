@@ -2817,6 +2817,26 @@ toujours « raconter quelque chose ».
   arrêtées par `abandonneDirect` ou dès que la bande quitte la page ; sous `prefers-reduced-motion`, on ne repeint que
   sur un événement. Sans DOM (harnais), tout est inerte. Choix de l'auteur : on garde tout le stade, les joueurs restent
   petits ; un cadrage plus serré ou une caméra qui suit l'action restent possibles plus tard.
+- **LE MATCH EN MAQUETTE 3D (v2.85, choix de l'auteur du 13/11/2026, prototype `docs/prototype-match-3d.html`, notes
+  `docs/chantier-match-3d.md`)** : dans les trois directs, la bande du stade montre le match en 3D, rendu en gros pixels
+  (un pixel de jeu pour 1,5 pixel d'écran, réglage « Fins » choisi par l'auteur) : stade sur une île flottante à la mesure
+  du club qui reçoit (rangs selon la capacité, toit, écran, pylônes), les onze du match en figurines aux couleurs de la
+  bande 2D, météo de `METEO_MATCH`, nuit les soirs de semaine. **La scène ne décide de rien** : entre deux lignes on se
+  passe le ballon sans tirer, et chaque ligne d'occasion, de but ou de carton devient une action qui finit au moment où la
+  ligne tombe (centre, frappe de loin, coup franc et mur, corner en deux temps, face-à-face, lob, poteau, hors-jeu,
+  carton, plongeon du gardien), buteur au poteau de corner puis **coup d'envoi au rond central** après chaque but.
+  **La greffe** : le moteur est le bloc entre « MATCH3D : DÉBUT » et « MATCH3D : FIN » du prototype (`fabriqueMatch3D(THREE, o)`
+  qui rend `{annonce, ligne, camera, ferme}`), recopié dans `index.html` juste avant `let STD=null;` par
+  **`node docs/greffe-match-3d.cjs`** (rejouable, idempotent). **On ne touche jamais le bloc dans le jeu.** Le collage
+  écrit à la main, juste en dessous : `match3dOuvre` (appelé par `stadeDirectOuvre`), `match3dLigne` (par
+  `stadeDirectLigne`, donc pour chaque ligne lue), `match3dAnnonce` (la montée de tension annonce sa ligne, deux battements
+  à l'avance) et `match3dSuite` (avant chaque tic, la ligne suivante dans `tickerDelai`), `match3dFerme` (par
+  `stadeDirectFerme`). Après le flash d'un but, le direct attend `tickerDelai` au lieu de 300 ms quand la maquette est là,
+  le temps de rejouer l'engagement. **Three.js 0.160** arrive de jsDelivr par `import()` au premier direct : cosmétique
+  comme les fontes, et **sans lui la bande 2D reste** (pas de réseau, pas de WebGL, `prefers-reduced-motion`, harnais).
+  Caméra « auto » : elle suit l'action et recule sur les temps morts ; glisser le doigt fait tourner le stade.
+  Gardé par **`harness-match3d.cjs`** (bloc identique au prototype, greffe rejouable, inerte au harnais et sans requête,
+  branchements des deux directs). Essai au navigateur : un vrai direct joué sous Chromium en 390 px et sur ordinateur.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente

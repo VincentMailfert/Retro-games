@@ -30,11 +30,9 @@ Le moteur reste le seul maître. La scène lit le fil du direct, une ligne toute
   joueur au sol, carton au-dessus du fautif, le rouge quitte la pelouse).
 - **La mi-temps** inverse les côtés. **La météo** vient de la ligne du coup d'envoi (`METEO_MATCH.ouv`).
 
-## Pour la greffe (pas encore faite)
+## La greffe (faite en v2.85, branche chantier/match-3d)
 
-Le direct du jeu a déjà les trois points d'entrée de la bande « stade en direct » (v2.83) : `stadeDirectOuvre(H, A, o)`,
-`stadeDirectLigne(l)` (appelée par `ajouteLigne`) et `stadeDirectScore(sh, sa)`. La maquette 3D s'y branche à leur
-place. Il lui faut en plus la ligne SUIVANTE pour lancer l'action à temps : le fil est pré-calculé (`monMatch.ev`),
-et une re-simulation tactique le modifie en place, donc il suffit de relire `lignes[i+1]` au moment d'afficher `lignes[i]`.
-Le délai réel (`tickerDelai`) remplace les 2,3 s fixes. Trois.js serait la première dépendance externe du jeu à toucher
-l'affichage du match : elle reste cosmétique, et le direct doit continuer de marcher sans elle (repli sur la bande 2D).
+Le bloc MATCH3D du prototype est recopié dans `index.html` par `node docs/greffe-match-3d.cjs`, juste avant `let STD=null;`.
+Le collage du jeu (`match3dOuvre`, `match3dLigne`, `match3dAnnonce`, `match3dSuite`, `match3dFerme`) est décrit dans
+`CLAUDE.md`, section « LE MATCH EN MAQUETTE 3D ». Pour faire évoluer la scène : retoucher le prototype, l'essayer, relancer
+la greffe, puis `node harness-match3d.cjs`.
