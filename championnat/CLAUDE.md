@@ -2837,6 +2837,14 @@ toujours « raconter quelque chose ».
   Caméra « auto » : elle suit l'action et recule sur les temps morts ; glisser le doigt fait tourner le stade.
   Gardé par **`harness-match3d.cjs`** (bloc identique au prototype, greffe rejouable, inerte au harnais et sans requête,
   branchements des deux directs). Essai au navigateur : un vrai direct joué sous Chromium en 390 px et sur ordinateur.
+- **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
+  TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
+  toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup
+  d'envoi et sur vos buts, bâche), loges, ruban LED, bâtiments autour (buvette, boutique, restaurant, musée, hôtel, accès)
+  et façade de légende dans les six styles. Tribunes sur les quatre côtés (choix de l'auteur : la vue plongeante laisse
+  voir le jeu). Au téléphone, en `mode-direct`, le fil remonte juste sous le stade et prend la hauteur libre, la dernière
+  ligne ressort, les commandes se tassent en deux rangées de 34 px en bas. **`remonteFil(tk)`** remplace `tk.scrollTop=0` :
+  une ligne neuve ne ramène en haut que si l'on y est déjà, qui relit les lignes d'avant n'est plus ramené de force.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente
