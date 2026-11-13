@@ -1,4 +1,4 @@
-/* Harnais du MATCH EN MAQUETTE 3D (v2.85)
+/* Harnais du MATCH EN MAQUETTE 3D (v2.89)
      A) le bloc MATCH3D du jeu est exactement celui du prototype (on ne le retouche jamais dans index.html)
      B) la greffe est rejouable : une deuxième passe ne change rien
      C) sans DOM (harnais, serveur), la maquette reste inerte : aucune requête, aucune exception, le direct joue comme avant

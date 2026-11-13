@@ -30,7 +30,7 @@ Le moteur reste le seul maître. La scène lit le fil du direct, une ligne toute
   joueur au sol, carton au-dessus du fautif, le rouge quitte la pelouse).
 - **La mi-temps** inverse les côtés. **La météo** vient de la ligne du coup d'envoi (`METEO_MATCH.ouv`).
 
-## La greffe (faite en v2.85, branche chantier/match-3d)
+## La greffe (faite en v2.89, branche chantier/match-3d)
 
 Le bloc MATCH3D du prototype est recopié dans `index.html` par `node docs/greffe-match-3d.cjs`, juste avant `let STD=null;`.
 Le collage du jeu (`match3dOuvre`, `match3dLigne`, `match3dAnnonce`, `match3dSuite`, `match3dFerme`) est décrit dans

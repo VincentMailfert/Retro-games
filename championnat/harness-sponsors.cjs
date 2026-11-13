@@ -6,6 +6,8 @@
    C) les deux listes se tiennent : champs, dates, aucun tiret long, aucun chevron
    D) la cérémonie de signature (v2.17) : chaque sponsor tombe dans une famille qui a sa vignette, et chaque vignette
       du jeu existe bien dans img/moments/
+   E) l'Italie (v2.85) : une carrière italienne ne voit QUE la liste italienne, à chaque époque, et les deux autres
+      pays n'en voient pas un nom
    Usage : node harness-sponsors.cjs                                                                   */
 const fs = require("fs");
 const path = require("path");
@@ -36,6 +38,7 @@ global.alert = () => {}; global.confirm = () => true; global.prompt = () => null
 const api = new Function(script + "\n;return {SAISONS,nouvellePartie,genSponsors,genEquip,sponsorsDispo," +
   "SPONSORS_RINGARDS,SPONSORS_PROPRES,SPONSORS_SULFUREUX,EQUIPEMENTIERS," +
   "SPONSORS_RINGARDS_ANG,SPONSORS_PROPRES_ANG,SPONSORS_SULFUREUX_ANG,EQUIPEMENTIERS_ANG," +
+  "SPONSORS_RINGARDS_ITA,SPONSORS_PROPRES_ITA,SPONSORS_SULFUREUX_ITA,EQUIPEMENTIERS_ITA,CLUBS_ITA,SIEGES_ITA,intersaison," +
   "familleSponsor,IMG_MOMENT,getG:function(){return G;}};")();
 let FAILS = 0;
 const ok = (c, m) => { console.log((c ? "  ✓ " : "  ✗ ") + m); if (!c) FAILS++; };
@@ -82,9 +85,9 @@ console.log("C) Les listes se tiennent");
 console.log("D) La cérémonie de signature (v2.17)");
 {
   const fam = api.familleSponsor;
-  const tous = [...api.SPONSORS_RINGARDS, ...api.SPONSORS_RINGARDS_ANG].map(s => Object.assign({ ringard: true }, s))
-    .concat(api.SPONSORS_PROPRES, api.SPONSORS_PROPRES_ANG, api.SPONSORS_SULFUREUX, api.SPONSORS_SULFUREUX_ANG);
-  ok(tous.every(s => api.IMG_MOMENT[fam(s)]), "chaque sponsor des deux pays a une cérémonie avec sa vignette");
+  const tous = [...api.SPONSORS_RINGARDS, ...api.SPONSORS_RINGARDS_ANG, ...api.SPONSORS_RINGARDS_ITA].map(s => Object.assign({ ringard: true }, s))
+    .concat(api.SPONSORS_PROPRES, api.SPONSORS_PROPRES_ANG, api.SPONSORS_PROPRES_ITA, api.SPONSORS_SULFUREUX, api.SPONSORS_SULFUREUX_ANG, api.SPONSORS_SULFUREUX_ITA);
+  ok(tous.every(s => api.IMG_MOMENT[fam(s)]), "chaque sponsor des trois pays a une cérémonie avec sa vignette");
   ok(fam({ nom: "Gauloises", rep: -15, ere: "Une marque de tabac sur le maillot" }) === "sp_vice", "le tabac signe dans le salon enfumé");
   ok(fam({ nom: "Madoff Consulting", rep: -10, defaut: 0.4 }) === "sp_louche", "l'escroc qui peut ne jamais payer sable le champagne");
   ok(fam({ nom: "3615 Ulla", rep: -12 }) === "sp_decale", "le Minitel rose signe sous les néons roses");
@@ -92,6 +95,33 @@ console.log("D) La cérémonie de signature (v2.17)");
   ok(fam({ nom: "Orange", rep: 1 }) === "sp_national", "la marque nationale signe en salle de réunion");
   const manque = [].concat(...Object.values(api.IMG_MOMENT)).filter(f => !fs.existsSync(path.join(__dirname, f)));
   ok(!manque.length, "toutes les vignettes du jeu sont dans img/moments/" + (manque.length ? " (manque : " + manque.join(", ") + ")" : ""));
+}
+console.log("E) Une carrière italienne ne voit que la liste italienne (v2.85)");
+{
+  const IT = new Set([...noms(api.SPONSORS_RINGARDS_ITA), ...noms(api.SPONSORS_PROPRES_ITA), ...noms(api.SPONSORS_SULFUREUX_ITA), ...noms(api.EQUIPEMENTIERS_ITA)]);
+  const ids = api.CLUBS_ITA.map(c => c.id), CLE = "ITA-ESSAI";
+  for (const an of Object.keys(api.SIEGES_ITA).map(Number)) {
+    const S = api.SIEGES_ITA[an];
+    api.SAISONS[CLE] = { pays: "ITA", an, titre: an + "-" + String((an + 1) % 100).padStart(2, "0"), nom: "Essai",
+      d1: ids.slice(0, 20), d2: ids.slice(20, 40), starsD1: {}, starsD2: {}, euroC1: S.C1, euroC2: S.C2, euroC3: S.C3, sous: "Essai" };
+    const vus = new Set([...tirages(CLE, ids[0], 5), ...tirages(CLE, ids[39], 5)]);
+    const intrus = [...vus].filter(n => !IT.has(n));
+    if (intrus.length) ok(false, an + " : noms hors liste italienne : " + intrus.join(", "));
+    const dans = l => l.filter(s => (!s.de || an >= s.de) && (!s.a || an <= s.a)).length;
+    if (!(dans(api.SPONSORS_RINGARDS_ITA) && dans(api.SPONSORS_PROPRES_ITA) >= 3 && dans(api.SPONSORS_SULFUREUX_ITA) && dans(api.EQUIPEMENTIERS_ITA) >= 3))
+      ok(false, an + " : une famille italienne n'a pas assez de marques de l'époque");
+  }
+  delete api.SAISONS[CLE];
+  ok(true, "les vingt saisons italiennes d'essai ne tirent que des noms italiens, et chaque famille a des marques de l'époque");
+  const communs = [...IT].filter(n => FR.has(n) || AN.has(n));
+  ok(communs.length === 1 && communs[0] === "Diadora" && !AN.has("Diadora"), "une seule marque partagée, Diadora, que la liste française a aussi après 2000 ; aucune avec l'anglaise" + (communs.length ? " (communes : " + communs.join(", ") + ")" : ""));
+  const tout = [...api.SPONSORS_RINGARDS_ITA, ...api.SPONSORS_PROPRES_ITA, ...api.SPONSORS_SULFUREUX_ITA, ...api.EQUIPEMENTIERS_ITA];
+  ok(tout.every(s => !/[—<>&]/.test(JSON.stringify(s))), "aucun tiret long, aucun chevron chez les Italiens");
+  ok(api.SPONSORS_RINGARDS_ITA.every(s => s.rep > 0 && s.ere) && api.SPONSORS_SULFUREUX_ITA.every(s => s.rep < 0 && s.ere), "le terroir italien rapporte de l'image, les sulfureux en coûtent, tous ont leur phrase");
+  ok(api.EQUIPEMENTIERS_ITA[api.EQUIPEMENTIERS_ITA.length - 1].nom === "Sartoria Brambilla", "l'atelier du tailleur ferme la liste italienne");
+  ok(api.familleSponsor({ nom: "144 Bollente", rep: -12 }) === "sp_decale", "le téléphone rose italien signe sous les néons roses, comme le Minitel");
+  ok(api.familleSponsor(api.SPONSORS_SULFUREUX_ITA.find(s => s.nom === "Fernet-Branca")) === "sp_vice", "l'amer milanais signe dans le salon enfumé");
+  ok(api.SPONSORS_SULFUREUX_ITA.filter(s => s.moderne).length === 1, "une seule nouvelle ère italienne, celle des paris en ligne");
 }
 console.log(FAILS === 0 ? "\n✅ SPONSORS PAR PAYS : TOUT EST VERT" : "\n❌ SPONSORS PAR PAYS : " + FAILS + " ÉCHEC(S)");
 process.exit(FAILS ? 1 : 0);

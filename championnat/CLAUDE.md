@@ -2817,7 +2817,7 @@ toujours « raconter quelque chose ».
   arrêtées par `abandonneDirect` ou dès que la bande quitte la page ; sous `prefers-reduced-motion`, on ne repeint que
   sur un événement. Sans DOM (harnais), tout est inerte. Choix de l'auteur : on garde tout le stade, les joueurs restent
   petits ; un cadrage plus serré ou une caméra qui suit l'action restent possibles plus tard.
-- **LE MATCH EN MAQUETTE 3D (v2.85, choix de l'auteur du 13/11/2026, prototype `docs/prototype-match-3d.html`, notes
+- **LE MATCH EN MAQUETTE 3D (v2.89, choix de l'auteur du 13/11/2026, prototype `docs/prototype-match-3d.html`, notes
   `docs/chantier-match-3d.md`)** : dans les trois directs, la bande du stade montre le match en 3D, rendu en gros pixels
   (un pixel de jeu pour 1,5 pixel d'écran, réglage « Fins » choisi par l'auteur) : stade sur une île flottante à la mesure
   du club qui reçoit (rangs selon la capacité, toit, écran, pylônes), les onze du match en figurines aux couleurs de la
@@ -6148,8 +6148,49 @@ source écrit « Spezia Calcio (decoration) » pour le Campionato Alta Italia de
 
 **Ce qui N'EST PAS fait, et reste ouvert** : comme pour l'Angleterre avant ANG-F, le **recruteur** est encore français
 (un `VIVIER_SAISON_ITA` des Italiens de l'étranger est une journée de curation à part entière), le **mot des clubs**
-(`MALEDICTIONS`) ne connaît aucun club italien, et les **sponsors et équipementiers italiens** sont une liste
-**arrêtée par l'auteur** : rien n'est écrit, ils l'attendent. Le harnais de pays `harness-italie.cjs` est ITA-C.
+(`MALEDICTIONS`) ne connaît aucun club italien. Le harnais de pays `harness-italie.cjs` est ITA-C.
+**ITA-F (c), les sponsors, VALIDÉ par l'auteur en séance le 13/11/2026 (v2.85, branche `chantier/sponsors-ita`)** :
+`SPONSORS_RINGARDS_ITA` (Barilla, Mulino Bianco, Galbani, Lavazza, Motta, Nutella, Chinotto Sanpellegrino),
+`SPONSORS_PROPRES_ITA` (Alitalia, Agip, Zanussi, Olivetti, Standa, Upim, Mediolanum, Telepiù, Omnitel, Blu, Wind,
+Tiscali, et le pastiche La Megaditta), `SPONSORS_SULFUREUX_ITA` (Impresa Mazzetta, 144 Bollente, Fernet-Branca,
+Tango Bond, Cirio, Parmalat, Immobiliare Furbetti, et la nouvelle ère des paris en ligne en 2006, Schedina Express)
+et `EQUIPEMENTIERS_ITA` (Kappa, Lotto, Ennerre avant 2000 ; Diadora, Macron, Legea après ; Erreà dans les deux ;
+Sartoria Brambilla en atelier local). `sponsorsDe(fr, ang, ita)` prend un troisième argument et rend la liste
+française à tout pays qui n'a pas encore la sienne. `familleSponsor` range le « 144 » avec le Minitel rose
+(`sp_decale`). Gardé par la section E de `harness-sponsors.cjs`. **Cette liste est arrêtée par l'auteur : n'y rien ajouter
+sans lui.**
+**ITA-F (a), le recruteur, livré en séance le 13/11/2026 (v2.86, branche `chantier/recruteur-ita`, choix auteur)** :
+`VIVIER_SAISON_ITA`, cent soixante-deux lignes sur vingt étés, même format que `VIVIER_SAISON_ANG`, drapeau
+`"ITA"`. Wikidata refusant les robots (erreur 403 « automated SPARQL traffic »), chacun des cinquante et un joueurs
+a été vérifié sur l'infobox de sa fiche de la Wikipédia anglaise. **1993 est vide exprès** : aucun Italien ne joue
+alors hors d'Italie, et 1990-92 n'ont que Di Matteo, né en Suisse et formé là-bas (Schaffhouse, Zurich, Aarau).
+`vivierDeSaison` lit désormais une table `EXPATRIES` (`ANG`, `ITA`) au lieu d'un test sur l'Angleterre ;
+`VIVIER_ITA` fait signer ces joueurs « ITA » dans TOUS les pays (comme `VIVIER_ANG`), si bien que Zola ou Vialli,
+déjà dans la liste française, ne signent plus « ETR » dans une carrière française. `libProfil` dit « Italien de
+l'étranger » et « Pépite de Serie B » sans toucher aux clés. **Reste français, comme en Angleterre** : les autres
+catégories de la liste de l'été (les pépites de D2, les come-back) sont des Français, affichés sous leur libellé
+italien. Gardé par la section « Italiens de l'étranger » de `harness-recruteur.cjs`.
+**ITA-F (b), le mot des clubs, livré en séance le 13/11/2026 (v2.87, branche `chantier/mots-clubs-ita`, choix
+auteur)** : `MALEDICTIONS_ITA` (une phrase pour chacun des soixante-quatorze clubs d'ITA-A) et
+`MALEDICTIONS_EPOQUE_ITA` (vingt-huit clubs dont la vérité change avec la saison de départ : la Sampdoria maudite
+en 1990 puis sacrée, la Juventus en Serie B à partir de 2006, la Roma de 2001, la Lazio de 2000 puis de la chute de
+Cragnotti, les ânes du Chievo qui volent à partir de 2001, Naples de Maradona à De Laurentiis, Livourne, Palerme,
+Modène, Reggio et ses onze points de pénalité…), fondues dans `MALEDICTIONS` et `MALEDICTIONS_EPOQUE` par
+`Object.assign` : les codes sont uniques entre pays, `malediction` n'a pas bougé. Ton du jeu tenu : aucun récit
+tragique (Superga est un nom, pas une scène). Les faits datés incertains ont été vérifiés (Wikipédia anglaise,
+recherche web pour Rozzi, Reggina, Pérouse, Ravenne) ; Pistoia, qu'on croyait monté une seule fois, a été corrigé.
+Gardé par **`harness-mots-ita.cjs`** (cinq sections : 74 clubs × 20 saisons sans silence, aucune collision de
+code, la forme, des bascules d'époque témoins, une carrière française inchangée).
+**ITA-F (d), les pépites de Serie B, livrées en séance le 13/11/2026 (v2.88, branche `chantier/pepites-ita`, choix
+auteur)** : `VIVIER_PEPITES_ITA`, soixante-trois lignes sur vingt étés (Del Piero à Padoue, Vieri à Pise, Pirlo à
+Brescia, Toni à Trévise, Chiellini à Livourne, Marchisio à la Juventus de Serie B…), chaque passage vérifié sur
+l'infobox de la Wikipédia anglaise ET le club en Serie B cette saison-là (Inzaghi 1992, Quagliarella 2003 et
+Ranocchia 2007 écartés : Serie C). `vivierDeSaison` les range sous la clé « Pépite de Division 2 » via la table
+`PEPITES_PAYS` ; jusque-là, une carrière italienne n'avait que des pépites inventées par `regarnitVivier` en
+dépannage. **Correction d'une affirmation de la séance** : il n'y avait PAS de pépites de D2 françaises sous libellé
+italien dans le vivier de l'été (la liste de l'été n'a pas cette catégorie) ; le seul Français mal étiqueté reste
+Vieira, « en quête de come-back » de la réserve de jokers. Gardé par la section « pépites de Serie B » de
+`harness-recruteur.cjs`.
 Gardé par **`harness-textes-ita.cjs`** (neuf sections, dont la dernière joue une saison italienne entière, une
 intersaison et dix journées, puis relit tout ce que la saison a écrit).
 
