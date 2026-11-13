@@ -665,7 +665,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.84"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.85"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -14106,7 +14106,7 @@ function imageOuArt(cle, art){ return IMG_MOMENT[cle]?{img:PICK(IMG_MOMENT[cle])
 function familleSponsor(s){
   if(!s) return "sp_national";
   if(s.ringard) return s.rep>0?"sp_terroir":"sp_decale";
-  if(/^36\d\d /.test(s.nom||"")) return "sp_decale";
+  if(/^(36\d\d|144) /.test(s.nom||"")) return "sp_decale"; // le Minitel rose, et le téléphone rose italien
   if(s.defaut) return "sp_louche";
   if((s.rep||0)<0) return /tabac|cigarette|apéritif|gentiane|whisky|bière|alcool/i.test(s.ere||"")?"sp_vice":"sp_louche";
   return "sp_national";
@@ -18210,18 +18210,51 @@ const SPONSORS_SULFUREUX_ANG=[
  {nom:"Northern Rock", rep:-9, de:1997, a:2008, defaut:0.40, ere:"La banque de Newcastle prête à tout le monde, et beaucoup. Les files d'attente devant ses guichets ne sont pas encore là."},
  {nom:"Paddy's Odds", rep:-14, de:2007, moderne:true, ere:"Les paris en ligne ont désormais le droit de passer à la télévision, et ils frappent à la porte."},
 ];
-/* La liste d'une famille de sponsors dans le pays de la carrière : la française partout ailleurs qu'en Angleterre. */
-function sponsorsDe(fr, ang){ return ((typeof G!=="undefined"&&G&&G.pays)==="ANG")?ang:fr; }
+/* LES SPONSORS ITALIENS (v2.85, proposition du 13/11/2026 soumise à l'auteur) : mêmes familles, mêmes champs que
+   les listes française et anglaise, lus SEULEMENT par une carrière italienne (sponsorsDe). Vraies marques d'époque
+   et quelques pastiches (La Megaditta, Impresa Mazzetta, Tango Bond, Immobiliare Furbetti, 144 Bollente,
+   Schedina Express). Les vraies faillites sont gardées, comme Enron : Cirio, Parmalat. */
+const SPONSORS_RINGARDS_ITA=[
+ {nom:"Barilla", rep:+6, ere:"Les pâtes de Parme. À Rome, on les a déjà portées sur le maillot pendant treize ans."},
+ {nom:"Mulino Bianco", rep:+6, ere:"Les biscuits du moulin blanc, et la campagne de carte postale des publicités."},
+ {nom:"Galbani", rep:+6, ere:"La mozzarella et le fromage frais de Lombardie. Un sponsor qui sent le repas du dimanche."},
+ {nom:"Lavazza", rep:+6, ere:"Le café de Turin, serré, avalé au comptoir avant le coup d'envoi."},
+ {nom:"Motta", rep:+6, ere:"Le panettone de Milan, celui de Noël. Le maillot sent la fête."},
+ {nom:"Nutella", rep:+7, ere:"La pâte à tartiner d'Alba, celle des goûters d'écoliers. Les tribunes fondent."},
+ {nom:"Chinotto Sanpellegrino", rep:+5, ere:"La boisson amère des buvettes de stade. On l'adore ou on la recrache."},
+];
+const SPONSORS_PROPRES_ITA=[
+ {nom:"Alitalia"}, {nom:"Agip"}, {nom:"Zanussi"}, {nom:"Olivetti"}, {nom:"Standa", a:2004}, {nom:"Upim"},
+ {nom:"Mediolanum"}, {nom:"Telepiù", de:1991, a:2003}, {nom:"Omnitel", de:1995, a:2002}, {nom:"Blu", de:1999, a:2002},
+ {nom:"Wind", de:1999}, {nom:"Tiscali", de:1998}, {nom:"La Megaditta"},
+];
+const SPONSORS_SULFUREUX_ITA=[
+ {nom:"Impresa Mazzetta", rep:-10, a:1993, defaut:0.35, ere:"Une entreprise de travaux publics qui remporte tous les marchés de la ville. À Milan, un petit juge commence à éplucher les comptes."},
+ {nom:"144 Bollente", rep:-12, a:1999, ere:"Le téléphone rose du 144 sur le maillot. Les factures des familles s'envolent, et les curés s'étranglent."},
+ {nom:"Fernet-Branca", rep:-11, ere:"L'amer milanais aux herbes, l'alcool des grands-pères après le café. Les ligues antialcool grincent des dents."},
+ {nom:"Tango Bond", rep:-9, de:1996, a:2001, defaut:0.45, ere:"Des obligations argentines à gros rendement, vendues au guichet comme du bon pain. Buenos Aires garantit tout."},
+ {nom:"Cirio", rep:-9, a:2002, defaut:0.40, ere:"Les tomates pelées du patron de la Lazio. Ses obligations se vendent au guichet de toutes les banques du pays."},
+ {nom:"Parmalat", rep:-10, a:2003, defaut:0.45, ere:"Le lait de Collecchio paie sans compter et habille des clubs sur trois continents. Ses comptes cachent un trou de quatorze milliards."},
+ {nom:"Immobiliare Furbetti", rep:-10, de:2003, a:2005, defaut:0.40, ere:"Un promoteur romain rachète des banques à crédit, entre deux soirées mondaines. Les écoutes téléphoniques tournent déjà."},
+ {nom:"Schedina Express", rep:-14, de:2006, moderne:true, ere:"Les paris sortent du bureau de tabac du quartier pour s'installer en ligne, et ils frappent à la porte."},
+];
+/* La liste d'une famille de sponsors dans le pays de la carrière : la française partout où le pays n'a pas encore la sienne. */
+function sponsorsDe(fr, ang, ita){
+  const p=(typeof G!=="undefined"&&G&&G.pays)||"FR";
+  if(p==="ANG") return ang;
+  if(p==="ITA"&&ita) return ita;
+  return fr;
+}
 function datedDispo(liste){
   const an=anneeJeu();
   const ok=liste.filter(s=>(!s.de||an>=s.de) && (!s.a||an<=s.a));
   return ok.length?ok:liste; // filet : jamais d'offre vide, même dans une année creuse
 }
-function sponsorsDispo(){ return datedDispo(sponsorsDe(SPONSORS_SULFUREUX, SPONSORS_SULFUREUX_ANG)); }
+function sponsorsDispo(){ return datedDispo(sponsorsDe(SPONSORS_SULFUREUX, SPONSORS_SULFUREUX_ANG, SPONSORS_SULFUREUX_ITA)); }
 function genSponsors(mult){
   const ech=clubById(G.monClub).pres*0.09+0.55;
-  const propres=datedDispo(sponsorsDe(SPONSORS_PROPRES, SPONSORS_PROPRES_ANG)).map(p=>p.nom).sort(()=>Math.random()-.5);
-  const ring=PICK(datedDispo(sponsorsDe(SPONSORS_RINGARDS, SPONSORS_RINGARDS_ANG)));
+  const propres=datedDispo(sponsorsDe(SPONSORS_PROPRES, SPONSORS_PROPRES_ANG, SPONSORS_PROPRES_ITA)).map(p=>p.nom).sort(()=>Math.random()-.5);
+  const ring=PICK(datedDispo(sponsorsDe(SPONSORS_RINGARDS, SPONSORS_RINGARDS_ANG, SPONSORS_RINGARDS_ITA)));
   const sulf=PICK(sponsorsDispo());
   return [
     {nom:ring.nom, fixe:Math.round(95000*ech*mult), prime:0, rep:ring.rep,
@@ -18278,11 +18311,23 @@ const EQUIPEMENTIERS_ANG=[
  {nom:"Mitre",                 min:1,   max:4,  cachet:0.28, de:2000, note:"le vétéran anglais, aussi vieux que le foot"},
  {nom:"Sunday League Kits",    min:0,   max:2,  cachet:0.14, note:"floqué au fer à repasser dans l'arrière-salle du pub"},
 ];
+/* Les équipementiers italiens (v2.85, proposition soumise à l'auteur le 13/11/2026). Même échelle que les deux autres
+   listes : quatre marques avant 2000, quatre après, Erreà dans les deux époques, et l'atelier du tailleur en dernier. */
+const EQUIPEMENTIERS_ITA=[
+ {nom:"Kappa",                 min:7,   max:13, cachet:1.00, a:1999, note:"les deux silhouettes dos à dos, nées dans une fabrique de chaussettes de Turin"},
+ {nom:"Lotto",                 min:5,   max:9.5,cachet:0.78, a:1999, note:"la marque de Montebelluna, plus connue sur les courts de tennis"},
+ {nom:"Ennerre",               min:3,   max:7,  cachet:0.55, a:1995, note:"le NR des maillots de Naples au temps de Maradona"},
+ {nom:"Diadora",               min:7,   max:13, cachet:1.00, de:2000, note:"les chaussures de Roberto Baggio, cette fois sur tout le maillot"},
+ {nom:"Macron",                min:5,   max:9.5,cachet:0.78, de:2001, note:"le distributeur bolonais qui s'est mis à coudre ses propres maillots"},
+ {nom:"Legea",                 min:3,   max:7,  cachet:0.55, de:2000, note:"la maison de Pompéi, qui habille les clubs du Sud"},
+ {nom:"Erreà",                 min:1,   max:4,  cachet:0.28, note:"la marque de la province de Parme, à l'aise chez les petits"},
+ {nom:"Sartoria Brambilla",    min:0,   max:2,  cachet:0.14, note:"cousu dans l'arrière-boutique du tailleur, entre deux ourlets"},
+];
 /* offres d'équipementier selon la notoriété — comme les sponsors : rien tant qu'on n'a pas signé */
 function genEquip(){
   const c=clubById(G.monClub);
   const standing=c.pres + Math.max(-1.5, Math.min(1.5, ((G.reput==null?75:G.reput)-75)/20));
-  const liste=datedDispo(sponsorsDe(EQUIPEMENTIERS, EQUIPEMENTIERS_ANG)); // les marques de l'époque, et du pays
+  const liste=datedDispo(sponsorsDe(EQUIPEMENTIERS, EQUIPEMENTIERS_ANG, EQUIPEMENTIERS_ITA)); // les marques de l'époque, et du pays
   const elig=liste.filter(e=>standing>=e.min && standing<=e.max).sort((a,b)=>b.cachet-a.cachet);
   const ordre=elig.length?elig:[liste[liste.length-1]];
   const base=120000*(0.65+0.05*c.pres), rnd=x=>Math.round(x/1000)*1000;
@@ -20806,7 +20851,7 @@ function intersaison(){
   // une nouvelle ère de sponsoring s'ouvre-t-elle cette saison ?
   G.nouvelleEre=null;
   const an=anneeJeu(); // (était 1994+saisonIdx : faux dès qu'on ne partait pas en 1995)
-  const modernesActifs=sponsorsDe(SPONSORS_SULFUREUX, SPONSORS_SULFUREUX_ANG).filter(s=>s.moderne && s.de===an);
+  const modernesActifs=sponsorsDe(SPONSORS_SULFUREUX, SPONSORS_SULFUREUX_ANG, SPONSORS_SULFUREUX_ITA).filter(s=>s.moderne && s.de===an);
   if(modernesActifs.length) G.nouvelleEre=modernesActifs[0];
   G.confiance=65;
   // carrière d'entraîneur : l'objectif se lit au rang de l'effectif dans la division, pas au prestige

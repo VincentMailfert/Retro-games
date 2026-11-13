@@ -6128,8 +6128,17 @@ source écrit « Spezia Calcio (decoration) » pour le Campionato Alta Italia de
 
 **Ce qui N'EST PAS fait, et reste ouvert** : comme pour l'Angleterre avant ANG-F, le **recruteur** est encore français
 (un `VIVIER_SAISON_ITA` des Italiens de l'étranger est une journée de curation à part entière), le **mot des clubs**
-(`MALEDICTIONS`) ne connaît aucun club italien, et les **sponsors et équipementiers italiens** sont une liste
-**arrêtée par l'auteur** : rien n'est écrit, ils l'attendent. Le harnais de pays `harness-italie.cjs` est ITA-C.
+(`MALEDICTIONS`) ne connaît aucun club italien. Le harnais de pays `harness-italie.cjs` est ITA-C.
+**ITA-F (sponsors) proposé en séance le 13/11/2026 (v2.85, branche `chantier/sponsors-ita`, EN ATTENTE DE L'AUTEUR)** :
+`SPONSORS_RINGARDS_ITA` (Barilla, Mulino Bianco, Galbani, Lavazza, Motta, Nutella, Chinotto Sanpellegrino),
+`SPONSORS_PROPRES_ITA` (Alitalia, Agip, Zanussi, Olivetti, Standa, Upim, Mediolanum, Telepiù, Omnitel, Blu, Wind,
+Tiscali, et le pastiche La Megaditta), `SPONSORS_SULFUREUX_ITA` (Impresa Mazzetta, 144 Bollente, Fernet-Branca,
+Tango Bond, Cirio, Parmalat, Immobiliare Furbetti, et la nouvelle ère des paris en ligne en 2006, Schedina Express)
+et `EQUIPEMENTIERS_ITA` (Kappa, Lotto, Ennerre avant 2000 ; Diadora, Macron, Legea après ; Erreà dans les deux ;
+Sartoria Brambilla en atelier local). `sponsorsDe(fr, ang, ita)` prend un troisième argument et rend la liste
+française à tout pays qui n'a pas encore la sienne. `familleSponsor` range le « 144 » avec le Minitel rose
+(`sp_decale`). Gardé par la section E de `harness-sponsors.cjs`. **Tant que l'auteur n'a pas fusionné, cette liste
+n'est pas arrêtée : ne rien y ajouter sans lui.**
 Gardé par **`harness-textes-ita.cjs`** (neuf sections, dont la dernière joue une saison italienne entière, une
 intersaison et dix journées, puis relit tout ce que la saison a écrit).
 
