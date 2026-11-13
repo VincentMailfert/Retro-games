@@ -3911,7 +3911,15 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
   `mesMatchs()` lit G.histo) ; `defisFinSaison(rang, coupes)` dans `progFinDeSaison` (G.histo est encore plein, il
   n'est vidé qu'à l'intersaison) ; `defisCarriere` à chaque fin de saison et au rattrapage ; `defisConstate()` à
   chaque `ecranAccueil` crédite EN SILENCE ce que les résultats déjà rangés auraient dû rapporter (titre, podium,
-  montée, coupes, carrière). Un défi réussi en jeu s'annonce au debrief : « 🎯 DÉFI RÉUSSI : … · +N pts » (`notif`).
+  montée, coupes, carrière).
+- **v2.81 (demande de l'auteur du 13/11/2026)** : les cinq défis d'UN match (`defisUnMatch` : victoire, extérieur,
+  cage inviolée, trois buts d'écart, cinq buts) comptent aussi en **coupe nationale et en Europe** (`defisSoir`, appelé
+  au coup de sifflet de `directSemaine`, quand le score est définitif ; une finale sur terrain neutre n'est pas
+  « à l'extérieur », les tirs au but ne font pas une victoire). Les séries restent du championnat (G.histo).
+  **L'annonce n'est plus au debrief** : `defiGagne` range l'id dans `G.defisNeufs`, et **`ouvreDefis`** ouvre une
+  fenêtre « 🎯 DÉFI RÉUSSI » juste après le match (fin de `afficheFeuille` le samedi, fin de `directSemaine` en
+  semaine) ; ce qui n'a pas eu de match pour s'annoncer (fin de saison) s'ouvre au calendrier, juste avant le debrief.
+  Section N de `harness-trophees.cjs`.
 - **Où ils vivent** : `prog().defis` = `[{id, t, pid}]`, dans la progression (`PROGKEY`), donc par compte et en
   ligne avec les clés. **Les points ne sont JAMAIS stockés** (`pointsDefis()` les somme), comme les clés : la fusion
   de deux appareils est une réunion (`progFusionne`, la plus ancienne réussite fait foi), `progEmpreinte` les compte,
