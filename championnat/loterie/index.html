@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b1626">
+<title>Loterie · les photos</title>
+<!-- La loterie du championnat : déposer les photos des joueurs tirés, depuis n'importe quel appareil (13/11/2026).
+     Les jours à venir sont envoyés par la fabrique du PC chaque midi ; les photos vont dans le bucket privé
+     « loterie-photos » par la fonction Supabase loterie-photos (code d'accès, docs/loterie-photos.ts).
+     Le PC les rapatrie avant de fabriquer la vidéo du jour. Rien ici n'est lu par le jeu. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--fond:#0b1626;--carte:#10233f;--bord:#2c4672;--txt:#e8eefa;--dim:#9fb2d4;--jaune:#ffd24a;--rouge:#ff8a7a;--vert:#7ee0a1}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--fond);color:var(--txt);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 80px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+h1{font:400 30px/1.1 "Archivo Black",sans-serif;font-style:italic;margin:0;letter-spacing:.5px}
+h1 span{color:var(--jaune)}
+.maj{color:var(--dim);font-size:13px}
+.intro{color:var(--dim);margin:6px 0 22px;font-size:15px}
+.acces{background:var(--carte);border:2px solid var(--bord);border-radius:12px;padding:18px;display:grid;gap:12px;max-width:420px}
+.acces label{font-weight:600}
+input[type=text],input[type=password],input[type=url]{width:100%;font:inherit;color:var(--txt);background:#071021;border:2px solid var(--bord);border-radius:8px;padding:10px 12px;min-height:44px}
+input:focus{outline:none;border-color:var(--jaune)}
+button{font:600 15px "IBM Plex Sans",sans-serif;border:0;border-radius:8px;min-height:44px;padding:0 16px;cursor:pointer}
+.plein{background:var(--jaune);color:var(--fond)}
+.creux{background:transparent;color:var(--txt);border:2px solid var(--bord)}
+.creux:hover{border-color:var(--jaune)}
+article{background:var(--carte);border:2px solid var(--bord);border-radius:14px;padding:16px;margin-bottom:14px;transition:border-color .15s,background .15s}
+article.vise{border-color:var(--jaune);background:#16305a}
+article.choisi{border-color:var(--jaune)}
+article.passe{opacity:.55}
+.tete{display:flex;align-items:center;gap:12px}
+.bl{flex:none;width:40px;height:48px;display:flex;align-items:center;justify-content:center}
+.bl svg{width:40px;height:48px}
+.qui{min-width:0;flex:1}
+.quand{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+.j{background:var(--jaune);color:var(--fond);font-weight:700;border-radius:6px;padding:1px 8px;font-size:13px}
+.urgent{color:var(--jaune);font-weight:600}
+h2{font-size:19px;line-height:1.25;margin:4px 0 0;overflow-wrap:anywhere}
+.det{margin:2px 0 0;color:var(--dim);font-size:14px}
+.compte{flex:none;align-self:flex-start;font-size:14px;color:var(--dim);white-space:nowrap;padding-top:2px}
+.compte.ok{color:var(--vert)}
+.liens{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 12px}
+.liens a{display:inline-flex;align-items:center;min-height:36px;color:var(--fond);background:var(--txt);text-decoration:none;border-radius:999px;padding:0 14px;font-size:14px;font-weight:600}
+.liens a:hover{background:var(--jaune)}
+.zone{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;border:2px dashed var(--bord);border-radius:10px;padding:10px;min-height:118px}
+.ph{position:relative;flex:none}
+.ph img{display:block;height:96px;max-width:150px;object-fit:cover;border-radius:6px;background:#071021}
+.ph button{position:absolute;top:4px;right:4px;min-height:0;width:28px;height:28px;padding:0;border-radius:999px;background:#0b1626d9;color:#fff;font-size:17px;line-height:1}
+.ajout{flex:none;width:96px;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid var(--bord);border-radius:8px;background:#071021;color:var(--txt);font-size:13px;padding:0}
+.ajout b{font-size:28px;line-height:1;color:var(--jaune);font-weight:400}
+.ajout:hover{border-color:var(--jaune)}
+.vide{align-self:center;color:#6f86ad;font-size:14px;padding:0 4px;flex:1;min-width:140px}
+.lien{display:flex;gap:8px;margin-top:10px}
+.lien input{flex:1;min-width:0;font-size:14px;min-height:40px;padding:8px 10px}
+.lien button{min-height:40px}
+.msg{font-size:14px;margin:8px 0 0;min-height:1.5em}
+.msg.ko{color:var(--rouge)}
+.msg.ok{color:var(--vert)}
+.sablier{opacity:.6;pointer-events:none}
+.aide{color:var(--dim);font-size:13px;margin-top:28px;border-top:1px solid var(--bord);padding-top:14px}
+.aide button{min-height:36px;font-size:13px;margin-top:6px}
+.cache{display:none}
+@media (max-width:520px){h1{font-size:25px} .ph img{height:84px} .ajout{width:84px;height:84px} .zone{min-height:106px}}
+@media (hover:none){.bureau{display:none}}
+</style>
+</head>
+<body>
+<main>
+  <header><h1>LOTERIE <span>·</span> LES PHOTOS</h1><span class="maj" id="maj"></span></header>
+  <p class="intro" id="intro">Une à trois photos par joueur, avant midi le jour de sa vidéo. Sans photo, la vidéo montre sa fiche du jeu.</p>
+
+  <form class="acces cache" id="acces">
+    <label for="code">Code d'accès</label>
+    <input type="password" id="code" autocomplete="current-password" autocapitalize="off" spellcheck="false">
+    <button class="plein" type="submit">Entrer</button>
+    <p class="msg ko" id="accesMsg"></p>
+  </form>
+
+  <div id="cartes"></div>
+
+  <div class="aide cache" id="aide">
+    <span class="bureau">Sur ordinateur : glissez une image de Google sur la carte du joueur, ou clic droit « Copier l'image », clic sur la carte, Ctrl+V.<br></span>
+    Sur téléphone : appui long sur l'image, « Enregistrer », puis « ＋ Photo » sur la carte.
+    <br><button class="creux" type="button" id="oublie">Oublier le code sur cet appareil</button>
+  </div>
+  <input type="file" id="fichier" accept="image/*" multiple class="cache">
+</main>
+
+<script>
+"use strict";
+const FONCTION = "https://hemedkhebhllymdgvuka.supabase.co/functions/v1/loterie-photos";
+const CLE = "multiplex_loterie_code";
+const MAX = 3, COTE = 1600;      // une photo envoyée depuis l'appareil est réduite à 1 600 px de côté
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+let code = "", ETAT = null, choisi = null, cible = null;
+const lit = () => { try { return localStorage.getItem(CLE) || ""; } catch { return ""; } };
+const garde = v => { try { v ? localStorage.setItem(CLE, v) : localStorage.removeItem(CLE); } catch {} };
+
+async function appel(corps) {
+  const r = await fetch(FONCTION, { method: "POST", headers: { "x-loterie": code, "Content-Type": "application/json" }, body: JSON.stringify(corps) });
+  const j = await r.json().catch(() => ({ erreur: "le serveur ne répond pas (" + r.status + ")" }));
+  if (r.status === 403) { garde(""); code = ""; montreAcces("Code refusé."); throw new Error("code refusé"); }
+  if (!r.ok || j.erreur) throw new Error(j.erreur || "erreur " + r.status);
+  return j;
+}
+
+/* ---- les dates, à l'heure de Paris ---- */
+const parisJour = d => new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Paris" }).format(d);           // AAAA-MM-JJ
+const parisHeure = d => +new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", hourCycle: "h23" }).format(d);
+function quand(date) {
+  const auj = parisJour(new Date()), dem = parisJour(new Date(Date.now() + 864e5));
+  const passe = date < auj || (date === auj && parisHeure(new Date()) >= 12);
+  if (date === auj) return { txt: passe ? "aujourd'hui, vidéo déjà faite" : "aujourd'hui, avant midi", urgent: !passe, passe };
+  if (date === dem) return { txt: "demain, avant midi", urgent: true, passe };
+  const [a, m, j] = date.split("-").map(Number);
+  const txt = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(a, m - 1, j)));
+  return { txt, urgent: false, passe };
+}
+
+/* ---- l'affichage ---- */
+function montreAcces(msg) {
+  $("acces").classList.remove("cache"); $("cartes").innerHTML = ""; $("aide").classList.add("cache");
+  $("accesMsg").textContent = msg || ""; $("maj").textContent = ""; setTimeout(() => $("code").focus(), 50);
+}
+function liens(t) {
+  const q = encodeURIComponent, an = String(t.saison || "").slice(0, 4);
+  return [["Google Images", `https://www.google.com/search?tbm=isch&q=${q(`"${t.nom}" ${t.club}`)}`],
+    [`Google, ${an}`, `https://www.google.com/search?tbm=isch&q=${q(`"${t.nom}" football ${an}`)}`],
+    ["Bing", `https://www.bing.com/images/search?q=${q(`${t.nom} footballeur ${t.club}`)}`]];
+}
+function carte(t) {
+  const q = quand(t.date), n = t.photos.length;
+  const vignettes = t.photos.map(p => `<div class="ph"><img src="${esc(p.url)}" alt="" loading="lazy">${q.passe ? "" : `<button type="button" data-suppr="${esc(p.nom)}" aria-label="Retirer cette photo">×</button>`}</div>`).join("");
+  return `<article data-j="${t.jour}" class="${q.passe ? "passe" : ""}${choisi === t.jour ? " choisi" : ""}">
+    <div class="tete"><div class="bl">${t.blason || ""}</div>
+      <div class="qui"><div class="quand"><span class="j">Jour ${t.jour}</span><span class="${q.urgent ? "urgent" : ""}">${esc(q.txt)}</span></div>
+        <h2>${esc(t.nom)}</h2><p class="det">${esc(t.poste)} · ${esc(t.club)} · ${esc(t.saison)} · D${esc(t.div)}</p></div>
+      <span class="compte${n ? " ok" : ""}">${n} / ${MAX}</span></div>
+    ${q.passe ? "" : `<p class="liens">${liens(t).map(([l, u]) => `<a href="${u}" target="_blank" rel="noopener">${esc(l)}</a>`).join("")}</p>`}
+    <div class="zone">${vignettes}${!q.passe && n < MAX ? `<button type="button" class="ajout" data-ajout><b>＋</b>Photo</button>` : ""}${!n ? `<span class="vide">${q.passe ? "Sans photo : la vidéo a montré sa fiche." : "Aucune photo pour l'instant."}</span>` : ""}</div>
+    ${!q.passe && n < MAX ? `<form class="lien" data-lien><input type="url" inputmode="url" placeholder="ou collez le lien d'une image" aria-label="Lien d'une image"><button class="creux" type="submit">Ajouter</button></form>` : ""}
+    <p class="msg"></p></article>`;
+}
+function dessine() {
+  if (!ETAT) return;
+  const jours = ETAT.jours.slice().sort((a, b) => a.jour - b.jour);
+  $("cartes").innerHTML = jours.length ? jours.map(carte).join("")
+    : `<p class="intro">Aucun jour à préparer pour l'instant : la fabrique du PC envoie les prochains tirages chaque jour à midi.</p>`;
+  $("maj").textContent = ETAT.maj ? "tirages du " + new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(ETAT.maj)) : "";
+  $("aide").classList.remove("cache");
+}
+async function charge(silence) {
+  try { ETAT = await appel({ action: "etat" }); $("acces").classList.add("cache"); dessine(); }
+  catch (e) { if (code && !silence) $("cartes").innerHTML = `<p class="msg ko">Impossible de lire les jours à venir : ${esc(e.message)}</p>`; }
+}
+
+/* ---- l'envoi ---- */
+const carteDe = el => el && el.closest ? el.closest("article") : null;
+const jourDe = a => +a.dataset.j;
+function dit(a, txt, genre) { const m = a && a.querySelector(".msg"); if (m) { m.textContent = txt; m.className = "msg" + (genre ? " " + genre : ""); } }
+const restePlace = a => { const t = ETAT.jours.find(x => x.jour === jourDe(a)); return t ? MAX - t.photos.length : 0; };
+
+// une photo de l'appareil, réduite et recompressée en JPEG (une photo de téléphone pèse sinon plusieurs Mo)
+async function prepare(f) {
+  try {
+    const bmp = await createImageBitmap(f);
+    const k = Math.min(1, COTE / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement("canvas"); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+    cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+    const b = await new Promise(ok => cv.toBlob(ok, "image/jpeg", 0.9));
+    if (b) f = b;
+  } catch { /* format que le navigateur ne sait pas lire : on l'envoie tel quel, le serveur tranchera */ }
+  const octets = new Uint8Array(await f.arrayBuffer()); let s = "";
+  for (let i = 0; i < octets.length; i += 0x8000) s += String.fromCharCode.apply(null, octets.subarray(i, i + 0x8000));
+  return { data: btoa(s), type: f.type || "image/jpeg" };
+}
+async function envoie(a, sources) {
+  if (!a || a.classList.contains("passe")) return;
+  const place = restePlace(a);
+  if (!place) return dit(a, `Déjà ${MAX} photos : retirez-en une d'abord.`, "ko");
+  sources = sources.slice(0, place);
+  a.classList.add("sablier"); dit(a, sources.length > 1 ? `Envoi de ${sources.length} photos…` : "Envoi…");
+  let ok = 0, erreur = "";
+  for (const s of sources) {
+    try { await appel(Object.assign({ action: "depot", jour: jourDe(a) }, s instanceof Blob ? await prepare(s) : { url: s })); ok++; }
+    catch (e) { erreur = e.message; if (e.message === "code refusé") return; }
+  }
+  await charge(true);
+  const b = document.querySelector(`article[data-j="${jourDe(a)}"]`);
+  dit(b, erreur ? (ok ? `${ok} photo(s) ajoutée(s), une a échoué : ${erreur}` : erreur) : (ok > 1 ? `${ok} photos ajoutées.` : "Photo ajoutée."), erreur ? "ko" : "ok");
+}
+async function retire(a, nom) {
+  a.classList.add("sablier"); dit(a, "Retrait…");
+  try { await appel({ action: "suppr", jour: jourDe(a), nom }); await charge(true); }
+  catch (e) { a.classList.remove("sablier"); dit(a, e.message, "ko"); }
+}
+
+// ce qu'on lâche ou colle : des fichiers d'abord, sinon un lien (Google Images glisse une adresse « imgres?imgurl=… »)
+function sourcesDe(dt) {
+  const fichiers = Array.from(dt.files || []).filter(f => /^image\//.test(f.type));
+  if (fichiers.length) return fichiers;
+  const liste = (dt.getData("text/uri-list") || "").split(/\r?\n/).filter(l => l && !l.startsWith("#"));
+  const html = dt.getData("text/html") || "";
+  const img = /<img[^>]+src="([^"]+)"/i.exec(html);
+  const texte = (dt.getData("text/plain") || "").trim();
+  const u = liste.find(l => /imgurl=/.test(l)) || (img && !/^data:image\/(gif|png);base64,R0lG/.test(img[1]) ? img[1].replace(/&amp;/g, "&") : "") || liste[0] || (/^(https?:|data:image)/.test(texte) ? texte : "");
+  return u ? [u] : [];
+}
+
+/* ---- les gestes ---- */
+$("acces").addEventListener("submit", e => { e.preventDefault(); code = $("code").value.trim(); if (!code) return; garde(code); $("accesMsg").textContent = ""; charge(); });
+$("oublie").addEventListener("click", () => { garde(""); code = ""; montreAcces(); });
+$("fichier").addEventListener("change", e => { const f = Array.from(e.target.files || []); e.target.value = ""; if (cible && f.length) envoie(cible, f); });
+
+document.addEventListener("click", e => {
+  const a = carteDe(e.target); if (!a) return;
+  if (e.target.closest("[data-ajout]")) { cible = a; $("fichier").click(); return; }
+  const s = e.target.closest("[data-suppr]"); if (s) { retire(a, s.dataset.suppr); return; }
+  if (e.target.closest("a, input, button, form")) return;
+  choisi = jourDe(a); document.querySelectorAll("article").forEach(x => x.classList.toggle("choisi", x === a));
+  if (!a.classList.contains("passe")) dit(a, "Carte choisie : Ctrl+V colle l'image copiée.");
+});
+document.addEventListener("submit", e => {
+  const f = e.target.closest("[data-lien]"); if (!f) return; e.preventDefault();
+  const v = f.querySelector("input").value.trim(); if (v) envoie(carteDe(f), [v]);
+});
+document.addEventListener("paste", e => {
+  if (e.target.closest && e.target.closest("input")) return;      // un lien collé dans le champ reste dans le champ
+  const a = document.querySelector(`article[data-j="${choisi}"]`);
+  const s = sourcesDe(e.clipboardData); if (!s.length) return;
+  e.preventDefault();
+  if (!a) { const p = document.querySelector("article:not(.passe)"); return dit(p, "Cliquez d'abord sur la carte du joueur, puis collez.", "ko"); }
+  envoie(a, s);
+});
+document.addEventListener("dragover", e => { const a = carteDe(e.target); if (a && !a.classList.contains("passe")) { e.preventDefault(); a.classList.add("vise"); } });
+document.addEventListener("dragleave", e => { const a = carteDe(e.target); if (a && !a.contains(e.relatedTarget)) a.classList.remove("vise"); });
+document.addEventListener("drop", e => {
+  const a = carteDe(e.target); if (!a) return; e.preventDefault(); a.classList.remove("vise");
+  const s = sourcesDe(e.dataTransfer); s.length ? envoie(a, s) : dit(a, "Rien de lisible dans ce que vous avez glissé : essayez avec l'image ouverte en grand.", "ko");
+});
+document.addEventListener("visibilitychange", () => { if (!document.hidden && code) charge(true); });
+
+/* ---- le départ : un lien « …/loterie/#code=… » enregistre le code puis l'efface de l'adresse ---- */
+function depart() {
+  const m = /[#&]code=([^&]+)/.exec(location.hash);
+  if (m) { garde(decodeURIComponent(m[1])); history.replaceState(null, "", location.pathname + location.search); }
+  code = lit();
+  code ? charge() : montreAcces();
+}
+window.addEventListener("hashchange", depart);
+depart();
+</script>
+</body>
+</html>
