@@ -665,7 +665,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.85"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.86"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -17782,6 +17782,217 @@ const VIVIER_SAISON_ANG={
   ["J. Pennant","M",1983,76,78,"Real Saragosse","ANG","Jermaine"],
  ],
 };
+/* LES ITALIENS DE L'ÉTRANGER (ITA-F a, v2.86, 13/11/2026) : le pendant italien de VIVIER_SAISON_ANG, même
+   format, drapeau "ITA". Ne se lit QUE dans une carrière italienne (vivierDeSaison). Wikidata refusant les
+   robots, chaque joueur a été vérifié sur sa fiche de la Wikipédia anglaise (clubs et années de l'infobox,
+   prêts compris). Un joueur figure dans l'été de la saison qu'il a passée, pour l'essentiel, hors d'Italie.
+   Les débuts sont maigres, et c'est la vérité : le calcio est alors le championnat le plus riche du monde, on
+   n'en part pas. Di Matteo, né en Suisse, y joue jusqu'en 1993 ; 1993 reste vide ; Schillaci ouvre la voie au
+   Japon en 1994, puis viennent Chelsea, les Rangers et Derby. Les notes reprennent celles de la liste
+   française quand le joueur y figure le même été. */
+const VIVIER_SAISON_ITA={
+ 1990:[
+  ["R. Di Matteo","M",1970,70,80,"FC Schaffhouse","ITA","Roberto"],
+ ],
+ 1991:[
+  ["R. Di Matteo","M",1970,73,82,"FC Zurich","ITA","Roberto"],
+ ],
+ 1992:[
+  ["R. Di Matteo","M",1970,76,83,"FC Aarau","ITA","Roberto"],
+ ],
+ 1993:[], // personne : le calcio est le plus riche du monde, et aucun international ne part
+ 1994:[
+  ["S. Schillaci","A",1964,80,80,"Júbilo Iwata","ITA","Salvatore"],
+ ],
+ 1995:[
+  ["S. Schillaci","A",1964,79,79,"Júbilo Iwata","ITA","Salvatore"],
+  ["D. Massaro","A",1961,77,77,"Shimizu S-Pulse","ITA","Daniele"],
+  ["A. Silenzi","A",1966,74,74,"Nottingham Forest","ITA","Andrea"],
+ ],
+ 1996:[
+  ["F. Ravanelli","A",1968,84,84,"Middlesbrough","ITA","Fabrizio"],
+  ["G. Zola","A",1966,85,85,"Chelsea","ITA","Gianfranco"],
+  ["G. Vialli","A",1964,83,83,"Chelsea","ITA","Gianluca"],
+  ["R. Di Matteo","M",1970,82,83,"Chelsea","ITA","Roberto"],
+  ["P. Di Canio","A",1968,81,81,"Celtic Glasgow","ITA","Paolo"],
+  ["B. Carbone","A",1971,78,79,"Sheffield Wednesday","ITA","Benito"],
+  ["R. Rizzitelli","A",1967,78,78,"Bayern Munich","ITA","Ruggiero"],
+  ["R. Donadoni","M",1963,79,79,"MetroStars de New York","ITA","Roberto"],
+  ["G. Giannini","M",1964,77,77,"Sturm Graz","ITA","Giuseppe"],
+  ["G. Galderisi","A",1963,68,68,"Tampa Bay Mutiny","ITA","Giuseppe"],
+  ["S. Schillaci","A",1964,77,77,"Júbilo Iwata","ITA","Salvatore"],
+ ],
+ 1997:[
+  ["G. Zola","A",1966,85,85,"Chelsea","ITA","Gianfranco"],
+  ["G. Vialli","A",1964,81,81,"Chelsea","ITA","Gianluca"],
+  ["R. Di Matteo","M",1970,83,83,"Chelsea","ITA","Roberto"],
+  ["C. Vieri","A",1973,84,90,"Atlético Madrid","ITA","Christian"],
+  ["C. Panucci","D",1973,82,85,"Real Madrid","ITA","Christian"],
+  ["F. Ravanelli","A",1968,84,84,"Olympique de Marseille","ITA","Fabrizio"],
+  ["M. Simone","A",1969,82,82,"Paris Saint-Germain","ITA","Marco"],
+  ["A. Lombardo","M",1966,79,79,"Crystal Palace","ITA","Attilio"],
+  ["P. Di Canio","A",1968,82,82,"Sheffield Wednesday","ITA","Paolo"],
+  ["B. Carbone","A",1971,79,79,"Sheffield Wednesday","ITA","Benito"],
+  ["S. Eranio","M",1966,78,78,"Derby County","ITA","Stefano"],
+  ["F. Baiano","A",1968,77,77,"Derby County","ITA","Francesco"],
+  ["G. Festa","D",1969,76,76,"Middlesbrough","ITA","Gianluca"],
+  ["L. Amoruso","D",1971,79,80,"Glasgow Rangers","ITA","Lorenzo"],
+  ["G. Gattuso","M",1978,70,84,"Glasgow Rangers","ITA","Gennaro"],
+  ["M. Negri","A",1970,79,79,"Glasgow Rangers","ITA","Marco"],
+  ["S. Porrini","D",1968,79,79,"Glasgow Rangers","ITA","Sergio"],
+  ["R. Rizzitelli","A",1967,77,77,"Bayern Munich","ITA","Ruggiero"],
+  ["W. Zenga","G",1960,74,74,"New England Revolution","ITA","Walter"],
+  ["A. Pistone","D",1975,75,79,"Newcastle United","ITA","Alessandro"],
+ ],
+ 1998:[
+  ["G. Zola","A",1966,84,84,"Chelsea","ITA","Gianfranco"],
+  ["G. Vialli","A",1964,79,79,"Chelsea","ITA","Gianluca"],
+  ["R. Di Matteo","M",1970,82,82,"Chelsea","ITA","Roberto"],
+  ["P. Casiraghi","A",1969,80,80,"Chelsea","ITA","Pierluigi"],
+  ["C. Panucci","D",1973,83,85,"Real Madrid","ITA","Christian"],
+  ["F. Ravanelli","A",1968,82,82,"Olympique de Marseille","ITA","Fabrizio"],
+  ["M. Simone","A",1969,81,81,"Paris Saint-Germain","ITA","Marco"],
+  ["P. Di Canio","A",1968,82,82,"Sheffield Wednesday","ITA","Paolo"],
+  ["B. Carbone","A",1971,79,79,"Sheffield Wednesday","ITA","Benito"],
+  ["A. Lombardo","M",1966,77,77,"Crystal Palace","ITA","Attilio"],
+  ["S. Eranio","M",1966,77,77,"Derby County","ITA","Stefano"],
+  ["F. Baiano","A",1968,76,76,"Derby County","ITA","Francesco"],
+  ["G. Festa","D",1969,76,76,"Middlesbrough","ITA","Gianluca"],
+  ["M. Branca","A",1965,78,78,"Middlesbrough","ITA","Marco"],
+  ["N. Berti","M",1967,76,76,"Tottenham Hotspur","ITA","Nicola"],
+  ["M. Materazzi","D",1973,74,82,"Everton","ITA","Marco"],
+  ["E. Maresca","M",1980,62,82,"West Bromwich Albion","ITA","Enzo"],
+  ["L. Amoruso","D",1971,80,80,"Glasgow Rangers","ITA","Lorenzo"],
+  ["M. Negri","A",1970,75,75,"Glasgow Rangers","ITA","Marco"],
+  ["S. Porrini","D",1968,78,78,"Glasgow Rangers","ITA","Sergio"],
+  ["W. Zenga","G",1960,72,72,"New England Revolution","ITA","Walter"],
+  ["A. Pistone","D",1975,75,79,"Newcastle United","ITA","Alessandro"],
+ ],
+ 1999:[
+  ["G. Zola","A",1966,83,83,"Chelsea","ITA","Gianfranco"],
+  ["R. Di Matteo","M",1970,81,81,"Chelsea","ITA","Roberto"],
+  ["P. Casiraghi","A",1969,76,76,"Chelsea","ITA","Pierluigi"],
+  ["C. Cudicini","G",1973,72,79,"Chelsea","ITA","Carlo"],
+  ["M. Simone","A",1969,80,80,"AS Monaco","ITA","Marco"],
+  ["P. Di Canio","A",1968,83,83,"West Ham United","ITA","Paolo"],
+  ["B. Carbone","A",1971,78,78,"Aston Villa","ITA","Benito"],
+  ["S. Eranio","M",1966,76,76,"Derby County","ITA","Stefano"],
+  ["G. Festa","D",1969,76,76,"Middlesbrough","ITA","Gianluca"],
+  ["M. Branca","A",1965,74,74,"FC Lucerne","ITA","Marco"],
+  ["M. Taibi","G",1970,72,72,"Manchester United","ITA","Massimo"],
+  ["E. Maresca","M",1980,66,82,"West Bromwich Albion","ITA","Enzo"],
+  ["L. Amoruso","D",1971,80,80,"Glasgow Rangers","ITA","Lorenzo"],
+  ["S. Porrini","D",1968,77,77,"Glasgow Rangers","ITA","Sergio"],
+  ["R. Donadoni","M",1963,74,74,"Al-Ittihad","ITA","Roberto"],
+ ],
+ 2000:[
+  ["G. Zola","A",1966,82,82,"Chelsea","ITA","Gianfranco"],
+  ["R. Di Matteo","M",1970,79,79,"Chelsea","ITA","Roberto"],
+  ["C. Panucci","D",1973,81,81,"Chelsea","ITA","Christian"],
+  ["C. Cudicini","G",1973,78,81,"Chelsea","ITA","Carlo"],
+  ["M. Simone","A",1969,79,79,"AS Monaco","ITA","Marco"],
+  ["P. Di Canio","A",1968,84,84,"West Ham United","ITA","Paolo"],
+  ["B. Carbone","A",1971,77,77,"Bradford City","ITA","Benito"],
+  ["S. Eranio","M",1966,75,75,"Derby County","ITA","Stefano"],
+  ["G. Festa","D",1969,75,75,"Middlesbrough","ITA","Gianluca"],
+  ["L. Amoruso","D",1971,79,79,"Glasgow Rangers","ITA","Lorenzo"],
+  ["S. Porrini","D",1968,75,75,"Glasgow Rangers","ITA","Sergio"],
+  ["A. Pistone","D",1975,75,77,"Everton","ITA","Alessandro"],
+ ],
+ 2001:[
+  ["G. Zola","A",1966,81,81,"Chelsea","ITA","Gianfranco"],
+  ["R. Di Matteo","M",1970,76,76,"Chelsea","ITA","Roberto"],
+  ["C. Cudicini","G",1973,81,82,"Chelsea","ITA","Carlo"],
+  ["P. Di Canio","A",1968,83,83,"West Ham United","ITA","Paolo"],
+  ["B. Carbone","A",1971,75,75,"Bradford City","ITA","Benito"],
+  ["F. Ravanelli","A",1968,78,78,"Derby County","ITA","Fabrizio"],
+  ["G. Festa","D",1969,74,74,"Middlesbrough","ITA","Gianluca"],
+  ["L. Amoruso","D",1971,79,79,"Glasgow Rangers","ITA","Lorenzo"],
+  ["A. Pistone","D",1975,74,75,"Everton","ITA","Alessandro"],
+ ],
+ 2002:[
+  ["G. Zola","A",1966,80,80,"Chelsea","ITA","Gianfranco"],
+  ["C. Cudicini","G",1973,82,82,"Chelsea","ITA","Carlo"],
+  ["P. Di Canio","A",1968,81,81,"West Ham United","ITA","Paolo"],
+  ["F. Ravanelli","A",1968,76,76,"Derby County","ITA","Fabrizio"],
+  ["M. Simone","A",1969,76,76,"AS Monaco","ITA","Marco"],
+  ["D. Albertini","M",1971,79,79,"Atlético Madrid","ITA","Demetrio"],
+  ["M. Maccarone","A",1979,74,79,"Middlesbrough","ITA","Massimo"],
+  ["G. Festa","D",1969,73,73,"Portsmouth","ITA","Gianluca"],
+  ["L. Amoruso","D",1971,78,78,"Glasgow Rangers","ITA","Lorenzo"],
+  ["A. Pistone","D",1975,74,74,"Everton","ITA","Alessandro"],
+ ],
+ 2003:[
+  ["P. Di Canio","A",1968,79,79,"Charlton Athletic","ITA","Paolo"],
+  ["F. Ravanelli","A",1968,73,73,"Dundee","ITA","Fabrizio"],
+  ["L. Amoruso","D",1971,77,77,"Blackburn Rovers","ITA","Lorenzo"],
+  ["M. Maccarone","A",1979,74,78,"Middlesbrough","ITA","Massimo"],
+  ["C. Cudicini","G",1973,81,81,"Chelsea","ITA","Carlo"],
+  ["A. Pistone","D",1975,73,73,"Everton","ITA","Alessandro"],
+ ],
+ 2004:[
+  ["M. Di Vaio","A",1976,81,81,"Valence CF","ITA","Marco"],
+  ["B. Corradi","A",1976,78,78,"Valence CF","ITA","Bernardo"],
+  ["L. Amoruso","D",1971,76,76,"Blackburn Rovers","ITA","Lorenzo"],
+  ["C. Cudicini","G",1973,80,80,"Chelsea","ITA","Carlo"],
+  ["A. Pistone","D",1975,72,72,"Everton","ITA","Alessandro"],
+ ],
+ 2005:[
+  ["M. Di Vaio","A",1976,79,79,"Valence CF","ITA","Marco"],
+  ["F. Miccoli","A",1979,80,81,"Benfica","ITA","Fabrizio"],
+  ["E. Maresca","M",1980,78,79,"Séville FC","ITA","Enzo"],
+  ["M. Maccarone","A",1979,74,76,"Middlesbrough","ITA","Massimo"],
+  ["L. Amoruso","D",1971,74,74,"Blackburn Rovers","ITA","Lorenzo"],
+  ["C. Cudicini","G",1973,79,79,"Chelsea","ITA","Carlo"],
+  ["A. Pistone","D",1975,71,71,"Everton","ITA","Alessandro"],
+  ["G. Rossi","A",1987,66,88,"Manchester United","ITA","Giuseppe"],
+ ],
+ 2006:[
+  ["F. Cannavaro","D",1973,88,88,"Real Madrid","ITA","Fabio"],
+  ["G. Zambrotta","D",1977,85,85,"FC Barcelone","ITA","Gianluca"],
+  ["M. Di Vaio","A",1976,77,77,"AS Monaco","ITA","Marco"],
+  ["B. Corradi","A",1976,74,74,"Manchester City","ITA","Bernardo"],
+  ["F. Miccoli","A",1979,80,81,"Benfica","ITA","Fabrizio"],
+  ["E. Maresca","M",1980,79,79,"Séville FC","ITA","Enzo"],
+  ["M. Maccarone","A",1979,73,74,"Middlesbrough","ITA","Massimo"],
+  ["D. Tommasi","M",1974,74,74,"Levante UD","ITA","Damiano"],
+  ["C. Cudicini","G",1973,79,79,"Chelsea","ITA","Carlo"],
+  ["A. Pistone","D",1975,70,70,"Everton","ITA","Alessandro"],
+  ["G. Rossi","A",1987,72,88,"Manchester United","ITA","Giuseppe"],
+ ],
+ 2007:[
+  ["F. Cannavaro","D",1973,85,85,"Real Madrid","ITA","Fabio"],
+  ["G. Zambrotta","D",1977,84,84,"FC Barcelone","ITA","Gianluca"],
+  ["L. Toni","A",1977,86,86,"Bayern Munich","ITA","Luca"],
+  ["F. Grosso","D",1977,81,81,"Olympique Lyonnais","ITA","Fabio"],
+  ["C. Abbiati","G",1977,79,79,"Atlético Madrid","ITA","Christian"],
+  ["R. Bianchi","A",1983,74,77,"Manchester City","ITA","Rolando"],
+  ["G. Rossi","A",1987,77,88,"Villarreal","ITA","Giuseppe"],
+  ["E. Maresca","M",1980,79,79,"Séville FC","ITA","Enzo"],
+  ["D. Tommasi","M",1974,72,72,"Levante UD","ITA","Damiano"],
+  ["C. Cudicini","G",1973,78,78,"Chelsea","ITA","Carlo"],
+ ],
+ 2008:[
+  ["F. Cannavaro","D",1973,83,83,"Real Madrid","ITA","Fabio"],
+  ["L. Toni","A",1977,85,85,"Bayern Munich","ITA","Luca"],
+  ["M. Oddo","D",1976,77,77,"Bayern Munich","ITA","Massimo"],
+  ["F. Grosso","D",1977,80,80,"Olympique Lyonnais","ITA","Fabio"],
+  ["A. Barzagli","D",1981,80,82,"VfL Wolfsburg","ITA","Andrea"],
+  ["C. Zaccardo","D",1981,76,77,"VfL Wolfsburg","ITA","Cristian"],
+  ["A. Dossena","D",1981,75,77,"Liverpool","ITA","Andrea"],
+  ["G. Rossi","A",1987,80,88,"Villarreal","ITA","Giuseppe"],
+  ["E. Maresca","M",1980,77,77,"Séville FC","ITA","Enzo"],
+  ["C. Cudicini","G",1973,77,77,"Chelsea","ITA","Carlo"],
+ ],
+ 2009:[
+  ["L. Toni","A",1977,81,81,"Bayern Munich","ITA","Luca"],
+  ["A. Barzagli","D",1981,80,81,"VfL Wolfsburg","ITA","Andrea"],
+  ["A. Dossena","D",1981,74,75,"Liverpool","ITA","Andrea"],
+  ["A. Aquilani","M",1984,79,84,"Liverpool","ITA","Alberto"],
+  ["G. Rossi","A",1987,82,88,"Villarreal","ITA","Giuseppe"],
+  ["E. Maresca","M",1980,76,76,"Olympiakos","ITA","Enzo"],
+ ],
+};
 const VIVIER_FR=new Set(); // les Français de ces listes : nationalité FR à la signature
 for(const an in VIVIER_SAISON) for(const e of VIVIER_SAISON[an]){
   if(e[6].includes("FR")) VIVIER_FR.add(e[0]);
@@ -17792,6 +18003,13 @@ for(const an in VIVIER_SAISON_ANG) for(const e of VIVIER_SAISON_ANG[an]){
   VIVIER_ANG.add(e[0]);
   if(e[7] && !Object.prototype.hasOwnProperty.call(PRENOMS_VRAIS, e[0])) PRENOMS_VRAIS[e[0]]=e[7];
 }
+const VIVIER_ITA=new Set(); // les Italiens de l'étranger : nationalité ITA à la signature, dans tous les pays
+for(const an in VIVIER_SAISON_ITA) for(const e of VIVIER_SAISON_ITA[an]){
+  VIVIER_ITA.add(e[0]);
+  if(e[7] && !Object.prototype.hasOwnProperty.call(PRENOMS_VRAIS, e[0])) PRENOMS_VRAIS[e[0]]=e[7];
+}
+/* Les expatriés de chaque pays : une carrière lit ceux de SON pays, en plus de la liste de l'été. */
+const EXPATRIES={ANG:VIVIER_SAISON_ANG, ITA:VIVIER_SAISON_ITA};
 /* La nationalité LOCALE de la carrière en cours (FR, ANG…) : celle du « compatriote de l'étranger ». */
 function natLocale(){ return (PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"]||PAYS.FR).nat; }
 /* Le libellé AFFICHÉ d'une catégorie du vivier. Les clés (« Français de l'étranger »…) sont sérialisées dans
@@ -17813,8 +18031,8 @@ function profilSaison(age, drapeau, nat){ // nat : la nationalité locale ("FR" 
 function vivierDeSaison(an){
   let L=VIVIER_SAISON[an]; if(!L) return null;
   const nat=natLocale();
-  if(nat==="ANG"){ // carrière anglaise : ses expatriés à elle, et la liste de l'été sans doublon
-    const A=VIVIER_SAISON_ANG[an]||[], dejaA=new Set(A.map(e=>e[0]));
+  if(EXPATRIES[nat]){ // carrière anglaise ou italienne : ses expatriés à elle, et la liste de l'été sans doublon
+    const A=EXPATRIES[nat][an]||[], dejaA=new Set(A.map(e=>e[0]));
     L=L.filter(e=>!dejaA.has(e[0])).concat(A);
   }
   const enJeu=new Set(); // sous contrat en France cette saison (votre club compris : un joker signé ne revient pas)
@@ -17901,7 +18119,7 @@ function joueurDeVivier(e, t){
            buts:0,passes:0,matchs:0,avendre:false,fav:false,titu:false,club:"EXT",uid:uidGen(),bless:0,susp:0,
            reel:true, moral:RNDI(58,75), sansJouer:0,
            nat:(t.includes("Division 2")||t.includes("come-back")||t==="Français de l'étranger")?natLocale()
-              :(VIVIER_FR.has(e[0])||["E. Cantona"].includes(e[0]))?"FR":VIVIER_ANG.has(e[0])?"ANG":"ETR"};
+              :(VIVIER_FR.has(e[0])||["E. Cantona"].includes(e[0]))?"FR":VIVIER_ANG.has(e[0])?"ANG":VIVIER_ITA.has(e[0])?"ITA":"ETR"};
   j.note0=j.note;
   initTraits(j);
   return j;

@@ -27,7 +27,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
-const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,anneeJeu,SAISONS,VIVIER_SAISON,genRapport,migre,nomLong,joueurDeVivier,VIVIER_SAISON_ANG,libProfil,getG:function(){return G;}};";
+const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,anneeJeu,SAISONS,VIVIER_SAISON,genRapport,migre,nomLong,joueurDeVivier,VIVIER_SAISON_ANG,VIVIER_SAISON_ITA,CLUBS_ITA,SIEGES_ITA,libProfil,getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 
 let FAILS = 0;
@@ -182,6 +182,50 @@ try {
   else if (api.libProfil("Français de l'étranger") !== "Français de l'étranger") fail("le libellé français a bougé");
   else ok("carrière française : pas un nom de plus, et « Français de l'étranger » reste tel quel");
 } catch (e) { fail("exception Anglais de l'étranger : " + e.stack); }
+
+/* ===== Les Italiens de l'étranger (ITA-F a, v2.86) ===== */
+console.log("Les Italiens de l'étranger : vus de Turin, les compatriotes sont italiens");
+try {
+  const VI = api.VIVIER_SAISON_ITA, ans = Object.keys(VI).map(Number);
+  if (!(ans.length === 20 && ans.every(a => a >= 1990 && a <= 2009))) fail("les étés des Italiens de l'étranger : " + ans.join(","));
+  else ok("vingt étés, de 1990 à 2009");
+  const vides = ans.filter(a => !VI[a].length);
+  if (vides.join() !== "1993") fail("étés vides inattendus : " + vides.join(",")); else ok("un seul été vide, 1993, où aucun Italien ne joue à l'étranger");
+  const malForme = []; for (const a of ans) for (const e of VI[a]) if (e.length !== 8 || e[6] !== "ITA" || !e[7] || /—/.test(e[5]) || !"GDMA".includes(e[1]) || e[3] > e[4]) malForme.push(a + " " + e[0]);
+  if (malForme.length) fail("entrées mal formées : " + malForme.join(", ")); else ok("toutes au format de VIVIER_SAISON, drapeau « ITA », prénom renseigné, note sous le potentiel");
+  const doublons = []; for (const a of ans) { const v = VI[a].map(e => e[0]); if (new Set(v).size !== v.length) doublons.push(a); }
+  if (doublons.length) fail("un joueur deux fois le même été : " + doublons.join(",")); else ok("aucun joueur en double dans un été");
+  // une carrière italienne d'essai en 1997 (l'été le plus garni), sur les clubs d'ITA-A
+  const ids = api.CLUBS_ITA.map(c => c.id), S = api.SIEGES_ITA[1997], CLE = "ITA-ESSAI-REC";
+  api.SAISONS[CLE] = { pays: "ITA", an: 1997, titre: "1997-98", nom: "Essai", d1: ids.slice(0, 18), d2: ids.slice(18, 38), starsD1: {}, starsD2: {},
+    euroC1: S.C1, euroC2: S.C2, euroC3: S.C3, sous: "Essai" };
+  api.nouvellePartie(ids[3], CLE);
+  const G = api.getG(), comp = (G.vivier["Français de l'étranger"] || []).map(e => e[0]);
+  const nomsI = new Set(VI[1997].map(e => e[0]));
+  if (!comp.length || comp.some(n => !nomsI.has(n))) fail("compatriotes d'une carrière italienne : " + comp.join(", "));
+  else ok("carrière italienne : la catégorie des compatriotes ne porte que des Italiens (" + comp.length + ", dont " + comp.slice(0, 3).join(", ") + ")");
+  if (api.libProfil("Français de l'étranger") !== "Italien de l'étranger" || api.libProfil("Pépite de Division 2") !== "Pépite de Serie B")
+    fail("libellés italiens : " + api.libProfil("Français de l'étranger") + " / " + api.libProfil("Pépite de Division 2"));
+  else ok("affichés « Italien de l'étranger » et « Pépite de Serie B », la clé de sauvegarde ne bouge pas");
+  const g = api.joueurDeVivier(G.vivier["Français de l'étranger"][0], "Français de l'étranger");
+  if (g.nat !== "ITA") fail(g.nom + " signe " + g.nat + " au lieu de ITA"); else ok(g.nom + " signe Italien");
+  delete api.SAISONS[CLE];
+  // carrière anglaise : Zola, à Chelsea, n'est pas un compatriote ; signé quand même, il reste italien
+  const k = Object.keys(api.SAISONS).find(c => api.SAISONS[c].pays === "ANG" && api.SAISONS[c].an === 1997);
+  if (k) {
+    api.nouvellePartie(api.SAISONS[k].d1[2], k);
+    const compA = (api.getG().vivier["Français de l'étranger"] || []).map(e => e[0]);
+    if (compA.some(n => nomsI.has(n) && !api.VIVIER_SAISON_ANG[1997].some(e => e[0] === n))) fail("un Italien devient compatriote en Angleterre");
+    else ok("carrière anglaise : aucun Italien parmi les compatriotes");
+  }
+  if (api.joueurDeVivier(["G. Zola", "A", 31, 85, 85, "Chelsea"], "International confirmé").nat !== "ITA") fail("Zola ne signe pas Italien vu d'ailleurs");
+  else ok("vu d'ailleurs, Zola signe Italien et non « étranger » anonyme");
+  // carrière française : aucun nom propre aux Italiens de l'étranger
+  api.nouvellePartie(api.SAISONS["1995-96"].d1[0], "1995-96");
+  const fr = new Set(noms(api.getG()).map(e => e[0])), seulsI = [...new Set(VI[1995].map(e => e[0]))].filter(n => !api.VIVIER_SAISON[1995].some(e => e[0] === n));
+  if (seulsI.some(n => fr.has(n))) fail("un Italien de l'étranger s'invite dans une carrière française : " + seulsI.filter(n => fr.has(n)).join(", "));
+  else ok("carrière française : pas un nom de plus");
+} catch (e) { fail("exception Italiens de l'étranger : " + e.stack); }
 
 console.log(FAILS ? "\n" + FAILS + " échec(s)" : "\nTout est vert.");
 process.exit(FAILS ? 1 : 0);

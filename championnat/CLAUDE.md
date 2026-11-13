@@ -6129,7 +6129,7 @@ source écrit « Spezia Calcio (decoration) » pour le Campionato Alta Italia de
 **Ce qui N'EST PAS fait, et reste ouvert** : comme pour l'Angleterre avant ANG-F, le **recruteur** est encore français
 (un `VIVIER_SAISON_ITA` des Italiens de l'étranger est une journée de curation à part entière), le **mot des clubs**
 (`MALEDICTIONS`) ne connaît aucun club italien. Le harnais de pays `harness-italie.cjs` est ITA-C.
-**ITA-F (sponsors) proposé en séance le 13/11/2026 (v2.85, branche `chantier/sponsors-ita`, EN ATTENTE DE L'AUTEUR)** :
+**ITA-F (c), les sponsors, VALIDÉ par l'auteur en séance le 13/11/2026 (v2.85, branche `chantier/sponsors-ita`)** :
 `SPONSORS_RINGARDS_ITA` (Barilla, Mulino Bianco, Galbani, Lavazza, Motta, Nutella, Chinotto Sanpellegrino),
 `SPONSORS_PROPRES_ITA` (Alitalia, Agip, Zanussi, Olivetti, Standa, Upim, Mediolanum, Telepiù, Omnitel, Blu, Wind,
 Tiscali, et le pastiche La Megaditta), `SPONSORS_SULFUREUX_ITA` (Impresa Mazzetta, 144 Bollente, Fernet-Branca,
@@ -6137,8 +6137,19 @@ Tango Bond, Cirio, Parmalat, Immobiliare Furbetti, et la nouvelle ère des paris
 et `EQUIPEMENTIERS_ITA` (Kappa, Lotto, Ennerre avant 2000 ; Diadora, Macron, Legea après ; Erreà dans les deux ;
 Sartoria Brambilla en atelier local). `sponsorsDe(fr, ang, ita)` prend un troisième argument et rend la liste
 française à tout pays qui n'a pas encore la sienne. `familleSponsor` range le « 144 » avec le Minitel rose
-(`sp_decale`). Gardé par la section E de `harness-sponsors.cjs`. **Tant que l'auteur n'a pas fusionné, cette liste
-n'est pas arrêtée : ne rien y ajouter sans lui.**
+(`sp_decale`). Gardé par la section E de `harness-sponsors.cjs`. **Cette liste est arrêtée par l'auteur : n'y rien ajouter
+sans lui.**
+**ITA-F (a), le recruteur, livré en séance le 13/11/2026 (v2.86, branche `chantier/recruteur-ita`, choix auteur)** :
+`VIVIER_SAISON_ITA`, cent soixante-deux lignes sur vingt étés, même format que `VIVIER_SAISON_ANG`, drapeau
+`"ITA"`. Wikidata refusant les robots (erreur 403 « automated SPARQL traffic »), chacun des cinquante et un joueurs
+a été vérifié sur l'infobox de sa fiche de la Wikipédia anglaise. **1993 est vide exprès** : aucun Italien ne joue
+alors hors d'Italie, et 1990-92 n'ont que Di Matteo, né en Suisse et formé là-bas (Schaffhouse, Zurich, Aarau).
+`vivierDeSaison` lit désormais une table `EXPATRIES` (`ANG`, `ITA`) au lieu d'un test sur l'Angleterre ;
+`VIVIER_ITA` fait signer ces joueurs « ITA » dans TOUS les pays (comme `VIVIER_ANG`), si bien que Zola ou Vialli,
+déjà dans la liste française, ne signent plus « ETR » dans une carrière française. `libProfil` dit « Italien de
+l'étranger » et « Pépite de Serie B » sans toucher aux clés. **Reste français, comme en Angleterre** : les autres
+catégories de la liste de l'été (les pépites de D2, les come-back) sont des Français, affichés sous leur libellé
+italien. Gardé par la section « Italiens de l'étranger » de `harness-recruteur.cjs`.
 Gardé par **`harness-textes-ita.cjs`** (neuf sections, dont la dernière joue une saison italienne entière, une
 intersaison et dix journées, puis relit tout ce que la saison a écrit).
 

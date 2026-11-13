@@ -331,12 +331,13 @@ Le cadre posé pour l'Angleterre sert à tout le monde ; il ne reste que ce qui 
       `CLAUDE.md`, gardé par `harness-textes-ita.cjs`.*
 - [ ] **ITA-C — Le harnais** : `harness-italie.cjs`.
 - [ ] **ITA-F — Le contenu qui reste français** (comme ANG-F, à faire à la fin du pays, rien n'est nécessaire pour jouer).
-      (a) **Le recruteur** : un `VIVIER_SAISON_ITA` des Italiens de l'étranger, été par été, vérifiés à la source,
-      et ses libellés (`libProfil`) dits d'Italie, sans toucher aux clés de sauvegarde. Une journée de curation.
+      (a) ✅ **FAIT EN SÉANCE le 13/11/2026 (v2.86, choix auteur)** : `VIVIER_SAISON_ITA`, cinquante et un Italiens de
+      l'étranger sur vingt étés (1993 vide exprès), vérifiés fiche par fiche sur la Wikipédia anglaise ; libellés
+      « Italien de l'étranger » et « Pépite de Serie B » ; gardé par `harness-recruteur`. **Ne pas refaire.**
       (b) **Le mot des clubs** : une phrase d'histoire vérifiée pour chacun des soixante-quatorze clubs italiens
       (`MALEDICTIONS`, avec ses variantes d'époque). Une journée de curation.
-      (c) ⏳ **Les sponsors et équipementiers : PROPOSÉS en séance le 13/11/2026 (v2.85, branche
-      `chantier/sponsors-ita`), en attente de la validation de l'auteur.** Ne pas refaire, ne rien y ajouter sans lui.
+      (c) ✅ **Les sponsors et équipementiers : VALIDÉS par l'auteur en séance le 13/11/2026 (v2.85).** Ne pas
+      refaire, ne rien y ajouter sans lui. Il ne reste que (b).
 
 ### Italie — 20 saisons
 
