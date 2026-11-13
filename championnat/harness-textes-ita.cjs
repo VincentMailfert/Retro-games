@@ -381,7 +381,8 @@ console.log("\nI) Une saison jouée pour de vrai en Italie");
   /* Même exception documentée qu'en Angleterre : le recruteur italien n'existe pas encore (c'est l'équivalent
      d'ANG-F (a), une journée de curation à part), et ses étiquettes de profil sont des clés de sauvegarde. */
   const lignes = (G.news || []).concat(G.presse || [], G.recap || []).map(String);
-  const restes = lignes.filter(t => /\bFrance\b|français|Angleterre|anglais/i.test(t) &&
+  // le pays d'un adversaire d'Europe, écrit entre parenthèses (« Blackburn Rovers (Angleterre) »), est juste : on l'ôte
+  const restes = lignes.map(t => t.replace(/\((?:Angleterre|France)\)/g, "")).filter(t => /\bFrance\b|français|Angleterre|anglais/i.test(t) &&
     !/\(Français (?:de l'étranger|en quête de come-back)\)/.test(t) && !/ÉTÉ \d+ ·/.test(t));
   ok(restes.length === 0,
     "rien de ce que la saison a écrit ne nomme la France ou l'Angleterre, hors étiquettes du recruteur et étés internationaux" + (restes.length ? " — " + extrait(restes) : ""));

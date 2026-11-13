@@ -5960,6 +5960,75 @@ l'Angleterre, `JAMAIS_CHAMPION`/`MALEDICTIONS` ne connaissent aucun club italien
 équipementiers** italiens sont une liste **arrêtée par l'auteur** : rien n'est écrit, ils l'attendent. Gardé par
 **`harness-clubs-ita.cjs`**.
 
+### LE CADRE ITALIEN (ITA-B, v2.79)
+Deuxième étape du lot structure qui précède l'Italie, faite par la tâche de nuit du 13/11/2026. Elle était bloquée
+depuis le 11/11 par la monnaie ; l'auteur l'a tranchée le 12/11 (v2.73 : **plus de devise du tout**, tout le jeu
+compte en « M » à la même échelle) et a mis `PAYS.ITA` en place lui-même (v2.68 : Serie A, Serie B, Coppa Italia,
+nationalité `ITA`, drapeau « bientôt » à l'accueil). Il restait donc ce qu'ANG-C et ANG-D avaient fait pour
+l'Angleterre, et c'est tout ce que fait ITA-B. **Aucune saison italienne n'est jouable**, et aucune ligne du moteur
+n'est touchée : uniquement des tables nouvelles, rangées par pays dans les tables par pays déjà en place.
+
+**1. Les sièges européens, saison par saison (`SIEGES_ITA`, branché dans `SIEGES_PAYS`).** Relevés sur les
+quarante-neuf pages d'édition de la Wikipédia anglaise (C1, C2 jusqu'en 1998-99, C3), en texte brut, par le drapeau
+italien des tableaux de participants. Même format et mêmes règles que `SIEGES_ANG` : **les trois listes d'une saison
+sont disjointes** (un club reversé de la C1 en Coupe UEFA n'est listé qu'en C1 : Parme en 1999 et 2001, l'Inter en
+2000, Udinese en 2005, le Chievo en 2006, la Fiorentina en 2008, la Juventus en 2009), les clubs venus de l'Intertoto
+sont en C3 (Bologna 1998, Juventus 1999, Udinese 2000, Perugia 2003, Sampdoria 2007, Napoli 2008), la C2 est vide
+après 1998. En C1, l'ordre est celui du classement de la saison d'avant (le champion d'abord, même devant le tenant
+du titre : Napoli avant Milan en 1990). **Deux absences qui ne sont pas des oublis** : Milan en 1991-92, banni un an
+d'Europe après avoir quitté la pelouse de Marseille pendant la panne d'éclairage (la source le dit sur la page de la
+C1 1990-91), et la Juventus en 2006-07, reléguée par le Calciopoli ; la C1 2006-07 suit le classement corrigé
+(Inter, Roma, Milan, Chievo). La délégation va de six à huit clubs. La réconciliation européenne n'avait rien à
+apprendre : elle se lit au pays de la saison depuis ANG-C, et les six codes partagés par ITA-A (`JUV`, `MIL`, `INT`,
+`ROM`, `LAZ`, `PAR`) quittent le vivier dès que l'Italie est jouée, ce que le harnais vérifie (seize clubs au tableau,
+qualifié ou non, dans les trois coupes).
+
+**2. Les étés internationaux vus d'Italie (`HONNEURS_PAYS.ITA`)**, les onze étés pairs de 1992 à 2012, vérifiés sur
+« Italy at the FIFA World Cup », « Italy at the UEFA European Championship » et les pages des groupes et des finales :
+la non-qualification de 1992 (l'Union soviétique a pris la place du groupe), la finale de 1994 perdue aux tirs au
+but (Baresi manque le premier, Baggio le dernier), la sortie au premier tour de 1996, le quart contre la France aux
+tirs au but en 1998, la finale de 2000 (Delvecchio, Wiltord dans les arrêts de jeu, le but en or de Trezeguet), la
+Corée du Sud et le but en or de Daejeon en 2002, le 2-2 entre le Danemark et la Suède en 2004, **le sacre de Berlin
+en 2006**, le quart contre l'Espagne aux tirs au but en 2008, la dernière place du groupe en 2010, la finale de Kiev
+en 2012. **Le seul été qui porte le marqueur de sacre (« L'ITALIE SACRÉE ») est 2006** : c'est le seul où
+`finDeSaison` fête les internationaux du club, et le harnais le joue pour de vrai (2006 fête, 2000 ne fête pas).
+
+**3. Les noms procéduraux (`NOMS_ITA`, `PRENOMS_ITA`, origine `ita`).** Soixante patronymes du Nord comme du Sud, retenus sur
+cent quatre-vingt-dix candidats : **aucun n'est porté par un footballeur dans Wikidata** (recherche « métier :
+footballeur » nom par nom, le 13/11/2026 : Valentini en avait vingt, Spinelli neuf, ils sont sortis) ni par
+un joueur curé du fichier. C'est la parade au piège qui attend les saisons italiennes : quand leurs vrais joueurs
+arriveront, aucun ne doit croiser un homme fabriqué. Si cela arrivait quand même, la règle est celle de `NOMS_ANG`
+(on remplace le patronyme fabriqué, jamais le vrai). Seize initiales (pas de H, J, K,
+W ni Y), cinquante-six prénoms d'époque, dix récits du Frioul à la Sicile. **Un piège évité sans toucher à une
+assertion** : `harness-textes-ang` compte `NOMS_TOUS` comme l'union française et anglaise, exactement. `NOMS_TOUS`
+reste donc tel quel, et la lecture des prénoms passe par un nouvel ensemble, **`NOMS_LUS`**, qui ajoute l'Italie.
+Règle à garder pour l'Espagne et l'Allemagne : on ajoute le pays à `NOMS_LUS`, pas à `NOMS_TOUS`.
+
+**4. Les petits clubs de la Coppa Italia (`CLUBS_AMATEURS_ITA`)** : vingt-huit vrais clubs des divisions du dessous
+(Serie C et Dilettanti), dont deux anciens champions d'Italie d'avant-guerre (Pro Vercelli, Casale), chacun
+retrouvé sur sa page de la Wikipédia anglaise ; deux écartés faute de page sûre (Lumezzane, Akragas). Aucun n'est
+dans `CLUBS_ITA`, donc aucun n'a joué la Serie A ni la Serie B dans la fenêtre. Forces dans la fourchette 41-50, et
+`AMATEURS_TOUS` balaie désormais les trois listes. **Piège de harnais** : « Alma Juventus Fano » contient
+« Juventus » ; le contrôle « pas un club d'ITA-A » se fait par le nom exact.
+
+**5. Les incidents propres au pays** : la **taupe du journal rose** (`talpa_rosa`, le secret du vestiaire vendu au
+quotidien sportif imprimé sur papier rose, sans nommer de titre) et la **maturità** (`maturita`), jumeaux du Corbeau
+du Minitel et du bac, avec le poids, la pondération, les conditions et les effets de leurs jumeaux anglais.
+
+**6. Les éternels seconds (`JAMAIS_CHAMPION_ITA`, `PREMIER_TITRE_ITA`).** D'après le tableau « Clubs » de « List of
+Italian football champions » : treize des soixante-quatorze clubs ont été champions avant 2010, soixante-deux ne
+l'ont pas été **en comptant la Sampdoria**, qui décroche son premier titre en 1990-91, dans la fenêtre :
+`PREMIER_TITRE_ITA` vaut `{SAM:1990}`, si bien qu'une carrière lancée en 1990-91 la voit encore maudite et qu'une
+carrière lancée après ne la voit plus (le pendant d'Auxerre 1995-96). **La Spezia reste jamais championne** : la
+source écrit « Spezia Calcio (decoration) » pour le Campionato Alta Italia de 1944, une décoration, pas un titre.
+
+**Ce qui N'EST PAS fait, et reste ouvert** : comme pour l'Angleterre avant ANG-F, le **recruteur** est encore français
+(un `VIVIER_SAISON_ITA` des Italiens de l'étranger est une journée de curation à part entière), le **mot des clubs**
+(`MALEDICTIONS`) ne connaît aucun club italien, et les **sponsors et équipementiers italiens** sont une liste
+**arrêtée par l'auteur** : rien n'est écrit, ils l'attendent. Le harnais de pays `harness-italie.cjs` est ITA-C.
+Gardé par **`harness-textes-ita.cjs`** (neuf sections, dont la dernière joue une saison italienne entière, une
+intersaison et dix journées, puis relit tout ce que la saison a écrit).
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
