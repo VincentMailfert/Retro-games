@@ -95,3 +95,9 @@ zéro erreur. Reste en dessin vectoriel : l'aperçu du choix de style du stade.
 
 Les deux maquettes suivent le calendrier de la saison : arbres, usure de la pelouse, pluie, neige, sapin de décembre.
 Réglages « Mois » et « Une autre semaine » dans les deux prototypes. Vérifié dans le jeu en octobre, janvier, mai et l'été.
+
+## Le stade en direct (prototype, 13/11/2026)
+
+Le stade vit pendant le match : score sur l'écran géant (ou un tableau d'affichage sur la tribune nord s'il n'y a pas d'écran), kop qui saute et allume ses fumigènes sur un but, parcage visiteurs aux couleurs adverses, sifflets sur un carton rouge, joueurs en 4-4-2 sur la pelouse.
+Le moteur reste dans docs/prototype-stade-pixel.html (option `direct` de STADEPIX.rendre). La page de démonstration docs/prototype-stade-direct.html se fabrique avec `node docs/construit-stade-direct.cjs .` à partir de docs/modele-stade-direct.html.
+Pas encore branché dans le jeu : on attend le feu vert de l'auteur.

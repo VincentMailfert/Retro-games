@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multiplex stade en direct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Silkscreen&family=VT323&display=swap" rel="stylesheet">
+<style>
+  /* Page fabriquée par docs/construit-stade-direct.cjs à partir de ce modèle : le moteur STADEPIX y est recopié depuis
+     docs/prototype-stade-pixel.html, qui reste la seule source. Ne pas retoucher prototype-stade-direct.html à la main. */
+  :root{
+    --bg:#0b1626; --panel:#10233f; --line:#27466e; --txt:#d9e4f2; --dim:#8fa6c4; --clair:#f2f5fa; --jaune:#ffd24a;
+    --font-texte:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    --font-ui:'VT323','Lucida Console',monospace; --font-led:'Silkscreen','VT323',monospace;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0b1626; } }
+  :root[data-theme="dark"]{ --bg:#0b1626; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--txt); font-family:var(--font-texte); font-size:15px; line-height:1.5; }
+  .page{ max-width:760px; margin:0 auto; padding:18px 16px 50px; }
+  .jeu{ font-family:var(--font-led); color:var(--jaune); font-size:12px; }
+  h1{ font-family:var(--font-ui); font-weight:normal; font-size:36px; line-height:1; color:var(--clair); margin:4px 0 14px; }
+  /* le tableau de score du direct, comme dans le jeu */
+  .tab{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; background:#05080d; border:3px solid #1d2633; padding:8px 12px; }
+  .tab .nom{ font-family:var(--font-led); font-size:14px; color:#eef2ff; text-transform:uppercase; }
+  .tab .nom.d{ text-align:right; } .tab .sc{ font-family:var(--font-led); font-size:26px; color:var(--jaune); text-shadow:0 0 2px currentColor,0 1px 0 rgba(0,0,0,.6); }
+  .tab .min{ grid-column:1 / -1; text-align:center; font-family:var(--font-led); font-size:12px; color:var(--dim); }
+  /* la bande du stade : un cadre de console, le canevas recadré en largeur */
+  .bande{ position:relative; aspect-ratio:2 / 1; overflow:hidden; border:4px solid #1b2c49; border-top:0; background:#070b1a; box-shadow:inset 0 0 0 2px #000; }
+  .bande canvas{ display:block; width:100%; height:100%; object-fit:cover; object-position:50% 22%; image-rendering:pixelated; image-rendering:crisp-edges; }
+  .ticker{ height:150px; overflow:hidden; background:#05080d; border:3px solid #1d2633; border-top:0; padding:8px 12px; font-family:var(--font-ui); font-size:20px; line-height:1.15; color:#cfd8e6; display:flex; flex-direction:column-reverse; }
+  .ticker p{ margin:2px 0; } .ticker .b{ color:var(--jaune); } .ticker .r{ color:#ff7a6e; } .ticker .s{ color:var(--dim); }
+  .pupitre{ margin-top:16px; background:var(--panel); border:2px solid var(--line); box-shadow:5px 5px 0 #040a14; padding:16px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 22px; }
+  @media (max-width:640px){ .pupitre{ grid-template-columns:1fr; } h1{ font-size:30px; } .tab .sc{ font-size:22px; } .tab .nom{ font-size:12px; } }
+  .titre{ font-size:13px; color:var(--dim); margin-bottom:5px; }
+  label.r{ display:flex; justify-content:space-between; font-size:13px; color:var(--dim); margin-bottom:4px; } label.r output{ color:var(--txt); }
+  input[type=range]{ width:100%; accent-color:var(--jaune); min-height:28px; }
+  .seg{ display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:6px; }
+  .seg button{ font-family:inherit; font-size:12px; min-height:44px; padding:6px 4px; color:var(--dim); background:#1a3052; border:2px solid #000; box-shadow:inset 2px 2px 0 rgba(255,255,255,.1), inset -2px -2px 0 rgba(0,0,0,.45); cursor:pointer; }
+  .seg button[aria-pressed="true"]{ background:#0c1830; border-color:var(--clair); color:var(--clair); box-shadow:inset 2px 2px 0 rgba(0,0,0,.6); }
+  .seg button.plein{ background:var(--jaune); color:#16243c; font-weight:600; }
+  button:focus-visible,input:focus-visible{ outline:2px solid var(--jaune); outline-offset:2px; }
+  .large{ grid-column:1 / -1; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="jeu">MULTIPLEX · PROTOTYPE</div>
+  <h1>Le stade en direct</h1>
+  <div class="tab"><span class="nom d" id="nDom">Nantes</span><span class="sc" id="sc">0 - 0</span><span class="nom" id="nExt">Bordeaux</span><span class="min" id="min">COUP D'ENVOI</span></div>
+  <div class="bande"><canvas id="ecran" width="640" height="448" role="img" aria-label="Le stade pendant le match"></canvas></div>
+  <div class="ticker" id="ticker" aria-live="polite"></div>
+  <div class="pupitre">
+    <div class="large"><div class="seg"><button type="button" class="plein" id="bJouer">▶ Jouer le match</button><button type="button" id="bVite" aria-pressed="false">Vitesse x2</button></div></div>
+    <div class="large"><div class="titre">Provoquer une action</div><div class="seg"><button type="button" data-a="butdom">But pour nous</button><button type="button" data-a="butext">But pour eux</button><button type="button" data-a="rougeext">Rouge pour eux</button><button type="button" data-a="rougedom">Rouge pour nous</button></div></div>
+    <div><label class="r" for="rCap">Capacité <output id="capOut"></output></label><input type="range" id="rCap" min="5000" max="100000" step="500" value="42000"></div>
+    <div><label class="r" for="rMois">Mois <output id="moisOut"></output></label><input type="range" id="rMois" min="0" max="11" step="1" value="9"></div>
+    <div><div class="titre">Le stade</div><div class="seg"><button type="button" data-b="ecran" aria-pressed="true">Écran géant</button><button type="button" data-b="virages" aria-pressed="true">Virages et kop</button><button type="button" data-b="toit" aria-pressed="true">Toiture</button></div></div>
+    <div><div class="titre">Les visiteurs</div><div class="seg" id="segVis"><button type="button" data-v="0" aria-pressed="true">Blanc et marine</button><button type="button" data-v="1" aria-pressed="false">Rouge et noir</button><button type="button" data-v="2" aria-pressed="false">Ciel et blanc</button></div></div>
+  </div>
+</div>
+<script>
+/*__MOTEUR__*/
+
+/* ============================================================
+   LE MATCH ACCÉLÉRÉ : 90 minutes en 45 secondes, quatre images par seconde
+   ============================================================ */
+(()=>{
+  const $=id=>document.getElementById(id), ctx=$('ecran').getContext('2d');
+  const MOIS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const VIS=[[['#f2f5fa','#1b2a4a'],'Bordeaux'],[['#d8433a','#05070f'],'Rennes'],[['#7fb8e6','#f2f5fa'],'Montpellier']];
+  const R={mois:9, jour:3, cap:42000, aff:.86, virages:1, toit:1, ecran:1, eclairage:2, boutique:2, buvette:2, restaurant:1, musee:1, hotel:1, transport:2, kop:2, loges:1, led:1, retract:0, ferme:0, chantier:0, legende:0, style:'cathedrale'};
+  const M={sc:[0,0], rouges:[0,0], evt:null, min:0, joue:false, vis:0};
+  const SCRIPT=[[0,'s',"Coup d'envoi ! Le stade est plein à craquer."],[9,'s',"Premier corner pour nous, la tête passe au-dessus."],
+    [17,'butdom',"BUT ! Reprise de volée au premier poteau, le kop explose."],[26,'s',"Le gardien adverse s'interpose sur sa ligne."],
+    [38,'butext',"BUT pour les visiteurs. Le parcage chante, le reste du stade se tait."],[45,'s',"Mi-temps. Les buvettes sont prises d'assaut."],
+    [58,'rougeext',"CARTON ROUGE ! Tacle par derrière, l'arbitre ne discute pas."],[66,'s',"On pousse, ils reculent."],
+    [77,'butdom',"BUT ! Le défenseur central monte sur le corner et place sa tête."],[88,'s',"Le public siffle chaque passe en retrait des visiteurs."],
+    [90,'fin',"C'est fini ! Le stade se lève pour saluer ses joueurs."]];
+  let image=0, prochain=0, tic=null, vite=false;
+  const ligne=(t,c)=>{ const p=document.createElement('p'); p.textContent=(M.min?M.min+"' ":"")+t; if(c) p.className=c; $('ticker').prepend(p); };
+  const action=(a,txt)=>{ if(a==='butdom'){ M.sc[0]++; M.evt={type:'but',cote:'dom',t:0}; ligne(txt||'BUT pour nous !','b'); }
+    else if(a==='butext'){ M.sc[1]++; M.evt={type:'but',cote:'ext',t:0}; ligne(txt||'But pour les visiteurs.','b'); }
+    else if(a==='rougeext'){ M.rouges[1]=Math.min(3,M.rouges[1]+1); M.evt={type:'rouge',cote:'ext',t:0}; ligne(txt||'Carton rouge pour eux !','r'); }
+    else if(a==='rougedom'){ M.rouges[0]=Math.min(3,M.rouges[0]+1); M.evt={type:'rouge',cote:'dom',t:0}; ligne(txt||'Carton rouge pour nous.','r'); }
+    else if(a==='fin'){ ligne(txt,'b'); arrete(); }
+    else ligne(txt,'s');
+    maj(); };
+  function peins(){ const o={focus:'pelouse', direct:{sc:M.sc, rouges:M.rouges, evt:M.evt, dom:['#ffd24a','#1f6b3a'], ext:VIS[M.vis][0]}};
+    STADEPIX.rendre(ctx,R,image,2,o); }
+  function maj(){ $('sc').textContent=M.sc[0]+' - '+M.sc[1]; $('nExt').textContent=VIS[M.vis][1];
+    $('min').textContent=M.joue?(M.min+"'"):(M.min>=90?'TERMINÉ':"COUP D'ENVOI");
+    $('capOut').textContent=R.cap.toLocaleString('fr-FR'); $('moisOut').textContent=MOIS[R.mois];
+    if(R.cap<20000){ R.virages=0; R.kop=0; } document.querySelectorAll('[data-b]').forEach(b=>b.setAttribute('aria-pressed',String(!!R[b.dataset.b])));
+    document.querySelectorAll('#segVis button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===M.vis))); peins(); }
+  function pas(){ image++; if(M.evt){ M.evt.t++; if(M.evt.t>40) M.evt=null; }
+    if(M.joue && image%(vite?1:2)===0){ M.min++; while(prochain<SCRIPT.length && SCRIPT[prochain][0]<=M.min){ const [,a,t]=SCRIPT[prochain++]; action(a,t); } if(M.joue) $('min').textContent=M.min+"'"; }
+    peins(); }
+  function arrete(){ M.joue=false; $('bJouer').textContent='▶ Rejouer le match'; maj(); }
+  $('bJouer').onclick=()=>{ M.sc=[0,0]; M.rouges=[0,0]; M.evt=null; M.min=0; prochain=0; $('ticker').innerHTML=''; M.joue=true; $('bJouer').textContent='En cours…'; maj(); };
+  $('bVite').onclick=()=>{ vite=!vite; $('bVite').setAttribute('aria-pressed',String(vite)); };
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>action(b.dataset.a));
+  document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{ const k=b.dataset.b; R[k]=R[k]?0:1; if(k==='virages') R.kop=R.virages?2:0; if(k==='toit'&&!R.toit&&R.eclairage===3) R.eclairage=2; maj(); });
+  document.querySelectorAll('#segVis button').forEach(b=>b.onclick=()=>{ M.vis=+b.dataset.v; maj(); });
+  $('rCap').oninput=e=>{ R.cap=+e.target.value; if(R.cap>=20000&&!R.virages){ } maj(); };
+  $('rMois').oninput=e=>{ R.mois=+e.target.value; maj(); };
+  maj();
+  const calme=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  tic=setInterval(pas, calme?1000:250);
+})();
+</script>
+</body>
+</html>
