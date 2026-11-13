@@ -654,7 +654,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.79"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.80"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -21947,6 +21947,7 @@ const BOUTIQUE=[
   {art:"tribune",    ray:"perm", ico:"🏟️", nom:"Une tribune de plus",          sous:"+3 000 places au stade, dès le départ",        prix:1500},
   {art:"tresor",     ray:"perm", ico:"💰", nom:"Trésor de guerre",             sous:"+10 M au budget transferts, dès le départ",    prix:1000},
   {art:"president",  ray:"perm", ico:"🤝", nom:"Un président qui vous aime",   sous:"La confiance du président démarre plus haut", prix:600},
+  {art:"legende",    ray:"perm", ico:"🌟", nom:"Une jeune légende",            sous:"La plus belle pépite du championnat vous rejoint au départ", prix:2000},
   {art:"infirmerie", ray:"coup", ico:"🩹", nom:"Vider l'infirmerie",           sous:"Tous vos blessés reviennent",                  prix:150},
   {art:"amnistie",   ray:"coup", ico:"🟨", nom:"L'amnistie",                   sous:"Toutes vos suspensions sont levées",           prix:100},
   {art:"tournee",    ray:"coup", ico:"🍻", nom:"Tournée générale",             sous:"Le moral du vestiaire remonte",                prix:80},
@@ -21981,12 +21982,31 @@ function appliqueCoup(art){
   if(art==="tournee"){ moi.joueurs.forEach(j=>{ j.moral=Math.min(100,(j.moral||65)+15); }); G.news.unshift("🍻 Tournée générale au club-house : le vestiaire a retrouvé le sourire."); }
   if(art==="rallonge"){ G.budget+=5e6; G.news.unshift("💼 Le président remet au pot : "+MM(5e6,0)+" de plus pour les transferts."); }
 }
+/* LA JEUNE LÉGENDE (v2.80) : le vrai joueur de 20 ans au plus qui a le plus beau potentiel des deux divisions de la
+   saison de départ, hors de votre club. Déterministe : la pépite d'une saison est toujours la même (Henry, Drogba…),
+   c'est ce qui en fait une légende. Son club ne la lâche que s'il garde de quoi aligner son poste (CIBLE). */
+function pepiteDuDepart(moi){
+  const cand=[];
+  for(const c of G.clubs.concat(G.autre||[])){
+    if(c.id===moi.id) continue;
+    for(const j of c.joueurs){
+      if(!j.reel || !(j.age<=20) || j.pretIn || j.pretOut) continue;
+      if(c.joueurs.filter(x=>x.pos===j.pos).length<=CIBLE[j.pos]) continue; // le club garde son ossature
+      cand.push({j, de:c});
+    }
+  }
+  cand.sort((a,b)=>(b.j.pot-a.j.pot)||(b.j.note-a.j.note)||String(a.j.nom).localeCompare(String(b.j.nom)));
+  return cand[0]||null;
+}
 function boutiqueAuDepart(clubId){ // appelée par nouvellePartie, une carrière NEUVE : les avantages permanents acquis
   const moi=G.clubs.find(c=>c.id===clubId); if(!moi) return;
   const faits=[];
   if(acquis("tribune")){ moi.cap+=3000; faits.push("une tribune de plus"); }
   if(acquis("tresor")){ G.budget+=10e6; faits.push("un trésor de guerre"); }
   if(acquis("president")){ G.confiance=Math.min(100, G.confiance+15); faits.push("un président acquis à votre cause"); }
+  if(acquis("legende")){ const L=pepiteDuDepart(moi); if(L){ L.de.joueurs=L.de.joueurs.filter(x=>x!==L.j);
+    L.j.club=moi.id; L.j.titu=false; L.j.avendre=false; moi.joueurs.push(L.j);
+    G.news.push("🌟 "+nomLong(L.j.nom)+", "+L.j.age+" ans, quitte "+L.de.nom+" pour vous rejoindre."); } }
   if(faits.length) G.news.push("⭐ Vos avantages vous suivent : "+faits.join(", ")+".");
 }
 function boutiqueHTML(enJeu){
