@@ -330,14 +330,14 @@ Le cadre posé pour l'Angleterre sert à tout le monde ; il ne reste que ce qui 
       sponsors et équipementiers (liste de l'auteur, **elle l'attend**). Voir « LE CADRE ITALIEN » dans
       `CLAUDE.md`, gardé par `harness-textes-ita.cjs`.*
 - [ ] **ITA-C — Le harnais** : `harness-italie.cjs`.
-- [ ] **ITA-F — Le contenu qui reste français** (comme ANG-F, à faire à la fin du pays, rien n'est nécessaire pour jouer).
+- [x] **ITA-F — Le contenu qui reste français** (comme ANG-F, à faire à la fin du pays, rien n'est nécessaire pour jouer).
       (a) ✅ **FAIT EN SÉANCE le 13/11/2026 (v2.86, choix auteur)** : `VIVIER_SAISON_ITA`, cinquante et un Italiens de
       l'étranger sur vingt étés (1993 vide exprès), vérifiés fiche par fiche sur la Wikipédia anglaise ; libellés
       « Italien de l'étranger » et « Pépite de Serie B » ; gardé par `harness-recruteur`. **Ne pas refaire.**
       (b) ✅ **FAIT EN SÉANCE le 13/11/2026 (v2.87, choix auteur)** : `MALEDICTIONS_ITA`, un mot par club pour les
       soixante-quatorze, et vingt-huit clubs à variantes d'époque ; gardé par `harness-mots-ita.cjs`. **Ne pas refaire.**
-      (d) **Les pépites de Serie B** (choix auteur du 13/11/2026) : de jeunes Italiens de Serie B, été par été,
-      vérifiés à la source, pour remplacer en carrière italienne les pépites de D2 françaises. Une journée de curation.
+      (d) ✅ **FAIT EN SÉANCE le 13/11/2026 (v2.88, choix auteur)** : `VIVIER_PEPITES_ITA`, de vrais jeunes de Serie B
+      sur vingt étés, vérifiés ; gardé par `harness-recruteur`. **ITA-F est donc entièrement fait.**
       (c) ✅ **Les sponsors et équipementiers : VALIDÉS par l'auteur en séance le 13/11/2026 (v2.85).** Ne pas
       refaire, ne rien y ajouter sans lui.
 

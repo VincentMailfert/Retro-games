@@ -665,7 +665,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.87"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.88"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -18175,6 +18175,123 @@ for(const an in VIVIER_SAISON_ITA) for(const e of VIVIER_SAISON_ITA[an]){
 }
 /* Les expatriés de chaque pays : une carrière lit ceux de SON pays, en plus de la liste de l'été. */
 const EXPATRIES={ANG:VIVIER_SAISON_ANG, ITA:VIVIER_SAISON_ITA};
+/* LES PÉPITES DE SERIE B (ITA-F d, v2.88, choix auteur du 13/11/2026) : de vrais jeunes Italiens de deuxième
+   division, été par été, même format que VIVIER_SAISON_ITA. Une carrière italienne les range sous la clé
+   « Pépite de Division 2 » (jamais renommée : libProfil la dit « Pépite de Serie B »), à la place des seules
+   pépites inventées que le recruteur fabriquait en dépannage. Chaque passage a été vérifié sur l'infobox de la
+   Wikipédia anglaise, prêts compris, et le club était bien en Serie B cette saison-là : Del Piero à Padoue, Vieri
+   à Pise, Ravenne puis Venise, Pirlo à Brescia, Toni à Trévise, Chiellini à Livourne, Marchisio à la Juventus
+   reléguée de 2006-07. Trois tentations écartées parce que le club jouait en Serie C : Inzaghi en 1992-93,
+   Quagliarella en 2003-04, Ranocchia en 2007-08. */
+const VIVIER_PEPITES_ITA={
+ 1990:[
+  ["D. Albertini","M",1971,74,86,"Padova (Serie B)","ITA","Demetrio"],
+  ["G. Signori","A",1968,77,86,"Foggia (Serie B)","ITA","Giuseppe"],
+  ["F. Baiano","A",1968,74,80,"Foggia (Serie B)","ITA","Francesco"],
+  ["F. Ravanelli","A",1968,72,84,"Reggiana (Serie B)","ITA","Fabrizio"],
+ ],
+ 1991:[
+  ["A. Del Piero","A",1974,62,94,"Padova (Serie B)","ITA","Alessandro"],
+  ["F. Inzaghi","A",1973,58,88,"Piacenza (Serie B)","ITA","Filippo"],
+  ["F. Ravanelli","A",1968,75,84,"Reggiana (Serie B)","ITA","Fabrizio"],
+ ],
+ 1992:[
+  ["A. Del Piero","A",1974,68,94,"Padova (Serie B)","ITA","Alessandro"],
+  ["C. Vieri","A",1973,66,90,"Pisa (Serie B)","ITA","Christian"],
+  ["M. Delvecchio","A",1973,64,82,"Venezia (Serie B)","ITA","Marco"],
+ ],
+ 1993:[
+  ["C. Vieri","A",1973,70,90,"Ravenna (Serie B)","ITA","Christian"],
+  ["F. Inzaghi","A",1973,70,88,"Hellas Verona (Serie B)","ITA","Filippo"],
+ ],
+ 1994:[
+  ["C. Vieri","A",1973,74,90,"Venezia (Serie B)","ITA","Christian"],
+  ["M. Ambrosini","M",1977,60,86,"Cesena (Serie B)","ITA","Massimo"],
+  ["M. De Sanctis","G",1977,58,84,"Pescara (Serie B)","ITA","Morgan"],
+ ],
+ 1995:[
+  ["A. Pirlo","M",1979,58,94,"Brescia (Serie B)","ITA","Andrea"],
+  ["G. Gattuso","M",1978,60,85,"Perugia (Serie B)","ITA","Gennaro"],
+  ["M. Materazzi","D",1973,68,84,"Perugia (Serie B)","ITA","Marco"],
+  ["M. Di Vaio","A",1976,64,84,"Hellas Verona (Serie B)","ITA","Marco"],
+  ["S. Perrotta","M",1977,58,82,"Reggina (Serie B)","ITA","Simone"],
+  ["M. De Sanctis","G",1977,62,84,"Pescara (Serie B)","ITA","Morgan"],
+ ],
+ 1996:[
+  ["A. Pirlo","M",1979,66,94,"Brescia (Serie B)","ITA","Andrea"],
+  ["M. Di Vaio","A",1976,68,84,"Bari (Serie B)","ITA","Marco"],
+  ["S. Perrotta","M",1977,62,82,"Reggina (Serie B)","ITA","Simone"],
+  ["M. De Sanctis","G",1977,66,84,"Pescara (Serie B)","ITA","Morgan"],
+ ],
+ 1997:[
+  ["M. Di Vaio","A",1976,72,84,"Salernitana (Serie B)","ITA","Marco"],
+  ["C. Abbiati","G",1977,66,84,"Monza (Serie B)","ITA","Christian"],
+  ["S. Perrotta","M",1977,66,82,"Reggina (Serie B)","ITA","Simone"],
+ ],
+ 1998:[
+  ["F. Miccoli","A",1979,64,84,"Ternana (Serie B)","ITA","Fabrizio"],
+  ["M. Oddo","D",1976,64,80,"Monza (Serie B)","ITA","Massimo"],
+ ],
+ 1999:[
+  ["F. Miccoli","A",1979,68,84,"Ternana (Serie B)","ITA","Fabrizio"],
+  ["L. Toni","A",1977,66,86,"Treviso (Serie B)","ITA","Luca"],
+  ["A. Di Natale","A",1977,66,86,"Empoli (Serie B)","ITA","Antonio"],
+ ],
+ 2000:[
+  ["F. Miccoli","A",1979,71,84,"Ternana (Serie B)","ITA","Fabrizio"],
+  ["L. Toni","A",1977,72,86,"Vicenza (Serie B)","ITA","Luca"],
+  ["A. Di Natale","A",1977,70,86,"Empoli (Serie B)","ITA","Antonio"],
+  ["M. Maccarone","A",1979,66,80,"Empoli (Serie B)","ITA","Massimo"],
+ ],
+ 2001:[
+  ["F. Miccoli","A",1979,74,84,"Ternana (Serie B)","ITA","Fabrizio"],
+  ["A. Di Natale","A",1977,73,86,"Empoli (Serie B)","ITA","Antonio"],
+  ["M. Maccarone","A",1979,70,80,"Empoli (Serie B)","ITA","Massimo"],
+ ],
+ 2002:[
+  ["G. Chiellini","D",1984,60,90,"Livorno (Serie B)","ITA","Giorgio"],
+  ["A. Barzagli","D",1981,64,86,"Ascoli (Serie B)","ITA","Andrea"],
+ ],
+ 2003:[
+  ["G. Chiellini","D",1984,66,90,"Livorno (Serie B)","ITA","Giorgio"],
+  ["G. Pazzini","A",1984,64,84,"Atalanta (Serie B)","ITA","Giampaolo"],
+  ["R. Montolivo","M",1985,62,84,"Atalanta (Serie B)","ITA","Riccardo"],
+  ["A. Nocerino","M",1985,58,80,"Avellino (Serie B)","ITA","Antonio"],
+ ],
+ 2004:[
+  ["F. Quagliarella","A",1983,66,84,"Torino (Serie B)","ITA","Fabio"],
+  ["S. Pepe","M",1983,66,80,"Piacenza (Serie B)","ITA","Simone"],
+ ],
+ 2005:[
+  ["A. Nocerino","M",1985,64,80,"Crotone (Serie B)","ITA","Antonio"],
+ ],
+ 2006:[
+  ["C. Marchisio","M",1986,62,86,"Juventus (Serie B)","ITA","Claudio"],
+  ["D. Criscito","D",1986,66,85,"Genoa (Serie B)","ITA","Domenico"],
+  ["A. Ranocchia","D",1988,58,85,"Arezzo (Serie B)","ITA","Andrea"],
+  ["F. Marchetti","G",1983,64,82,"AlbinoLeffe (Serie B)","ITA","Federico"],
+  ["A. Nocerino","M",1985,70,80,"Piacenza (Serie B)","ITA","Antonio"],
+  ["A. Poli","M",1989,55,82,"Treviso (Serie B)","ITA","Andrea"],
+ ],
+ 2007:[
+  ["L. Bonucci","D",1987,62,88,"Treviso (Serie B)","ITA","Leonardo"],
+  ["F. Marchetti","G",1983,68,82,"AlbinoLeffe (Serie B)","ITA","Federico"],
+ ],
+ 2008:[
+  ["L. Bonucci","D",1987,66,88,"Treviso, puis Pisa (Serie B)","ITA","Leonardo"],
+  ["A. Ranocchia","D",1988,66,85,"Bari (Serie B)","ITA","Andrea"],
+  ["S. Sirigu","G",1987,64,84,"Ancona (Serie B)","ITA","Salvatore"],
+  ["A. Paloschi","A",1990,64,84,"Parma (Serie B)","ITA","Alberto"],
+  ["A. Poli","M",1989,64,82,"Sassuolo (Serie B)","ITA","Andrea"],
+ ],
+ 2009:[
+  ["A. Ogbonna","D",1988,66,84,"Torino (Serie B)","ITA","Angelo"],
+ ],
+};
+for(const an in VIVIER_PEPITES_ITA) for(const e of VIVIER_PEPITES_ITA[an])
+  if(e[7] && !Object.prototype.hasOwnProperty.call(PRENOMS_VRAIS, e[0])) PRENOMS_VRAIS[e[0]]=e[7];
+/* Les vraies pépites de deuxième division de chaque pays, pour la carrière de ce pays. */
+const PEPITES_PAYS={ITA:VIVIER_PEPITES_ITA};
 /* La nationalité LOCALE de la carrière en cours (FR, ANG…) : celle du « compatriote de l'étranger ». */
 function natLocale(){ return (PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"]||PAYS.FR).nat; }
 /* Le libellé AFFICHÉ d'une catégorie du vivier. Les clés (« Français de l'étranger »…) sont sérialisées dans
@@ -18207,6 +18324,12 @@ function vivierDeSaison(an){
     if(enJeu.has(e[0])) continue;
     const age=an-e[2], t=profilSaison(age, e[6], nat);
     (v[t]=v[t]||[]).push([e[0],e[1],age,e[3],e[4],e[5]]);
+  }
+  // les vraies pépites de deuxième division du pays (l'Italie d'abord), sous la clé de toujours
+  const vus=new Set([].concat(...Object.values(v)).map(e=>e[0]));
+  for(const e of ((PEPITES_PAYS[nat]||{})[an]||[])){
+    if(enJeu.has(e[0])||vus.has(e[0])) continue;
+    (v["Pépite de Division 2"]=v["Pépite de Division 2"]||[]).push([e[0],e[1],an-e[2],e[3],e[4],e[5]]);
   }
   return v;
 }

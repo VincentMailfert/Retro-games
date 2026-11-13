@@ -6161,8 +6161,16 @@ tragique (Superga est un nom, pas une scène). Les faits datés incertains ont �
 recherche web pour Rozzi, Reggina, Pérouse, Ravenne) ; Pistoia, qu'on croyait monté une seule fois, a été corrigé.
 Gardé par **`harness-mots-ita.cjs`** (cinq sections : 74 clubs × 20 saisons sans silence, aucune collision de
 code, la forme, des bascules d'époque témoins, une carrière française inchangée).
-**Reste ouvert, choix auteur du 13/11/2026** : de vraies pépites de Serie B pour le recruteur (ITA-F d), au lieu
-des pépites de D2 françaises affichées sous un libellé italien.
+**ITA-F (d), les pépites de Serie B, livrées en séance le 13/11/2026 (v2.88, branche `chantier/pepites-ita`, choix
+auteur)** : `VIVIER_PEPITES_ITA`, soixante-trois lignes sur vingt étés (Del Piero à Padoue, Vieri à Pise, Pirlo à
+Brescia, Toni à Trévise, Chiellini à Livourne, Marchisio à la Juventus de Serie B…), chaque passage vérifié sur
+l'infobox de la Wikipédia anglaise ET le club en Serie B cette saison-là (Inzaghi 1992, Quagliarella 2003 et
+Ranocchia 2007 écartés : Serie C). `vivierDeSaison` les range sous la clé « Pépite de Division 2 » via la table
+`PEPITES_PAYS` ; jusque-là, une carrière italienne n'avait que des pépites inventées par `regarnitVivier` en
+dépannage. **Correction d'une affirmation de la séance** : il n'y avait PAS de pépites de D2 françaises sous libellé
+italien dans le vivier de l'été (la liste de l'été n'a pas cette catégorie) ; le seul Français mal étiqueté reste
+Vieira, « en quête de come-back » de la réserve de jokers. Gardé par la section « pépites de Serie B » de
+`harness-recruteur.cjs`.
 Gardé par **`harness-textes-ita.cjs`** (neuf sections, dont la dernière joue une saison italienne entière, une
 intersaison et dix journées, puis relit tout ce que la saison a écrit).
 
