@@ -2400,6 +2400,9 @@ toujours « raconter quelque chose ».
   en 4-4-2. » ou « X se présente en 5-3-2, Y en 4-4-2. »). **Pas encore de changement de formation en cours de match**
   (lot 2 envisagé : un changement de système = un remplacement réel, à brancher sur les changements v1.11).
   Validation : **`harness-formations.cjs`**.
+  **v2.91 (demande de l'auteur du 13/11/2026)** : la formation se change aussi depuis l'écran Effectif (`.bFormEff` en
+  tête de `ecranEffectif`, même `G.formation`, l'écran se redessine et la colonne XI suit). Comme à l'avant-match, les ★
+  en trop ne sont pas retirés : `onze` ne prend que ce que la ligne permet, et ils reprennent leur place au retour.
 - **LOT 3 DES FORMATIONS : LES AUTRES CLUBS CHOISISSENT LA LEUR (v2.53, 09/11/2026)**. Arbitrages de l'auteur : choix selon
   l'effectif PUIS le match ; pas de changement de formation en cours de match pour l'IA (pour l'instant) ; recaler le
   moteur si les buts bougent ; dosage « varié ». **Deux étages** : `systemeClub(c)` = la formation où ses propres joueurs
