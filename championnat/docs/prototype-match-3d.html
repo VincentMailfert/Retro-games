@@ -71,6 +71,13 @@ body{background:var(--fond);color:var(--clair);overflow:hidden}
       <button id="v-normale" data-v="2300" aria-pressed="true">Normale</button>
       <button id="v-rapide" data-v="950">Rapide</button>
     </div>
+    <div class="groupe" id="gStade" aria-label="Stade">
+      <button id="s-club" data-v="club" aria-pressed="true">Du club</button>
+      <button id="s-petit" data-v="petit">Petit</button>
+      <button id="s-moyen" data-v="moyen">Moyen</button>
+      <button id="s-grand" data-v="grand">Grand</button>
+      <button id="s-legende" data-v="legende">Légende</button>
+    </div>
     <div class="groupe" id="gCamera" aria-label="Caméra">
       <button id="c-auto" data-v="auto" aria-pressed="true">Auto</button>
       <button id="c-large" data-v="large">Large</button>
@@ -136,11 +143,24 @@ function fabriqueMatch3D(THREE, o){
   scene.add(soleil);
 
   /* ================================================================================================
-     LE STADE SUR SON ÎLE, à la mesure du club qui reçoit
+     LE STADE SUR SON ÎLE : celui du club qui reçoit, tel que l'écran Club le décrit (o.stade = l'état du jeu :
+     cap, aff, virages, toit, ecran, eclairage 1 à 3, kop 0 à 3, loges, led, boutique, buvette, restaurant,
+     musee, hotel, transport 0 à 3, legende et son style). Les deux côtés tournés vers la caméra restent bas,
+     comme une maquette coupée, pour qu'on voie toujours le jeu.
      ================================================================================================ */
-  const L = 105, Lg = 68, ileL = 168, ileP = 128;
-  const ST = o.stade||{}, cap = ST.cap||25000;
-  const rangsP = clamp(Math.round(cap/6000)+2, 4, 9), rangsV = clamp(Math.round(cap/9000)+1, 2, 6), rangsC = clamp(Math.round(cap/14000)+1, 2, 4);
+  const L = 105, Lg = 68;
+  const ST = Object.assign({cap:25000, aff:.8, virages:0, toit:0, ecran:0, eclairage:1, kop:0, loges:0, led:0,
+    boutique:0, buvette:0, restaurant:0, musee:0, hotel:0, transport:0, legende:0, style:'lumiere'}, o.stade||{});
+  const cap = ST.cap||25000, bol = !!ST.virages;
+  const nFond = bol ? clamp(Math.round(3+cap/6500), 4, 16) : clamp(Math.round(2+cap/3000), 3, 9);   // rangs des côtés du fond
+  const nAvant = Math.min(nFond, bol ? 4 : 3);                                                          // rangs des côtés coupés
+  const RX = L/2+9, RZ = Lg/2+9, PAS = 2.2, MARCHE = 1.2;
+  const profX = RX + nFond*PAS, profZ = RZ + nFond*PAS;
+  const ileL = Math.max(168, Math.ceil(2*profX + 44)), ileP = Math.max(128, Math.ceil(2*profZ + 46));
+  soleil.shadow.camera.left = soleil.shadow.camera.bottom = -Math.max(110, ileL*.66);
+  soleil.shadow.camera.right = soleil.shadow.camera.top = Math.max(110, ileL*.66);
+  soleil.shadow.camera.updateProjectionMatrix();
+
   const herbeBord = M(0x4f8f3a);
   box(ileL, 3, ileP, herbeBord, 0, -1.5, 0);
   const terre = [M(0x7a4a2a), M(0x5e3a22), M(0x6b6b63), M(0x55554f)];
@@ -179,10 +199,19 @@ function fabriqueMatch3D(THREE, o){
   const matPelouse = new THREE.MeshLambertMaterial({map:texturePelouse()});
   const pelouse = new THREE.Mesh(new THREE.PlaneGeometry(L+10, Lg+10), matPelouse);
   pelouse.rotation.x = -Math.PI/2; pelouse.position.y = 0.02; pelouse.receiveShadow = true; scene.add(pelouse);
-  box(L+22, .2, 4, M(0x9a6b4a), 0, .1, -(Lg/2+7), scene, false);
-  box(L+22, .2, 4, M(0x9a6b4a), 0, .1, (Lg/2+7), scene, false);
-  const pubs = [0xc8312f,0xffd24a,0x1d2b5a,0xf4edd8,0x2f6b3a,0xe07b2a];
-  for(let i=0;i<12;i++) box(9, 1.6, .5, M(pubs[i%pubs.length]), -L/2+4.5+i*(L-9)/11, .8, -(Lg/2+5));
+  /* la piste autour de la pelouse, jusqu'au pied des tribunes */
+  const matPiste = M(0x9a6b4a);
+  box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, -(Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
+  box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, (Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
+  /* panneaux publicitaires, ou le ruban LED du club tout autour */
+  const matLed = new THREE.MeshLambertMaterial({color:hexInt(o.dom&&o.dom.maillot||'#c8312f')}); matLed.emissive.setHex(hexInt(o.dom&&o.dom.maillot||'#c8312f')).multiplyScalar(.55);
+  if(ST.led){
+    for(const z of [-1,1]) box(L+6, 1.2, .3, matLed, 0, .6, z*(Lg/2+5), scene, false);
+    for(const x of [-1,1]) box(.3, 1.2, Lg+2, matLed, x*(L/2+5), .6, 0, scene, false);
+  } else {
+    const pubs = [0xc8312f,0xffd24a,0x1d2b5a,0xf4edd8,0x2f6b3a,0xe07b2a];
+    for(let i=0;i<12;i++) box(9, 1.6, .5, M(pubs[i%pubs.length]), -L/2+4.5+i*(L-9)/11, .8, -(Lg/2+5));
+  }
 
   /* les buts, filets en texture ajourée */
   const canvasFilet = (()=>{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d');
@@ -202,64 +231,220 @@ function fabriqueMatch3D(THREE, o){
   }
   for(const sx of [-1,1]) for(const sz of [-1,1]){ box(.25,2.4,.25,blanc,sx*L/2,1.2,sz*Lg/2); box(.9,.6,.05,M(0xffd24a),sx*L/2+(sx>0?-.45:.45),2.1,sz*Lg/2); }
 
-  /* tribunes et public : la grande tribune grandit avec la capacité du stade */
-  const beton = M(0x9c9a8f), betonClair = M(0xb9b6a8), toitMat = M(0x2d3f33);
+  /* ---------- LES TRIBUNES ----------
+     Un côté = une bande de gradins le long d'un bord du rectangle intérieur (RX, RZ). Avec des virages, les quatre côtés
+     se rejoignent par des coins arrondis : chaque rang devient un quart d'anneau autour du coin du rectangle. */
+  const beton = M(0x9c9a8f), betonClair = M(0xb9b6a8), betonSombre = M(0x7d7b72);
   const places = [];
-  function tribune(cx, cz, longueur, rangs, orient){
-    const g = new THREE.Group(); g.position.set(cx,0,cz); scene.add(g);
-    const surX = Math.abs(orient[0])>0;
-    for(let r=0;r<rangs;r++){
-      const h = 1.2*(r+1), recul = r*2.2;
-      const ox = surX? -orient[0]*recul : 0, oz = surX? 0 : -orient[1]*recul;
-      box(surX?2.2:longueur, h, surX?longueur:2.2, r%2?beton:betonClair, ox, h/2, oz, g);
-      const n = Math.floor(longueur/1.35);
-      for(let i=0;i<n;i++){
-        if(rnd()<.12) continue;
-        const t = -longueur/2 + .7 + i*1.35;
-        places.push({ x: cx+ox+(surX?0:t), y: h+.75, z: cz+oz+(surX?t:0), ph: rnd()*6.28, k: .6+rnd()*.8, camp: 0 });
-      }
-    }
+  const nCote = { fond:nFond, avant:nAvant };
+  // cotés : 'N' (fond, z<0), 'S' (devant, z>0), 'O' (gauche, x<0), 'E' (droite, x>0). La caméra regarde depuis S et E.
+  const rangsDe = c => (c==='N'||c==='O') ? nFond : nAvant;
+  function rangDroit(cote, r, x0, x1){
+    const h=MARCHE*(r+1), d=r*PAS+PAS/2, long=x1-x0, mid=(x0+x1)/2, mat=r%2?beton:betonClair;
+    let m;
+    if(cote==='N') m=box(long,h,PAS,mat,mid,h/2,-(RZ+d));
+    if(cote==='S') m=box(long,h,PAS,mat,mid,h/2,(RZ+d));
+    if(cote==='O') m=box(PAS,h,long,mat,-(RX+d),h/2,mid);
+    if(cote==='E') m=box(PAS,h,long,mat,(RX+d),h/2,mid);
+    const n=Math.floor(long/1.35);
+    for(let i=0;i<n;i++){ if(rnd()<.06) continue; const t=x0+.7+i*1.35;
+      const p = cote==='N'?{x:t,z:-(RZ+d)} : cote==='S'?{x:t,z:RZ+d} : cote==='O'?{x:-(RX+d),z:t} : {x:RX+d,z:t};
+      places.push({x:p.x, y:h+.75, z:p.z, ph:rnd()*6.28, k:.6+rnd()*.8, camp:0, r:rnd(), cote, rang:r}); }
   }
-  tribune(0, -(Lg/2+12), L+8, rangsP, [0,1]);
-  tribune(0, (Lg/2+11), L-10, rangsC, [0,-1]);
-  tribune(-(L/2+12), 0, Lg-6, rangsV, [1,0]);
-  tribune((L/2+12), 0, Lg-6, rangsV, [-1,0]);
-  const zFond = -(Lg/2+12) - (rangsP-1)*2.2, hFond = 1.2*rangsP;
+  function rangCoin(sx, sz, r){
+    const h=MARCHE*(r+1), d=r*PAS+PAS/2, mat=r%2?beton:betonClair, cx=sx*RX, cz=sz*RZ;
+    const segs=Math.max(3, Math.round(d/2.4));
+    // l'arc va de la direction de la ligne de touche (sz) à celle de la ligne de but (sx)
+    const debut = sz>0 ? Math.PI/2 : -Math.PI/2, fin = sx>0 ? 0 : Math.PI;
+    let da = fin-debut; if(da>Math.PI) da-=2*Math.PI; if(da<-Math.PI) da+=2*Math.PI;
+    for(let i=0;i<segs;i++){
+      const a=debut+da*(i+.5)/segs, lg=Math.abs(da)*d/segs*1.08;
+      const m=new THREE.Mesh(new THREE.BoxGeometry(lg,h,PAS), mat);
+      m.position.set(cx+Math.cos(a)*d, h/2, cz+Math.sin(a)*d); m.rotation.y=-a+Math.PI/2; m.castShadow=m.receiveShadow=true; scene.add(m);
+    }
+    const n=Math.max(1,Math.floor(Math.abs(da)*d/1.35));
+    for(let i=0;i<n;i++){ if(rnd()<.06) continue; const a=debut+da*(i+.5)/n;
+      places.push({x:cx+Math.cos(a)*d, y:h+.75, z:cz+Math.sin(a)*d, ph:rnd()*6.28, k:.6+rnd()*.8, camp:0, r:rnd(), cote:'C', rang:r}); }
+  }
+  if(bol){
+    for(const c of ['N','S']) for(let r=0;r<rangsDe(c);r++) rangDroit(c, r, -RX, RX);
+    for(const c of ['O','E']) for(let r=0;r<rangsDe(c);r++) rangDroit(c, r, -RZ, RZ);
+    for(const sx of [-1,1]) for(const sz of [-1,1]){
+      const n = (sz<0 && sx<0) ? nFond : nAvant;
+      for(let r=0;r<n;r++) rangCoin(sx, sz, r);
+    }
+  } else {
+    for(let r=0;r<nFond;r++) rangDroit('N', r, -L/2-4, L/2+4);
+    for(let r=0;r<nAvant;r++) rangDroit('S', r, -L/2+6, L/2-6);
+  }
+  /* le mur de dos des côtés du fond (ou la façade de légende, plus bas) */
+  const hHaut = MARCHE*nFond, prof = n => n*PAS;
+  if(!ST.legende){
+    box(2*RX+(bol?0:-2*RX+L+8), hHaut+1.5, .8, betonSombre, 0, (hHaut+1.5)/2, -(RZ+prof(nFond)+.4));
+    if(bol) box(.8, hHaut+1.5, 2*RZ, betonSombre, -(RX+prof(nFond)+.4), (hHaut+1.5)/2, 0);
+  }
+
+  /* les loges : une rangée vitrée au milieu de la tribune du fond */
+  const matVitre = new THREE.MeshLambertMaterial({color:0x22395a, emissive:0x000000}); matVitre.userData.glow=0x8a7a40;
+  if(ST.loges){ const r=Math.floor(nFond*.55), h=MARCHE*(r+1); box(bol?2*RX-6:L, 1.6, .4, matVitre, 0, h+.5, -(RZ+r*PAS+.3)); }
+
+  /* le toit : un anneau gris clair au-dessus des rangs du haut, seulement côté fond pour ne rien cacher */
+  const matToit = M(0xc9cdd9), matToitDessous = M(0x8e93a3);
+  const hToit = hHaut + 5.5;
   let ecranTex=null, ecranCanvas=null;
-  if(ST.toit!==false){
-    const hT = hFond+5;
-    for(let i=0;i<7;i++) box(.7, hT, .7, toitMat, -L/2+2+i*(L-4)/6, hT/2, zFond-1.5);
-    box(L+12, .8, 13, toitMat, 0, hT+.4, zFond+4);
-    box(L+12, 1.4, .6, M(0xc8312f), 0, hT-.3, zFond+10.4);
-    if(ST.ecran!==false){
+  const rampe = [];
+  if(ST.toit){
+    const dz0 = RZ + prof(nFond)*.42, larg = prof(nFond)*.62 + 2;
+    box(bol?2*RX:L+8, .9, larg, matToit, 0, hToit, -(dz0+larg/2-1));
+    for(let i=0;i<8;i++) box(.7, hToit, .7, matToitDessous, -RX+6+i*(2*RX-12)/7, hToit/2, -(RZ+prof(nFond)+.2));
+    if(bol){
+      const dx0 = RX + prof(nFond)*.42;
+      box(larg, .9, 2*RZ, matToit, -(dx0+larg/2-1), hToit, 0);
+      for(let i=0;i<5;i++) box(.7, hToit, .7, matToitDessous, -(RX+prof(nFond)+.2), hToit/2, -RZ+6+i*(2*RZ-12)/4);
+      // le coin du fond, en quart d'anneau
+      const segs=6, rIn=prof(nFond)*.42, rOut=rIn+larg;
+      for(let i=0;i<segs;i++){ const a=-Math.PI+(Math.PI/2)*(i+.5)/segs, rm=(rIn+rOut)/2;
+        const m=new THREE.Mesh(new THREE.BoxGeometry((Math.PI/2)*rm/segs*1.1,.9,larg), matToit);
+        m.position.set(-RX+Math.cos(a)*rm, hToit, -RZ+Math.sin(a)*rm); m.rotation.y=-a+Math.PI/2; m.castShadow=true; scene.add(m); }
+    }
+    box(bol?2*RX:L+8, .5, .5, M(0xc8312f), 0, hToit-.6, -(dz0-1));
+    if(ST.eclairage>=3){                                        // la rampe de toit : une ligne de lumière au bord du toit
+      const lr=box(bol?2*RX-4:L+4, .5, .6, new THREE.MeshLambertMaterial({color:0x444444, emissive:0x000000}), 0, hToit-1.1, -(dz0-.6), scene, false); rampe.push(lr);
+      if(bol){ const lr2=box(.6, .5, 2*RZ-4, lr.material, -(RX+prof(nFond)*.42-.6), hToit-1.1, 0, scene, false); rampe.push(lr2); }
+    }
+    if(ST.ecran){
       ecranCanvas = document.createElement('canvas'); ecranCanvas.width=128; ecranCanvas.height=32;
       ecranTex = new THREE.CanvasTexture(ecranCanvas); ecranTex.magFilter=ecranTex.minFilter=THREE.NearestFilter; ecranTex.colorSpace=THREE.SRGBColorSpace;
       const ecran = new THREE.Mesh(new THREE.PlaneGeometry(18,4.5), new THREE.MeshBasicMaterial({map:ecranTex}));
-      ecran.position.set(0, hT-3.4, zFond+10.6); scene.add(ecran);
-      box(18.8, 5.3, .5, M(0x111111), 0, hT-3.4, zFond+10.3);
+      ecran.position.set(0, hToit-3.6, -(dz0-.4)); scene.add(ecran);
+      box(18.8, 5.3, .5, M(0x111111), 0, hToit-3.6, -(dz0-.1));
+    }
+  } else if(ST.ecran){                                          // sans toit, l'écran se dresse sur ses pieds derrière un but
+    ecranCanvas = document.createElement('canvas'); ecranCanvas.width=128; ecranCanvas.height=32;
+    ecranTex = new THREE.CanvasTexture(ecranCanvas); ecranTex.magFilter=ecranTex.minFilter=THREE.NearestFilter; ecranTex.colorSpace=THREE.SRGBColorSpace;
+    const xE = -(RX + (bol?prof(nFond):2) + 2);
+    const ecran = new THREE.Mesh(new THREE.PlaneGeometry(18,4.5), new THREE.MeshBasicMaterial({map:ecranTex}));
+    ecran.rotation.y=Math.PI/2; ecran.position.set(xE+.3, hHaut+5, 0); scene.add(ecran);
+    box(.5, 5.3, 18.8, M(0x111111), xE, hHaut+5, 0);
+    for(const z of [-7,7]) box(.6, hHaut+3, .6, betonSombre, xE-.3, (hHaut+3)/2, z);
+  }
+
+  /* le kop, dans le virage de gauche : drapeaux géants, puis tifo, puis sono et bâche */
+  const drapeaux=[], matKop1=M(hexInt(o.dom&&o.dom.maillot||'#c8312f')), matKop2=M(hexInt(o.dom&&o.dom.short||'#ffffff'));
+  let tifo=null;
+  if(bol && ST.kop){
+    const xK=-(RX+prof(nFond)*.5);
+    for(let i=0;i<5;i++){ const z=-RZ+8+i*(2*RZ-16)/4, h=MARCHE*nFond*.5+3;
+      box(.25, 7, .25, betonSombre, xK, h+3.5, z);
+      const f=new THREE.Mesh(new THREE.PlaneGeometry(4.5,3), i%2?matKop2:matKop1); f.material.side=THREE.DoubleSide;
+      f.position.set(xK, h+5.5, z+2.4); f.rotation.y=Math.PI/2; scene.add(f); drapeaux.push(f); }
+    if(ST.kop>=2){                                               // le tifo : une grande bâche rayée qui couvre le virage
+      const c=document.createElement('canvas'); c.width=32; c.height=16; const x=c.getContext('2d');
+      for(let i=0;i<8;i++){ x.fillStyle = i%2 ? (o.dom&&o.dom.short||'#ffffff') : (o.dom&&o.dom.maillot||'#c8312f'); x.fillRect(i*4,0,4,16); }
+      const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.colorSpace=THREE.SRGBColorSpace;
+      const W2=RZ-3, x0=-(RX+.6), x1=-(RX+prof(nFond)-.4), y0=1.6, y1=hHaut+.9;
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute([x0,y0,-W2, x0,y0,W2, x1,y1,W2, x0,y0,-W2, x1,y1,W2, x1,y1,-W2],3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute([0,0, 1,0, 1,1, 0,0, 1,1, 0,1],2)); geo.computeVertexNormals();
+      tifo=new THREE.Mesh(geo, new THREE.MeshLambertMaterial({map:t, side:THREE.DoubleSide})); tifo.visible=false; scene.add(tifo);
+    }
+    if(ST.kop>=3){
+      const c=document.createElement('canvas'); c.width=96; c.height=12; const x=c.getContext('2d');
+      x.fillStyle=o.dom&&o.dom.maillot||'#c8312f'; x.fillRect(0,0,96,12); x.fillStyle=o.dom&&o.dom.short||'#ffffff';
+      x.font='bold 9px "Silkscreen", monospace'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('ALLEZ '+(o.dom&&o.dom.id||''),48,6.5);
+      const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.colorSpace=THREE.SRGBColorSpace;
+      const b=new THREE.Mesh(new THREE.PlaneGeometry(40,5), new THREE.MeshBasicMaterial({map:t, side:THREE.DoubleSide}));
+      b.position.set(-(RX+.4), 2.6, 0); b.rotation.y=Math.PI/2; scene.add(b);
+      for(const z of [-RZ+4, RZ-4]) box(2,3,2,M(0x111111), -(RX+prof(nFond)-1), MARCHE*nFond+2, z);
     }
   }
-  const publicMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(.8,1.3,.8), new THREE.MeshLambertMaterial({flatShading:true}), places.length);
-  publicMesh.castShadow = false; publicMesh.receiveShadow = true;
-  const tmpM = new THREE.Matrix4(), tmpC = new THREE.Color();
-  scene.add(publicMesh);
 
-  /* pylônes d'éclairage : seule la face tournée vers la pelouse s'allume */
+  /* la façade de légende, dans le style choisi à l'écran Club : elle habille les côtés tournés vers la caméra (on la voit
+     de dehors), et les flèches ou les poutres qui dépassent du toit se dressent aussi côté fond */
+  const matFacade=[matVitre];
+  if(ST.legende){
+    const st=ST.style, hA=MARCHE*nAvant+4.5, dS=RZ+prof(nAvant)+.7, dE=RX+prof(nAvant)+.7;
+    const murs=[{x:0, z:dS, l:2*RX, ry:0, h:hA}];
+    if(bol) murs.push({x:dE, z:0, l:2*RZ, ry:1, h:hA});
+    const pilier=(x,z,w,h,mat)=>box(w,h,w,mat,x,h/2,z);
+    for(const m of murs){
+      const le=t=>({x:m.x+(m.ry?0:t), z:m.z+(m.ry?t:0)}), H=m.h;
+      if(st==='lumiere'){
+        const c=document.createElement('canvas'); c.width=16; c.height=16; const x=c.getContext('2d');
+        x.fillStyle='#d8d8d8'; x.fillRect(0,0,16,16); x.fillStyle=o.dom&&o.dom.maillot||'#c8312f';
+        x.beginPath(); x.moveTo(8,1); x.lineTo(15,8); x.lineTo(8,15); x.lineTo(1,8); x.fill();
+        const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(Math.round(m.l/4), Math.max(1,Math.round(H/4))); t.colorSpace=THREE.SRGBColorSpace;
+        const mat=new THREE.MeshLambertMaterial({map:t, emissive:0x000000, emissiveMap:t}); mat.userData.glow=0x9a9a9a; matFacade.push(mat);
+        box(m.ry?1:m.l, H, m.ry?m.l:1, mat, m.x, H/2, m.z);
+      } else if(st==='nid'){
+        const mat=new THREE.MeshLambertMaterial({color:0x8a3b2e, emissive:0x000000}); mat.userData.glow=0x6a1a0c; matFacade.push(mat);
+        const n=Math.round(m.l/5);
+        for(let i=0;i<n;i++) for(const sgn of [-1,1]){ const p=le(-m.l/2+(i+.5)*m.l/n);
+          const b=new THREE.Mesh(new THREE.BoxGeometry(.5, H*1.3, .5), mat); b.position.set(p.x, H/2, p.z);
+          if(m.ry) b.rotation.x=sgn*.6; else b.rotation.z=sgn*.6; b.castShadow=true; scene.add(b); }
+        box(m.ry?1:m.l, 1, m.ry?m.l:1, mat, m.x, H, m.z);
+      } else if(st==='foret'){
+        const mat=M(0xf2f2ee), n=Math.round(m.l/2.2);
+        for(let i=0;i<n;i++){ const p=le(-m.l/2+(i+.5)*m.l/n); pilier(p.x,p.z,.55,H+1+rnd()*2.5,mat); }
+      } else if(st==='brutal'){
+        const mat=M(0x8c8a84), n=Math.round(m.l/10);
+        box(m.ry?1.2:m.l, H*.55, m.ry?m.l:1.2, mat, m.x, H*.275, m.z);
+        for(let i=0;i<n;i++){ const p=le(-m.l/2+(i+.5)*m.l/n); box(m.ry?5:1.6, H+2.5, m.ry?1.6:5, mat, p.x+(m.ry?2:0), (H+2.5)/2, p.z+(m.ry?0:2)); }
+      } else if(st==='deco'){
+        const ivoire=M(0xeee4cc), or=new THREE.MeshLambertMaterial({color:0xd4a83a, emissive:0x000000}); or.userData.glow=0x6a4a00; matFacade.push(or);
+        const n=Math.round(m.l/3.5);
+        for(let i=0;i<n;i++){ const p=le(-m.l/2+(i+.5)*m.l/n); pilier(p.x,p.z,1,H,ivoire); }
+        box(m.ry?1.4:m.l, 1.2, m.ry?m.l:1.4, or, m.x, H+.6, m.z);
+        box(m.ry?1.2:m.l, .5, m.ry?m.l:1.2, ivoire, m.x, H*.45, m.z);
+      } else if(st==='cathedrale'){
+        const pierre=M(0xb8ad94), vitrail=new THREE.MeshLambertMaterial({color:0x3a5fa8, emissive:0x000000}); vitrail.userData.glow=0x3a5ab0; matFacade.push(vitrail);
+        box(m.ry?.6:m.l, H*.8, m.ry?m.l:.6, vitrail, m.x, H*.4, m.z);
+        const n=Math.round(m.l/6.5);
+        for(let i=0;i<=n;i++){ const p=le(-m.l/2+i*m.l/n); pilier(p.x,p.z,1.1,H,pierre);
+          const pic=new THREE.Mesh(new THREE.ConeGeometry(.8,3,4), pierre); pic.position.set(p.x,H+1.5,p.z); pic.castShadow=true; scene.add(pic); }
+      }
+    }
+    /* ce qui dépasse du toit, côté fond */
+    const yT = (ST.toit ? hToit : hHaut) , dZ=RZ+prof(nFond)+.6, dX=RX+prof(nFond)+.6;
+    if(st==='cathedrale') for(const [x,z] of [[-dX,-dZ],[RX,-dZ],[-dX,RZ]]){ box(3,yT+6,3,M(0xb8ad94),x,(yT+6)/2,z); const f=new THREE.Mesh(new THREE.ConeGeometry(2.3,9,4), M(0x7a6f5c)); f.position.set(x,yT+10.5,z); f.castShadow=true; scene.add(f); }
+    if(st==='nid'){ const mat=matFacade[matFacade.length-1]; for(let i=0;i<10;i++){ const x=-RX+i*(2*RX)/9; for(const sgn of [-1,1]){ const b=new THREE.Mesh(new THREE.BoxGeometry(.6, yT+8, .6), mat); b.position.set(x, (yT+8)/2, -dZ); b.rotation.z=sgn*.5; scene.add(b); } } }
+    if(st==='foret'){ const mat=M(0xf2f2ee); for(let i=0;i<24;i++){ const x=-RX+i*(2*RX)/23; box(.6, yT+4+rnd()*3, .6, mat, x, (yT+4)/2, -dZ); } }
+    if(st==='deco' || st==='lumiere' || st==='brutal'){ /* le bord du toit prend la couleur du style */ }
+  }
+  const publicMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(.8,1.3,.8), new THREE.MeshLambertMaterial({flatShading:true}), Math.max(1,places.length));
+  publicMesh.castShadow = false; publicMesh.receiveShadow = true;
+  const tmpM = new THREE.Matrix4(), tmpC = new THREE.Color(), zero = new THREE.Matrix4().makeScale(0,0,0);
+  scene.add(publicMesh);
+  let remplissage = clamp(ST.aff==null?.8:ST.aff, .1, 1);
+
+  /* l'éclairage : 1 = les mâts d'origine, 2 = de grands pylônes, 3 = la rampe du toit (des pylônes s'il n'y a pas de toit) */
   const pylones = [];
   const matLampe = new THREE.MeshLambertMaterial({color:0x333333, emissive:0x000000});
-  if(ST.pylones!==false) for(const sx of [-1,1]) for(const sz of [-1,1]){
-    const x = sx*(L/2+22), z = sz*(Lg/2+20);
-    box(1.2, 34, 1.2, M(0x4a4a46), x, 17, z);
-    const tete = new THREE.Group(); tete.position.set(x,34.5,z); scene.add(tete);
-    box(6, 3.6, 1, M(0x2f2f2c), 0,0,0, tete);
-    box(5.4, 3, .25, matLampe, 0,0,.6, tete, false);
-    tete.lookAt(0,0,0);
-    const spot = new THREE.SpotLight(0xfff3d0, 0, 0, 0.62, 0.6, 0);
-    spot.position.set(x,34,z); spot.target.position.set(sx*-8,0,sz*-6); scene.add(spot, spot.target);
-    pylones.push(spot);
+  const niveauLum = ST.eclairage>=3 && ST.toit ? 3 : Math.max(1, Math.min(2, ST.eclairage|0 || 1));
+  if(niveauLum===3){
+    const pts=[[-RX*.7,-(RZ+prof(nFond)*.4)],[0,-(RZ+prof(nFond)*.4)],[RX*.7,-(RZ+prof(nFond)*.4)]];
+    if(bol) pts.push([-(RX+prof(nFond)*.4),-RZ*.5],[-(RX+prof(nFond)*.4),RZ*.5]);
+    for(const [x,z] of pts){
+      const spot=new THREE.SpotLight(0xfff3d0, 0, 0, 0.9, 0.7, 0); spot.position.set(x,hToit-1,z); spot.target.position.set(x*.15,0,z*.05+(z<-RZ?10:0)); scene.add(spot, spot.target); pylones.push(spot); }
+    for(const l of rampe) l.material=matLampe;
+  } else {
+    const hP = niveauLum===2 ? 44 : 32, ecart = niveauLum===2 ? 1.25 : 1;
+    for(const sx of [-1,1]) for(const sz of [-1,1]){
+      const x = sx*(RX+prof(sz<0?nFond:nAvant)*.7+10)*ecart*.92, z = sz*(RZ+prof(sz<0?nFond:nAvant)*.6+9);
+      box(niveauLum===2?1.6:1.1, hP, niveauLum===2?1.6:1.1, M(0x4a4a46), x, hP/2, z);
+      const tete = new THREE.Group(); tete.position.set(x,hP+.5,z); scene.add(tete);
+      const lw = niveauLum===2 ? 8 : 5.5;
+      box(lw, 3.6, 1, M(0x2f2f2c), 0,0,0, tete);
+      box(lw-.6, 3, .25, matLampe, 0,0,.6, tete, false);
+      if(niveauLum===2){ box(lw, 3.6, 1, M(0x2f2f2c), 0,4,0, tete); box(lw-.6, 3, .25, matLampe, 0,4,.6, tete, false); }
+      tete.lookAt(0,0,0);
+      const spot = new THREE.SpotLight(0xfff3d0, 0, 0, 0.62, 0.6, 0);
+      spot.position.set(x,hP,z); spot.target.position.set(sx*-8,0,sz*-6); scene.add(spot, spot.target);
+      pylones.push(spot);
+    }
   }
 
-  /* décor : sapins, club-house */
+  /* ---------- AUTOUR DU STADE : les bâtiments que le club a construits, posés devant sur l'île ---------- */
   const arbreGeo1 = new THREE.ConeGeometry(3.2,7,6), arbreGeo2 = new THREE.ConeGeometry(2.4,5.5,6), troncGeo = new THREE.BoxGeometry(.8,2,.8);
   const matSapin = M(0x2f6b3a), matSapinFonce = M(0x255a30), matTronc = M(0x5a3a22);
   function arbre(x,z,k=1){
@@ -268,18 +453,55 @@ function fabriqueMatch3D(THREE, o){
     const a=new THREE.Mesh(arbreGeo1,matSapinFonce); a.position.y=5; a.castShadow=true; g.add(a);
     const b=new THREE.Mesh(arbreGeo2,matSapin); b.position.y=8.4; b.castShadow=true; g.add(b);
   }
-  for(let i=0;i<26;i++) arbre(-ileL/2+4+i*(ileL-8)/25 + (rnd()-.5)*3, -ileP/2+3+rnd()*3, .9+rnd()*.5);
-  for(let i=0;i<9;i++) arbre(-ileL/2+3+rnd()*4, -ileP/2+16+i*11, .8+rnd()*.4);
-  for(let i=0;i<6;i++) arbre(ileL/2-3-rnd()*4, -ileP/2+14+i*10, .8+rnd()*.4);
-  const club = new THREE.Group(); club.position.set(-58, 0, ileP/2-10); scene.add(club);
-  box(16,6,10,M(0xe8dcc0),0,3,0,club);
-  box(16.4,.5,10.4,M(0xcfc2a4),0,.25,0,club);
-  { const forme=new THREE.Shape(); forme.moveTo(-6.4,0); forme.lineTo(6.4,0); forme.lineTo(0,4.2); forme.lineTo(-6.4,0);
-    const geo=new THREE.ExtrudeGeometry(forme,{depth:17.4, bevelEnabled:false}); geo.translate(0,0,-8.7);
-    const toit=new THREE.Mesh(geo, M(0xb8322a)); toit.rotation.y=Math.PI/2; toit.position.y=6; toit.castShadow=true; toit.receiveShadow=true; club.add(toit); }
-  box(1.4,3.4,1.4,M(0x8a3a2a),4.5,9.6,-1.5,club);
-  box(2.2,3.4,.2,M(0x5a3a22),0,1.7,5.06,club);
-  for(const x of [-5.2,5.2]){ box(2.6,2,.2,M(0x3d5a80),x,3.6,5.06,club); box(3,.3,.3,M(0xf4edd8),x,2.5,5.15,club); }
+  const nArb=Math.round(ileL/6.5);
+  for(let i=0;i<nArb;i++) arbre(-ileL/2+4+i*(ileL-8)/(nArb-1) + (rnd()-.5)*3, -ileP/2+3+rnd()*3, .9+rnd()*.5);
+  for(let i=0;i<Math.round(ileP/14);i++) arbre(-ileL/2+3+rnd()*4, -ileP/2+16+i*11, .8+rnd()*.4);
+  for(let i=0;i<Math.round(ileP/20);i++) arbre(ileL/2-3-rnd()*4, -ileP/2+14+i*10, .8+rnd()*.4);
+  const matFenetre = new THREE.MeshLambertMaterial({color:0x3d5a80, emissive:0x000000}); matFenetre.userData.glow=0x6a5a2a;
+  const zAv = (bol ? RZ+prof(nAvant) : RZ+prof(nAvant)) + 9, xMax = ileL/2-10;
+  let curseur = -xMax;                         // on aligne les bâtiments le long du devant de l'île, de gauche à droite
+  const place = w => { const x=curseur+w/2; curseur+=w+4; return x; };
+  const maison = (w,h,d,murs,toitCoul,x,z,fen=true)=>{ const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+    box(w,h,d,M(murs),0,h/2,0,g);
+    if(toitCoul!=null){ const f=new THREE.Shape(); f.moveTo(-d/2-.4,0); f.lineTo(d/2+.4,0); f.lineTo(0,Math.min(4,d*.4)); f.lineTo(-d/2-.4,0);
+      const geo=new THREE.ExtrudeGeometry(f,{depth:w+.8, bevelEnabled:false}); geo.translate(0,0,-(w+.8)/2);
+      const t=new THREE.Mesh(geo,M(toitCoul)); t.rotation.y=Math.PI/2; t.position.y=h; t.castShadow=true; g.add(t); }
+    if(fen) for(let i=0;i<Math.max(1,Math.floor(w/4));i++) box(1.6,1.4,.2,matFenetre,-w/2+2+i*4,h*.55,d/2+.05,g);
+    return g; };
+  const sCoul = o.dom&&o.dom.maillot||'#c8312f';
+  if(ST.transport){                                            // l'accès : parking, tram, ou gare avec son train
+    if(ST.transport===1){ const x=place(22); box(22,.15,12,M(0x55585e),x,.08,zAv+2,scene,false);
+      for(let i=0;i<8;i++) box(2,1.1,3.6,M([0xc8312f,0x3d5a80,0xf4edd8,0x2b2b2b][i%4]),x-9+i*2.6,.6,zAv+(i%2?4.5:-.5)); }
+    else { const zr=ileP/2-4; box(ileL-8,.2,.4,M(0x6b6b6b),0,.1,zr-1,scene,false); box(ileL-8,.2,.4,M(0x6b6b6b),0,.1,zr+1,scene,false);
+      if(ST.transport===2){ const tr=new THREE.Group(); tr.position.set(ileL*.15,0,zr); scene.add(tr); box(16,3.4,2.6,M(hexInt(sCoul)),0,2,0,tr); for(let i=0;i<4;i++) box(2.4,1.2,.2,matFenetre,-6+i*4,2.6,1.35,tr); }
+      else { const x=place(26); maison(26,7,10,0xd8cfba,0x5a5f6a,x,zr-8); for(let k=0;k<3;k++) box(7,3.6,3,M(k?0x3d5a80:hexInt(sCoul)),-ileL*.3+k*7.4,2.1,zr); } } }
+  if(ST.buvette){ const n=ST.buvette>=3?4:ST.buvette;          // baraque à frites, buvettes, fan zone
+    const x=place(ST.buvette>=3?24:8*n);
+    for(let i=0;i<n;i++){ const xx=x-(n-1)*4+i*8;
+      if(ST.buvette>=3){ const tente=new THREE.Mesh(new THREE.ConeGeometry(3.6,3,4), M(i%2?0xf4edd8:hexInt(sCoul))); tente.position.set(xx,2.8,zAv); tente.rotation.y=Math.PI/4; tente.castShadow=true; scene.add(tente); box(.3,1.6,.3,betonSombre,xx,.8,zAv); }
+      else { box(4,2.6,3,M(0xf4edd8),xx,1.3,zAv); box(4.4,.4,3.4,M(0xc8312f),xx,2.8,zAv); } } }
+  if(ST.boutique){ const w=[0,5,10,16][ST.boutique], h=[0,3,5,7][ST.boutique], x=place(w);
+    const g=maison(w,h,8,ST.boutique>=3?0x9fb6cc:0xe8dcc0,null,x,zAv); box(w*.8,1.2,.3,M(hexInt(sCoul)),0,h-.8,4.1,g); }
+  if(ST.restaurant){ const x=place(12); const g=maison(12,ST.restaurant>=2?7:5,9,ST.restaurant>=3?0x2b2b2b:0xe8dcc0,ST.restaurant>=3?null:0x8a3a2a,x,zAv);
+    if(ST.restaurant>=3) box(12.4,.5,9.4,M(0xd4a83a),0,7.2,0,g); }
+  if(ST.musee){ const x=place(ST.musee>=3?24:12);
+    const g=maison(12,6,9,0xeee4cc,null,ST.musee>=3?x-6:x,zAv,false);
+    for(let i=0;i<4;i++) box(.8,6,.8,M(0xf6f2e6),-4.5+i*3,3,4.8,g); box(13,1,10,M(0xd8cdb2),0,6.5,0,g);
+    if(ST.musee>=3) for(let i=0;i<4;i++){ box(1.4,1.2,1.4,M(0x8c8a84),x+2+i*2.6,.6,zAv+2); box(.7,2.2,.7,M(0xb08d57),x+2+i*2.6,2.3,zAv+2); } }
+  if(ST.hotel){ const etages=[0,4,7,10][ST.hotel], x=place(12);
+    const g=new THREE.Group(); g.position.set(x,0,zAv-2); scene.add(g);
+    box(12,etages*2.6,10,M(ST.hotel>=3?0xe9dfc6:0xb9c0cc),0,etages*1.3,0,g);
+    for(let e=0;e<etages;e++) for(let i=0;i<3;i++) box(1.8,1.2,.2,matFenetre,-4+i*4,1.4+e*2.6,5.05,g);
+    if(ST.hotel>=3) box(12.4,.6,10.4,M(0xd4a83a),0,etages*2.6+.3,0,g); }
+  if(curseur===-xMax){                                          // rien de construit : le petit club-house de toujours
+    const club = new THREE.Group(); club.position.set(-xMax+8, 0, zAv); scene.add(club);
+    box(16,6,10,M(0xe8dcc0),0,3,0,club); box(16.4,.5,10.4,M(0xcfc2a4),0,.25,0,club);
+    { const forme=new THREE.Shape(); forme.moveTo(-6.4,0); forme.lineTo(6.4,0); forme.lineTo(0,4.2); forme.lineTo(-6.4,0);
+      const geo=new THREE.ExtrudeGeometry(forme,{depth:17.4, bevelEnabled:false}); geo.translate(0,0,-8.7);
+      const toit=new THREE.Mesh(geo, M(0xb8322a)); toit.rotation.y=Math.PI/2; toit.position.y=6; toit.castShadow=true; club.add(toit); }
+    box(1.4,3.4,1.4,M(0x8a3a2a),4.5,9.6,-1.5,club); box(2.2,3.4,.2,M(0x5a3a22),0,1.7,5.06,club);
+    for(const x of [-5.2,5.2]){ box(2.6,2,.2,matFenetre,x,3.6,5.06,club); box(3,.3,.3,M(0xf4edd8),x,2.5,5.15,club); }
+  }
 
   /* pluie, neige, brouillard */
   const NP = 1600;
@@ -368,8 +590,10 @@ function fabriqueMatch3D(THREE, o){
 
   /* le public aux couleurs des deux clubs, le club qui reçoit en nombre, un virage aux visiteurs */
   { const cd=[EQ.dom.maillot,EQ.dom.maillot,EQ.dom.short,'#f4edd8','#2b2b2b','#3d5a80','#d9d2c0'], ce=[EQ.ext.maillot,EQ.ext.short];
+    const kop = bol && ST.kop;
     places.forEach((p,i)=>{ tmpM.makeTranslation(p.x,p.y,p.z); publicMesh.setMatrixAt(i,tmpM);
-      const visiteur = p.x>L/2+6 && p.z<0; p.camp = visiteur ? 1 : 0;
+      const visiteur = bol ? (p.x>RX-4 && p.z<-4) : (p.cote==='N' && p.x>L/2-22); p.camp = visiteur ? 1 : 0;
+      if(kop && p.cote==='O' && !visiteur){ publicMesh.setColorAt(i,tmpC.set(rnd()<.8?EQ.dom.maillot:EQ.dom.short)); return; }
       publicMesh.setColorAt(i,tmpC.set(visiteur? ce[(rnd()*ce.length)|0] : cd[(rnd()*cd.length)|0])); });
     publicMesh.instanceMatrix.needsUpdate=true; if(publicMesh.instanceColor) publicMesh.instanceColor.needsUpdate=true; }
 
@@ -701,7 +925,7 @@ function fabriqueMatch3D(THREE, o){
   /* ================================================================================================
      CE QUE LE DIRECT DIT À LA SCÈNE
      ================================================================================================ */
-  let horloge=0;
+  let horloge=0, tifoT=0;
   function annonce(l, ms){
     if(!vivant || !l || etat.phase==='fin') return;
     if((ACT && ACT.info.ligne===l) || (ATT && ATT.info.ligne===l)) return;     // déjà en route (la montée de tension l'annonce deux fois)
@@ -727,7 +951,8 @@ function fabriqueMatch3D(THREE, o){
         const j=joueurs.find(p=>p.nom===l.g.but); if(j){ etat.phase='but'; etat.buteur=j; etat.celebration=0; montrerNom(j,4); } } }
     if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; banniere('FIN DU MATCH','',4000); }
     else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
-    else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.phase='jeu'; placerCoupEnvoi('dom'); }
+    else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.phase='jeu'; placerCoupEnvoi('dom'); tifoT=7;
+      const m=/devant ([\d\s\u00a0\u202f]+) spectateurs/.exec(x); if(m){ const n=parseInt(m[1].replace(/\D/g,''),10); if(n>0) remplissage=clamp(n/cap,.12,1); } }
   }
 
   /* ================================================================================================
@@ -884,7 +1109,7 @@ function fabriqueMatch3D(THREE, o){
   const taille = () => ({w:Math.max(1,canvas.clientWidth||300), h:Math.max(1,canvas.clientHeight||150)});
   function cadrage(){
     const {w,h}=taille(), asp=w/h;
-    const large = {cible:new THREE.Vector3(0,-4,0), demi:Math.max(72,104/asp)};
+    const large = {cible:new THREE.Vector3(0,-4,0), demi:Math.max(72,104/asp)*ileL/168};
     if(cam.mode==='large' && etat.phase!=='but') return large;
     const pres = Math.max(28, 40/asp);
     const p = (etat.phase==='but' && etat.buteur) ? etat.buteur.pos : B.pos;
@@ -942,9 +1167,15 @@ function fabriqueMatch3D(THREE, o){
     const tt=now/1000, fete = etat.phase==='but' ? (etat.buteur.camp==='dom'?0:1) : -1;
     for(let i=0;i<places.length;i++){
       const p=places[i];
+      if(p.r>remplissage){ publicMesh.setMatrixAt(i,zero); continue; }   // les places vides du soir
       const saut = p.camp===fete ? Math.max(0,Math.sin(tt*9*p.k+p.ph))*1.4 : Math.max(0,Math.sin(tt*1.3*p.k+p.ph)-.92)*3;
       tmpM.makeTranslation(p.x,p.y+saut,p.z); publicMesh.setMatrixAt(i,tmpM);
     }
+    if(tifo){ tifoT-=dt; if(fete===0) tifoT=Math.max(tifoT,.5); tifo.visible=tifoT>0; }
+    for(let i=0;i<drapeaux.length;i++) drapeaux[i].rotation.x=Math.sin(tt*3+i)*.25;
+    const nuit = ambC.spots>.5;
+    for(const m of matFacade) m.emissive.setHex(nuit ? (m.userData.glow||0) : 0);
+    matFenetre.emissive.setHex(nuit?matFenetre.userData.glow:0);
     publicMesh.instanceMatrix.needsUpdate=true;
     for(const f of filets){ const s=B.filet&&B.filet.s===f.s?Math.max(0,1-B.filet.t/1.2):0; f.fond.position.x=f.s*(BUT_P+s*1.4*Math.sin(tt*40)); }
     pluie.visible=CIEL==='pluie'; flocons.visible=CIEL==='neige';
@@ -980,7 +1211,21 @@ function fabriqueMatch3D(THREE, o){
    pour le flash après un but) et parle à la scène exactement comme le jeu le fera
    ================================================================================================ */
 const TELEPHONE = innerWidth/innerHeight < 0.8;
-const R = { delai: 2300, camera: 'auto' };
+const R = { delai: 2300, camera: 'auto', stade: 'club', style: 0, match: 0 };
+/* les stades d'essai : « Du club » suit la capacité comme le jeu le fait pour un stade qui n'est pas le vôtre (stadeAutre) */
+const STYLES = ['lumiere','nid','foret','brutal','deco','cathedrale'];
+const NOM_STYLE = {lumiere:'Robe de lumière', nid:"Nid d'acier", foret:'Forêt blanche', brutal:'Brutaliste', deco:'Art déco', cathedrale:'Cathédrale'};
+const stadeAutre = cap => ({cap, aff:.8, virages:cap>=22000?1:0, eclairage:cap>=30000?2:1, toit:cap>=42000?1:0, loges:cap>=35000?1:0, ecran:cap>=28000?1:0,
+  led:cap>=45000?1:0, buvette:cap>=15000?1:0, kop:cap>=18000?1:0, transport:cap>=40000?1:0});
+function stadeEssai(md){
+  switch(R.stade){
+    case 'petit': return {cap:9000, aff:.7, eclairage:1, boutique:1, buvette:1};
+    case 'moyen': return {cap:34000, aff:.85, virages:1, toit:1, ecran:1, eclairage:2, kop:2, loges:1, boutique:2, buvette:2, restaurant:1, musee:1, transport:1};
+    case 'grand': return {cap:62000, aff:.9, virages:1, toit:1, ecran:1, eclairage:3, kop:3, loges:1, led:1, boutique:3, buvette:3, restaurant:2, musee:2, hotel:2, transport:2};
+    case 'legende': return {cap:82000, aff:.95, virages:1, toit:1, ecran:1, eclairage:3, kop:3, loges:1, led:1, boutique:3, buvette:3, restaurant:3, musee:3, hotel:3, transport:3, legende:1, style:STYLES[R.style%STYLES.length]};
+    default: return stadeAutre(md.dom.cap||25000);
+  }
+}
 let canvas = document.getElementById('scene');
 const elScore=document.getElementById('score'), elMin=document.getElementById('minute'), elFil=document.getElementById('fil'), elBan=document.getElementById('banniere');
 const elAlerte=document.getElementById('alerte');
@@ -998,13 +1243,14 @@ function meteoDe(x){ return /Il neige/.test(x)?'neige' : /champ de patates/.test
 
 let SC=null; const FIL={ md:null, i:-1, horloge:0, prochain:0 };
 function chargeMatch(idx){
+  R.match=idx;
   const md=MATCHS[idx], T=tenues(md);
   if(SC){ SC.ferme(); const neuf=canvas.cloneNode(false); canvas.replaceWith(neuf); canvas=neuf; }   // un canevas neuf par match : l'ancien rend sa mémoire graphique
   canvas.addEventListener('webglcontextlost', e=>{ if(e.target!==canvas) return; elAlerte.hidden=false; elAlerte.textContent='La carte graphique a interrompu le rendu 3D. Recharge la page.'; });
   const x0=md.ev[0].x;
   SC = fabriqueMatch3D(THREE, { canvas, pixels:1.5, decalage: TELEPHONE?.3:.16, camera:R.camera,
     heure: /soleil rasant/.test(x0) && md.heure==='jour' ? 'soir' : md.heure, meteo: meteoDe(x0),
-    stade:{cap:md.dom.cap},
+    stade:stadeEssai(md),
     dom:{id:md.dom.id, maillot:T.dom[0], short:T.dom[1], xi:md.dom.xi}, ext:{id:md.ext.id, maillot:T.ext[0], short:T.ext[1], xi:md.ext.xi},
     enPause:()=>R.delai===0, banniere,
     erreur:e=>{ elAlerte.hidden=false; elAlerte.textContent='Erreur dans la maquette : '+(e&&e.message||e); } });
@@ -1039,6 +1285,13 @@ const gM=document.getElementById('gMatch');
 MATCHS.forEach((md,i)=>{ const b=document.createElement('button'); b.id='m-'+i; b.textContent=md.dom.id+'-'+md.ext.id; b.onclick=()=>chargeMatch(i); gM.append(b); });
 document.querySelectorAll('#gVitesse button').forEach(b=>b.addEventListener('click',()=>{
   R.delai=Number(b.dataset.v); document.querySelectorAll('#gVitesse button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+document.querySelectorAll('#gStade button').forEach(b=>b.addEventListener('click',()=>{
+  if(b.dataset.v==='legende' && R.stade==='legende') R.style++;
+  R.stade=b.dataset.v;
+  document.querySelectorAll('#gStade button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  document.getElementById('s-legende').textContent = R.stade==='legende' ? NOM_STYLE[STYLES[R.style%STYLES.length]] : 'Légende';
+  chargeMatch(R.match);
 }));
 document.querySelectorAll('#gCamera button').forEach(b=>b.addEventListener('click',()=>{
   R.camera=b.dataset.v; if(SC) SC.camera(R.camera); document.querySelectorAll('#gCamera button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
