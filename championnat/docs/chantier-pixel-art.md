@@ -101,3 +101,4 @@ Réglages « Mois » et « Une autre semaine » dans les deux prototypes. Vérif
 Le stade vit pendant le match : score sur l'écran géant (ou un tableau d'affichage sur la tribune nord s'il n'y a pas d'écran), kop qui saute et allume ses fumigènes sur un but, parcage visiteurs aux couleurs adverses, sifflets sur un carton rouge, joueurs en 4-4-2 sur la pelouse.
 Le moteur reste dans docs/prototype-stade-pixel.html (option `direct` de STADEPIX.rendre). La page de démonstration docs/prototype-stade-direct.html se fabrique avec `node docs/construit-stade-direct.cjs .` à partir de docs/modele-stade-direct.html.
 Pas encore branché dans le jeu : on attend le feu vert de l'auteur.
+Branché dans le jeu en v2.83 (même jour) : `stadeDirectOuvre` dans `lanceMatch` et `directSemaine`, cadre gardé sur tout le stade.

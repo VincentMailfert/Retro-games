@@ -2799,6 +2799,22 @@ toujours « raconter quelque chose ».
   (`paletteSaison`) : la palette de base ne bouge jamais. Les prototypes ont un réglage « Mois » et « Une autre semaine ».
   **Piège payé** : un saupoudrage au hasard, pixel par pixel, rend une neige de télé mal réglée ; il faut une couche pleine
   avec un peu de grain, ou une trame ordonnée.
+- **FUSION DE MAIN DANS LE CHANTIER (v2.82, 13/11/2026)** : main avait reçu ailleurs la jeune légende et le cadre italien
+  (ses propres v2.78 à v2.80). Seul conflit, la constante `VERSION` ; les soixante-seize harnais passent. Les numéros
+  v2.79 à v2.81 du chantier et ceux de main se chevauchent : l'historique se lit aux dates, pas aux numéros.
+- **LE STADE EN DIRECT (v2.83, choix de l'auteur du 13/11/2026, prototype `docs/prototype-stade-direct.html`)** : dans les
+  trois directs (samedi, Coupe de France, Europe), une bande 2:1 sous le tableau d'affichage (`#stDirect`, posé par
+  `stadeDirectOuvre(H, A, {neutre})` dans `lanceMatch` et `directSemaine`) montre le stade du soir, cadré sur la pelouse
+  (`focus:"pelouse"`, `object-position:50% 22%`). Le moteur est STADEPIX avec son option `direct` (greffée telle quelle).
+  **Tout se relit au fil, sans rien changer au match** : `tabScoreMaj` appelle `stadeDirectScore` (un score qui monte =
+  un but, kop qui saute, fumigènes, écran « BUT ! », joueurs au poteau de corner) et `ajouteLigne` appelle
+  `stadeDirectLigne` (rouges, et l'affluence lue dans la ligne du coup d'envoi « devant N spectateurs »). Chez vous,
+  c'est votre stade (`etatStade3D`) ; ailleurs un stade à la mesure de la capacité du club qui reçoit (`stadeAutre`), et
+  une finale européenne un grand stade neutre de 60 000 places. Couleurs des maillots = celles du blason (`BLASONS`), le
+  visiteur inverse les siennes si elles ressemblent trop à celles du club qui reçoit. Quatre images par seconde,
+  arrêtées par `abandonneDirect` ou dès que la bande quitte la page ; sous `prefers-reduced-motion`, on ne repeint que
+  sur un événement. Sans DOM (harnais), tout est inerte. Choix de l'auteur : on garde tout le stade, les joueurs restent
+  petits ; un cadrage plus serré ou une caméra qui suit l'action restent possibles plus tard.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente
