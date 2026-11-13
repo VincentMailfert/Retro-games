@@ -230,7 +230,9 @@ for(const sx of [-1,1]) for(const sz of [-1,1]){
   const x = sx*(L/2+22), z = sz*(Lg/2+20);
   box(1.2, 34, 1.2, M(0x4a4a46), x, 17, z);
   const tete = new THREE.Group(); tete.position.set(x,34.5,z); scene.add(tete);
-  box(6, 3.6, 1, matLampe, 0,0,0, tete); tete.lookAt(0,0,0);
+  box(6, 3.6, 1, M(0x2f2f2c), 0,0,0, tete);                     // le caisson, sombre de dos
+  box(5.4, 3, .25, matLampe, 0,0,.6, tete, false);               // la face qui s'allume, tournée vers la pelouse
+  tete.lookAt(0,0,0);
   const spot = new THREE.SpotLight(0xfff3d0, 0, 0, 0.62, 0.6, 0);
   spot.position.set(x,34,z); spot.target.position.set(sx*-8,0,sz*-6); scene.add(spot, spot.target);
   pylones.push(spot);
@@ -248,21 +250,29 @@ function arbre(x,z,k=1){
 for(let i=0;i<26;i++) arbre(-ileL/2+4+i*(ileL-8)/25 + (rnd()-.5)*3, -ileP/2+3+rnd()*3, .9+rnd()*.5);
 for(let i=0;i<9;i++) arbre(-ileL/2+3+rnd()*4, -ileP/2+16+i*11, .8+rnd()*.4);
 for(let i=0;i<6;i++) arbre(ileL/2-3-rnd()*4, -ileP/2+14+i*10, .8+rnd()*.4);
-const club = new THREE.Group(); club.position.set(-34, 0, ileP/2-9); scene.add(club);
+const club = new THREE.Group(); club.position.set(-58, 0, ileP/2-10); scene.add(club);
+/* un club-house simple : murs crème, toit à deux pentes qui déborde un peu, cheminée, porte et fenêtres côté terrain */
 box(16,6,10,M(0xe8dcc0),0,3,0,club);
-const toitRouge = new THREE.Mesh(new THREE.ConeGeometry(10.5,5,4), M(0xb8322a)); toitRouge.rotation.y=Math.PI/4; toitRouge.scale.set(1.15,1,.75); toitRouge.position.y=8.5; toitRouge.castShadow=true; club.add(toitRouge);
-for(let i=0;i<3;i++) box(2,2.2,.2,M(0x3d5a80),-4.5+i*4.5,3.4,5.05,club);
+box(16.4,.5,10.4,M(0xcfc2a4),0,.25,0,club);
+{ const forme=new THREE.Shape(); forme.moveTo(-6.4,0); forme.lineTo(6.4,0); forme.lineTo(0,4.2); forme.lineTo(-6.4,0);
+  const geo=new THREE.ExtrudeGeometry(forme,{depth:17.4, bevelEnabled:false}); geo.translate(0,0,-8.7);
+  const toit=new THREE.Mesh(geo, M(0xb8322a)); toit.rotation.y=Math.PI/2; toit.position.y=6; toit.castShadow=true; toit.receiveShadow=true; club.add(toit); }
+box(1.4,3.4,1.4,M(0x8a3a2a),4.5,9.6,-1.5,club);
+box(2.2,3.4,.2,M(0x5a3a22),0,1.7,5.06,club);
+for(const x of [-5.2,5.2]){ box(2.6,2,.2,M(0x3d5a80),x,3.6,5.06,club); box(3,.3,.3,M(0xf4edd8),x,2.5,5.15,club); }
 
 /* pluie, neige, brouillard */
 const NP = 1600;
 const goutte = []; for(let i=0;i<NP;i++) goutte.push({x:alea(-ileL/2,ileL/2), y:alea(0,90), z:alea(-ileP/2,ileP/2), v:alea(70,95)});
 const pluieGeo = new THREE.BufferGeometry(), pluiePos = new Float32Array(NP*6);
 pluieGeo.setAttribute('position', new THREE.BufferAttribute(pluiePos,3));
-const pluie = new THREE.LineSegments(pluieGeo, new THREE.LineBasicMaterial({color:0xaec4d8, transparent:true, opacity:.7}));
+const pluie = new THREE.LineSegments(pluieGeo, new THREE.LineBasicMaterial({color:0xaec4d8, transparent:true, opacity:.4}));
+pluieGeo.setDrawRange(0, 550*2);                                  // une pluie qui se voit sans boucher la vue
 pluie.frustumCulled=false; scene.add(pluie);
 const neigeGeo = new THREE.BufferGeometry(), neigePos = new Float32Array(NP*3);
 neigeGeo.setAttribute('position', new THREE.BufferAttribute(neigePos,3));
-const flocons = new THREE.Points(neigeGeo, new THREE.PointsMaterial({color:0xffffff, size:2, sizeAttenuation:false}));
+const flocons = new THREE.Points(neigeGeo, new THREE.PointsMaterial({color:0xffffff, size:1.6, sizeAttenuation:false, transparent:true, opacity:.75}));
+neigeGeo.setDrawRange(0, 650);
 flocons.frustumCulled=false; scene.add(flocons);
 
 /* ================================================================================================
@@ -557,7 +567,7 @@ function lanceAction(info, T){
     vol(.22,.42,36,az,.62,v==='lob'?3:1); key(A,.3,30,az+side*2); key(A,.42,36,az);
     pied(.42,.8,A); key(A,.8,45,az*.35);
     depart={ax:46,z:az*.35,y:.62}; uTir=.8;
-    if(gk) { key(gk,.55,L/2-1.2,0); key(gk,.8,L/2-(v==='lob'?7:4.5),az*.25); }
+    if(gk) { key(gk,.55,L/2-1.8,0); key(gk,.8,L/2-(v==='lob'?7:4.5),az*.25); }
     if(info.genre==='horsjeu' || info.genre==='perdu'){
       S.push({u0:.8,u1:1,a:new THREE.Vector3(s*47,.62,s*az*.3),haut:.2});
       const D=plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*44,0,s*az*.4))[0]; if(D && info.genre==='perdu') key(D,.95,46,az*.35);
@@ -587,9 +597,9 @@ function lanceAction(info, T){
     if(gk){
       const z0g=clamp(depart?depart.z*.25:0,-3,3);
       const plonge = g==='arret' ? tz : g==='but' ? clamp(tz - Math.sign(tz||1)*alea(3,6),-6,6) : clamp(tz*.6,-5,5);
-      if(!K.has(gk)) key(gk, Math.max(uTir-.1,.3), L/2-1.2, z0g);
-      key(gk, 1, L/2-1.2, plonge);
-      dir = Math.sign(plonge-z0g)*s || 1;
+      if(!K.has(gk)) key(gk, Math.max(uTir-.1,.3), L/2-1.8, z0g);
+      key(gk, 1, L/2-1.8, plonge);
+      dir = Math.sign(s*(plonge-z0g)) || 1;                       // le côté du plongeon, dans le repère du monde
     }
     ACT={info,s,K,S,T,u:0,uTir,gk,A,tz,ty,but:g==='but',dir};
   }
@@ -843,7 +853,8 @@ function poserJoueurs(dt, now){
     if(j.dehors) continue;
     j.g.position.copy(j.pos);
     const v=j.vel.length();
-    if(v>.3) j.g.rotation.y=Math.atan2(j.vel.x,j.vel.z);
+    if(j.gardien && (j.plongeF || (ACT && ACT.gk===j && ACT.u>ACT.uTir-.1))) j.g.rotation.y = sens(j)>0 ? Math.PI/2 : -Math.PI/2; // face au jeu pour plonger de côté
+    else if(v>.3) j.g.rotation.y=Math.atan2(j.vel.x,j.vel.z);
     j.phase+=dt*v*1.25;
     const a=Math.min(.9,v*.11)*Math.sin(j.phase);
     j.jambeG.rotation.x=a; j.jambeD.rotation.x=-a; j.brasG.rotation.x=-a*.8; j.brasD.rotation.x=a*.8;
@@ -855,7 +866,7 @@ function poserJoueurs(dt, now){
     }
     if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
     if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
-    if(j.gardien && j.plongeF){ j.g.rotation.z = -1.3*Math.min(1,Math.abs(j.plongeF)*2)*Math.sign(j.plongeF); j.g.position.y=.4+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*1.4; }
+    if(j.gardien && j.plongeF){ j.g.rotation.z = 1.35*Math.min(1,Math.abs(j.plongeF)*2)*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9; }
     /* l'étiquette du nom et le carton flottent au-dessus de la tête */
     const k = cam.demi*0.042;
     if(j.lab){ j.labT-=dt; j.lab.visible = j.labT>0; j.lab.position.set(j.pos.x, 7.2+k*.6, j.pos.z); j.lab.scale.set(k*j.lab.userData.ratio, k, 1); }
