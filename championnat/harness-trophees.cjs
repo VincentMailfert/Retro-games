@@ -13,6 +13,7 @@
    J) une vraie carrière de six saisons : pas d'erreur, chaque défi de match réussi est justifié par un score
    K) les défis de club (v2.76) : clubs réels du bon championnat, règles, fin de saison, rattrapage, fiche, écran
    L) la boutique (v2.77) : solde, limites d'achat, effets des coups de pouce et des avantages permanents, fusion
+   M) la jeune légende (v2.80) : la pépite de la saison change de club au départ, sans doublon ni trou
    Usage : node harness-trophees.cjs                                                            */
 const fs = require("fs");
 const path = require("path");
@@ -51,7 +52,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimation
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,classement,clubById,SAISONS,prog,progMag,progVide,progNette," +
   "progFusionne,progEmpreinte,ecranAccueil,ecranTrophees,DEFIS,DEFI_DE,defiReussi,pointsDefis,defiGagne,mesMatchs," +
-  "defisJournee,defisFinSaison,defisCarriere,defisConstate,vitrine,DEFIS_CLUB,defiClubRempli,defisClubDe,ficheClubAccueil,metaClub,BOUTIQUE,soldePoints,depensePoints,achete,achatPossible,acquis,boutiqueHTML,clubById," +
+  "defisJournee,defisFinSaison,defisCarriere,defisConstate,vitrine,DEFIS_CLUB,defiClubRempli,defisClubDe,ficheClubAccueil,metaClub,BOUTIQUE,soldePoints,depensePoints,achete,achatPossible,acquis,boutiqueHTML,clubById,pepiteDuDepart," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;}};";
 function appareil(ls) { global.localStorage = ls; global.window.localStorage = ls; return new Function(script + epilogue)(); }
 
@@ -346,6 +347,40 @@ console.log("L) La boutique à points");
   ok(/Pour toutes vos carrières/.test(h) && /Pour la saison en cours/.test(h), "les deux rayons");
   ok(/✅ Acquis/.test(h) && (h.match(/class="boArt/g) || []).length === api.BOUTIQUE.length, "chaque article, les acquis marqués");
   api.ecranTrophees(); ok(/La boutique/.test(APP.innerHTML) && /gagnés/.test(APP.innerHTML), "la salle des trophées porte la boutique et le solde");
+}
+
+/* ===== M) la jeune légende ===== */
+console.log("M) La jeune légende");
+{
+  const a1 = appareil(nouveauLS()), S = a1.SAISONS["1995-96"], club = S.d1[0];
+  a1.nouvellePartie(club, "1995-96");
+  const tous = G => G.clubs.concat(G.autre).flatMap(c => c.joueurs.map(j => j.nom));
+  const avant = a1.getG(), effectif0 = a1.clubById(club).joueurs.length;
+  ok(!avant.news.some(n => /🌟/.test(n)), "sans l'achat, personne n'arrive");
+  const a2 = appareil(nouveauLS()), p = a2.prog();
+  p.defis = ["titre", "europe", "invincibles", "double"].map((id, t) => ({ id, t })); // 2 300
+  ok(a2.achete("legende") && a2.acquis("legende"), "la jeune légende s'achète 2 000 points");
+  a2.nouvellePartie(club, "1995-96"); const G = a2.getG(), moi = a2.clubById(club);
+  const L = moi.joueurs[moi.joueurs.length - 1];
+  ok(moi.joueurs.length === effectif0 + 1, "un joueur de plus dans l'effectif");
+  ok(L.reel && L.age <= 20 && L.club === club, `${L.nom}, ${L.age} ans, vrai joueur, au club`);
+  ok(L.nom === "T. Henry", "en 1995-96, c'est Thierry Henry");
+  ok(G.news.some(n => /🌟 Thierry Henry, 18 ans, quitte AS Monaco pour vous rejoindre\./.test(n)), "la dépêche le raconte");
+  const noms = tous(G), dbl = noms.filter((n, i) => noms.indexOf(n) !== i && n === L.nom);
+  ok(dbl.length === 0, "il a quitté son club : aucun doublon");
+  const mon = a2.clubById("MON"); ok(mon && !mon.joueurs.some(j => j.nom === "T. Henry"), "Monaco ne l'a plus");
+  ok(["G", "D", "M", "A"].every(pos => mon.joueurs.filter(j => j.pos === pos).length >= ({ G: 2, D: 5, M: 5, A: 4 })[pos]), "Monaco garde son ossature à chaque poste");
+  /* jouer avec Monaco : la pépite est quelqu'un d'autre */
+  const a3 = appareil(nouveauLS()); a3.prog().defis = p.defis.slice(); a3.achete("legende");
+  a3.nouvellePartie("MON", "1995-96"); const G3 = a3.getG(), m3 = a3.clubById("MON");
+  ok(m3.joueurs.filter(j => j.nom === "T. Henry").length === 1 && G3.news.some(n => /🌟/.test(n) && !/Henry/.test(n)), "avec Monaco, Henry reste et une autre pépite arrive");
+  /* une carrière déjà commencée ne change pas */
+  const a4 = appareil(nouveauLS()); a4.nouvellePartie(club, "1995-96"); const n4 = a4.clubById(club).joueurs.length;
+  a4.prog().defis = p.defis.slice(); a4.achete("legende");
+  ok(a4.clubById(club).joueurs.length === n4, "acheter en cours de carrière ne touche pas la carrière ouverte");
+  /* une saison jouée avec elle, sans erreur */
+  let err = null; try { while (!G.finie) a2.jouerJournee(); } catch (e) { err = e; }
+  ok(!err, "une saison entière avec la légende, sans erreur" + (err ? " : " + err.message : ""));
 }
 
 console.log(FAILS ? `\n${FAILS} ÉCHEC(S)` : "\nTOUT EST VERT");

@@ -662,7 +662,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.81"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.82"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -781,6 +781,24 @@ const HONNEURS_PAYS={
     2008:"ÉTÉ 2008 · Euro en Autriche et en Suisse : l'Espagne met fin à quarante-quatre ans d'attente, une frappe de Torres à Vienne. L'Angleterre regardait à la télévision : battue par la Croatie à Wembley en novembre, elle n'était pas qualifiée, et personne n'a oublié le parapluie de son sélectionneur.",
     2010:"ÉTÉ 2010 · Coupe du monde en Afrique du Sud : l'Espagne sacrée pour la première fois, un but d'Iniesta à la 116e minute. L'Angleterre prend quatre buts à Bloemfontein contre l'Allemagne, et tout le pays a vu que la frappe de Lampard avait franchi la ligne.",
     2012:"ÉTÉ 2012 · Euro en Pologne et en Ukraine : l'Espagne conserve son titre et en met quatre à l'Italie à Kiev, trois trophées de suite, du jamais-vu. L'Angleterre sort en quarts, aux tirs au but, contre ce même adversaire : la sixième élimination du pays dans l'exercice depuis 1990.",
+  },
+  /* L'Italie de 1992 à 2012 (ITA-B), onze étés vérifiés tournoi par tournoi sur la Wikipédia anglaise
+     (« Italy at the FIFA World Cup », « Italy at the UEFA European Championship » et les pages des
+     groupes et des finales). UN SEUL SACRE, et c'est 2006 : c'est le seul été qui porte le marqueur
+     « L'ITALIE SACRÉE », si bien que finDeSaison fête les internationaux du club cet été-là et aucun autre.
+     Les deux finales perdues (1994 aux tirs au but, 2000 sur un but en or, 2012 à Kiev) ne le portent pas. */
+  ITA:{
+    1992:"ÉTÉ 92 · Euro en Suède : le Danemark, repêché quinze jours avant le coup d'envoi, soulève le trophée. L'Italie regardait à la télévision : l'Union soviétique lui avait pris la seule place de son groupe de qualification.",
+    1994:"ÉTÉ 94 · Coupe du monde aux États-Unis : le Brésil sacré aux tirs au but à Pasadena, et c'est l'Italie qui perd la finale. Baresi manque le premier tir, Baggio envoie le dernier au-dessus de la barre.",
+    1996:"ÉTÉ 96 · Euro en Angleterre : l'Allemagne sacrée à Wembley, but en or de Bierhoff. L'Italie rentre dès le premier tour, battue par la République tchèque à Liverpool, puis tenue en échec par ces mêmes Allemands à Manchester.",
+    1998:"ÉTÉ 98 · Coupe du monde en France : la France championne du monde chez elle. L'Italie l'avait tenue cent vingt minutes sans un but en quarts, à Saint-Denis, avant de tomber aux tirs au but.",
+    2000:"ÉTÉ 2000 · Euro en Belgique et aux Pays-Bas : la France réalise le doublé, et c'est l'Italie qu'elle bat en finale à Rotterdam. Delvecchio avait ouvert le score, Wiltord égalise dans les arrêts de jeu, Trezeguet marque le but en or.",
+    2002:"ÉTÉ 2002 · Coupe du monde en Asie : le Brésil de Ronaldo sacré. L'Italie sort dès les huitièmes, à Daejeon, battue par la Corée du Sud, pays hôte, sur un but en or. La péninsule en veut encore à l'arbitre.",
+    2004:"ÉTÉ 2004 · Euro au Portugal : la Grèce stupéfie l'Europe entière. L'Italie rentre au premier tour sans avoir perdu un match : le 2-2 entre le Danemark et la Suède, le seul score qui l'éliminait, est tombé le dernier soir.",
+    2006:"ÉTÉ 2006 · COUPE DU MONDE EN ALLEMAGNE : L'ITALIE SACRÉE À BERLIN ! Materazzi égalise, Zidane est expulsé, et Grosso réussit le dernier tir au but contre la France. Le quatrième titre mondial du pays.",
+    2008:"ÉTÉ 2008 · Euro en Autriche et en Suisse : l'Espagne met fin à quarante-quatre ans d'attente, une frappe de Torres à Vienne. L'Italie, championne du monde, était tombée contre elle en quarts, à Vienne aussi, aux tirs au but.",
+    2010:"ÉTÉ 2010 · Coupe du monde en Afrique du Sud : l'Espagne sacrée pour la première fois, un but d'Iniesta à la 116e minute. L'Italie, tenante du titre, rentre dès le premier tour, dernière de son groupe derrière la Nouvelle-Zélande, battue 3-2 par la Slovaquie à Johannesburg.",
+    2012:"ÉTÉ 2012 · Euro en Pologne et en Ukraine : l'Espagne conserve son titre et en met quatre à l'Italie en finale à Kiev, trois trophées de suite, du jamais-vu. L'Italie avait sorti l'Angleterre aux tirs au but, puis l'Allemagne sur deux buts de Balotelli à Varsovie.",
   },
 };
 function honneurEte(an){ const t=HONNEURS_PAYS[paysVu().code]||HONNEURS_PAYS.FR; return t[an]; }
@@ -1151,10 +1169,29 @@ const NOMS_ANG=["Hebblethwaite","Brierley","Ashworth","Bagshaw","Barraclough","B
  "Rawcliffe","Redfern","Rishworth","Smallwood","Snelgrove","Swindells","Tattersall","Thwaites","Titterton",
  "Wainwright","Muldoon","Scanlon","Tierney","Pritchard","Mostyn"];
 const PRENOMS_ANG=["A.","B.","C.","D.","E.","G.","H.","I.","J.","K.","L.","M.","N.","O.","P.","R.","S.","T.","V.","W."];
-const NOMS_PAYS={FR:NOMS, ANG:NOMS_ANG};
-const PRENOMS_PAYS={FR:PRENOMS, ANG:PRENOMS_ANG};
+/* LE VIVIER ITALIEN (ITA-B). Même règle que l'anglais : la génération pioche dans le pays de la carrière, la
+   lecture travaille sur l'union. Les patronymes sont des noms de famille du Sud comme du Nord, et AUCUN n'est
+   porté par un footballeur dans Wikidata (recherche « métier : footballeur » sur chaque nom, 13/11/2026) ni
+   par un joueur curé du fichier (contrôlé par harness-textes-ita.cjs à chaque passage) : quand les saisons
+   italiennes arriveront avec leurs vrais joueurs, aucun ne devrait croiser un homme fabriqué. Si cela
+   arrivait quand même, la règle est celle de NOMS_ANG : on remplace le patronyme fabriqué, jamais le vrai.
+   Initiales : pas de H, J, K, W, Y, que l'italien n'emploie pas pour ses prénoms. */
+const NOMS_ITA=["Abbracciavento","Acquafredda","Battiloro","Bellomunno","Boccadamo","Campobasso","Cerasuolo","Colasanti",
+ "Ferraiuolo","Giacalone","Maffucci","Mangiafico","Mezzasoma","Minichiello","Mormile","Parisella","Piccirillo",
+ "Troncone","Squillante","Tramontano","Zinnato","Cannavacciuolo","Iannaccone","Lucchesini","Sbarbaro",
+ "Tamburrino","Russomanno","Spadafora","Brancaccio","Capuozzo","Mangiapane","Marzocchi","Pappalardo","Sgambati",
+ "Tafuri","Trapanese","Zanardelli","Abbondio","Bonsignore","Caramanna","Chiaromonte","Cuccurullo","Malvezzi",
+ "Mezzapesa","Panebianco","Pistilli","Rotondo","Salamone","Pagnozzi","Sciarappa","Cacciapaglia","Strazzullo",
+ "Panzarasa","Sbrescia","Annecchino","Scamardella","Ventrella","Mazzarella","Veneruso","Zagaria"];
+const PRENOMS_ITA=["A.","B.","C.","D.","E.","F.","G.","L.","M.","N.","O.","P.","R.","S.","T.","V."];
+const NOMS_PAYS={FR:NOMS, ANG:NOMS_ANG, ITA:NOMS_ITA};
+const PRENOMS_PAYS={FR:PRENOMS, ANG:PRENOMS_ANG, ITA:PRENOMS_ITA};
 const NOMS_TOUS=NOMS.concat(NOMS_ANG);
+/* NOMS_TOUS reste l'union française et anglaise d'ANG-D (harness-textes-ang la compte telle quelle) ; la
+   LECTURE d'un prénom, elle, balaie tous les viviers, Italie comprise, par NOMS_LUS. */
+const NOMS_LUS=new Set(NOMS_TOUS.concat(NOMS_ITA));
 const NOMS_ANG_SET=new Set(NOMS_ANG);
+const NOMS_ITA_SET=new Set(NOMS_ITA);
 function nomsGen(){ return NOMS_PAYS[paysVu().code]||NOMS; }
 function prenomsGen(){ return PRENOMS_PAYS[paysVu().code]||PRENOMS; }
 
@@ -1189,6 +1226,13 @@ const ORIGINES={
      "arrivé de Belfast à seize ans, sans un mot pendant trois mois",
      "élevé à Glasgow, biberonné au football de rue","fils d'un docker de Hull",
      "grandi dans les Midlands entre une usine et un terrain en pente"],
+ /* L'Italie (ITA-B) : une seule origine, large elle aussi, du Frioul à la Sicile, et le récit dit d'où. */
+ ita:["pur produit de l'oratoire de sa paroisse, dans la banlieue de Naples",
+     "fils d'un pêcheur de Mazara del Vallo","monté de Calabre à Turin à quinze ans, une valise pour tout bagage",
+     "repéré sur un terrain de terre battue des Pouilles","passé par toutes les équipes de village du Frioul",
+     "grandi dans une ruelle des Quartieri Spagnoli, un ballon contre le mur","fils de berger de la Barbagia, en Sardaigne",
+     "élevé au pied de l'Etna, dans un club de quartier de Catane","formé dans un patronage de la périphérie milanaise",
+     "fils d'un chauffeur de tram de Rome, biberonné au virage de l'Olimpico"],
 };
 function origineDuNom(nom){
   const fam=nom.split(" ").slice(1).join(" ")||nom;
@@ -1197,6 +1241,7 @@ function origineDuNom(nom){
   if(NOMS_LUSO.has(fam)) return "luso";
   if(NOMS_NORD.has(fam)) return "nord";
   if(NOMS_ANG_SET.has(fam)) return "ang";
+  if(NOMS_ITA_SET.has(fam)) return "ita";
   return "fr";
 }
 const ANECDOTES=["On dit qu'il n'a jamais manqué un entraînement.","Sa grand-mère assiste à tous ses matchs, pluie comprise.",
@@ -3392,13 +3437,18 @@ const PRENOMS_GEN={
       "John","Jason","Jimmy","Joe","Keith","Kevin","Kenny","Lee","Les","Laurie","Mark","Martin","Micky","Malcolm",
       "Neil","Nigel","Norman","Nicky","Oliver","Owen","Paul","Peter","Phil","Perry","Ray","Robbie","Roy","Russell",
       "Steve","Stuart","Shaun","Sid","Tony","Terry","Trevor","Tommy","Vince","Vernon","Wayne","Wes","Walter"],
+ ita:["Alessandro","Andrea","Angelo","Antonio","Alberto","Bruno","Biagio","Carlo","Claudio","Cristiano","Ciro",
+      "Daniele","Davide","Domenico","Dario","Enrico","Emanuele","Ernesto","Fabio","Francesco","Federico","Fabrizio",
+      "Giuseppe","Giovanni","Gianluca","Giorgio","Gennaro","Luca","Lorenzo","Luigi","Leonardo","Marco","Massimo",
+      "Matteo","Mauro","Michele","Nicola","Nando","Oscar","Ottavio","Paolo","Pietro","Pasquale","Roberto","Riccardo",
+      "Raffaele","Renato","Stefano","Salvatore","Simone","Sergio","Tommaso","Tiziano","Vincenzo","Valerio","Vito"],
 };
 function hacheNom(s){ let h=7; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h; }
 function prenomDe(nom){
   if(!nom) return "";
   if(Object.prototype.hasOwnProperty.call(PRENOMS_VRAIS, nom)) return PRENOMS_VRAIS[nom];
   const m=/^([A-Z])\. (.+)$/.exec(nom);
-  if(!m || !NOMS_TOUS.includes(m[2])) return ""; // la lecture travaille sur l'UNION des viviers de noms, pas sur celui du pays regardé
+  if(!m || !NOMS_LUS.has(m[2])) return ""; // la lecture travaille sur l'UNION des viviers de noms, pas sur celui du pays regardé
   const l=PRENOMS_GEN[origineDuNom(nom)].filter(p=>p.normalize("NFD")[0]===m[1]);
   return l.length ? l[hacheNom(nom)%l.length] : "";
 }
@@ -3656,8 +3706,26 @@ const PREMIER_TITRE={AJA:1995,LEN:1997,LYO:2001};
 const JAMAIS_CHAMPION_ANG=new Set(["BNS","BIR","BLP","BOL","BRD","BTF","BHA","BSC","BSR","BRY","CAM","CAR",
  "CHL","COL","COV","CRW","CPL","DON","FUL","GIL","GRI","HUL","LEI","LUT","MID","MIW","NOR","NTC","OLD","OXF",
  "PET","PLY","PTV","QPR","RDG","ROT","SCU","SOU","SND","SKP","STK","SWA","SWI","TRM","WAL","WAT","WHU","WIG","WIM"]);
-const JAMAIS_CHAMPION_PAYS={FR:JAMAIS_CHAMPION, ANG:JAMAIS_CHAMPION_ANG};
-const PREMIER_TITRE_PAYS={FR:PREMIER_TITRE, ANG:{}};
+/* LES ÉTERNELS SECONDS ITALIENS (ITA-B). Treize des soixante-quatorze clubs d'ITA-A ont été champions
+   d'Italie avant 2010, d'après le tableau « Clubs » de « List of Italian football champions » (Wikipédia
+   anglaise) : Juventus, Inter, Milan, Genoa, Torino, Bologna, Napoli, Roma, Lazio, Fiorentina, Cagliari,
+   Hellas Verona (1985) et Sampdoria. Les soixante et un autres ne l'ont jamais été. Trois pièges, vérifiés :
+   • LA SAMPDORIA DÉCROCHE SON PREMIER TITRE EN 1990-91, dans la fenêtre du jeu : elle est dans la liste, avec
+     PREMIER_TITRE_ITA à 1990, si bien qu'une carrière lancée en 1990-91 la voit encore maudite et qu'une
+     carrière lancée après ne la voit plus. C'est le pendant italien d'Auxerre 1995-96.
+   • LA SPEZIA n'a qu'une DÉCORATION pour le Campionato Alta Italia de 1944 (la source l'écrit « Spezia
+     Calcio (decoration) »), pas un titre : elle reste jamais championne.
+   • Livourne et Parme ont été deuxièmes, jamais premiers ; Pro Vercelli, Casale et Novese, champions
+     d'avant-guerre, ne sont pas au plateau du jeu. */
+const JAMAIS_CHAMPION_ITA=new Set([
+ "ACR","ALB","ALZ","ANC","AND","ARE","ASC","ATA","AVE","BAI","BRL","BRS","CAS","CDS","CES","CHI","CIT","COM",
+ "COS","CRM","CRO","CTN","CTZ","EMP","FOG","FRM","FRO","GAL","GRO","LEC","LUC","LVR","MAN","MES","MOD","MZA",
+ "PAD","PAL","PAR","PES","PIA","PIS","PRG","PST","RAV","REG","RGC","RIM","SAL","SAM","SAS","SAV","SIE","SPA",
+ "SPE","TAR","TER","TRI","TRV","UDI","VEN","VIC"
+]);
+const PREMIER_TITRE_ITA={SAM:1990};
+const JAMAIS_CHAMPION_PAYS={FR:JAMAIS_CHAMPION, ANG:JAMAIS_CHAMPION_ANG, ITA:JAMAIS_CHAMPION_ITA};
+const PREMIER_TITRE_PAYS={FR:PREMIER_TITRE, ANG:{}, ITA:PREMIER_TITRE_ITA};
 function jamaisChampion(id, an){
   const c=paysVu().code;
   const set=JAMAIS_CHAMPION_PAYS[c]||JAMAIS_CHAMPION, pt=PREMIER_TITRE_PAYS[c]||PREMIER_TITRE;
@@ -14770,6 +14838,15 @@ const INCIDENTS=[
    {lib:"Racheter son silence... et sa page du dimanche", issue:j=>{eff(j,{arg:-0.4e6,moral:+3}); return `Le club a désormais sa double page dans le journal. On n'y lit plus que des éloges.`;}},
    {lib:"En faire votre attaché de presse officieux", issue:j=>{eff(j,{moral:+5,groupe:-3}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Les fausses rumeurs savamment distillées affolent la salle de presse. Machiavélique, mais au vestiaire, plus personne ne se confie.`;}},
   ]},
+ /* Le jumeau italien (ITA-B) : là-bas, le secret du vestiaire part au quotidien sportif du lundi, celui
+    qu'on imprime sur papier rose. Même poids, mêmes effets ; la phrase ne nomme aucun titre. */
+ {id:"talpa_rosa", poids:0.5, pays:"ITA", test:j=>(j.venal||5)>=6,
+  txt:j=>`Stupeur : la « taupe » qui vend les secrets du vestiaire au quotidien sportif imprimé sur papier rose, compos, embrouilles, surnoms du staff, n'est autre que ${j.nom}. Le journal en a fait sa une du lundi.`,
+  choix:[
+   {lib:"Le démasquer devant tout le groupe", issue:j=>{eff(j,{arg:+0.5e6,moral:-9,groupe:+3,conf:+2}); return `Amende salée et carnet de notes confisqué. Le vestiaire savoure la chute de la taupe.`;}},
+   {lib:"Racheter son silence... et sa rubrique du lundi", issue:j=>{eff(j,{arg:-0.4e6,moral:+3}); return `Le club a désormais sa colonne dans le journal rose. On n'y lit plus que des éloges.`;}},
+   {lib:"En faire votre attaché de presse officieux", issue:j=>{eff(j,{moral:+5,groupe:-3}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Les fausses rumeurs savamment distillées affolent la salle de presse. Machiavélique, mais au vestiaire, plus personne ne se confie.`;}},
+  ]},
  {id:"loto", poids:0.4, test:()=>true,
   txt:j=>`${j.nom} a coché les six bons numéros au Loto. Il arrive à l'entraînement en limousine avec chauffeur et parle de « raccrocher pour ouvrir un golf ».`,
   choix:[
@@ -14804,6 +14881,14 @@ const INCIDENTS=[
   choix:[
    {lib:"Le libérer pour réviser", issue:j=>{const ok=Math.random()<0.75; if(ok){eff(j,{moral:+8,groupe:+2}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Deux A et un B ! Le virage chante son nom à son retour, et sa mère vous envoie un gâteau.`;} else {eff(j,{moral:+4}); return `Recalé d'un point en histoire, mais reconnaissant. « Je me rattraperai sur le terrain, coach. »`;}}},
    {lib:"Dans le groupe, révisions dans le bus", issue:j=>{eff(j,{moral:-3}); return `Fiches de révision entre deux causeries. Les Tudors à l'aller, 4-4-2 au retour.`;}},
+  ]},
+ /* Le jumeau italien du bac (ITA-B) : l'esame di maturità, en juin, et la même mère au téléphone.
+    Mêmes effets, même poids, même dilemme. */
+ {id:"maturita", poids:0.6, bon:true, pondJeune:2, pays:"ITA", test:j=>j.age<=19,
+  txt:j=>`${j.nom} passe la maturità la semaine du déplacement. Sa mère a appelé le club : « le foot, d'accord, mais le diplôme d'abord ». Le gamin n'ose rien demander.`,
+  choix:[
+   {lib:"Le libérer pour réviser", issue:j=>{const ok=Math.random()<0.75; if(ok){eff(j,{moral:+8,groupe:+2}); G.buzz=Math.min(4,(G.buzz||0)+1); return `Diplôme en poche ! La curva chante son nom à son retour, et sa mère vous envoie une pastiera.`;} else {eff(j,{moral:+4}); return `Recalé à l'oral d'histoire, mais reconnaissant. « Je me rattraperai sur le terrain, coach. »`;}}},
+   {lib:"Dans le groupe, révisions dans le bus", issue:j=>{eff(j,{moral:-3}); return `Fiches de révision entre deux causeries. Dante à l'aller, 4-4-2 au retour.`;}},
   ]},
 ];
 function anneeJeu(){ return (G.anBase||1995)+(G.saisonIdx||1)-1; } // année civile de DÉBUT de la saison en cours ; anBase = 1re saison de la carrière (1995 par défaut, 1996 si départ en 96/97…)
@@ -19153,10 +19238,48 @@ const CLUBS_AMATEURS_ANG=[
   {id:"chasetn", nom:"Chasetown FC",         ville:"Chasetown",       force:41},
   {id:"histon",  nom:"Histon FC",            ville:"Histon",          force:41},
 ];
-const AMATEURS_PAYS={FR:CLUBS_AMATEURS, ANG:CLUBS_AMATEURS_ANG};
-/* La LECTURE balaie les deux listes (une sauvegarde française relue doit retrouver ses villages quel
+/* LES PETITS CLUBS DE LA COPPA ITALIA (ITA-B). Vingt-huit vrais clubs italiens des divisions du dessous
+   (Serie C et Dilettanti) sur la fenêtre 1990-2010, dont deux anciens champions d'Italie d'avant-guerre
+   (Pro Vercelli et Casale, d'après « List of Italian football champions »). Chacun a été retrouvé sur sa
+   page de la Wikipédia anglaise le 13/11/2026 ; deux candidats ont été écartés faute de page sûre
+   (Lumezzane, et Akragas, dont la page est celle du club refondé en 2018). AUCUN n'est dans CLUBS_ITA,
+   l'union des quarante classements de Serie A et de Serie B de la fenêtre : aucun n'a donc joué l'un des
+   deux premiers échelons entre 1990-91 et 2009-10. Les forces reprennent la fourchette française (41 à
+   50) ; ce sont des jugements de rang, pas des relevés. La règle des 24 vaut ici comme ailleurs. */
+const CLUBS_AMATEURS_ITA=[
+  {id:"novara",  nom:"Novara",              ville:"Novare",                    force:50},
+  {id:"alessan", nom:"Alessandria",         ville:"Alexandrie",                force:50},
+  {id:"proverc", nom:"Pro Vercelli",        ville:"Verceil",                   force:49},
+  {id:"varese",  nom:"Varese",              ville:"Varèse",                    force:49},
+  {id:"beneven", nom:"Benevento",           ville:"Bénévent",                  force:48},
+  {id:"jstabia", nom:"Juve Stabia",         ville:"Castellammare di Stabia",   force:48},
+  {id:"sambene", nom:"Sambenedettese",      ville:"San Benedetto del Tronto",  force:48},
+  {id:"carrar",  nom:"Carrarese",           ville:"Carrare",                   force:47},
+  {id:"propatr", nom:"Pro Patria",          ville:"Busto Arsizio",             force:47},
+  {id:"nocera",  nom:"Nocerina",            ville:"Nocera Inferiore",          force:47},
+  {id:"lanciano", nom:"Virtus Lanciano",     ville:"Lanciano",                  force:47},
+  {id:"carpi",   nom:"Carpi",               ville:"Carpi",                     force:46},
+  {id:"gubbio",  nom:"Gubbio",              ville:"Gubbio",                    force:46},
+  {id:"teramo",  nom:"Teramo",              ville:"Teramo",                    force:46},
+  {id:"legnano", nom:"Legnano",             ville:"Legnano",                   force:46},
+  {id:"sanrem",  nom:"Sanremese",           ville:"Sanremo",                   force:45},
+  {id:"viareg",  nom:"Viareggio",           ville:"Viareggio",                 force:45},
+  {id:"massese", nom:"Massese",             ville:"Massa",                     force:45},
+  {id:"trapani", nom:"Trapani",             ville:"Trapani",                   force:45},
+  {id:"casale",  nom:"Casale",              ville:"Casale Monferrato",         force:44},
+  {id:"biella",  nom:"Biellese",            ville:"Biella",                    force:44},
+  {id:"paganes", nom:"Paganese",            ville:"Pagani",                    force:44},
+  {id:"fano",    nom:"Alma Juventus Fano",  ville:"Fano",                      force:43},
+  {id:"giulia",  nom:"Giulianova",          ville:"Giulianova",                force:43},
+  {id:"sangio",  nom:"Sangiovannese",       ville:"San Giovanni Valdarno",     force:43},
+  {id:"turris",  nom:"Turris",              ville:"Torre del Greco",           force:42},
+  {id:"prosesto", nom:"Pro Sesto",           ville:"Sesto San Giovanni",        force:42},
+  {id:"entella", nom:"Virtus Entella",      ville:"Chiavari",                  force:41},
+];
+const AMATEURS_PAYS={FR:CLUBS_AMATEURS, ANG:CLUBS_AMATEURS_ANG, ITA:CLUBS_AMATEURS_ITA};
+/* La LECTURE balaie toutes les listes (une sauvegarde française relue doit retrouver ses villages quel
    que soit le pays regardé) ; le TIRAGE, lui, ne prend que ceux du pays de la carrière. */
-const AMATEURS_TOUS=CLUBS_AMATEURS.concat(CLUBS_AMATEURS_ANG);
+const AMATEURS_TOUS=CLUBS_AMATEURS.concat(CLUBS_AMATEURS_ANG, CLUBS_AMATEURS_ITA);
 function clubsAmateurs(){ return AMATEURS_PAYS[paysVu().code]||CLUBS_AMATEURS; }
 const COUPE_TOURS=[ // tours intercalés en semaine ; j = valeur de G.journee à laquelle le tour se joue
   {nom:"32es de finale",  court:"32es",   j:10},
@@ -19832,7 +19955,50 @@ const SIEGES_ANG={
    et que Manchester United devenait un adversaire de Coupe UEFA en 2008, l'année où il jouait la C1.
    Avec la ligne de l'année, les clubs anglais d'un tableau sont ceux qui ont VRAIMENT joué cette
    coupe-là cette année-là, et 1990-91 n'a personne en C1, comme dans l'histoire. */
-const SIEGES_PAYS={ FR:null, ANG:SIEGES_ANG };
+/* LES SIÈGES EUROPÉENS ITALIENS, SAISON PAR SAISON (ITA-B). Même format et mêmes règles que SIEGES_ANG :
+   l'année de DÉBUT de la saison, les clubs qui ont VRAIMENT joué chaque coupe cette saison-là. Relevé un
+   par un, le 13/11/2026, sur les quarante-neuf pages d'édition de la Wikipédia anglaise (European Cup puis
+   Champions League, Coupe des Coupes, Coupe UEFA puis Ligue Europa), par le drapeau italien des
+   tableaux de participants, jamais de mémoire. En C1, l'ordre est celui du classement de la Serie A de la
+   saison d'avant, que donnent les tableaux de participants (le champion d'abord, avant le tenant du titre :
+   Napoli avant Milan en 1990, Milan avant la Juventus en 1996) ; en C2 et en C3, c'est l'ordre du tableau de
+   participants de la source. Cinq choses à savoir :
+   • LES TROIS LISTES SONT DISJOINTES, comme en Angleterre : un club éliminé au tour préliminaire de la C1
+     ou troisième de son groupe, et reversé en Coupe UEFA, n'est listé QUE en C1 (Parme en 1999 et 2001,
+     l'Inter en 2000, Udinese en 2005, le Chievo en 2006, la Fiorentina en 2008, la Juventus en 2009).
+   • 1991-92 : la C1 n'a que la Sampdoria, championne, et Milan, banni, n'est dans aucune coupe (voir plus bas).
+   • 2006-07 : le classement du Calciopoli. L'Inter, la Roma, Milan et le Chievo jouent la C1, dans l'ordre
+     du classement corrigé ; la Juventus, reléguée, est en Serie B et ne joue aucune coupe d'Europe.
+   • La Coupe UEFA compte les clubs venus de l'Intertoto (Bologna 1998, Juventus 1999, Udinese 2000,
+     Perugia 2003, Sampdoria 2007, Napoli 2008), comme Aston Villa et Fulham côté anglais.
+   • C2 est VIDE à partir de 1999 : la Coupe des Coupes n'existe plus. Vicenza la joue en 1997-98,
+     par la Coppa Italia : c'est le pendant italien de Millwall, un club qu'on n'attend pas.
+   La délégation va de six clubs (1991, 1992, 1995) à huit (1990, 1998, 1999, 2000, 2003, 2007, 2008).
+   1991-92 : Milan est banni un an d'Europe après avoir quitté la pelouse de Marseille, panne d'éclairage,
+   en mars 1991 (page « 1990–91 European Cup ») ; il n'est nulle part, ce n'est pas un oubli. */
+const SIEGES_ITA={
+  1990:{C1:["NAP","MIL"],             C2:["SAM","JUV"], C3:["INT","ROM","ATA","BGN"]},
+  1991:{C1:["SAM"],                   C2:["ROM"],       C3:["TOR","INT","PAR","GEN"]},
+  1992:{C1:["MIL"],                   C2:["PAR"],       C3:["JUV","TOR","ROM","NAP"]},
+  1993:{C1:["MIL"],                   C2:["PAR","TOR"], C3:["INT","CAG","JUV","LAZ"]},
+  1994:{C1:["MIL"],                   C2:["SAM"],       C3:["INT","JUV","LAZ","PAR","NAP"]},
+  1995:{C1:["JUV"],                   C2:["PAR"],       C3:["LAZ","MIL","ROM","INT"]},
+  1996:{C1:["MIL","JUV"],             C2:["FIO"],       C3:["LAZ","ROM","PAR","INT"]},
+  1997:{C1:["JUV","PAR"],             C2:["VIC"],       C3:["INT","LAZ","UDI","SAM"]},
+  1998:{C1:["JUV","INT"],             C2:["LAZ"],       C3:["UDI","ROM","FIO","PAR","BGN"]},
+  1999:{C1:["MIL","LAZ","FIO","PAR"], C2:[],            C3:["ROM","UDI","BGN","JUV"]},
+  2000:{C1:["LAZ","JUV","MIL","INT"], C2:[],            C3:["PAR","ROM","FIO","UDI"]},
+  2001:{C1:["ROM","JUV","LAZ","PAR"], C2:[],            C3:["FIO","INT","MIL"]},
+  2002:{C1:["JUV","ROM","INT","MIL"], C2:[],            C3:["PAR","CHI","LAZ"]},
+  2003:{C1:["JUV","INT","MIL","LAZ"], C2:[],            C3:["PAR","UDI","ROM","PRG"]},
+  2004:{C1:["MIL","ROM","JUV","INT"], C2:[],            C3:["LAZ","PAR","UDI"]},
+  2005:{C1:["JUV","MIL","INT","UDI"], C2:[],            C3:["SAM","PAL","ROM"]},
+  2006:{C1:["INT","ROM","MIL","CHI"], C2:[],            C3:["PAL","LVR","PAR"]},
+  2007:{C1:["INT","ROM","LAZ","MIL"], C2:[],            C3:["PAL","FIO","EMP","SAM"]},
+  2008:{C1:["INT","ROM","JUV","FIO"], C2:[],            C3:["MIL","SAM","UDI","NAP"]},
+  2009:{C1:["INT","JUV","MIL","FIO"], C2:[],            C3:["LAZ","GEN","ROM"]},
+};
+const SIEGES_PAYS={ FR:null, ANG:SIEGES_ANG, ITA:SIEGES_ITA };
 function siegesDuPays(){ // la ligne de sièges de l'année de départ, ou null (France : siège historique)
   const t=SIEGES_PAYS[(typeof G!=="undefined"&&G&&G.pays)||"FR"]; if(!t) return null;
   const ans=Object.keys(t).map(Number), an=Math.min(Math.max((G&&G.anBase)||1995, Math.min(...ans)), Math.max(...ans));
@@ -21799,6 +21965,7 @@ const BOUTIQUE=[
   {art:"tribune",    ray:"perm", ico:"🏟️", nom:"Une tribune de plus",          sous:"+3 000 places au stade, dès le départ",        prix:1500},
   {art:"tresor",     ray:"perm", ico:"💰", nom:"Trésor de guerre",             sous:"+10 M au budget transferts, dès le départ",    prix:1000},
   {art:"president",  ray:"perm", ico:"🤝", nom:"Un président qui vous aime",   sous:"La confiance du président démarre plus haut", prix:600},
+  {art:"legende",    ray:"perm", ico:"🌟", nom:"Une jeune légende",            sous:"La plus belle pépite du championnat vous rejoint au départ", prix:2000},
   {art:"infirmerie", ray:"coup", ico:"🩹", nom:"Vider l'infirmerie",           sous:"Tous vos blessés reviennent",                  prix:150},
   {art:"amnistie",   ray:"coup", ico:"🟨", nom:"L'amnistie",                   sous:"Toutes vos suspensions sont levées",           prix:100},
   {art:"tournee",    ray:"coup", ico:"🍻", nom:"Tournée générale",             sous:"Le moral du vestiaire remonte",                prix:80},
@@ -21833,12 +22000,31 @@ function appliqueCoup(art){
   if(art==="tournee"){ moi.joueurs.forEach(j=>{ j.moral=Math.min(100,(j.moral||65)+15); }); G.news.unshift("🍻 Tournée générale au club-house : le vestiaire a retrouvé le sourire."); }
   if(art==="rallonge"){ G.budget+=5e6; G.news.unshift("💼 Le président remet au pot : "+MM(5e6,0)+" de plus pour les transferts."); }
 }
+/* LA JEUNE LÉGENDE (v2.80) : le vrai joueur de 20 ans au plus qui a le plus beau potentiel des deux divisions de la
+   saison de départ, hors de votre club. Déterministe : la pépite d'une saison est toujours la même (Henry, Drogba…),
+   c'est ce qui en fait une légende. Son club ne la lâche que s'il garde de quoi aligner son poste (CIBLE). */
+function pepiteDuDepart(moi){
+  const cand=[];
+  for(const c of G.clubs.concat(G.autre||[])){
+    if(c.id===moi.id) continue;
+    for(const j of c.joueurs){
+      if(!j.reel || !(j.age<=20) || j.pretIn || j.pretOut) continue;
+      if(c.joueurs.filter(x=>x.pos===j.pos).length<=CIBLE[j.pos]) continue; // le club garde son ossature
+      cand.push({j, de:c});
+    }
+  }
+  cand.sort((a,b)=>(b.j.pot-a.j.pot)||(b.j.note-a.j.note)||String(a.j.nom).localeCompare(String(b.j.nom)));
+  return cand[0]||null;
+}
 function boutiqueAuDepart(clubId){ // appelée par nouvellePartie, une carrière NEUVE : les avantages permanents acquis
   const moi=G.clubs.find(c=>c.id===clubId); if(!moi) return;
   const faits=[];
   if(acquis("tribune")){ moi.cap+=3000; faits.push("une tribune de plus"); }
   if(acquis("tresor")){ G.budget+=10e6; faits.push("un trésor de guerre"); }
   if(acquis("president")){ G.confiance=Math.min(100, G.confiance+15); faits.push("un président acquis à votre cause"); }
+  if(acquis("legende")){ const L=pepiteDuDepart(moi); if(L){ L.de.joueurs=L.de.joueurs.filter(x=>x!==L.j);
+    L.j.club=moi.id; L.j.titu=false; L.j.avendre=false; moi.joueurs.push(L.j);
+    G.news.push("🌟 "+nomLong(L.j.nom)+", "+L.j.age+" ans, quitte "+L.de.nom+" pour vous rejoindre."); } }
   if(faits.length) G.news.push("⭐ Vos avantages vous suivent : "+faits.join(", ")+".");
 }
 function boutiqueHTML(enJeu){
