@@ -6150,6 +6150,19 @@ déjà dans la liste française, ne signent plus « ETR » dans une carrière fr
 l'étranger » et « Pépite de Serie B » sans toucher aux clés. **Reste français, comme en Angleterre** : les autres
 catégories de la liste de l'été (les pépites de D2, les come-back) sont des Français, affichés sous leur libellé
 italien. Gardé par la section « Italiens de l'étranger » de `harness-recruteur.cjs`.
+**ITA-F (b), le mot des clubs, livré en séance le 13/11/2026 (v2.87, branche `chantier/mots-clubs-ita`, choix
+auteur)** : `MALEDICTIONS_ITA` (une phrase pour chacun des soixante-quatorze clubs d'ITA-A) et
+`MALEDICTIONS_EPOQUE_ITA` (vingt-huit clubs dont la vérité change avec la saison de départ : la Sampdoria maudite
+en 1990 puis sacrée, la Juventus en Serie B à partir de 2006, la Roma de 2001, la Lazio de 2000 puis de la chute de
+Cragnotti, les ânes du Chievo qui volent à partir de 2001, Naples de Maradona à De Laurentiis, Livourne, Palerme,
+Modène, Reggio et ses onze points de pénalité…), fondues dans `MALEDICTIONS` et `MALEDICTIONS_EPOQUE` par
+`Object.assign` : les codes sont uniques entre pays, `malediction` n'a pas bougé. Ton du jeu tenu : aucun récit
+tragique (Superga est un nom, pas une scène). Les faits datés incertains ont été vérifiés (Wikipédia anglaise,
+recherche web pour Rozzi, Reggina, Pérouse, Ravenne) ; Pistoia, qu'on croyait monté une seule fois, a été corrigé.
+Gardé par **`harness-mots-ita.cjs`** (cinq sections : 74 clubs × 20 saisons sans silence, aucune collision de
+code, la forme, des bascules d'époque témoins, une carrière française inchangée).
+**Reste ouvert, choix auteur du 13/11/2026** : de vraies pépites de Serie B pour le recruteur (ITA-F d), au lieu
+des pépites de D2 françaises affichées sous un libellé italien.
 Gardé par **`harness-textes-ita.cjs`** (neuf sections, dont la dernière joue une saison italienne entière, une
 intersaison et dix journées, puis relit tout ce que la saison a écrit).
 

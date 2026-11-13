@@ -334,10 +334,12 @@ Le cadre posé pour l'Angleterre sert à tout le monde ; il ne reste que ce qui 
       (a) ✅ **FAIT EN SÉANCE le 13/11/2026 (v2.86, choix auteur)** : `VIVIER_SAISON_ITA`, cinquante et un Italiens de
       l'étranger sur vingt étés (1993 vide exprès), vérifiés fiche par fiche sur la Wikipédia anglaise ; libellés
       « Italien de l'étranger » et « Pépite de Serie B » ; gardé par `harness-recruteur`. **Ne pas refaire.**
-      (b) **Le mot des clubs** : une phrase d'histoire vérifiée pour chacun des soixante-quatorze clubs italiens
-      (`MALEDICTIONS`, avec ses variantes d'époque). Une journée de curation.
+      (b) ✅ **FAIT EN SÉANCE le 13/11/2026 (v2.87, choix auteur)** : `MALEDICTIONS_ITA`, un mot par club pour les
+      soixante-quatorze, et vingt-huit clubs à variantes d'époque ; gardé par `harness-mots-ita.cjs`. **Ne pas refaire.**
+      (d) **Les pépites de Serie B** (choix auteur du 13/11/2026) : de jeunes Italiens de Serie B, été par été,
+      vérifiés à la source, pour remplacer en carrière italienne les pépites de D2 françaises. Une journée de curation.
       (c) ✅ **Les sponsors et équipementiers : VALIDÉS par l'auteur en séance le 13/11/2026 (v2.85).** Ne pas
-      refaire, ne rien y ajouter sans lui. Il ne reste que (b).
+      refaire, ne rien y ajouter sans lui.
 
 ### Italie — 20 saisons
 
