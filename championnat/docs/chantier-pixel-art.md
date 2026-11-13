@@ -90,3 +90,8 @@ Demandées par l'auteur dans la foulée. Les deux moteurs cadrent serré sur ce 
 l'échelle du zoom. Campus à l'aube (ciel en bandes) et feu d'artifice pour le château ; stade un soir de match, l'état
 d'avant glisse vers l'état d'après avec la grue. Vérifié dans Chrome (résidence, hôtel, château), ordinateur et téléphone,
 zéro erreur. Reste en dessin vectoriel : l'aperçu du choix de style du stade.
+
+## Au fil des mois (v2.81, 13/11/2026)
+
+Les deux maquettes suivent le calendrier de la saison : arbres, usure de la pelouse, pluie, neige, sapin de décembre.
+Réglages « Mois » et « Une autre semaine » dans les deux prototypes. Vérifié dans le jeu en octobre, janvier, mai et l'été.

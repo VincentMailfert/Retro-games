@@ -2786,6 +2786,19 @@ toujours « raconter quelque chose ».
   (`STADE3D.vueVille`, dans `cableChoixStyle`). Le contrôle de la carte d'inauguration de `harness-centre.cjs` a été
   réécrit pour la carte en pixel art (il cherchait les marques du dessin vectoriel) : il vérifie le surtitre, le feu
   d'artifice porté par la scène et les deux toiles, et qu'une livraison ordinaire n'en a pas.
+- **STADE ET CAMPUS AU FIL DES MOIS (v2.81, demande de l'auteur du 13/11/2026 : « qu'ils vivent au fil des saisons, du
+  mois de l'année »)** : les deux moteurs lisent `R.mois` (0 = janvier) et `R.jour` (graine de la semaine). `moisJeu()` le
+  déduit de la journée (J1 en août, J38 en mai, comme `tireMeteo` et `ACTES` ; saison finie = juin), `auFilDesMois(R)` le
+  pose sur l'état des maquettes ET des cartes de livraison. `saisonDe(R)` (dans chaque moteur, même code) décide : arbres
+  verts l'été, roux à l'automne avec des feuilles mortes sur le parvis, nus l'hiver, en fleurs en avril ; pelouse usée
+  d'août à mai (devant les buts, puis au rond central ; `USURE_MOIS`), divisée par trois avec la **pelouse chauffante** du
+  stade (qui garde aussi l'herbe sans givre), et resemée l'été (bandes de tonte franches) ; pluie à l'automne et parfois au
+  printemps, neige certains hivers (sol blanc sur le parvis et le campus, allées déneigées, toits enneigés, flocons qui
+  tombent ; au-delà du parvis, une trame régulière et non un bruit) ; un sapin illuminé en décembre. Le temps qu'il fait ne
+  change pas d'une image à l'autre, seulement d'une journée à l'autre. Palette du mois copiée à chaque image
+  (`paletteSaison`) : la palette de base ne bouge jamais. Les prototypes ont un réglage « Mois » et « Une autre semaine ».
+  **Piège payé** : un saupoudrage au hasard, pixel par pixel, rend une neige de télé mal réglée ; il faut une couche pleine
+  avec un peu de grain, ou une trame ordonnée.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente

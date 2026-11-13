@@ -54,6 +54,7 @@
   </div>
   <div class="pupitre" id="pupitre">
     <div class="bas">
+      <div><label class="r" for="rMois">Mois <output id="moisOut"></output></label><input type="range" id="rMois" min="0" max="11" step="1" value="8"></div><div><div class="titre">Le temps qu'il fait</div><div class="seg"><button type="button" id="bSem">Une autre semaine</button></div></div>
       <div style="grid-column:1 / -1"><div class="titre">Finesse du dessin</div><div class="seg" id="segFin"><button type="button" data-e="1" aria-pressed="true">320 · comme le stade</button><button type="button" data-e="1.5" aria-pressed="false">480</button><button type="button" data-e="2" aria-pressed="false">640</button></div></div>
       <div><label class="r" for="rAn">Saison <output id="anOut"></output></label><input type="range" id="rAn" min="1990" max="2010" step="1" value="1996"></div>
       <div><div class="titre">Chantier en cours</div><select id="sCh"></select></div>
@@ -90,6 +91,23 @@ const MAT={
   pierre:[C.pierre,C.pierre,C.pierre2], chantier:[C.chantier,C.chantier,C.chantier2]
 };
 // Le cadrage : le campus fait 240 m sur 200, on garde une marge pour la route et les arbres.
+/* ---- AU FIL DES MOIS (v2.81) : la maquette vit avec le calendrier. R.mois (0 = janvier) et R.jour (la journée : le temps
+   change d'une semaine à l'autre, mais pas d'une image à l'autre). Sans R.mois, c'est septembre. Les arbres verdissent,
+   roussissent, perdent leurs feuilles et fleurissent ; la pelouse s'use d'août à mai et repart neuve l'été ; il pleut à
+   l'automne, il neige certains hivers ; en décembre, un sapin s'allume. ---- */
+const USURE_MOIS=[.7,.8,.85,.9,1,0,0,.05,.15,.3,.45,.6];
+function saisonDe(R){ const m=R.mois==null?8:((R.mois%12)+12)%12, j=R.jour|0, h=hasard(j*7+m*31+5,m*13+3), h2=hasard(j*3+11,m*5+1);
+  const hiver=m===11||m<=1, automne=m===9||m===10, printemps=m>=2&&m<=4, ete=m>=5&&m<=8;
+  const neigeSol=(m===0||m===1)?h<.5:(m===11?h<.25:false), neige=neigeSol&&h2<.7;
+  const pluie=!neigeSol&&((automne&&h<.55)||(m===2&&h<.4)||(hiver&&h<.35)||((m===3||m===4)&&h<.12));
+  return {m,hiver,automne,printemps,ete,neigeSol,neige,pluie,usure:USURE_MOIS[m],nu:hiver,fleurs:m===3,feuilles:automne,sapin:m===11,resemis:m===5||m===6}; }
+function paletteSaison(Sa){ const c=Object.assign({},C);
+  if(Sa.automne){ c.arbre=hex('#7a4a24'); c.arbre2=hex('#c27a2c'); }
+  if(Sa.printemps) c.arbre2=hex('#3f8f4f');
+  if(Sa.hiver){ c.herbe=hex('#1b5a35'); c.herbe2=hex('#23683e'); }
+  if(Sa.m===7||Sa.m===8) c.herbe2=hex('#33833f');
+  c.feuille=hex('#c27a2c'); c.fleur=hex('#e9a3bd'); c.neigeC=hex('#e8eef8'); c.neigeO=hex('#c3cde0'); c.pluieC=hex('#7f9fc4'); c.usee=hex('#7d6b3e');
+  return c; }
 // E = la finesse de la grille : 1 donne 320 x 224 (celle du stade), 2 donne 640 x 448. Le plan et les règles ne
 // bougent pas ; à finesse double, on voit deux fois plus de pixels sur le même campus, et les petits sujets
 // (joueurs, arbres, fanions, projecteurs) sont redessinés avec plus de détails au lieu d'être simplement grossis.
@@ -115,6 +133,7 @@ function peindre(R, image, E, o){
   E=E||1; o=o||{}; const base=cadre(E), {GW,GH}=base; let {k,kz,P}=base;
   if(o.focus){ const z=cadreSur(E,o.focus); E=E*z.k/k; k=z.k; kz=z.kz; P=z.P; }   // les petits sujets suivent le zoom : redessinés, pas grossis
   const S=n=>Math.max(1,Math.round(n*E));
+  const Sa=saisonDe(R), C=paletteSaison(Sa);   // la palette du mois, pour cette image seulement
   const buf=new Uint8ClampedArray(GW*GH*4);
   const px=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return; const i=(y*GW+x)*4; buf[i]=c[0]; buf[i+1]=c[1]; buf[i+2]=c[2]; buf[i+3]=255; };
   const est=(x,y,c)=>{ if(x<0||y<0||x>=GW||y>=GH) return false; const i=(y*GW+x)*4; return buf[i]===c[0]&&buf[i+1]===c[1]&&buf[i+2]===c[2]; };
@@ -129,6 +148,27 @@ function peindre(R, image, E, o){
   const sol=(x0,x1,y0,y1,c,bord,z)=>quad([[x0,y0,z||0],[x1,y0,z||0],[x1,y1,z||0],[x0,y1,z||0]],c,bord);
   const seg3=(a,b,c,p)=>ligne(P(...a),P(...b),c,p);
   const pt=(x,y,z,c)=>{ const q=P(x,y,z); px(q[0],q[1],c); };
+  // --- au fil des mois : l'arbre nu de l'hiver, les feuilles mortes, le sapin de décembre, la pluie et la neige qui tombent
+  const arbreNu=(p,g)=>{ const h=Math.round((g?6.5:5)*Math.max(1,E)); px(p[0],p[1],C.encre); for(let d=1;d<=h;d++) px(p[0],p[1]-d,C.bois);
+    for(const [f,s] of [[.45,-1],[.62,1],[.78,-1],[.9,1]]){ const y0=p[1]-Math.round(h*f), l=Math.max(1,Math.round(h*.34*(1.15-f)));
+      for(let i=1;i<=l;i++) px(p[0]+s*i,y0-Math.round(i*.7),C.bois); if(Sa.neigeSol) px(p[0]+s*l,y0-Math.round(l*.7)-1,C.neigeC); }
+    if(Sa.neigeSol) px(p[0],p[1]-h-1,C.neigeC); };
+  const feuillesMortes=p=>{ if(!Sa.feuilles) return; for(let i=0;i<5;i++) px(p[0]+Math.round((hasard(p[0]+i,p[1])-.5)*6*Math.max(1,E)),p[1]+Math.round(hasard(p[1]+i,p[0])*2*Math.max(1,E)),C.feuille); };
+  const sapin=(x,y,deco)=>{ const p=P(x,y,0), e=Math.max(1,E), h=Math.round(8*e); px(p[0],p[1],C.bois);
+    for(let d=1;d<=h;d++){ const w=Math.round((h-d)/h*2.6*e); for(let dx=-w;dx<=w;dx++){ const g=((dx*3+d*5+image)%7+7)%7===0;
+      px(p[0]+dx,p[1]-d-1, g?deco[((dx+d)%deco.length+deco.length)%deco.length]:(dx<0?hex('#256b45'):hex('#1a4a33'))); } }
+    for(let d=0;d<S(1.5);d++) px(p[0],p[1]-h-2-d,C.jaune); };
+  const intemperies=()=>{ if(!Sa.neige&&!Sa.pluie) return; const n=Math.round((Sa.neige?150:110)*E*E/(E>1?1.4:1));
+    for(let i=0;i<n;i++){ const bx=hasard(i,17)*GW, by=hasard(i,29)*GH;
+      if(Sa.neige){ const y=Math.round(by+image*S(1.5))%GH, x=(Math.round(bx+Math.sin(image*.7+i)*S(1.5))+GW)%GW; for(let a=0;a<S(1);a++) for(let b=0;b<S(1);b++) px(x+a,y+b,C.neigeC); }
+      else { const y=Math.round(by+image*S(7))%GH, x=(Math.round(bx-image*S(2))%GW+GW)%GW; for(let d=0;d<S(3);d++) px(x-Math.round(d*.35),y+d,C.pluieC); } } };
+  // la neige au sol (et le givre sur l'herbe, sauf pelouse chauffante), ou les feuilles mortes : un saupoudrage, pixel par pixel
+  const saupoudre=(sur,terr,dens)=>{ if(!Sa.neigeSol&&!Sa.feuilles) return; dens=dens==null?1:dens; if(!Sa.neigeSol&&dens<1) return;
+    for(let y=0;y<GH;y++) for(let x=0;x<GW;x++){ const h=hasard(x*7+3,y*11+Sa.m);
+      if(Sa.neigeSol){ if((dens<1?(x+2*y)%5===0:true)&&sur.some(c=>est(x,y,c))) px(x,y,dens<1?C.neigeO:h<.84?C.neigeC:h<.97?C.neigeO:C.gazon2); else if(h<.03&&terr.some(c=>est(x,y,c))) px(x,y,C.neigeC); }
+      else if(h<.012&&sur.some(c=>est(x,y,c))){ px(x,y,C.feuille); px(x+1,y,C.feuille); } } };
+  // l'usure de la pelouse : devant les buts d'abord, puis au rond central, d'août à mai
+  const usure=(cx,cy,rx,ry,d)=>{ for(let a=-rx;a<=rx;a+=.6) for(let b=-ry;b<=ry;b+=.6) if((a*a)/(rx*rx)+(b*b)/(ry*ry)<1&&hasard(Math.round((cx+a)*5),Math.round((cy+b)*5))<d){ const q=P(cx+a,cy+b,0); px(q[0],q[1],C.usee); } };
 
   // --- la scène se peint en deux temps : le sol d'abord, puis tout ce qui dépasse, trié de l'arrière vers l'avant
   const objets=[]; const add=(cle,fn)=>objets.push([cle,fn]);
@@ -136,9 +176,10 @@ function peindre(R, image, E, o){
   const boite=(x0,x1,y0,y1,z0,z1,m)=>{ const c=mat(m);
     quad([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],c[1],C.encre);
     quad([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],c[2],C.encre);
-    quad([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],c[0],C.encre);
+    const dessus=Sa.neigeSol&&!CH?C.neigeC:c[0];
+    quad([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],dessus,C.encre);
     // à grille fine, le toit-terrasse a son acrotère et ses édicules
-    if(E>=1.5&&!CH&&x1-x0>8&&y1-y0>8){ const m=1.2; quad([[x0+m,y0+m,z1],[x1-m,y0+m,z1],[x1-m,y1-m,z1],[x0+m,y1-m,z1]],c[0],c[2]);
+    if(E>=1.5&&!CH&&x1-x0>8&&y1-y0>8){ const m=1.2; quad([[x0+m,y0+m,z1],[x1-m,y0+m,z1],[x1-m,y1-m,z1],[x0+m,y1-m,z1]],dessus,c[2]);
       const ex=x0+(x1-x0)*.3, ey=y0+(y1-y0)*.35; quad([[ex,ey+3,z1],[ex+4,ey+3,z1],[ex+4,ey+3,z1+1.4],[ex,ey+3,z1+1.4]],c[1],C.encre); quad([[ex+4,ey,z1],[ex+4,ey+3,z1],[ex+4,ey+3,z1+1.4],[ex+4,ey,z1+1.4]],c[2],C.encre); quad([[ex,ey,z1+1.4],[ex+4,ey,z1+1.4],[ex+4,ey+3,z1+1.4],[ex,ey+3,z1+1.4]],c[0],C.encre); }
     if(CH){ for(let x=x0+3;x<x1-1;x+=4) seg3([x,y1,z0],[x,y1,z1],C.chantier2); for(let y=y0+3;y<y1-1;y+=4) seg3([x1,y,z0],[x1,y,z1],C.chantier2); } };
   // les fenêtres : un pixel par vitre, allumée ou noire, sur la façade avant et la façade est
@@ -147,25 +188,26 @@ function peindre(R, image, E, o){
   const vitres=(x0,x1,y0,y1,z0,z1,g,frac,c)=>{ if(CH) return; const pas=Math.max(2.2,2/k), pz=Math.max(2.6,2.2/kz), f=frac==null?.7:frac;
     for(let z=z0+2;z<z1-.8;z+=pz){ for(let x=x0+1.6;x<x1-1;x+=pas) fen(x,y1,z,hasard(Math.round(x*3)+g,Math.round(z*3))<f?(c||C.jaune):C.encre);
       for(let y=y0+1.6;y<y1-1;y+=pas) fen(x1,y,z,hasard(Math.round(y*3)+g+5,Math.round(z*3))<f?(c||C.jaune):C.encre); } };
-  const toit2=(x0,x1,y0,y1,z,hz)=>{ const xm=(x0+x1)/2, c=CH?[C.chantier,C.chantier2]:[C.tuile,C.brique2];
+  const toit2=(x0,x1,y0,y1,z,hz)=>{ const xm=(x0+x1)/2, c=CH?[C.chantier,C.chantier2]:Sa.neigeSol?[C.neigeC,C.brique2]:[C.tuile,C.brique2];
     quad([[x1,y0,z],[x1,y1,z],[xm,y1,z+hz],[xm,y0,z+hz]],c[0],C.encre); quad([[x0,y1,z],[x1,y1,z],[xm,y1,z+hz]],c[1],C.encre);
     if(E>=1.5&&!CH) for(let u=.25;u<1;u+=.25) seg3([x1+(xm-x1)*u,y0+.4,z+hz*u],[x1+(xm-x1)*u,y1-.4,z+hz*u],c[1]); };
-  const pyramide=(x0,x1,y0,y1,z,hz,cA,cB)=>{ const xm=(x0+x1)/2, ym=(y0+y1)/2;
+  const pyramide=(x0,x1,y0,y1,z,hz,cA,cB)=>{ const xm=(x0+x1)/2, ym=(y0+y1)/2; if(Sa.neigeSol&&!CH){ cA=C.clair; cB=C.neigeC; }
     quad([[x0,y1,z],[x1,y1,z],[xm,ym,z+hz]],cA,C.encre); quad([[x1,y0,z],[x1,y1,z],[xm,ym,z+hz]],cB,C.encre); };
   const enseigne=(x0,x1,y,z,c)=>{ if(!CH) seg3([x0,y,z],[x1,y,z],c||C.jaune); };
   // l'arbre : à grille fine, un houppier rond, éclairé en haut à gauche, ombré et cerné en bas à droite, avec un tronc
   const arbre=(x,y,g)=>{ const p=P(x,y,0);
+    if(Sa.nu){ arbreNu(p,g); return; } feuillesMortes(p);
     if(E<1.5){ px(p[0],p[1],C.encre); px(p[0],p[1]-1,C.bois);
       const F=g?[[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-3],[-1,-3],[0,-3],[1,-3],[2,-3],[-1,-4],[0,-4],[1,-4],[-1,-5],[0,-5],[1,-5],[0,-6]]
                :[[-1,-2],[0,-2],[1,-2],[-1,-3],[0,-3],[1,-3],[0,-4],[-2,-2],[2,-2]];
-      for(const [dx,dy] of F) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); if(g){ px(p[0]-1,p[1]-5,C.arbre2); px(p[0]+1,p[1]-2,C.arbre2); } return; }
+      for(const [dx,dy] of F) px(p[0]+dx,p[1]+dy,C.arbre); px(p[0]-1,p[1]-3,C.arbre2); px(p[0],p[1]-4,C.arbre2); if(g){ px(p[0]-1,p[1]-5,C.arbre2); px(p[0]+1,p[1]-2,C.arbre2); } if(Sa.fleurs){ px(p[0]-1,p[1]-2,C.fleur); px(p[0]+1,p[1]-3,C.fleur); } return; }
     const r=(g?2.7:1.9)*E, tr=Math.round((g?1.8:1.3)*E), cy=p[1]-tr-Math.round(r*.8);
     for(let d=0;d<=tr;d++){ px(p[0],p[1]-d,C.bois); px(p[0]+1,p[1]-d,C.encre); }
     for(let dx=-2;dx<=2;dx++) px(p[0]+dx+1,p[1]+1,C.encre);
     const R2=Math.ceil(r*1.15);
     for(let dy=-Math.ceil(r);dy<=Math.ceil(r);dy++) for(let dx=-R2;dx<=R2;dx++){ const q=(dx/(r*1.15))**2+(dy/r)**2; if(q>1) continue;
       const bord=q>.7&&dx+dy>0, clair=dx+dy<-r*.6, h=hasard(p[0]*3+dx,p[1]*5+dy);
-      px(p[0]+dx,cy+dy, bord?C.encre:clair?(h<.25?C.herbe:C.arbre2):(h<.12?C.arbre2:C.arbre)); } };
+      px(p[0]+dx,cy+dy, bord?C.encre:Sa.fleurs&&h>.86?C.fleur:clair?(h<.25?C.herbe:C.arbre2):(h<.12?C.arbre2:C.arbre)); } };
   const cypres=(x,y)=>{ const p=P(x,y,0), h=Math.round(6*E), w=E>=1.5?Math.round(1.3*E):1; px(p[0],p[1],C.encre);
     for(let d=1;d<=h;d++){ if(w===1){ px(p[0],p[1]-d,C.arbre); if(d>1&&d<6) px(p[0]+(d%2?1:-1),p[1]-d,d%2?C.arbre2:C.arbre); continue; }
       const lw=Math.round(w*Math.sin(Math.PI*d/(h+1))); for(let dx=-lw;dx<=lw;dx++) px(p[0]+dx,p[1]-d, dx===lw?C.encre:dx<0?C.arbre2:C.arbre); } };
@@ -197,8 +239,10 @@ function peindre(R, image, E, o){
   // les terrains
   const terrain=(x0,y0,x1,y1,sorte,tonte)=>{
     const K={herbe:[C.herbe,C.herbe2], pele:[C.herbe,C.herbe2], stab:[C.stab,C.terre2], synth:[C.herbe2,C.herbe3], terre:[C.terre,C.terre]}[sorte];
-    if(tonte) K[0]=C.herbe2, K[1]=C.herbe3;
+    if(tonte||(Sa.resemis&&sorte==='herbe')) K[0]=C.herbe2, K[1]=C.herbe3;
     for(let b=0;b<8;b++) sol(x0+(x1-x0)*b/8,x0+(x1-x0)*(b+1)/8,y0,y1,K[b%2]);
+    if(Sa.usure>0&&sorte==='herbe'){ const u=Sa.usure, my=(y0+y1)/2, mx=(x0+x1)/2;
+      usure(x0+6,my,2+4*u,3+6*u,.3+.45*u); usure(x1-6,my,2+4*u,3+6*u,.3+.45*u); if(u>.4) usure(mx,my,3+4*u,2+3*u,.15+.4*u); }
     if(sorte==='terre'){ for(let y=y0+4;y<y1;y+=5) seg3([x0+2,y,0],[x1-2,y,0],C.terre2,2); return; }
     if(sorte==='pele'){ const tache=(cx,cy,rx,ry)=>{ for(let a=-rx;a<=rx;a+=.7) for(let b=-ry;b<=ry;b+=.7) if((a*a)/(rx*rx)+(b*b)/(ry*ry)<1&&hasard(Math.round((cx+a)*3),Math.round((cy+b)*3))<.75) pt(cx+a,cy+b,0,C.terre2); };
       const my=(y0+y1)/2, mx=(x0+x1)/2; tache(x0+5,my,4,8); tache(x1-5,my,4,8); tache(mx,my,7,5); tache(mx-18,y0+12,3,3); tache(mx+14,y1-10,4,3); }
@@ -383,14 +427,17 @@ function peindre(R, image, E, o){
     else if(ac>=1) for(let i=0;i<5;i++){ const [x,y]=chemin([[50,64],[50,102],[54,102],[54,64],[50,64]],20,i*4); gars(x,y,GAMIN,true); }
   }
 
+  saupoudre([C.gazon,C.gazon2,C.friche],[C.herbe,C.herbe2,C.herbe3]);   // les allées sont déneigées
+  if(Sa.sapin) add(98,()=>sapin(52,46,[C.rouge,C.jaune,C.blanc,C.bleu]));
   objets.sort((a,b)=>a[0]-b[0]); for(const [,fn] of objets){ CH=false; fn(); }
   // le château s'inaugure : un feu d'artifice en gros pixels, une gerbe qui s'ouvre puis retombe, image par image
   if(o.fete) for(let g=0;g<4;g++){ const t=(image+g*3)%10; if(t>6) continue; const cx=Math.round(GW*(.18+g*.22)), cy=Math.round(GH*(.16+(g%2)*.1)), r=S(2)+t*S(2.2), c=[C.jaune,C.rouge,C.blanc,C.bleu][g];
     for(let a=0;a<14;a++){ const u=a/14*Math.PI*2, x=Math.round(cx+r*Math.cos(u)), y=Math.round(cy+r*Math.sin(u)*.8+(t>4?(t-4)*S(2):0)); for(let i=0;i<S(1);i++) for(let j=0;j<S(1);j++) px(x+i,y+j,t>5?C.jaune:c); } }
+  intemperies();
   return buf;
 }
 function rendre(ctx,R,image,E,o){ E=E||1; const {GW,GH}=cadre(E); ctx.putImageData(new ImageData(peindre(R,image,E,o),GW,GH),0,0); }
-return {rendre,peindre,cadre,zoneLivraison};
+return {rendre,peindre,cadre,zoneLivraison,saisonDe};
 })();
 
 /* ============================================================
@@ -411,7 +458,8 @@ const nivMax=(f,a)=>{ if(!f.des) return 3; for(let n=1;n<=3;n++) if(f.des[n]&&f.
 const chateauOuvert=R=>points(R)>=15&&FAMS.every(f=>R[f.id]>=2);
 const saison=a=>a+'-'+String((a+1)%100).padStart(2,'0');
 
-const R={terrains:1,physique:1,medical:1,vie:2,academie:1,video:1,chateau:0,annee:1996,chantier:null};
+const R={terrains:1,physique:1,medical:1,vie:2,academie:1,video:1,chateau:0,annee:1996,chantier:null,mois:8,jour:1};
+const MOIS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const $=id=>document.getElementById(id);
 const ctx=$('ecran').getContext('2d');
 let image=0, FIN=1;
@@ -431,6 +479,8 @@ function construirePupitre(){
   $('bZero').onclick=()=>{ for(const f of FAMS) R[f.id]=0; R.chateau=0; R.chantier=null; maj(); };
   $('bMax').onclick=()=>{ R.annee=Math.max(R.annee,2004); for(const f of FAMS) R[f.id]=3; R.chateau=1; maj(); };
   $('segFin').onclick=e=>{ const b=e.target.closest('button'); if(b) finesse(+b.dataset.e); };
+  $('rMois').oninput=e=>{ R.mois=+e.target.value; maj(); };
+  $('bSem').onclick=()=>{ R.jour++; maj(); };
   $('sCh').onchange=e=>{ const v=e.target.value; R.chantier=v?{id:v,n:v==='chateau'?1:R[v]}:null; maj(); };
 }
 function maj(){
@@ -442,6 +492,7 @@ function maj(){
   const sel=$('sCh'), v=R.chantier?R.chantier.id:'';
   sel.innerHTML='<option value="">Aucun</option>'+FAMS.filter(f=>R[f.id]>=1).map(f=>`<option value="${f.id}">${f.nom} · ${f.court[R[f.id]]}</option>`).join('')+(R.chateau?'<option value="chateau">Le château</option>':'');
   if(R.chantier&&(R.chantier.id==='chateau'?R.chateau:R[R.chantier.id]>=1)){ sel.value=v; R.chantier.n=R.chantier.id==='chateau'?1:R[R.chantier.id]; } else { R.chantier=null; sel.value=''; }
+  $('moisOut').textContent=MOIS[R.mois];
   $('palier').textContent=palier(R); $('saison').textContent=R.chantier?'Chantier en cours':'';
   peins();
 }
