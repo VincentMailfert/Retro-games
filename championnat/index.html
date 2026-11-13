@@ -29077,6 +29077,7 @@ function fabriqueMatch3D(THREE, o){
     const ax0 = clamp(P0.x*s, -40, 30), z0 = clamp(P0.z*s, -28, 28);
     let uTir=.8, depart=null, fini=false;
     const v=info.voie;
+    const balleArretee = v==='cf' || v==='pen' || v==='corner' || !!etat.corner || info.genre==='corner-annonce' || info.genre==='carton';
 
     if(info.genre==='carton'){
       const V = plusProche(champ, fautif.pos)[0] || porteur;
@@ -29168,6 +29169,24 @@ function fabriqueMatch3D(THREE, o){
       depart={ax:44,z:az*.7,y:.62};
     }
 
+    /* LA RÈGLE DU HORS-JEU : à chaque instant de l'action, la défense recule pour garder au moins un défenseur entre
+       l'attaquant le plus avancé et son but. Sur un hors-jeu sifflé par le moteur, c'est l'inverse : la ligne est battue. */
+    if(!balleArretee){
+      const axDe=(j,u)=>{ const ks=[{u:0,x:j.pos.x,z:j.pos.z},...(K.get(j)||[]).slice().sort((p,q)=>p.u-q.u)];
+        let k=0; while(k<ks.length-2 && ks[k+1].u<u) k++; const p=ks[k], q=ks[Math.min(k+1,ks.length-1)];
+        const f=q.u>p.u?clamp((u-p.u)/(q.u-p.u),0,1):1; return (p.x+(q.x-p.x)*f)*s; };
+      const attaquants=[...K.keys()].filter(j=>j.camp===info.att);
+      const instants=[...new Set(attaquants.flatMap(j=>K.get(j).map(k=>k.u)))].filter(u=>u>0).sort((p,q)=>p-q);
+      const defenseurs=def.filter(j=>!j.gardien && !K.has(j)).sort((p,q)=>(q.pos.x*s)-(p.pos.x*s)).slice(0,4);
+      const battue = info.genre==='horsjeu';
+      for(const u of instants){
+        const tete=Math.max(...attaquants.map(j=>axDe(j,u)));
+        defenseurs.forEach((d,i)=>{
+          const ax = battue && u>=.4 ? Math.min(tete-2.5-i*.8, L/2-4) : clamp(tete+1.4+i*.9, -40, L/2-2.2);
+          key(d, u, ax, clamp(d.pos.z*s*.75, -22, 22));
+        });
+      }
+    }
     if(!fini){
       const g=info.genre; let tz, ty, ax=L/2;
       if(g==='but'){ tz=alea(1,BUT_L/2-1.4)*signe(); ty=alea(.5,BUT_H-1.4); }
