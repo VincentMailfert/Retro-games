@@ -684,7 +684,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.91"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.92"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -21954,6 +21954,9 @@ function renommeId(e, o, nid, nom){
   e.id=nid; if(nom!==undefined) e.nom=nom;
   return true;
 }
+// L'identifiant de la copie « (autre version) » d'une carrière, toujours le même pour une même carrière à une même
+// date : deux onglets (ou deux passes) qui tranchent le même conflit tombent sur la même copie (v2.92).
+function idAutreVersion(id, maj){ return (String(id).slice(0,40)+"_v"+Math.max(0,maj).toString(36)).slice(0,64); }
 function pousse(e, o, donnees, attendu, copie){
   return nuageAppel("/rest/v1/rpc/pousse_carriere", "POST", {
     p_id:e.id, p_attendu:attendu, p_maj:+o._maj||0,
@@ -21985,8 +21988,18 @@ async function nuageEnvoie(e, s){
       if(r.ok && r.donnees && r.donnees.ok)
         nuageAvis("« "+(e.nom||ficheDe(o).club)+" » avait aussi avancé sur un autre appareil. On garde la version la plus avancée, celle-ci. L'autre reste en ligne sous le nom « "+nom+" ».");
     } else {
+      // L'identifiant de la version perdante est FIXE (v2.92) : tiré de la carrière et de sa date, il est le même
+      // dans chaque onglet qui tranche ce conflit. Un second passage retrouve donc la copie déjà faite au lieu
+      // d'en fabriquer une de plus (13/11/2026 : quatre « Olympique Lyonnais (autre version) » identiques).
+      const ouverte=!!(PARTIE && PARTIE.id===e.id && G), l0=idxLit();
+      const deja=l0.find(x=>x&&x.id===idAutreVersion(e.id, +o._maj||0)), moi=l0.find(x=>x&&x.id===e.id);
+      // un autre onglet vient de trancher ce conflit (il a renommé CETTE carrière, même clé) : rien à faire ici
+      if(deja && (!moi || moi.k===deja.k)) return "ok";
+      // déjà faite par un autre onglet : ce double-là s'efface, rien n'est perdu (sauf s'il est ouvert ici : on le garde à part)
+      if(deja && !ouverte){ lsEfface(e.k); idxEcrit(l0.filter(x=>x&&x.id!==e.id)); delete et[e.id]; nuageEtatEcrit(et); return "ok"; }
+      const nid=deja?partieNeuve().id:idAutreVersion(e.id, +o._maj||0);
       delete et[e.id]; nuageEtatEcrit(et); // la version en ligne garde sa place et son identifiant
-      if(!renommeId(e, o, partieNeuve().id, nom)) return "attente";
+      if(!renommeId(e, o, nid, nom)) return "attente";
       const et2=nuageEtatLit(); et2[e.id]={uid:s.uid}; nuageEtatEcrit(et2);
       nuageAvis("« "+(f.nom||f.club||"Cette carrière")+" » est allée plus loin sur un autre appareil : c'est elle qui garde sa place en ligne. La version de ce navigateur continue à part, sous le nom « "+nom+" ».");
       return nuageEnvoie(e, s); // la perdante part en ligne comme une carrière de plus
@@ -22009,7 +22022,12 @@ async function nuageEnvoie(e, s){
 function nuageSynchronise(){
   if(!nuageAllume()){ NUAGE_ETAT="aucun"; return Promise.resolve(NUAGE_ETAT); }
   if(NUAGE_EN_COURS){ NUAGE_ENCORE=true; return NUAGE_EN_COURS; }
-  NUAGE_EN_COURS=(async()=>{
+  // UNE SEULE SYNCHRO À LA FOIS POUR TOUT LE NAVIGATEUR (v2.92) : les onglets ouverts sur le jeu partagent la même
+  // mémoire, et chacun lançait sa passe au réveil du téléphone. Deux passes qui voyaient le même conflit faisaient
+  // chacune leur copie « (autre version) ». Le verrou du navigateur (Web Locks) les met en file ; sans lui, comme avant.
+  const avecVerrou=f=>(typeof navigator!=="undefined" && navigator.locks && typeof navigator.locks.request==="function")
+    ? navigator.locks.request("multiplex-nuage", f) : f();
+  NUAGE_EN_COURS=avecVerrou(async()=>{
     do{
       NUAGE_ENCORE=false;
       let etat="ok";
@@ -22024,7 +22042,7 @@ function nuageSynchronise(){
     } while(NUAGE_ENCORE && NUAGE_ETAT!=="attente");
     if(NUAGE_ETAT!=="attente" && compteLit()) await progSynchronise(); // la progression suit les carrières (sans peser sur l'indicateur)
     return NUAGE_ETAT;
-  })().finally(()=>{ NUAGE_EN_COURS=null; majIndicateur(); montreAvis(); });
+  }).finally(()=>{ NUAGE_EN_COURS=null; majIndicateur(); montreAvis(); });
   return NUAGE_EN_COURS;
 }
 // L'INDICATEUR vit dans le bouton du compte, au pied de page : « ☁️ Sauvegardé en ligne » ou « ☁️ En attente

@@ -378,6 +378,29 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   ok(lignesDe("vincent@exemple.fr").length === nAvant + 1 && SRV.lignes.some((l) => l.maj === majB2), "et elle part en ligne comme une carrière de plus");
   ok([majA, majB, majB2].every((m) => SRV.lignes.some((l) => l.maj === m)), "aucune des trois versions n'est perdue");
 
+  // v2.92 : DEUX ONGLETS du téléphone (même mémoire) tranchent le même conflit en même temps. Le 13/11/2026, cela
+  // donnait quatre « … (autre version) » identiques. Avec ou sans le verrou du navigateur : UNE seule copie.
+  for (const avecVerrou of [true, false]) {
+    let file = Promise.resolve();
+    global.navigator.locks = avecVerrou ? { request(_n, f) { const p = file.then(() => f()); file = p.catch(() => {}); return p; } } : undefined;
+    api = sur(A2);
+    r = await api.nuageRapatrie(renommee.id);
+    if (!r.ok) { api.setG(null); r = await api.nuageRapatrie(renommee.id); }
+    ok(r.ok && reel(() => api.chargeLocale(renommee.id)), (avecVerrou ? "[verrou] " : "[sans verrou] ") + "le salon reprend la version du téléphone");
+    joue(api, 3); await api.nuageSynchronise(); api.setG(null);
+    apiB = sur(B); if (!apiB.getG()) reel(() => apiB.chargeLocale(renommee.id)); joue(apiB, 1); const majT = apiB.getG()._maj; apiB.setG(null);
+    const O2 = appareil("téléphone, 2e onglet", B.ls), apiO = O2.api; allume(apiO); sur(B);
+    const nCopies = () => lignesDe("vincent@exemple.fr").filter((l) => l.maj === majT).length;
+    await Promise.all([apiB.nuageSynchronise(), apiO.nuageSynchronise()]);
+    await Promise.all([apiB.nuageSynchronise(), apiO.nuageSynchronise()]);
+    const locales = apiB.partiesListe().filter((e) => e.maj === majT);
+    ok(nCopies() === 1, (avecVerrou ? "[verrou] " : "[sans verrou] ") + "une seule copie « (autre version) » en ligne (" + nCopies() + ")");
+    ok(locales.length === 1 && B.ls.getItem(locales[0].k), (avecVerrou ? "[verrou] " : "[sans verrou] ") + "une seule dans le navigateur, et ses données sont là");
+    renommee.id = locales[0] ? locales[0].id : renommee.id;
+    apiB.setG(null);
+  }
+  delete global.navigator.locks;
+
   /* ===== G) serveur qui refuse ===== */
   console.log("\nG) Le serveur refuse");
   api = sur(A2);

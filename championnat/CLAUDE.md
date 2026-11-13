@@ -153,6 +153,13 @@ toujours « raconter quelque chose ».
   tromperait : une vieille copie rejouée hier serait « plus récente »), **l'autre continue à part sous « … (autre
   version) »** (choix de l'auteur : rien n'est jamais détruit), et le joueur est prévenu (`NUAGE_AVIS` → `montreAvis`,
   jamais en plein match).
+  **v2.92, un seul conflit = une seule copie** (bug du 13/11/2026 : quatre « Olympique Lyonnais (autre version) »
+  identiques, nés de plusieurs onglets du téléphone qui synchronisaient au même réveil). Deux gardes : (1) la passe
+  `nuageSynchronise` prend le verrou du navigateur `navigator.locks` (« multiplex-nuage »), les onglets passent l'un
+  après l'autre (sans Web Locks, comme avant) ; (2) la version perdante prend un identifiant FIXE, `idAutreVersion(id, _maj)`,
+  le même dans chaque onglet : le serveur reçoit deux fois la même ligne (`maj` identique → simple mise à jour), et un
+  onglet qui trouve la copie déjà faite efface son double local (jamais la clé partagée, jamais la carrière ouverte).
+  Gardé par la fin de la section F de `harness-compte.cjs` (deux onglets, avec et sans verrou ; rouge sur la v2.91).
   **Connecté, le navigateur n'est plus qu'une mémoire de travail** : il garde les `MAX_PARTIES` (4) plus récentes,
   les autres vivent en ligne (`NUAGE_MAX` = 10) et sont rapatriées à l'ouverture (`ouvreCarriere` → `nuagePrepare`).
   `nuageLibere` ne retire **qu'une carrière de ce compte, à jour en ligne, et pas celle qui est ouverte** ; hors
