@@ -2859,6 +2859,16 @@ toujours « raconter quelque chose ».
   cérémonie finie (environ 7 s). Si une ligne d'action tombe avant, `forceEnvoi()` coupe court. **L'arbitre** (`arbitre`,
   hors de `joueurs`, dans `figurants`) : tout en noir, ballon sous le bras à l'entrée, suit le jeu en diagonale, lève le bras
   sur les cartons ; tiré avec la graine remise en place pour ne pas changer le public. Notes dans `docs/chantier-match-3d.md`.
+- **LE BORD DU TERRAIN ET LES CÉLÉBRATIONS (v2.94, choix de l'auteur du 14/11/2026 « 2a et 2b »)**, dans le bloc MATCH3D.
+  Deux abris sous toit transparent côté tribune d'en face (`remplacants`, `entraineurs`, `majBord`, `poserBord`) : cinq
+  remplaçants assis en survêtement aux couleurs du club, qui se lèvent et sautent quand leur équipe marque ; l'entraîneur
+  en manteau (`figurine(..., habille)`) fait les cent pas dans sa zone technique, donne des consignes, pousse les siens sur
+  une occasion, proteste sur un carton contre son équipe (`etat.carton`), saute de joie ou se prend la tête sur un but.
+  **Les célébrations** (`debutFete`, `poseFete`) : chaque but tire au hasard le poing rageur, l'avion, la glissade à
+  genoux, le salto, le berceau de Bebeto (le buteur s'arrête, deux partenaires le rejoignent) ou la pile humaine (le
+  buteur se couche quand deux partenaires arrivent, ils s'empilent dessus). Le buteur file vers le poteau de corner côté
+  bancs. Les battus baissent la tête, mains sur les hanches. `CELEBRATION` passe à 3,2 s. `window.__fete` force une fête
+  pour l'essayer. Les figurines tournent dans l'ordre 'YXZ' (le cap, puis la bascule autour du corps).
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup

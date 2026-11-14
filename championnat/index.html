@@ -684,7 +684,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.93"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.94"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -29173,8 +29173,8 @@ function fabriqueMatch3D(THREE, o){
     const m=new THREE.Mesh(geoOmbre, new THREE.MeshBasicMaterial({map:texOmbre, color:0x0a1a08, transparent:true, opacity:force, depthWrite:false}));
     m.renderOrder=2; scene.add(m); return m;
   }
-  function figurine(tenue, gardien){
-    const g = new THREE.Group(); g.scale.setScalar(ECHELLE);
+  function figurine(tenue, gardien, habille){
+    const g = new THREE.Group(); g.scale.setScalar(ECHELLE); g.rotation.order='YXZ';   // le cap d'abord, puis la bascule autour du corps
     const peau = M(PEAU[(rnd()*PEAU.length)|0]);
     const cheveux = M(CHEVEUX[(rnd()*CHEVEUX.length)|0]), coiffe = COIFFES[(rnd()*COIFFES.length)|0];
     const maillot = M(hexInt(gardien?tenue.gk:tenue.maillot)), short = M(hexInt(gardien?'#1a1a1a':tenue.short));
@@ -29183,9 +29183,9 @@ function fabriqueMatch3D(THREE, o){
     /* les jambes : la hanche porte la cuisse, le genou porte le tibia, la chaussette et le crampon */
     const jambe = cote => {
       const hanche=new THREE.Group(); hanche.position.set(cote*.17,.98,0);
-      rien(.26,.46,.26,peau,0,-.23,0,hanche);
+      rien(.26,.46,.26,habille?short:peau,0,-.23,0,hanche);
       const genou=new THREE.Group(); genou.position.y=-.46; hanche.add(genou);
-      rien(.22,.2,.22,peau,0,-.1,0,genou);
+      rien(.22,.2,.22,habille?short:peau,0,-.1,0,genou);
       rien(.25,.26,.25,bas,0,-.33,0,genou);
       rien(.25,.1,.36,crampon,0,-.48,.05,genou);
       g.add(hanche); return {hanche, genou};
@@ -29196,11 +29196,12 @@ function fabriqueMatch3D(THREE, o){
     rien(.64,.3,.38,short,0,.02,0,corps);
     rien(.7,.68,.4,maillot,0,.5,0,corps);
     rien(.3,.06,.1,gardien?maillot:short,0,.8,.17,corps);   // le col
+    if(habille) rien(.74,.44,.44,maillot,0,-.1,0,corps);      // le bas du manteau ou de la veste
     const bras = cote => {
       const epaule=new THREE.Group(); epaule.position.set(cote*.46,.78,0); corps.add(epaule);
       rien(.2,.36,.22,maillot,0,-.16,0,epaule);
       const coude=new THREE.Group(); coude.position.y=-.34; epaule.add(coude);
-      rien(.17,.3,.18,gardien?M(0x2a2a2a):peau,0,-.15,0,coude);
+      rien(.17,.3,.18,gardien?M(0x2a2a2a):habille?maillot:peau,0,-.15,0,coude);
       return {epaule, coude};
     };
     const bg=bras(-1), bd=bras(1);
@@ -29245,6 +29246,95 @@ function fabriqueMatch3D(THREE, o){
     return {...f, camp:null, nom:'', poste:'', gardien:false, pos:new THREE.Vector3(0,0,-30), vel:new THREE.Vector3(), cible:new THREE.Vector3(), phase:0, num:11, dehors:false, tombe:0, bras:0}; })();
   const figurants = [...joueurs, arbitre];
 
+  /* ================================================================================================
+     LE BORD DU TERRAIN (prototype du 14/11/2026, choix de l'auteur « 2a ») : deux abris sous toit transparent, côté
+     tribune d'en face, cinq remplaçants assis en survêtement aux couleurs du club, et l'entraîneur en manteau qui fait
+     les cent pas dans sa zone technique. Il donne des consignes, pousse les siens sur une occasion, proteste sur un
+     carton, saute de joie ou se prend la tête sur un but. Les remplaçants se lèvent quand leur équipe marque.
+     ================================================================================================ */
+  const remplacants = [], entraineurs = [];
+  { const g0=graine;
+    const zAbri = -(Lg/2+3.4), matToit = new THREE.MeshLambertMaterial({color:0x9fd2ee, transparent:true, opacity:.55}), matAbri=M(0x2d3138), matBanc=M(0x6b4a2e);
+    for(const camp of ['dom','ext']){
+      const cx = camp==='dom' ? -13 : 13, T=EQ[camp];
+      box(9.4, .14, 2.8, matToit, cx, 5.6, zAbri, scene, false);
+      box(9.4, 5.6, .2, matAbri, cx, 2.8, zAbri-1.3, scene, false);
+      for(const sx of [-1,1]) box(.2, 5.6, 2.8, matToit, cx+sx*4.6, 2.8, zAbri, scene, false);
+      box(8.6, .5, .9, matBanc, cx, .85, zAbri-.6, scene, false);
+      for(let i=0;i<5;i++){
+        const f=figurine({maillot:T.maillot, short:'#23262d', bas:'#23262d'}, false, true);
+        const r={...f, eq:camp, x:cx-3.2+i*1.6, z:zAbri-.35, phase:rnd()*6, num:20+i};
+        r.ombre.visible=false; remplacants.push(r);
+      }
+      const e={...figurine({maillot:['#3b3f47','#4a3b30','#2c3a4a'][(rnd()*3)|0], short:'#24262b', bas:'#24262b'}, false, true),
+        coach:true, eq:camp, camp:null, nom:'', gardien:false, cx, pos:new THREE.Vector3(cx, 0, -(Lg/2+1.1)), vel:new THREE.Vector3(), cible:new THREE.Vector3(cx,0,-(Lg/2+1.1)),
+        phase:0, num:30+(camp==='dom'?0:1), dehors:false, tombe:0, pasT:0, gesteT:0, geste:null};
+      entraineurs.push(e); figurants.push(e);
+    }
+    graine=g0; }
+  function majBord(dt){
+    for(const e of entraineurs){
+      e.pasT-=dt; e.gesteT-=dt;
+      if(e.pasT<=0){ e.pasT=alea(2,4.5); e.cible.set(e.cx+alea(-4,4), 0, -(Lg/2+alea(.6,1.6))); }
+      if(etat.phase==='but' || (ACT && ACT.info.att===e.eq)) e.cible.set(clamp(e.pos.x+(B.pos.x-e.pos.x)*.02, e.cx-4.5, e.cx+4.5), 0, -(Lg/2+.6));
+      if(e.gesteT<=0){ e.gesteT=alea(4,9); e.geste = Math.random()<.5 ? 'consigne' : null; e.gesteFin=1.4; }
+      if(e.gesteFin>0) e.gesteFin-=dt; else e.geste=null;
+      const d=e.cible.clone().sub(e.pos); d.y=0; const dist=d.length();
+      const voulu = dist>.5 ? d.multiplyScalar(Math.min(2.4,dist*1.2)/dist) : d.set(0,0,0);
+      e.vel.lerp(voulu, Math.min(1,dt*3)); e.pos.addScaledVector(e.vel,dt);
+    }
+    if(etat.carton){ etat.carton.t-=dt; if(etat.carton.t<=0) etat.carton=null; }
+  }
+  function poserBord(now){
+    const joie = etat.phase==='but' && etat.buteur ? etat.buteur.camp : null;
+    for(const r of remplacants){
+      const debout = joie===r.eq;
+      r.g.rotation.set(0,0,0);
+      if(debout){
+        const u=Math.abs(Math.sin(now/170+r.num));
+        r.g.position.set(r.x, u*.9, r.z+.9);
+        r.hancheG.rotation.set(0,0,0); r.hancheD.rotation.set(0,0,0); r.genouG.rotation.set(.2,0,0); r.genouD.rotation.set(.2,0,0);
+        r.corps.rotation.set(0,0,0); r.epauleG.rotation.set(0,0,-2.7); r.epauleD.rotation.set(0,0,2.7); r.coudeG.rotation.x=r.coudeD.rotation.x=0;
+      } else {
+        r.g.position.set(r.x, 1.1-.98*ECHELLE+.1*ECHELLE, r.z);
+        r.hancheG.rotation.set(-Math.PI/2,0,-.08); r.hancheD.rotation.set(-Math.PI/2,0,.08);
+        r.genouG.rotation.set(Math.PI/2,0,0); r.genouD.rotation.set(Math.PI/2,0,0);
+        const souffle=Math.sin(now/600+r.phase)*.03;
+        r.corps.rotation.set(-.08+souffle,0,0); r.epauleG.rotation.set(-.5,0,.15); r.epauleD.rotation.set(-.5,0,-.15);
+        r.coudeG.rotation.x=r.coudeD.rotation.x=-.9;
+        r.tete.rotation.set(0, Math.sin(now/2300+r.phase)*.5, 0);
+      }
+    }
+    for(const e of entraineurs){
+      const u=Math.sin(now/140);
+      if(joie){
+        if(joie===e.eq){ e.g.position.y=Math.abs(Math.sin(now/180))*1.1; e.epauleG.rotation.set(0,0,-2.6-u*.2); e.epauleD.rotation.set(0,0,2.6+u*.2); e.coudeG.rotation.x=e.coudeD.rotation.x=-.2; }
+        else { e.epauleG.rotation.set(-2.5,0,.7); e.epauleD.rotation.set(-2.5,0,-.7); e.coudeG.rotation.x=e.coudeD.rotation.x=-2.1; e.tete.rotation.x=.35; e.corps.rotation.x=.15; }
+      } else if(etat.carton && etat.carton.camp===e.eq){
+        e.epauleG.rotation.set(-.4,0,1.2+u*.25); e.epauleD.rotation.set(-.4,0,-1.2-u*.25); e.coudeG.rotation.x=e.coudeD.rotation.x=-.4;
+      } else if(ACT && ACT.info.att===e.eq){
+        e.epauleD.rotation.set(-2.2+u*.5,0,-.2); e.coudeD.rotation.x=-.3;
+      } else if(e.geste==='consigne'){
+        e.epauleD.rotation.set(-1.5,0,-.1); e.coudeD.rotation.x=-.1; e.epauleG.rotation.set(-.6+u*.3,0,.2); e.coudeG.rotation.x=-1.3;
+      } else if(e.vel.length()<.5){
+        e.epauleG.rotation.set(.25,0,.15); e.epauleD.rotation.set(.25,0,-.15); e.coudeG.rotation.x=e.coudeD.rotation.x=-1.6;   // bras croisés dans le dos
+      }
+    }
+  }
+
+  /* ================================================================================================
+     LES CÉLÉBRATIONS (prototype du 14/11/2026, choix de l'auteur « 2b ») : chaque but tire une fête au hasard.
+     Le poing rageur, l'avion bras écartés, la glissade à genoux, le salto, le berceau (Bebeto, été 94) avec deux
+     partenaires, et la pile humaine sur le buteur. Les adversaires baissent la tête, mains sur les hanches.
+     ================================================================================================ */
+  const FETES = ['poing','avion','genoux','salto','berceau','pile'];
+  function debutFete(j){
+    etat.phase='but'; etat.buteur=j; etat.celebration=0;
+    etat.fete = (typeof window!=='undefined' && FETES.includes(window.__fete)) ? window.__fete : FETES[(Math.random()*FETES.length)|0];   // window.__fete : pour essayer une fête précise
+    etat.compagnons = etat.fete==='berceau' ? equipe(j.camp).filter(x=>x!==j && !x.gardien).sort((a,b)=>a.pos.distanceTo(j.pos)-b.pos.distanceTo(j.pos)).slice(0,2) : [];
+    etat.arret = null;
+  }
+
   /* le public aux couleurs des deux clubs, le club qui reçoit en nombre, un virage aux visiteurs */
   { const cd=[EQ.dom.maillot,EQ.dom.maillot,EQ.dom.short,'#f4edd8','#2b2b2b','#3d5a80','#d9d2c0'], ce=[EQ.ext.maillot,EQ.ext.short];
     const kop = bol && ST.kop;
@@ -29264,7 +29354,7 @@ function fabriqueMatch3D(THREE, o){
      L'ÉTAT DU MATCH
      ================================================================================================ */
   const etat = { phase:'avant', buteur:null, decision:1, corner:null, sc:[0,0], celebration:0, attente:0, replace:0, envoi:null };
-  const CELEBRATION=2.6, REPLACEMENT=3;
+  const CELEBRATION=3.2, REPLACEMENT=3;
   function dessinerEcran(){
     if(!ecranCanvas) return;
     const x = ecranCanvas.getContext('2d');
@@ -29576,7 +29666,7 @@ function fabriqueMatch3D(THREE, o){
     const g=info.genre;
     if(g==='carton'){
       a.victime.tombe=1.6; arbitre.bras=2.6;
-      const f=a.fautif; if(!f.crt) f.crt=carton(info.rouge); f.crtT=2.8; montrerNom(f,2.8);
+      const f=a.fautif; if(!f.crt) f.crt=carton(info.rouge); f.crtT=2.8; montrerNom(f,2.8); etat.carton={camp:f.camp, t:2.8};
       if(info.rouge) f.sortie=true;
       const repr=plusProche(equipe(info.att).filter(j=>j!==a.victime && !j.gardien), B.pos)[0];
       B.porteur=repr||a.victime; etat.decision=1.4; return;
@@ -29590,7 +29680,7 @@ function fabriqueMatch3D(THREE, o){
       if(g==='horsjeu') banniere('HORS-JEU','',1400);
       B.porteur=plusProche(equipe(info.def).filter(j=>!j.gardien), B.pos)[0]; etat.decision=1.2; return;
     }
-    if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; etat.phase='but'; etat.buteur=a.A; etat.celebration=0; montrerNom(a.A, 4); return; }
+    if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4); return; }
     if(g==='arret'){ if(a.gk){ B.porteur=a.gk; a.gk.tient=1.1; etat.decision=1.1; } return; }
     if(g==='poteau'){ B.libre={t:0, d:.55, de:B.pos.clone(), a:new THREE.Vector3(s*(L/2-12), .62, s*alea(-10,10)), haut:2, ensuite:'def', camp:info.def}; return; }
     const sortie=B.pos.clone(); sortie.x=s*(L/2+5); sortie.y=.62;
@@ -29623,7 +29713,7 @@ function fabriqueMatch3D(THREE, o){
     else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; if(etat.phase==='replacement' || (etat.phase==='avant' && etat.envoiDemande)) forceEnvoi(); lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
     if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
       if(!(ACT && ACT.info.ligne===l) && etat.phase==='jeu'){
-        const j=joueurs.find(p=>p.nom===l.g.but); if(j){ etat.phase='but'; etat.buteur=j; etat.celebration=0; montrerNom(j,4); } } }
+        const j=joueurs.find(p=>p.nom===l.g.but); if(j){ debutFete(j); montrerNom(j,4); } } }
     if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; banniere('FIN DU MATCH','',4000); }
     else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
     else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.envoiDemande=true; tifoT=7;
@@ -29701,7 +29791,13 @@ function fabriqueMatch3D(THREE, o){
         if(j.sortie){ j.cible.set(j.pos.x, 0, Lg/2+9); if(j.pos.z>Lg/2+7){ j.dehors=true; j.g.visible=false; if(j.lab) j.lab.visible=false; if(j.crt) j.crt.visible=false; } continue; }
         if(etat.phase==='but'){
           const b=etat.buteur, sb=sens(b);
-          if(j===b) j.cible.set(sb*(L/2-3),0,Math.sign(b.pos.z||1)*(Lg/2-3));
+          const f=etat.fete;
+          if(j===b){
+            if(f==='berceau' && etat.celebration>.5){ if(!etat.arret) etat.arret=b.pos.clone(); j.cible.copy(etat.arret); }
+            else j.cible.set(sb*(L/2-3),0,-(Lg/2-3));   // le poteau de corner côté bancs : la fête se voit, devant les entraîneurs
+          }
+          else if(f==='berceau' && etat.compagnons.includes(j)){ const k=etat.compagnons.indexOf(j)?1:-1, ref=etat.arret||b.pos; j.cible.set(ref.x+k*2.3, 0, ref.z-k*.4); }
+          else if(f==='pile' && j.camp===b.camp && !j.gardien) j.cible.copy(b.pos).add(new THREE.Vector3(Math.cos(j.num)*.8,0,Math.sin(j.num)*.8));
           else if(j.camp===b.camp && !j.gardien) j.cible.copy(b.pos).add(new THREE.Vector3(Math.cos(j.num)*3.5,0,Math.sin(j.num)*3.5));
           else j.cible.set(j.base.x*30*s,0,j.base.z*28*s);
           continue;
@@ -29726,9 +29822,12 @@ function fabriqueMatch3D(THREE, o){
     for(const j of joueurs){
       if(j.dehors || (ACT && ACT.K.has(j))) continue;
       if(j.tombe>0){ j.tombe-=dt; j.vel.multiplyScalar(.85); continue; }
+      if(etat.phase==='but' && j===etat.buteur && etat.fete==='genoux' && etat.celebration>1.1){ j.vel.multiplyScalar(Math.pow(.3,dt)); j.pos.addScaledVector(j.vel,dt); continue; }
+      if(etat.phase==='but' && etat.fete==='pile' && j.camp===etat.buteur.camp && j.couche){ j.vel.set(0,0,0); continue; }
       const d=j.cible.clone().sub(j.pos); d.y=0; const dist=d.length();
       let vmax = j===B.porteur?6.8 : (B.vol?.recepteur===j?9.5 : 7.8);
       if(etat.phase==='but' && j===etat.buteur) vmax=9;
+      if(etat.phase==='but' && j!==etat.buteur && j.camp===etat.buteur.camp) vmax=11;   // on fonce sur le buteur
       if(etat.phase==='fin'||etat.phase==='pause') vmax=3;
       if(etat.phase==='replacement') vmax=16;
       if(etat.phase==='avant') vmax=5.6;
@@ -29745,6 +29844,7 @@ function fabriqueMatch3D(THREE, o){
       a.vel.lerp(voulu, Math.min(1,dt*3)); a.pos.addScaledVector(a.vel,dt);
       if(a.bras>0) a.bras-=dt;
     }
+    majBord(dt);
     if(etat.phase==='avant'){
       etat.tEntree=(etat.tEntree||0)+dt;
       B.pos.set(arbitre.pos.x+1.1, 2.3, arbitre.pos.z+.3);                    // le ballon sous le bras de l'arbitre
@@ -29754,7 +29854,7 @@ function fabriqueMatch3D(THREE, o){
       }
     }
     for(let a=0;a<joueurs.length;a++) for(let b=a+1;b<joueurs.length;b++){
-      const A=joueurs[a], Bj=joueurs[b]; if(A.dehors||Bj.dehors) continue;
+      const A=joueurs[a], Bj=joueurs[b]; if(A.dehors||Bj.dehors||A.couche||Bj.couche) continue;
       if(ACT && (ACT.K.has(A)||ACT.K.has(Bj))) continue;
       const dx=A.pos.x-Bj.pos.x, dz=A.pos.z-Bj.pos.z, d2=dx*dx+dz*dz;
       if(d2<4 && d2>1e-4){ const d=Math.sqrt(d2), k=(2-d)*.5/d; A.pos.x+=dx*k; A.pos.z+=dz*k; Bj.pos.x-=dx*k; Bj.pos.z-=dz*k; }
@@ -29844,18 +29944,15 @@ function fabriqueMatch3D(THREE, o){
         if(etat.phase==='avant'){ j.epauleD.rotation.set(-.2,0,.35); j.coudeD.rotation.x=-1.3; }
         if(j.bras>0){ j.epauleD.rotation.set(0,0,2.95); j.coudeD.rotation.x=0; }
       }
-      if(etat.phase==='but' && etat.buteur && j.camp===etat.buteur.camp && !j.gardien){
-        j.epauleG.rotation.set(0,0,-2.7+Math.sin(now/120+j.num)*.2); j.epauleD.rotation.set(0,0,2.7-Math.sin(now/120+j.num)*.2);
-        j.coudeG.rotation.x=j.coudeD.rotation.x=-.3;
-        j.g.position.y+=Math.abs(Math.sin(now/180+j.num))*.5*ECHELLE*.5;
-      }
+      j.couche=false;
+      if(etat.phase==='but' && etat.buteur && j.camp) poseFete(j, now, v);
       if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
       if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
       if(j.gardien && j.plongeF){ const f=Math.min(1,Math.abs(j.plongeF)*2);
         j.g.rotation.z = 1.35*f*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9;
         j.epauleG.rotation.set(0,0,-2.6*f); j.epauleD.rotation.set(0,0,2.6*f); j.coudeG.rotation.x=j.coudeD.rotation.x=0; }
       /* l'ombre : longue, dans l'axe de la lumière, qui rétrécit quand le joueur décolle */
-      const haut = Math.max(0,j.g.position.y), couche = j.tombe>0 || (j.gardien && j.plongeF) ? 1 : 0;
+      const haut = Math.max(0,j.g.position.y), couche = j.tombe>0 || j.couche || (j.gardien && j.plongeF) ? 1 : 0;
       const lo = couche ? 3 : (1.6+5.2*ax.l)/(1+haut*.15), la = couche ? 2.6 : 1.7;
       j.ombre.visible=true; j.ombre.position.set(j.pos.x+ax.x*lo*.42, .06, j.pos.z+ax.z*lo*.42);
       j.ombre.rotation.y=Math.atan2(ax.x,ax.z); j.ombre.scale.set(la, 1, lo);
@@ -29863,10 +29960,53 @@ function fabriqueMatch3D(THREE, o){
       if(j.lab){ j.labT-=dt; j.lab.visible = j.labT>0; j.lab.position.set(j.pos.x, 7.2+k*.6, j.pos.z); j.lab.scale.set(k*j.lab.userData.ratio, k, 1); }
       if(j.crt){ j.crtT-=dt; j.crt.visible = j.crtT>0; j.crt.position.set(j.pos.x, 7.2+k*1.9, j.pos.z); j.crt.scale.set(k*1.1*.75, k*1.1, 1); }
     }
+    poserBord(now);
     /* l'ombre du ballon : sous lui, plus petite et plus claire quand il monte : on lit enfin les ballons aériens */
     const hb=Math.max(0,B.pos.y-.62);
     ombreBallon.position.set(B.pos.x+ax.x*hb*.25, .07, B.pos.z+ax.z*hb*.25);
     ombreBallon.rotation.y=Math.atan2(ax.x,ax.z); ombreBallon.scale.setScalar(Math.max(.6,1.5-hb*.08)); ombreBallon.material.opacity=Math.max(.12,.45-hb*.03);
+  }
+
+  function poseFete(j, now, v){
+    const b=etat.buteur, f=etat.fete, t=etat.celebration, w=Math.sin(now/120+j.num);
+    const brasLeves = ()=>{ j.epauleG.rotation.set(0,0,-2.7+w*.2); j.epauleD.rotation.set(0,0,2.7-w*.2); j.coudeG.rotation.x=j.coudeD.rotation.x=-.3; };
+    if(j.camp!==b.camp){                                   // les battus : tête basse, mains sur les hanches
+      if(v<1.5 && !j.gardien){ j.tete.rotation.x=.55; j.epauleG.rotation.set(.1,0,.55); j.epauleD.rotation.set(.1,0,-.55); j.coudeG.rotation.x=j.coudeD.rotation.x=-1.5; }
+      if(j.gardien && v<1){ j.g.rotation.x=0; j.genouG.rotation.x=j.genouD.rotation.x=.4; j.corps.rotation.x=.5; j.tete.rotation.x=.4; }
+      return;
+    }
+    if(j.gardien) return;
+    if(j===b){
+      if(f==='poing'){ brasLeves(); j.epauleD.rotation.set(0,0,2.2+Math.max(0,Math.sin(now/90))*.8); j.coudeD.rotation.x=-Math.max(0,Math.sin(now/90))*1.2; j.g.position.y+=Math.abs(Math.sin(now/180))*.6; }
+      else if(f==='avion'){ j.epauleG.rotation.set(0,0,-1.5); j.epauleD.rotation.set(0,0,1.5); j.coudeG.rotation.x=j.coudeD.rotation.x=0; j.corps.rotation.z=Math.sin(now/260)*.4; }
+      else if(f==='genoux'){
+        if(t<=1.1) brasLeves();
+        else { j.g.position.y = -.42*ECHELLE; j.hancheG.rotation.set(0,0,-.1); j.hancheD.rotation.set(0,0,.1); j.genouG.rotation.set(Math.PI/2,0,0); j.genouD.rotation.set(Math.PI/2,0,0);
+          j.corps.rotation.set(-.35,0,0); j.tete.rotation.x=-.4; brasLeves(); }
+      }
+      else if(f==='salto'){
+        if(t>.9 && t<1.6){ const u=(t-.9)/.7; j.g.position.y += Math.sin(u*Math.PI)*2.8; j.g.rotation.x = -u*2*Math.PI; j.genouG.rotation.x=j.genouD.rotation.x=1.6*Math.sin(u*Math.PI); j.hancheG.rotation.x=j.hancheD.rotation.x=-1.2*Math.sin(u*Math.PI); }
+        else brasLeves();
+      }
+      else if(f==='berceau' && v<1.2) berceau(j, now);
+      else if(f==='pile' && (t>2 || (t>.7 && equipe(b.camp).filter(x=>x!==b && !x.gardien && x.pos.distanceTo(b.pos)<4).length>=2))){ j.couche=true; j.g.rotation.set(-Math.PI/2,j.cap,0); j.g.position.y=.35; brasLeves(); }
+      else brasLeves();
+      return;
+    }
+    if(f==='berceau' && etat.compagnons.includes(j) && v<1.2){ berceau(j, now); return; }
+    if(f==='pile' && b.couche && j.pos.distanceTo(b.pos)<3.6){
+      const tas=equipe(b.camp).filter(x=>x!==b && !x.gardien && x.pos.distanceTo(b.pos)<3.6).sort((p,q)=>p.num-q.num), k=tas.indexOf(j)+1;
+      j.couche=true; j.g.rotation.set(Math.PI/2+(k%2?.15:-.15), j.cap+k*.7, 0);
+      j.g.position.set(b.pos.x+Math.cos(k*2.1)*.9, .35+k*1.05, b.pos.z+Math.sin(k*2.1)*.9);   // on s'empile vraiment sur le buteur
+      j.epauleG.rotation.set(0,0,-1.3); j.epauleD.rotation.set(0,0,1.3); return;
+    }
+    if(v<2.5 || f!=='pile'){ brasLeves(); j.g.position.y+=Math.abs(Math.sin(now/180+j.num))*.6; }
+  }
+  function berceau(j, now){                               // les bras bercent le bébé, de gauche à droite
+    const u=Math.sin(now/230);
+    j.cap = cam.angle; j.g.rotation.set(0,j.cap,0);
+    j.epauleG.rotation.set(-1.15,u*.55,.25); j.epauleD.rotation.set(-1.15,u*.55,-.25); j.coudeG.rotation.x=j.coudeD.rotation.x=-1.05;
+    j.corps.rotation.set(.12,u*.15,0); j.tete.rotation.set(.35,0,0);
   }
 
   /* qui touche le ballon : le joueur le plus proche frappe, ou saute de la tête si le ballon est haut */

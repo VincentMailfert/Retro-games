@@ -58,3 +58,9 @@ Choix de l'auteur du 14/11/2026 (« 1a et 2c ») : brancher les joueurs animés 
 équipes et un arbitre. Deux files sortent de la tribune d'en face derrière l'arbitre (ballon sous le bras), se rangent
 de part et d'autre de la ligne médiane, se tournent vers la caméra et saluent, puis courent à leurs places quand la ligne
 du coup d'envoi est tombée. L'arbitre suit ensuite le jeu en diagonale et lève le bras sur les cartons.
+
+## Le bord du terrain et les célébrations (v2.94)
+
+Choix de l'auteur du 14/11/2026 (« 2a et 2b »). Abris, remplaçants assis, entraîneurs qui vivent le match, et six fêtes
+de but tirées au hasard : poing, avion, glissade à genoux, salto, berceau, pile humaine. Pour en essayer une dans le
+prototype : `window.__fete='berceau'` dans la console avant le but.
