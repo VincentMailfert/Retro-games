@@ -11814,7 +11814,11 @@ function onze(c, fk){ // fk : une formation imposée (le choix de l'adversaire e
    regarder leurs jambes, et sans respecter le repos posé dans l'Effectif. Désormais, à chaque poste : les
    remplaçants d'abord, puis, s'il en manque, les cadres du plus frais au plus cuit ; un homme mis au repos
    ne vient qu'en tout dernier recours. Le mixte garde sa moitié de cadres (les plus en jambes) et complète
-   dans le même ordre. */
+   dans le même ordre.
+   LE MIXTE PART DE VOTRE ONZE (14/11/2026, retour de l'auteur : « mon onze configuré dans Équipe ne correspond pas à
+   la feuille de match »). La moitié « cadres » se tirait parmi les mieux notés de tout l'effectif, étoiles ou pas :
+   avec un XI★ volontairement modeste, Juninho et Essien passaient devant et le reste venait des non-étoilés, si bien
+   qu'aucun titulaire choisi ne jouait au milieu. Elle se tire désormais parmi les titulaires du poste. */
 function onzeRotation(c, rot){
   if(rot!=="reserve" && rot!=="mixte") return onze(c); // cadres (ou défaut) : le meilleur onze
   const xi=[], F=formationDe(c);
@@ -11827,7 +11831,7 @@ function onzeRotation(c, rot){
     let sel;
     if(rot==="reserve") sel=ordreRepos(tous).slice(0,n);          // les remplaçants jouent, les cadres cuits restent au chaud
     else { const haut=Math.ceil(n/2);                             // mixte : moitié cadres (les plus en jambes), moitié réserve
-      const tete=tous.filter(alignable).sort((a,b)=>noteSel(b)-noteSel(a)).slice(0,haut);
+      const tete=tous.filter(j=>cadres.has(j) && alignable(j)).sort((a,b)=>noteSel(b)-noteSel(a)).slice(0,haut); // VOS titulaires (XI★ de l'Équipe), pas les mieux notés de l'effectif
       sel=tete.concat(ordreRepos(tous.filter(j=>!tete.includes(j))).slice(0, n-tete.length)); }
     xi.push(...sel);
   }
