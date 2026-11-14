@@ -404,6 +404,13 @@ toujours « raconter quelque chose ».
   le banc gardait pour plus tard fait sauter son changement prévu (`avanceLeBanc`), mais sa ligne pré-écrite survivait
   au recollage, car `enFeuille` (dans `rejoueDepuis`) ne comparait que l'uid de l'entrant, qui est toujours sur la
   feuille, à la minute du banc. Il compare désormais l'uid ET la minute. Gardé par la section J de `harness-banc.cjs`.
+  **Piège corrigé en v2.96** (retour auteur du 14/11/2026 : « Juninho marque à la 90e alors qu'il est sorti à la mi-temps ») :
+  le moment de la 90e (`tireMoment`) choisit ses hommes au coup d'envoi, sur la feuille du jour d'ALORS. Un changement en
+  direct ou un rouge du fil recollé pouvait donc lui laisser un homme rentré au vestiaire. `rejoueDepuis` appelle
+  désormais `revalideMoment` : si un homme du moment n'est plus sur la pelouse à la 90e, on retire la même branche
+  (`tireMoment(moi, adv, {t, sansDerby})`, table `T_MOMENT`), sinon on garde le moment et on y met le plus proche
+  remplaçant du même poste. Même type, même objet (le direct le tient par référence), annonce et ligne du fil réécrites
+  ensemble. Le gardien blessé (« gants ») n'est pas repris. Gardé par **`harness-moment.cjs`** (rouge sans le correctif).
   **Le vivier est commun au pépin et au choix** : `bancDispo(c,p,m)` (jamais le gardien remplaçant, jamais un
   homme déjà entré, mais OUI un homme que le banc comptait faire entrer plus tard — `avanceLeBanc` retire alors
   ce changement-là). **`ligneChangement` distingue trois causes** : `blessure` (SUBS_BLESSURE), le gardien

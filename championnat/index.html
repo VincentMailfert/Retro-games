@@ -697,7 +697,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.95"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.96"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -13271,6 +13271,7 @@ function rejoueDepuis(r,h,a,fromIdx,mNow,mulH,mulA,opts){
   if(opts) r.ev.push({m:out.fin,t:"sys",x:(n=>"L'arbitre annonce "+n+(n>1?" minutes":" minute")+" de temps additionnel.")(PICK([1,2,2,3,3,4,5]))});
   r.ev.push({m:opts?out.fin:90,t:"sys",x:"COUP DE SIFFLET FINAL. "+h.nom+" "+out.sh+" - "+out.sa+" "+a.nom+(opts&&out.prolong?" après prolongations.":"")});
   r.sh=out.sh; r.sa=out.sa;
+  revalideMoment(r, h, a, fromIdx); // v2.96 : l'homme du moment de la 90e est-il encore sur la pelouse ?
   if(opts){ const eg=opts.egalite||((x,y)=>x===y);
     r.prolong=!!out.prolong; r.tab=null;
     if(opts.prolong && eg(out.sh,out.sa)){
@@ -14318,10 +14319,10 @@ const CAGADES=[ // les bourdes de gardien, racontées côté fautif (le nom du p
   gk=>"erreur d'appréciation totale, "+gk+" manque complètement sa sortie aérienne",
   gk=>"passe en retrait anodine, faux rebond, "+gk+" la voit filer derrière lui dans le but",
 ];
-function tireMoment(moi,adv){
-  const t=Math.random();
+function tireMoment(moi,adv,force){ // `force` (v2.96) : {t} fixe la branche, {sansDerby} saute la provocation de derby — cf. revalideMoment
+  const t=(force&&force.t!=null) ? force.t : Math.random();
   const xiM=enJeu(moi,90), xiA=enJeu(adv,90); // à l'ultime seconde : ceux qui sont encore sur la pelouse
-  const derby=(RIVAL[moi.id]===adv.id);
+  const derby=(RIVAL[moi.id]===adv.id) && !(force&&force.sansDerby);
   // en derby, forte chance d'un geste de provocation au public
   if(derby && Math.random()<0.5){
     const prov=xiM.filter(j=>(j.ego||5)>=6).sort((a,b)=>(b.ego||0)-(a.ego||0))[0]||xiM.filter(j=>"MA".includes(j.pos))[0];
@@ -14428,6 +14429,49 @@ function tireMoment(moi,adv){
     annonce:"UN INTRUS SUR LA PELOUSE ! En tenue d'Adam et bottes en caoutchouc, il tente le tour d'honneur, trois stadiers le plaquent au rond central. Même l'arbitre se retient de rire."};
   return {type:"chien",
     annonce:"UN CHIEN SUR LA PELOUSE ! Il slalome entre les stadiers, tribunes pliées de rire. Personne n'arrive à l'attraper."};
+}
+/* LE MOMENT DE LA 90e SUIT LA PELOUSE (v2.96, bug signalé par l'auteur le 14/11/2026 : Juninho, sorti à la mi-temps,
+   marque à la 90e). tireMoment désigne ses hommes au coup d'envoi, avec la feuille du jour telle qu'elle est ALORS :
+   un changement décidé en direct (le banc, la fenêtre d'un pépin, la mi-temps du coach) ou un rouge du fil recollé
+   pouvait donc laisser au moment un homme déjà rentré au vestiaire. rejoueDepuis, qui passe après chacun de ces
+   gestes, appelle désormais revalideMoment : si un homme du moment n'est plus sur la pelouse à la 90e, on retire
+   la MÊME branche (même type de moment, donc même déroulé du direct) parmi ceux qui y sont ; si elle ne tient plus
+   (plus d'homme assez rugueux pour le tacle…), on garde le moment et on y met le remplaçant le plus proche, même
+   poste d'abord. L'annonce et sa ligne au fil sont réécrites ensemble (le direct retrouve le moment par son texte).
+   Le gardien blessé (« gants ») n'est jamais retiré : il a déjà posé son changement au coup d'envoi. */
+const T_MOMENT={pen_pour:.11,pen_contre:.31,coupfranc:.46,corner:.535,parade:.565,tacle:.61,provoc:.66,
+  but50:.715,geste:.785,cagade:.85,cadeau:.91,gkbut:.95};
+function momentSurPelouse(mo, moi, adv){
+  if(!mo || mo.type==="gants") return true;
+  const sur=new Set(enJeu(moi,90).concat(enJeu(adv,90)).map(j=>j.uid));
+  return [mo.uid, mo.gk, mo.tir].every(u=>u==null || sur.has(u));
+}
+function revalideMoment(r, h, a, fromIdx){
+  const mo=r&&r.moment; if(!mo || mo.uid==null) return false; // décor : personne à vérifier
+  if(h.id!==G.monClub && a.id!==G.monClub) return false;
+  const moi=h.id===G.monClub?h:a, adv=moi===h?a:h;
+  const k=r.ev.findIndex((l,n)=>n>=(fromIdx||0) && l.mo && l.x===mo.annonce);
+  if(k<0 || momentSurPelouse(mo, moi, adv)) return false; // déjà lu, ou rien à reprendre
+  let neuf=(T_MOMENT[mo.type]!=null) ? tireMoment(moi, adv, {t:T_MOMENT[mo.type], sansDerby:true}) : null;
+  if(!neuf || neuf.type!==mo.type || !momentSurPelouse(neuf, moi, adv)){ // la branche ne tient plus : on garde le moment, on change l'homme
+    neuf=Object.assign({}, mo);
+    const pris=new Set([mo.uid, mo.gk, mo.tir].filter(u=>u!=null));
+    for(const cle of ["uid","gk","tir"]){
+      const u=mo[cle]; if(u==null || (cle!=="uid" && u===mo.uid)) continue;
+      const aMoi=(moi.joueurs||[]).some(j=>j.uid===u), camp=aMoi?moi:adv, vieux=joueurDe(camp,u);
+      if(enJeu(camp,90).some(j=>j.uid===u)) continue;
+      const nouv=enJeu(camp,90).filter(j=>!pris.has(j.uid) && (vieux&&vieux.pos==="G" ? true : j.pos!=="G"))
+        .sort((x,y)=>((y.pos===(vieux&&vieux.pos))-(x.pos===(vieux&&vieux.pos))) || (y.note-x.note))[0];
+      if(!nouv) continue;
+      pris.add(nouv.uid);
+      for(const c2 of ["uid","gk","tir"]) if(mo[c2]===u) neuf[c2]=nouv.uid;
+      if(vieux) neuf.annonce=neuf.annonce.split(vieux.nom.toUpperCase()).join(nouv.nom.toUpperCase()).split(vieux.nom).join(nouv.nom);
+    }
+  }
+  const l=r.ev[k];
+  Object.keys(mo).forEach(c=>delete mo[c]); Object.assign(mo, neuf); // même objet : le direct le tient par référence
+  l.x=mo.annonce; l.mo=mo.type;
+  return true;
 }
 function autoMoment(mo){ // résolution sans intervention (tests, abandon de banc, moments non interactifs)
   if(mo.type==="pen_pour")   return Math.random()<(0.74+0.04*coachTier("cpa")) ? +1 : 0; // le spécialiste CPA aiguise la conversion
