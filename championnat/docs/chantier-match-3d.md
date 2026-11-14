@@ -51,3 +51,10 @@ des joueurs que je trouve cool ». Dans le prototype seulement, pas encore greff
   ballon qui rapetisse quand il monte ; le ballon roule dans le sens du jeu.
 
 La greffe a été essayée sur une copie : `harness-match3d.cjs` reste vert.
+
+## L'entrée des équipes et l'arbitre (v2.93, greffés avec les joueurs animés)
+
+Choix de l'auteur du 14/11/2026 (« 1a et 2c ») : brancher les joueurs animés dans le jeu, et ajouter l'entrée des
+équipes et un arbitre. Deux files sortent de la tribune d'en face derrière l'arbitre (ballon sous le bras), se rangent
+de part et d'autre de la ligne médiane, se tournent vers la caméra et saluent, puis courent à leurs places quand la ligne
+du coup d'envoi est tombée. L'arbitre suit ensuite le jeu en diagonale et lève le bras sur les cartons.

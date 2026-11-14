@@ -2847,6 +2847,18 @@ toujours « raconter quelque chose ».
   Caméra « auto » : elle suit l'action et recule sur les temps morts ; glisser le doigt fait tourner le stade.
   Gardé par **`harness-match3d.cjs`** (bloc identique au prototype, greffe rejouable, inerte au harnais et sans requête,
   branchements des deux directs). Essai au navigateur : un vrai direct joué sous Chromium en 390 px et sur ordinateur.
+- **LES JOUEURS ANIMÉS, L'ENTRÉE DES ÉQUIPES ET L'ARBITRE (v2.93, demande de l'auteur du 14/11/2026, d'après un reel de
+  vib3coded : « c'est surtout l'animation des joueurs que je trouve cool »)**, dans le bloc MATCH3D (donc fait dans le
+  prototype puis greffé). Figurines articulées (genoux, coudes, buste qui pivote aux hanches, cinq coiffures, chaussettes,
+  crampons) ; allures selon la vitesse (respiration et regard vers le ballon à l'arrêt, marche, trot, sprint buste penché,
+  freinage, virage incliné, pivot en douceur) ; frappe à chaque passe et au départ de chaque tir (`toucheBallon`), saut de
+  la tête si le ballon est haut, gardien en attente quand le jeu approche ; **ombres en pixels** longues dans l'axe de la
+  lumière (les figurines ne projettent plus d'ombre calculée) et ombre du ballon qui rapetisse quand il monte. **L'entrée des
+  équipes** (`placerEntree`) : deux files derrière l'arbitre, rangées le long de la ligne médiane, salut à la caméra ; la
+  ligne du coup d'envoi ne téléporte plus, elle pose `etat.envoiDemande` et les joueurs courent à leurs places une fois la
+  cérémonie finie (environ 7 s). Si une ligne d'action tombe avant, `forceEnvoi()` coupe court. **L'arbitre** (`arbitre`,
+  hors de `joueurs`, dans `figurants`) : tout en noir, ballon sous le bras à l'entrée, suit le jeu en diagonale, lève le bras
+  sur les cartons ; tiré avec la graine remise en place pour ne pas changer le public. Notes dans `docs/chantier-match-3d.md`.
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup

@@ -636,6 +636,12 @@ function fabriqueMatch3D(THREE, o){
   }
   const equipe = c => joueurs.filter(j=>j.camp===c && !j.dehors);
   const sens = j => SENS[j.camp];
+  /* l'arbitre (prototype du 14/11/2026) : tout en noir, comme dans les années 90. Il mène l'entrée des équipes, le
+     ballon sous le bras, puis suit le jeu en diagonale, à bonne distance, et lève le bras pour les cartons. Il ne
+     touche jamais le ballon et ne compte dans aucune équipe. La graine est remise en place : le public ne change pas. */
+  const arbitre = (()=>{ const g0=graine; const f=figurine({maillot:'#161616', short:'#161616', bas:'#161616'}, false); graine=g0;
+    return {...f, camp:null, nom:'', poste:'', gardien:false, pos:new THREE.Vector3(0,0,-30), vel:new THREE.Vector3(), cible:new THREE.Vector3(), phase:0, num:11, dehors:false, tombe:0, bras:0}; })();
+  const figurants = [...joueurs, arbitre];
 
   /* le public aux couleurs des deux clubs, le club qui reçoit en nombre, un virage aux visiteurs */
   { const cd=[EQ.dom.maillot,EQ.dom.maillot,EQ.dom.short,'#f4edd8','#2b2b2b','#3d5a80','#d9d2c0'], ce=[EQ.ext.maillot,EQ.ext.short];
@@ -677,6 +683,23 @@ function fabriqueMatch3D(THREE, o){
     if(eq[1]) P.set(eq[1],new THREE.Vector3(-s*3.5,0,s*5));
     for(const j of equipe(adverse(campQuiEngage))) if(!j.gardien){ const p=P.get(j); if(Math.hypot(p.x,p.z)<10.5){ p.multiplyScalar(10.5/Math.max(1,Math.hypot(p.x,p.z))); } }
     return {P, eng:eq[0], second:eq[1]};
+  }
+  /* l'entrée des équipes : deux files sortent du côté de la tribune d'en face derrière l'arbitre, viennent se ranger
+     de part et d'autre de la ligne médiane, se tournent vers la caméra et saluent. Le coup d'envoi (la ligne du direct)
+     les envoie ensuite à leurs places. Si le direct va plus vite que la cérémonie, on coupe court. */
+  const ENTREE = {marche:4, salut:1.2, recul:20};
+  function placerEntree(){
+    for(const c of ['dom','ext']){
+      const eq=equipe(c).slice().sort((a,b)=>(b.gardien?1:0)-(a.gardien?1:0) || a.num-b.num);
+      eq.forEach((j,i)=>{ const x=c==='dom'?-2.2:2.2, zt=10-i*2.6; j.entree=new THREE.Vector3(x,0,zt); j.pos.set(x,0,zt-ENTREE.recul); j.vel.set(0,0,0); j.cap=0; });
+    }
+    arbitre.entree=new THREE.Vector3(0,0,13); arbitre.pos.set(0,0,13-ENTREE.recul); arbitre.cap=0;
+    B.porteur=null; B.vol=null; B.filet=null; B.libre=null;
+    etat.phase='avant'; etat.tEntree=0; etat.envoiDemande=false;
+  }
+  function forceEnvoi(){
+    placerCoupEnvoi(etat.buteur ? adverse(etat.buteur.camp) : 'dom'); etat.phase='jeu';
+    if(arbitre.pos.distanceTo(B.pos)<6 || arbitre.pos.z<-Lg/2) arbitre.pos.set(-6,0,7);
   }
   function placerCoupEnvoi(campQuiEngage){
     const {P, eng}=postesEnvoi(campQuiEngage);
@@ -950,7 +973,7 @@ function fabriqueMatch3D(THREE, o){
     if(a.gk) a.gk.plongeReste=.8;
     const g=info.genre;
     if(g==='carton'){
-      a.victime.tombe=1.6;
+      a.victime.tombe=1.6; arbitre.bras=2.6;
       const f=a.fautif; if(!f.crt) f.crt=carton(info.rouge); f.crtT=2.8; montrerNom(f,2.8);
       if(info.rouge) f.sortie=true;
       const repr=plusProche(equipe(info.att).filter(j=>j!==a.victime && !j.gardien), B.pos)[0];
@@ -985,7 +1008,7 @@ function fabriqueMatch3D(THREE, o){
   function lanceAttente(){
     if(!ATT) return;
     if(etat.phase==='but' || etat.phase==='replacement'){            // le direct reprend plus vite que prévu : on engage tout de suite
-      if(ATT.quand-horloge<3.2){ placerCoupEnvoi(adverse(etat.buteur.camp)); etat.phase='jeu'; } else return;
+      if(ATT.quand-horloge<3.2) forceEnvoi(); else return;
     }
     if(etat.phase!=='jeu') return;
     const reste=ATT.quand-horloge, info=ATT.info; ATT=null;
@@ -995,13 +1018,13 @@ function fabriqueMatch3D(THREE, o){
     if(!vivant || !l) return;
     const x=l.x||'';
     if(ACT && ACT.info.ligne===l) ACT.recue=true;                              // le tir part
-    else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
+    else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; if(etat.phase==='replacement' || (etat.phase==='avant' && etat.envoiDemande)) forceEnvoi(); lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
     if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
       if(!(ACT && ACT.info.ligne===l) && etat.phase==='jeu'){
         const j=joueurs.find(p=>p.nom===l.g.but); if(j){ etat.phase='but'; etat.buteur=j; etat.celebration=0; montrerNom(j,4); } } }
     if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; banniere('FIN DU MATCH','',4000); }
     else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
-    else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.phase='jeu'; placerCoupEnvoi('dom'); tifoT=7;
+    else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.envoiDemande=true; tifoT=7;
       const m=/devant ([\d\s\u00a0\u202f]+) spectateurs/.exec(x); if(m){ const n=parseInt(m[1].replace(/\D/g,''),10); if(n>0) remplissage=clamp(n/cap,.12,1); } }
   }
 
@@ -1083,7 +1106,7 @@ function fabriqueMatch3D(THREE, o){
         }
         if(etat.phase==='replacement'){ const p=etat.envoi.P.get(j); if(p) j.cible.copy(p); continue; }
         if(etat.phase==='fin'||etat.phase==='pause'){ j.cible.set(-s*4+(j.num-5)*2.2*s*.4, 0, (j.camp==='dom'?-3:3)+(j.num-5)*.2); continue; }
-        if(etat.phase==='avant') { j.cible.copy(j.pos); continue; }
+        if(etat.phase==='avant') { j.cible.copy(j.entree||j.pos); continue; }
         if(etat.corner && B.libre==null && !ACT){
           const sc=SENS[etat.corner.tireur.camp];
           if(j===etat.corner.tireur){ j.cible.set(sc*(L/2-1.4),0,sc*etat.corner.side*(Lg/2-1.2)); continue; }
@@ -1106,9 +1129,27 @@ function fabriqueMatch3D(THREE, o){
       if(etat.phase==='but' && j===etat.buteur) vmax=9;
       if(etat.phase==='fin'||etat.phase==='pause') vmax=3;
       if(etat.phase==='replacement') vmax=16;
+      if(etat.phase==='avant') vmax=5.6;
       const voulu = dist>.4 ? d.multiplyScalar(Math.min(vmax,dist*1.6)/dist) : d.set(0,0,0);
       j.vel.lerp(voulu, Math.min(1,dt*4)); j.pos.addScaledVector(j.vel,dt);
       if(j.tient){ j.tient-=dt; if(j.tient<=0) j.tient=0; }
+    }
+    { const a=arbitre;
+      if(etat.phase==='avant') a.cible.copy(a.entree||a.pos);
+      else if(etat.phase==='replacement'||etat.phase==='pause'||etat.phase==='fin'||etat.phase==='but') a.cible.set(-6,0,7);
+      else a.cible.set(clamp(B.pos.x-9,-L/2+6,L/2-6), 0, clamp(B.pos.z+9,-Lg/2+3,Lg/2-3));
+      const d=a.cible.clone().sub(a.pos); d.y=0; const dist=d.length(), vmax = etat.phase==='avant'?5.6 : etat.phase==='replacement'?12 : 7.5;
+      const voulu = dist>1 ? d.multiplyScalar(Math.min(vmax,dist*1.3)/dist) : d.set(0,0,0);
+      a.vel.lerp(voulu, Math.min(1,dt*3)); a.pos.addScaledVector(a.vel,dt);
+      if(a.bras>0) a.bras-=dt;
+    }
+    if(etat.phase==='avant'){
+      etat.tEntree=(etat.tEntree||0)+dt;
+      B.pos.set(arbitre.pos.x+1.1, 2.3, arbitre.pos.z+.3);                    // le ballon sous le bras de l'arbitre
+      if(etat.envoiDemande && etat.tEntree>=ENTREE.marche+ENTREE.salut){
+        etat.phase='replacement'; etat.replace=REPLACEMENT-2.2; etat.envoi=postesEnvoi('dom'); etat.buteur=null;
+        B.libre={t:0,d:.7,de:B.pos.clone(),a:new THREE.Vector3(0,.62,0),haut:1.5};
+      }
     }
     for(let a=0;a<joueurs.length;a++) for(let b=a+1;b<joueurs.length;b++){
       const A=joueurs[a], Bj=joueurs[b]; if(A.dehors||Bj.dehors) continue;
@@ -1135,7 +1176,7 @@ function fabriqueMatch3D(THREE, o){
   function poserJoueurs(dt, now){
     const k = 12*2*cam.demi/Math.max(40, Math.floor(taille().h/o.pixels));   // une étiquette fait toujours 12 pixels de jeu de haut, en plein écran comme dans la petite bande du direct
     const ax = axeOmbre();
-    for(const j of joueurs){
+    for(const j of figurants){
       if(j.dehors){ j.ombre.visible=false; continue; }
       j.g.position.copy(j.pos);
       const v=j.vel.length();
@@ -1143,6 +1184,7 @@ function fabriqueMatch3D(THREE, o){
       let capVoulu=j.cap;
       if(j.gardien && (j.plongeF || (ACT && ACT.gk===j && ACT.u>ACT.uTir-.1))) capVoulu = sens(j)>0 ? Math.PI/2 : -Math.PI/2;
       else if(v>.6) capVoulu=Math.atan2(j.vel.x,j.vel.z);
+      else if(etat.phase==='avant') capVoulu=cam.angle;
       else capVoulu=Math.atan2(B.pos.x-j.pos.x, B.pos.z-j.pos.z);
       let dCap=capVoulu-j.cap; while(dCap>Math.PI) dCap-=2*Math.PI; while(dCap<-Math.PI) dCap+=2*Math.PI;
       const tourne = dt>0 ? clamp(dCap*Math.min(1,dt*9)/dt,-6,6) : 0;
@@ -1191,6 +1233,14 @@ function fabriqueMatch3D(THREE, o){
         j.genouG.rotation.x=j.genouD.rotation.x=.9*Math.sin(u*Math.PI);
         j.epauleG.rotation.set(-.4,0,.9); j.epauleD.rotation.set(-.4,0,-.9);
         j.corps.rotation.x = u<.5 ? -.25 : .45; j.tete.rotation.x = u<.5 ? -.3 : .5;
+      }
+      if(etat.phase==='avant' && j.camp && v<1.2 && etat.tEntree>ENTREE.marche-.4){       // le salut au public
+        const u=Math.sin(now/170+j.num*.7);
+        j.epauleD.rotation.set(0,0,2.5+u*.25); j.coudeD.rotation.x=-.2; j.epauleG.rotation.set(0,0,.08);
+      }
+      if(j===arbitre){
+        if(etat.phase==='avant'){ j.epauleD.rotation.set(-.2,0,.35); j.coudeD.rotation.x=-1.3; }
+        if(j.bras>0){ j.epauleD.rotation.set(0,0,2.95); j.coudeD.rotation.x=0; }
       }
       if(etat.phase==='but' && etat.buteur && j.camp===etat.buteur.camp && !j.gardien){
         j.epauleG.rotation.set(0,0,-2.7+Math.sin(now/120+j.num)*.2); j.epauleD.rotation.set(0,0,2.7-Math.sin(now/120+j.num)*.2);
@@ -1306,7 +1356,7 @@ function fabriqueMatch3D(THREE, o){
   }
   function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); try{ image(now); }catch(e){ signale(e); } }
 
-  placerCoupEnvoi('dom'); B.porteur=null;
+  placerEntree();
   dessinerEcran();
   if(typeof document!=='undefined' && document.fonts) document.fonts.ready.then(()=>{ if(vivant) dessinerEcran(); });
   cam.demi=cadrage().demi;
