@@ -6212,6 +6212,32 @@ Vieira, « en quête de come-back » de la réserve de jokers. Gardé par la sec
 Gardé par **`harness-textes-ita.cjs`** (neuf sections, dont la dernière joue une saison italienne entière, une
 intersaison et dix journées, puis relit tout ce que la saison a écrit).
 
+### LE HARNAIS DE PAYS ITALIEN (ITA-C, 14/11/2026, sans changement de version)
+Troisième et dernière étape du lot structure qui précède l'Italie, faite par la tâche de nuit du 14/11/2026.
+**`harness-italie.cjs` est la copie fidèle de `harness-angleterre.cjs`** (voir « LE HARNAIS DE PAYS ») : il balaie
+`SAISONS` à la recherche des entrées `pays:"ITA"` et joue la batterie sur chacune ; tant qu'il n'y en a aucune, il
+tourne en **répétition générale** sur le plateau d'essai de `harness-textes-ita.cjs` (mêmes vingt clubs de Serie A,
+dont les six codes partagés, mêmes vingt clubs dessous), et les contrôles qui ne valent que sur de la donnée curée se
+taisent en `·`. ITA 1990-91 y entrera toute seule, sans qu'on touche au harnais. Mêmes sept sections, A à G.
+**Ce qui change par rapport à l'Angleterre, et pourquoi.** (1) Section B : **aucun club anglais non plus** dans un
+plateau italien, et la fiche résolue par `metaClub` doit être **celle de `CLUBS_ITA`** (`metaClub` cherche la France
+et l'Angleterre d'abord : un code italien qui en volerait un autre résoudrait en silence sur le mauvais club).
+(2) Section E : six codes partagés (`JUV`, `MIL`, `INT`, `ROM`, `LAZ`, `PAR`) au lieu de quatre, et cinq années
+d'épreuve choisies pour leurs délégations : **1990** (deux en C1), **1991** (Milan banni, une seule C1), **1994**
+(cinq en C3), **1999** (quatre en C1, plus de C2) et **2006** (la Juventus en Serie B, quatre en C1). (3) Section F :
+en répétition générale le cadre se joue sur **1990 et 2004**, pour que l'été « an + 2 » tombe sur 1992 (l'Italie
+absente) et sur **2006, le seul été qui doit porter le marqueur de sacre** ; le contrôle exige le marqueur en 2006 et
+son absence partout ailleurs. Les petits clubs de la Coppa Italia ne doivent compter ni village français ni anglais.
+(4) Section G : **pas de bascule de libellés** (Serie A et Serie B de 1990 à 2010) ; on vérifie au contraire qu'ils ne
+bougent pas sur quatre saisons d'affilée et que l'année avance d'une unité à chaque intersaison.
+**Calibrage** : 2,548 buts par match sur 6 840 matchs, dans la plage du moteur. **Prouvé rouge** sur deux mutations
+d'`index.html` faites hors du dépôt : la recomplétion du tableau d'Europe d'avant le correctif d'ANG-E rend
+**quatorze échecs** (le défaut se déclenche aussi en Italie, sur les grosses délégations), et un été 2006 privé de son
+marqueur en rend un. **Aucune ligne du jeu n'a bougé**, d'où aucune version neuve (2.92).
+**La liste des particules (section D) est celle de l'Angleterre au jour d'ITA-C** : les saisons italiennes la
+compléteront, cas réel par cas réel et avec une note (« Lo », « Dal »…), comme ANG 1999-00 l'a fait pour « Dalla ».
+Gardé par **`harness-italie.cjs`**.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
