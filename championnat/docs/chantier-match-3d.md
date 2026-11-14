@@ -36,3 +36,18 @@ Le bloc MATCH3D du prototype est recopié dans `index.html` par `node docs/greff
 Le collage du jeu (`match3dOuvre`, `match3dLigne`, `match3dAnnonce`, `match3dSuite`, `match3dFerme`) est décrit dans
 `CLAUDE.md`, section « LE MATCH EN MAQUETTE 3D ». Pour faire évoluer la scène : retoucher le prototype, l'essayer, relancer
 la greffe, puis `node harness-match3d.cjs`.
+
+## Les joueurs animés (prototype du 14/11/2026, branche chantier/joueurs-3d)
+
+Inspiration : un reel de vib3coded (stade de foot en 3D isométrique pixel art). L'auteur : « c'est surtout l'animation
+des joueurs que je trouve cool ». Dans le prototype seulement, pas encore greffé :
+
+- des figurines articulées (genoux, coudes, buste qui pivote aux hanches), cinq coiffures, chaussettes et crampons ;
+- des allures : à l'arrêt on respire et on suit le ballon des yeux, puis marche, trot, sprint (foulée plus longue,
+  buste penché, bras pliés), freinage (buste qui se redresse), virages (corps incliné), pivot en douceur ;
+- la frappe (jambe qui arme puis fouette) à chaque passe et au départ de chaque tir, le saut de la tête quand le
+  ballon est haut, le gardien en position d'attente quand le ballon approche, bras tendus dans le plongeon ;
+- des ombres en pixels, longues, dans l'axe de la lumière (plus d'ombres calculées sur les joueurs), et une ombre du
+  ballon qui rapetisse quand il monte ; le ballon roule dans le sens du jeu.
+
+La greffe a été essayée sur une copie : `harness-match3d.cjs` reste vert.

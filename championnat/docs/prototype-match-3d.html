@@ -557,22 +557,64 @@ function fabriqueMatch3D(THREE, o){
   const choixGK=['#2f8f5a','#e07b2a','#6a6a6a','#7a3fa0','#111111','#3ab0c8'].sort((a,b)=>
     Math.min(distanceCouleur(b,EQ.dom.maillot),distanceCouleur(b,EQ.ext.maillot))-Math.min(distanceCouleur(a,EQ.dom.maillot),distanceCouleur(a,EQ.ext.maillot)));
   EQ.dom.gk=choixGK[0]; EQ.ext.gk=choixGK[1];
+  /* Les figurines (prototype du 14/11/2026, demande de l'auteur du 14/11/2026 : « c'est surtout l'animation des joueurs que je trouve cool »).
+     Un corps articulé en petits blocs : hanches, cuisses et tibias avec genoux, épaules et avant-bras avec coudes, tête
+     coiffée (court, raie, long, frisé ou crâne rasé), chaussettes et crampons. Le buste penche quand on sprinte, se
+     redresse quand on freine, s'incline dans les virages. Pas d'ombre portée calculée : une ombre en pixels, longue,
+     posée au sol dans l'axe de la lumière, plus lisible en pixel art. */
+  const COIFFES = ['court','court','raie','long','frise','ras','court','raie'];
+  const texOmbre = (()=>{ const c=document.createElement('canvas'); c.width=8; c.height=16; const x=c.getContext('2d');
+    for(let yy=0;yy<16;yy++) for(let xx=0;xx<8;xx++){ const u=(xx+.5-4)/4, v=(yy+.5-8)/8; if(u*u+v*v<=1){ x.fillStyle='#000'; x.fillRect(xx,yy,1,1); } }
+    const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; return t; })();
+  const geoOmbre = new THREE.PlaneGeometry(1,1); geoOmbre.rotateX(-Math.PI/2);
+  function ombreAuSol(force){
+    const m=new THREE.Mesh(geoOmbre, new THREE.MeshBasicMaterial({map:texOmbre, color:0x0a1a08, transparent:true, opacity:force, depthWrite:false}));
+    m.renderOrder=2; scene.add(m); return m;
+  }
   function figurine(tenue, gardien){
     const g = new THREE.Group(); g.scale.setScalar(ECHELLE);
     const peau = M(PEAU[(rnd()*PEAU.length)|0]);
+    const cheveux = M(CHEVEUX[(rnd()*CHEVEUX.length)|0]), coiffe = COIFFES[(rnd()*COIFFES.length)|0];
     const maillot = M(hexInt(gardien?tenue.gk:tenue.maillot)), short = M(hexInt(gardien?'#1a1a1a':tenue.short));
-    const jambeG = new THREE.Group(), jambeD = new THREE.Group();
-    jambeG.position.set(-.18,.85,0); jambeD.position.set(.18,.85,0);
-    box(.24,.5,.24,peau,0,-.3,0,jambeG); box(.26,.32,.26,maillot,0,-.68,0,jambeG);
-    box(.24,.5,.24,peau,0,-.3,0,jambeD); box(.26,.32,.26,maillot,0,-.68,0,jambeD);
-    g.add(jambeG,jambeD);
-    box(.66,.34,.4,short,0,.92,0,g);
-    box(.72,.7,.42,maillot,0,1.42,0,g);
-    const brasG=box(.2,.62,.22,maillot,-.48,1.4,0,g), brasD=box(.2,.62,.22,maillot,.48,1.4,0,g);
-    box(.44,.44,.44,peau,0,2.02,0,g);
-    box(.48,.16,.48,M(CHEVEUX[(rnd()*CHEVEUX.length)|0]),0,2.28,-.02,g);
+    const bas = gardien ? maillot : M(hexInt(tenue.bas||tenue.short)), crampon = M(0x141414);
+    const rien = (w,h,d,mat,x,y,z,par) => box(w,h,d,mat,x,y,z,par,false);
+    /* les jambes : la hanche porte la cuisse, le genou porte le tibia, la chaussette et le crampon */
+    const jambe = cote => {
+      const hanche=new THREE.Group(); hanche.position.set(cote*.17,.98,0);
+      rien(.26,.46,.26,peau,0,-.23,0,hanche);
+      const genou=new THREE.Group(); genou.position.y=-.46; hanche.add(genou);
+      rien(.22,.2,.22,peau,0,-.1,0,genou);
+      rien(.25,.26,.25,bas,0,-.33,0,genou);
+      rien(.25,.1,.36,crampon,0,-.48,.05,genou);
+      g.add(hanche); return {hanche, genou};
+    };
+    const jg=jambe(-1), jd=jambe(1);
+    /* le haut du corps pivote aux hanches : il penche en avant au sprint, en arrière au freinage */
+    const corps=new THREE.Group(); corps.position.y=.98; g.add(corps);
+    rien(.64,.3,.38,short,0,.02,0,corps);
+    rien(.7,.68,.4,maillot,0,.5,0,corps);
+    rien(.3,.06,.1,gardien?maillot:short,0,.8,.17,corps);   // le col
+    const bras = cote => {
+      const epaule=new THREE.Group(); epaule.position.set(cote*.46,.78,0); corps.add(epaule);
+      rien(.2,.36,.22,maillot,0,-.16,0,epaule);
+      const coude=new THREE.Group(); coude.position.y=-.34; epaule.add(coude);
+      rien(.17,.3,.18,gardien?M(0x2a2a2a):peau,0,-.15,0,coude);
+      return {epaule, coude};
+    };
+    const bg=bras(-1), bd=bras(1);
+    const tete=new THREE.Group(); tete.position.y=.86; corps.add(tete);
+    rien(.18,.1,.18,peau,0,.04,0,tete);
+    rien(.42,.42,.42,peau,0,.3,0,tete);
+    rien(.06,.06,.02,M(0x1a1a1a),-.1,.32,.21,tete); rien(.06,.06,.02,M(0x1a1a1a),.1,.32,.21,tete);
+    if(coiffe!=='ras') rien(.46,.12,.46,cheveux,0,.55,-.01,tete);
+    if(coiffe==='court'||coiffe==='raie') rien(.46,.24,.1,cheveux,0,.4,-.2,tete);
+    if(coiffe==='raie') rien(.12,.08,.36,cheveux,.16,.6,.02,tete);
+    if(coiffe==='long'){ rien(.48,.42,.12,cheveux,0,.28,-.22,tete); rien(.06,.3,.36,cheveux,-.23,.36,-.03,tete); rien(.06,.3,.36,cheveux,.23,.36,-.03,tete); }
+    if(coiffe==='frise') rien(.56,.3,.54,cheveux,0,.58,-.03,tete);
+    if(coiffe==='ras') rien(.44,.04,.44,cheveux,0,.52,-.01,tete);
     scene.add(g);
-    return {g, jambeG, jambeD, brasG, brasD};
+    return {g, corps, tete, hancheG:jg.hanche, genouG:jg.genou, hancheD:jd.hanche, genouD:jd.genou,
+      epauleG:bg.epaule, coudeG:bg.coude, epauleD:bd.epaule, coudeD:bd.coude, ombre:ombreAuSol(.34), cap:0, vPrec:0, penche:0, roulis:0, regard:0, regardT:0, frappe:0, saut:0};
   }
   function placesFormation(xi){
     const X={G:-.93, D:-.6, M:-.25, A:.12}, par={G:[],D:[],M:[],A:[]};
@@ -606,7 +648,8 @@ function fabriqueMatch3D(THREE, o){
 
   /* ---------- le ballon ---------- */
   const ballon = new THREE.Mesh(new THREE.IcosahedronGeometry(.62,0), new THREE.MeshLambertMaterial({color:0xfafafa, flatShading:true}));
-  ballon.castShadow = true; scene.add(ballon);
+  ballon.castShadow = false; scene.add(ballon);
+  const ombreBallon = ombreAuSol(.4);
   const B = { pos:new THREE.Vector3(0,.62,0), porteur:null, vol:null, filet:null, libre:null };
 
   /* ================================================================================================
@@ -652,7 +695,7 @@ function fabriqueMatch3D(THREE, o){
     const dist=dep.distanceTo(arr);
     const adv=equipe(adverse(de.camp)); const seg=new THREE.Line3(dep,arr); let coupeur=null, pt=null;
     for(const a of adv){ if(a.gardien) continue; const q=new THREE.Vector3(); seg.closestPointToPoint(a.pos,true,q); if(a.pos.distanceTo(q)<3 && Math.random()<.4){ coupeur=a; pt=q; break; } }
-    B.porteur=null;
+    B.porteur=null; if(!de.gardien) de.frappe=.34;
     if(coupeur) B.vol={de:dep, a:pt, t:0, d:Math.max(.25,dep.distanceTo(pt)/24), haut:.6, recepteur:coupeur};
     else B.vol={de:dep, a:arr, t:0, d:Math.max(.3,dist/(lob?20:25)), haut: lob||dist>32 ? Math.min(9,dist*.18) : .5, recepteur:vers};
   }
@@ -895,7 +938,7 @@ function fabriqueMatch3D(THREE, o){
     const seg=a.S.find(s=>a.u>=s.u0 && a.u<=s.u1) || a.S[a.S.length-1];
     if(seg){
       if(seg.j){ const p=seg.j, dir=p.vel.lengthSq()>.1?p.vel.clone().normalize():new THREE.Vector3(a.s,0,0); B.pos.set(p.pos.x+dir.x*1.3,.62,p.pos.z+dir.z*1.3); }
-      else { if(!seg.de) seg.de=B.pos.clone(); const f=clamp((a.u-seg.u0)/Math.max(1e-6,seg.u1-seg.u0),0,1);
+      else { if(!seg.de){ seg.de=B.pos.clone(); toucheBallon(); } const f=clamp((a.u-seg.u0)/Math.max(1e-6,seg.u1-seg.u0),0,1);
         B.pos.lerpVectors(seg.de, seg.a, f); B.pos.y = seg.de.y+(seg.a.y-seg.de.y)*f + Math.sin(f*Math.PI)*seg.haut; }
     }
     if(a.gk && a.dir && a.u>a.uTir+(1-a.uTir)*.35) a.gk.plongeF = clamp((a.u-a.uTir)/(1-a.uTir),0,1)*a.dir;
@@ -1086,29 +1129,99 @@ function fabriqueMatch3D(THREE, o){
     }
   }
 
+  /* l'axe des ombres : à l'opposé de la lumière, plus longues quand elle est basse */
+  const axeOmbre = () => { const p=soleil.position, h=Math.hypot(p.x,p.z)||1; return {x:-p.x/h, z:-p.z/h, l:clamp(h/Math.max(20,p.y),.4,1.6)}; };
+  const ver = (x,y,t)=>x+(y-x)*Math.min(1,t);
   function poserJoueurs(dt, now){
     const k = 12*2*cam.demi/Math.max(40, Math.floor(taille().h/o.pixels));   // une étiquette fait toujours 12 pixels de jeu de haut, en plein écran comme dans la petite bande du direct
+    const ax = axeOmbre();
     for(const j of joueurs){
-      if(j.dehors) continue;
+      if(j.dehors){ j.ombre.visible=false; continue; }
       j.g.position.copy(j.pos);
       const v=j.vel.length();
-      if(j.gardien && (j.plongeF || (ACT && ACT.gk===j && ACT.u>ACT.uTir-.1))) j.g.rotation.y = sens(j)>0 ? Math.PI/2 : -Math.PI/2;
-      else if(v>.3) j.g.rotation.y=Math.atan2(j.vel.x,j.vel.z);
-      j.phase+=dt*v*1.25;
-      const a=Math.min(.9,v*.11)*Math.sin(j.phase);
-      j.jambeG.rotation.x=a; j.jambeD.rotation.x=-a; j.brasG.rotation.x=-a*.8; j.brasD.rotation.x=a*.8;
-      j.g.position.y=Math.abs(Math.sin(j.phase))*Math.min(.25,v*.03);
-      j.brasG.rotation.z=0; j.brasD.rotation.z=0; j.g.rotation.x=0; j.g.rotation.z=0;
+      /* le cap : on tourne vers où l'on court, sans pivoter d'un coup ; à l'arrêt, on regarde le ballon */
+      let capVoulu=j.cap;
+      if(j.gardien && (j.plongeF || (ACT && ACT.gk===j && ACT.u>ACT.uTir-.1))) capVoulu = sens(j)>0 ? Math.PI/2 : -Math.PI/2;
+      else if(v>.6) capVoulu=Math.atan2(j.vel.x,j.vel.z);
+      else capVoulu=Math.atan2(B.pos.x-j.pos.x, B.pos.z-j.pos.z);
+      let dCap=capVoulu-j.cap; while(dCap>Math.PI) dCap-=2*Math.PI; while(dCap<-Math.PI) dCap+=2*Math.PI;
+      const tourne = dt>0 ? clamp(dCap*Math.min(1,dt*9)/dt,-6,6) : 0;
+      j.cap += dCap*Math.min(1,dt*9); j.g.rotation.set(0,j.cap,0);
+      /* l'allure : arrêté, marche, trot, sprint. La foulée s'allonge et s'accélère avec la vitesse */
+      const acc = dt>0 ? (v-j.vPrec)/dt : 0; j.vPrec=v;
+      const sprint=clamp((v-4)/6,0,1), marche=clamp(v/2.2,0,1);
+      j.phase += dt*(v<.4 ? 0 : 2*Math.PI*(1.1+v*.2));
+      const sn=Math.sin(j.phase), ampl = marche*(.38+.5*sprint);
+      const plie = cote => Math.max(0, -cote*sn);   // le genou de la jambe qui revient se plie
+      j.hancheG.rotation.set(-ampl*sn,0,0); j.hancheD.rotation.set(ampl*sn,0,0);
+      j.genouG.rotation.set((.15+1.3*sprint)*plie(-1)*marche+.05,0,0); j.genouD.rotation.set((.15+1.3*sprint)*plie(1)*marche+.05,0,0);
+      j.epauleG.rotation.set(ampl*.9*sn,0,.06); j.epauleD.rotation.set(-ampl*.9*sn,0,-.06);
+      const coude = -(.25+1.1*sprint)*marche - (v<.4?.12:0);
+      j.coudeG.rotation.set(coude,0,0); j.coudeD.rotation.set(coude,0,0);
+      /* le buste : penché en avant au sprint, redressé au freinage, couché dans le virage */
+      j.penche = ver(j.penche, .06+.32*sprint + clamp(acc*.02,-.25,.12), dt*6);
+      j.roulis = ver(j.roulis, clamp(-tourne*v*.012,-.35,.35), dt*6);
+      j.corps.rotation.set(j.penche,0,j.roulis);
+      const rebond = v<.4 ? Math.sin(now/520+j.num)*.012 : Math.abs(Math.cos(j.phase))*(.04+.1*sprint)*marche;
+      j.g.position.y = rebond*ECHELLE;
+      j.corps.position.y = .98 - (v<.4 ? .01+Math.sin(now/520+j.num)*.01 : .03*sprint);
+      /* la tête suit le ballon quand on est arrêté, et regarde ailleurs de temps en temps */
+      j.regardT-=dt; if(j.regardT<=0){ j.regardT=alea(1.2,3.5); j.regard = v<.4 && Math.random()<.35 ? alea(-.7,.7) : 0; }
+      j.tete.rotation.set(-.04, ver(j.tete.rotation.y, j.regard, dt*3), 0);
+      /* le gardien : position d'attente, genoux fléchis et bras ouverts quand le ballon est dans son camp */
+      if(j.gardien && v<1.2 && !j.plongeF && !j.tient){
+        const alerte = clamp(1-Math.abs(B.pos.x - j.pos.x)/45,0,1);
+        if(alerte>0){ j.hancheG.rotation.x=j.hancheD.rotation.x=-.45*alerte; j.genouG.rotation.x=j.genouD.rotation.x=.8*alerte;
+          j.hancheG.rotation.z=-.12*alerte; j.hancheD.rotation.z=.12*alerte;
+          j.epauleG.rotation.set(-.5*alerte,0,.55*alerte); j.epauleD.rotation.set(-.5*alerte,0,-.55*alerte);
+          j.corps.rotation.x=.3*alerte; j.g.position.y=-.32*alerte*ECHELLE+Math.abs(Math.sin(now/260))*.06*alerte; }
+      }
+      /* la frappe : la jambe droite arme puis fouette, les bras s'écartent pour l'équilibre */
+      if(j.frappe>0){
+        j.frappe-=dt; const u=clamp(1-j.frappe/.34,0,1);
+        const cuisse = u<.4 ? .9*u/.4 : .9-2.3*(u-.4)/.6;
+        j.hancheD.rotation.x=cuisse; j.genouD.rotation.x = u<.45 ? 1.4*u/.45 : 1.4*(1-(u-.45)/.55);
+        j.hancheG.rotation.x=-.15; j.genouG.rotation.x=.25;
+        j.epauleG.rotation.set(-.3,0,1.1); j.epauleD.rotation.set(.4,0,-.7); j.corps.rotation.x=u<.4?-.1:.25;
+      }
+      /* la tête : petit saut, buste qui fouette vers l'avant */
+      if(j.saut>0){
+        j.saut-=dt; const u=clamp(1-j.saut/.55,0,1);
+        j.g.position.y += Math.sin(u*Math.PI)*1.4*ECHELLE*.5;
+        j.genouG.rotation.x=j.genouD.rotation.x=.9*Math.sin(u*Math.PI);
+        j.epauleG.rotation.set(-.4,0,.9); j.epauleD.rotation.set(-.4,0,-.9);
+        j.corps.rotation.x = u<.5 ? -.25 : .45; j.tete.rotation.x = u<.5 ? -.3 : .5;
+      }
       if(etat.phase==='but' && etat.buteur && j.camp===etat.buteur.camp && !j.gardien){
-        j.brasG.rotation.z=-2.6; j.brasD.rotation.z=2.6; j.brasG.rotation.x=j.brasD.rotation.x=0;
-        j.g.position.y+=Math.abs(Math.sin(now/180+j.num))*.5;
+        j.epauleG.rotation.set(0,0,-2.7+Math.sin(now/120+j.num)*.2); j.epauleD.rotation.set(0,0,2.7-Math.sin(now/120+j.num)*.2);
+        j.coudeG.rotation.x=j.coudeD.rotation.x=-.3;
+        j.g.position.y+=Math.abs(Math.sin(now/180+j.num))*.5*ECHELLE*.5;
       }
       if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
       if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
-      if(j.gardien && j.plongeF){ j.g.rotation.z = 1.35*Math.min(1,Math.abs(j.plongeF)*2)*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9; }
+      if(j.gardien && j.plongeF){ const f=Math.min(1,Math.abs(j.plongeF)*2);
+        j.g.rotation.z = 1.35*f*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9;
+        j.epauleG.rotation.set(0,0,-2.6*f); j.epauleD.rotation.set(0,0,2.6*f); j.coudeG.rotation.x=j.coudeD.rotation.x=0; }
+      /* l'ombre : longue, dans l'axe de la lumière, qui rétrécit quand le joueur décolle */
+      const haut = Math.max(0,j.g.position.y), couche = j.tombe>0 || (j.gardien && j.plongeF) ? 1 : 0;
+      const lo = couche ? 3 : (1.6+5.2*ax.l)/(1+haut*.15), la = couche ? 2.6 : 1.7;
+      j.ombre.visible=true; j.ombre.position.set(j.pos.x+ax.x*lo*.42, .06, j.pos.z+ax.z*lo*.42);
+      j.ombre.rotation.y=Math.atan2(ax.x,ax.z); j.ombre.scale.set(la, 1, lo);
+      j.ombre.material.opacity = .3/(1+haut*.25);
       if(j.lab){ j.labT-=dt; j.lab.visible = j.labT>0; j.lab.position.set(j.pos.x, 7.2+k*.6, j.pos.z); j.lab.scale.set(k*j.lab.userData.ratio, k, 1); }
       if(j.crt){ j.crtT-=dt; j.crt.visible = j.crtT>0; j.crt.position.set(j.pos.x, 7.2+k*1.9, j.pos.z); j.crt.scale.set(k*1.1*.75, k*1.1, 1); }
     }
+    /* l'ombre du ballon : sous lui, plus petite et plus claire quand il monte : on lit enfin les ballons aériens */
+    const hb=Math.max(0,B.pos.y-.62);
+    ombreBallon.position.set(B.pos.x+ax.x*hb*.25, .07, B.pos.z+ax.z*hb*.25);
+    ombreBallon.rotation.y=Math.atan2(ax.x,ax.z); ombreBallon.scale.setScalar(Math.max(.6,1.5-hb*.08)); ombreBallon.material.opacity=Math.max(.12,.45-hb*.03);
+  }
+
+  /* qui touche le ballon : le joueur le plus proche frappe, ou saute de la tête si le ballon est haut */
+  function toucheBallon(de){
+    const j = de || plusProche(joueurs.filter(x=>!x.dehors && !x.gardien), B.pos)[0];
+    if(!j || j.pos.distanceTo(new THREE.Vector3(B.pos.x,0,B.pos.z))>4.5) return;
+    if(B.pos.y>2.6) j.saut=.55; else j.frappe=.34;
   }
 
   /* ---------- caméra isométrique : en mode auto, elle suit l'action et recule sur les temps morts ---------- */
@@ -1162,7 +1275,7 @@ function fabriqueMatch3D(THREE, o){
     majJeu(dJeu);
     lanceAttente();
     poserJoueurs(dJeu, now);
-    ballon.position.copy(B.pos); if(!fige){ ballon.rotation.x+=dt*8; ballon.rotation.z+=dt*5; }
+    { const dx=B.pos.x-ballon.position.x, dz=B.pos.z-ballon.position.z; ballon.position.copy(B.pos); if(!fige){ ballon.rotation.x+=dz/.62; ballon.rotation.z-=dx/.62; } }
     const c=ambianceCible(), k=Math.min(1,dt*2);
     ambC.fond.lerp(c.fond,k); ambC.sCol.lerp(c.sCol,k); ambC.sI+=(c.sI-ambC.sI)*k; ambC.hCiel.lerp(c.hCiel,k); ambC.hSol.lerp(c.hSol,k);
     ambC.hI+=(c.hI-ambC.hI)*k; ambC.spots+=(c.spots-ambC.spots)*k; ambC.pos.lerp(c.pos,k);
