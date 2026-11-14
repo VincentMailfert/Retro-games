@@ -1415,7 +1415,7 @@ function fabriqueMatch3D(THREE, o){
   }
 
   /* ---------- caméra isométrique : en mode auto, elle suit l'action et recule sur les temps morts ---------- */
-  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, cible:new THREE.Vector3(), demi:80, mode:o.camera };
+  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, cible:new THREE.Vector3(), demi:80, mode:o.camera, zoom:1 };   // zoom : réglé aux doigts (pincer), 1 = cadrage automatique
   const taille = () => ({w:Math.max(1,canvas.clientWidth||300), h:Math.max(1,canvas.clientHeight||150)});
   function cadrage(){
     const {w,h}=taille(), asp=w/h;
@@ -1431,7 +1431,10 @@ function fabriqueMatch3D(THREE, o){
   }
   function placerCamera(dt){
     const c=cadrage(), k=Math.min(1,dt*(etat.phase==='but'||ACT?2:1.1));
-    cam.cible.lerp(c.cible,k); cam.demi+=(c.demi-cam.demi)*k;
+    if(cam.zoom<1){ const suivi=clamp((1-cam.zoom)*1.6,0,1), p=(etat.phase==='but'&&etat.buteur)?etat.buteur.pos:B.pos;   // zoomé, on colle davantage au ballon
+      c.cible.lerp(new THREE.Vector3(p.x,0,p.z), suivi); }
+    c.demi*=cam.zoom;
+    cam.cible.lerp(c.cible,k); cam.demi+=(c.demi-cam.demi)*Math.min(1,k*2.5);
     cam.angle+=(cam.angleCible-cam.angle)*Math.min(1,dt*6);
     const el=.6, D=300;
     camera.position.set(cam.cible.x+Math.sin(cam.angle)*Math.cos(el)*D, cam.cible.y+Math.sin(el)*D, cam.cible.z+Math.cos(cam.angle)*Math.cos(el)*D);
@@ -1440,10 +1443,23 @@ function fabriqueMatch3D(THREE, o){
     camera.left=-cam.demi*asp; camera.right=cam.demi*asp; camera.top=cam.demi*(1-dec); camera.bottom=-cam.demi*(1+dec);
     camera.updateProjectionMatrix();
   }
-  let glisse=null;
-  const surDown=e=>{ glisse={x:e.clientX,a:cam.angleCible}; try{ canvas.setPointerCapture(e.pointerId); }catch(_){} };
-  const surMove=e=>{ if(glisse) cam.angleCible=glisse.a-(e.clientX-glisse.x)*0.008; };
-  const surUp=()=>{ glisse=null; };
+  /* les gestes (v2.95, demande de l'auteur du 14/11/2026 : « tout semble petit, on aimerait zoomer en écartant les doigts ») :
+     un doigt qui glisse fait tourner le stade, deux doigts qui s'écartent ou se pincent zooment, un double toucher revient
+     au cadrage automatique. À la souris : la molette avec Ctrl (ou le pincement du pavé tactile) zoome. */
+  let glisse=null, pince=null, dernierTap=0;
+  const doigts=new Map();
+  const ecart=()=>{ const v=[...doigts.values()]; return Math.hypot(v[0].x-v[1].x, v[0].y-v[1].y)||1; };
+  const surDown=e=>{ doigts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+    if(doigts.size===2){ glisse=null; pince={d:ecart(), z:cam.zoom}; }
+    else if(doigts.size===1){ glisse={x:e.clientX,a:cam.angleCible};
+      const t=performance.now(); if(t-dernierTap<320){ cam.zoom=1; cam.angleCible=Math.PI/4; } dernierTap=t; } };
+  const surMove=e=>{ if(!doigts.has(e.pointerId)) return; doigts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pince && doigts.size>=2){ cam.zoom=clamp(pince.z*pince.d/ecart(), .3, 1.5); e.preventDefault&&e.preventDefault(); }
+    else if(glisse) cam.angleCible=glisse.a-(e.clientX-glisse.x)*0.008; };
+  const surUp=e=>{ doigts.delete(e&&e.pointerId); if(doigts.size<2) pince=null; if(doigts.size===0) glisse=null; };
+  const surMolette=e=>{ if(!e.ctrlKey && !(typeof document!=='undefined' && document.fullscreenElement)) return;
+    e.preventDefault(); cam.zoom=clamp(cam.zoom*Math.exp(e.deltaY*.0025), .3, 1.5); };
+  canvas.addEventListener('wheel',surMolette,{passive:false});
   canvas.addEventListener('pointerdown',surDown); canvas.addEventListener('pointermove',surMove);
   canvas.addEventListener('pointerup',surUp); canvas.addEventListener('pointercancel',surUp);
   canvas.addEventListener('webglcontextlost', e=>e.preventDefault());
@@ -1505,10 +1521,11 @@ function fabriqueMatch3D(THREE, o){
   return {
     annonce, ligne,
     camera(m){ cam.mode=m; },
+    zoom(z){ if(typeof z==='number') cam.zoom=clamp(z,.3,1.5); return cam.zoom; },
     ferme(){
       if(!vivant) return; vivant=false; cancelAnimationFrame(idRaf);
       canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
-      canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp);
+      canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp); canvas.removeEventListener('wheel',surMolette);
       scene.traverse(x=>{ if(x.geometry) x.geometry.dispose(); const m=x.material; if(m){ (Array.isArray(m)?m:[m]).forEach(mm=>{ if(mm.map) mm.map.dispose(); mm.dispose(); }); } });
       renderer.dispose(); try{ renderer.forceContextLoss(); }catch(_){}
     }

@@ -384,6 +384,19 @@
   .stDirect canvas{display:block; width:100%; height:100%; object-fit:cover; object-position:50% 22%; image-rendering:pixelated; image-rendering:crisp-edges;}
   .stDirect.en3d canvas:not(.st3d){display:none;}
   .stDirect canvas.st3d{position:absolute; inset:0; object-fit:fill; touch-action:pan-y;}
+  /* v2.95 : le match en plein écran (bouton en haut à droite de la bande 3D). Sur iPhone, Safari ne sait pas mettre un bloc
+     en plein écran : la bande se pose alors par-dessus toute la page. Score et dernière ligne du direct par-dessus. */
+  .stPlein{display:none; position:absolute; right:6px; top:6px; z-index:3; width:40px; height:40px; padding:8px; background:rgba(7,11,26,.72); border:2px solid #1d2633; border-radius:4px; cursor:pointer;}
+  .stDirect.en3d .stPlein{display:block;}
+  .stPlein svg{display:block; width:100%; height:100%;}
+  .stBarre, .stFil{display:none;}
+  .stDirect.plein{position:fixed; inset:0; z-index:9999; margin:0; border:0; border-radius:0; aspect-ratio:auto; width:100vw; height:100vh; height:100dvh;}
+  .stDirect.plein canvas.st3d{touch-action:none;}
+  .stDirect.plein .stBarre{display:flex; position:absolute; left:8px; top:8px; right:56px; z-index:2; gap:10px; align-items:center; pointer-events:none; font-family:var(--font-led); font-size:22px; color:var(--clair); text-shadow:0 1px 0 rgba(0,0,0,.7);}
+  .stBarre b{font-weight:normal; color:var(--jaune);}
+  .stDirect.plein .stFil{display:block; position:absolute; left:8px; right:8px; bottom:calc(8px + env(safe-area-inset-bottom)); z-index:2; padding:8px 10px; background:rgba(7,11,26,.78); border:2px solid #1d2633; pointer-events:none; font-family:var(--font-ui); font-size:17px; line-height:1.25; color:var(--clair);}
+  .stFil b{font-weight:normal; color:var(--jaune); margin-right:6px;}
+  body.stPleinOuvert{overflow:hidden;}
   .pxLeg{position:absolute; left:10px; right:10px; bottom:7px; display:flex; justify-content:space-between; gap:10px; font-family:var(--font-led); font-size:13px; pointer-events:none;}
   .pxLeg b{font-weight:normal; color:var(--jaune); text-shadow:0 0 2px currentColor,0 1px 0 rgba(0,0,0,.6);} .pxLeg span{color:var(--clair); text-shadow:0 1px 0 rgba(0,0,0,.6);}
   .cadreCw{position:relative;} .cadreCw>.pxBadge{left:12px; top:12px;}
@@ -684,7 +697,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.94"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.95"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -30017,7 +30030,7 @@ function fabriqueMatch3D(THREE, o){
   }
 
   /* ---------- caméra isométrique : en mode auto, elle suit l'action et recule sur les temps morts ---------- */
-  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, cible:new THREE.Vector3(), demi:80, mode:o.camera };
+  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, cible:new THREE.Vector3(), demi:80, mode:o.camera, zoom:1 };   // zoom : réglé aux doigts (pincer), 1 = cadrage automatique
   const taille = () => ({w:Math.max(1,canvas.clientWidth||300), h:Math.max(1,canvas.clientHeight||150)});
   function cadrage(){
     const {w,h}=taille(), asp=w/h;
@@ -30033,7 +30046,10 @@ function fabriqueMatch3D(THREE, o){
   }
   function placerCamera(dt){
     const c=cadrage(), k=Math.min(1,dt*(etat.phase==='but'||ACT?2:1.1));
-    cam.cible.lerp(c.cible,k); cam.demi+=(c.demi-cam.demi)*k;
+    if(cam.zoom<1){ const suivi=clamp((1-cam.zoom)*1.6,0,1), p=(etat.phase==='but'&&etat.buteur)?etat.buteur.pos:B.pos;   // zoomé, on colle davantage au ballon
+      c.cible.lerp(new THREE.Vector3(p.x,0,p.z), suivi); }
+    c.demi*=cam.zoom;
+    cam.cible.lerp(c.cible,k); cam.demi+=(c.demi-cam.demi)*Math.min(1,k*2.5);
     cam.angle+=(cam.angleCible-cam.angle)*Math.min(1,dt*6);
     const el=.6, D=300;
     camera.position.set(cam.cible.x+Math.sin(cam.angle)*Math.cos(el)*D, cam.cible.y+Math.sin(el)*D, cam.cible.z+Math.cos(cam.angle)*Math.cos(el)*D);
@@ -30042,10 +30058,23 @@ function fabriqueMatch3D(THREE, o){
     camera.left=-cam.demi*asp; camera.right=cam.demi*asp; camera.top=cam.demi*(1-dec); camera.bottom=-cam.demi*(1+dec);
     camera.updateProjectionMatrix();
   }
-  let glisse=null;
-  const surDown=e=>{ glisse={x:e.clientX,a:cam.angleCible}; try{ canvas.setPointerCapture(e.pointerId); }catch(_){} };
-  const surMove=e=>{ if(glisse) cam.angleCible=glisse.a-(e.clientX-glisse.x)*0.008; };
-  const surUp=()=>{ glisse=null; };
+  /* les gestes (v2.95, demande de l'auteur du 14/11/2026 : « tout semble petit, on aimerait zoomer en écartant les doigts ») :
+     un doigt qui glisse fait tourner le stade, deux doigts qui s'écartent ou se pincent zooment, un double toucher revient
+     au cadrage automatique. À la souris : la molette avec Ctrl (ou le pincement du pavé tactile) zoome. */
+  let glisse=null, pince=null, dernierTap=0;
+  const doigts=new Map();
+  const ecart=()=>{ const v=[...doigts.values()]; return Math.hypot(v[0].x-v[1].x, v[0].y-v[1].y)||1; };
+  const surDown=e=>{ doigts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+    if(doigts.size===2){ glisse=null; pince={d:ecart(), z:cam.zoom}; }
+    else if(doigts.size===1){ glisse={x:e.clientX,a:cam.angleCible};
+      const t=performance.now(); if(t-dernierTap<320){ cam.zoom=1; cam.angleCible=Math.PI/4; } dernierTap=t; } };
+  const surMove=e=>{ if(!doigts.has(e.pointerId)) return; doigts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pince && doigts.size>=2){ cam.zoom=clamp(pince.z*pince.d/ecart(), .3, 1.5); e.preventDefault&&e.preventDefault(); }
+    else if(glisse) cam.angleCible=glisse.a-(e.clientX-glisse.x)*0.008; };
+  const surUp=e=>{ doigts.delete(e&&e.pointerId); if(doigts.size<2) pince=null; if(doigts.size===0) glisse=null; };
+  const surMolette=e=>{ if(!e.ctrlKey && !(typeof document!=='undefined' && document.fullscreenElement)) return;
+    e.preventDefault(); cam.zoom=clamp(cam.zoom*Math.exp(e.deltaY*.0025), .3, 1.5); };
+  canvas.addEventListener('wheel',surMolette,{passive:false});
   canvas.addEventListener('pointerdown',surDown); canvas.addEventListener('pointermove',surMove);
   canvas.addEventListener('pointerup',surUp); canvas.addEventListener('pointercancel',surUp);
   canvas.addEventListener('webglcontextlost', e=>e.preventDefault());
@@ -30107,10 +30136,11 @@ function fabriqueMatch3D(THREE, o){
   return {
     annonce, ligne,
     camera(m){ cam.mode=m; },
+    zoom(z){ if(typeof z==='number') cam.zoom=clamp(z,.3,1.5); return cam.zoom; },
     ferme(){
       if(!vivant) return; vivant=false; cancelAnimationFrame(idRaf);
       canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
-      canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp);
+      canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp); canvas.removeEventListener('wheel',surMolette);
       scene.traverse(x=>{ if(x.geometry) x.geometry.dispose(); const m=x.material; if(m){ (Array.isArray(m)?m:[m]).forEach(mm=>{ if(mm.map) mm.map.dispose(); mm.dispose(); }); } });
       renderer.dispose(); try{ renderer.forceContextLoss(); }catch(_){}
     }
@@ -30156,7 +30186,7 @@ function match3dOuvre(H, A, o, dom, ext, R){
     const cv=document.createElement("canvas"); cv.className="st3d"; cv.setAttribute("role","img"); cv.setAttribute("aria-label","Le match en maquette");
     bande.appendChild(cv);
     let sc=null; try{ sc=fabriqueMatch3D(THREE, Object.assign({canvas:cv}, reglages)); }catch(e){ cv.remove(); M3D=null; return; }
-    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d");
+    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d"); stadeDirectBoutonPlein(bande);
     if(STD && STD.tic){ clearInterval(STD.tic); STD.tic=null; } // la bande 2D s'efface et ne se repeint plus
     for(const [f,a] of M3D.file){ try{ sc[f](...a); }catch(e){} }
     M3D.file=[];
@@ -30189,7 +30219,7 @@ function stadeDirectOuvre(H, A, o){
     const html=`<div class="stDirect" id="stDirect"><canvas width="${W}" height="${Ht}" role="img" aria-label="${esc("Le stade : "+(H.stade||H.nom))}"></canvas></div>`;
     if(tS && typeof tS.insertAdjacentHTML==="function") tS.insertAdjacentHTML("afterend", html); else pT.insertAdjacentHTML("beforeend", html);
     const cv=document.querySelector("#stDirect canvas"); if(!cv || !cv.getContext) return;
-    STD={cv, R, img:0, tic:null, sc:[0,0], rouges:[0,0], evt:null, dom, ext, hid:H.id};
+    STD={cv, R, img:0, tic:null, sc:[0,0], rouges:[0,0], evt:null, dom, ext, hid:H.id, ids:[(H.amateur?H.court:H.id)||"", (A.amateur?A.court:A.id)||""], der:null};
     stadeDirectPeint();
     if(!REDUIT) STD.tic=setInterval(()=>{ if(!STD || !STD.cv.isConnected){ stadeDirectFerme(); return; }
       STD.img++; if(STD.evt){ STD.evt.t++; if(STD.evt.t>40) STD.evt=null; } stadeDirectPeint(); },250);
@@ -30201,16 +30231,54 @@ function stadeDirectPeint(){
   try{ STADEPIX.rendre(STD.cv.getContext("2d"), STD.R, STD.img, PX_FIN,
     {focus:"pelouse", direct:{sc:STD.sc, rouges:STD.rouges, evt:STD.evt, dom:STD.dom, ext:STD.ext}}); }catch(e){}
 }
-function stadeDirectFerme(){ match3dFerme(); if(STD && STD.tic) clearInterval(STD.tic); STD=null; }
+function stadeDirectFerme(){ match3dFerme(); stadeDirectPlein(false); if(STD && STD.tic) clearInterval(STD.tic); STD=null; }
+/* LE PLEIN ÉCRAN DU MATCH (v2.95, demande de l'auteur du 14/11/2026 : « quand on joue tout semble petit ») : un bouton sur
+   la bande 3D. L'API plein écran quand le navigateur la connaît (ordinateur, Android), sinon la bande couvre toute la page
+   (iPhone). Score, minute et dernière ligne du direct restent lisibles par-dessus. Échap, le bouton ou quitter le direct
+   en sortent. Le zoom aux doigts est dans la maquette (bloc MATCH3D). */
+function stadeDirectBoutonPlein(bande){
+  if(!bande || bande.querySelector(".stPlein")) return;
+  const b=document.createElement("button"); b.className="stPlein"; b.type="button"; b.setAttribute("aria-label","Match en plein écran");
+  b.innerHTML='<svg viewBox="0 0 16 16" fill="none" stroke="#f2f5fa" stroke-width="2"><path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"/></svg>';
+  b.onclick=e=>{ e.stopPropagation(); stadeDirectPlein(!bande.classList.contains("plein")); };
+  const barre=document.createElement("div"); barre.className="stBarre";
+  const fil=document.createElement("div"); fil.className="stFil";
+  bande.append(b, barre, fil); stadeDirectBarre();
+}
+function stadeDirectPlein(oui){
+  if(typeof document==="undefined" || !document.getElementById) return;
+  const bande=document.getElementById("stDirect"); if(!bande) return;
+  if(oui){
+    bande.classList.add("plein"); document.body.classList.add("stPleinOuvert");
+    try{ if(bande.requestFullscreen && !document.fullscreenElement) bande.requestFullscreen().catch(()=>{}); }catch(e){}
+    if(!stadeDirectPlein.ecoute){ stadeDirectPlein.ecoute=true;
+      document.addEventListener("fullscreenchange",()=>{ if(!document.fullscreenElement){ const x=document.getElementById("stDirect"); if(x && x.classList.contains("plein") && stadeDirectPlein.api) stadeDirectPlein(false); } stadeDirectPlein.api=!!document.fullscreenElement; });
+      document.addEventListener("keydown",e=>{ if(e.key==="Escape") stadeDirectPlein(false); }); }
+    stadeDirectBarre();
+  } else {
+    bande.classList.remove("plein"); document.body.classList.remove("stPleinOuvert");
+    try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
+  }
+  const b=bande.querySelector(".stPlein"); if(b) b.setAttribute("aria-label", oui?"Quitter le plein écran":"Match en plein écran");
+  try{ if(M3D && M3D.sc && M3D.sc.zoom) M3D.sc.zoom(oui ? (innerHeight>innerWidth ? .55 : .8) : 1); }catch(e){} // en plein écran, on part déjà rapproché ; les doigts règlent le reste
+}
+function stadeDirectBarre(){
+  if(!STD || typeof document==="undefined" || !document.getElementById) return; const bande=document.getElementById("stDirect"); if(!bande) return;
+  const barre=bande.querySelector(".stBarre"), fil=bande.querySelector(".stFil"); if(!barre || !fil) return;
+  const [h,a]=STD.sc, ids=STD.ids||["",""], m=STD.der ? String(STD.der.m).padStart(2,"0")+"'" : "";
+  barre.innerHTML=`<span>${esc(ids[0])}</span><b>${h} - ${a}</b><span>${esc(ids[1])}</span><span>${m}</span>`;
+  fil.innerHTML=STD.der ? `<b>${m}</b>${esc(STD.der.x||"")}` : "";
+}
 function stadeDirectScore(sh, sa){
   if(!STD) return;
   const [h,a]=STD.sc;
   if(sh>h) STD.evt={type:"but", cote:"dom", t:0}; else if(sa>a) STD.evt={type:"but", cote:"ext", t:0};
-  STD.sc=[sh, sa]; if(REDUIT) stadeDirectPeint();
+  STD.sc=[sh, sa]; if(REDUIT) stadeDirectPeint(); stadeDirectBarre();
 }
 function stadeDirectLigne(l){
   match3dLigne(l);
   if(!STD || !l) return;
+  if(l.x){ STD.der={m:l.m, x:l.x}; stadeDirectBarre(); }
   if(l.c && l.c.rouge){ const k=l.c.cote===STD.hid?0:1; STD.rouges[k]=Math.min(4,STD.rouges[k]+1); STD.evt={type:"rouge", cote:k?"ext":"dom", t:0}; }
   if(l.m===0 && l.t==="sys"){ const m=/devant ([\d\s ]+) spectateurs/.exec(l.x||""); // l'affluence du soir remplit les tribunes
     if(m){ const n=parseInt(m[1].replace(/\D/g,""),10); if(n>0 && STD.R.cap) STD.R.aff=Math.max(.1,Math.min(1,Math.round(n/STD.R.cap*20)/20)); } }

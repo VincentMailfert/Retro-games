@@ -2869,6 +2869,16 @@ toujours « raconter quelque chose ».
   buteur se couche quand deux partenaires arrivent, ils s'empilent dessus). Le buteur file vers le poteau de corner côté
   bancs. Les battus baissent la tête, mains sur les hanches. `CELEBRATION` passe à 3,2 s. `window.__fete` force une fête
   pour l'essayer. Les figurines tournent dans l'ordre 'YXZ' (le cap, puis la bascule autour du corps).
+- **ZOOM AUX DOIGTS ET PLEIN ÉCRAN DU MATCH (v2.95, demande de l'auteur du 14/11/2026 : « quand on joue tout semble petit,
+  on aimerait pouvoir zoomer en écartant les doigts, ou passer le match en plein écran »)**. Dans le bloc MATCH3D :
+  `cam.zoom` (0,3 à 1,5) multiplie le cadrage automatique ; deux doigts pincent ou écartent, un doigt fait tourner, un double
+  toucher revient au cadrage d'origine, Ctrl + molette à la souris ; zoomé, la caméra colle davantage au ballon ; l'API
+  rend `zoom(z)`. Dans le collage du jeu : bouton `.stPlein` en haut à droite de la bande 3D (`stadeDirectBoutonPlein`,
+  `stadeDirectPlein`) ; l'API plein écran quand elle existe, sinon (iPhone) la bande passe en `position:fixed` sur toute la
+  page (`.stDirect.plein`, `body.stPleinOuvert`) ; par-dessus, la barre de score (`.stBarre`) et la dernière ligne du
+  direct (`.stFil`), tenues à jour par `stadeDirectBarre` depuis `stadeDirectScore` et `stadeDirectLigne` (`STD.ids`,
+  `STD.der`). On entre déjà rapproché (zoom 0,55 en portrait, 0,8 en paysage) ; Échap, le bouton ou quitter le direct
+  (`stadeDirectFerme`, après `match3dFerme`) en sortent.
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup
