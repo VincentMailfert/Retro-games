@@ -3286,6 +3286,13 @@ toujours « raconter quelque chose ».
   `presenteRecrue(j, suite)` puis `rafraichir()`, et la chaîne rejouée reprend à la promo billets. Le coup à faire ne
   part plus dans le debrief hors harnais (doublon). Le rachat de 6 % par un club IA prend désormais d'abord un nom du
   rapport de la semaine : la notif « il figurait dans votre rapport » dit vrai. Gardé par **`harness-marche.cjs`**.
+- **LE MAILLOT NU (v2.99, choix de l'auteur du 16/11/2026, première des « fenêtres de conseil »)**. `ouvreMaillot(suite)`,
+  juste après la fenêtre du marché dans la chaîne de la semaine, rappelle une fois par journée (`G._maillotVu`) que le
+  club joue sans sponsor maillot ou sans équipementier (`maillotASignaler`), avec les offres en attente signables sur
+  place en deux temps, et une seule phrase de situation : ce qui ne rentre pas chaque journée. `choisirSponsor(k, suite)`
+  et `choisirEquip(k, suite)` acceptent une suite (sinon retour aux finances comme avant). La renégociation de
+  mi-saison d'un club déjà sponsorisé n'y entre pas. Gardé par la section F de **`harness-marche.cjs`**. Autres pistes
+  proposées à l'auteur et non retenues pour l'instant : « la caisse déborde » (investir), « la caisse se vide ».
 - **Marché des transferts IA** (`transfertIA`) : pendant les fenêtres (`fenetreOuverte`), un club IA achète
   un joueur à un autre, dans la limite de **son** budget (`c.budget`, réapprovisionné à l'intersaison). Règles :
   ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et

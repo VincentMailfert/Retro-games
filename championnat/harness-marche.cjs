@@ -6,6 +6,7 @@
      C) signer se fait en deux temps (« Signer » arme, « Confirmer » signe), joker comme coup à faire
      D) fermer rend la main à la suite de la chaîne de la semaine
      E) le club qui rafle un nom du recruteur prend l'un de ceux qu'on vous avait montrés
+     F) le maillot nu : sans sponsor ou sans équipementier, une fenêtre le rappelle, signable sur place
    Usage : node harness-marche.cjs                                                              */
 const fs=require("fs"), path=require("path");
 const html=fs.readFileSync(path.join(__dirname,"index.html"),"utf8");
@@ -17,8 +18,9 @@ function noeud(){
   Object.defineProperty(n,"innerHTML",{get(){return n._h;},set(v){ n._h=String(v); n.boutons={}; n.sig=[]; }});
   n.querySelector=sel=>{ const id=sel.replace("#",""); if(!n.boutons[id]) n.boutons[id]={onclick:null,focus(){}}; return n.boutons[id]; };
   n.querySelectorAll=sel=>{
-    if(sel!==".bMkSig") return [];
-    n.sig=[...n._h.matchAll(/bMkSig" data-c="([^"]+)"[^>]*>([^<]*)</g)].map(m=>({dataset:{c:m[1]}, texte:m[2], onclick:null}));
+    if(sel!==".bMkSig" && sel!==".bMaSig") return [];
+    const cl=sel.slice(1);
+    n.sig=[...n._h.matchAll(new RegExp(cl+'" data-c="([^"]+)"[^>]*>([^<]*)<',"g"))].map(m=>({dataset:{c:m[1]}, texte:m[2], onclick:null}));
     return n.sig; };
   n.clic=id=>{ const b=n.boutons[id]; if(!b||!b.onclick) throw new Error("pas de bouton "+id); b.onclick(); };
   n.signe=c=>{ const b=n.sig.find(x=>x.dataset.c===c); if(!b) throw new Error("pas de bouton Signer "+c); b.onclick(); };
@@ -34,7 +36,7 @@ global.window={__TEST__:true,addEventListener(){},removeEventListener(){},localS
 global.localStorage=ls; global.navigator={userAgent:"h"};
 global.getComputedStyle=()=>makeStub();
 global.requestAnimationFrame=cb=>setTimeout(cb,0); global.cancelAnimationFrame=id=>clearTimeout(id);
-const api=new Function(script+"\n;return {ouvreMarche,marcheASignaler,nouvellePartie,genFlashSolde,genRapport,finirJournee,clubById,getG:function(){return G;},CLUBS};")();
+const api=new Function(script+"\n;return {ouvreMarche,marcheASignaler,ouvreMaillot,maillotASignaler,genSponsors,genEquip,nouvellePartie,genFlashSolde,genRapport,finirJournee,clubById,getG:function(){return G;},CLUBS};")();
 
 let ko=0;
 const ok=(c,m)=>{ console.log((c?"  ✓ ":"  ✗ ")+m); if(!c) ko++; };
@@ -92,5 +94,31 @@ console.log("E) le recruteur se fait doubler sur un nom qu'il vous avait montré
 // le bloc vit au cœur de finirJournee : on vérifie le texte du code plutôt que de simuler une journée entière
 ok(/montres=\(G\.rapport\|\|\[\]\)\.map/.test(html) && /pickR\?pickR\.e:PICK\(G\.vivier\[t\]\)/.test(html), "le tirage passe d'abord par les cartes du rapport");
 
-console.log(ko?`\n❌ ${ko} échec(s)`:"\n✅ FENÊTRE DU MARCHÉ : TOUT EST VERT");
+console.log("F) le maillot nu");
+G.journee=9; G.sponsor=null; G.offresSponsor=api.genSponsors(1); G.equip=null; G.offresEquip=api.genEquip(); G._maillotVu=null;
+FICHE.innerHTML=""; suiteVue=0;
+ok(api.maillotASignaler(), "sans sponsor ni équipementier : à signaler");
+enVrai(()=>api.ouvreMaillot(()=>suiteVue++));
+ok(/LE MAILLOT EST NU/.test(FICHE.innerHTML) && /SPONSOR MAILLOT/.test(FICHE.innerHTML) && /ÉQUIPEMENTIER/.test(FICHE.innerHTML), "la fenêtre montre les deux manques");
+ok(/qui ne rentrent pas/.test(FICHE.innerHTML), "elle dit ce que coûte une journée sans contrat");
+const nomSp=G.offresSponsor[1].nom;
+FICHE.signe("s1");
+ok(!G.sponsor, "premier clic : rien n'est signé");
+FICHE.signe("s1");
+ok(G.sponsor && G.sponsor.nom===nomSp, nomSp+" devient sponsor maillot au second clic");
+ok(/PAS D'ÉQUIPEMENTIER/.test(FICHE.innerHTML) && FICHE.style.display==="flex", "la fenêtre reste ouverte pour l'équipementier qui manque encore");
+FICHE.signe("e0"); FICHE.signe("e0");
+ok(!!G.equip && window._penEnCours===false && FICHE.style.display==="none", "l'équipementier signé, plus rien ne manque : la fenêtre se ferme");
+FICHE.innerHTML=""; suiteVue=0; G._maillotVu=null;
+enVrai(()=>api.ouvreMaillot(()=>suiteVue++));
+ok(FICHE.innerHTML==="" && suiteVue===1, "maillot habillé : plus de fenêtre, la chaîne passe");
+G.sponsor=null; G.offresSponsor=api.genSponsors(1); G.journee=10; G._maillotVu=null;
+enVrai(()=>api.ouvreMaillot(()=>suiteVue++));
+FICHE.clic("bMaOk");
+ok(suiteVue===2 && window._penEnCours===false, "« Plus tard » rend la main à la chaîne");
+FICHE.innerHTML="";
+enVrai(()=>api.ouvreMaillot(()=>suiteVue++));
+ok(FICHE.innerHTML==="" && suiteVue===3, "et pas deux fois dans la même journée");
+
+console.log(ko?`\n❌ ${ko} échec(s)`:"\n✅ FENÊTRES DU MARCHÉ ET DU MAILLOT : TOUT EST VERT");
 process.exit(ko?1:0);
