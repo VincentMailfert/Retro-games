@@ -23453,7 +23453,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
 let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
 // LES COMPTES DU JEU (v2.25) : liens aux deux pieds de page, accueil et jeu
-const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"}, {nom:"X (Twitter)", url:"https://x.com/Multiplexclub"}];
+const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"}]; // X retiré le 16/11/2026 : le compte est désactivé
 function liensReseaux(){ return RESEAUX.map(r=>`<a href="${r.url}" target="_blank" rel="noopener" style="color:inherit">${esc(r.nom)}</a>`).join(" · "); }
 const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
 function ecranAccueil(){
