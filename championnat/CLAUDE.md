@@ -3276,6 +3276,16 @@ toujours « raconter quelque chose ».
   **`harness-effectif.cjs`**. **Piège à ne pas rouvrir** : toute NOUVELLE façon de faire sortir un joueur de
   l'effectif doit passer par `refusDepart` si elle est volontaire ; si elle est subie (arc narratif `vendMome`,
   retraite), la laisser passer et compter sur `veilleEffectif` — jamais bloquer une décision de scénario.
+- **LA FENÊTRE DU MARCHÉ (v2.99, demande de l'auteur du 16/11/2026 : « je loupe tout le temps les joueurs poussés pour
+  la journée, je ne prends pas le réflexe d'aller sur la page mercato »)**. `ouvreMarche(suite)`, posée dans la chaîne de
+  la semaine juste après le debrief (`ouvreDebrief(()=>ouvreMarche(rdv?null:ouvrePromo))`), montre en `#fiche` le coup à
+  faire (`G.flash`) et le rapport du recruteur (`G.rapport`), signables sur place en deux temps (« Signer » arme,
+  « Confirmer » signe : `signeJoker(k, true)` et `saisirFlash(true)`, qui ne rafraîchissent ni ne présentent la recrue).
+  Une fois par journée (`G._marcheVu`), de la 1re à l'avant-dernière, et seulement s'il y a quelque chose de signable
+  (`marcheASignaler` : le coup à faire, ou une carte dans le budget). À la fermeture, les recrues passent par
+  `presenteRecrue(j, suite)` puis `rafraichir()`, et la chaîne rejouée reprend à la promo billets. Le coup à faire ne
+  part plus dans le debrief hors harnais (doublon). Le rachat de 6 % par un club IA prend désormais d'abord un nom du
+  rapport de la semaine : la notif « il figurait dans votre rapport » dit vrai. Gardé par **`harness-marche.cjs`**.
 - **Marché des transferts IA** (`transfertIA`) : pendant les fenêtres (`fenetreOuverte`), un club IA achète
   un joueur à un autre, dans la limite de **son** budget (`c.budget`, réapprovisionné à l'intersaison). Règles :
   ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et

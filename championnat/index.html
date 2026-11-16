@@ -396,7 +396,7 @@
   .stDirect canvas{display:block; width:100%; height:100%; object-fit:cover; object-position:50% 22%; image-rendering:pixelated; image-rendering:crisp-edges;}
   .stDirect.en3d canvas:not(.st3d){display:none;}
   .stDirect canvas.st3d{position:absolute; inset:0; object-fit:fill; touch-action:pan-y;}
-  /* v2.95 : le match en plein écran (bouton en haut à droite de la bande 3D). Sur iPhone, Safari ne sait pas mettre un bloc
+  /* v2.98 : le match en plein écran (bouton en haut à droite de la bande 3D). Sur iPhone, Safari ne sait pas mettre un bloc
      en plein écran : la bande se pose alors par-dessus toute la page. Score et dernière ligne du direct par-dessus. */
   .stPlein{display:none; position:absolute; right:6px; top:6px; z-index:3; width:40px; height:40px; padding:8px; background:rgba(7,11,26,.72); border:2px solid #1d2633; border-radius:4px; cursor:pointer;}
   .stDirect.en3d .stPlein{display:block;}
@@ -719,7 +719,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.97"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.99"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -14737,7 +14737,10 @@ function finirJournee(delta){
   if(G.vivier && Math.random()<0.06){
     const types=Object.keys(G.vivier).filter(t=>G.vivier[t].length);
     if(types.length){
-      const t=PICK(types), entree=PICK(G.vivier[t]);
+      // v2.99 : quand il y en a, c'est l'un des noms du rapport de la semaine qui part (ceux qu'on vous avait montrés)
+      const montres=(G.rapport||[]).map(o=>({t:o.type, e:(G.vivier[o.type]||[]).find(x=>x[0]===o.j.nom)})).filter(x=>x.e);
+      const pickR=montres.length?PICK(montres):null;
+      const t=pickR?pickR.t:PICK(types), entree=pickR?pickR.e:PICK(G.vivier[t]);
       const ach=PICK(G.clubs.filter(c=>c.id!==G.monClub && c.pres>=6));
       if(ach && entree){
         G.vivier[t]=G.vivier[t].filter(x=>x!==entree);
@@ -14757,7 +14760,7 @@ function finirJournee(delta){
   if(G.flash && G.flash.jour<G.journee){ const f=G.flash; G.flash=null; flashRafle(f); }
   if(!G.flash && G.journee>=1 && G.journee<37 && Math.random()<FLASH_PROB){
     const f=genFlash();
-    if(f){ const n=flashNotif(f); if(n){ G.flash=f; notif(n); } }
+    if(f){ const n=flashNotif(f); if(n){ G.flash=f; if(EN_TEST()) notif(n); } } // v2.99 : hors harnais, c'est la fenêtre du marché qui l'annonce
   }
   G.rapport=genRapport(); // nouvelles offres du recruteur chaque semaine
   if(fenetreOuverte() && Math.random()<0.6) transfertIA(); // le marché vit : les clubs IA se renforcent
@@ -16217,13 +16220,13 @@ function demandePrime(j, prix, prime){
   };
 }
 /* LA PRÉSENTATION DE LA RECRUE (v2.17) : le gamin intimidé, le vieux briscard, ou celle qu'on montre au stade plein. */
-function presenteRecrue(j){
+function presenteRecrue(j, suite){
   const fam=j.age<=21?"rec_jeune":(j.age>=31?"rec_veteran":"rec_star"), nm="<b class=\"fort\">"+esc(nomLong(j.nom))+"</b>";
   const DIT={
     rec_jeune:nm+" tient son maillot un peu trop grand devant trois photographes. Au fond de la salle, sa mère essuie une larme.",
     rec_veteran:nm+" lève son maillot avec un demi-sourire, son vieux sac de sport à l'épaule. Ce n'est pas sa première présentation.",
     rec_star:"Le stade est venu pour lui. "+nm+" brandit son nouveau maillot sous les flashs et les écharpes."};
-  ceremonie(fam, "📸 PRÉSENTATION DE LA RECRUE", DIT[fam], "Bienvenue au club", ()=>{});
+  ceremonie(fam, "📸 PRÉSENTATION DE LA RECRUE", DIT[fam], "Bienvenue au club", suite||(()=>{}));
 }
 function finaliseAchat(j, prix, prime){
   const vendeur=clubById(j.club), acheteur=clubById(G.monClub);
@@ -18560,7 +18563,7 @@ function acheterJoker(k){
     onOk:()=>signeJoker(k)
   });
 }
-function signeJoker(k){
+function signeJoker(k, discret){
   const o=G.rapport[k]; if(!o) return;
   if(o.prix>G.budget) return message("Le budget transferts ne couvre pas cette recrue joker.", {titre:"💰 BUDGET TRANSFERTS"});
   const moi=clubById(G.monClub);
@@ -18572,6 +18575,7 @@ function signeJoker(k){
   const exEuro=retireDEurope(o.j.nom); // réconciliation : s'il jouait dans un club européen, il le quitte
   G.news.unshift("RECRUE JOKER : "+nomLong(o.j.nom)+" ("+o.j.lieu+") signe pour "+MM(o.prix,1)+"."+(exEuro?" Il quitte "+exEuro.nom+".":""));
   G.rapport.splice(k,1);
+  if(discret) return o.j; // signé depuis la fenêtre du marché : c'est elle qui rafraîchit et présente la recrue
   rafraichir();
   presenteRecrue(o.j);
 }
@@ -18686,18 +18690,18 @@ function flashRafle(f){
     notif("😤 Trop tard : "+j.nom+", libre de tout contrat, a signé à "+ach.nom+". Le salaire, eux, ils l'assument.");
   }
 }
-function saisirFlash(){
-  const f=G.flash; if(!f) return;
+function saisirFlash(discret){
+  const f=G.flash; if(!f) return null;
   const j=flashJ(f);
-  if(!j){ G.flash=null; return rafraichir(); } // le joueur s'est volatilisé entre-temps
+  if(!j){ G.flash=null; return discret?null:rafraichir(); } // le joueur s'est volatilisé entre-temps
   const moi=clubById(G.monClub);
   if(f.kind==="solde"){
-    if(f.prix>G.budget) return message(MM(f.prix,1)+" demandés, "+MM(G.budget,1)+" disponibles au budget transferts.", {titre:"💰 BUDGET TRANSFERTS"});
+    if(f.prix>G.budget){ message(MM(f.prix,1)+" demandés, "+MM(G.budget,1)+" disponibles au budget transferts.", {titre:"💰 BUDGET TRANSFERTS"}); return null; }
     const vend=clubById(f.club);
     if(!cessionFlashOK(vend, j)){
       G.flash=null;
       message((vend?vend.nom:"Le club")+" a perdu trop de monde cette semaine : céder "+j.nom+" le ferait passer sous le plancher réglementaire.", {titre:"🚫 L'AFFAIRE TOMBE À L'EAU"});
-      return rafraichir();
+      return discret?null:rafraichir();
     }
     vend.joueurs=vend.joueurs.filter(x=>x!==j);
     vend.budget=(vend.budget||0)+f.prix;
@@ -18719,7 +18723,9 @@ function saisirFlash(){
   G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle du coup
   assureCapitaine();
   veilleEffectif();
+  if(discret) return j;
   rafraichir();
+  return j;
 }
 function laisserFlash(){
   const f=G.flash; if(!f) return;
@@ -18745,8 +18751,82 @@ function panneauFlash(){
    <button class="act bFlashNon" style="margin-left:8px">Laisser filer</button></p></div>`;
 }
 function cableFlash(){
-  document.querySelectorAll(".bFlashOui").forEach(b=>b.onclick=saisirFlash);
+  document.querySelectorAll(".bFlashOui").forEach(b=>b.onclick=()=>saisirFlash());
   document.querySelectorAll(".bFlashNon").forEach(b=>b.onclick=laisserFlash);
+}
+
+/* ---------- LA FENÊTRE DU MARCHÉ (v2.99, demande de l'auteur du 16/11/2026) ----------
+   « Je loupe tout le temps les joueurs poussés pour la journée, je ne prends pas le réflexe d'aller sur la
+   page mercato, et après coup je vois qu'un autre club les a achetés. » Les deux offres qui ne valent qu'une
+   journée (le coup à faire `G.flash`, le rapport du recruteur `G.rapport`) viennent donc à lui : une fenêtre
+   après le debrief, une fois par journée (`G._marcheVu`), seulement s'il y a quelque chose de signable
+   (le coup à faire, ou une carte du recruteur dans le budget). On signe sur place, en deux temps comme
+   partout : « Signer » puis « Confirmer ». Les recrues sont présentées à la fermeture, puis l'écran se
+   redessine (la chaîne de la semaine reprend là où elle en était : la fenêtre est déjà marquée vue). */
+function marcheASignaler(){
+  if(!G || G.vire || G.finie || G.ete) return false;
+  if(G.mode==="entraineur" && G.coach && G.coach.vire) return false;
+  if(!(G.journee>=1 && G.journee<(G.calendrier||[]).length)) return false;
+  if(G._marcheVu===G.journee) return false;
+  return !!(G.flash && flashJ(G.flash)) || (G.rapport||[]).some(o=>o && o.prix<=G.budget);
+}
+function ouvreMarche(suite){
+  suite=suite||(()=>{});
+  if(EN_TEST() || !marcheASignaler()) return suite();
+  const fiche=document.getElementById("fiche"); if(!fiche || !fiche.style) return suite();
+  G._marcheVu=G.journee;
+  const signes=[];          // les recrues du soir, présentées à la fermeture
+  let arme=null;            // la ligne dont on attend la confirmation (« f » pour le coup à faire, sinon l'indice du rapport)
+  const ferme=()=>{
+    window._penEnCours=false; fermeFiche();
+    if(!signes.length) return suite();
+    const presente=i=>i<signes.length ? presenteRecrue(signes[i], ()=>presente(i+1)) : rafraichir();
+    presente(0);
+  };
+  const rend=()=>{
+    const f=G.flash, jf=f?flashJ(f):null, solde=f&&f.kind==="solde";
+    const cartes=(G.rapport||[]).map((o,k)=>({o,k})).filter(x=>x.o);
+    const ligne=(j, sous, prix, prixTxt, cle, extra)=>{
+      const ok=prix<=G.budget, conf=arme===cle;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #1f3352">
+        <div style="min-width:0"><b class="fort">${esc(nomLong(j.nom))}</b> <span class="pos-${j.pos}">${j.pos}</span>
+          <span class="dim">· ${j.age} ans · note</span> <b>${j.note}</b><br>
+          <span class="dim" style="font-size:13px">${sous}</span>${extra||""}</div>
+        ${ok?`<button class="${conf?"big":"act"} bMkSig" data-c="${cle}" style="white-space:nowrap;flex-shrink:0">${conf?"Confirmer : ":"Signer · "}${prixTxt}</button>`
+            :`<span class="rouge" style="font-size:13px;white-space:nowrap;flex-shrink:0">${prixTxt} · hors budget</span>`}
+      </div>`;
+    };
+    const blocFlash = jf ? `<p style="margin-top:12px;color:#ff8a3d"><b>${solde?"🔥 LE COUP À FAIRE":"🆓 JOUEUR LIBRE"}</b></p>
+      ${ligne(jf, solde?esc((clubById(f.club)||{}).nom||"")+" brade · valeur "+MM(f.plein,1):"ex-"+esc(jf.lieu||"")+" · "+UU(salaire(jf))+"/sem de salaire",
+              f.prix, solde?MM(f.prix,1):"0 transfert", "f",
+              `<br><span style="font-size:13px;font-style:italic">« ${esc(f.motif)} »</span>`)}` : "";
+    const blocRap = cartes.length ? `<p style="margin-top:12px"><b>🔭 LE RAPPORT DU RECRUTEUR</b></p>
+      ${cartes.map(({o,k})=>ligne(o.j, esc(o.j.lieu||libProfil(o.type)), o.prix, MM(o.prix,1), String(k))).join("")}` : "";
+    const fait = signes.length ? `<p class="vert" style="margin-top:10px">✅ ${signes.map(j=>esc(nomLong(j.nom))).join(", ")} ${signes.length>1?"ont signé":"a signé"}.</p>` : "";
+    fiche.innerHTML=`<div class="fbox" style="max-width:480px;width:100%;max-height:92vh;overflow:auto;background:#0b1626;border:2px solid #ff8a3d;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+      <h2 style="color:#ff8a3d">🛒 LE MARCHÉ DE LA SEMAINE</h2>
+      <p class="dim">Jusqu'au prochain match. Après, d'autres clubs se servent.</p>
+      <p style="margin-top:4px">Budget transferts <b class="fort">${MM(G.budget,1)}</b></p>
+      ${blocFlash}${blocRap}${fait}
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="big" id="bMkOk" style="flex:1">${signes.length?"Continuer":"Plus tard"}</button>
+        <button class="act" id="bMkMerc">Voir le mercato</button></p></div>`;
+    fiche.querySelectorAll(".bMkSig").forEach(b=>b.onclick=()=>{
+      const c=b.dataset.c;
+      if(arme!==c){ arme=c; return rend(); }        // premier clic : on arme
+      arme=null;
+      const j = c==="f" ? saisirFlash(true) : signeJoker(+c, true);
+      if(j) signes.push(j);
+      rend();
+    });
+    fiche.querySelector("#bMkOk").onclick=ferme;
+    fiche.querySelector("#bMkMerc").onclick=()=>{ window._penEnCours=false; fermeFiche();
+      if(!signes.length) return montre("mercato");
+      const presente=i=>i<signes.length ? presenteRecrue(signes[i], ()=>presente(i+1)) : montre("mercato");
+      presente(0); };
+  };
+  rend();
+  fiche.style.display="flex"; window._penEnCours=true;
 }
 
 /* ---------- Sponsors ---------- */
@@ -24063,7 +24143,7 @@ function ecranCalendrier(){
   // à la place du match du samedi (panneauRdv), et la semaine passe d'abord — on compose son équipe de coupe en
   // sachant qui est blessé. Seule la promo billets attend : elle concerne le samedi, pas le mercredi.
   // Chaque étape se consume (G.incident, G.confPresse, G.notifs… remis à zéro) : revenir sur l'écran ne rejoue rien.
-  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDefis(()=>ouvreDebrief(rdv?null:ouvrePromo))));
+  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDefis(()=>ouvreDebrief(()=>ouvreMarche(rdv?null:ouvrePromo)))));
   ouvreLivraison(()=>ouvreLivraisonCentre(()=>{
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); } }));
@@ -30129,7 +30209,7 @@ function fabriqueMatch3D(THREE, o){
     camera.left=-cam.demi*asp; camera.right=cam.demi*asp; camera.top=cam.demi*(1-dec); camera.bottom=-cam.demi*(1+dec);
     camera.updateProjectionMatrix();
   }
-  /* les gestes (v2.95, demande de l'auteur du 14/11/2026 : « tout semble petit, on aimerait zoomer en écartant les doigts ») :
+  /* les gestes (v2.98, demande de l'auteur du 14/11/2026 : « tout semble petit, on aimerait zoomer en écartant les doigts ») :
      un doigt qui glisse fait tourner le stade, deux doigts qui s'écartent ou se pincent zooment, un double toucher revient
      au cadrage automatique. À la souris : la molette avec Ctrl (ou le pincement du pavé tactile) zoome. */
   let glisse=null, pince=null, dernierTap=0;
@@ -30303,7 +30383,7 @@ function stadeDirectPeint(){
     {focus:"pelouse", direct:{sc:STD.sc, rouges:STD.rouges, evt:STD.evt, dom:STD.dom, ext:STD.ext}}); }catch(e){}
 }
 function stadeDirectFerme(){ match3dFerme(); stadeDirectPlein(false); if(STD && STD.tic) clearInterval(STD.tic); STD=null; }
-/* LE PLEIN ÉCRAN DU MATCH (v2.95, demande de l'auteur du 14/11/2026 : « quand on joue tout semble petit ») : un bouton sur
+/* LE PLEIN ÉCRAN DU MATCH (v2.98, demande de l'auteur du 14/11/2026 : « quand on joue tout semble petit ») : un bouton sur
    la bande 3D. L'API plein écran quand le navigateur la connaît (ordinateur, Android), sinon la bande couvre toute la page
    (iPhone). Score, minute et dernière ligne du direct restent lisibles par-dessus. Échap, le bouton ou quitter le direct
    en sortent. Le zoom aux doigts est dans la maquette (bloc MATCH3D). */
