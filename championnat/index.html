@@ -409,6 +409,12 @@
   .stDirect.plein .stFil{display:block; position:absolute; left:8px; right:8px; bottom:calc(8px + env(safe-area-inset-bottom)); z-index:2; padding:8px 10px; background:rgba(7,11,26,.78); border:2px solid #1d2633; pointer-events:none; font-family:var(--font-ui); font-size:17px; line-height:1.25; color:var(--clair);}
   .stFil b{font-weight:normal; color:var(--jaune); margin-right:6px;}
   body.stPleinOuvert{overflow:hidden;}
+  /* v2.99 (retour de l'auteur du 16/11/2026) : en plein écran, la question du banc (« on garde le plan ? ») s'ouvrait
+     DERRIÈRE le match. Invisible, elle bloquait le direct : les joueurs jouaient dans le vide, l'action ne finissait
+     jamais. Le plein écran couvre désormais la page entière (et plus la seule bande), et les fenêtres passent devant. */
+  body.stPleinOuvert #butFlash{z-index:10000;}
+  body.stPleinOuvert #fiche{z-index:10001;}
+  body.stPleinOuvert #msgbox{z-index:10002;}
   .pxLeg{position:absolute; left:10px; right:10px; bottom:7px; display:flex; justify-content:space-between; gap:10px; font-family:var(--font-led); font-size:13px; pointer-events:none;}
   .pxLeg b{font-weight:normal; color:var(--jaune); text-shadow:0 0 2px currentColor,0 1px 0 rgba(0,0,0,.6);} .pxLeg span{color:var(--clair); text-shadow:0 1px 0 rgba(0,0,0,.6);}
   .cadreCw{position:relative;} .cadreCw>.pxBadge{left:12px; top:12px;}
@@ -740,7 +746,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.98"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.99"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -12061,12 +12067,15 @@ function libLeadership(j){
 const BUT_LOIN=[
   "PRALINE DE TRENTE MÈTRES ! {A} a armé une mine, le gardien n'a vu que du feu ! Mais quel obus, mes amis !",
   "{A} récupère un ballon mal dégagé aux vingt mètres et le remet dedans du premier coup... BUUUT ! Punition immédiate !",
+  "Personne ne sort sur {A} à trente mètres. Il lève la tête, il arme, et le ballon file sous la barre ! BUUUT ! On lui a laissé le temps de viser, il a visé.",
+  "{A} frappe de vingt-cinq mètres, le ballon flotte, change de trajectoire au dernier moment, {G} se couche trop tard. AU FOND !",
 ];
 const RATE_LOIN=[
   "{A} arme des vingt mètres... et ça frôle la lucarne ! Le gardien n'a pas bougé, il n'aurait rien pu faire.",
 ];
 const ARRET_LOIN=[
   "{A} décoche une praline des vingt mètres... et le gardien s'envole pour la détourner ! Quel réflexe, mes amis !",
+  "Mine de {A} à trente mètres ! {G} la repousse des deux poings, le ballon retombe au milieu de terrain.",
 ];
 const RATE_CONTRE_LOIN=[
   "Le contre file droit au but, {A} arme des vingt mètres... au-dessus ! Il y avait mieux à faire.",
@@ -12083,11 +12092,14 @@ const TIRS_LOIN=new Set([...BUT_LOIN,...RATE_LOIN,...ARRET_LOIN,...RATE_CONTRE_L
    un nouveau lob s'écrit ICI (le harnais répétitions le rattrape au mot « lob »). */
 const BUT_LOB=[
   "{A} aperçoit le gardien avancé et tente le lob de très loin... le ballon monte, monte, et redescend dans le but vide ! BUUUT ! Quel toupet, et quelle réussite !",
+  "{G} est sorti trop loin, {A} l'a vu avant tout le monde : lob des trente-cinq mètres, le portier court vers sa ligne... trop tard ! BUUUT !",
+  "Lob parfait de {A} ! {G} recule, saute, effleure le ballon du bout des gants, et regarde le filet trembler. BUT !",
 ];
 const RATE_LOB=[
   "{A} voit le portier hors de sa surface et tente le lob... par-dessus le gardien, oui, mais par-dessus la barre aussi ! L'idée était bonne.",
 ];
 const ARRET_LOB=[
+  "Le gardien s'est avancé, {A} tente le lob... trop court ! {G} recule de trois pas et cueille le ballon comme une pomme.",
   "{A} tente le lob sur {G} monté trop haut. Le portier recule en marche arrière comme une Safrane dans un parking, et boxe au-dessus de sa barre !",
   "{A} tente le lob des quarante mètres, culotté... le gardien recule, recule... et cueille le ballon sous sa barre !",
 ];
@@ -28944,20 +28956,28 @@ function fabriqueMatch3D(THREE, o){
     for(let i=0;i<12;i++) box(9, 1.6, .5, M(pubs[i%pubs.length]), -L/2+4.5+i*(L-9)/11, .8, -(Lg/2+5));
   }
 
-  /* les buts, filets en texture ajourée */
-  const canvasFilet = (()=>{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d');
-    x.strokeStyle='#ffffff'; for(let i=0;i<32;i+=4){x.beginPath();x.moveTo(i+.5,0);x.lineTo(i+.5,32);x.stroke();x.beginPath();x.moveTo(0,i+.5);x.lineTo(32,i+.5);x.stroke();}
-    const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,2); return t; })();
-  const matFilet = new THREE.MeshLambertMaterial({map:canvasFilet, transparent:true, alphaTest:.5, side:THREE.DoubleSide, color:0xf0f0f0});
+  /* les buts. v2.99 (retour de l'auteur du 16/11/2026 : « le filet rend bizarrement, deux grands carrés, des traits en
+     diagonale ») : la texture quadrillée, vue de loin et de biais, se brouillait en motifs. Le filet est maintenant un voile
+     blanc à peine opaque, barré de quelques vrais traits espacés d'un mètre et demi : il se lit à toutes les distances. */
+  const matVoile = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.16, side:THREE.DoubleSide, depthWrite:false});
+  const matMaille = new THREE.LineBasicMaterial({color:0xe8ece8, transparent:true, opacity:.55});
+  function panFilet(w, h){
+    const g=new THREE.Group(); g.add(new THREE.Mesh(new THREE.PlaneGeometry(w,h), matVoile));
+    const pts=[], nx=Math.max(1,Math.round(w/1.6)), ny=Math.max(1,Math.round(h/1.6));
+    for(let i=1;i<nx;i++){ const x=-w/2+i*w/nx; pts.push(x,-h/2,0, x,h/2,0); }
+    for(let i=1;i<ny;i++){ const y=-h/2+i*h/ny; pts.push(-w/2,y,0, w/2,y,0); }
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+    g.add(new THREE.LineSegments(geo, matMaille)); return g;
+  }
   const blanc = M(0xf6f6f0);
   const BUT_L = 13, BUT_H = 5, BUT_P = 4;
   const filets = [];
   for(const s of [-1,1]){
     const g = new THREE.Group(); g.position.set(s*L/2,0,0); scene.add(g);
     box(.5,BUT_H,.5,blanc,0,BUT_H/2,-BUT_L/2,g); box(.5,BUT_H,.5,blanc,0,BUT_H/2,BUT_L/2,g); box(.5,.5,BUT_L+.5,blanc,0,BUT_H,0,g);
-    const fond = new THREE.Mesh(new THREE.PlaneGeometry(BUT_L,BUT_H), matFilet); fond.rotation.y=Math.PI/2; fond.position.set(s*BUT_P,BUT_H/2,0); g.add(fond);
-    const toit = new THREE.Mesh(new THREE.PlaneGeometry(BUT_P,BUT_L), matFilet); toit.rotation.x=-Math.PI/2; toit.position.set(s*BUT_P/2,BUT_H,0); g.add(toit);
-    for(const z of [-1,1]){ const cote=new THREE.Mesh(new THREE.PlaneGeometry(BUT_P,BUT_H),matFilet); cote.position.set(s*BUT_P/2,BUT_H/2,z*BUT_L/2); g.add(cote); }
+    const fond = panFilet(BUT_L,BUT_H); fond.rotation.y=Math.PI/2; fond.position.set(s*BUT_P,BUT_H/2,0); g.add(fond);
+    const toit = panFilet(BUT_P,BUT_L); toit.rotation.x=-Math.PI/2; toit.position.set(s*BUT_P/2,BUT_H,0); g.add(toit);
+    for(const z of [-1,1]){ const cote=panFilet(BUT_P,BUT_H); cote.position.set(s*BUT_P/2,BUT_H/2,z*BUT_L/2); g.add(cote); }
     filets.push({fond, s});
   }
   for(const sx of [-1,1]) for(const sz of [-1,1]){ box(.25,2.4,.25,blanc,sx*L/2,1.2,sz*Lg/2); box(.9,.6,.05,M(0xffd24a),sx*L/2+(sx>0?-.45:.45),2.1,sz*Lg/2); }
@@ -29572,8 +29592,21 @@ function fabriqueMatch3D(THREE, o){
     const code = (l.g&&l.g.cote)||(l.q&&l.q.cote)||(l.c&&l.c.cote)||((CODE_FIN.exec(x)||[])[1]);
     let camp = code?campDe(code):null;
     if(!camp){ const j=trouveNom(x, joueurs); if(j) camp=j.camp; }
-    let genre=null;
-    if(l.c) genre='carton';
+    let genre=null, nomMo=null;
+    /* v2.99 (retour de l'auteur du 16/11/2026 : « j'ai cru voir but d'anthologie, trente mètres, mais je ne l'ai pas vu
+       sur le terrain ») : les moments-buts de la 90e (l.mo) n'avaient ni code de club ni drapeau de but, la scène les
+       laissait passer. Ils se lisent maintenant : les noms y sont en capitales, et le gardien nommé dit qui attaque. */
+    const mo = /^(but50|geste|cagade|cadeau|gkbut)$/.test(l.mo||'') ? l.mo : null;
+    if(mo){
+      const X=x.toUpperCase(), cite=j=>j.nom && X.includes(String(j.nom).toUpperCase());
+      const gkCite=joueurs.find(j=>j.gardien && cite(j));
+      if(mo==='cagade' || mo==='cadeau'){ if(!gkCite) return null; camp=adverse(gkCite.camp);
+        const b=joueurs.filter(j=>j.camp===camp && !j.gardien && cite(j)).sort((p,q)=>q.nom.length-p.nom.length)[0]; nomMo=b?b.nom:null; }
+      else if(mo==='gkbut'){ if(!gkCite) return null; camp=gkCite.camp; }
+      else { const b=joueurs.filter(j=>!j.gardien && cite(j)).sort((p,q)=>q.nom.length-p.nom.length)[0]; if(!b) return null; camp=b.camp; nomMo=b.nom; }
+      genre='but';
+    }
+    else if(l.c) genre='carton';
     else if(l.ca) genre='corner-annonce';
     else if(/hors-jeu|drapeau (du juge de touche )?(se l[eè]ve|est lev)|juge de touche/i.test(x)) genre='horsjeu';
     else if(l.t==='but') genre='but';
@@ -29586,8 +29619,11 @@ function fabriqueMatch3D(THREE, o){
     if(!genre || !camp) return null;
     const ph=(l.g&&l.g.ph)||(l.q&&l.q.ph)||'';
     let voie='combi';
-    if((l.g&&l.g.pen) || /penalty|point de penalty|onze mètres/i.test(x)) voie='pen';
+    if(mo) voie = mo==='but50' ? 'but50' : mo==='gkbut' ? 'corner' : mo==='geste' ? (/TALONNADE/.test(x.toUpperCase()) ? 'combi' : 'centre') : 'face';
+    else if((l.g&&l.g.pen) || /penalty|point de penalty|onze mètres/i.test(x)) voie='pen';
     else if(ph==='cf' || (l.g&&l.g.cf) || /coup franc|pose le ballon à|le mur/i.test(x)) voie='cf';
+    else if(ph==='lob') voie='lob';                       // v2.99 : le drapeau du moteur passe avant les mots de la ligne
+    else if(ph==='loin') voie='loin';
     else if(/corner/i.test(x)) voie='corner';
     else if(ph==='loin' || /trente mètres|vingt-cinq mètres|de loin|lointaine|mine|obus|praline|frappe sèche de/i.test(x)) voie='loin';
     else if(ph==='aile') voie='aile';
@@ -29595,7 +29631,7 @@ function fabriqueMatch3D(THREE, o){
     else if(ph==='lob' || /lob/i.test(x)) voie='lob';
     else if(ph==='face' || ph==='drib' || /seul face|face-à-face|percée|déboule|slalom/i.test(x)) voie='face';
     const att = genre==='carton' ? adverse(camp) : camp;
-    return {genre, voie, camp, att, def:adverse(att), nomTireur:(l.g&&l.g.but)||(l.q&&l.q.but)||(l.c&&l.c.nom)||null,
+    return {genre, voie, camp, att, def:adverse(att), gkBut:mo==='gkbut', nomTireur:nomMo||(l.g&&l.g.but)||(l.q&&l.q.but)||(l.c&&l.c.nom)||null,
       nomPasseur:(l.g&&l.g.pas)||null, rouge:!!(l.c&&l.c.rouge), ligne:l};
   }
   /* un nom que la scène ne connaît pas (un remplaçant entré en cours de match) : on le prête à une figurine du bon poste */
@@ -29666,6 +29702,7 @@ function fabriqueMatch3D(THREE, o){
     else if(v==='corner' || etat.corner){
       const c=etat.corner || {side, tireur:P};
       const T2=c.tireur && !c.tireur.dehors && c.tireur.camp===info.att ? c.tireur : P;
+      if(info.gkBut && gardiens[info.att] && !gardiens[info.att].dehors) A=gardiens[info.att];   // le gardien est monté, c'est lui qui la met
       if(A===T2) A = autres.find(j=>j!==T2 && j.poste==='A') || autres.find(j=>j!==T2) || A;
       const autresC = autres.filter(j=>j!==T2 && j!==A);
       const fx=L/2-.6, fz=c.side*(Lg/2-.6);
@@ -29692,20 +29729,36 @@ function fabriqueMatch3D(THREE, o){
       if(C){ key(C,.5,cx-8,cz+side*3); key(C,.8,cx-1.5,cz+side*2.5); }
       depart={ax:cx,z:cz,y:2.2};
     }
-    else if(v==='loin'){
-      const az=clamp(z0*.5,-14,14);
-      key(porteur,.15,clamp(ax0+4,-30,20),z0); pied(0,.28,porteur);
-      vol(.28,.46,20,az,.62,1); key(A,.46,20,az);
-      pied(.46,.72,A); key(A,.72,25.5,az*.8);
-      depart={ax:26.5,z:az*.8,y:.62}; uTir=.72;
+    else if(v==='loin'){                                  // v2.99 : la frappe part de vingt-cinq à trente-deux mètres, et ça se voit
+      const az=clamp(z0*.5,-14,14), bx=alea(20,27);
+      key(porteur,.15,clamp(ax0+4,-30,bx-7),z0); pied(0,.28,porteur);
+      vol(.28,.46,bx-6,az,.62,1); key(A,.46,bx-6,az);
+      pied(.46,.72,A); key(A,.72,bx-1,az*.8);
+      depart={ax:bx,z:az*.8,y:.62}; uTir=.72;
     }
-    else if(v==='face' || v==='lob' || info.genre==='horsjeu' || info.genre==='perdu'){
+    else if(v==='lob'){                                   // v2.99 : le gardien est sorti loin de sa surface, on le lobe de trente-cinq mètres
+      const az=alea(-8,8), bx=alea(14,20);
+      key(porteur,.12,clamp(ax0+5,-30,bx-8),z0); pied(0,.22,porteur);
+      vol(.22,.42,bx-5,az,.62,1.2); key(A,.42,bx-5,az);
+      pied(.42,.68,A); key(A,.68,bx-1,az*.8);
+      depart={ax:bx,z:az*.8,y:.62}; uTir=.68;
+      if(gk){ key(gk,.3,L/2-7,az*.2); key(gk,.66,L/2-18,az*.4); }
+    }
+    else if(v==='but50'){                                 // v2.99 : le but venu d'ailleurs, de cinquante mètres, gardien monté
+      const az=alea(-6,6);
+      key(porteur,.1,clamp(ax0,-30,-8),z0); pied(0,.2,porteur);
+      vol(.2,.36,-5,az,.62,.8); key(A,.36,-5,az);
+      pied(.36,.55,A); key(A,.55,1,az*.6);
+      depart={ax:2,z:az*.6,y:.62}; uTir=.55;
+      if(gk){ key(gk,.2,L/2-15,0); key(gk,.52,L/2-26,az*.2); }
+    }
+    else if(v==='face' || info.genre==='horsjeu' || info.genre==='perdu'){
       const az=alea(-10,10);
       key(porteur,.12,clamp(ax0+5,-30,24),z0); pied(0,.22,porteur);
-      vol(.22,.42,36,az,.62,v==='lob'?3:1); key(A,.3,30,az+side*2); key(A,.42,36,az);
+      vol(.22,.42,36,az,.62,1); key(A,.3,30,az+side*2); key(A,.42,36,az);
       pied(.42,.8,A); key(A,.8,45,az*.35);
       depart={ax:46,z:az*.35,y:.62};
-      if(gk) { key(gk,.55,L/2-1.8,0); key(gk,.8,L/2-(v==='lob'?7:4.5),az*.25); }
+      if(gk) { key(gk,.55,L/2-1.8,0); key(gk,.8,L/2-4.5,az*.25); }
       if(info.genre==='horsjeu' || info.genre==='perdu'){
         S.push({u0:.8,u1:1,a:new THREE.Vector3(s*47,.62,s*az*.3),haut:.2});
         const D=plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*44,0,s*az*.4))[0]; if(D && info.genre==='perdu') key(D,.95,46,az*.35);
@@ -29742,11 +29795,11 @@ function fabriqueMatch3D(THREE, o){
     }
     if(!fini){
       const g=info.genre; let tz, ty, ax=L/2;
-      if(g==='but'){ tz=alea(1,BUT_L/2-1.4)*signe(); ty=alea(.5,BUT_H-1.4); }
+      if(g==='but'){ tz=alea(1,BUT_L/2-1.4)*signe(); ty = v==='lob'||v==='but50' ? alea(1.5,3.4) : alea(.5,BUT_H-1.4); }
       else if(g==='arret'){ tz=alea(-4,4); ty=alea(.5,2.6); }
       else if(g==='poteau'){ if(Math.random()<.5){ tz=signe()*BUT_L/2; ty=alea(1,3.5); } else { tz=alea(-4,4); ty=BUT_H; } }
       else { if(Math.random()<.65){ tz=signe()*alea(BUT_L/2+1.5,BUT_L/2+6); ty=alea(.5,3); } else { tz=alea(-4,4); ty=alea(6,8); } ax=L/2+1; }
-      const hauteur = v==='cf'?4.6 : v==='lob'?6 : v==='loin'?2.2 : .8;
+      const hauteur = v==='cf'?4.6 : v==='lob'?11 : v==='but50'?17 : v==='loin'?2.6 : .8;
       S.push({u0:uTir,u1:1,a:new THREE.Vector3(s*ax,ty,s*tz),haut:hauteur});
       let dir=0;
       if(gk){
@@ -29754,7 +29807,7 @@ function fabriqueMatch3D(THREE, o){
         const plonge = g==='arret' ? tz : g==='but' ? clamp(tz - Math.sign(tz||1)*alea(3,6),-6,6) : clamp(tz*.6,-5,5);
         if(!K.has(gk)) key(gk, Math.max(uTir-.1,.3), L/2-1.8, z0g);
         key(gk, 1, L/2-1.8, plonge);
-        dir = Math.sign(s*(plonge-z0g)) || 1;
+        dir = v==='lob'||v==='but50' ? 0 : (Math.sign(s*(plonge-z0g)) || 1);   // lobé, le gardien court vers sa ligne, il ne plonge pas
       }
       ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir};
     }
@@ -29763,6 +29816,7 @@ function fabriqueMatch3D(THREE, o){
     if(ACT.A && info.genre!=='carton') montrerNom(ACT.A, ACT.T+1.6);
     etat.corner=null;
   }
+  function releveGardiens(){ for(const k of ['dom','ext']){ const g=gardiens[k]; if(g){ g.plongeF=0; g.plongeReste=0; g.tient=0; } } }
   function montrerNom(j, duree){ if(!j) return; if(!j.lab) j.lab=etiquette(String(j.nom).toUpperCase()); j.labT=duree; }
 
   /* l'action avance avec le temps, mais garde le tir en suspens tant que la ligne n'est pas tombée */
@@ -29809,7 +29863,8 @@ function fabriqueMatch3D(THREE, o){
       if(g==='horsjeu') banniere('HORS-JEU','',1400);
       B.porteur=plusProche(equipe(info.def).filter(j=>!j.gardien), B.pos)[0]; etat.decision=1.2; return;
     }
-    if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4); return; }
+    if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4);
+      if(!info.ligne.g) banniere('BUT !', a.A&&a.A.nom||'', 2600); return; }
     if(g==='arret'){ if(a.gk){ B.porteur=a.gk; a.gk.tient=1.1; etat.decision=1.1; } return; }
     if(g==='poteau'){ B.libre={t:0, d:.55, de:B.pos.clone(), a:new THREE.Vector3(s*(L/2-12), .62, s*alea(-10,10)), haut:2, ensuite:'def', camp:info.def}; return; }
     const sortie=B.pos.clone(); sortie.x=s*(L/2+5); sortie.y=.62;
@@ -29843,8 +29898,8 @@ function fabriqueMatch3D(THREE, o){
     if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
       if(!(ACT && ACT.info.ligne===l) && etat.phase==='jeu'){
         const j=joueurs.find(p=>p.nom===l.g.but); if(j){ debutFete(j); montrerNom(j,4); } } }
-    if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; banniere('FIN DU MATCH','',4000); }
-    else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
+    if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; releveGardiens(); banniere('FIN DU MATCH','',4000); }
+    else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; releveGardiens(); etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
     else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.envoiDemande=true; tifoT=7;
       const m=/devant ([\d\s\u00a0\u202f]+) spectateurs/.exec(x); if(m){ const n=parseInt(m[1].replace(/\D/g,''),10); if(n>0) remplissage=clamp(n/cap,.12,1); } }
   }
@@ -30077,6 +30132,10 @@ function fabriqueMatch3D(THREE, o){
       if(etat.phase==='but' && etat.buteur && j.camp) poseFete(j, now, v);
       if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
       if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
+      /* v2.99 (retour de l'auteur du 16/11/2026 : au coup de sifflet, les gardiens rejoignaient le rond central couchés,
+         en glissant sur le ventre) : un plongeon ne survit pas à l'action qui l'a lancé. Sans action en cours ni temps de
+         chute à finir, le gardien se relève. */
+      if(j.gardien && j.plongeF && !(ACT && ACT.gk===j) && !(j.plongeReste>0)) j.plongeF=0;
       if(j.gardien && j.plongeF){ const f=Math.min(1,Math.abs(j.plongeF)*2);
         j.g.rotation.z = 1.35*f*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9;
         j.epauleG.rotation.set(0,0,-2.6*f); j.epauleD.rotation.set(0,0,2.6*f); j.coudeG.rotation.x=j.coudeD.rotation.x=0; }
@@ -30366,7 +30425,8 @@ function stadeDirectPlein(oui){
   const bande=document.getElementById("stDirect"); if(!bande) return;
   if(oui){
     bande.classList.add("plein"); document.body.classList.add("stPleinOuvert");
-    try{ if(bande.requestFullscreen && !document.fullscreenElement) bande.requestFullscreen().catch(()=>{}); }catch(e){}
+    const racine=document.documentElement; // toute la page, pas la bande : les fenêtres du jeu doivent pouvoir passer devant (v2.99)
+    try{ if(racine && racine.requestFullscreen && !document.fullscreenElement) racine.requestFullscreen().catch(()=>{}); }catch(e){}
     if(!stadeDirectPlein.ecoute){ stadeDirectPlein.ecoute=true;
       document.addEventListener("fullscreenchange",()=>{ if(!document.fullscreenElement){ const x=document.getElementById("stDirect"); if(x && x.classList.contains("plein") && stadeDirectPlein.api) stadeDirectPlein(false); } stadeDirectPlein.api=!!document.fullscreenElement; });
       document.addEventListener("keydown",e=>{ if(e.key==="Escape") stadeDirectPlein(false); }); }

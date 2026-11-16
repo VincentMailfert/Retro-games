@@ -64,3 +64,17 @@ du coup d'envoi est tombée. L'arbitre suit ensuite le jeu en diagonale et lève
 Choix de l'auteur du 14/11/2026 (« 2a et 2b »). Abris, remplaçants assis, entraîneurs qui vivent le match, et six fêtes
 de but tirées au hasard : poing, avion, glissade à genoux, salto, berceau, pile humaine. Pour en essayer une dans le
 prototype : `window.__fete='berceau'` dans la console avant le but.
+
+## Retours de partie du 16/11/2026 (v2.99)
+
+Quatre retours de l'auteur après plusieurs matchs. **La question du banc en plein écran** : elle s'ouvrait derrière le
+match, invisible, et le direct attendait sa réponse pendant que les joueurs couraient dans le vide. Le plein écran prend
+maintenant toute la page, et les fenêtres du jeu (`#fiche`, `#msgbox`, `#butFlash`) passent devant. **Le filet** : la
+texture quadrillée se brouillait en motifs de loin ; c'est désormais un voile blanc léger barré de vrais traits espacés
+d'un mètre et demi. **Les gardiens couchés au coup de sifflet** : un plongeon ne survit plus à l'action qui l'a lancé
+(`releveGardiens`, et un garde-fou à chaque image). **Les frappes de loin et les lobs** : le drapeau `ph` du moteur passe
+avant les mots de la ligne, la frappe de loin part de 25 à 32 mètres, le lob a sa propre mise en scène (gardien sorti à
+dix-huit mètres de sa ligne, ballon très haut, gardien qui court vers sa cage sans plonger), et les moments-buts de la 90e
+(`but50`, `geste`, `cagade`, `cadeau`, `gkbut`) sont enfin joués sur la pelouse : le but de cinquante mètres avec gardien
+monté, le gardien qui monte sur le corner et marque. Côté moteur, quatre lignes de frappe lointaine et de lob s'ajoutent à
+`BUT_LOIN`, `ARRET_LOIN`, `BUT_LOB` et `ARRET_LOB`, pour qu'on en voie plus souvent.
