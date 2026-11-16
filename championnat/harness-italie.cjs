@@ -8,7 +8,7 @@
    d'ITA-A (effectifs procéduraux, exprès) : c'est une répétition générale, elle est annoncée comme telle,
    et les contrôles qui ne valent que sur de la donnée curée se taisent au lieu de mentir.
      A) les saisons italiennes au registre : clé préfixée, champ pays, nom, titre, sous-titre
-     B) le plateau : 20 + 20, quarante codes uniques, tous italiens, toutes métadonnées résolues
+     B) le plateau : 18 + 20 jusqu'en 2003-04, 20 + 20 ensuite (v2.97), codes uniques, tous italiens, métadonnées résolues
      C) les effectifs : postes, bornes, un gardien réel, et les comptes de la curation
      D) aucun doublon : dans la saison, contre les autres saisons italiennes, et les prénoms
      E) le mur européen : aucun club des deux côtés, seize clubs au tableau, sièges = SIEGES_ITA
@@ -49,7 +49,7 @@ const epilogue = "\n;return {PAYS,SAISONS,SAISON_DEFAUT,SIEGES_ITA,CLUBS_ITA,CLU
   "EUROCLUBS,COMPETS,CIBLE,PLANCHER,PRENOMS_VRAIS,CLUBS_AMATEURS,CLUBS_AMATEURS_ANG,CLUBS_AMATEURS_ITA," +
   "metaClub,metaSaison,nouvellePartie,jouerJournee,intersaison,anneeJeu,libDiv,tagDiv,libCoupeNat," +
   "libCoupeLigue,libChampion,natPays,honneurEte,adjPays,clubsAmateurs,plateauDeSaison,plateauEnCours," +
-  "viviersEuroDe,vivierEuro,siegePays,euroInit,MM,UU," +
+  "viviersEuroDe,vivierEuro,siegePays,euroInit,MM,UU,tailleD1," +
   "getG:function(){return G;}};";
 const api = new Function(script + epilogue)();
 const { PAYS, SAISONS, SIEGES_ITA, CLUBS_ITA, PRENOMS_VRAIS,
@@ -79,7 +79,7 @@ function plateauEssai(an = 1990) {
   return {
     pays: "ITA", an, titre: an + "-" + String((an + 1) % 100).padStart(2, "0"),
     nom: "Répétition générale", sous: "Plateau d'essai du harnais de pays, retiré aussitôt.",
-    d1: ESSAI_D1.slice(), d2: CLUBS_ITA.map(c => c.id).filter(id => !ESSAI_D1.includes(id)).slice(0, 20),
+    d1: ESSAI_D1.slice(0, api.tailleD1("ITA", an)), d2: CLUBS_ITA.map(c => c.id).filter(id => !ESSAI_D1.includes(id)).slice(0, 20),
     starsD1: {}, starsD2: {},
     euroC1: SIEGES_ITA[an].C1, euroC2: SIEGES_ITA[an].C2, euroC3: SIEGES_ITA[an].C3,
   };
@@ -114,15 +114,17 @@ for (const cle of CLES) {
 }
 
 /* ===== B) Le plateau ===== */
-console.log("\nB) Le plateau : 20 + 20, quarante clubs italiens uniques et résolus");
+console.log("\nB) Le plateau : la vraie taille de la Serie A (18 jusqu'en 2003-04, 20 ensuite) + 20, clubs italiens uniques et résolus");
 for (const cle of CLES) {
   const S = SAISONS[cle];
-  /* La Serie A n'avait que dix-huit clubs jusqu'en 2003-04 : le jeu en veut toujours vingt (règle de la
-     D1 française 1997-98, repêchés selon le classement réel). Le harnais ne transige pas. */
-  ok(S.d1.length === 20, `${cle} : ${S.d1.length} clubs à l'élite (le moteur en veut 20)`);
+  /* DÉCISION DE L'AUTEUR DU 16/11/2026 (v2.97) : la Serie A se joue à sa VRAIE taille, dix-huit clubs jusqu'en
+     2003-04 et vingt ensuite, avec quatre trêves au calendrier quand elle a dix-huit clubs (cf. berger). Plus
+     de repêchage à la française. La Serie B reste à vingt. Le harnais ne transige pas sur ces deux nombres. */
+  const t1 = api.tailleD1("ITA", S.an);
+  ok(S.d1.length === t1, `${cle} : ${S.d1.length} clubs à l'élite (la Serie A de ${S.an} en a ${t1})`);
   ok(S.d2.length === 20, `${cle} : ${S.d2.length} clubs à l'échelon du dessous (le moteur en veut 20)`);
   const tous = S.d1.concat(S.d2);
-  ok(new Set(tous).size === 40, `${cle} : quarante codes uniques, aucun club dans les deux divisions`);
+  ok(new Set(tous).size === t1 + 20, `${cle} : ${t1 + 20} codes uniques, aucun club dans les deux divisions`);
   const inconnus = tous.filter(id => !CODES_ITA.has(id));
   ok(inconnus.length === 0, `${cle} : tous les clubs viennent de CLUBS_ITA${inconnus.length ? " — " + extrait(inconnus) : ""}`);
   const francais = tous.filter(id => CODES_FR.has(id));
@@ -160,10 +162,10 @@ for (const cle of CLES) {
     }
     if (!L.some(t => t[1] === "G")) pb.push(id + " sans gardien réel");
   }
-  ok(pb.length === 0, `${cle} : quarante effectifs valides (postes, 15-40 ans, notes ≤ 90, pot ≥ note)${pb.length ? " — " + extrait(pb) : ""}`);
+  ok(pb.length === 0, `${cle} : ${tous.length} effectifs valides (postes, 15-40 ans, notes ≤ 90, pot ≥ note)${pb.length ? " — " + extrait(pb) : ""}`);
   const nD1 = S.d1.reduce((s, id) => s + (S.starsD1[id] || []).length, 0);
   const nD2 = S.d2.reduce((s, id) => s + (S.starsD2[id] || []).length, 0);
-  ok(nD1 === 400, `${cle} : ${nD1} hommes à l'élite (attendu 20 × 20)`);
+  ok(nD1 === 20 * S.d1.length, `${cle} : ${nD1} hommes à l'élite (attendu 20 × ${S.d1.length})`);
   ok(nD2 === 360, `${cle} : ${nD2} hommes en dessous (attendu 20 × 18)`);
   const maigres = tous.filter(id => ((S.d1.includes(id) ? S.starsD1 : S.starsD2)[id] || []).length < 10);
   ok(maigres.length <= 3, `${cle} : ${maigres.length} club(s) sous dix hommes documentés (la règle du chantier en tolère trois)${maigres.length ? " — " + extrait(maigres) : ""}`);
@@ -240,7 +242,8 @@ for (const cle of EPREUVES) {
   api.nouvellePartie(sel, cle);
   const G = api.getG();
   const enCours = api.plateauEnCours();
-  ok(enCours.size === 40, `${cle} : la carrière ouvre sur quarante clubs${enCours.size !== 40 ? " — " + enCours.size : ""}`);
+  const attendus = S.d1.length + S.d2.length; // 38 tant que la Serie A a dix-huit clubs (v2.97)
+  ok(enCours.size === attendus, `${cle} : la carrière ouvre sur ${attendus} clubs${enCours.size !== attendus ? " — " + enCours.size : ""}`);
   const desDeuxCotes = (G.europe || []).filter(c => enCours.has(c.id)).map(c => c.id);
   ok(desDeuxCotes.length === 0, `${cle} : aucun club du championnat ne traîne dans le vivier d'Europe${desDeuxCotes.length ? " — " + extrait(desDeuxCotes) : ""}`);
   const partagesRestes = PARTAGES.filter(id => plateau.has(id) && (G.europe || []).some(c => c.id === id));

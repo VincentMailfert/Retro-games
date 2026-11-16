@@ -697,7 +697,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.96"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "2.97"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11665,8 +11665,18 @@ function berger(ids){
     list.splice(1,0,list.pop());
   }
   const retour=rounds.map(d=>d.map(([a,b])=>[b,a]));
-  return rounds.concat(retour); // 38 journées
+  const cal=rounds.concat(retour); // 38 journées à vingt clubs
+  /* LES TRÊVES (v2.97, choix de l'auteur du 16/11/2026 : la Serie A se joue à DIX-HUIT jusqu'en 2003-04). Une
+     division de dix-huit n'a que trente-quatre journées ; le calendrier en garde trente-huit, et les quatre de trop
+     sont des week-ends sans match pour toute la division (`[]`). Tout ce que le jeu règle à la semaine (coupes,
+     Europe, mercato, climat, actes, fin de saison à la J38) reste donc à sa place. Les trêves tombent à Noël
+     (deux semaines), à la pause internationale d'octobre et à celle de mars, jamais à la première ni à la
+     dernière journée. Gardé par harness-treves.cjs. */
+  for(const k of TREVES_ORDRE){ if(cal.length>=38) break; cal.splice(Math.min(k,cal.length), 0, []); }
+  return cal;
 }
+const TREVES_ORDRE=[8,17,18,28,4,23,33,13]; // la journée (indice) de chaque trêve, dans l'ordre où on les pose
+function estTreve(o){ const d=(o&&o.calendrier||[])[(o&&o.journee)||0]; return !!d && !d.some(x=>x[0]===o.monClub||x[1]===o.monClub); }
 
 /* ---------- Sélection du XI et forces ---------- */
 /* ---------- Sélection du XI (selon la formation, titulaires forcés prioritaires) ---------- */
@@ -15205,11 +15215,11 @@ function majMoral(res){
     // Un homme qu'on MÉNAGE n'est pas un homme qu'on écarte : il sait pourquoi il n'a pas joué, et le
     // compteur de banc ne tourne pas. Sans cela, mettre un cadre au repos le punissait deux fois — jambes
     // lourdes ET moral en berne — et la décision que la fraîcheur rend nécessaire devenait une faute.
-    else if(j.repos || fraich(j)<80){ /* au vert : ni gain, ni rancune */ }
+    else if(j.repos || fraich(j)<80 || !monRes){ /* au vert, ou week-end de trêve (v2.97) : ni gain, ni rancune */ }
     else { j.sansJouer=(j.sansJouer||0)+1;
       if(j.sansJouer===3) notif("😞 "+j.nom+" cire le banc depuis 3 matchs, son moral décroche.");
       if(j.sansJouer>=3) d-=((j.ego||5)>=7?5:3); }
-    d += resultat>0?2:(resultat<0?-3:0.5);
+    if(monRes) d += resultat>0?2:(resultat<0?-3:0.5);
     /* QUATRIÈME PALIER (sous 65) : l'épuisement ne se contente plus de peser sur les jambes, il ronge la
        tête. Le malus court qu'on joue ou non — c'est un état, pas une sanction de banc — et il ne s'arrête
        que quand l'homme est remonté au-dessus de 65. Le seul remède est donc le repos, ce qui est le but. */
@@ -15437,7 +15447,7 @@ function blocProchains(o, rdv){
   const l=prochainsRdv(o, 3, rdv);
   if(!l.length) return "";
   return `<div class="panel" style="padding:8px 10px;margin-top:0">
-     <p class="ctr" style="margin:0;font-size:13px"><span class="dim">APRÈS CE MATCH</span>${
+     <p class="ctr" style="margin:0;font-size:13px"><span class="dim">${(!rdv && estTreve(o))?"APRÈS LA TRÊVE":"APRÈS CE MATCH"}</span>${
        l.map(x=>`<br>${x.ico} <b>J${Math.min(38,x.j+1)}</b>${x.semaine?' <span class="dim">(en semaine)</span>':""} · ${esc(x.txt)}`).join("")}</p>
    </div>`;
 }
@@ -21028,7 +21038,8 @@ function finDeSaison(){
     crieRecord("rang", (G.div===1?100:50)-rang, rang+"ᵉ de "+libDiv(G.div));
     const meil=moi?moi.joueurs.filter(j=>(j.buts||0)>0).sort((x,y)=>(y.buts||0)-(x.buts||0))[0]:null;
     if(meil) crieRecord("buteur", meil.buts, meil.nom+", "+meil.buts+" buts en une saison");
-    if(G.div===1 && rang>=n-5 && rang<=n-3) G.palmares.push("Maintien arraché en "+tagDiv(1)+" "+G.saison+" ("+rang+"ᵉ)");
+    const nd=echangesSaison().desc; // 3 relégués, 4 dans la Serie A à dix-huit (v2.97)
+    if(G.div===1 && rang>=n-nd-2 && rang<=n-nd) G.palmares.push("Maintien arraché en "+tagDiv(1)+" "+G.saison+" ("+rang+"ᵉ)");
     if(G.coupe && G.coupe.elimine && G.coupe.tourSortie==="Finale") G.palmares.push("Finaliste de la "+libCoupeNat()+" "+G.saison);
   }
   progFinDeSaison(rang); // la clé d'un titre de D1, et le résultat de la saison (cf. les saisons verrouillées)
@@ -21107,6 +21118,22 @@ function construireEffectif(p){
 }
 /* force d'un club (note moyenne du onze) — sert au classement abstrait de la division qu'on ne joue pas */
 function forceClub(c){ const xi=onze(c); return xi.length? xi.reduce((s,j)=>s+j.note,0)/xi.length : 50; }
+/* LA TAILLE DES DIVISIONS (v2.97, choix de l'auteur du 16/11/2026). La France et l'Angleterre jouent toujours à vingt
+   (les saisons réelles à dix-huit y sont complétées par repêchage). L'Italie joue sa vraie Serie A : DIX-HUIT clubs
+   jusqu'en 2003-04, VINGT à partir de 2004-05. `tailleD1(pays, an)` dit la taille d'élite d'une saison (an = année
+   civile du coup d'envoi) ; `echangesDiv` en tire les montées et descentes de l'été : 3 et 3 à vingt, 4 et 4 à
+   dix-huit comme la Serie A d'alors, et l'été du passage à vingt, 3 relégués et 5 promus (la Serie B tombe alors à
+   dix-huit, et joue elle aussi avec quatre trêves). Gardé par harness-treves.cjs. */
+function tailleD1(pays, an){ return (pays==="ITA" && an<=2003) ? 18 : 20; }
+function echangesDiv(pays, anSuivante, n1){
+  const cible=tailleD1(pays, anSuivante), desc=(n1<20 && cible<20) ? 4 : 3;
+  return {desc, mont:Math.max(0, desc+cible-n1)};
+}
+/* Ce que la saison EN COURS promet au classement : la zone de relégation de l'élite et celle de montée de l'étage du dessous. */
+function echangesSaison(o){
+  o=o||G; const n1=(o.div===1?(o.clubs||[]):(o.autre||[])).length||20;
+  return echangesDiv(o.pays||"FR", (o.anBase||1995)+(o.saisonIdx||1), n1);
+}
 function classementAbstrait(clubs){
   return clubs.map(c=>({c, s:forceClub(c)+RND(-6,6)})).sort((a,b)=>b.s-a.s).map(x=>x.c);
 }
@@ -21369,8 +21396,10 @@ function intersaison(){
                  : (G.div===1 && monRang>=2 && monRang<=4) ? "C3" // sinon 2ᵉ-4ᵉ de D1 → Coupe UEFA
                  : null; }
   rec.push("Bilan "+G.saison+" : "+d1[0].nom+" "+libChampion()+" · "+d2[0].nom+" sacré en "+libDiv(2)+".");
-  // 3 montées / 3 descentes entre D1 et D2
-  const descendent=d1.slice(-3), montent=d2.slice(0,3);
+  // les montées et descentes entre D1 et D2 : 3 et 3, sauf la Serie A à dix-huit (4 et 4) et l'été 2004 où elle passe à vingt (cf. echangesDiv)
+  const ech=echangesDiv(G.pays, anneeJeu()+1, d1.length);
+  const descendent=d1.slice(-ech.desc), montent=d2.slice(0,ech.mont);
+  if(d1.length-ech.desc+ech.mont!==d1.length) rec.push(libDiv(1)+" passe à "+(d1.length-ech.desc+ech.mont)+" clubs : "+ech.desc+" relégués, "+ech.mont+" promus.");
   descendent.forEach(c=>rec.push(c.nom+" est relégué en "+libDiv(2)+"."));
   montent.forEach(c=>rec.push(c.nom+" est promu en "+libDiv(1)+" !"));
   const nd1=d1.filter(c=>!descendent.includes(c)).concat(montent);
@@ -22511,7 +22540,7 @@ function defiClubRempli(d, r, inv, n){
   const c=r.coupes||[], ch=r.div===1 && r.rang===1;
   switch(d.q){
     case "titre": return ch;
-    case "maintien": return r.div===1 && n>0 && r.rang<=n-3; // sans le nombre de clubs (résultat d'avant la v2.78), on ne juge pas : une D1 à 18 fait descendre le 16e
+    case "maintien": return r.div===1 && n>0 && r.rang<=n-((r.ch==="ITA" && n<20)?4:3); // v2.97 : la Serie A à dix-huit en fait descendre quatre (la D1 française à 18, trois) // sans le nombre de clubs (résultat d'avant la v2.78), on ne juge pas : une D1 à 18 fait descendre le 16e
     case "montee": return r.div===2 && r.rang<=3;
     case "top": return r.div===1 && r.rang<=(d.n||3);
     case "coupe": return c.includes("CN");
@@ -22941,7 +22970,7 @@ function forceReelle(S, id){ const st=S.starsD1[id]||S.starsD2[id]||[]; return f
 function nivDuRang(r, n){ const q=r/(n||20); return q<=0.1?3 : q<=0.3?2 : q<=0.6?1 : 0; }
 function objectifEntr(niv, div, n){
   n=n||20;
-  const place=[n-3, Math.floor(n/2), div===2?3:5, 1][niv];
+  const place=[n-((div===1 && n<20)?4:3), Math.floor(n/2), div===2?3:5, 1][niv]; // v2.97 : une élite à dix-huit (la Serie A) en fait descendre quatre
   const lib=["Le maintien","La première moitié", div===2?"La montée":"L'Europe", "Le titre"][niv];
   return {niv, place, label:lib+(niv===3?"":" (top "+place+")")};
 }
@@ -23876,9 +23905,10 @@ function ecranCalendrier(){
   veilleEffectif(); // avant d'annoncer le match : tous les effectifs repassent au contrôle réglementaire
   const rdv=rdvEnAttente(); // un soir de coupe ou d'Europe à jouer avant le samedi ? il prend la place du match de championnat
   const day=G.calendrier[G.journee];
-  const [hid,aid]=day.find(([h,a])=>h===G.monClub||a===G.monClub);
-  const h=clubById(hid), a=clubById(aid);
-  const dom=hid===G.monClub;
+  const paireJ=day.find(([h,a])=>h===G.monClub||a===G.monClub); // absente un week-end de trêve (division à 18, v2.97)
+  const [hid,aid]=paireJ||[null,null];
+  const h=hid?clubById(hid):null, a=aid?clubById(aid):null;
+  const dom=!!hid && hid===G.monClub;
   // la feuille de match : 11 titulaires + 5 remplaçants. Sans onze complet, il n'y a pas de match.
   const moiC=clubById(G.monClub), xiMoi=onze(moiC), dispoMoi=moiC.joueurs.filter(dispo).length;
   const bancMoi=Math.max(0, dispoMoi-11), feuilleOk=xiMoi.length>=11;
@@ -23916,7 +23946,7 @@ function ecranCalendrier(){
    ${offre}
    ${offrePret}
    ${affaire}
-   ${rdv?panneauRdv(rdv,h,a):`<div class="panel">
+   ${rdv?panneauRdv(rdv,h,a):!paireJ?panneauTreve():`<div class="panel">
      <h2>Saison ${esc(G.saison)} · Journée ${G.journee+1} · votre match</h2>
      <p class="scoreline" style="display:flex;align-items:center;justify-content:center;gap:12px">${blason(h,30)}${esc(h.nom)} - ${esc(a.nom)}${blason(a,30)}</p>
      <p class="ctr dim">${esc(h.stade)} · ${dom?"À DOMICILE":"À L'EXTÉRIEUR"}</p>
@@ -23962,7 +23992,7 @@ function ecranCalendrier(){
      <div id="tabScore"></div>
      <div id="tabButs"></div>
    </div>
-   <div class="panel panelDirect"><h2>Téléscripteur
+   <div class="panel panelDirect"${!paireJ&&!rdv?' style="display:none"':""}><h2>Téléscripteur
      <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match">🗣️ Coach</button>
      </span></h2>
@@ -23972,6 +24002,7 @@ function ecranCalendrier(){
      ${G.presse.slice(0,2).map(p=>`<p class="dim" style="font-style:italic">${esc(p)}</p>`).join("")}</div>`:""}
    <div class="panel"><h2>Dépêches</h2>${G.news.slice(0,3).map(n=>`<p class="dim">› ${esc(n)}</p>`).join("")}</div>`);
   { const dA=document.querySelector("details.avantMatch"); if(dA) dA.ontoggle=()=>{ AVANT_MATCH_OUVERT=dA.open; }; } // un réglage redessine l'écran : le panneau reste ouvert
+  { const bT=document.getElementById("bTreve"); if(bT) bT.onclick=()=>{ bT.disabled=true; passeTreve(); montre("calendrier"); }; }
   { const bJ=document.getElementById("bJouer"); if(bJ) bJ.onclick=()=>lanceMatch(false);
     const bV=document.getElementById("bVite");  if(bV) bV.onclick=()=>lanceMatch(true);
     const bR=document.getElementById("bRenfort"); if(bR) bR.onclick=()=>{ veilleEffectif(); montre("calendrier"); }; }
@@ -24348,6 +24379,25 @@ function etatOnzeHTML(xi){
      </p>${cuits.length?`<p class="ctr ${rouges.length?"rouge":"jaune"}" style="margin-top:4px;font-size:13px">
          ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s cuits":" cuit")
                         :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s entamés":" entamé")} : ${noms}.</p>`:""}`;
+}
+/* LE WEEK-END DE TRÊVE (v2.97) : une division de dix-huit a quatre samedis sans match (cf. berger). La semaine passe
+   quand même (`jouerJournee` n'a rien à jouer et finit la journée tout de suite) : soins, récupération, mercato,
+   offres et dépêches tournent comme d'habitude. Le soir de coupe ou d'Europe qui tomberait cette semaine-là
+   se joue d'abord, à sa place (panneauRdv). */
+function libTreve(j){ return (j===17||j===18)?"Trêve de Noël":"Trêve internationale"; }
+function panneauTreve(){
+  return `<div class="panel">
+     <h2>Saison ${esc(G.saison)} · Journée ${G.journee+1} · ${esc(libTreve(G.journee))}</h2>
+     <p class="scoreline ctr">PAS DE MATCH CE WEEK-END</p>
+     <p class="ctr dim">${esc(libDiv(G.div))} au repos</p>
+     <p class="ctr"><span class="${fenetreOuverte()?"vert":"dim"}">${esc(msgMercato())}</span></p>
+     <p class="ctr" style="margin-top:12px"><button class="big" id="bTreve">PASSER LA SEMAINE</button></p></div>`;
+}
+function passeTreve(){
+  if(!estTreve(G) || G._pend) return false;
+  jouerJournee();
+  if(G._pend) finirJournee(null); // ceinture : sans match à soi, la journée s'est déjà refermée
+  return true;
 }
 function panneauRdv(rdv, h, a){
   let titre, H, A, lieu, contexte, rot, quand, brief;
@@ -25269,7 +25319,7 @@ function mpxTable(M){
     const t=T[r-1]; if(!t) continue;
     if(prec && r>prec+1) corps+=`<tr><td colspan="4" class="dim ctr">⋯</td></tr>`;
     prec=r;
-    const zone=(r<=3)?"vert":((M.div===1&&r>n-3)?"rouge":"dim");
+    const zone=(r<=3)?"vert":((M.div===1&&r>n-echangesSaison().desc)?"rouge":"dim");
     corps+=`<tr class="${t.id===M.moi?"me":""}"><td class="num ${zone}">${r}</td><td class="mvt">${mvt(t)}</td><td>${esc(t.nom)}</td><td class="num"><b>${t.pts}</b></td></tr>`;
   }
   const d=moiT?((moiT.av||moiT.r)-moiT.r):0;
@@ -26100,7 +26150,7 @@ function ecranClassement(){
   const decores=G.clubs.flatMap(x=>x.joueurs).filter(j=>(j.hdm||0)>0).sort((a,b)=>(b.hdm||0)-(a.hdm||0)||b.note-a.note).slice(0,8);
   chrome("classement",`<div class="panel"><h2>Classement · ${esc(libDiv(G.div))}</h2>
    <table class="clTab"><tr><th>#</th><th>Club</th><th class="num">J</th><th class="num clDet">G</th><th class="num clDet">N</th><th class="num clDet">P</th><th class="num clDet">Bp</th><th class="num clDet">Bc</th><th class="num">Diff</th><th class="num">Pts</th></tr>
-   ${cl.map((c,i)=>{const mont=G.div===2&&i<3&&joue, desc=G.div===1&&i>=cl.length-3&&joue; return `<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
+   ${cl.map((c,i)=>{const ech=echangesSaison(), mont=G.div===2&&i<ech.mont&&joue, desc=G.div===1&&i>=cl.length-ech.desc&&joue; return `<tr class="click ${c.id===G.monClub?"me":""}" data-id="${c.id}">
      <td>${mont?'<span class="vert">'+(i+1)+'▲</span>':desc?'<span class="rouge">'+(i+1)+'▼</span>':(i+1)}</td><td><span style="display:inline-flex;align-items:center;gap:7px">${blason(c,15)}${esc(c.nom)}</span></td><td class="num">${c.j}</td><td class="num clDet">${c.g}</td>
      <td class="num clDet">${c.n}</td><td class="num clDet">${c.p}</td><td class="num clDet">${c.bp}</td><td class="num clDet">${c.bc}</td>
      <td class="num">${c.bp-c.bc>0?"+":""}${c.bp-c.bc}</td><td class="num"><b>${c.pts}</b></td></tr>`;}).join("")}

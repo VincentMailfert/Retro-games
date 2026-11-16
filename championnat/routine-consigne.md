@@ -64,10 +64,17 @@ Si la nuit ne suffit pas pour les deux temps, livre seulement le relevé (sur `m
 `releves/`), laisse la case non cochée, écris-le au journal : la nuit suivante repart du relevé déjà fait
 et assemble.
 
-**Les divisions à 18, 22 ou 24 clubs** (Serie A jusqu'en 2003-04, Primera de 1995 à 1997, Bundesliga,
-2. Bundesliga du début des années 90, première division portugaise) : le jeu joue toujours à 20. Applique la règle déjà écrite pour la
-D1 française 1997-98 dans `CLAUDE.md` (repêchés ou écartés selon le classement réel), et écris au journal
-quels clubs entrent ou sortent.
+**La Serie A se joue à sa VRAIE taille (décision de l'auteur du 16/11/2026, v2.97)** : **18 clubs de 1990-91 à
+2003-04, 20 à partir de 2004-05**, sans repêchage. Le moteur le sait (`tailleD1`, quatre trêves au calendrier,
+quatre montées et quatre descentes) et `harness-italie.cjs` l'exige. La **Serie B reste à 20** dans une saison de
+départ : 20 réels jusqu'en 2002-03 (rien à faire), et les années où elle en a 22 ou 24 (2003-04 et après), on
+**écarte les derniers du classement réel** pour retomber à 20, et on l'écrit au journal. Donc **aucun repêché, ni
+en Serie A ni en Serie B, pour l'Italie** : la question de Licata (journal du 15/11) n'a plus d'objet.
+
+**Les autres divisions à 18, 22 ou 24 clubs** (Primera de 1995 à 1997, Bundesliga, 2. Bundesliga du début des
+années 90, première division portugaise) : le jeu joue toujours à 20, sauf décision contraire de l'auteur à venir
+pour ces pays. Applique la règle déjà écrite pour la D1 française 1997-98 dans `CLAUDE.md` (repêchés ou écartés
+selon le classement réel), et écris au journal quels clubs entrent ou sortent.
 
 **Sans accès au réseau, aucun relevé n'est possible.** Si Transfermarkt et Wikipédia sont injoignables
 (essaie `.com`, `.de`, `.co.uk`), ne relève rien, n'invente rien : pousse seulement une ligne de journal
@@ -111,7 +118,8 @@ qui le dit, et la case reste vide.
      le vérifie), le **sous-titre** (`sous`, faits vérifiés, aucun tiret long « — »), les sièges européens
      copiés de `SIEGES_ANG[AAAA]` dans `index.html`, et l'`entete` (le commentaire posé au-dessus des tables).
 3. **L'assemblage** : `node releves/outils/assemble.cjs <racine> <AAAA> /tmp/AAAA.json`. Il doit donner
-   **400 joueurs en haut et 360 en bas, pile** (le harnais de pays l'exige). Chaque « innommable » (aucun nom
+   **400 joueurs en haut et 360 en bas, pile** (le harnais de pays l'exige ; pour l'Italie de 1990-91 à 2003-04,
+   dix-huit clubs en Serie A, donc **360 en haut et 360 en bas** : adapte l'outil à la taille du plateau). Chaque « innommable » (aucun nom
    libre, ou plus de 40 ans) se remplace par un homme présent au coup d'envoi, ajouté dans `_ajouter`.
    Regarde le haut du classement des notes : un joueur important trop bas se corrige par un ajustement.
 4. **L'insertion** : `index.html` doit être **exactement à HEAD** avant (sinon les prénoms déjà insérés

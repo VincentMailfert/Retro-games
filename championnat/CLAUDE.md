@@ -596,7 +596,21 @@ toujours « raconter quelque chose ».
   (vrais effectifs 95-96 dans `STARS_D2`, `genJoueur` ne complétant qu'à la marge) ; la case `PER`
   (« Perpignan FC ») porte l'effectif réel de **Canet-Roussillon** — club voisin retenu faute de club
   perpignanais en D2 cette saison-là — et Angers/Alès, sans case dans le jeu, sont restés de côté.
-  Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions**.
+  Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions** (exception italienne ci-dessous).
+- **LA SERIE A À DIX-HUIT ET LES TRÊVES (v2.97, décision de l'auteur du 16/11/2026, réponse au blocage d'ITA 1990-91)** :
+  l'Italie se joue à sa vraie taille, **dix-huit clubs de 1990-91 à 2003-04, vingt ensuite** (`tailleD1(pays, an)`,
+  vingt partout ailleurs). **Le calendrier garde trente-huit journées** : `berger` pose, pour une division de
+  dix-huit, quatre journées VIDES (`[]`) aux indices de `TREVES_ORDRE` (J9 et J29 trêves internationales, J18 et J19
+  Noël), si bien que coupes, Europe, mercato, climat, actes et fin de saison à la J38 n'ont pas bougé. Un week-end de
+  trêve (`estTreve`), l'avant-match cède la place à `panneauTreve` (« PAS DE MATCH CE WEEK-END », bouton « Passer la
+  semaine » → `passeTreve`) ; `jouerJournee` n'a rien à jouer et referme la journée tout de suite (soins, mercato,
+  offres, dépêches), sans billetterie ni droits télé ni salaires ce jour-là. Le soir de coupe ou d'Europe de la même
+  semaine se joue d'abord, comme toujours. `majMoral` ne compte pas une trêve comme un match passé sur le banc.
+  **Les échanges** (`echangesDiv`, `echangesSaison`) : 3 et 3 à vingt, **4 et 4** à dix-huit, et **l'été 2004**
+  d'une carrière italienne trois relégués et cinq promus (Serie A à vingt, Serie B à dix-huit, qui joue alors avec
+  ses trêves). Le classement, la carte du multiplex, « maintien arraché », le défi de maintien et l'objectif
+  d'entraîneur lisent ces nombres. Une saison de départ italienne garde sa Serie B à vingt. Gardé par
+  **`harness-treves.cjs`** (sections A à E) et `harness-italie.cjs` (section B, la vraie taille).
   Le **mercato est national** (`ecranMercato` liste D1 + D2, colonne « Div », filtre par division) ;
   la **fiche d'accueil affiche l'effectif réel curé** (STARS/STARS_D2) avant de choisir son club.
 - **Saison de départ au choix (v0.62)** : un sélecteur à l'accueil (`#selSaison`) permet de démarrer une
