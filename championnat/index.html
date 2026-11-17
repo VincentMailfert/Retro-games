@@ -277,6 +277,18 @@
     .repGo{flex-basis:100%; text-align:center;}
   }
   .carSous .act,.carLigne .act{font-size:13px;padding:4px 8px;}
+  .carDiscret{margin-top:4px;gap:0;font-size:13px;}
+  .carDiscret .lien{font-size:13px;padding:10px 8px;text-decoration:none;}
+  .carDiscret .lien:hover{text-decoration:underline;}
+  .carAutresT{color:var(--dim);font-size:13px;margin:14px 0 6px;}
+  .carLigne .act{background:none;border-color:transparent;color:var(--dim);min-width:40px;}
+  .carLigne .act:hover{color:var(--clair);border-color:transparent;}
+  /* « Nouvelle carrière » : pays, saison, deux autres voies côte à côte, puis les clubs, dans un seul bloc */
+  .accVoies{display:flex;gap:8px;margin-top:12px;}
+  .accVoies .act{flex:1;min-height:44px;font-size:14px;width:auto !important;}
+  .accVoies .act:disabled{opacity:.45;cursor:default;}
+  .accChoixT{font-size:15px;margin:22px 0 4px;padding-top:16px;border-top:1px solid var(--line);scroll-margin-top:12px;}
+  .accNouv .grpHead:first-of-type{margin-top:12px;}
   .pips{font-size:14px;letter-spacing:1px;white-space:nowrap;}
   .pips .off{color:#557199;} /* crans vides : contraste 3,4 sur la carte (1,8 avant), toujours bien en retrait des pleins */
   .accTabs{display:none;}
@@ -397,6 +409,12 @@
   .stDirect.plein .stFil{display:block; position:absolute; left:8px; right:8px; bottom:calc(8px + env(safe-area-inset-bottom)); z-index:2; padding:8px 10px; background:rgba(7,11,26,.78); border:2px solid #1d2633; pointer-events:none; font-family:var(--font-ui); font-size:17px; line-height:1.25; color:var(--clair);}
   .stFil b{font-weight:normal; color:var(--jaune); margin-right:6px;}
   body.stPleinOuvert{overflow:hidden;}
+  /* v2.99 (retour de l'auteur du 16/11/2026) : en plein écran, la question du banc (« on garde le plan ? ») s'ouvrait
+     DERRIÈRE le match. Invisible, elle bloquait le direct : les joueurs jouaient dans le vide, l'action ne finissait
+     jamais. Le plein écran couvre désormais la page entière (et plus la seule bande), et les fenêtres passent devant. */
+  body.stPleinOuvert #butFlash{z-index:10000;}
+  body.stPleinOuvert #fiche{z-index:10001;}
+  body.stPleinOuvert #msgbox{z-index:10002;}
   .pxLeg{position:absolute; left:10px; right:10px; bottom:7px; display:flex; justify-content:space-between; gap:10px; font-family:var(--font-led); font-size:13px; pointer-events:none;}
   .pxLeg b{font-weight:normal; color:var(--jaune); text-shadow:0 0 2px currentColor,0 1px 0 rgba(0,0,0,.6);} .pxLeg span{color:var(--clair); text-shadow:0 1px 0 rgba(0,0,0,.6);}
   .cadreCw{position:relative;} .cadreCw>.pxBadge{left:12px; top:12px;}
@@ -475,7 +493,10 @@
      pixels. Avec des carrières en cours, il s'efface devant « Reprendre ». */
   .accHero{text-align:center; padding:28px 18px 24px;}
   .accHero .accLogo{max-width:520px; margin:0 auto 6px; font-size:inherit;}
-  .accLogoMini{max-width:300px; margin:14px auto 10px;} /* le logo au-dessus de « Vos carrières » : on le revoit à chaque reprise */
+  .accLogoMini{max-width:220px; margin:10px auto 14px;}
+  /* la barre de l'accueil garde sa phrase (v2.23) mais rend le jaune à « Reprendre » (15/11/2026) */
+  .topbar.accBar{background:none; color:var(--dim); padding:6px 2px; font-size:13px; border-bottom:1px solid var(--line); flex-wrap:nowrap; align-items:center;}
+  .topbar.accBar .r{width:auto; text-align:right;} /* le logo au-dessus de « Vos carrières » : on le revoit à chaque reprise */
   .accHero .accPitch{font-size:15px; color:var(--clair); max-width:44ch; margin:12px auto 0; line-height:1.4; text-wrap:balance;}
   .accHero .accSous{font-size:14px; color:var(--dim); margin-top:8px;}
   .accHero .accPortes{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; margin-top:18px;}
@@ -576,6 +597,8 @@ body.mode-direct #ticker{flex:1 1 auto;max-height:none;min-height:0;font-size:19
 body.mode-direct #ticker p{margin-bottom:5px}
 body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton verdict/prochaine journée (coupe & europe) */
 
+#vCycle, #tacOuvre{display:none}
+.tacTiroir{display:inline}
 /* ---------- mobile ---------- */
 @media(max-width:700px){
   body{font-size:14px}
@@ -627,6 +650,25 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   body.mode-direct #ctlVitesse{gap:3px}
   body.mode-direct #ctlVitesse .act, body.mode-direct #ctlTactique .act{min-height:34px;padding:3px 2px;font-size:12px;line-height:1.1}
   body.mode-direct #ctlTactique .ctlOutils .act{padding:3px 7px}
+  /* UNE SEULE RANGÉE (v2.98) : le fil en haut sur toute la largeur, dessous la vitesse et la consigne côte à côte */
+  body.mode-direct #corps>.panelDirect{display:grid;grid-template-columns:auto 1fr;grid-template-rows:minmax(0,1fr) auto;gap:6px 4px;position:relative}
+  body.mode-direct #ticker{grid-column:1/-1;grid-row:1}
+  body.mode-direct .panelDirect>h2{grid-column:1;grid-row:2;margin:0 !important;align-self:stretch}
+  body.mode-direct #ctlTactique{grid-column:2;grid-row:2;margin:0 !important;gap:4px;align-items:stretch}
+  body.mode-direct #ctlVitesse{height:100%;gap:4px}
+  body.mode-direct #vTL, body.mode-direct #vL, body.mode-direct #vR{display:none}
+  body.mode-direct #vCycle, body.mode-direct #tacOuvre{display:block}
+  body.mode-direct #ctlVitesse .act, body.mode-direct #ctlTactique .act{min-height:42px;font-size:13px;padding:4px 8px;flex:0 0 auto}
+  body.mode-direct #vCycle{min-width:72px}
+  body.mode-direct #tacOuvre{flex:1 1 auto !important;white-space:nowrap}
+  body.mode-direct #ctlTactique .ctlOutils{display:flex;gap:4px}
+  body.mode-direct .libCoach, body.mode-direct .icoM{display:none}
+  body.mode-direct .tacTiroir{display:none;position:absolute;left:6px;right:6px;bottom:58px;z-index:6;gap:6px;padding:8px;
+    background:#0b1626;border:1px solid var(--clair);border-radius:6px;box-shadow:0 -6px 20px rgba(0,0,0,.5)}
+  body.mode-direct #ctlTactique.tiroir .tacTiroir{display:flex}
+  body.mode-direct .tacTiroir .bTacD{flex:1 1 0 !important;min-height:48px !important;font-size:15px !important}
+  body.mode-direct #composDirect{position:absolute;top:6px;left:6px;right:6px;bottom:58px;z-index:5;margin:0;overflow:auto;
+    background:#0b1626;border:1px solid var(--line);border-radius:6px;padding:10px;-webkit-overflow-scrolling:touch;align-content:start}
   .fbox{max-width:94vw !important;padding:10px !important}
   .ficheActions{bottom:-10px; margin:12px -10px -10px; padding:10px}
   .fbox #cage, .fbox div[style*="width:330px"]{width:100% !important}
@@ -643,6 +685,9 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
   .accCols[data-div="1"] .colD2{display:none;}
   .accCols[data-div="2"] .colD1{display:none;}
   .pips{font-size:13px;letter-spacing:.5px;}
+  .accDivHead{display:none;} /* sur téléphone, l'onglet dit déjà la division */
+  .accCols .startclub{padding:10px 12px;margin-bottom:6px;}
+  .grpHead{margin:18px 0 8px;}
   /* Effectif : cibles de 40 px au doigt, et le nom qui reste collé au bord gauche quand on fait défiler
      le tableau jusqu'aux boutons */
   .effBtns button.ico{width:40px; height:38px; padding:0; font-size:17px;}
@@ -654,9 +699,13 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
     width:1px; background:var(--line);}
 }
   /* LA SALLE DES TROPHÉES (v2.75) */
-  .trPorte{display:flex;justify-content:space-between;align-items:center;width:100%;margin:0 0 12px;padding:12px 14px;
-    background:#0b1626;border:2px solid #ffd24a;color:#dfe9ff;font-family:inherit;font-size:15px;cursor:pointer;}
-  .trPorte:hover{background:#13223a;}
+  /* HIÉRARCHIE DE L'ACCUEIL (15/11/2026) : le jaune n'appartient plus qu'à « Reprendre ». La salle des trophées
+     devient une ligne calme, son solde seul reste doré. */
+  .trPorte{display:flex;justify-content:space-between;align-items:center;width:100%;margin:0 0 12px;padding:12px 16px;min-height:48px;
+    background:var(--panel);border:1px solid transparent;border-radius:6px;color:var(--txt);font-family:inherit;font-size:15px;cursor:pointer;}
+  .trPorte:hover{border-color:var(--line);color:var(--clair);}
+  .trPorte:focus-visible{outline:2px solid var(--jaune);outline-offset:2px;}
+  .trSolde{color:#ffd24a;font-weight:bold;}
   .trPts{font-size:30px;letter-spacing:1px;margin:8px 0 2px;color:#ffd24a;}
   .trGrille{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
   .trCase{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1px solid #38507a;font-size:12px;text-align:center;}
@@ -697,7 +746,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "2.97"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.00"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -11666,7 +11715,7 @@ function berger(ids){
   }
   const retour=rounds.map(d=>d.map(([a,b])=>[b,a]));
   const cal=rounds.concat(retour); // 38 journées à vingt clubs
-  /* LES TRÊVES (v2.97, choix de l'auteur du 16/11/2026 : la Serie A se joue à DIX-HUIT jusqu'en 2003-04). Une
+  /* LES TRÊVES (v3.00, choix de l'auteur du 16/11/2026 : la Serie A se joue à DIX-HUIT jusqu'en 2003-04). Une
      division de dix-huit n'a que trente-quatre journées ; le calendrier en garde trente-huit, et les quatre de trop
      sont des week-ends sans match pour toute la division (`[]`). Tout ce que le jeu règle à la semaine (coupes,
      Europe, mercato, climat, actes, fin de saison à la J38) reste donc à sa place. Les trêves tombent à Noël
@@ -12028,12 +12077,15 @@ function libLeadership(j){
 const BUT_LOIN=[
   "PRALINE DE TRENTE MÈTRES ! {A} a armé une mine, le gardien n'a vu que du feu ! Mais quel obus, mes amis !",
   "{A} récupère un ballon mal dégagé aux vingt mètres et le remet dedans du premier coup... BUUUT ! Punition immédiate !",
+  "Personne ne sort sur {A} à trente mètres. Il lève la tête, il arme, et le ballon file sous la barre ! BUUUT ! On lui a laissé le temps de viser, il a visé.",
+  "{A} frappe de vingt-cinq mètres, le ballon flotte, change de trajectoire au dernier moment, {G} se couche trop tard. AU FOND !",
 ];
 const RATE_LOIN=[
   "{A} arme des vingt mètres... et ça frôle la lucarne ! Le gardien n'a pas bougé, il n'aurait rien pu faire.",
 ];
 const ARRET_LOIN=[
   "{A} décoche une praline des vingt mètres... et le gardien s'envole pour la détourner ! Quel réflexe, mes amis !",
+  "Mine de {A} à trente mètres ! {G} la repousse des deux poings, le ballon retombe au milieu de terrain.",
 ];
 const RATE_CONTRE_LOIN=[
   "Le contre file droit au but, {A} arme des vingt mètres... au-dessus ! Il y avait mieux à faire.",
@@ -12050,11 +12102,14 @@ const TIRS_LOIN=new Set([...BUT_LOIN,...RATE_LOIN,...ARRET_LOIN,...RATE_CONTRE_L
    un nouveau lob s'écrit ICI (le harnais répétitions le rattrape au mot « lob »). */
 const BUT_LOB=[
   "{A} aperçoit le gardien avancé et tente le lob de très loin... le ballon monte, monte, et redescend dans le but vide ! BUUUT ! Quel toupet, et quelle réussite !",
+  "{G} est sorti trop loin, {A} l'a vu avant tout le monde : lob des trente-cinq mètres, le portier court vers sa ligne... trop tard ! BUUUT !",
+  "Lob parfait de {A} ! {G} recule, saute, effleure le ballon du bout des gants, et regarde le filet trembler. BUT !",
 ];
 const RATE_LOB=[
   "{A} voit le portier hors de sa surface et tente le lob... par-dessus le gardien, oui, mais par-dessus la barre aussi ! L'idée était bonne.",
 ];
 const ARRET_LOB=[
+  "Le gardien s'est avancé, {A} tente le lob... trop court ! {G} recule de trois pas et cueille le ballon comme une pomme.",
   "{A} tente le lob sur {G} monté trop haut. Le portier recule en marche arrière comme une Safrane dans un parking, et boxe au-dessus de sa barre !",
   "{A} tente le lob des quarante mètres, culotté... le gardien recule, recule... et cueille le ballon sous sa barre !",
 ];
@@ -15215,7 +15270,7 @@ function majMoral(res){
     // Un homme qu'on MÉNAGE n'est pas un homme qu'on écarte : il sait pourquoi il n'a pas joué, et le
     // compteur de banc ne tourne pas. Sans cela, mettre un cadre au repos le punissait deux fois — jambes
     // lourdes ET moral en berne — et la décision que la fraîcheur rend nécessaire devenait une faute.
-    else if(j.repos || fraich(j)<80 || !monRes){ /* au vert, ou week-end de trêve (v2.97) : ni gain, ni rancune */ }
+    else if(j.repos || fraich(j)<80 || !monRes){ /* au vert, ou week-end de trêve (v3.00) : ni gain, ni rancune */ }
     else { j.sansJouer=(j.sansJouer||0)+1;
       if(j.sansJouer===3) notif("😞 "+j.nom+" cire le banc depuis 3 matchs, son moral décroche.");
       if(j.sansJouer>=3) d-=((j.ego||5)>=7?5:3); }
@@ -21038,7 +21093,7 @@ function finDeSaison(){
     crieRecord("rang", (G.div===1?100:50)-rang, rang+"ᵉ de "+libDiv(G.div));
     const meil=moi?moi.joueurs.filter(j=>(j.buts||0)>0).sort((x,y)=>(y.buts||0)-(x.buts||0))[0]:null;
     if(meil) crieRecord("buteur", meil.buts, meil.nom+", "+meil.buts+" buts en une saison");
-    const nd=echangesSaison().desc; // 3 relégués, 4 dans la Serie A à dix-huit (v2.97)
+    const nd=echangesSaison().desc; // 3 relégués, 4 dans la Serie A à dix-huit (v3.00)
     if(G.div===1 && rang>=n-nd-2 && rang<=n-nd) G.palmares.push("Maintien arraché en "+tagDiv(1)+" "+G.saison+" ("+rang+"ᵉ)");
     if(G.coupe && G.coupe.elimine && G.coupe.tourSortie==="Finale") G.palmares.push("Finaliste de la "+libCoupeNat()+" "+G.saison);
   }
@@ -21118,7 +21173,7 @@ function construireEffectif(p){
 }
 /* force d'un club (note moyenne du onze) — sert au classement abstrait de la division qu'on ne joue pas */
 function forceClub(c){ const xi=onze(c); return xi.length? xi.reduce((s,j)=>s+j.note,0)/xi.length : 50; }
-/* LA TAILLE DES DIVISIONS (v2.97, choix de l'auteur du 16/11/2026). La France et l'Angleterre jouent toujours à vingt
+/* LA TAILLE DES DIVISIONS (v3.00, choix de l'auteur du 16/11/2026). La France et l'Angleterre jouent toujours à vingt
    (les saisons réelles à dix-huit y sont complétées par repêchage). L'Italie joue sa vraie Serie A : DIX-HUIT clubs
    jusqu'en 2003-04, VINGT à partir de 2004-05. `tailleD1(pays, an)` dit la taille d'élite d'une saison (an = année
    civile du coup d'envoi) ; `echangesDiv` en tire les montées et descentes de l'été : 3 et 3 à vingt, 4 et 4 à
@@ -22540,7 +22595,7 @@ function defiClubRempli(d, r, inv, n){
   const c=r.coupes||[], ch=r.div===1 && r.rang===1;
   switch(d.q){
     case "titre": return ch;
-    case "maintien": return r.div===1 && n>0 && r.rang<=n-((r.ch==="ITA" && n<20)?4:3); // v2.97 : la Serie A à dix-huit en fait descendre quatre (la D1 française à 18, trois) // sans le nombre de clubs (résultat d'avant la v2.78), on ne juge pas : une D1 à 18 fait descendre le 16e
+    case "maintien": return r.div===1 && n>0 && r.rang<=n-((r.ch==="ITA" && n<20)?4:3); // v3.00 : la Serie A à dix-huit en fait descendre quatre (la D1 française à 18, trois) // sans le nombre de clubs (résultat d'avant la v2.78), on ne juge pas : une D1 à 18 fait descendre le 16e
     case "montee": return r.div===2 && r.rang<=3;
     case "top": return r.div===1 && r.rang<=(d.n||3);
     case "coupe": return c.includes("CN");
@@ -22970,7 +23025,7 @@ function forceReelle(S, id){ const st=S.starsD1[id]||S.starsD2[id]||[]; return f
 function nivDuRang(r, n){ const q=r/(n||20); return q<=0.1?3 : q<=0.3?2 : q<=0.6?1 : 0; }
 function objectifEntr(niv, div, n){
   n=n||20;
-  const place=[n-((div===1 && n<20)?4:3), Math.floor(n/2), div===2?3:5, 1][niv]; // v2.97 : une élite à dix-huit (la Serie A) en fait descendre quatre
+  const place=[n-((div===1 && n<20)?4:3), Math.floor(n/2), div===2?3:5, 1][niv]; // v3.00 : une élite à dix-huit (la Serie A) en fait descendre quatre
   const lib=["Le maintien","La première moitié", div===2?"La montée":"L'Europe", "Le titre"][niv];
   return {niv, place, label:lib+(niv===3?"":" (top "+place+")")};
 }
@@ -23441,10 +23496,10 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
        </span>
        <span class="repGo">▶ Reprendre</span>
      </button>
-     <p class="carSous"><span class="dim" style="flex:1">${esc(ilYA(p0.maj))}</span>
-       ${p0.enLigne?"":`<button class="act carRen" data-id="${esc(p0.id)}">✏️ Renommer</button>`}
-       <button class="act carDel" data-id="${esc(p0.id)}">🗑️ Supprimer</button></p>
-     ${reste.length?`<p class="dim" style="font-size:13px;margin:12px 0 4px">Vos autres carrières :</p>`:""}
+     <p class="carSous carDiscret"><span class="dim" style="flex:1">${esc(ilYA(p0.maj))}</span>
+       ${p0.enLigne?"":`<button class="lien carRen" data-id="${esc(p0.id)}">Renommer</button>`}
+       <button class="lien carDel" data-id="${esc(p0.id)}">Supprimer</button></p>
+     ${reste.length?`<p class="carAutresT">Vos autres carrières</p>`:""}
      ${reste.map(p=>`<div class="carLigne">
        <button class="startclub carGo" data-id="${esc(p.id)}" style="display:flex;align-items:center;gap:9px">
          ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span>${p.enjeu?`<br><span class="sous fort">${esc(p.enjeu)}</span>`:""}</span><span class="dim">▶</span>
@@ -23452,16 +23507,15 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
        ${p.enLigne?"":`<button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>`}
        <button class="act carDel" data-id="${esc(p.id)}" title="Supprimer">🗑️</button>
      </div>`).join("")}
-     <p class="carSous" style="margin-top:10px"><span class="dim" style="flex:1;font-size:13px">${partiesListe().length>=MAX_PARTIES && !nuageEvincable()
-       ? "Maximum de "+MAX_PARTIES+" carrières atteint : supprimez-en une pour en commencer une autre."
-       : `<button class="lien" id="bMagie" style="padding-left:0">✨ Nouvelle carrière au hasard</button>`}</span></p>
+     ${partiesListe().length>=MAX_PARTIES && !nuageEvincable()
+       ? `<p class="dim" style="font-size:13px;margin-top:10px">Maximum de ${MAX_PARTIES} carrières atteint : supprimez-en une pour en commencer une autre.</p>`:""}
      ${ligneAppareil()}
    </div>`;
 }
 /* La phrase qui dit ce qu'est le jeu, à qui arrive sans rien savoir (chantier accueil, 25/09/2026). */
 let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier match : ouvert, il le reste tant qu'on règle
 // LES COMPTES DU JEU (v2.25) : liens aux deux pieds de page, accueil et jeu
-const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"}, {nom:"X (Twitter)", url:"https://x.com/Multiplexclub"}];
+const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"}]; // X retiré le 16/11/2026 : le compte est désactivé
 function liensReseaux(){ return RESEAUX.map(r=>`<a href="${r.url}" target="_blank" rel="noopener" style="color:inherit">${esc(r.nom)}</a>`).join(" · "); }
 const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
 function ecranAccueil(){
@@ -23482,13 +23536,13 @@ function ecranAccueil(){
   const boutonsPays=Object.keys(PAYS).map(code=>{ const P=PAYS[code], vide=!clesDe(code).length;
     return `<button class="mChip accPays${code===paysAcc?" on":""}" data-pays="${code}"${vide?" disabled":""}>${P.drapeau} ${esc(P.nom)}${vide?' <span class="dim" style="font-weight:normal">bientôt</span>':""}</button>`; }).join("");
   const carte=c=>{ const ek=euroSeedDe(c.id,S); return `<button class="startclub" data-id="${c.id}">
-        ${blason(c,26)}<span class="ccNom"><b>${esc(c.nom)}</b><span class="sous">${esc(c.stade)}</span><span class="sous">${FMT(c.cap)} places</span></span><span class="ccDroite">${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</span></button>`; };
+        ${blason(c,26)}<span class="ccNom"><b>${esc(c.nom)}</b><span class="sous">${esc(c.stade)} · <span style="white-space:nowrap">${FMT(c.cap)} places</span></span></span><span class="ccDroite">${ek?`<span class="badge" style="border-color:#ffd24a;color:#ffd24a" title="${esc(COMPETS[ek].nom)}">${COMPETS[ek].emoji} ${COMPETS[ek].court}</span>`:""}${pipsHTML(c.pres)}</span></button>`; };
   const colonne=groupes=>groupes.map(g=>`
       <div class="grpHead"><span style="color:${g.coul};font-size:13px;letter-spacing:1px"><b>${g.tag}</b></span><span class="dim" style="font-size:13px">${g.clubs.length} club${g.clubs.length>1?"s":""}</span><span class="trait" style="background:${g.coul}"></span></div>
       ${g.clubs.map(carte).join("")}`).join("");
   const tous=cD1.concat(cD2);
   app.innerHTML=`
-   <div class="topbar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(22)}MULTIPLEX</span><span class="r">Rétro football management</span></div>
+   <div class="topbar accBar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20)}MULTIPLEX</span><span class="r">Rétro football management</span></div>
    ${parties.length ? `<div class="accLogoMini">${logoGenerique(true)}</div>`+panneauCarrieres(parties) : `<div class="panel accHero">
      <h1 class="accLogo">${logoGenerique(true)}</h1>
      <p class="accPitch">${esc(ACCROCHE_ACCUEIL)}</p>
@@ -23499,19 +23553,21 @@ function ecranAccueil(){
        <button class="porte2" id="bChoisir">Choisir mon club</button>
      </div>
    </div>`}
-   <button class="trPorte" id="bTrophees"><span>🏆 Salle des trophées</span><span class="fort">⭐ ${FMT(soldePoints())}</span></button>
-   <div class="panel">
+   <button class="trPorte" id="bTrophees"><span>🏆 Salle des trophées</span><span class="trSolde">⭐ ${FMT(soldePoints())}</span></button>
+   <div class="panel accNouv">
+     ${parties.length?`<h2>Nouvelle carrière</h2>`:""}
      <div class="accPaysRang" role="group" aria-label="Pays">${boutonsPays}</div>
      <label style="display:block;font-size:13px"><span style="display:flex;justify-content:space-between"><b>Saison de départ</b><span class="dim" id="accCles" title="Clés">🔑 ${cles}</span></span>
        <select id="selSaison" style="display:block;width:100%;margin-top:4px;background-color:#0b1626;color:#dfe9ff;border-color:#38507a;font-size:16px">${opts}</select>
      </label>
      ${ferme?`<p id="accFerme" style="margin-top:8px;font-size:14px">🔒 <span class="dim">${cles?`${cles} clé${cles>1?"s":""} en poche.`:"Aucune clé en poche. Gagnez un titre de champion en première division pour en gagner une."}</span>${cles?` <button class="act" id="bOuvreSaison">🔑 Ouvrir</button>`:""}</p>`:""}
-     <p class="fort" style="margin-top:8px;font-size:14px"><b>${esc(S.nom)}</b></p>
+     <p class="fort" style="margin-top:10px;font-size:14px"><b>${esc(S.nom)}</b></p>
      <p class="dim" style="margin-top:3px;font-size:13px">${esc(S.sous)}</p>
-     <p style="margin-top:10px"><button class="porte2" id="bEntr" style="width:100%"${ferme?" disabled":""}>🧑‍💼 Carrière d'entraîneur</button></p>
-   </div>
-   <div class="panel" id="choixClub">
-     <h2>Choisissez votre club</h2>
+     <div class="accVoies">
+       ${parties.length && !(partiesListe().length>=MAX_PARTIES && !nuageEvincable())?`<button class="act" id="bMagie">✨ Club au hasard</button>`:""}
+       <button class="act" id="bEntr" style="width:100%"${ferme?" disabled":""}>🧑‍💼 ${parties.length?"Entraîneur":"Carrière d'entraîneur"}</button>
+     </div>
+     <h3 class="accChoixT" id="choixClub">Choisissez votre club</h3>
      <div class="accTabs">
        <button id="tabD1" class="${ACCUEIL_DIV===1?"onD1":""}">${esc(libDiv(1, S.an).toUpperCase())}</button>
        <button id="tabD2" class="${ACCUEIL_DIV===2?"onD2":""}">${esc(libDiv(2, S.an).toUpperCase())}</button>
@@ -23905,7 +23961,7 @@ function ecranCalendrier(){
   veilleEffectif(); // avant d'annoncer le match : tous les effectifs repassent au contrôle réglementaire
   const rdv=rdvEnAttente(); // un soir de coupe ou d'Europe à jouer avant le samedi ? il prend la place du match de championnat
   const day=G.calendrier[G.journee];
-  const paireJ=day.find(([h,a])=>h===G.monClub||a===G.monClub); // absente un week-end de trêve (division à 18, v2.97)
+  const paireJ=day.find(([h,a])=>h===G.monClub||a===G.monClub); // absente un week-end de trêve (division à 18, v3.00)
   const [hid,aid]=paireJ||[null,null];
   const h=hid?clubById(hid):null, a=aid?clubById(aid):null;
   const dom=!!hid && hid===G.monClub;
@@ -23994,7 +24050,7 @@ function ecranCalendrier(){
    </div>
    <div class="panel panelDirect"${!paireJ&&!rdv?' style="display:none"':""}><h2>Téléscripteur
      <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-       Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match">🗣️ Coach</button>
+       Vitesse : <button class="act" id="vCycle" aria-label="Changer la vitesse">Normale</button> <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match" aria-label="Coach">🗣️<span class="libCoach"> Coach</span></button>
      </span></h2>
      ${htmlCtlTactique()}
      <div id="ticker"><p class="dim cursor">En attente du coup d'envoi</p></div></div>
@@ -24092,8 +24148,9 @@ function ecranCalendrier(){
 function htmlCtlTactique(){
   return `<div id="ctlTactique" style="display:none; clear:both; margin-bottom:8px; font-size:13px">
        <span class="dim" id="libTacD">Consigne :</span>
-       ${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}
-       <span class="ctlOutils"><button class="act" id="bBanc" style="display:none">🔁 Banc</button> <button class="act" id="bCompos" style="display:none" aria-expanded="false">👥 Compos</button></span>
+       <button class="act" id="tacOuvre" aria-expanded="false">${esc((CONSIGNES[G.consigne]||{}).label||"Consigne")} ▾</button>
+       <span class="tacTiroir">${Object.keys(CONSIGNES).map(k=>`<button class="act bTacD" data-k="${k}">${CONSIGNES[k].label}</button>`).join(" ")}</span>
+       <span class="ctlOutils"><button class="act" id="bBanc" style="display:none"><span class="icoM">🔁 </span>Banc</button> <button class="act" id="bCompos" style="display:none" aria-expanded="false"><span class="icoM">👥 </span>Compos</button></span>
        <div id="composDirect" style="display:none"></div>
      </div>`;
 }
@@ -24205,11 +24262,34 @@ function surligneVitesse(){
   const p=document.getElementById("vP"); if(p){ p.classList.toggle("on",PAUSE_DIRECT); // ❚❚ pour figer, ▶ pour relancer (v2.60, demande de l auteur)
     p.textContent=PAUSE_DIRECT?"▶︎":"❚❚"; p.title=PAUSE_DIRECT?"Reprendre":"Pause"; if(p.setAttribute) p.setAttribute("aria-label", p.title); }
   const au=document.getElementById("vAuto"); if(au) au.classList.toggle("on",arretsActifs()); // les arrêts du coach (v2.58)
+  const vc=document.getElementById("vCycle"); if(vc){ const k=Object.keys(VITESSES).find(id=>VITESSES[id]===tickerDelai)||"vL";
+    const b=document.getElementById(k); vc.textContent=b?b.textContent:"Normale"; }
+  majTacOuvre();
 }
+/* LE DIRECT AU TÉLÉPHONE, UNE SEULE RANGÉE (v2.98, 16/11/2026) : sur téléphone, les trois vitesses se résument en un
+   bouton qui tourne (Lente, Normale, Rapide) et les trois consignes se rangent dans un tiroir qu'ouvre la consigne en
+   cours. Ce sont les mêmes boutons qu'à l'ordinateur, simplement masqués : rien ne change côté moteur. */
+function majTacOuvre(){
+  if(typeof document==="undefined" || !document.getElementById) return;
+  try{ const t=document.getElementById("tacOuvre"); if(!t || t.nodeType!==1 || typeof G==="undefined" || !G) return; // vrai bouton seulement (pas les faux DOM des harnais)
+    t.textContent=((CONSIGNES[G.consigne]||{}).label||"Consigne")+" ▾"; }catch(e){}
+}
+function fermeTiroirTac(){ const c=document.getElementById("ctlTactique"), t=document.getElementById("tacOuvre");
+  if(c && c.classList) c.classList.remove("tiroir"); if(t && t.setAttribute) t.setAttribute("aria-expanded","false"); }
+if(typeof document!=="undefined" && document.addEventListener) document.addEventListener("click", e=>{
+  const cible=e.target && e.target.closest ? e.target : null; if(!cible) return;
+  if(cible.closest("#tacOuvre")){ const c=document.getElementById("ctlTactique"); if(!c) return;
+    const ouvert=c.classList.toggle("tiroir"); cible.closest("#tacOuvre").setAttribute("aria-expanded", ouvert?"true":"false"); return; }
+  if(cible.closest(".bTacD")){ setTimeout(()=>{ fermeTiroirTac(); majTacOuvre(); }, 0); return; }
+  if(!cible.closest(".tacTiroir")) fermeTiroirTac();
+});
 function cableVitesses(){
   for(const id in VITESSES){ const b=document.getElementById(id); if(b) b.onclick=()=>{ tickerDelai=VITESSES[id]; PAUSE_DIRECT=false; surligneVitesse(); }; }
   const p=document.getElementById("vP"); if(p) p.onclick=()=>{ PAUSE_DIRECT=!PAUSE_DIRECT; surligneVitesse(); };
   const au=document.getElementById("vAuto"); if(au) au.onclick=()=>{ poseArrets(!arretsActifs()); surligneVitesse(); };
+  const vc=document.getElementById("vCycle"); if(vc) vc.onclick=()=>{ const ordre=["vTL","vL","vR"];
+    const k=ordre.find(id=>VITESSES[id]===tickerDelai)||"vL";
+    tickerDelai=VITESSES[ordre[(ordre.indexOf(k)+1)%ordre.length]]; PAUSE_DIRECT=false; surligneVitesse(); };
 }
 /* panneau LED clignotant ~5 s pour les temps forts (but, carton rouge…), avec détail ;
    o = {classe, gros, sub (HTML), detail (texte)} ; onDone appelé au clic OU après 5 s */
@@ -24380,7 +24460,7 @@ function etatOnzeHTML(xi){
          ${rouges.length?"⚠️ "+rouges.length+" titulaire"+(rouges.length>1?"s cuits":" cuit")
                         :"😮‍💨 "+cuits.length+" titulaire"+(cuits.length>1?"s entamés":" entamé")} : ${noms}.</p>`:""}`;
 }
-/* LE WEEK-END DE TRÊVE (v2.97) : une division de dix-huit a quatre samedis sans match (cf. berger). La semaine passe
+/* LE WEEK-END DE TRÊVE (v3.00) : une division de dix-huit a quatre samedis sans match (cf. berger). La semaine passe
    quand même (`jouerJournee` n'a rien à jouer et finit la journée tout de suite) : soins, récupération, mercato,
    offres et dépêches tournent comme d'habitude. Le soir de coupe ou d'Europe qui tomberait cette semaine-là
    se joue d'abord, à sa place (panneauRdv). */
@@ -24454,7 +24534,7 @@ function panneauRdv(rdv, h, a){
        <button class="big" id="bRdvGo">JOUER LE MATCH</button>
        <button class="lien" id="bRdvVite" style="margin-left:8px">Résultat instantané</button>
      </p>
-     <p class="ctr dim" style="font-size:13px;margin-top:8px">Ensuite, samedi : ${esc(h.nom)} - ${esc(a.nom)} (J${G.journee+1})</p>
+     <p class="ctr dim" style="font-size:13px;margin-top:8px">Ensuite, samedi : ${h&&a?esc(h.nom)+" - "+esc(a.nom):esc(libTreve(G.journee).toLowerCase())+", pas de match"} (J${G.journee+1})</p>
    </div>`;
 }
 /* Le coup d'envoi d'un tour de Coupe de France, depuis le panneau : résultat instantané (verdict + résultats du
@@ -24580,7 +24660,7 @@ function ecranCoupeMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match">🗣️ Coach</button>
+        Vitesse : <button class="act" id="vCycle" aria-label="Changer la vitesse">Normale</button> <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match" aria-label="Coach">🗣️<span class="libCoach"> Coach</span></button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
@@ -24874,7 +24954,7 @@ function ecranEuroMatch(){
     <div class="panel" id="pTableau"><div id="tabScore"></div><div id="tabButs"></div></div>
     <div class="panel panelDirect"><h2>Téléscripteur
       <span id="ctlVitesse" style="display:none; float:right; font-size:13px">
-        Vitesse : <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match">🗣️ Coach</button>
+        Vitesse : <button class="act" id="vCycle" aria-label="Changer la vitesse">Normale</button> <button class="act" id="vTL">Lente</button> <button class="act" id="vL">Normale</button> <button class="act" id="vR">Rapide</button> <button class="act" id="vP" title="Pause" aria-label="Pause">❚❚</button> <button class="act" id="vAuto" style="white-space:nowrap" title="Le coach vous interpelle pendant le match" aria-label="Coach">🗣️<span class="libCoach"> Coach</span></button>
       </span></h2>
       ${htmlCtlTactique()}
       <div id="ticker"><p class="dim cursor">Coup d'envoi imminent…</p></div></div>
@@ -25746,7 +25826,7 @@ function remonteFil(tk){ if(tk && !(tk.scrollTop>60)) tk.scrollTop=0; }
 function ajouteLigne(tk,l){
   tk.insertAdjacentHTML("afterbegin",
    `<p class="evt"><span class="min">${String(l.m).padStart(2,"0")}'</span> <span class="tx ${l.t}">${esc(l.x)}</span><span class="ico">${l.ic?ICO[l.ic]:""}</span></p>`);
-  majMinute(l.m); stadeDirectLigne(l);
+  majMinute(l.m); stadeDirectLigne(l); majTacOuvre();
 }
 /* La minute du tableau d'affichage suit la dernière ligne du téléscripteur. Purement cosmétique : sans tableau
    (harnais sans DOM, écran qui n'en a pas), elle ne fait rien et ne lève jamais. */
@@ -28926,20 +29006,28 @@ function fabriqueMatch3D(THREE, o){
     for(let i=0;i<12;i++) box(9, 1.6, .5, M(pubs[i%pubs.length]), -L/2+4.5+i*(L-9)/11, .8, -(Lg/2+5));
   }
 
-  /* les buts, filets en texture ajourée */
-  const canvasFilet = (()=>{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d');
-    x.strokeStyle='#ffffff'; for(let i=0;i<32;i+=4){x.beginPath();x.moveTo(i+.5,0);x.lineTo(i+.5,32);x.stroke();x.beginPath();x.moveTo(0,i+.5);x.lineTo(32,i+.5);x.stroke();}
-    const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,2); return t; })();
-  const matFilet = new THREE.MeshLambertMaterial({map:canvasFilet, transparent:true, alphaTest:.5, side:THREE.DoubleSide, color:0xf0f0f0});
+  /* les buts. v2.99 (retour de l'auteur du 16/11/2026 : « le filet rend bizarrement, deux grands carrés, des traits en
+     diagonale ») : la texture quadrillée, vue de loin et de biais, se brouillait en motifs. Le filet est maintenant un voile
+     blanc à peine opaque, barré de quelques vrais traits espacés d'un mètre et demi : il se lit à toutes les distances. */
+  const matVoile = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.16, side:THREE.DoubleSide, depthWrite:false});
+  const matMaille = new THREE.LineBasicMaterial({color:0xe8ece8, transparent:true, opacity:.55});
+  function panFilet(w, h){
+    const g=new THREE.Group(); g.add(new THREE.Mesh(new THREE.PlaneGeometry(w,h), matVoile));
+    const pts=[], nx=Math.max(1,Math.round(w/1.6)), ny=Math.max(1,Math.round(h/1.6));
+    for(let i=1;i<nx;i++){ const x=-w/2+i*w/nx; pts.push(x,-h/2,0, x,h/2,0); }
+    for(let i=1;i<ny;i++){ const y=-h/2+i*h/ny; pts.push(-w/2,y,0, w/2,y,0); }
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+    g.add(new THREE.LineSegments(geo, matMaille)); return g;
+  }
   const blanc = M(0xf6f6f0);
   const BUT_L = 13, BUT_H = 5, BUT_P = 4;
   const filets = [];
   for(const s of [-1,1]){
     const g = new THREE.Group(); g.position.set(s*L/2,0,0); scene.add(g);
     box(.5,BUT_H,.5,blanc,0,BUT_H/2,-BUT_L/2,g); box(.5,BUT_H,.5,blanc,0,BUT_H/2,BUT_L/2,g); box(.5,.5,BUT_L+.5,blanc,0,BUT_H,0,g);
-    const fond = new THREE.Mesh(new THREE.PlaneGeometry(BUT_L,BUT_H), matFilet); fond.rotation.y=Math.PI/2; fond.position.set(s*BUT_P,BUT_H/2,0); g.add(fond);
-    const toit = new THREE.Mesh(new THREE.PlaneGeometry(BUT_P,BUT_L), matFilet); toit.rotation.x=-Math.PI/2; toit.position.set(s*BUT_P/2,BUT_H,0); g.add(toit);
-    for(const z of [-1,1]){ const cote=new THREE.Mesh(new THREE.PlaneGeometry(BUT_P,BUT_H),matFilet); cote.position.set(s*BUT_P/2,BUT_H/2,z*BUT_L/2); g.add(cote); }
+    const fond = panFilet(BUT_L,BUT_H); fond.rotation.y=Math.PI/2; fond.position.set(s*BUT_P,BUT_H/2,0); g.add(fond);
+    const toit = panFilet(BUT_P,BUT_L); toit.rotation.x=-Math.PI/2; toit.position.set(s*BUT_P/2,BUT_H,0); g.add(toit);
+    for(const z of [-1,1]){ const cote=panFilet(BUT_P,BUT_H); cote.position.set(s*BUT_P/2,BUT_H/2,z*BUT_L/2); g.add(cote); }
     filets.push({fond, s});
   }
   for(const sx of [-1,1]) for(const sz of [-1,1]){ box(.25,2.4,.25,blanc,sx*L/2,1.2,sz*Lg/2); box(.9,.6,.05,M(0xffd24a),sx*L/2+(sx>0?-.45:.45),2.1,sz*Lg/2); }
@@ -29554,8 +29642,21 @@ function fabriqueMatch3D(THREE, o){
     const code = (l.g&&l.g.cote)||(l.q&&l.q.cote)||(l.c&&l.c.cote)||((CODE_FIN.exec(x)||[])[1]);
     let camp = code?campDe(code):null;
     if(!camp){ const j=trouveNom(x, joueurs); if(j) camp=j.camp; }
-    let genre=null;
-    if(l.c) genre='carton';
+    let genre=null, nomMo=null;
+    /* v2.99 (retour de l'auteur du 16/11/2026 : « j'ai cru voir but d'anthologie, trente mètres, mais je ne l'ai pas vu
+       sur le terrain ») : les moments-buts de la 90e (l.mo) n'avaient ni code de club ni drapeau de but, la scène les
+       laissait passer. Ils se lisent maintenant : les noms y sont en capitales, et le gardien nommé dit qui attaque. */
+    const mo = /^(but50|geste|cagade|cadeau|gkbut)$/.test(l.mo||'') ? l.mo : null;
+    if(mo){
+      const X=x.toUpperCase(), cite=j=>j.nom && X.includes(String(j.nom).toUpperCase());
+      const gkCite=joueurs.find(j=>j.gardien && cite(j));
+      if(mo==='cagade' || mo==='cadeau'){ if(!gkCite) return null; camp=adverse(gkCite.camp);
+        const b=joueurs.filter(j=>j.camp===camp && !j.gardien && cite(j)).sort((p,q)=>q.nom.length-p.nom.length)[0]; nomMo=b?b.nom:null; }
+      else if(mo==='gkbut'){ if(!gkCite) return null; camp=gkCite.camp; }
+      else { const b=joueurs.filter(j=>!j.gardien && cite(j)).sort((p,q)=>q.nom.length-p.nom.length)[0]; if(!b) return null; camp=b.camp; nomMo=b.nom; }
+      genre='but';
+    }
+    else if(l.c) genre='carton';
     else if(l.ca) genre='corner-annonce';
     else if(/hors-jeu|drapeau (du juge de touche )?(se l[eè]ve|est lev)|juge de touche/i.test(x)) genre='horsjeu';
     else if(l.t==='but') genre='but';
@@ -29568,8 +29669,11 @@ function fabriqueMatch3D(THREE, o){
     if(!genre || !camp) return null;
     const ph=(l.g&&l.g.ph)||(l.q&&l.q.ph)||'';
     let voie='combi';
-    if((l.g&&l.g.pen) || /penalty|point de penalty|onze mètres/i.test(x)) voie='pen';
+    if(mo) voie = mo==='but50' ? 'but50' : mo==='gkbut' ? 'corner' : mo==='geste' ? (/TALONNADE/.test(x.toUpperCase()) ? 'combi' : 'centre') : 'face';
+    else if((l.g&&l.g.pen) || /penalty|point de penalty|onze mètres/i.test(x)) voie='pen';
     else if(ph==='cf' || (l.g&&l.g.cf) || /coup franc|pose le ballon à|le mur/i.test(x)) voie='cf';
+    else if(ph==='lob') voie='lob';                       // v2.99 : le drapeau du moteur passe avant les mots de la ligne
+    else if(ph==='loin') voie='loin';
     else if(/corner/i.test(x)) voie='corner';
     else if(ph==='loin' || /trente mètres|vingt-cinq mètres|de loin|lointaine|mine|obus|praline|frappe sèche de/i.test(x)) voie='loin';
     else if(ph==='aile') voie='aile';
@@ -29577,7 +29681,7 @@ function fabriqueMatch3D(THREE, o){
     else if(ph==='lob' || /lob/i.test(x)) voie='lob';
     else if(ph==='face' || ph==='drib' || /seul face|face-à-face|percée|déboule|slalom/i.test(x)) voie='face';
     const att = genre==='carton' ? adverse(camp) : camp;
-    return {genre, voie, camp, att, def:adverse(att), nomTireur:(l.g&&l.g.but)||(l.q&&l.q.but)||(l.c&&l.c.nom)||null,
+    return {genre, voie, camp, att, def:adverse(att), gkBut:mo==='gkbut', nomTireur:nomMo||(l.g&&l.g.but)||(l.q&&l.q.but)||(l.c&&l.c.nom)||null,
       nomPasseur:(l.g&&l.g.pas)||null, rouge:!!(l.c&&l.c.rouge), ligne:l};
   }
   /* un nom que la scène ne connaît pas (un remplaçant entré en cours de match) : on le prête à une figurine du bon poste */
@@ -29648,6 +29752,7 @@ function fabriqueMatch3D(THREE, o){
     else if(v==='corner' || etat.corner){
       const c=etat.corner || {side, tireur:P};
       const T2=c.tireur && !c.tireur.dehors && c.tireur.camp===info.att ? c.tireur : P;
+      if(info.gkBut && gardiens[info.att] && !gardiens[info.att].dehors) A=gardiens[info.att];   // le gardien est monté, c'est lui qui la met
       if(A===T2) A = autres.find(j=>j!==T2 && j.poste==='A') || autres.find(j=>j!==T2) || A;
       const autresC = autres.filter(j=>j!==T2 && j!==A);
       const fx=L/2-.6, fz=c.side*(Lg/2-.6);
@@ -29674,20 +29779,36 @@ function fabriqueMatch3D(THREE, o){
       if(C){ key(C,.5,cx-8,cz+side*3); key(C,.8,cx-1.5,cz+side*2.5); }
       depart={ax:cx,z:cz,y:2.2};
     }
-    else if(v==='loin'){
-      const az=clamp(z0*.5,-14,14);
-      key(porteur,.15,clamp(ax0+4,-30,20),z0); pied(0,.28,porteur);
-      vol(.28,.46,20,az,.62,1); key(A,.46,20,az);
-      pied(.46,.72,A); key(A,.72,25.5,az*.8);
-      depart={ax:26.5,z:az*.8,y:.62}; uTir=.72;
+    else if(v==='loin'){                                  // v2.99 : la frappe part de vingt-cinq à trente-deux mètres, et ça se voit
+      const az=clamp(z0*.5,-14,14), bx=alea(20,27);
+      key(porteur,.15,clamp(ax0+4,-30,bx-7),z0); pied(0,.28,porteur);
+      vol(.28,.46,bx-6,az,.62,1); key(A,.46,bx-6,az);
+      pied(.46,.72,A); key(A,.72,bx-1,az*.8);
+      depart={ax:bx,z:az*.8,y:.62}; uTir=.72;
     }
-    else if(v==='face' || v==='lob' || info.genre==='horsjeu' || info.genre==='perdu'){
+    else if(v==='lob'){                                   // v2.99 : le gardien est sorti loin de sa surface, on le lobe de trente-cinq mètres
+      const az=alea(-8,8), bx=alea(14,20);
+      key(porteur,.12,clamp(ax0+5,-30,bx-8),z0); pied(0,.22,porteur);
+      vol(.22,.42,bx-5,az,.62,1.2); key(A,.42,bx-5,az);
+      pied(.42,.68,A); key(A,.68,bx-1,az*.8);
+      depart={ax:bx,z:az*.8,y:.62}; uTir=.68;
+      if(gk){ key(gk,.3,L/2-7,az*.2); key(gk,.66,L/2-18,az*.4); }
+    }
+    else if(v==='but50'){                                 // v2.99 : le but venu d'ailleurs, de cinquante mètres, gardien monté
+      const az=alea(-6,6);
+      key(porteur,.1,clamp(ax0,-30,-8),z0); pied(0,.2,porteur);
+      vol(.2,.36,-5,az,.62,.8); key(A,.36,-5,az);
+      pied(.36,.55,A); key(A,.55,1,az*.6);
+      depart={ax:2,z:az*.6,y:.62}; uTir=.55;
+      if(gk){ key(gk,.2,L/2-15,0); key(gk,.52,L/2-26,az*.2); }
+    }
+    else if(v==='face' || info.genre==='horsjeu' || info.genre==='perdu'){
       const az=alea(-10,10);
       key(porteur,.12,clamp(ax0+5,-30,24),z0); pied(0,.22,porteur);
-      vol(.22,.42,36,az,.62,v==='lob'?3:1); key(A,.3,30,az+side*2); key(A,.42,36,az);
+      vol(.22,.42,36,az,.62,1); key(A,.3,30,az+side*2); key(A,.42,36,az);
       pied(.42,.8,A); key(A,.8,45,az*.35);
       depart={ax:46,z:az*.35,y:.62};
-      if(gk) { key(gk,.55,L/2-1.8,0); key(gk,.8,L/2-(v==='lob'?7:4.5),az*.25); }
+      if(gk) { key(gk,.55,L/2-1.8,0); key(gk,.8,L/2-4.5,az*.25); }
       if(info.genre==='horsjeu' || info.genre==='perdu'){
         S.push({u0:.8,u1:1,a:new THREE.Vector3(s*47,.62,s*az*.3),haut:.2});
         const D=plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*44,0,s*az*.4))[0]; if(D && info.genre==='perdu') key(D,.95,46,az*.35);
@@ -29724,11 +29845,11 @@ function fabriqueMatch3D(THREE, o){
     }
     if(!fini){
       const g=info.genre; let tz, ty, ax=L/2;
-      if(g==='but'){ tz=alea(1,BUT_L/2-1.4)*signe(); ty=alea(.5,BUT_H-1.4); }
+      if(g==='but'){ tz=alea(1,BUT_L/2-1.4)*signe(); ty = v==='lob'||v==='but50' ? alea(1.5,3.4) : alea(.5,BUT_H-1.4); }
       else if(g==='arret'){ tz=alea(-4,4); ty=alea(.5,2.6); }
       else if(g==='poteau'){ if(Math.random()<.5){ tz=signe()*BUT_L/2; ty=alea(1,3.5); } else { tz=alea(-4,4); ty=BUT_H; } }
       else { if(Math.random()<.65){ tz=signe()*alea(BUT_L/2+1.5,BUT_L/2+6); ty=alea(.5,3); } else { tz=alea(-4,4); ty=alea(6,8); } ax=L/2+1; }
-      const hauteur = v==='cf'?4.6 : v==='lob'?6 : v==='loin'?2.2 : .8;
+      const hauteur = v==='cf'?4.6 : v==='lob'?11 : v==='but50'?17 : v==='loin'?2.6 : .8;
       S.push({u0:uTir,u1:1,a:new THREE.Vector3(s*ax,ty,s*tz),haut:hauteur});
       let dir=0;
       if(gk){
@@ -29736,7 +29857,7 @@ function fabriqueMatch3D(THREE, o){
         const plonge = g==='arret' ? tz : g==='but' ? clamp(tz - Math.sign(tz||1)*alea(3,6),-6,6) : clamp(tz*.6,-5,5);
         if(!K.has(gk)) key(gk, Math.max(uTir-.1,.3), L/2-1.8, z0g);
         key(gk, 1, L/2-1.8, plonge);
-        dir = Math.sign(s*(plonge-z0g)) || 1;
+        dir = v==='lob'||v==='but50' ? 0 : (Math.sign(s*(plonge-z0g)) || 1);   // lobé, le gardien court vers sa ligne, il ne plonge pas
       }
       ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir};
     }
@@ -29745,6 +29866,7 @@ function fabriqueMatch3D(THREE, o){
     if(ACT.A && info.genre!=='carton') montrerNom(ACT.A, ACT.T+1.6);
     etat.corner=null;
   }
+  function releveGardiens(){ for(const k of ['dom','ext']){ const g=gardiens[k]; if(g){ g.plongeF=0; g.plongeReste=0; g.tient=0; } } }
   function montrerNom(j, duree){ if(!j) return; if(!j.lab) j.lab=etiquette(String(j.nom).toUpperCase()); j.labT=duree; }
 
   /* l'action avance avec le temps, mais garde le tir en suspens tant que la ligne n'est pas tombée */
@@ -29791,7 +29913,8 @@ function fabriqueMatch3D(THREE, o){
       if(g==='horsjeu') banniere('HORS-JEU','',1400);
       B.porteur=plusProche(equipe(info.def).filter(j=>!j.gardien), B.pos)[0]; etat.decision=1.2; return;
     }
-    if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4); return; }
+    if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4);
+      if(!info.ligne.g) banniere('BUT !', a.A&&a.A.nom||'', 2600); return; }
     if(g==='arret'){ if(a.gk){ B.porteur=a.gk; a.gk.tient=1.1; etat.decision=1.1; } return; }
     if(g==='poteau'){ B.libre={t:0, d:.55, de:B.pos.clone(), a:new THREE.Vector3(s*(L/2-12), .62, s*alea(-10,10)), haut:2, ensuite:'def', camp:info.def}; return; }
     const sortie=B.pos.clone(); sortie.x=s*(L/2+5); sortie.y=.62;
@@ -29825,8 +29948,8 @@ function fabriqueMatch3D(THREE, o){
     if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
       if(!(ACT && ACT.info.ligne===l) && etat.phase==='jeu'){
         const j=joueurs.find(p=>p.nom===l.g.but); if(j){ debutFete(j); montrerNom(j,4); } } }
-    if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; banniere('FIN DU MATCH','',4000); }
-    else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
+    if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; releveGardiens(); banniere('FIN DU MATCH','',4000); }
+    else if(l.t==='sys' && /^MI-TEMPS|PROLONGATIONS/.test(x)){ etat.phase='pause'; ACT=null; ATT=null; releveGardiens(); etat.attente=1.6; banniere(/^MI/.test(x)?'MI-TEMPS':'PROLONGATIONS','',2000); }
     else if(l.t==='sys' && /Coup d'envoi/.test(x) && etat.phase==='avant'){ etat.envoiDemande=true; tifoT=7;
       const m=/devant ([\d\s\u00a0\u202f]+) spectateurs/.exec(x); if(m){ const n=parseInt(m[1].replace(/\D/g,''),10); if(n>0) remplissage=clamp(n/cap,.12,1); } }
   }
@@ -30059,6 +30182,10 @@ function fabriqueMatch3D(THREE, o){
       if(etat.phase==='but' && etat.buteur && j.camp) poseFete(j, now, v);
       if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
       if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
+      /* v2.99 (retour de l'auteur du 16/11/2026 : au coup de sifflet, les gardiens rejoignaient le rond central couchés,
+         en glissant sur le ventre) : un plongeon ne survit pas à l'action qui l'a lancé. Sans action en cours ni temps de
+         chute à finir, le gardien se relève. */
+      if(j.gardien && j.plongeF && !(ACT && ACT.gk===j) && !(j.plongeReste>0)) j.plongeF=0;
       if(j.gardien && j.plongeF){ const f=Math.min(1,Math.abs(j.plongeF)*2);
         j.g.rotation.z = 1.35*f*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9;
         j.epauleG.rotation.set(0,0,-2.6*f); j.epauleD.rotation.set(0,0,2.6*f); j.coudeG.rotation.x=j.coudeD.rotation.x=0; }
@@ -30348,7 +30475,8 @@ function stadeDirectPlein(oui){
   const bande=document.getElementById("stDirect"); if(!bande) return;
   if(oui){
     bande.classList.add("plein"); document.body.classList.add("stPleinOuvert");
-    try{ if(bande.requestFullscreen && !document.fullscreenElement) bande.requestFullscreen().catch(()=>{}); }catch(e){}
+    const racine=document.documentElement; // toute la page, pas la bande : les fenêtres du jeu doivent pouvoir passer devant (v2.99)
+    try{ if(racine && racine.requestFullscreen && !document.fullscreenElement) racine.requestFullscreen().catch(()=>{}); }catch(e){}
     if(!stadeDirectPlein.ecoute){ stadeDirectPlein.ecoute=true;
       document.addEventListener("fullscreenchange",()=>{ if(!document.fullscreenElement){ const x=document.getElementById("stDirect"); if(x && x.classList.contains("plein") && stadeDirectPlein.api) stadeDirectPlein(false); } stadeDirectPlein.api=!!document.fullscreenElement; });
       document.addEventListener("keydown",e=>{ if(e.key==="Escape") stadeDirectPlein(false); }); }

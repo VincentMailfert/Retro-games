@@ -597,7 +597,7 @@ toujours « raconter quelque chose ».
   (« Perpignan FC ») porte l'effectif réel de **Canet-Roussillon** — club voisin retenu faute de club
   perpignanais en D2 cette saison-là — et Angers/Alès, sans case dans le jeu, sont restés de côté.
   Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions** (exception italienne ci-dessous).
-- **LA SERIE A À DIX-HUIT ET LES TRÊVES (v2.97, décision de l'auteur du 16/11/2026, réponse au blocage d'ITA 1990-91)** :
+- **LA SERIE A À DIX-HUIT ET LES TRÊVES (v3.00, décision de l'auteur du 16/11/2026, réponse au blocage d'ITA 1990-91)** :
   l'Italie se joue à sa vraie taille, **dix-huit clubs de 1990-91 à 2003-04, vingt ensuite** (`tailleD1(pays, an)`,
   vingt partout ailleurs). **Le calendrier garde trente-huit journées** : `berger` pose, pour une division de
   dix-huit, quatre journées VIDES (`[]`) aux indices de `TREVES_ORDRE` (J9 et J29 trêves internationales, J18 et J19

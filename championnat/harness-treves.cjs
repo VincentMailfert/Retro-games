@@ -1,4 +1,4 @@
-/* Harnais de validation : les trêves et la taille des divisions (v2.97). Détail plus bas. */
+/* Harnais de validation : les trêves et la taille des divisions (v3.00). Détail plus bas. */
 const fs = require("fs");
 const path = require("path");
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
@@ -30,7 +30,7 @@ let FAILS = 0;
 const ok = (c, m) => { if (c) console.log("  ✓ " + m); else { FAILS++; console.log("  ✗ " + m); } };
 
 /* =====================================================================================================
-   Harnais de validation — LES TRÊVES ET LA TAILLE DES DIVISIONS (v2.97)
+   Harnais de validation — LES TRÊVES ET LA TAILLE DES DIVISIONS (v3.00)
    Décision de l'auteur du 16/11/2026 : la Serie A se joue à sa vraie taille, DIX-HUIT clubs jusqu'en
    2003-04 et VINGT ensuite. Le calendrier garde trente-huit journées, dont quatre de trêve quand une
    division n'a que dix-huit clubs ; quatre montées et quatre descentes à dix-huit ; l'été 2004, trois

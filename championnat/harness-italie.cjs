@@ -8,7 +8,7 @@
    d'ITA-A (effectifs procéduraux, exprès) : c'est une répétition générale, elle est annoncée comme telle,
    et les contrôles qui ne valent que sur de la donnée curée se taisent au lieu de mentir.
      A) les saisons italiennes au registre : clé préfixée, champ pays, nom, titre, sous-titre
-     B) le plateau : 18 + 20 jusqu'en 2003-04, 20 + 20 ensuite (v2.97), codes uniques, tous italiens, métadonnées résolues
+     B) le plateau : 18 + 20 jusqu'en 2003-04, 20 + 20 ensuite (v3.00), codes uniques, tous italiens, métadonnées résolues
      C) les effectifs : postes, bornes, un gardien réel, et les comptes de la curation
      D) aucun doublon : dans la saison, contre les autres saisons italiennes, et les prénoms
      E) le mur européen : aucun club des deux côtés, seize clubs au tableau, sièges = SIEGES_ITA
@@ -117,7 +117,7 @@ for (const cle of CLES) {
 console.log("\nB) Le plateau : la vraie taille de la Serie A (18 jusqu'en 2003-04, 20 ensuite) + 20, clubs italiens uniques et résolus");
 for (const cle of CLES) {
   const S = SAISONS[cle];
-  /* DÉCISION DE L'AUTEUR DU 16/11/2026 (v2.97) : la Serie A se joue à sa VRAIE taille, dix-huit clubs jusqu'en
+  /* DÉCISION DE L'AUTEUR DU 16/11/2026 (v3.00) : la Serie A se joue à sa VRAIE taille, dix-huit clubs jusqu'en
      2003-04 et vingt ensuite, avec quatre trêves au calendrier quand elle a dix-huit clubs (cf. berger). Plus
      de repêchage à la française. La Serie B reste à vingt. Le harnais ne transige pas sur ces deux nombres. */
   const t1 = api.tailleD1("ITA", S.an);
@@ -242,7 +242,7 @@ for (const cle of EPREUVES) {
   api.nouvellePartie(sel, cle);
   const G = api.getG();
   const enCours = api.plateauEnCours();
-  const attendus = S.d1.length + S.d2.length; // 38 tant que la Serie A a dix-huit clubs (v2.97)
+  const attendus = S.d1.length + S.d2.length; // 38 tant que la Serie A a dix-huit clubs (v3.00)
   ok(enCours.size === attendus, `${cle} : la carrière ouvre sur ${attendus} clubs${enCours.size !== attendus ? " — " + enCours.size : ""}`);
   const desDeuxCotes = (G.europe || []).filter(c => enCours.has(c.id)).map(c => c.id);
   ok(desDeuxCotes.length === 0, `${cle} : aucun club du championnat ne traîne dans le vivier d'Europe${desDeuxCotes.length ? " — " + extrait(desDeuxCotes) : ""}`);

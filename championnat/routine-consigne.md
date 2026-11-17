@@ -64,7 +64,7 @@ Si la nuit ne suffit pas pour les deux temps, livre seulement le relevé (sur `m
 `releves/`), laisse la case non cochée, écris-le au journal : la nuit suivante repart du relevé déjà fait
 et assemble.
 
-**La Serie A se joue à sa VRAIE taille (décision de l'auteur du 16/11/2026, v2.97)** : **18 clubs de 1990-91 à
+**La Serie A se joue à sa VRAIE taille (décision de l'auteur du 16/11/2026, v3.00)** : **18 clubs de 1990-91 à
 2003-04, 20 à partir de 2004-05**, sans repêchage. Le moteur le sait (`tailleD1`, quatre trêves au calendrier,
 quatre montées et quatre descentes) et `harness-italie.cjs` l'exige. La **Serie B reste à 20** dans une saison de
 départ : 20 réels jusqu'en 2002-03 (rien à faire), et les années où elle en a 22 ou 24 (2003-04 et après), on
