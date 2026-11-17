@@ -191,7 +191,7 @@ console.log("A/B) L'homme du moment sort en direct");
 }
 console.log("C) L'homme du moment reste : rien ne bouge");
 {
-  let vus = 0, intacts = 0;
+  let vus = 0, intacts = 0, horsJeu = 0, reaffectes = 0;
   for (let n = 0; n < 150; n++) {
     let s; try { s = scene(["OM","PSG","LIL","REN"][n % 4], 45); } catch (e) { continue; }
     const mo = api.tireMoment(s.moi, s.adv, { t: .785, sansDerby: true });
@@ -201,10 +201,16 @@ console.log("C) L'homme du moment reste : rien ne bouge");
     const sortant = s.p.xi.find(j => j.pos !== "G" && j.uid !== mo.uid && !s.p.sort.includes(j) && api.enJeu(s.moi, 45).includes(j));
     const entrant = api.bancDispo(s.moi, s.p, 45).find(j => j.pos !== "G" && !s.p.banc.includes(j) && j.uid !== mo.uid);
     if (!sortant || !entrant) continue;
+    const uid0 = mo.uid;
     api.changementDirect(s.ctx, entrant, sortant);
-    vus++; if (s.r.moment.annonce === avant && surPelouse(s, mo.uid)) intacts++;
+    /* Le changement fait REJOUER la fin du match : il arrive (une scène sur cent cinquante environ) que l'homme du
+       moment y prenne un rouge ou y sorte blessé. Le moment DOIT alors changer d'homme (c'est la section A) : la scène
+       ne relève plus de « rien ne bouge » et se vérifie à part. Rouge au hasard jusqu'au 17/11/2026 pour cette raison. */
+    if (!surPelouse(s, uid0)) { horsJeu++; if (s.r.moment.uid !== uid0 && surPelouse(s, s.r.moment.uid)) reaffectes++; continue; }
+    vus++; if (s.r.moment.annonce === avant && s.r.moment.uid === uid0) intacts++;
   }
   ok(vus >= 30 && intacts === vus, `un autre changement ne touche pas au moment (${intacts}/${vus})`);
+  ok(reaffectes === horsJeu, `quand la fin rejouée sort l'homme du moment, le moment passe à un homme sur la pelouse (${reaffectes}/${horsJeu})`);
 }
 console.log(FAILS ? `\n✗ ${FAILS} échec(s)` : "\n✓ tout est vert");
 process.exit(FAILS ? 1 : 0);

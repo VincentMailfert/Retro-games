@@ -411,6 +411,11 @@ toujours « raconter quelque chose ».
   (`tireMoment(moi, adv, {t, sansDerby})`, table `T_MOMENT`), sinon on garde le moment et on y met le plus proche
   remplaçant du même poste. Même type, même objet (le direct le tient par référence), annonce et ligne du fil réécrites
   ensemble. Le gardien blessé (« gants ») n'est pas repris. Gardé par **`harness-moment.cjs`** (rouge sans le correctif).
+  **Le rouge au hasard de ce harnais, corrigé le 17/11/2026 (sans changement de version)** : sa section C (« un autre
+  changement ne touche pas au moment ») échouait environ une fois sur deux, sur la v2.96 comme sur la v2.99. Le jeu avait
+  raison : le changement fait rejouer la fin du match, et une scène sur cent cinquante environ y expulse ou y blesse
+  l'homme du moment, que `revalideMoment` remplace alors à bon droit. Ces scènes sont désormais comptées à part, avec leur
+  propre vérification (le moment passe à un homme sur la pelouse) ; vingt passages verts d'affilée.
   **Le vivier est commun au pépin et au choix** : `bancDispo(c,p,m)` (jamais le gardien remplaçant, jamais un
   homme déjà entré, mais OUI un homme que le banc comptait faire entrer plus tard — `avanceLeBanc` retire alors
   ce changement-là). **`ligneChangement` distingue trois causes** : `blessure` (SUBS_BLESSURE), le gardien
@@ -597,6 +602,8 @@ toujours « raconter quelque chose ».
   (« Perpignan FC ») porte l'effectif réel de **Canet-Roussillon** — club voisin retenu faute de club
   perpignanais en D2 cette saison-là — et Angers/Alès, sans case dans le jeu, sont restés de côté.
   Toujours garder D1 et D2 à 20 clubs et **aucun joueur dupliqué entre les divisions** (exception italienne ci-dessous).
+  Le **mercato est national** (`ecranMercato` liste D1 + D2, colonne « Div », filtre par division) ;
+  la **fiche d'accueil affiche l'effectif réel curé** (STARS/STARS_D2) avant de choisir son club.
 - **LA SERIE A À DIX-HUIT ET LES TRÊVES (v3.00, décision de l'auteur du 16/11/2026, réponse au blocage d'ITA 1990-91)** :
   l'Italie se joue à sa vraie taille, **dix-huit clubs de 1990-91 à 2003-04, vingt ensuite** (`tailleD1(pays, an)`,
   vingt partout ailleurs). **Le calendrier garde trente-huit journées** : `berger` pose, pour une division de
@@ -611,8 +618,6 @@ toujours « raconter quelque chose ».
   ses trêves). Le classement, la carte du multiplex, « maintien arraché », le défi de maintien et l'objectif
   d'entraîneur lisent ces nombres. Une saison de départ italienne garde sa Serie B à vingt. Gardé par
   **`harness-treves.cjs`** (sections A à E) et `harness-italie.cjs` (section B, la vraie taille).
-  Le **mercato est national** (`ecranMercato` liste D1 + D2, colonne « Div », filtre par division) ;
-  la **fiche d'accueil affiche l'effectif réel curé** (STARS/STARS_D2) avant de choisir son club.
 - **Saison de départ au choix (v0.62)** : un sélecteur à l'accueil (`#selSaison`) permet de démarrer une
   carrière neuve sur une saison **réelle** au choix — point de départ UNIQUEMENT : une fois lancée, la
   carrière est procédurale comme avant (joueurs conservés, pas de transfert « magique »). Registre
