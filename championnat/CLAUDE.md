@@ -3328,6 +3328,21 @@ toujours « raconter quelque chose ».
   G à I de **`harness-marche.cjs`**. **Bug ancien corrigé au passage** : deux fonctions `etoiles` coexistaient, celle
   de la réputation d'entraîneur (sur cinq) écrasait celle du staff (sur trois), et l'écran Staff montrait cinq étoiles
   vides pour tout coach ; celle du staff s'appelle désormais `etoilesStaff`.
+- **LE COUP DE TONNERRE (v3.02, choix de l'auteur du 17/11/2026 : « une fenêtre quand il y a un mouvement de mercato majeur
+  chez les autres clubs », réponse « un vrai coup de tonnerre, tout le championnat »)**. `transfertIA` ne vend que le
+  surplus, jamais une star : `coupDeTonnerre()`, appelée en fin de journée pendant les mercatos, fait qu'un des six clubs
+  les plus riches (`TONNERRE.riches`) arrache à un autre l'un de ses trois meilleurs (note ≥ 78, 31 ans au plus, jamais
+  prêté, jamais à vous ni pour vous), à condition qu'il entre dans son onze, au prix du marché (`prixAchat`) et dans son
+  budget ; le vendeur encaisse 90 %. **Au plus un par mercato** : `G._tonPlan` tire, à la première journée d'un mercato,
+  s'il y en aura un (75 %) et à quelle journée, puis retente jusqu'à la fermeture s'il ne trouve pas d'affaire. Mesuré :
+  1,2 à 1,45 par saison. `G.tonnerre` porte l'affaire jusqu'à `ouvreTonnerre(suite)`, la fenêtre posée juste APRÈS le
+  debrief (deux blasons, le joueur, le prix, une phrase de `TONNERRE_DIT`, et « Vous recevez / Vous allez à X à la Jn »
+  si vous croisez l'un des deux clubs dans les dix journées). Dépêche et presse toujours, notif au harnais seulement.
+  **Les jokers achetés par les autres (v3.02, même jour : « une notif quand une équipe achète un joker »)** : le rachat
+  de 6 % par journée avait déjà sa ligne au debrief, mais elle disait toujours « il figurait dans votre rapport » ; elle
+  ne le dit plus que si c'est vrai (`pickR`), sinon « 🔭 X s'offre Y, un joker que votre recruteur surveillait ».
+  Gardé par **`harness-tonnerre.cjs`**. Piège payé en l'écrivant : le même jour, `transfertIA` passe avant et peut
+  garnir la caisse de l'acheteur ; on ne compare donc pas un budget d'avant la journée au prix payé.
 - **Marché des transferts IA** (`transfertIA`) : pendant les fenêtres (`fenetreOuverte`), un club IA achète
   un joueur à un autre, dans la limite de **son** budget (`c.budget`, réapprovisionné à l'intersaison). Règles :
   ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et
