@@ -3295,6 +3295,39 @@ toujours « raconter quelque chose ».
   **`harness-effectif.cjs`**. **Piège à ne pas rouvrir** : toute NOUVELLE façon de faire sortir un joueur de
   l'effectif doit passer par `refusDepart` si elle est volontaire ; si elle est subie (arc narratif `vendMome`,
   retraite), la laisser passer et compter sur `veilleEffectif` — jamais bloquer une décision de scénario.
+- **LA FENÊTRE DU MARCHÉ (v3.01, demande de l'auteur du 16/11/2026 : « je loupe tout le temps les joueurs poussés pour
+  la journée, je ne prends pas le réflexe d'aller sur la page mercato »)**. `ouvreMarche(suite)`, posée dans la chaîne de
+  la semaine juste après le debrief (`ouvreDebrief(()=>ouvreMarche(rdv?null:ouvrePromo))`), montre en `#fiche` le coup à
+  faire (`G.flash`) et le rapport du recruteur (`G.rapport`), signables sur place en deux temps (« Signer » arme,
+  « Confirmer » signe : `signeJoker(k, true)` et `saisirFlash(true)`, qui ne rafraîchissent ni ne présentent la recrue).
+  Une fois par journée (`G._marcheVu`), de la 1re à l'avant-dernière, et seulement s'il y a quelque chose de signable
+  (`marcheASignaler` : le coup à faire, ou une carte dans le budget). À la fermeture, les recrues passent par
+  `presenteRecrue(j, suite)` puis `rafraichir()`, et la chaîne rejouée reprend à la promo billets. Le coup à faire ne
+  part plus dans le debrief hors harnais (doublon). Le rachat de 6 % par un club IA prend désormais d'abord un nom du
+  rapport de la semaine : la notif « il figurait dans votre rapport » dit vrai. Gardé par **`harness-marche.cjs`**.
+- **LE MAILLOT NU (v3.01, choix de l'auteur du 16/11/2026, première des « fenêtres de conseil »)**. `ouvreMaillot(suite)`,
+  juste après la fenêtre du marché dans la chaîne de la semaine, rappelle une fois par journée (`G._maillotVu`) que le
+  club joue sans sponsor maillot ou sans équipementier (`maillotASignaler`), avec les offres en attente signables sur
+  place en deux temps, et une seule phrase de situation : ce qui ne rentre pas chaque journée. `choisirSponsor(k, suite)`
+  et `choisirEquip(k, suite)` acceptent une suite (sinon retour aux finances comme avant). La renégociation de
+  mi-saison d'un club déjà sponsorisé n'y entre pas. Gardé par la section F de **`harness-marche.cjs`**. Autres pistes
+  proposées à l'auteur alors : « la caisse déborde » et « la caisse se vide », faites en v3.01 (ci-dessous).
+- **LA CAISSE (v3.01, demande de l'auteur du 17/11/2026 : « ajoute les autres fenêtres de notif manquantes »)**. Les deux
+  dernières « fenêtres de conseil », `ouvreCaisse(suite)`, juste après le maillot nu dans la chaîne de la semaine
+  (`ouvreMaillot(()=>ouvreCaisse(rdv?null:ouvrePromo))`), une seule par journée (`G._caisseVu`), jamais les deux.
+  Le rythme se lit sur `G.caisseJ`, le solde des quatre dernières journées JOUÉES posé par `finirJournee` (de la
+  billetterie à la prime de match ; mercato et chantiers n'y entrent pas, la trêve non plus), moyenne des trois
+  dernières (`caisseRythme`). **« LA CAISSE SE VIDE »** : caisse positive qui passe dans le rouge en `CAISSE.horizon`
+  (4) journées au plus à ce rythme ; une fois par descente (`G._videVu`, relâché dès que le rythme redevient positif) ;
+  elle montre ce qui sort chaque journée, et « Voir les finances » / « Voir l'effectif ». Déjà dans le rouge, c'est la
+  notif du président qui parle. **« LA CAISSE DÉBORDE »** : rythme positif et au moins un chantier du stade ou un coach
+  meilleur payable en gardant un matelas (`caisseMatelas` : six journées de charges, 5 M au moins), au plus une fois
+  toutes les `CAISSE.ecart` (10) journées ; trois chantiers au plus (les plus chers d'abord, jamais « Entrer dans
+  l'histoire ») et trois postes du staff, avec « Voir le stade » / « Voir le staff » (`CLUB_PART`). Mesuré sur vingt
+  saisons d'un robot qui ne dépense jamais : ~1,1 « déborde » et 0,15 « se vide » par saison. Gardé par les sections
+  G à I de **`harness-marche.cjs`**. **Bug ancien corrigé au passage** : deux fonctions `etoiles` coexistaient, celle
+  de la réputation d'entraîneur (sur cinq) écrasait celle du staff (sur trois), et l'écran Staff montrait cinq étoiles
+  vides pour tout coach ; celle du staff s'appelle désormais `etoilesStaff`.
 - **Marché des transferts IA** (`transfertIA`) : pendant les fenêtres (`fenetreOuverte`), un club IA achète
   un joueur à un autre, dans la limite de **son** budget (`c.budget`, réapprovisionné à l'intersaison). Règles :
   ne vend que le **surplus** (au-delà des `CIBLE` meilleurs au poste, jamais une star ni un titulaire), et

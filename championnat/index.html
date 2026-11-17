@@ -396,7 +396,7 @@
   .stDirect canvas{display:block; width:100%; height:100%; object-fit:cover; object-position:50% 22%; image-rendering:pixelated; image-rendering:crisp-edges;}
   .stDirect.en3d canvas:not(.st3d){display:none;}
   .stDirect canvas.st3d{position:absolute; inset:0; object-fit:fill; touch-action:pan-y;}
-  /* v2.95 : le match en plein écran (bouton en haut à droite de la bande 3D). Sur iPhone, Safari ne sait pas mettre un bloc
+  /* v2.98 : le match en plein écran (bouton en haut à droite de la bande 3D). Sur iPhone, Safari ne sait pas mettre un bloc
      en plein écran : la bande se pose alors par-dessus toute la page. Score et dernière ligne du direct par-dessus. */
   .stPlein{display:none; position:absolute; right:6px; top:6px; z-index:3; width:40px; height:40px; padding:8px; background:rgba(7,11,26,.72); border:2px solid #1d2633; border-radius:4px; cursor:pointer;}
   .stDirect.en3d .stPlein{display:block;}
@@ -746,7 +746,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.00"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.01"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -14604,6 +14604,7 @@ function finirJournee(delta){
       }
     }
     // finances : billetterie à domicile + droits TV + sponsor
+    const caisse0=G.tresorerie; // v3.01 : le solde de la journée, que lisent les fenêtres de la caisse
     if(hid===G.monClub){
       const aff=affluence(h,a), pb=palierBillet();
       let recette, libBill;
@@ -14673,6 +14674,7 @@ function finirJournee(delta){
       G.confiance=Math.max(0,G.confiance-1);
       if(!G._deficit){ G._deficit=true; notif("🔴 Trésorerie dans le rouge. Le président veut un retour à l'équilibre, alléger la masse salariale, vendre, ou décrocher un meilleur sponsor."); }
     } else if(G.tresorerie>2e6){ G._deficit=false; }
+    G.caisseJ=(G.caisseJ||[]).concat(Math.round(G.tresorerie-caisse0)).slice(-4);
   }
   // moral : temps de jeu et résultat du club humain
   majMoral(res);
@@ -14780,7 +14782,10 @@ function finirJournee(delta){
   if(G.vivier && Math.random()<0.06){
     const types=Object.keys(G.vivier).filter(t=>G.vivier[t].length);
     if(types.length){
-      const t=PICK(types), entree=PICK(G.vivier[t]);
+      // v3.01 : quand il y en a, c'est l'un des noms du rapport de la semaine qui part (ceux qu'on vous avait montrés)
+      const montres=(G.rapport||[]).map(o=>({t:o.type, e:(G.vivier[o.type]||[]).find(x=>x[0]===o.j.nom)})).filter(x=>x.e);
+      const pickR=montres.length?PICK(montres):null;
+      const t=pickR?pickR.t:PICK(types), entree=pickR?pickR.e:PICK(G.vivier[t]);
       const ach=PICK(G.clubs.filter(c=>c.id!==G.monClub && c.pres>=6));
       if(ach && entree){
         G.vivier[t]=G.vivier[t].filter(x=>x!==entree);
@@ -14800,7 +14805,7 @@ function finirJournee(delta){
   if(G.flash && G.flash.jour<G.journee){ const f=G.flash; G.flash=null; flashRafle(f); }
   if(!G.flash && G.journee>=1 && G.journee<37 && Math.random()<FLASH_PROB){
     const f=genFlash();
-    if(f){ const n=flashNotif(f); if(n){ G.flash=f; notif(n); } }
+    if(f){ const n=flashNotif(f); if(n){ G.flash=f; if(EN_TEST()) notif(n); } } // v3.01 : hors harnais, c'est la fenêtre du marché qui l'annonce
   }
   G.rapport=genRapport(); // nouvelles offres du recruteur chaque semaine
   if(fenetreOuverte() && Math.random()<0.6) transfertIA(); // le marché vit : les clubs IA se renforcent
@@ -16260,13 +16265,13 @@ function demandePrime(j, prix, prime){
   };
 }
 /* LA PRÉSENTATION DE LA RECRUE (v2.17) : le gamin intimidé, le vieux briscard, ou celle qu'on montre au stade plein. */
-function presenteRecrue(j){
+function presenteRecrue(j, suite){
   const fam=j.age<=21?"rec_jeune":(j.age>=31?"rec_veteran":"rec_star"), nm="<b class=\"fort\">"+esc(nomLong(j.nom))+"</b>";
   const DIT={
     rec_jeune:nm+" tient son maillot un peu trop grand devant trois photographes. Au fond de la salle, sa mère essuie une larme.",
     rec_veteran:nm+" lève son maillot avec un demi-sourire, son vieux sac de sport à l'épaule. Ce n'est pas sa première présentation.",
     rec_star:"Le stade est venu pour lui. "+nm+" brandit son nouveau maillot sous les flashs et les écharpes."};
-  ceremonie(fam, "📸 PRÉSENTATION DE LA RECRUE", DIT[fam], "Bienvenue au club", ()=>{});
+  ceremonie(fam, "📸 PRÉSENTATION DE LA RECRUE", DIT[fam], "Bienvenue au club", suite||(()=>{}));
 }
 function finaliseAchat(j, prix, prime){
   const vendeur=clubById(j.club), acheteur=clubById(G.monClub);
@@ -18603,7 +18608,7 @@ function acheterJoker(k){
     onOk:()=>signeJoker(k)
   });
 }
-function signeJoker(k){
+function signeJoker(k, discret){
   const o=G.rapport[k]; if(!o) return;
   if(o.prix>G.budget) return message("Le budget transferts ne couvre pas cette recrue joker.", {titre:"💰 BUDGET TRANSFERTS"});
   const moi=clubById(G.monClub);
@@ -18615,6 +18620,7 @@ function signeJoker(k){
   const exEuro=retireDEurope(o.j.nom); // réconciliation : s'il jouait dans un club européen, il le quitte
   G.news.unshift("RECRUE JOKER : "+nomLong(o.j.nom)+" ("+o.j.lieu+") signe pour "+MM(o.prix,1)+"."+(exEuro?" Il quitte "+exEuro.nom+".":""));
   G.rapport.splice(k,1);
+  if(discret) return o.j; // signé depuis la fenêtre du marché : c'est elle qui rafraîchit et présente la recrue
   rafraichir();
   presenteRecrue(o.j);
 }
@@ -18729,18 +18735,18 @@ function flashRafle(f){
     notif("😤 Trop tard : "+j.nom+", libre de tout contrat, a signé à "+ach.nom+". Le salaire, eux, ils l'assument.");
   }
 }
-function saisirFlash(){
-  const f=G.flash; if(!f) return;
+function saisirFlash(discret){
+  const f=G.flash; if(!f) return null;
   const j=flashJ(f);
-  if(!j){ G.flash=null; return rafraichir(); } // le joueur s'est volatilisé entre-temps
+  if(!j){ G.flash=null; return discret?null:rafraichir(); } // le joueur s'est volatilisé entre-temps
   const moi=clubById(G.monClub);
   if(f.kind==="solde"){
-    if(f.prix>G.budget) return message(MM(f.prix,1)+" demandés, "+MM(G.budget,1)+" disponibles au budget transferts.", {titre:"💰 BUDGET TRANSFERTS"});
+    if(f.prix>G.budget){ message(MM(f.prix,1)+" demandés, "+MM(G.budget,1)+" disponibles au budget transferts.", {titre:"💰 BUDGET TRANSFERTS"}); return null; }
     const vend=clubById(f.club);
     if(!cessionFlashOK(vend, j)){
       G.flash=null;
       message((vend?vend.nom:"Le club")+" a perdu trop de monde cette semaine : céder "+j.nom+" le ferait passer sous le plancher réglementaire.", {titre:"🚫 L'AFFAIRE TOMBE À L'EAU"});
-      return rafraichir();
+      return discret?null:rafraichir();
     }
     vend.joueurs=vend.joueurs.filter(x=>x!==j);
     vend.budget=(vend.budget||0)+f.prix;
@@ -18762,7 +18768,9 @@ function saisirFlash(){
   G.buzz=Math.min(4,(G.buzz||0)+2); // la ville parle du coup
   assureCapitaine();
   veilleEffectif();
+  if(discret) return j;
   rafraichir();
+  return j;
 }
 function laisserFlash(){
   const f=G.flash; if(!f) return;
@@ -18788,8 +18796,216 @@ function panneauFlash(){
    <button class="act bFlashNon" style="margin-left:8px">Laisser filer</button></p></div>`;
 }
 function cableFlash(){
-  document.querySelectorAll(".bFlashOui").forEach(b=>b.onclick=saisirFlash);
+  document.querySelectorAll(".bFlashOui").forEach(b=>b.onclick=()=>saisirFlash());
   document.querySelectorAll(".bFlashNon").forEach(b=>b.onclick=laisserFlash);
+}
+
+/* ---------- LE MAILLOT NU (v3.01, choix de l'auteur du 16/11/2026, première des fenêtres de conseil) ----------
+   Tant que le club joue sans sponsor maillot, ou sans équipementier, une fenêtre le rappelle après le marché, une fois
+   par journée (`G._maillotVu`), avec les offres en attente, signables sur place en deux temps. Ce que ça coûte de
+   rester nu se dit en un chiffre (la meilleure offre fixe à la journée) : c'est une information de situation, pas
+   un mode d'emploi. La renégociation de mi-saison d'un club déjà sponsorisé n'y entre pas. */
+function maillotASignaler(){
+  if(!G || G.vire || G.finie || G.ete) return false;
+  if(!(G.journee>=1 && G.journee<(G.calendrier||[]).length)) return false;
+  if(G._maillotVu===G.journee) return false;
+  return (!G.sponsor && (G.offresSponsor||[]).length>0) || (!G.equip && (G.offresEquip||[]).length>0);
+}
+function ouvreMaillot(suite){
+  suite=suite||(()=>{});
+  if(EN_TEST() || !maillotASignaler()) return suite();
+  const fiche=document.getElementById("fiche"); if(!fiche || !fiche.style) return suite();
+  G._maillotVu=G.journee;
+  let arme=null;
+  const reste=()=>(!G.sponsor && (G.offresSponsor||[]).length) || (!G.equip && (G.offresEquip||[]).length);
+  let signe=false;  // un contrat signé : l'écran se redessine, et la chaîne rejouée reprend d'elle-même (la fenêtre est déjà vue)
+  const ferme=()=>{ window._penEnCours=false; fermeFiche(); if(signe) rafraichir(); else suite(); };
+  const rend=()=>{
+    const sp=!G.sponsor ? (G.offresSponsor||[]) : [], eq=!G.equip ? (G.offresEquip||[]) : [];
+    const manque=sp.reduce((m,o)=>Math.max(m,o.fixe),0)+eq.reduce((m,o)=>Math.max(m,o.fixe),0);
+    const ligne=(o, cle)=>{ const conf=arme===cle;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #1f3352">
+        <div style="min-width:0"><b class="fort">${esc(o.nom)}</b><br>
+          <span class="dim" style="font-size:13px">${UU(o.fixe)}/journée${o.prime?" + "+UU(o.prime)+" par victoire":""}</span> ${imageSponsor(o)}</div>
+        <button class="${conf?"big":"act"} bMaSig" data-c="${cle}" style="white-space:nowrap;flex-shrink:0">${conf?"Confirmer":"Signer"}</button></div>`; };
+    const titre = sp.length&&eq.length ? "👕 LE MAILLOT EST NU" : (sp.length ? "👕 PAS DE SPONSOR MAILLOT" : "👕 PAS D'ÉQUIPEMENTIER");
+    fiche.innerHTML=`<div class="fbox" style="max-width:480px;width:100%;max-height:92vh;overflow:auto;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+      <h2>${titre}</h2>
+      <p class="dim">Chaque journée sans contrat, jusqu'à <b class="fort">${UU(manque)}</b> qui ne rentrent pas.</p>
+      ${sp.length?`<p style="margin-top:12px"><b>SPONSOR MAILLOT</b></p>${sp.map((o,k)=>ligne(o,"s"+k)).join("")}`:""}
+      ${eq.length?`<p style="margin-top:12px"><b>ÉQUIPEMENTIER</b></p>${eq.map((o,k)=>ligne(o,"e"+k)).join("")}`:""}
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="big" id="bMaOk" style="flex:1">Plus tard</button></p></div>`;
+    fiche.querySelectorAll(".bMaSig").forEach(b=>b.onclick=()=>{
+      const c=b.dataset.c;
+      if(arme!==c){ arme=c; return rend(); }
+      arme=null; window._penEnCours=false; signe=true;
+      const apres=()=>{ if(reste()){ rend(); fiche.style.display="flex"; window._penEnCours=true; } else ferme(); };
+      if(c[0]==="s") choisirSponsor(+c.slice(1), apres); else choisirEquip(+c.slice(1), apres);
+    });
+    fiche.querySelector("#bMaOk").onclick=ferme;
+  };
+  rend();
+  fiche.style.display="flex"; window._penEnCours=true;
+}
+
+/* ---------- LA CAISSE (v3.01, choix de l'auteur du 17/11/2026 : « ajoute les autres fenêtres de notif manquantes ») ----------
+   Les deux autres fenêtres de conseil proposées avec le maillot nu, dans la chaîne de la semaine juste après lui.
+   Elles disent une SITUATION, jamais un mode d'emploi. Le solde de chaque journée jouée (`G.caisseJ`, les quatre
+   derniers, posé dans `finirJournee` : billetterie, droits télé, contrats, salaires, staff, entretien, prime) donne
+   le rythme ; les achats et ventes du mercato n'y entrent pas.
+   « LA CAISSE SE VIDE » : la caisse est encore positive mais, au rythme des trois dernières journées, elle passe dans
+   le rouge en quatre journées au plus. Une fois par descente (`G._videVu`, relâché quand le rythme redevient positif).
+   « LA CAISSE DÉBORDE » : le rythme est positif et la caisse paie un chantier du stade ou un meilleur coach en
+   gardant un matelas (`caisseMatelas`). Au plus une fois toutes les dix journées (`G._debordeVu`). Jamais les deux. */
+const CAISSE={ horizon:4, ecart:10, matelasJ:6, matelasMin:5e6 };
+function caisseRythme(){ const h=(G&&G.caisseJ)||[]; if(h.length<3) return null; const d=h.slice(-3); return d.reduce((a,b)=>a+b,0)/d.length; }
+function caisseCharges(){ const c=clubById(G.monClub); if(!c) return 0;
+  return c.joueurs.reduce((s,j)=>s+salaire(j),0)+fraisJournee(c)+staffCoutJournee()+campusEntretienJour(); }
+function caisseMatelas(){ return Math.max(CAISSE.matelasMin, CAISSE.matelasJ*caisseCharges()); }
+function caissePossibles(){ // ce que la caisse paie en gardant son matelas : chantiers du stade (les plus ambitieux d'abord), coachs
+  const c=clubById(G.monClub), libre=G.tresorerie-caisseMatelas(), out={stade:[], staff:[]};
+  if(!c || libre<=0) return out;
+  if(!G.chantier && G.stade) out.stade=STADE_PROJETS.filter(p=>p.dispo(c) && p.id!=="legende" && p.cout(c)<=libre)
+    .map(p=>({id:p.id, nom:p.label(c), cout:p.cout(c), duree:p.duree()})).sort((a,b)=>b.cout-a.cout).slice(0,3);
+  if(G.staff) out.staff=STAFF_POSTES.map(p=>({p, t:coachTier(p.id)})).filter(x=>x.t<3)
+    .map(x=>{ let t=3; while(t>x.t && Math.round(t*1.8e6)>libre) t--; return {nom:x.p.nom, pic:x.p.pic, de:x.t, a:t, prime:Math.round(t*1.8e6)}; })
+    .filter(x=>x.a>x.de).sort((a,b)=>(b.a-b.de)-(a.a-a.de)).slice(0,3);
+  return out;
+}
+function caisseASignaler(){
+  if(!G || G.vire || G.finie || G.ete) return null;
+  if(G.mode==="entraineur" && G.coach && G.coach.vire) return null;
+  if(!(G.journee>=1 && G.journee<(G.calendrier||[]).length)) return null;
+  if(G._caisseVu===G.journee) return null;
+  const r=caisseRythme(); if(r==null) return null;
+  if(r>=0) G._videVu=false; // la pente est remontée : la prochaine descente aura sa fenêtre
+  if(r<0 && G.tresorerie>0 && !G._videVu && G.tresorerie+CAISSE.horizon*r<0) return "vide";
+  if(r>=0 && (G._debordeVu==null || G.journee-G._debordeVu>=CAISSE.ecart)){
+    const P=caissePossibles(); if(P.stade.length || P.staff.length) return "deborde"; }
+  return null;
+}
+function ouvreCaisse(suite){
+  suite=suite||(()=>{});
+  const quoi=EN_TEST()?null:caisseASignaler();
+  if(!quoi) return suite();
+  const fiche=document.getElementById("fiche"); if(!fiche || !fiche.style) return suite();
+  G._caisseVu=G.journee;
+  const ferme=()=>{ window._penEnCours=false; fermeFiche(); suite(); };
+  const va=(ecran, part)=>{ window._penEnCours=false; fermeFiche(); if(part) CLUB_PART=part; montre(ecran); };
+  const c=clubById(G.monClub), r=caisseRythme();
+  const ligne=(g, d)=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #1f3352">
+    <span style="min-width:0">${g}</span><span style="white-space:nowrap;flex-shrink:0">${d}</span></div>`;
+  let corps, titre, coul, boutons;
+  if(quoi==="vide"){
+    G._videVu=true;
+    const n=Math.max(1, Math.ceil(G.tresorerie/(-r)));
+    const masse=c.joueurs.reduce((s,j)=>s+salaire(j),0);
+    titre="🔻 LA CAISSE SE VIDE"; coul="var(--rouge)";
+    corps=`<p>Trésorerie <b class="fort">${MM(G.tresorerie,1)}</b>, et <b class="rouge">${MM(-r,2)}</b> de moins par journée depuis trois journées.</p>
+      <p style="margin-top:4px">À ce rythme, le rouge dans <b class="fort">${n} journée${n>1?"s":""}</b>.</p>
+      <p style="margin-top:12px"><b>CE QUI SORT CHAQUE JOURNÉE</b></p>
+      ${ligne("Masse salariale", `<span class="rouge">- ${UU(masse)}</span>`)}
+      ${staffCoutJournee()>0?ligne("Staff technique", `<span class="rouge">- ${UU(staffCoutJournee())}</span>`):""}
+      ${ligne("Frais du stade", `<span class="rouge">- ${UU(fraisJournee(c))}</span>`)}
+      ${campusEntretienJour()>0?ligne("Entretien du centre", `<span class="rouge">- ${UU(campusEntretienJour())}</span>`):""}
+      ${!G.sponsor?ligne("Sponsor maillot", `<span class="dim">aucun contrat</span>`):""}`;
+    boutons=`<button class="big" id="bCaOk" style="flex:1">Plus tard</button>
+      <button class="act" id="bCaFin">Voir les finances</button><button class="act" id="bCaEff">Voir l'effectif</button>`;
+  } else {
+    G._debordeVu=G.journee;
+    const P=caissePossibles();
+    titre="💰 LA CAISSE DÉBORDE"; coul="var(--vert)";
+    corps=`<p>Trésorerie <b class="fort">${MM(G.tresorerie,1)}</b>, et <b class="vert">+ ${MM(r,2)}</b> par journée depuis trois journées.</p>
+      ${P.stade.length?`<p style="margin-top:12px"><b>🏗️ À PORTÉE AU STADE</b></p>
+        ${P.stade.map(x=>ligne(`<b class="fort">${esc(x.nom)}</b> <span class="dim" style="font-size:13px">· ${x.duree} journée${x.duree>1?"s":""}</span>`, MM(x.cout,1))).join("")}`:""}
+      ${P.staff.length?`<p style="margin-top:12px"><b>📋 À PORTÉE AU STAFF</b></p>
+        ${P.staff.map(x=>ligne(`${x.pic} <b class="fort">${esc(x.nom)}</b> <span class="dim" style="font-size:13px">· ${x.de?etoilesStaff(x.de)+" → ":"poste vacant → "}</span><span class="fort">${etoilesStaff(x.a)}</span>`, MM(x.prime,1))).join("")}`:""}`;
+    boutons=`<button class="big" id="bCaOk" style="flex:1">Plus tard</button>
+      ${P.stade.length?`<button class="act" id="bCaStade">Voir le stade</button>`:""}${P.staff.length?`<button class="act" id="bCaStaff">Voir le staff</button>`:""}`;
+  }
+  fiche.innerHTML=`<div class="fbox" style="max-width:480px;width:100%;max-height:92vh;overflow:auto;background:#0b1626;border:2px solid ${coul};box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2 style="color:${coul}">${titre}</h2>${corps}
+    <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">${boutons}</p></div>`;
+  const b=id=>fiche.querySelector("#"+id);
+  b("bCaOk").onclick=ferme;
+  if(quoi==="vide"){ b("bCaFin").onclick=()=>va("finances"); b("bCaEff").onclick=()=>va("effectif"); }
+  else { const s=b("bCaStade"); if(s) s.onclick=()=>va("club","stade"); const t=b("bCaStaff"); if(t) t.onclick=()=>va("club","staff"); }
+  fiche.style.display="flex"; window._penEnCours=true;
+}
+
+/* ---------- LA FENÊTRE DU MARCHÉ (v3.01, demande de l'auteur du 16/11/2026) ----------
+   « Je loupe tout le temps les joueurs poussés pour la journée, je ne prends pas le réflexe d'aller sur la
+   page mercato, et après coup je vois qu'un autre club les a achetés. » Les deux offres qui ne valent qu'une
+   journée (le coup à faire `G.flash`, le rapport du recruteur `G.rapport`) viennent donc à lui : une fenêtre
+   après le debrief, une fois par journée (`G._marcheVu`), seulement s'il y a quelque chose de signable
+   (le coup à faire, ou une carte du recruteur dans le budget). On signe sur place, en deux temps comme
+   partout : « Signer » puis « Confirmer ». Les recrues sont présentées à la fermeture, puis l'écran se
+   redessine (la chaîne de la semaine reprend là où elle en était : la fenêtre est déjà marquée vue). */
+function marcheASignaler(){
+  if(!G || G.vire || G.finie || G.ete) return false;
+  if(G.mode==="entraineur" && G.coach && G.coach.vire) return false;
+  if(!(G.journee>=1 && G.journee<(G.calendrier||[]).length)) return false;
+  if(G._marcheVu===G.journee) return false;
+  return !!(G.flash && flashJ(G.flash)) || (G.rapport||[]).some(o=>o && o.prix<=G.budget);
+}
+function ouvreMarche(suite){
+  suite=suite||(()=>{});
+  if(EN_TEST() || !marcheASignaler()) return suite();
+  const fiche=document.getElementById("fiche"); if(!fiche || !fiche.style) return suite();
+  G._marcheVu=G.journee;
+  const signes=[];          // les recrues du soir, présentées à la fermeture
+  let arme=null;            // la ligne dont on attend la confirmation (« f » pour le coup à faire, sinon l'indice du rapport)
+  const ferme=()=>{
+    window._penEnCours=false; fermeFiche();
+    if(!signes.length) return suite();
+    const presente=i=>i<signes.length ? presenteRecrue(signes[i], ()=>presente(i+1)) : rafraichir();
+    presente(0);
+  };
+  const rend=()=>{
+    const f=G.flash, jf=f?flashJ(f):null, solde=f&&f.kind==="solde";
+    const cartes=(G.rapport||[]).map((o,k)=>({o,k})).filter(x=>x.o);
+    const ligne=(j, sous, prix, prixTxt, cle, extra)=>{
+      const ok=prix<=G.budget, conf=arme===cle;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #1f3352">
+        <div style="min-width:0"><b class="fort">${esc(nomLong(j.nom))}</b> <span class="pos-${j.pos}">${j.pos}</span>
+          <span class="dim">· ${j.age} ans · note</span> <b>${j.note}</b><br>
+          <span class="dim" style="font-size:13px">${sous}</span>${extra||""}</div>
+        ${ok?`<button class="${conf?"big":"act"} bMkSig" data-c="${cle}" style="white-space:nowrap;flex-shrink:0">${conf?"Confirmer : ":"Signer · "}${prixTxt}</button>`
+            :`<span class="rouge" style="font-size:13px;white-space:nowrap;flex-shrink:0">${prixTxt} · hors budget</span>`}
+      </div>`;
+    };
+    const blocFlash = jf ? `<p style="margin-top:12px;color:#ff8a3d"><b>${solde?"🔥 LE COUP À FAIRE":"🆓 JOUEUR LIBRE"}</b></p>
+      ${ligne(jf, solde?esc((clubById(f.club)||{}).nom||"")+" brade · valeur "+MM(f.plein,1):"ex-"+esc(jf.lieu||"")+" · "+UU(salaire(jf))+"/sem de salaire",
+              f.prix, solde?MM(f.prix,1):"0 transfert", "f",
+              `<br><span style="font-size:13px;font-style:italic">« ${esc(f.motif)} »</span>`)}` : "";
+    const blocRap = cartes.length ? `<p style="margin-top:12px"><b>🔭 LE RAPPORT DU RECRUTEUR</b></p>
+      ${cartes.map(({o,k})=>ligne(o.j, esc(o.j.lieu||libProfil(o.type)), o.prix, MM(o.prix,1), String(k))).join("")}` : "";
+    const fait = signes.length ? `<p class="vert" style="margin-top:10px">✅ ${signes.map(j=>esc(nomLong(j.nom))).join(", ")} ${signes.length>1?"ont signé":"a signé"}.</p>` : "";
+    fiche.innerHTML=`<div class="fbox" style="max-width:480px;width:100%;max-height:92vh;overflow:auto;background:#0b1626;border:2px solid #ff8a3d;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+      <h2 style="color:#ff8a3d">🛒 LE MARCHÉ DE LA SEMAINE</h2>
+      <p class="dim">Jusqu'au prochain match. Après, d'autres clubs se servent.</p>
+      <p style="margin-top:4px">Budget transferts <b class="fort">${MM(G.budget,1)}</b></p>
+      ${blocFlash}${blocRap}${fait}
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="big" id="bMkOk" style="flex:1">${signes.length?"Continuer":"Plus tard"}</button>
+        <button class="act" id="bMkMerc">Voir le mercato</button></p></div>`;
+    fiche.querySelectorAll(".bMkSig").forEach(b=>b.onclick=()=>{
+      const c=b.dataset.c;
+      if(arme!==c){ arme=c; return rend(); }        // premier clic : on arme
+      arme=null;
+      const j = c==="f" ? saisirFlash(true) : signeJoker(+c, true);
+      if(j) signes.push(j);
+      rend();
+    });
+    fiche.querySelector("#bMkOk").onclick=ferme;
+    fiche.querySelector("#bMkMerc").onclick=()=>{ window._penEnCours=false; fermeFiche();
+      if(!signes.length) return montre("mercato");
+      const presente=i=>i<signes.length ? presenteRecrue(signes[i], ()=>presente(i+1)) : montre("mercato");
+      presente(0); };
+  };
+  rend();
+  fiche.style.display="flex"; window._penEnCours=true;
 }
 
 /* ---------- Sponsors ---------- */
@@ -18920,7 +19136,7 @@ function genSponsors(mult){
      desc:"PONT D'OR, mais entache l'image du club"+(sulf.defaut?", et peut ne jamais payer":"")},
   ];
 }
-function choisirSponsor(k){
+function choisirSponsor(k, suite){
   G.sponsor=G.offresSponsor[k];
   G.offresSponsor=null; G.sponsorSwitch=false;
   if(G.sponsor.moderne) G.eresVues=(G.eresVues||[]).concat(G.sponsor.nom);
@@ -18933,7 +19149,7 @@ function choisirSponsor(k){
     sp_national:"Salle de réunion, carafe d'eau, stylo plume. "+nom+" entre au club par la grande porte, sans un mot de travers.",
     sp_louche:"Le champagne coule, la mallette est ouverte sur le bureau. "+nom+" promet des chiffres à donner le vertige. Reste à les voir arriver.",
     sp_vice:"Velours rouge, fumée épaisse, verres ambrés. "+nom+" signe en grande pompe. La presse, elle, a déjà sorti ses stylos."};
-  ceremonie(fam, "✍️ SIGNATURE DU SPONSOR", DIT[fam], "Retour aux finances", ()=>montre("finances"));
+  ceremonie(fam, "✍️ SIGNATURE DU SPONSOR", DIT[fam], suite?"Continuer":"Retour aux finances", suite||(()=>montre("finances")));
 }
 /* ---------- Équipementiers : revenu selon la notoriété du club (noms fictifs) ---------- */
 const EQUIPEMENTIERS=[
@@ -18998,7 +19214,7 @@ function genEquip(){
     offres.push({nom:loc.nom, fixe:rnd(base*0.22), prime:0, rep:+10, repJ:0.3, note:loc.note, desc:"l'atelier du coin, modeste, mais le public et la région l'adorent"});
   return offres;
 }
-function choisirEquip(k){
+function choisirEquip(k, suite){
   G.equip=G.offresEquip[k]; G.offresEquip=null;
   if(G.equip.rep) majReput(G.equip.rep, "Équipementier "+G.equip.nom);
   G.news.unshift("ÉQUIPEMENTIER : "+G.equip.nom+" habille le club ("+UU(G.equip.fixe)+"/journée"+(G.equip.prime?" + "+UU(G.equip.prime)+" par victoire":"")+").");
@@ -19007,7 +19223,7 @@ function choisirEquip(k){
     eq_gros:"Le rideau tombe, les flashs crépitent : le nouveau maillot signé "+nom+" apparaît sous les projecteurs.",
     eq_pari:"Le représentant de "+nom+" tape sur sa calculatrice, le ruban de papier déborde du bureau. Tout se jouera aux victoires.",
     eq_atelier:"Chez "+nom+", la machine à coudre ronronne et le chat dort sur le tissu. Les premiers maillots sèchent déjà sur le fil."};
-  ceremonie(fam, "👕 NOUVEL ÉQUIPEMENTIER", DIT[fam], "Retour aux finances", ()=>montre("finances"));
+  ceremonie(fam, "👕 NOUVEL ÉQUIPEMENTIER", DIT[fam], suite?"Continuer":"Retour aux finances", suite||(()=>montre("finances")));
 }
 /* ---------- Construction du stade, brique par brique ----------
    On bâtit UN projet à la fois (la grue tourne sur le SVG). c.cap reste le socle (affluence/finances) ;
@@ -19349,7 +19565,7 @@ function coachSecteur(pos){
 }
 function coachFormation(pos){ return 0.15*coachSecteur(pos); }
 function staffCoutJournee(){ if(!G.staff) return 0; return STAFF_POSTES.reduce((s,p)=>s+(G.staff[p.id]?G.staff[p.id].salaire:0),0); }
-function etoiles(t){ return "★".repeat(t)+"☆".repeat(3-t); }
+function etoilesStaff(t){ return "★".repeat(t)+"☆".repeat(3-t); } // v3.01 : renommée, la réputation d'entraîneur (etoiles, sur cinq) l'écrasait
 function genCandidatsCoach(id){
   // toujours un choix VARIÉ : un as (★★★), un confirmé (★★☆), un espoir (★☆☆). Tout le monde peut viser l'as,
   // mais son indemnité et son salaire le réservent de fait aux clubs qui en ont les moyens (le prestige pèse par l'argent).
@@ -19378,7 +19594,7 @@ function ouvreRecrutement(id){
     
     ${_COACHCANDS.map((c,i)=>`<div style="border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:6px 0">
        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-         <b>${esc(c.nom)}</b><span class="fort" style="letter-spacing:1px">${etoiles(c.tier)}</span></div>
+         <b>${esc(c.nom)}</b><span class="fort" style="letter-spacing:1px">${etoilesStaff(c.tier)}</span></div>
        <p class="dim" style="font-style:italic;font-size:13px;margin:3px 0">${esc(c.phrase)}</p>
        <p style="font-size:13px">${esc(poste.eff(c.tier))}</p>
        <p class="dim" style="font-size:13px">Indemnité <b class="fort">${MM(c.prime,1)}</b> · salaire <b>${UU(c.salaire)}/sem</b></p>
@@ -19393,7 +19609,7 @@ function staffHTML(){
     if(c) return `<div style="border:1px solid var(--line);border-radius:4px;padding:6px 8px;margin:4px 0">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
         <span><b>${p.pic} ${esc(c.nom)}</b> <span class="dim" style="font-size:13px">${esc(p.nom)}</span></span>
-        <span class="fort" style="font-size:13px;letter-spacing:1px">${etoiles(c.tier)}</span></div>
+        <span class="fort" style="font-size:13px;letter-spacing:1px">${etoilesStaff(c.tier)}</span></div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:2px">
         <span class="dim" style="font-size:13px">${esc(p.eff(c.tier))} · ${UU(c.salaire)}/sem</span>
         <button class="act bCoachOut" data-id="${p.id}" style="font-size:13px;padding:2px 8px">Remercier</button></div></div>`;
@@ -24127,7 +24343,7 @@ function ecranCalendrier(){
   // à la place du match du samedi (panneauRdv), et la semaine passe d'abord — on compose son équipe de coupe en
   // sachant qui est blessé. Seule la promo billets attend : elle concerne le samedi, pas le mercredi.
   // Chaque étape se consume (G.incident, G.confPresse, G.notifs… remis à zéro) : revenir sur l'écran ne rejoue rien.
-  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDefis(()=>ouvreDebrief(rdv?null:ouvrePromo))));
+  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDefis(()=>ouvreDebrief(()=>ouvreMarche(()=>ouvreMaillot(()=>ouvreCaisse(rdv?null:ouvrePromo)))))));
   ouvreLivraison(()=>ouvreLivraisonCentre(()=>{
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); } }));
@@ -30457,7 +30673,7 @@ function stadeDirectPeint(){
     {focus:"pelouse", direct:{sc:STD.sc, rouges:STD.rouges, evt:STD.evt, dom:STD.dom, ext:STD.ext}}); }catch(e){}
 }
 function stadeDirectFerme(){ match3dFerme(); stadeDirectPlein(false); if(STD && STD.tic) clearInterval(STD.tic); STD=null; }
-/* LE PLEIN ÉCRAN DU MATCH (v2.95, demande de l'auteur du 14/11/2026 : « quand on joue tout semble petit ») : un bouton sur
+/* LE PLEIN ÉCRAN DU MATCH (v2.98, demande de l'auteur du 14/11/2026 : « quand on joue tout semble petit ») : un bouton sur
    la bande 3D. L'API plein écran quand le navigateur la connaît (ordinateur, Android), sinon la bande couvre toute la page
    (iPhone). Score, minute et dernière ligne du direct restent lisibles par-dessus. Échap, le bouton ou quitter le direct
    en sortent. Le zoom aux doigts est dans la maquette (bloc MATCH3D). */
