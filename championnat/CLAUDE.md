@@ -4201,6 +4201,27 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
 - Gardé par **`harness-trophees.cjs`** (sections A à M, dont une carrière de six saisons où chaque défi de match
   réussi est contrôlé contre le score du soir, la boutique en L, la jeune légende en M).
 
+### LE PARRAINAGE (v3.03, demande de l'auteur du 17/11/2026)
+Chaque compte a son lien `https://multiplex.club/?p=CODE` (six caractères, alphabet sans 0/O ni 1/I). Un ami qui
+arrive par ce lien et crée son compte rapporte **500 points** (`PARRAIN_PTS`) au parrain, tout seul, dès que son
+adresse est **confirmée** ; plafond de **20 filleuls** (`PARRAIN_MAX`, garde-fou contre les comptes jetables).
+- **L'arrivée** : `parrainageDepuisAdresse(location.search)` au démarrage range le code (`PARRAINKEY.recu`, valable
+  30 jours) et retire `?p=` de l'adresse. Sans requête, et rien n'est écrit sans code (la règle de l'invité tient).
+  Son propre lien, connecté, ne se range pas.
+- **L'inscription** : `compteInscription` envoie le code dans `data.parrain` (métadonnées du compte), puis l'efface.
+- **Le serveur** (`supabase/schema.sql`, fin du fichier) : tables `codes_parrainage` et `parrainages` sans aucune
+  règle d'accès, fonction `mon_parrainage()` (rend `{code, filleuls}`, crée le code au premier appel), et le
+  déclencheur `parrainage_confirme` sur `auth.users` qui inscrit le parrainage à la confirmation de l'adresse
+  (il ne fait jamais échouer une inscription). Un compte n'a qu'un parrain, on ne se parraine pas soi-même.
+  Le lien de confirmation peut donc être cliqué sur un autre appareil : le code est déjà sur le serveur.
+- **Le parrain** : `parrainageRafraichit()` relit `mon_parrainage()` au démarrage, à la connexion et à la salle des
+  trophées (une fois par minute au plus) ; un nouveau filleul est annoncé une fois (« 🤝 PARRAINAGE », jamais en
+  plein match). Les points ne sont pas stockés : `pointsGagnes()` = défis + `pointsParrainage()`, et
+  `soldePoints()` part de là.
+- **Où** : un panneau « 🤝 Parrainage » dans la salle des trophées (le lien, « Partager mon lien » : menu de partage
+  du téléphone, sinon copie). Sans compte : une ligne et « Créer mon compte ».
+- Gardé par **`harness-parrainage.cjs`** (A à G).
+
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)
 
 La 90ᵉ tire parfois une respiration comique qui ne touche à rien : ni au score, ni à un joueur, ni à une

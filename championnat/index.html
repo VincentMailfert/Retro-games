@@ -746,7 +746,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.02"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.03"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -22303,8 +22303,11 @@ function adresseRetour(){ // où ramènent les liens des emails (confirmation, m
   try{ return location.origin+location.pathname; }catch(e){ return ""; }
 }
 async function compteInscription(email, mdp){
-  const r=await nuageAppel("/auth/v1/signup?redirect_to="+encodeURIComponent(adresseRetour()), "POST", {email, password:mdp}, false);
+  const parrain=codeRecu(), corps={email, password:mdp}; // le code d'un parrain part avec le compte (cf. LE PARRAINAGE)
+  if(parrain) corps.data={parrain};
+  const r=await nuageAppel("/auth/v1/signup?redirect_to="+encodeURIComponent(adresseRetour()), "POST", corps, false);
   if(!r.ok) return {ok:false, code:codeErreur(r)};
+  if(parrain) parrainageInscrit();
   mesure("compte-cree");
   if(r.donnees && r.donnees.access_token){ compteEcrit(sessionDe(r.donnees)); return {ok:true}; }
   return {ok:true, confirmer:true}; // l'adresse doit être confirmée par le lien reçu
@@ -22521,6 +22524,7 @@ function nuagePlanifie(raison){
   const t=Date.now();
   if(raison==="journee" && t-NUAGE_DERNIER<NUAGE_DELAI) return null;
   NUAGE_DERNIER=t;
+  if(raison==="demarrage" || raison==="connexion") parrainageRafraichit(); // les filleuls arrivés depuis la dernière fois
   return nuageSynchronise();
 }
 async function nuageListe(){ // les carrières en ligne, sans leurs données : de quoi dresser la liste
@@ -22794,6 +22798,104 @@ function progSynchronise(){
 function progPlanifie(){ if(nuageAllume()) progSynchronise(); }
 
 /* =====================================================================
+   LE PARRAINAGE (v3.03, demande de l'auteur du 17/11/2026)
+   Chaque compte a son lien (https://multiplex.club/?p=K7Q2MX). Un ami qui arrive par ce lien et crée son
+   compte rapporte PARRAIN_PTS points au parrain, automatiquement, dès que son adresse est confirmée.
+   Le chemin, sans rien à cliquer de plus :
+   (1) l'arrivée : `parrainageDepuisAdresse` lit ?p= dans l'adresse, range le code (PARRAINKEY.recu) et
+       nettoie l'adresse. SANS requête, et rien n'est écrit si l'adresse n'a pas de code (la règle de
+       l'invité tient : section A de harness-compte.cjs) ;
+   (2) l'inscription : `compteInscription` glisse le code dans les métadonnées du compte (data.parrain) ;
+   (3) le serveur : un déclencheur sur auth.users (supabase/schema.sql, `parrainage_confirme`) inscrit le
+       parrainage quand l'adresse est CONFIRMÉE. Rien ne dépend donc de l'appareil où l'ami clique le lien
+       de son email, et un compte jamais confirmé ne rapporte rien ;
+   (4) le parrain : `mon_parrainage()` rend son code (créé au premier appel) et le nombre de filleuls ;
+       relu à la salle des trophées et au démarrage, au plus une fois par minute. Un nouveau filleul est
+       annoncé une fois (« 🤝 »), jamais en plein match.
+   Les points ne sont pas stockés, comme ceux des défis : `pointsParrainage()` = filleuls (plafonnés à
+   PARRAIN_MAX, garde-fou contre les comptes jetables) × PARRAIN_PTS, ajoutés au solde par `pointsGagnes`.
+   Gardé par harness-parrainage.cjs. */
+const PARRAIN_PTS=500;                     // points par ami inscrit grâce au lien
+const PARRAIN_MAX=20;                      // au-delà, les filleuls ne rapportent plus rien
+const PARRAINKEY="d1manager_parrainage_v1"; // {recu:{code,t}, par:{uid:{code, n, vu, t}}}
+const PARRAIN_DELAI=60000;                 // une relecture par minute au plus
+const PARRAIN_VIE=30*864e5;                // un code reçu attend l'inscription trente jours au plus
+let PARRAIN_EN_COURS=null;
+function codeParrainNet(c){ c=String(c||"").trim().toUpperCase(); return /^[A-Z0-9]{6}$/.test(c)?c:null; }
+function parrainLit(){ try{ const o=JSON.parse(lsLit(PARRAINKEY)||"null"); return (o&&typeof o==="object"&&!Array.isArray(o))?o:{}; }catch(e){ return {}; } }
+function parrainEcrit(o){ try{ localStorage.setItem(PARRAINKEY, JSON.stringify(o)); }catch(e){} }
+function codeRecu(){ // le code du parrain, s'il attend encore une inscription
+  const r=parrainLit().recu; if(!r) return null;
+  const c=codeParrainNet(r.code); if(!c || Date.now()-(+r.t||0)>PARRAIN_VIE) return null;
+  return c;
+}
+function parrainageDepuisAdresse(recherche){ // (1) au démarrage : ?p=CODE dans l'adresse, lu sans requête
+  let c=null; try{ c=codeParrainNet(new URLSearchParams(String(recherche||"").replace(/^\?/,"")).get("p")); }catch(e){ c=null; }
+  if(!c) return null;
+  const o=parrainLit(), moi=compteLit(), mien=moi&&o.par&&o.par[moi.uid]&&o.par[moi.uid].code;
+  if(c!==mien){ o.recu={code:c, t:Date.now()}; parrainEcrit(o); } // son propre lien ne se range pas
+  return c;
+}
+function parrainageInscrit(){ const o=parrainLit(); if(o.recu){ delete o.recu; parrainEcrit(o); } } // (2) fait : le serveur a le code
+function parrainDe(uid){ const o=parrainLit(); return (o.par&&uid&&o.par[uid])||null; }
+function pointsParrainage(){ // les filleuls du compte d'ici (le dernier connecté, comme prog())
+  const s=compteLit(), d=parrainDe(s?s.uid:progMag().der);
+  return d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX)*PARRAIN_PTS:0;
+}
+function pointsGagnes(){ return pointsDefis()+pointsParrainage(); }
+function lienParrainage(code){ return "https://multiplex.club/?p="+code; }
+function parrainageRafraichit(force){ // (4) le code du parrain et ses filleuls ; vrai si quelque chose a changé
+  if(!nuageAllume()) return Promise.resolve(false);
+  const s=compteLit(), d=parrainDe(s.uid);
+  if(!force && d && d.code && Date.now()-(+d.t||0)<PARRAIN_DELAI) return Promise.resolve(false);
+  if(PARRAIN_EN_COURS) return PARRAIN_EN_COURS;
+  PARRAIN_EN_COURS=(async()=>{
+    const r=await nuageAppel("/rest/v1/rpc/mon_parrainage", "POST", {}, true);
+    const x=r.ok&&r.donnees&&typeof r.donnees==="object"?r.donnees:null;
+    if(!x || !codeParrainNet(x.code) || !compteLit() || compteLit().uid!==s.uid) return false;
+    const o=parrainLit(); o.par=o.par||{};
+    const av=o.par[s.uid]||{}, n=Math.max(0, Math.floor(+x.filleuls||0));
+    o.par[s.uid]={code:codeParrainNet(x.code), n, vu:av.code?Math.min(+av.vu||0, n):n, t:Date.now()}; // le premier passage n'annonce rien
+    parrainEcrit(o);
+    parrainageAnnonce();
+    return av.code!==o.par[s.uid].code || (+av.n||0)!==n;
+  })().finally(()=>{ PARRAIN_EN_COURS=null; });
+  return PARRAIN_EN_COURS;
+}
+function parrainageAnnonce(){ // un nouveau filleul, dit une fois, jamais en plein match ni par-dessus une fenêtre
+  const s=compteLit(); if(!s) return false;
+  const o=parrainLit(), d=o.par&&o.par[s.uid]; if(!d || !(d.n>(+d.vu||0))) return false;
+  if(!EN_TEST() && (MSG_ANNUL || (typeof document!=="undefined" && document.body && document.body.classList.contains("mode-direct")))) return false;
+  const neufs=d.n-(+d.vu||0), pts=Math.max(0, Math.min(d.n, PARRAIN_MAX)-Math.min(+d.vu||0, PARRAIN_MAX))*PARRAIN_PTS;
+  d.vu=d.n; parrainEcrit(o);
+  message((neufs>1?neufs+" amis ont":"Un ami a")+" rejoint Multiplex grâce à toi."+(pts?" +"+FMT(pts)+" ⭐":""), {titre:"🤝 PARRAINAGE"});
+  return true;
+}
+function parrainageHTML(){ // le panneau de la salle des trophées
+  const s=compteLit(), d=s&&parrainDe(s.uid);
+  if(!s) return `<p class="dim">Crée ton compte : chaque ami qui s'inscrit avec ton lien te rapporte ${FMT(PARRAIN_PTS)} ⭐.</p>
+    <button class="act" id="bParrainCompte">Créer mon compte</button>`;
+  if(!d || !d.code) return `<p class="dim">Ton lien arrive…</p>`;
+  const l=lienParrainage(d.code);
+  return `<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b></p>
+    <p style="margin:8px 0"><input id="parrainLien" readonly value="${esc(l)}" style="width:100%;box-sizing:border-box;font:15px VT323,monospace;letter-spacing:.5px;padding:6px 8px;background:#0b1626;color:#ffd24a;border:1px solid #27466e"></p>
+    <p><button class="act" id="bParrainPartage">Partager mon lien</button></p>
+    ${d.n?`<p class="dim" style="font-size:13px">${d.n} ami${d.n>1?"s":""} inscrit${d.n>1?"s":""}</p>`:""}`;
+}
+function cableParrainage(redessine){
+  const $=id=>typeof document!=="undefined"&&document.getElementById?document.getElementById(id):null;
+  const bc=$("bParrainCompte"); if(bc) bc.onclick=()=>{ COMPTE_ONGLET="inscription"; fenetreCompte(); };
+  const bp=$("bParrainPartage"), ch=$("parrainLien");
+  if(bp && ch) bp.onclick=async()=>{
+    const l=ch.value, t="Viens jouer à Multiplex, le plaisir du foot rétro :";
+    try{ if(navigator.share) return await navigator.share({text:t, url:l}); }catch(e){ if(e && e.name==="AbortError") return; }
+    try{ await navigator.clipboard.writeText(l); bp.textContent="Lien copié ✓"; }
+    catch(e){ if(ch.select) ch.select(); }
+  };
+  if(compteLit()) parrainageRafraichit().then(c=>{ if(c && redessine) redessine(); });
+}
+
+/* =====================================================================
    LES DÉFIS ET LA SALLE DES TROPHÉES (v2.75, chantier de l'auteur du 12/11/2026)
    Inspiré de Retro Football Management : une partie n'est jamais « juste une partie ». Des défis rapportent
    des POINTS (la monnaie du jeu, gagnée en jouant, jamais achetée) ; une salle des trophées, à l'accueil,
@@ -23051,7 +23153,7 @@ const BOUTIQUE=[
 ];
 const ART_DE=Object.fromEntries(BOUTIQUE.map(a=>[a.art,a]));
 function depensePoints(){ return prog().achats.reduce((n,a)=>n+((ART_DE[a.art]||{}).prix||0), 0); }
-function soldePoints(){ return Math.max(0, pointsDefis()-depensePoints()); }
+function soldePoints(){ return Math.max(0, pointsGagnes()-depensePoints()); } // défis + parrainage (v3.03)
 function acquis(art){ return prog().achats.some(a=>a.art===art && a.id===art); }
 function idAchat(art){ const A=ART_DE[art]; if(!A) return null;
   if(A.ray==="perm") return art;
@@ -23135,7 +23237,7 @@ function clubsDefis(){ // la quatrième famille : un défi par ligne, précédé
 }
 function ecranTrophees(){
   defisConstate();
-  const v=vitrine(), pts=pointsDefis(), faits=prog().defis.length;
+  const v=vitrine(), pts=pointsGagnes(), faits=prog().defis.length;
   const case_=(emo,n,lib)=>`<div class="trCase${n?"":" trVide"}"><span class="trEmo">${emo}</span><b>${n}</b><span class="dim">${lib}</span></div>`;
   const clubs=Object.keys(v.clubs).map(k=>{ const [ch,id]=k.split("|"), c=metaClub(id)||{id, nom:id};
     return `<span class="trBlason" title="${esc(c.nom||id)}${v.clubs[k]>1?" ×"+v.clubs[k]:""}">${blason(c,34)}${v.clubs[k]>1?`<i>×${v.clubs[k]}</i>`:""}</span>`; }).join("");
@@ -23148,6 +23250,10 @@ function ecranTrophees(){
      <h2>🏆 SALLE DES TROPHÉES</h2>
      <p class="trPts">⭐ ${FMT(soldePoints())} <span class="dim">pts</span></p>
      <p class="dim" style="font-size:13px">${FMT(pts)} gagnés · ${faits}/${DEFIS.length+DEFIS_CLUB.length} défis</p>
+   </div>
+   <div class="panel">
+     <h2>🤝 Parrainage</h2>
+     ${parrainageHTML()}
    </div>
    <div class="panel">
      <h2>La boutique</h2>
@@ -23169,6 +23275,7 @@ function ecranTrophees(){
   app.innerHTML=`<p style="margin:0 0 10px"><button class="act" id="bRetourAcc">← Accueil</button></p>${corps}`;
   document.getElementById("bRetourAcc").onclick=ecranAccueil; window.scrollTo(0,0);
   cableBoutique(ecranTrophees);
+  cableParrainage(ecranTrophees);
 }
 
 /* =====================================================================
@@ -30899,6 +31006,7 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   // On passe donc par fermeFiche(), seule porte qui respecte le verrou — et un message maison (#msgbox),
   // qui vit au-dessus de #fiche, se dépile d'abord.
   document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(fermeMessage()) return; fermeFiche(); });
+  try{ if(parrainageDepuisAdresse(location.search)) history.replaceState(null, "", location.pathname+location.hash); }catch(e){} // ?p= : un lien de parrainage (lu sans requête)
   progRattrape(); // une fois : les titres de D1 déjà gagnés dans les carrières du navigateur rapportent leur clé
   ecranAccueil();
   retourDeLien(); // retour d'un lien reçu par email : lu dans l'adresse, sans requête

@@ -194,3 +194,92 @@ $$;
 
 revoke all on function public.pousse_progression(bigint, bigint, jsonb, text) from public, anon;
 grant execute on function public.pousse_progression(bigint, bigint, jsonb, text) to authenticated;
+
+-- LE PARRAINAGE (v3.03). Chaque compte a un code de six caractères (son lien : multiplex.club/?p=CODE).
+-- Le jeu glisse le code reçu dans les métadonnées du compte à l'inscription (data.parrain) ; le
+-- déclencheur parrainage_confirme l'inscrit quand l'adresse du filleul est CONFIRMÉE. Rien ne s'écrit en
+-- direct : les deux tables n'ont aucune règle d'accès, seules les fonctions ci-dessous y touchent.
+-- Les points ne sont pas ici : le jeu les compte (filleuls × 500, plafonnés à 20 filleuls).
+create table if not exists public.codes_parrainage (
+  user_id uuid        primary key references auth.users(id) on delete cascade,
+  code    text        not null unique check (code ~ '^[A-Z0-9]{6}$'),
+  cree    timestamptz not null default now()
+);
+create table if not exists public.parrainages (
+  filleul uuid        primary key references auth.users(id) on delete cascade, -- un compte n'a qu'un parrain
+  parrain uuid        not null references auth.users(id) on delete cascade,
+  cree    timestamptz not null default now(),
+  constraint parrainage_pas_soi check (filleul <> parrain)
+);
+create index if not exists parrainages_parrain on public.parrainages (parrain);
+alter table public.codes_parrainage enable row level security;
+alter table public.parrainages enable row level security;
+revoke all on public.codes_parrainage from anon, authenticated;
+revoke all on public.parrainages from anon, authenticated;
+
+-- SON CODE ET SES FILLEULS. Le code naît au premier appel (alphabet sans 0/O ni 1/I, qui se confondent).
+-- Réponse : {code, filleuls}.
+create or replace function public.mon_parrainage()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid  uuid := auth.uid();
+  v_code text;
+  i      int;
+begin
+  if v_uid is null then
+    raise exception 'connexion requise' using errcode = '28000';
+  end if;
+  select code into v_code from public.codes_parrainage where user_id = v_uid;
+  while v_code is null loop
+    v_code := '';
+    for i in 1..6 loop
+      v_code := v_code || substr('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 1 + floor(random() * 32)::int, 1);
+    end loop;
+    begin
+      insert into public.codes_parrainage (user_id, code) values (v_uid, v_code);
+    exception when unique_violation then
+      -- le même code chez un autre (on retire) ou deux appels à la fois pour ce compte (on relit le sien)
+      select code into v_code from public.codes_parrainage where user_id = v_uid;
+    end;
+  end loop;
+  return jsonb_build_object('code', v_code,
+    'filleuls', (select count(*) from public.parrainages where parrain = v_uid));
+end;
+$$;
+revoke all on function public.mon_parrainage() from public, anon;
+grant execute on function public.mon_parrainage() to authenticated;
+
+-- LE DÉCLENCHEUR : à la confirmation de l'adresse (ou à la création, si la confirmation est coupée).
+-- Il ne fait JAMAIS échouer une inscription : toute erreur est avalée.
+create or replace function public.parrainage_confirme()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_code    text;
+  v_parrain uuid;
+begin
+  if new.email_confirmed_at is null then return new; end if;
+  if tg_op = 'UPDATE' and old.email_confirmed_at is not null then return new; end if;
+  v_code := upper(coalesce(new.raw_user_meta_data ->> 'parrain', ''));
+  if v_code !~ '^[A-Z0-9]{6}$' then return new; end if;
+  select user_id into v_parrain from public.codes_parrainage where code = v_code;
+  if v_parrain is null or v_parrain = new.id then return new; end if;
+  insert into public.parrainages (filleul, parrain) values (new.id, v_parrain)
+    on conflict (filleul) do nothing;
+  return new;
+exception when others then
+  return new;
+end;
+$$;
+revoke all on function public.parrainage_confirme() from public, anon, authenticated;
+drop trigger if exists parrainage_confirme on auth.users;
+create trigger parrainage_confirme
+  after insert or update of email_confirmed_at on auth.users
+  for each row execute function public.parrainage_confirme();
