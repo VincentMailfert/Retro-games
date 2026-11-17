@@ -4219,7 +4219,8 @@ adresse est **confirmée** ; plafond de **20 filleuls** (`PARRAIN_MAX`, garde-fo
   plein match). Les points ne sont pas stockés : `pointsGagnes()` = défis + `pointsParrainage()`, et
   `soldePoints()` part de là.
 - **Où** : un panneau « 🤝 Parrainage » dans la salle des trophées (le lien, « Partager mon lien » : menu de partage
-  du téléphone, sinon copie). Sans compte : une ligne et « Créer mon compte ».
+  du téléphone, sinon copie). Sans compte : une ligne et « Créer mon compte ». **v3.04** : un bouton
+  « 🤝 Parrainage » aux deux pieds de page (accueil et jeu) ouvre le même panneau dans une fenêtre (`fenetreParrainage`).
 - Gardé par **`harness-parrainage.cjs`** (A à G).
 
 ### LES DERNIERS MOMENTS DE PUR DÉCOR (v1.23)

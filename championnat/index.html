@@ -746,7 +746,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.03"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.04"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -22894,6 +22894,16 @@ function cableParrainage(redessine){
   };
   if(compteLit()) parrainageRafraichit().then(c=>{ if(c && redessine) redessine(); });
 }
+function fenetreParrainage(){ // le lien des pieds de page (accueil et jeu) : le même panneau, dans une fenêtre
+  if(EN_TEST()||!msgbox||!msgbox.style) return;
+  ouvreMsg(`<div class="fbox" style="max-width:440px;width:100%;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+    <h2>🤝 PARRAINAGE</h2>${parrainageHTML()}
+    <p class="dim" style="font-size:13px;margin-top:12px;text-align:center"><button class="lien" id="bParrainFerme">Fermer</button></p></div>`);
+  const f=document.getElementById("bParrainFerme"); if(f) f.onclick=fermeMessage;
+  const bc=document.getElementById("bParrainCompte"); // vers la création de compte : on quitte cette fenêtre
+  cableParrainage(()=>{ if(document.getElementById("bParrainFerme")) fenetreParrainage(); });
+  if(bc) bc.onclick=()=>{ videMessage(); COMPTE_ONGLET="inscription"; fenetreCompte(); };
+}
 
 /* =====================================================================
    LES DÉFIS ET LA SALLE DES TROPHÉES (v2.75, chantier de l'auteur du 12/11/2026)
@@ -24000,7 +24010,7 @@ function ecranAccueil(){
        </div>
      </div>
    </div>
-   <p class="footer">Multiplex · v${VERSION} · données d'époque approximatives. · <button class="act" id="bCompteAcc">☁️ ${compteLit()?"Mon compte":"Se connecter"}</button> · <button class="act" id="bAproposAcc">À propos</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a> · ${liensReseaux()}</p>`;
+   <p class="footer">Multiplex · v${VERSION} · données d'époque approximatives. · <button class="act" id="bCompteAcc">☁️ ${compteLit()?"Mon compte":"Se connecter"}</button> · <button class="act" id="bAproposAcc">À propos</button> · <button class="act" id="bParrainAcc">🤝 Parrainage</button> · <a href="https://buymeacoffee.com/multiplex" target="_blank" rel="noopener" style="color:inherit">☕ offrir un café</a> · ${liensReseaux()}</p>`;
   // les deux portes du bandeau : le hasard tire une saison, puis un club de cette saison, et l'on découvre sa fiche
   { const bm=document.getElementById("bMagie"); if(bm) bm.onclick=tirageMagie; // bandeau d'accueil, ou lien sous les carrières
     const bc=document.getElementById("bChoisir"); if(bc) bc.onclick=()=>{ const z=document.getElementById("choixClub"); if(z&&z.scrollIntoView) z.scrollIntoView({behavior:"smooth", block:"start"}); }; }
@@ -24021,6 +24031,7 @@ function ecranAccueil(){
   app.querySelectorAll(".carRen").forEach(b=>b.onclick=()=>renommePartie(b.dataset.id));
   app.querySelectorAll(".carDel").forEach(b=>b.onclick=()=>supprimePartie(b.dataset.id));
   document.getElementById("bAproposAcc").onclick=ecranApropos;
+  document.getElementById("bParrainAcc").onclick=fenetreParrainage;
   { const bt=document.getElementById("bTrophees"); if(bt) bt.onclick=ecranTrophees; }
   const bca=document.getElementById("bCompteAcc"); if(bca) bca.onclick=fenetreCompte;
   const bap=document.getElementById("bAppCompte"); if(bap) bap.onclick=()=>{ COMPTE_ONGLET="inscription"; fenetreCompte(); };
@@ -24076,12 +24087,14 @@ function chrome(actif, corps){
      <button class="act" id="bBoutique">⭐ Boutique</button>
      <button class="act" id="bCompte">${esc(libIndicateur())}</button>
      <button class="act" id="bApropos">À propos</button>
+     <button class="act" id="bParrain">🤝 Parrainage</button>
      · ${liensReseaux()}
      ${SAVE_KO?`<br><b class="rouge">⚠️ Sauvegarde bloquée : mémoire du navigateur pleine. Supprimez une vieille carrière depuis l'accueil.</b>`:""}
    </p>`;
   // la sauvegarde est automatique à chaque changement d'écran : plus de bouton, et plus de fichier
   app.querySelectorAll("nav button, .sousNav button").forEach(b=>b.onclick=()=>montre(b.dataset.s));
   document.getElementById("bApropos").onclick=()=>montre("apropos");
+  document.getElementById("bParrain").onclick=fenetreParrainage;
   document.getElementById("bCompte").onclick=fenetreCompte;
   document.getElementById("bMenu").onclick=retourAccueil;
   document.getElementById("bBoutique").onclick=()=>montre("boutique");
