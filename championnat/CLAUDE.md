@@ -2666,6 +2666,10 @@ toujours « raconter quelque chose ».
   toujours plus que ce que le prêt rapporte. UI : bouton « 📞 Rappeler — X MF » dans le tableau « En prêt à
   l'extérieur » de l'écran Effectif (qui a gagné une ligne d'en-tête au passage) **et** sur la fiche du joueur,
   qui affiche désormais où il est prêté. Validation : **section F de `harness-effectif.cjs`**.
+  **L'EMPRUNT HORS FENÊTRE (v3.05, demande de l'auteur du 18/11/2026 : « deux gardiens, l'un cuit à 63 d'énergie, l'autre
+  blessé, et je ne peux pas en emprunter un »)** : `empruntJoueur` ne regarde plus `fenetreOuverte()`, et les trois boutons
+  d'emprunt (« Prêt » de la fiche club adverse, « Emprunter » de la fiche joueur, « Prêt » du mercato) ne sont plus grisés
+  hors fenêtre. L'ACHAT reste cantonné aux fenêtres. Tarif et durées inchangés (`tarifPret`, `dureesPret`, rien après la J37).
   **LE PRÊT D'UNE SAISON (v1.72, demande de l'auteur)** : `dureesPret()` ajoute aux piges de 5/10/15 journées une
   pige qui court **jusqu'à la J38** dès qu'il reste plus de 15 journées : « Toute la saison » l'été (J0-J4),
   « Jusqu'en juin » ensuite. Aucun autre câblage : le prêté joue titulaire chez l'hôte (`_joue=1`) et progresse
