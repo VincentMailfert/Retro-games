@@ -395,6 +395,9 @@
   .stDirect{position:relative; aspect-ratio:2 / 1; overflow:hidden; margin:8px 0 2px; border:2px solid #1d2633; border-radius:4px; background:#070b1a;}
   .stDirect canvas{display:block; width:100%; height:100%; object-fit:cover; object-position:50% 22%; image-rendering:pixelated; image-rendering:crisp-edges;}
   .stDirect.en3d canvas:not(.st3d){display:none;}
+  .stDirect.attente3d canvas:not(.st3d){visibility:hidden;}
+  .stDirect.attente3d::after{content:"Les équipes entrent sur la pelouse"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 16px; font-family:var(--font-led); font-size:20px; color:#8a93a6; letter-spacing:.04em; animation:attente3d 1.2s ease-in-out infinite alternate;}
+  @keyframes attente3d{from{opacity:.35} to{opacity:1}}
   .stDirect canvas.st3d{position:absolute; inset:0; object-fit:fill; touch-action:pan-y;}
   /* v2.98 : le match en plein écran (bouton en haut à droite de la bande 3D). Sur iPhone, Safari ne sait pas mettre un bloc
      en plein écran : la bande se pose alors par-dessus toute la page. Score et dernière ligne du direct par-dessus. */
@@ -754,7 +757,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.07"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.08"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -31160,6 +31163,10 @@ let STD=null;
 const MATCH3D_URL="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 let M3D=null, M3D_THREE=null;
 function match3dActif(){ return !!(M3D && M3D.sc); }
+function match3dPossible(){ return typeof document!=="undefined" && !EN_TEST() && !REDUIT && typeof WebGLRenderingContext!=="undefined"; }
+/* le moteur 3D se télécharge en douce peu après l'ouverture du jeu : au premier coup d'envoi, il est déjà là */
+if(typeof window!=="undefined" && typeof window.addEventListener==="function") window.addEventListener("load",()=>{
+  setTimeout(()=>{ try{ if(match3dPossible()) match3dCharge().catch(()=>{}); }catch(e){} }, 4000); });
 function match3dCharge(){
   if(!M3D_THREE) M3D_THREE=import(MATCH3D_URL).catch(e=>{ M3D_THREE=null; throw e; });
   return M3D_THREE;
@@ -31174,7 +31181,7 @@ function xiDuMatch(c, fn){
 }
 function match3dOuvre(H, A, o, dom, ext, R){
   match3dFerme();
-  if(typeof document==="undefined" || EN_TEST() || REDUIT || typeof WebGLRenderingContext==="undefined") return;
+  if(!match3dPossible()) return;
   const jeton={}; M3D={jeton, sc:null, cv:null, file:[], veille:null};
   const heure=heureDuMatch(o), eteIndien=!!(METEO_MATCH && METEO_MATCH.cle==="eteIndien"), cap=(R && R.cap)||H.cap||20000;
   const reglages={ pixels:1.5, camera:"auto", heure: eteIndien && heure==="jour" ? "soir" : heure, meteo:meteoDuMatch(),
@@ -31187,13 +31194,13 @@ function match3dOuvre(H, A, o, dom, ext, R){
     const bande=document.getElementById("stDirect"); if(!bande) return;
     const cv=document.createElement("canvas"); cv.className="st3d"; cv.setAttribute("role","img"); cv.setAttribute("aria-label","Le match en maquette");
     bande.appendChild(cv);
-    let sc=null; try{ sc=fabriqueMatch3D(THREE, Object.assign({canvas:cv}, reglages)); }catch(e){ cv.remove(); M3D=null; return; }
-    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d"); stadeDirectBoutonPlein(bande);
+    let sc=null; try{ sc=fabriqueMatch3D(THREE, Object.assign({canvas:cv}, reglages)); }catch(e){ cv.remove(); M3D=null; stadeDirect2D(); return; }
+    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d"); bande.classList.remove("attente3d"); if(STD){ STD.attente=false; if(STD.secours){ clearTimeout(STD.secours); STD.secours=null; } } stadeDirectBoutonPlein(bande);
     if(STD && STD.tic){ clearInterval(STD.tic); STD.tic=null; } // la bande 2D s'efface et ne se repeint plus
     for(const [f,a] of M3D.file){ try{ sc[f](...a); }catch(e){} }
     M3D.file=[];
     M3D.veille=setInterval(()=>{ if(!M3D || !M3D.cv || !M3D.cv.isConnected) match3dFerme(); }, 1500);
-  }).catch(()=>{ if(M3D && M3D.jeton===jeton) M3D=null; });
+  }).catch(()=>{ if(M3D && M3D.jeton===jeton){ M3D=null; stadeDirect2D(); } });
 }
 function match3dEnvoie(f, args){ if(!M3D) return; if(M3D.sc){ try{ M3D.sc[f](...args); }catch(e){} } else M3D.file.push([f, args]); }
 function match3dLigne(l){ if(l) match3dEnvoie("ligne", [l]); }
@@ -31222,18 +31229,29 @@ function stadeDirectOuvre(H, A, o){
     if(tS && typeof tS.insertAdjacentHTML==="function") tS.insertAdjacentHTML("afterend", html); else pT.insertAdjacentHTML("beforeend", html);
     const cv=document.querySelector("#stDirect canvas"); if(!cv || !cv.getContext) return;
     STD={cv, R, img:0, tic:null, sc:[0,0], rouges:[0,0], evt:null, dom, ext, hid:H.id, ids:[(H.amateur?H.court:H.id)||"", (A.amateur?A.court:A.id)||""], der:null};
-    stadeDirectPeint();
-    if(!REDUIT) STD.tic=setInterval(()=>{ if(!STD || !STD.cv.isConnected){ stadeDirectFerme(); return; }
-      STD.img++; if(STD.evt){ STD.evt.t++; if(STD.evt.t>40) STD.evt=null; } stadeDirectPeint(); },250);
+    /* L'IMAGE FANTÔME (v3.08, retour de l'auteur du 18/11/2026 : « une image qui précédait, une version précédente de la
+       modélisation ») : la bande 2D ne se montre plus pendant que la maquette 3D charge. La bande attend dans le noir
+       (« Les équipes entrent »), et ne se peint qu'en secours : pas de 3D possible, échec, ou rien au bout de 8 s. */
+    if(match3dPossible()){ STD.attente=true; const b=document.getElementById("stDirect"); if(b) b.classList.add("attente3d");
+      STD.secours=setTimeout(()=>{ if(STD && STD.attente && !match3dActif()) stadeDirect2D(); }, 8000); }
+    else stadeDirect2D();
     match3dOuvre(H, A, o, dom, ext, R); // la maquette 3D prend la place de la bande dès qu'elle est prête
   }catch(e){ STD=null; }
 }
+/* la bande 2D de toujours, en secours de la maquette 3D */
+function stadeDirect2D(){
+  if(!STD) return; STD.attente=false; if(STD.secours){ clearTimeout(STD.secours); STD.secours=null; }
+  try{ const b=document.getElementById("stDirect"); if(b) b.classList.remove("attente3d"); }catch(e){}
+  stadeDirectPeint();
+  if(!REDUIT && !STD.tic) STD.tic=setInterval(()=>{ if(!STD || !STD.cv.isConnected){ stadeDirectFerme(); return; }
+    STD.img++; if(STD.evt){ STD.evt.t++; if(STD.evt.t>40) STD.evt=null; } stadeDirectPeint(); },250);
+}
 function stadeDirectPeint(){
-  if(!STD) return;
+  if(!STD || STD.attente) return;
   try{ STADEPIX.rendre(STD.cv.getContext("2d"), STD.R, STD.img, PX_FIN,
     {focus:"pelouse", direct:{sc:STD.sc, rouges:STD.rouges, evt:STD.evt, dom:STD.dom, ext:STD.ext}}); }catch(e){}
 }
-function stadeDirectFerme(){ match3dFerme(); stadeDirectPlein(false); if(STD && STD.tic) clearInterval(STD.tic); STD=null; }
+function stadeDirectFerme(){ match3dFerme(); stadeDirectPlein(false); if(STD && STD.tic) clearInterval(STD.tic); if(STD && STD.secours) clearTimeout(STD.secours); STD=null; }
 /* LE PLEIN ÉCRAN DU MATCH (v2.98, demande de l'auteur du 14/11/2026 : « quand on joue tout semble petit ») : un bouton sur
    la bande 3D. L'API plein écran quand le navigateur la connaît (ordinateur, Android), sinon la bande couvre toute la page
    (iPhone). Score, minute et dernière ligne du direct restent lisibles par-dessus. Échap, le bouton ou quitter le direct
