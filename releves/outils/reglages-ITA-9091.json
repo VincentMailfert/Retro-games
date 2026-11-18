@@ -1,0 +1,16 @@
+{
+ "pays": "ITA",
+ "an": 1990,
+ "version_avant": "3.05",
+ "version_apres": "3.06",
+ "nom": "Le scudetto de Boskov",
+ "sous": "La première saison italienne du jeu, et le seul titre de la Sampdoria : Vujadin Boskov la mène au scudetto avec cinquante et un points, cinq devant le Milan et l'Inter, et Gianluca Vialli finit meilleur buteur avec dix-neuf buts, servi par Roberto Mancini. Lothar Matthäus, Ballon d'or 1990, en marque seize pour l'Inter, qui bat la Roma en finale de la Coupe UEFA. Le Milan de Van Basten, Gullit et Rijkaard quitte la pelouse de Marseille quand les projecteurs s'éteignent et se voit banni d'Europe pour un an ; Maradona, contrôlé positif au printemps, quitte Naples. En Serie B, le Foggia de Zeman monte avec Baiano, Signori et Rambaudi.",
+ "euroC1": ["NAP", "MIL"],
+ "euroC2": ["SAM", "JUV"],
+ "euroC3": ["INT", "ROM", "ATA", "BGN"],
+ "reel": {
+  "d1": "SAM MIL INT GEN TOR PAR JUV NAP ROM ATA LAZ FIO BAI CAG LEC PIS CES BGN",
+  "d2": "FOG HEL CRM ASC PAD LUC REG UDI BRS ANC TAR MES MOD PES AVE COS SAL RGC TRI BRL"
+ },
+ "entete": "ITA 1990-91 (v3.06) : « Le scudetto de Boskov ». La première saison italienne, assemblée par la tâche planifiée le 18/11/2026 à partir du relevé releves/ITA-1990-91 (Transfermarkt, relevé le 15/11, effectif et temps de jeu de la saison 1990 ; Wikipédia anglaise pour les classements). La Serie A à sa vraie taille, dix-huit clubs (décision de l'auteur, v3.00), la Serie B à vingt : 360 + 360 vrais joueurs. Aucune ancre italienne avant elle : 700 notes calculées, 20 héritées du recruteur de l'été, quatorze ajustées à la main (releves/outils/ajust-ITA-9091.json). Aucune pépite forcée : l'historique de transferts de Transfermarkt était injoignable."
+}

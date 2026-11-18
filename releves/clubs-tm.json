@@ -360,6 +360,247 @@
    "tm": 543,
    "nom": "Wolverhampton Wanderers",
    "nom_tm": "Wolverhampton Wanderers"
+  },
+  "SAM": {
+   "tm": 1038,
+   "nom": "Sampdoria",
+   "nom_tm": "Sampdoria Genua",
+   "pays": "ITA"
+  },
+  "MIL": {
+   "tm": 5,
+   "nom": "AC Milan",
+   "nom_tm": "AC Milan",
+   "pays": "ITA"
+  },
+  "INT": {
+   "tm": 46,
+   "nom": "Inter",
+   "nom_tm": "Inter Mailand",
+   "pays": "ITA"
+  },
+  "GEN": {
+   "tm": 252,
+   "nom": "Genoa",
+   "nom_tm": "Genoa 1893",
+   "pays": "ITA"
+  },
+  "TOR": {
+   "tm": 416,
+   "nom": "Torino",
+   "nom_tm": "Torino Calcio",
+   "pays": "ITA"
+  },
+  "PAR": {
+   "tm": 130,
+   "nom": "Parma",
+   "nom_tm": "AC Parma",
+   "pays": "ITA"
+  },
+  "JUV": {
+   "tm": 506,
+   "nom": "Juventus",
+   "nom_tm": "Juventus Turin",
+   "pays": "ITA"
+  },
+  "NAP": {
+   "tm": 6195,
+   "nom": "Napoli",
+   "nom_tm": "SSC Neapel",
+   "pays": "ITA"
+  },
+  "ROM": {
+   "tm": 12,
+   "nom": "AS Roma",
+   "nom_tm": "AS Rom",
+   "pays": "ITA"
+  },
+  "ATA": {
+   "tm": 800,
+   "nom": "Atalanta",
+   "nom_tm": "Atalanta BC",
+   "pays": "ITA"
+  },
+  "LAZ": {
+   "tm": 398,
+   "nom": "Lazio",
+   "nom_tm": "Lazio Rom",
+   "pays": "ITA"
+  },
+  "FIO": {
+   "tm": 430,
+   "nom": "Fiorentina",
+   "nom_tm": "AC Florenz",
+   "pays": "ITA"
+  },
+  "BAI": {
+   "tm": 332,
+   "nom": "Bari",
+   "nom_tm": "AS Bari",
+   "pays": "ITA"
+  },
+  "CAG": {
+   "tm": 1390,
+   "nom": "Cagliari",
+   "nom_tm": "Cagliari Calcio",
+   "pays": "ITA"
+  },
+  "LEC": {
+   "tm": 1005,
+   "nom": "Lecce",
+   "nom_tm": "US Lecce",
+   "pays": "ITA"
+  },
+  "PIS": {
+   "tm": 4172,
+   "nom": "Pisa",
+   "nom_tm": "AC Pisa 1909",
+   "pays": "ITA"
+  },
+  "CES": {
+   "tm": 1429,
+   "nom": "Cesena",
+   "nom_tm": "AC Cesena",
+   "pays": "ITA"
+  },
+  "BGN": {
+   "tm": 1025,
+   "nom": "Bologna",
+   "nom_tm": "FC Bologna",
+   "pays": "ITA"
+  },
+  "FOG": {
+   "tm": 704,
+   "nom": "Foggia",
+   "nom_tm": "Foggia Calcio",
+   "pays": "ITA"
+  },
+  "HEL": {
+   "tm": 276,
+   "nom": "Hellas Verona",
+   "nom_tm": "AC Hellas Verona",
+   "pays": "ITA"
+  },
+  "CRM": {
+   "tm": 2239,
+   "nom": "Cremonese",
+   "nom_tm": "US Cremonese",
+   "pays": "ITA"
+  },
+  "ASC": {
+   "tm": 408,
+   "nom": "Ascoli",
+   "nom_tm": "Ascoli Calcio 1898",
+   "pays": "ITA"
+  },
+  "PAD": {
+   "tm": 3037,
+   "nom": "Padova",
+   "nom_tm": "Calcio Padova",
+   "pays": "ITA"
+  },
+  "LUC": {
+   "tm": 1253,
+   "nom": "Lucchese",
+   "nom_tm": "AS Lucchese Libertas",
+   "pays": "ITA"
+  },
+  "REG": {
+   "tm": 5621,
+   "nom": "Reggiana",
+   "nom_tm": "AC Reggiana",
+   "pays": "ITA"
+  },
+  "UDI": {
+   "tm": 410,
+   "nom": "Udinese",
+   "nom_tm": "Udinese Calcio",
+   "pays": "ITA"
+  },
+  "BRS": {
+   "tm": 19,
+   "nom": "Brescia",
+   "nom_tm": "Brescia Calcio (- 2025)",
+   "pays": "ITA"
+  },
+  "ANC": {
+   "tm": 1388,
+   "nom": "Ancona",
+   "nom_tm": "Ancona Calcio",
+   "pays": "ITA"
+  },
+  "TAR": {
+   "tm": 4093,
+   "nom": "Taranto",
+   "nom_tm": "Taranto SS",
+   "pays": "ITA"
+  },
+  "MES": {
+   "tm": 1104,
+   "nom": "Messina",
+   "nom_tm": "AC Riunite Messina",
+   "pays": "ITA"
+  },
+  "MOD": {
+   "tm": 1385,
+   "nom": "Modena",
+   "nom_tm": "Modena FC",
+   "pays": "ITA"
+  },
+  "PES": {
+   "tm": 2921,
+   "nom": "Pescara",
+   "nom_tm": "Pescara Calcio",
+   "pays": "ITA"
+  },
+  "AVE": {
+   "tm": 2331,
+   "nom": "Avellino",
+   "nom_tm": "US Avellino",
+   "pays": "ITA"
+  },
+  "COS": {
+   "tm": 4031,
+   "nom": "Cosenza",
+   "nom_tm": "AS Cosenza Calcio",
+   "pays": "ITA"
+  },
+  "SAL": {
+   "tm": 380,
+   "nom": "Salernitana",
+   "nom_tm": "US Salernitana",
+   "pays": "ITA"
+  },
+  "RGC": {
+   "tm": 1386,
+   "nom": "Reggina",
+   "nom_tm": "Reggina Calcio",
+   "pays": "ITA"
+  },
+  "TRI": {
+   "tm": 4271,
+   "nom": "Triestina",
+   "nom_tm": "US Triestina",
+   "pays": "ITA"
+  },
+  "BRL": {
+   "tm": 5585,
+   "nom": "Barletta",
+   "nom_tm": "Barletta Calcio Sport",
+   "pays": "ITA"
+  },
+  "MZA": {
+   "tm": 2919,
+   "nom": "Monza",
+   "nom_tm": "Calcio Monza",
+   "pays": "ITA"
+  },
+  "COM": {
+   "tm": 1047,
+   "nom": "Como",
+   "nom_tm": "Como Calcio",
+   "pays": "ITA"
   }
- }
+ },
+ "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA."
 }

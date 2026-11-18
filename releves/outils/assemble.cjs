@@ -1,14 +1,17 @@
-// Assemblage d'un relevé anglais (releves/ANG-AAAA-AA) en tables du jeu.
-// Usage : node assemble.cjs <racine du dépôt> <AAAA> <sortie.json>
+// Assemblage d'un relevé (releves/<PAYS>-AAAA-AA) en tables du jeu.
+// Usage : node assemble.cjs <racine du dépôt> <AAAA> <sortie.json> [PAYS]
+//   PAYS vaut ANG par défaut (les vingt saisons anglaises s'assemblent comme avant) ; ITA, ESP… pour les autres.
+//   Hors d'Angleterre, la table d'ajustements s'appelle ajust-<PAYS>-AAAA.json.
 // Ne modifie rien : produit les blocs de texte à insérer et un compte rendu.
 "use strict";
 const fs = require("fs"), path = require("path");
-const R = process.argv[2], AN = +process.argv[3], OUT = process.argv[4];
+const R = process.argv[2], AN = +process.argv[3], OUT = process.argv[4], PAYS = process.argv[5] || "ANG";
 const yy = n => String(n % 100).padStart(2, "0");
-const SUF = yy(AN) + yy(AN + 1), CLE = `ANG-${AN}-${yy(AN + 1)}`;
+const SUF = yy(AN) + yy(AN + 1), CLE = `${PAYS}-${AN}-${yy(AN + 1)}`;
+const DU_PAYS = new RegExp("_" + PAYS + "\\d{4}$"); // STARS_ANG9495, STARS_D2_ITA9091…
 const P = JSON.parse(fs.readFileSync(`${R}/releves/${CLE}/plateau.json`, "utf8"));
 const J = JSON.parse(fs.readFileSync(`${R}/releves/${CLE}/joueurs.json`, "utf8"));
-const AJUST_BRUT = JSON.parse(fs.readFileSync(path.join(__dirname, `ajust-${SUF}.json`), "utf8"));
+const AJUST_BRUT = JSON.parse(fs.readFileSync(path.join(__dirname, PAYS === "ANG" ? `ajust-${SUF}.json` : `ajust-${PAYS}-${SUF}.json`), "utf8"));
 const FORCER = AJUST_BRUT._forcer || []; const AJUST = Object.fromEntries(Object.entries(AJUST_BRUT).filter(([k]) => !k.startsWith("_")));
 const html = fs.readFileSync(`${R}/championnat/index.html`, "utf8");
 const strip = s => s.replace(/æ/g, "ae").replace(/Æ/g, "Ae").replace(/[øØ]/g, "o").replace(/ß/g, "ss").replace(/[łŁ]/g, "l").replace(/[đĐðÐ]/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z. -]/g, "");
@@ -30,15 +33,20 @@ for (const m of html.matchAll(/const (STARS[A-Z0-9_]*)=\{([\s\S]*?)\n\};/g)) {
     const code = (/^\s*([A-Z]{2,4}):\[/.exec(c) || [])[1]; if (!code) continue;
     clubs[code] = [...c.matchAll(/\["([^"]+)","([GDMA])",(\d+),(\d+),(\d+)\]/g)].map(x => [x[1], x[2], +x[3], +x[4], +x[5]]);
   }
-  TABLES[m[1]] = { an, ang: /ANG/.test(m[1]), clubs };
+  TABLES[m[1]] = { an, ang: DU_PAYS.test(m[1]), clubs };
 }
 const NOMS_JEU = new Map(); // nom court -> [{by, an, tab}]
 for (const [t, T] of Object.entries(TABLES)) for (const c in T.clubs) for (const j of T.clubs[c]) {
   const l = NOMS_JEU.get(j[0]) || []; l.push({ by: T.an - j[2], an: T.an, tab: t, note: j[3], pot: j[4], poste: j[1] }); NOMS_JEU.set(j[0], l);
 }
-// vivier du recruteur de l'été (échelle « vitrine », un cran au-dessus des effectifs)
-const vi = html.indexOf("const VIVIER_SAISON={"), vj = html.indexOf(`\n ${AN}:[`, vi), vk = html.indexOf("\n ],", vj);
-const VIVIER = new Map([...html.slice(vj, vk).matchAll(/\["([^"]+)","([GDMA])",(\d{4}),(\d+),(\d+),"([^"]+)"/g)].map(m => [m[1], { by: +m[3], note: +m[4], pot: +m[5], club: m[6], poste: m[2] }]));
+// vivier du recruteur de l'été (échelle « vitrine », un cran au-dessus des effectifs) ; hors d'Angleterre, le vivier
+// du pays s'y ajoute (VIVIER_SAISON_ITA…), le vivier commun gardant la main sur un nom présent dans les deux
+const VIVIER = new Map();
+for (const t of PAYS === "ANG" ? ["VIVIER_SAISON"] : [`VIVIER_SAISON_${PAYS}`, "VIVIER_SAISON"]) {
+  const vi = html.indexOf(`const ${t}={`); if (vi < 0) continue;
+  const vj = html.indexOf(`\n ${AN}:[`, vi), vk = html.indexOf("\n ],", vj); if (vj < 0) continue;
+  for (const m of html.slice(vj, vk).matchAll(/\["([^"]+)","([GDMA])",(\d{4}),(\d+),(\d+),"([^"]+)"/g)) VIVIER.set(m[1], { by: +m[3], note: +m[4], pot: +m[5], club: m[6], poste: m[2] });
+}
 for (const [n, v] of VIVIER) { const l = NOMS_JEU.get(n) || []; l.push({ by: v.by, an: AN, tab: "VIVIER", poste: v.poste }); NOMS_JEU.set(n, l); }
 const PRENOMS = new Map([...html.slice(html.indexOf("const PRENOMS_VRAIS={"), html.indexOf("const PRENOMS_GEN")).matchAll(/"([^"]+)":"([^"]*)"/g)].map(m => [m[1], m[2]]));
 
@@ -71,10 +79,10 @@ function resoudre(j) {
   const t0 = j.nom.trim().split(/\s+/), formeCourte = t0.length > 2 ? t0[0][0].toUpperCase() + ". " + t0[t0.length - 1] : formeInitiale(j.nom);
   const formes = [...new Set([j.court, formeInitiale(j.nom), formeInitiales(j.nom), formeCourte, j.nom])];
   // toutes les graphies que le jeu donne à CE même homme (à l'accent près), la plus proche d'abord :
-  // le recruteur de l'été, puis les tables anglaises par proximité d'année, puis le reste
+  // le recruteur de l'été, puis les tables du pays par proximité d'année, puis le reste
   const cands = [];
   for (const [g, l] of NOMS_JEU) if (formes.some(f => strip(f) === strip(g))) for (const e of l) if (Math.abs(e.by - by) <= 1 && compat(e.poste, j.poste) && !autreHomme(l.filter(x => x !== e), by, j.poste))
-    cands.push({ g, rang: e.tab === "VIVIER" ? 0 : (/ANG/.test(e.tab) ? 1 + Math.abs(e.an - AN) : 50 + Math.abs(e.an - AN)) });
+    cands.push({ g, rang: e.tab === "VIVIER" ? 0 : (DU_PAYS.test(e.tab) ? 1 + Math.abs(e.an - AN) : 50 + Math.abs(e.an - AN)) });
   cands.sort((x, y) => x.rang - y.rang);
   for (const c of cands) if (!autreHommeIci(c.g, j.tm)) { if (c.g !== j.court) journal.graphie.push(`${j.nom} : « ${j.court} » → « ${c.g} » (graphie du jeu)`); return c.g; }
   // la forme courte du relevé à initiale de plusieurs lettres (« An. Smith », « Ga. Williams ») n'est pas une graphie
@@ -116,7 +124,7 @@ function note(nom, age, calc) {
 // ---------- effectifs ----------
 const ordre = ["G", "D", "M", "A"];
 const sortie = { d1: P.d1, d2: P.d2, stars1: {}, stars2: {}, prenoms: [], vides: [] };
-const SUIV = TABLES[`STARS_ANG${yy(AN + 1)}${yy(AN + 2)}`], SUIV2 = TABLES[`STARS_D2_ANG${yy(AN + 1)}${yy(AN + 2)}`];
+const SUIV = TABLES[`STARS_${PAYS}${yy(AN + 1)}${yy(AN + 2)}`], SUIV2 = TABLES[`STARS_D2_${PAYS}${yy(AN + 1)}${yy(AN + 2)}`];
 for (const [div, codes, rangs] of [[1, P.d1, P.classementD1], [2, P.d2, P.classementD2]]) {
   for (const c of codes) {
     const rangClub = rangs.findIndex(r => r.code === c) + 1, quota = div === 1 ? 20 : 18;
@@ -177,9 +185,10 @@ const ligneClub = (c, L) => {
   const parPoste = ordre.map(k => L.filter(l => l.poste === k).map(l => `["${l.nom}","${l.poste}",${l.age},${l.n},${l.p}]`).join(",")).filter(Boolean);
   return ` ${c}:[` + parPoste.join(",\n   ") + "]";
 };
-sortie.texteStars = `const STARS_ANG${SUF}={\n` + P.d1.map(c => ligneClub(c, sortie.stars1[c])).join(",\n") + ",\n};\n"
-  + `const STARS_D2_ANG${SUF}={\n` + P.d2.map(c => ligneClub(c, sortie.stars2[c])).join(",\n") + ",\n};\n"
-  + `const D1_ANG${SUF}=${JSON.stringify(P.d1)};\nconst D2_ANG${SUF}=${JSON.stringify(P.d2)};\n`;
+sortie.texteStars = `const STARS_${PAYS}${SUF}={\n` + P.d1.map(c => ligneClub(c, sortie.stars1[c])).join(",\n") + ",\n};\n"
+  + `const STARS_D2_${PAYS}${SUF}={\n` + P.d2.map(c => ligneClub(c, sortie.stars2[c])).join(",\n") + ",\n};\n"
+  + `const D1_${PAYS}${SUF}=${JSON.stringify(P.d1)};\nconst D2_${PAYS}${SUF}=${JSON.stringify(P.d2)};\n`;
+sortie.pays = PAYS;
 const stat = L => { const n = L.map(l => l.n).sort((a, b) => a - b); return { moy: +(n.reduce((s, x) => s + x, 0) / n.length).toFixed(1), med: n[n.length >> 1], max: n[n.length - 1], nb: n.length }; };
 sortie.stats = { elite: stat(Object.values(sortie.stars1).flat()), dessous: stat(Object.values(sortie.stars2).flat()) };
 sortie.journal = journal;
