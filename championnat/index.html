@@ -491,6 +491,26 @@
   .footer{color:var(--dim); font-size:14px; text-align:center; margin-top:14px; padding:0 6px;}
   /* liens et boutons du pied de page : 44 px au doigt (ils en faisaient 18 à 28) */
   .footer .act, .footer a{display:inline-flex; align-items:center; min-height:44px; padding:0 10px; vertical-align:middle;}
+  /* la vitrine (v3.15) : une affiche pour la première visite, sur la largeur d'un téléphone même sur grand écran */
+  .vitrine{max-width:460px; margin:0 auto; min-height:calc(100dvh - 24px); display:flex; flex-direction:column; align-items:center; text-align:center; padding:28px 0 22px; box-sizing:border-box;}
+  .vitrine .vitLogo{width:min(320px,82%); margin:0; font-size:inherit;}
+  .vitrine .vitStade{width:100%; aspect-ratio:390 / 290; overflow:hidden; position:relative; margin-top:12px;}
+  .vitrine .vitStade canvas{position:absolute; left:-17.7%; top:-17.9%; width:135.4%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
+  .vitrine .vitPitch{font-size:24px; line-height:1.25; font-weight:600; color:var(--clair); margin:22px 0 0; padding:0 18px; text-wrap:balance;}
+  .vitrine .vitPays{font-size:14px; color:var(--dim); margin-top:10px;}
+  .vitrine .vitJouer{width:min(342px,88%); min-height:58px; margin-top:auto; font-size:20px; letter-spacing:.08em; box-shadow:0 4px 0 #9c7c1c; transition:transform .08s, box-shadow .08s;}
+  .vitrine .vitJouer:active{transform:translateY(3px); box-shadow:0 1px 0 #9c7c1c;}
+  .vitrine .vitCompte{font-size:14px; color:var(--dim); margin-top:18px;}
+  .vitrine .vitCompte button.lien{color:var(--txt); text-decoration:underline; padding:10px 4px;}
+  /* les maquettes en grand (v3.15) : un bouton dans le coin du stade et du campus, puis la maquette seule, plein écran.
+     Au téléphone tenu droit, elle se couche pour prendre toute la hauteur. */
+  .mqPlein{position:absolute; right:6px; top:6px; z-index:3; width:40px; height:40px; padding:8px; background:rgba(7,11,26,.72); border:2px solid #1d2633; border-radius:4px; cursor:pointer;}
+  .mqPlein svg{display:block; width:100%; height:100%;}
+  #mqGrand{position:fixed; inset:0; z-index:9998; background:#000924; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  #mqGrand canvas{display:block; width:min(100vw, calc(100dvh * var(--r))); height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
+  #mqGrand .mqFerme{position:absolute; right:10px; top:10px; z-index:2; width:44px; height:44px; padding:10px; background:rgba(7,11,26,.78); border:2px solid #1d2633; border-radius:4px; cursor:pointer;}
+  #mqGrand .mqFerme svg{display:block; width:100%; height:100%;}
+  @media (orientation:portrait) and (max-width:700px){ #mqGrand canvas{width:min(100dvh, calc(100vw * var(--r))); transform:rotate(90deg);} }
   /* LE BANDEAU D'ACCUEIL (chantier accueil) : pour qui arrive sans carrière, ce qu'est le jeu en une phrase, et deux
      portes — choisir son club, ou laisser le hasard en désigner un. Le rétro s'y montre : le transistor, le titre en
      pixels. Avec des carrières en cours, il s'efface devant « Reprendre ». */
@@ -759,7 +779,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.14"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.15"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -17244,7 +17264,7 @@ function centreHTML(){
   const chateau=R.chateau?"":`<button class="bChateau${mc?" off":""}" id="bChateau"${mc?` aria-disabled="true" title="${esc(mc)}"`:""}>Acheter le château<small>${bloque?esc(mc):`${MMC(C.cout*1e6)} · ${C.duree} journées · définitif`}</small></button>`;
   return `<h3 style="margin-top:14px">${esc(pal)}</h3>
      <p class="dim" style="font-size:13px">${esc(CENTRE3D.SOUS_PALIER[pal]||"")}</p>
-     <div class="cadreCw"><div class="maquette cadreC" id="cadreC">${maquetteCentre()}</div>${badgeCentre()}</div>
+     <div class="cadreCw"><div class="maquette cadreC" id="cadreC">${maquetteCentre()}</div>${badgeCentre()}<button class="mqPlein" type="button" aria-label="Voir en grand"><svg viewBox="0 0 16 16" fill="none" stroke="#f2f5fa" stroke-width="2" aria-hidden="true"><path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"/></svg></button></div>
      <p class="glisse dim">Faites glisser la maquette du doigt pour faire le tour du campus.</p>
      <div class="campTete"><span class="campPts">${p}</span><span class="dim">/ 18</span></div>
      <div class="campJauge"><i style="width:${Math.round(jauge)}%"></i></div>
@@ -24315,6 +24335,31 @@ let AVANT_MATCH_OUVERT=false; // le panneau replié des réglages du premier mat
 const RESEAUX=[{nom:"Instagram", url:"https://www.instagram.com/multiplex.club/"}]; // X retiré le 16/11/2026 : le compte est désactivé
 function liensReseaux(){ return RESEAUX.map(r=>`<a href="${r.url}" target="_blank" rel="noopener" style="color:inherit">${esc(r.nom)}</a>`).join(" · "); }
 const ACCROCHE_ACCUEIL="Revivez le foot français des années 90, de Bollaert à Anfield, en entraîneur et président de votre club.";
+/* LA VITRINE (v3.15, choix de l'auteur du 18/11/2026) : qui arrive pour la première fois ne tombe plus sur un écran
+   plein de texte, mais sur une affiche. Le logo, un stade à l'anglaise, quatre tribunes couvertes et pas de virages, un
+   match qui se joue dessus, une phrase, et un seul bouton. « Jouer » ouvre l'accueil habituel (pays, saison, club).
+   Elle ne s'affiche qu'au démarrage, et seulement à qui n'a ni carrière ni compte : un joueur qui revient retombe sur
+   « Vos carrières », un joueur connecté sur sa liste en ligne. Rien n'entre dans la sauvegarde. */
+const ACCROCHE_VITRINE="Prends un club des années 90 et réécris l'histoire.";
+const STADE_VITRINE={cap:22000, aff:.92, virages:0, eclairage:2, toit:1, loges:0, ecran:0, chauffante:0, led:0, boutique:1, buvette:1,
+  restaurant:0, musee:0, hotel:0, transport:0, kop:0, retract:0, ferme:0, legende:0, style:"lumiere", chantier:0, cible:null, mois:8, jour:3};
+function vitrineVoulue(){ return !carrieresAffichees().length && !compteLit(); }
+function ecranVitrine(){
+  const app=document.getElementById("app"); if(!app) return ecranAccueil();
+  const pays=Object.keys(PAYS).filter(code=>Object.keys(SAISONS).some(k=>(SAISONS[k].pays||"FR")===code)).map(code=>PAYS[code].nom);
+  const [w,h]=pxTaille(STADEPIX), dir={dom:["#ffd24a","#1f6b3a"], ext:["#f2f5fa","#2b56a8"], sc:[1,0]};
+  app.innerHTML=`<div class="vitrine">
+   <h1 class="vitLogo">${logoGenerique(true)}</h1>
+   <div class="vitStade"><canvas class="pxStade" width="${w}" height="${h}" data-r='${JSON.stringify(STADE_VITRINE)}' data-direct='${JSON.stringify(dir)}' role="img" aria-label="Un stade plein, un soir de match"></canvas></div>
+   <p class="vitPitch">${esc(ACCROCHE_VITRINE)}</p>
+   <p class="vitPays">${pays.map(esc).join(" · ")}</p>
+   <button class="big vitJouer" id="bJouer">▶ JOUER</button>
+   <p class="vitCompte">Déjà une carrière ? <button class="lien" id="bCompteVit">Se connecter</button></p>
+  </div>`;
+  document.getElementById("bJouer").onclick=()=>{ ecranAccueil(); if(window.scrollTo) window.scrollTo(0,0); };
+  document.getElementById("bCompteVit").onclick=fenetreCompte;
+  peintStades();
+}
 function ecranAccueil(){
   defisConstate(); // les saisons déjà rangées rapportent leurs défis (une fois, sans bruit)
   const parties=carrieresAffichees();
@@ -24340,11 +24385,8 @@ function ecranAccueil(){
   const tous=cD1.concat(cD2);
   app.innerHTML=`
    <div class="topbar accBar"><span style="display:flex;align-items:center;gap:8px">${logoMultiplex(20)}MULTIPLEX</span><span class="r">Rétro football management</span></div>
-   ${parties.length ? `<div class="accLogoMini">${logoGenerique(true)}</div>`+panneauCarrieres(parties) : `<div class="panel accHero">
-     <h1 class="accLogo">${logoGenerique(true)}</h1>
-     <p class="accPitch">${esc(ACCROCHE_ACCUEIL)}</p>
-     <p class="accSous">${tous.length} clubs, plus de 10 saisons et des effectifs aussi fidèles que possible</p>
-     <div class="accPortes">
+   ${parties.length ? `<div class="accLogoMini">${logoGenerique(true)}</div>`+panneauCarrieres(parties) : `<div class="accLogoMini">${logoGenerique(true)}</div><div class="panel accHero">
+     <div class="accPortes" style="margin-top:0">
        <button class="big" id="bMagie">✨ Laisser la magie opérer</button>
        <span class="ou">ou</span>
        <button class="porte2" id="bChoisir">Choisir mon club</button>
@@ -27627,6 +27669,11 @@ function rendre(ctx, R, image, E, o){
   const GLYPHES={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001001001001','8':'111101111101111','9':'111101111001111','-':'000000111000000','B':'110101110101110','U':'101101101101111','T':'111010010010010','!':'010010010000010',' ':'000000000000000'};
   const tableau=(x0,x1,y,z0,z1)=>{ const txt=feteDir&&image%2?'BUT !':`${DIR.sc[0]}-${DIR.sc[1]}`, cols=txt.length*4-1, p=Math.min((x1-x0)/(cols+1),(z1-z0)/6.5), w=cols*p, xs=(x0+x1)/2-w/2, zt=(z0+z1)/2+2.5*p;
     [...txt].forEach((ch,n)=>{ const g=GLYPHES[ch]||GLYPHES[' ']; for(let r=0;r<5;r++) for(let q=0;q<3;q++) if(g[r*3+q]==='1'){ const a=xs+(n*4+q)*p, b=zt-r*p; quad([[a,y,b-p],[a+p,y,b-p],[a+p,y,b],[a,y,b]],C.jaune); } }); };
+  // le même tableau sur un panneau posé de biais (dans un coin) : a et b sont ses deux bords au sol, en (x, y)
+  const tableauBiais=(a,b,z0,z1)=>{ const len=Math.hypot(b[0]-a[0],b[1]-a[1]), ux=(b[0]-a[0])/len, uy=(b[1]-a[1])/len, m=.8;
+    const txt=feteDir&&image%2?'BUT !':`${DIR.sc[0]}-${DIR.sc[1]}`, cols=txt.length*4-1, p=Math.min((len-2*m)/(cols+1),(z1-z0)/6.5), w=cols*p, s0=len/2-w/2, zt=(z0+z1)/2+2.5*p;
+    const Q=(s,z)=>[a[0]+ux*s,a[1]+uy*s,z];
+    [...txt].forEach((ch,n)=>{ const g=GLYPHES[ch]||GLYPHES[' ']; for(let r=0;r<5;r++) for(let q=0;q<3;q++) if(g[r*3+q]==='1'){ const c=s0+(n*4+q)*p, h=zt-r*p; quad([Q(c,h-p),Q(c+p,h-p),Q(c+p,h),Q(c,h)],C.jaune); } }); };
   const joueurPx=q=>{ const p=P(q.x,q.y,0), H=Math.max(3,Math.round(Math.min(2.6*E,1.8*kz*2.3))), sh=q.gk?hex('#5fd98f'):q.cols[0];
     let y=p[1]; px(p[0],y,C.encre); y--; const jb=Math.max(1,Math.round(H*.25)), so=Math.max(1,Math.round(H*.15)), te=Math.max(1,Math.round(H*.2)), bu=Math.max(1,H-jb-so-te);
     for(let i=0;i<jb;i++) px(p[0],y--,C.peau); for(let i=0;i<so;i++) px(p[0],y--,q.cols[1]); for(let i=0;i<bu;i++){ px(p[0],y,sh); if(E>=1.8) px(p[0]+1,y,sh); y--; } for(let i=0;i<te;i++) px(p[0],y--,C.peau); };
@@ -27763,8 +27810,19 @@ function rendre(ctx, R, image, E, o){
     quad([[x,y,z],[x+26,y,z],[x+26,y,haut],[x,y,haut]],C.encre,C.beton3);
     if(DIR){ quad([[x+2,y,z+1.8],[x+24,y,z+1.8],[x+24,y,haut-1.8],[x+2,y,haut-1.8]],hex('#0a0610')); tableau(x+2,x+24,y,z+1.8,haut-1.8); }
     else quad([[x+2,y,z+1.8],[x+24,y,z+1.8],[x+24,y,haut-1.8],[x+2,y,haut-1.8]],image%2?C.jaune:C.rouge); }
-  else if(DIR){ const y=-nN*D, z0=hN+3, z1=hN+10, x0=L/2-10, x1=L/2+10;
-    for(const xs of [x0+3,x1-3]) ligne(P(xs,y,hN),P(xs,y,z0),C.beton3);
+  // LE PANNEAU D'AFFICHAGE (v3.15, remarque de l'auteur du 18/11/2026 : « bien sûr, on ne voit jamais ça » quand il dépassait
+  // du toit) : sans écran géant, il ne se pose plus SUR la tribune Nord. Stade sans virages, il se dresse dans le coin
+  // Nord-Ouest, sur sa charpente d'acier, de biais face au rond central, comme à Portman Road ou à Field Mill. Avec des
+  // virages, il n'y a plus de coin libre : il pend sous la toiture de la tribune Nord s'il y en a une, sinon il coiffe
+  // le haut des gradins, là où rien ne le cache.
+  else if(DIR&&!vir){ const cx=-6, cy=-6, tx=.53, ty=-.85, dm=9, z1=Math.max(hN,hO)+3, z0=z1-7;
+    const a=[cx-tx*dm,cy-ty*dm], b=[cx+tx*dm,cy+ty*dm];
+    for(const k of [.22,.78]){ const xs=a[0]+(b[0]-a[0])*k, ys=a[1]+(b[1]-a[1])*k; ligne(P(xs,ys,0),P(xs,ys,z0),C.beton3); ligne(P(xs+.6,ys,0),P(xs+.6,ys,z0),C.beton2); }
+    quad([[a[0],a[1],z0],[b[0],b[1],z0],[b[0],b[1],z1],[a[0],a[1],z1]],C.encre,C.beton3);
+    tableauBiais(a,b,z0+1,z1-1); }
+  else if(DIR){ const y=toit?-nN*D*.45+.3:-nN*D, z1=toit?hN+5.4:hN+10, z0=z1-7, x0=L/2-10, x1=L/2+10;
+    if(toit) for(const xs of [x0+3,x1-3]) ligne(P(xs,y,z1),P(xs,y,hN+7),C.beton3);
+    else for(const xs of [x0+3,x1-3]) ligne(P(xs,y,hN),P(xs,y,z0),C.beton3);
     quad([[x0,y,z0],[x1,y,z0],[x1,y,z1],[x0,y,z1]],C.encre,C.beton3); tableau(x0+1,x1-1,y,z0+1,z1-1); }
 
   // --- la pelouse
@@ -29676,13 +29734,47 @@ function peintStades(){
   if(!cs.length && !cc.length){ if(PX_TIC){ clearInterval(PX_TIC); PX_TIC=null; } return; }
   const cache=cv=>PX_TIC && cv.offsetParent===null && cv.dataset.peint; // déjà peinte et dans un sous-onglet caché : on attend qu'elle revienne
   cs.forEach(cv=>{ let R; try{ R=JSON.parse(cv.dataset.r); }catch(e){ return; } if(cache(cv)) return;
-    const out=STADEPIX.rendre(cv.getContext("2d"),R,PX_IMAGE>>1,PX_FIN), b=cv.parentNode&&cv.parentNode.querySelector(".pxCible"); cv.dataset.peint=1;
+    let D=null; if(cv.dataset.direct){ try{ D={direct:JSON.parse(cv.dataset.direct)}; }catch(e){} }
+    const out=STADEPIX.rendre(cv.getContext("2d"),R,PX_IMAGE>>1,PX_FIN,D), b=cv.parentNode&&cv.parentNode.querySelector(".pxCible"); cv.dataset.peint=1;
     if(b&&out&&out.zone){ const z=out.zone, [W,H]=pxTaille(STADEPIX), m=6*PX_FIN; // le bouton recouvre le rang à venir, élargi pour rester touchable
       b.style.left=Math.max(0,(z[0]-m)/W*100)+"%"; b.style.top=Math.max(0,(z[1]-m)/H*100)+"%"; b.style.width=(z[2]-z[0]+2*m)/W*100+"%"; b.style.height=(z[3]-z[1]+2*m)/H*100+"%"; } });
   cc.forEach(cv=>{ let R; try{ R=JSON.parse(cv.dataset.r); }catch(e){ return; } if(cache(cv)) return;
     CAMPUSPIX.rendre(cv.getContext("2d"),R,PX_IMAGE,PX_FIN); cv.dataset.peint=1; });
   if(!PX_TIC && !REDUIT) PX_TIC=setInterval(()=>{ PX_IMAGE++; peintStades(); },250);
 }
+/* LES MAQUETTES EN GRAND (v3.15, demande de l'auteur du 18/11/2026 : « on a envie d'agrandir pour voir le stade en
+   entier »). Le bouton du coin copie la toile et son état dans une fenêtre qui couvre tout l'écran ; peintStades la
+   peint et l'anime comme l'originale. Le navigateur passe en plein écran quand il sait le faire (bureau, Android) ;
+   ailleurs, la fenêtre couvre la page. Échap, le bouton ou un toucher la ferment. */
+function maquetteGrand(src){
+  if(typeof document==="undefined" || !src) return;
+  maquetteGrandFerme(true);
+  const o=document.createElement("div"); o.id="mqGrand"; o.setAttribute("role","dialog"); o.setAttribute("aria-modal","true"); o.setAttribute("aria-label","Maquette en grand");
+  o.style.setProperty("--r", String(src.width/src.height));
+  const cv=document.createElement("canvas"); cv.className=src.className; cv.width=src.width; cv.height=src.height;
+  cv.dataset.r=src.dataset.r||""; if(src.dataset.direct) cv.dataset.direct=src.dataset.direct;
+  cv.setAttribute("role","img"); cv.setAttribute("aria-label", src.getAttribute("aria-label")||"Maquette");
+  const f=document.createElement("button"); f.className="mqFerme"; f.type="button"; f.setAttribute("aria-label","Fermer");
+  f.innerHTML='<svg viewBox="0 0 16 16" fill="none" stroke="#f2f5fa" stroke-width="2.2" aria-hidden="true"><path d="M2 2l12 12M14 2L2 14"/></svg>';
+  o.append(cv, f); o.onclick=()=>maquetteGrandFerme();
+  document.body.append(o); document.body.classList.add("stPleinOuvert");
+  const racine=document.documentElement; maquetteGrand.api=false;
+  try{ if(racine.requestFullscreen && !document.fullscreenElement) racine.requestFullscreen().then(()=>{ maquetteGrand.api=true; }).catch(()=>{}); }catch(e){}
+  if(!maquetteGrand.ecoute){ maquetteGrand.ecoute=true;
+    document.addEventListener("keydown",e=>{ if(e.key==="Escape") maquetteGrandFerme(); });
+    document.addEventListener("fullscreenchange",()=>{ if(!document.fullscreenElement && maquetteGrand.api) maquetteGrandFerme(true); }); }
+  f.focus(); peintStades();
+}
+function maquetteGrandFerme(sansSortie){
+  if(typeof document==="undefined" || !document.getElementById) return;
+  const o=document.getElementById("mqGrand"); if(!o) return;
+  o.remove(); maquetteGrand.api=false;
+  const direct=document.getElementById("stDirect"); if(!(direct && direct.classList.contains("plein"))) document.body.classList.remove("stPleinOuvert");
+  if(!sansSortie){ try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){} }
+}
+if(typeof document!=="undefined" && typeof document.addEventListener==="function")
+  document.addEventListener("click",e=>{ const b=e.target && e.target.closest && e.target.closest(".mqPlein"); if(!b) return;
+    e.stopPropagation(); const cv=b.parentNode && b.parentNode.querySelector("canvas.pxStade, canvas.pxCampus"); if(cv) maquetteGrand(cv); });
 
 /* LE STADE EN DIRECT (v2.83, demande de l'auteur du 13/11/2026) : pendant les trois directs (samedi, Coupe de France, Europe),
    le stade du soir vit sous le tableau d'affichage. Le score sur l'écran géant (ou un tableau sur pieds), le kop qui saute et
@@ -31724,7 +31816,7 @@ function ecranClub(){
    <div class="grid2">
    <div class="panel cpHote"><h2 style="display:flex;align-items:center;gap:10px">${blason(c,34)}${esc(c.nom)}</h2>
      <div class="cp cp-stade">
-     <div class="maquette">${maquetteStade(c, affR, chI, tribClk)}</div>
+     <div class="maquette">${maquetteStade(c, affR, chI, tribClk)}<button class="mqPlein" type="button" aria-label="Voir en grand"><svg viewBox="0 0 16 16" fill="none" stroke="#f2f5fa" stroke-width="2" aria-hidden="true"><path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"/></svg></button></div>
      ${G.stade&&G.stade.retract?`<p class="ctr" style="margin:2px 0 6px"><button class="act" id="bToitRet">${G.stade.ferme?"Ouvrir le toit":"Fermer le toit"}</button></p>`:""}
      <p class="ctr">${esc(c.stade)} · <b class="fort">${FMT(c.cap)}</b> places · Prestige ${c.pres}/10</p>
      <p class="ctr" style="margin-top:4px">Affluence moyenne :
@@ -31787,7 +31879,7 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(fermeMessage()) return; fermeFiche(); });
   try{ if(parrainageDepuisAdresse(location.search)) history.replaceState(null, "", location.pathname+location.hash); }catch(e){} // ?p= : un lien de parrainage (lu sans requête)
   progRattrape(); // une fois : les titres de D1 déjà gagnés dans les carrières du navigateur rapportent leur clé
-  ecranAccueil();
+  if(vitrineVoulue()) ecranVitrine(); else ecranAccueil(); // la vitrine pour une toute première visite (v3.15)
   retourDeLien(); // retour d'un lien reçu par email : lu dans l'adresse, sans requête
   // LES VIGNETTES SE PRÉCHARGENT EN DOUCE (v2.17) : sorties du fichier, elles arriveraient sinon avec un temps de
   // retard au premier flash. On attend que l'accueil soit affiché, puis on les demande une à une, au calme ;
