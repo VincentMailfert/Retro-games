@@ -739,14 +739,8 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
   .boTxt{flex:1;display:flex;flex-direction:column;font-size:14px;}
   .boTxt .dim{font-size:13px;}
   .boAch{white-space:nowrap;min-height:40px;}
-  /* v3.13, ESSAI DES MISES EN PAGE DU DIRECT (provisoire, cf. MISES) : le commentaire face à l'image */
-  .ctlMise{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:4px 0 2px;font-size:13px;}
-  .ctlMise .act{padding:4px 8px;font-size:13px;min-height:32px;}
-  body.mise-soustitre .stDirect.en3d:not(.plein) .stFil{display:block;position:absolute;left:8px;right:8px;bottom:8px;z-index:2;padding:6px 10px;background:rgba(7,11,26,.84);border:2px solid #1d2633;pointer-events:none;font-family:var(--font-ui);font-size:22px;line-height:1.15;color:var(--clair);max-height:3.7em;overflow:hidden;}
-  body.mise-fige .stDirect.en3d.fige .stFil{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;position:absolute;inset:0;z-index:2;padding:12px 18px;background:rgba(7,11,26,.66);border:0;pointer-events:none;font-family:var(--font-ui);font-size:clamp(20px,3.4vw,32px);line-height:1.15;color:var(--clair);text-align:center;}
-  body.mode-direct.mise-vignette .stDirect:not(.plein){width:min(100%,36vh,420px);margin:6px auto 2px;}
-  body.mode-direct.mise-vignette #ticker{font-size:23px;line-height:1.25;}
-  body.mode-direct.mise-vignette #ticker>p.evt:first-child{font-size:26px;}
+  /* v3.13, LE SOUS-TITRE DU DIRECT (choix de l’auteur) : la ligne en cours s’écrit en bas de l’image 3D */
+  .stDirect.en3d:not(.plein) .stFil{display:block;position:absolute;left:8px;right:8px;bottom:8px;z-index:2;padding:6px 10px;background:rgba(7,11,26,.84);border:2px solid #1d2633;pointer-events:none;font-family:var(--font-ui);font-size:22px;line-height:1.15;color:var(--clair);max-height:3.7em;overflow:hidden;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25594,7 +25588,7 @@ function directSemaine(o){
     moiClub:()=>Hc.id===G.monClub?Hc:Ac, actif:()=>!fini && i<=sif()}) : null;
   const apres=(k, d)=>{ const go=()=>{ tickerTimer=setTimeout(tic,d); }; if(arrets) arrets.apres(k, go); else go(); };
   const tic=()=>{
-    if(PAUSE_DIRECT || figeEnCours()){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
+    if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
     // montée de tension : deux battements d'anticipation, devant un but comme devant une grosse occasion
@@ -26514,7 +26508,7 @@ function lanceMatch(instant){
     actif:()=>!!G._pend && i<lignes.length});
   const apres=(k, d)=>{ const go=()=>{ tickerTimer=setTimeout(tic,d); }; if(arrets) arrets.apres(k, go); else go(); };
   const tic=()=>{
-    if(PAUSE_DIRECT || figeEnCours()){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
+    if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
     // montée de tension : deux battements d'anticipation avant le flash, devant un BUT (lg.g) comme devant
@@ -31413,14 +31407,14 @@ function match3dOuvre(H, A, o, dom, ext, R){
     stade:Object.assign({}, R||{}, {cap}), // tout l'état du stade, comme la maquette de l'écran Club : chez vous le vôtre, ailleurs celui du club qui reçoit
     dom:{id:H.id, maillot:dom[0], short:dom[1], xi:xiDuMatch(H, o && o.onzeFn)},
     ext:{id:A.id, maillot:ext[0], short:ext[1], xi:xiDuMatch(A, o && o.onzeFn)},
-    enPause:()=>PAUSE_DIRECT || figeEnCours() };
+    enPause:()=>PAUSE_DIRECT };
   match3dCharge().then(THREE=>{
     if(!M3D || M3D.jeton!==jeton) return;
     const bande=document.getElementById("stDirect"); if(!bande) return;
     const cv=document.createElement("canvas"); cv.className="st3d"; cv.setAttribute("role","img"); cv.setAttribute("aria-label","Le match en maquette");
     bande.appendChild(cv);
     let sc=null; try{ sc=fabriqueMatch3D(THREE, Object.assign({canvas:cv}, reglages)); }catch(e){ cv.remove(); M3D=null; stadeDirect2D(); return; }
-    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d"); bande.classList.remove("attente3d"); barreMise(); if(STD){ STD.attente=false; if(STD.secours){ clearTimeout(STD.secours); STD.secours=null; } } stadeDirectBoutonPlein(bande);
+    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d"); bande.classList.remove("attente3d"); if(STD){ STD.attente=false; if(STD.secours){ clearTimeout(STD.secours); STD.secours=null; } } stadeDirectBoutonPlein(bande);
     if(STD && STD.tic){ clearInterval(STD.tic); STD.tic=null; } // la bande 2D s'efface et ne se repeint plus
     for(const [f,a] of M3D.file){ try{ sc[f](...a); }catch(e){} }
     M3D.file=[];
@@ -31428,52 +31422,18 @@ function match3dOuvre(H, A, o, dom, ext, R){
   }).catch(()=>{ if(M3D && M3D.jeton===jeton){ M3D=null; stadeDirect2D(); } });
 }
 function match3dEnvoie(f, args){ if(!M3D) return; if(M3D.sc){ try{ M3D.sc[f](...args); }catch(e){} } else M3D.file.push([f, args]); }
-function match3dLigne(l){ figeSur(l); if(l) match3dEnvoie("ligne", [l]); } // v3.13, essai « Figé » : l’image s’arrête sur le temps fort
+function match3dLigne(l){ if(l) match3dEnvoie("ligne", [l]); }
 function match3dAnnonce(l, ms){ if(l) match3dEnvoie("annonce", [l, ms]); }
 /* la ligne qui suit : une ligne qui aura sa montée de tension sera annoncée par la montée elle-même */
 function match3dSuite(l, ms){ if(!l) return; if((l.g || (l.q && l.q.bu)) && (l._monte||0)<2) return; match3dAnnonce(l, ms); }
 function match3dFerme(){ if(!M3D) return; const m=M3D; M3D=null; if(m.veille) clearInterval(m.veille); if(m.sc){ try{ m.sc.ferme(); }catch(e){} } if(m.cv) m.cv.remove(); }
 /* LE BUT QU'ON VOIT ENTRER (v3.13, retour de l'auteur : « je n'ai même pas eu le temps de voir la balle rentrer ») : la
-   grande fenêtre du but attend que la maquette ait mis le ballon au fond (delaiFilet), image figée comprise. */
+   grande fenêtre du but attend que la maquette ait mis le ballon au fond (delaiFilet). */
 function match3dDelaiFilet(){ try{ return M3D && M3D.sc && M3D.sc.delaiFilet ? M3D.sc.delaiFilet() : 0; }catch(e){ return 0; } }
 function butApresFilet(fn){
-  const d=match3dActif() ? match3dDelaiFilet()+figeReste() : 0;
+  const d=match3dActif() ? match3dDelaiFilet() : 0;
   if(d<=0) return fn();
   setTimeout(()=>{ if(typeof document!=="undefined" && document.body && document.body.classList.contains("mode-direct")) fn(); }, d);
-}
-/* ESSAI DES QUATRE MISES EN PAGE (v3.13, chantier « le commentaire et l'image », demande de l'auteur du 18/11/2026 :
-   « on a fait des super commentaires, mais plus personne ne les lira ») : un sélecteur provisoire sous la bande du
-   direct, pour comparer en jouant. « image » = comme avant ; « soustitre » = la ligne s'écrit en grand sur l'image ;
-   « fige » = sur un temps fort, l'image s'arrête deux secondes, la ligne en grand par-dessus ; « vignette » = l'image
-   rétrécit, le fil grossit. Le choix est retenu dans le navigateur. À retirer une fois la version choisie. */
-const MISES=[["image","Image"],["soustitre","Sous-titre"],["fige","Figé"],["vignette","Vignette"]];
-let MISE=(()=>{ try{ const v=localStorage.getItem("d1manager_mise_v1"); return MISES.some(m=>m[0]===v) ? v : "image"; }catch(e){ return "image"; } })();
-let FIGE_FIN=0;
-function figeReste(){ return Math.max(0, FIGE_FIN-Date.now()); }
-function figeEnCours(){ return MISE==="fige" && figeReste()>0; }
-function poseMise(v){
-  MISE=v; try{ localStorage.setItem("d1manager_mise_v1", v); }catch(e){}
-  if(typeof document==="undefined" || !document.body) return;
-  for(const [k] of MISES) document.body.classList.toggle("mise-"+k, k===MISE);
-  const bar=document.getElementById("ctlMise"); if(bar) bar.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.v===MISE));
-  FIGE_FIN=0; const bande=document.getElementById("stDirect"); if(bande) bande.classList.remove("fige");
-  stadeDirectBarre();
-}
-function barreMise(){
-  if(typeof document==="undefined" || !document.getElementById) return;
-  const bande=document.getElementById("stDirect"); if(!bande || document.getElementById("ctlMise")) return;
-  bande.insertAdjacentHTML("afterend", `<div id="ctlMise" class="ctlMise"><span class="dim">Essai :</span>${MISES.map(([k,t])=>`<button class="act" data-v="${k}">${t}</button>`).join("")}</div>`);
-  document.querySelectorAll("#ctlMise button").forEach(b=>b.onclick=()=>poseMise(b.dataset.v));
-  poseMise(MISE);
-}
-/* une ligne qui raconte un temps fort : tir, but, arrêt, raté, carton */
-function ligneFortes(l){ return !!l && (!!l.g || !!l.c || (l.t==="occ" && (l.ic==="arret" || l.ic==="rate"))); }
-function figeSur(l){
-  if(MISE!=="fige" || !match3dActif() || !ligneFortes(l)) return;
-  FIGE_FIN=Date.now()+2000;
-  const bande=document.getElementById("stDirect"); if(!bande) return;
-  bande.classList.add("fige");
-  setTimeout(()=>{ const b=document.getElementById("stDirect"); if(b && figeReste()<=0) b.classList.remove("fige"); }, 2050);
 }
 function stadeAutre(cap){ const s=stadeDefaut(); cap=cap||12000;
   return {cap, aff:.8, virages:cap>=22000?1:0, eclairage:cap>=30000?2:1, toit:cap>=42000?1:0, loges:cap>=35000?1:0, ecran:cap>=28000?1:0,
@@ -31557,8 +31517,9 @@ function stadeDirectBarre(){
   barre.innerHTML=`<span>${esc(ids[0])}</span><b>${h} - ${a}</b><span>${esc(ids[1])}</span><span>${m}</span>`;
   const tx=STD.der ? String(STD.der.x||"") : "";
   if(STD.machine){ clearInterval(STD.machine); STD.machine=null; }
-  /* v3.13, essai « Sous-titre » : la ligne s'écrit lettre après lettre, comme au télétexte (les autres versions l'écrivent d'un coup) */
-  if(MISE==="soustitre" && tx && !REDUIT && STD.tape!==tx){
+  /* LE SOUS-TITRE (v3.13, choix de l'auteur du 18/11/2026 parmi quatre versions essayées) : la ligne du direct s'écrit
+     lettre après lettre en bas de l'image, comme au télétexte. On lit le commentaire sans quitter l'action des yeux. */
+  if(tx && !REDUIT && STD.tape!==tx){
     STD.tape=tx; let n=0; const pas=Math.max(1, Math.round(tx.length/60));
     fil.innerHTML=`<b>${m}</b><span></span>`; const sp=fil.querySelector("span");
     const id=setInterval(()=>{ n=Math.min(tx.length, n+pas); if(sp) sp.textContent=tx.slice(0,n);

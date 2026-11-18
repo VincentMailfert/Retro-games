@@ -2948,7 +2948,7 @@ toujours « raconter quelque chose ».
   la ligne tombe** (`hold` = `uTir`), puis le ballon file en `durTir` = distance ÷ vitesse (30 m/s de loin, 25 près, 19
   sur un centre, 20 sur un lob), soit moins d'une seconde pour vingt-cinq mètres. **Le gardien repousse** (claquette) 65 %
   des arrêts de loin sans mot de prise de balle (`ACT.loin`), 40 % ailleurs.
-- **LA CHUTE, LE BUT QU'ON VOIT ENTRER, LA RÉCUPÉRATION, ET L'ESSAI DES MISES EN PAGE (v3.13, retours de l'auteur du
+- **LA CHUTE, LE BUT QU'ON VOIT ENTRER, LA RÉCUPÉRATION, ET LE SOUS-TITRE (v3.13, retours de l'auteur du
   18/11/2026)**. Dans le bloc MATCH3D : **la chute** (`j.tombe`) n'est plus une bascule raide en arrière : genoux qui
   lâchent, buste en avant, bras qui amortissent, roulade en se tenant la jambe (`j.roule`), relevé sur les mains
   (`j.tombe0` retient la durée). **Le but** : quand le tir est en l'air, `ligne(l)` met le score de côté
@@ -2956,12 +2956,11 @@ toujours « raconter quelque chose ».
   filet). Côté jeu, `butApresFilet(fn)` retarde la grande fenêtre du but (`celebreFlash`) d'autant, image figée comprise.
   **La récupération** : quand l'action appartient à l'équipe qui n'a pas le ballon, l'action commence par le plus proche
   qui va le chercher puis le passe au lanceur de l'attaque (toutes les clés glissent de 18 à 32 %), au lieu d'un ballon
-  téléporté au pied d'un joueur lointain. **L'essai des mises en page (PROVISOIRE)**, demande de l'auteur : « on a fait
-  des super commentaires, mais plus personne ne les lira ». Sous la bande, `#ctlMise` (« Essai : Image, Sous-titre,
-  Figé, Vignette », `MISES`, `poseMise`, `barreMise`, clé `d1manager_mise_v1`) : **Sous-titre** écrit la ligne lettre à
-  lettre en bas de l'image (`stadeDirectBarre`, `STD.machine`) ; **Figé** arrête l'image deux secondes sur un temps fort
-  (`figeSur` dans `match3dLigne`, `FIGE_FIN`, `figeEnCours` dans `enPause` ET dans les deux `tic`), la ligne en grand
-  par-dessus ; **Vignette** rétrécit la bande et grossit le fil. À trancher par l'auteur, puis retirer le sélecteur.
+  téléporté au pied d'un joueur lointain. **LE SOUS-TITRE**, choisi par l'auteur parmi quatre versions essayées en
+  match (Image, Sous-titre, Figé, Vignette) après son constat « on a fait des super commentaires, mais plus personne ne
+  les lira » : la ligne du direct s'écrit lettre après lettre en bas de l'image 3D (`.stFil` affiché hors plein écran,
+  `stadeDirectBarre`, `STD.machine`, `STD.tape`), le fil reste dessous. Le sélecteur d'essai a été retiré.
+  Cap retenu : **l'image illustre, le commentaire raconte** ; on ne court plus après le réalisme de la simulation.
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup
