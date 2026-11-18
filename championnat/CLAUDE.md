@@ -6366,7 +6366,7 @@ marqueur en rend un. **Aucune ligne du jeu n'a bougé**, d'où aucune version ne
 compléteront, cas réel par cas réel et avec une note (« Lo », « Dal »…), comme ANG 1999-00 l'a fait pour « Dalla ».
 Gardé par **`harness-italie.cjs`**.
 
-### ITA 1990-91 — LE SCUDETTO DE BOSKOV (v3.05 préparée, NON LIVRÉE : harness-recruteur rouge, voir le journal du 18/11/2026)
+### ITA 1990-91 — LE SCUDETTO DE BOSKOV (v3.05)
 Première saison italienne, assemblée par la tâche planifiée le 18/11/2026 à partir du relevé brut du 15/11 (`secours/2026-11-15`), mis
 au format de phase 1 dans `releves/ITA-1990-91`. **Transfermarkt était injoignable cette nuit** (`.de`, `.com`, `.co.uk`, historique de
 transferts compris) ; Wikipédia répondait. La Sampdoria de Boskov prend son seul scudetto (cinquante et un points, **deux points la
@@ -6399,6 +6399,15 @@ points la victoire, effectif total), `assemble.cjs` le prend en quatrième argum
 vivier commun), `inserer.cjs` dans `reglages.pays` (première saison d'un pays : tables après les dernières tables anglaises, entrée en fin
 de `SAISONS`, ligne `reel` dans `CLASSEMENT_REEL`). **Vérifié neutre pour l'Angleterre** : mêmes défauts aux quinze relevés anglais,
 même sortie d'assemblage pour 1994-95 et 2009-10, même `index.html` à l'insertion. Validation dédiée : **`harness-ita9091.cjs`**.
+**LE RECRUTEUR DE L'ÉTÉ 1990 ÉTAIT TROP MAIGRE, ET L'AUTEUR A TRANCHÉ PAR UN JOUEUR FICTIF (18/11/2026).** Au départ d'une carrière
+italienne en 1990, `harness-recruteur.cjs` comptait **24 noms pour un plancher de 25** : vingt des quarante-deux hommes de
+`VIVIER_SAISON[1990]` jouent vraiment en Italie (Matthäus, Van Basten, Maradona, Baggio, Vialli…), donc sont sous contrat au plateau et
+quittent le vivier. Tout plateau italien réel de 1990 donnerait ce compte. **Décision de l'auteur : un joueur factice au nom à consonance
+italienne.** C'est **« L. Cavedagni »** (Lorenzo, milieu né en 1968, 68/70, au FC Lugano), dans `VIVIER_SAISON_ITA[1990]` (qui ne se lit que
+dans une carrière italienne), avec un commentaire qui le dit fictif ; le patronyme n'est porté par aucun footballeur sur les Wikipédia
+anglaise et italienne. **C'est la seule entorse du jeu à « aucune donnée inventée », et elle est de l'auteur.** Au passage, la référence du
+harnais (`conforme`) lit désormais les listes italiennes (`VIVIER_PEPITES_ITA`, `VIVIER_SAISON_ITA`) comme elle lisait déjà l'anglaise :
+sans cela, Di Matteo et Albertini sortaient « absents de la liste ».
 **Restent à revoir quand Transfermarkt répondra** : les arrivées `1` et `null`, Ravanelli, et les pépites.
 
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)

@@ -40,6 +40,9 @@ function conforme(G, an, etiquette) {
   const L = api.VIVIER_SAISON[an], par = {}; for (const e of L) par[e[0]] = e;
   // une carrière anglaise lit aussi ses Anglais de l'étranger (VIVIER_SAISON_ANG), qui priment sur la liste de l'été
   if (G.pays === "ANG") for (const e of (api.VIVIER_SAISON_ANG[an] || [])) par[e[0]] = e;
+  // une carrière italienne lit ses pépites de Serie B et ses Italiens de l'étranger (ITA 1990-91, 18/11/2026 : la référence
+  // ne lisait que la liste anglaise, et Di Matteo et Albertini sortaient « absents de la liste »)
+  if (G.pays === "ITA") { for (const e of (api.VIVIER_PEPITES_ITA[an] || [])) if (!par[e[0]]) par[e[0]] = e; for (const e of (api.VIVIER_SAISON_ITA[an] || [])) par[e[0]] = e; }
   const emp = employes(G), v = noms(G);
   const faux = [];
   for (const e of v) {
