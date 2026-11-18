@@ -2961,6 +2961,26 @@ toujours « raconter quelque chose ».
   les lira » : la ligne du direct s'écrit lettre après lettre en bas de l'image 3D (`.stFil` affiché hors plein écran,
   `stadeDirectBarre`, `STD.machine`, `STD.tape`), le fil reste dessous. Le sélecteur d'essai a été retiré.
   Cap retenu : **l'image illustre, le commentaire raconte** ; on ne court plus après le réalisme de la simulation.
+- **L'IMAGE D'ACCORD AVEC LE TEXTE, ET LES TROIS PLANS (v3.14, branche `chantier/accord-image-texte`, décision de l'auteur
+  du 18/11/2026 après son doute : « est-ce que c'est pas vain d'essayer d'avoir des magnifiques animations ? »)**. Réponse
+  retenue : **on gèle les gestes** (plus de nouveau mouvement, on ne corrige que ce qu'il voit deux fois en jouant) et on
+  ne travaille plus que l'accord entre l'image et la ligne. **Quand la scène ne sait pas montrer ce que dit la ligne, elle
+  montre MOINS, jamais autre chose.** Trois changements. **1. Le moteur étiquette ses familles** : là où il tire une ligne
+  de décor, il pose `sc` sur l'évènement (`meurt`, `sauve`, `hj`, `poteau`, `refuse`, `cf`, `corner`), dans `simuleMatch`
+  et dans sa reprise en cours de match. Champ purement descriptif, que seule la maquette lit ; **toute nouvelle famille de
+  lignes doit porter le sien.** **2. `lireLigne` lit l'étiquette d'abord, les mots ensuite**, avec leurs voisins : « point
+  de penalty » ne montre plus un penalty, « second poteau » ni « sous sa barre » un poteau, « termine » une mine. Genres
+  nouveaux : **`meurt`** (l'action sans tir : elle se construit à trente mètres et s'éteint selon `fin` : `sortie`,
+  `touche`, `gardien`, `adversaire`, `sifflet` ; on montrait une frappe de loin six fois sur dix), **`bloque`** (le
+  défenseur sur la trajectoire, ou le mur ; on montrait un arrêt du gardien), **`refuse`** (au fond, l'arbitre lève le
+  bras, personne ne fête). Le carton **`sec`** (contestation, gain de temps, main) ne montre plus de tacle, et la faute
+  d'un gardien se joue devant sa surface. Le corner n'est repris de la tête que si le texte le dit, et « BUT DIRECT »
+  rentre seul. **3. Trois plans** (`cadrage`) : plan large presque fixe sur les temps morts, plan moyen sur une action
+  ordinaire (le tireur et le but dans l'image, rien n'annonce l'issue), gros plan réservé au but, au poteau, au rouge et
+  au penalty (`grosPlan`). Entre deux lignes le jeu se calme : tacles deux fois plus rares, plus de chute sans faute.
+  Gardé par **`harness-accord3d.cjs`** (500 vrais matchs : chaque famille donne sa scène, dix-neuf phrases pièges, aucun
+  penalty, poteau ou tir inventé, toute occasion a son image). Essai : `docs/construit-match-3d.cjs` recopie désormais
+  `sc` et `mo` dans la page d'essai.
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup

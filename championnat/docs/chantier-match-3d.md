@@ -78,3 +78,26 @@ dix-huit mètres de sa ligne, ballon très haut, gardien qui court vers sa cage 
 (`but50`, `geste`, `cagade`, `cadeau`, `gkbut`) sont enfin joués sur la pelouse : le but de cinquante mètres avec gardien
 monté, le gardien qui monte sur le corner et marque. Côté moteur, quatre lignes de frappe lointaine et de lob s'ajoutent à
 `BUT_LOIN`, `ARRET_LOIN`, `BUT_LOB` et `ARRET_LOB`, pour qu'on en voie plus souvent.
+
+## L'image d'accord avec le texte, et les trois plans (v3.14, branche chantier/accord-image-texte)
+
+Doute de l'auteur du 18/11/2026 : courir après de belles animations est-il vain ? Décision : **on gèle les gestes**, et
+on ne travaille plus que l'accord entre l'image et le commentaire. Quand la scène ne sait pas montrer ce que dit la ligne,
+elle montre moins, jamais autre chose.
+
+Le constat de départ, sur un PSG-Nantes : « N'Doram place son corner au point de penalty... le gardien repousse du poing »
+montrait un penalty. En passant toutes les phrases du moteur dans le lecteur de lignes, on trouvait la même famille
+d'erreurs partout : « second poteau » lu comme un poteau, « termine » comme une mine, une passe trop appuyée montrée
+comme une frappe de vingt-cinq mètres, un sauvetage de défenseur montré comme un arrêt du gardien, un carton pour
+contestation montré comme un tacle.
+
+- **Le moteur dit la famille** : `sc` sur l'évènement (`meurt`, `sauve`, `hj`, `poteau`, `refuse`, `cf`, `corner`).
+- **La scène lit l'étiquette d'abord**, puis les mots pour l'issue. Genres nouveaux : `meurt` (aucun tir), `bloque`
+  (défenseur ou mur), `refuse` (au fond, bras levé de l'arbitre), carton `sec` (sans tacle).
+- **Trois plans** : large et presque fixe sur les temps morts, moyen sur une action ordinaire, gros plan pour le but, le
+  poteau, le rouge et le penalty.
+- **Le jeu calme entre deux lignes** : moins de tacles, plus de chute que personne ne raconte.
+
+Pour vérifier une famille à l'œil : fabriquer une page d'essai avec une ligne de chaque sorte, puis regarder.
+Le garde-fou est `node harness-accord3d.cjs`.
+

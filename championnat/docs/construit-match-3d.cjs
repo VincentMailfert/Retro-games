@@ -34,7 +34,7 @@ function cherche(h, a, meteo, heure) {
       && ev.some(e => /POTEAU|BARRE|transversale/i.test(e.x)) && (meteo ? meteo.test(x0) : !/spectateurs\. \S/.test(x0));
     if (!ok) continue;
     return { heure, dom: equipe(h), ext: equipe(a), sh: r.sh, sa: r.sa, ev: ev.map(e => {
-      const o = { m: e.m, t: e.t, x: e.x }; for (const k of ["ic", "ca"]) if (e[k]) o[k] = e[k];
+      const o = { m: e.m, t: e.t, x: e.x }; for (const k of ["ic", "ca", "sc", "mo"]) if (e[k]) o[k] = e[k];
       if (e.g) o.g = { cote: e.g.cote, but: e.g.but, pas: e.g.pas, sh: e.g.sh, sa: e.g.sa, ph: e.g.ph, cf: e.g.cf, pen: e.g.pen };
       if (e.q) o.q = { cote: e.q.cote, but: e.q.but, ph: e.q.ph };
       if (e.c) o.c = { cote: e.c.cote, nom: e.c.nom, rouge: e.c.rouge };
