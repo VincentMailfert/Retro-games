@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiplex · les joueurs athlétiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0; height:100%; background:#070b1a; color:#e8ecf3; font-family:'VT323',monospace; overflow:hidden;}
+  #scene{position:fixed; inset:0; width:100vw; height:100vh; height:100dvh; image-rendering:pixelated; image-rendering:crisp-edges; touch-action:none; display:block;}
+  .barre{position:fixed; left:0; right:0; bottom:0; display:flex; gap:6px; justify-content:center; flex-wrap:wrap; padding:10px 8px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(transparent, rgba(7,11,26,.85) 40%);}
+  button{font-family:'VT323',monospace; font-size:20px; color:#e8ecf3; background:#18233a; border:2px solid #34466b; border-radius:4px; padding:4px 12px; cursor:pointer;}
+  button.on{background:#c8312f; border-color:#ff6b5e;}
+  .titre{position:fixed; top:10px; left:12px; font-size:22px; letter-spacing:.04em; color:#f2d06b; text-shadow:0 2px 0 #000;}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="titre" id="titre">APRÈS</div>
+<div class="barre">
+  <button id="bModele">Voir l'avant</button>
+  <button id="bRalenti">Ralenti</button>
+  <button id="bPixels">Pixels : fins</button>
+  <button id="bCam">Caméra : action</button>
+</div>
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+/* =====================================================================================================
+   PROTOTYPE · LES JOUEURS ATHLÉTIQUES (demande de l'auteur du 18/11/2026 : « moins petit bonhomme, plus athlétique,
+   plus proche de la réalité, en gardant la touche rétro par le look, les coupes de cheveux » ; style B « plus réaliste »).
+   La figurine garde les mêmes articulations que celle du jeu (corps, tete, hancheG/D, genouG/D, epauleG/D, coudeG/D),
+   pour pouvoir la greffer dans le bloc MATCH3D sans réécrire les allures. On y ajoute la cheville.
+   Proportions : 1,82 m pour 7,5 têtes, épaules plus larges que la taille, cuisses et mollets galbés.
+   Le rétro passe par le look : mulet, frisé, raie sur le côté, cheveux longs, moustache, chaussettes baissées, short court.
+   ===================================================================================================== */
+
+const cv = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({canvas:cv, antialias:false});
+renderer.setClearColor(0x0d1424);
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x0d1424, 60, 120);
+const camera = new THREE.PerspectiveCamera(32, 1, .5, 300);
+
+scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x3a5a2a, .95));
+const soleil = new THREE.DirectionalLight(0xfff1d6, 1.25); soleil.position.set(-14, 26, 10); scene.add(soleil);
+
+const M = c => new THREE.MeshLambertMaterial({color:c, flatShading:true});
+const memo = {}; const Mc = c => memo[c] || (memo[c] = M(c));
+
+/* ---------- la pelouse, les lignes, un but ---------- */
+{
+  const tx = document.createElement("canvas"); tx.width = 64; tx.height = 64; const x = tx.getContext("2d");
+  for(let i=0;i<8;i++){ x.fillStyle = i%2 ? "#3f8a3a" : "#468f3f"; x.fillRect(i*8,0,8,64); }
+  const t = new THREE.CanvasTexture(tx); t.magFilter = THREE.NearestFilter; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6,1);
+  const sol = new THREE.Mesh(new THREE.PlaneGeometry(56, 38), new THREE.MeshLambertMaterial({map:t}));
+  sol.rotation.x = -Math.PI/2; sol.position.x = 4; scene.add(sol);
+  const blanc = new THREE.MeshBasicMaterial({color:0xeef3ea});
+  const ligne = (w,d,px,pz) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w,d), blanc); m.rotation.x=-Math.PI/2; m.position.set(px,.01,pz); scene.add(m); };
+  ligne(.12, 36, 17, 0);                                   // ligne de but
+  ligne(16.5, .12, 17-8.25, -20.16/2); ligne(16.5, .12, 17-8.25, 20.16/2); ligne(.12, 20.16, 17-16.5, 0); // surface
+  ligne(5.5, .12, 17-2.75, -9.16/2); ligne(5.5, .12, 17-2.75, 9.16/2); ligne(.12, 9.16, 17-5.5, 0);       // six mètres
+  ligne(.12, 36, -24, 0);                                  // la médiane, au loin
+  const poteau = Mc(0xf4f4f0);
+  const b = (w,h,d,px,py,pz) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), poteau); m.position.set(px,py,pz); scene.add(m); };
+  b(.12,2.44,.12, 17.06,1.22,-3.66); b(.12,2.44,.12, 17.06,1.22,3.66); b(.12,.12,7.44, 17.06,2.44,0);
+  const filet = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.22, side:THREE.DoubleSide, wireframe:true});
+  const f1 = new THREE.Mesh(new THREE.PlaneGeometry(7.32, 2.44, 14, 5), filet); f1.rotation.y = Math.PI/2; f1.position.set(18.6,1.22,0); scene.add(f1);
+  const f2 = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 7.32, 3, 14), filet); f2.rotation.x = Math.PI/2; f2.position.set(17.8,2.44,0); scene.add(f2);
+}
+
+/* ---------- ombres en pastilles, comme dans le jeu ---------- */
+const texOmbre = (()=>{ const c=document.createElement("canvas"); c.width=c.height=32; const x=c.getContext("2d");
+  const g=x.createRadialGradient(16,16,2,16,16,16); g.addColorStop(0,"rgba(0,0,0,1)"); g.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=g; x.fillRect(0,0,32,32);
+  return new THREE.CanvasTexture(c); })();
+function ombre(r, force){ const m = new THREE.Mesh(new THREE.PlaneGeometry(r*2, r*2), new THREE.MeshBasicMaterial({map:texOmbre, color:0x0a1a08, transparent:true, opacity:force, depthWrite:false}));
+  m.rotation.x = -Math.PI/2; m.renderOrder = 2; scene.add(m); return m; }
+
+/* ---------- la figurine athlétique ---------- */
+const PEAUX = [0xf1c7a3, 0xe0ac84, 0xc68b62, 0x8d5a3b, 0x5e3b27];
+const CHEVEUX = [0x1d140e, 0x3b2617, 0x6b4426, 0xb8893f, 0x2a2a2a];
+const cyl = (rh, rb, h, mat, seg=7) => new THREE.Mesh(new THREE.CylinderGeometry(rh, rb, h, seg), mat);
+function pose(m, x, y, z, par){ m.position.set(x, y, z); par.add(m); return m; }
+
+function athlete(t){
+  const g = new THREE.Group(); g.rotation.order = 'YXZ';
+  const peau = Mc(t.peau), maillot = Mc(t.maillot), short = Mc(t.short), bas = Mc(t.bas), noir = Mc(0x141414), cheveux = Mc(t.cheveux);
+  const blancS = Mc(0xf4f4f0);
+  /* le bassin et le short : court, comme à l'époque */
+  const bassin = pose(cyl(.17, .185, .2, short, 8), 0, .98, 0, g); bassin.scale.z = .66;
+  const jambe = cote => {
+    const hanche = new THREE.Group(); hanche.rotation.order = 'YXZ'; pose(hanche, cote*.095, .97, 0, g);
+    pose(cyl(.098, .092, .15, short, 8), 0, -.05, 0, hanche).scale.z = .9;          // le bas du short
+    pose(cyl(.088, .066, .44, peau), 0, -.24, 0, hanche);                           // la cuisse
+    const genou = new THREE.Group(); pose(genou, 0, -.45, 0, hanche);
+    pose(cyl(.062, .05, .2, peau), 0, -.09, .005, genou);                           // le mollet galbé
+    pose(cyl(.052, .044, .05, bas, 8), 0, -.2, 0, genou);                           // la chaussette roulée sur la cheville
+    pose(cyl(.048, .042, .16, bas), 0, -.3, 0, genou);
+    if(t.bande) pose(cyl(.049, .049, .025, blancS, 8), 0, -.24, 0, genou);
+    const cheville = new THREE.Group(); cheville.rotation.order = 'XYZ'; pose(cheville, 0, -.4, 0, genou);
+    pose(new THREE.Mesh(new THREE.BoxGeometry(.095, .075, .27), noir), 0, -.035, .055, cheville);   // le crampon
+    pose(new THREE.Mesh(new THREE.BoxGeometry(.1, .02, .12), blancS), 0, -.01, .03, cheville);      // la bande sur la chaussure
+    return {hanche, genou, cheville};
+  };
+  const jg = jambe(-1), jd = jambe(1);
+  /* le buste en V */
+  const corps = new THREE.Group(); corps.rotation.order = 'YXZ'; pose(corps, 0, 1.03, 0, g);
+  pose(cyl(.235, .165, .46, maillot, 8), 0, .23, 0, corps).scale.z = .58;
+  pose(cyl(.075, .085, .05, t.col ? Mc(t.col) : short, 8), 0, .47, .005, corps);  // le col
+  const bras = cote => {
+    const epaule = new THREE.Group(); epaule.rotation.order = 'XYZ'; pose(epaule, cote*.25, .41, 0, corps);
+    pose(new THREE.Mesh(new THREE.IcosahedronGeometry(.075, 0), maillot), 0, 0, 0, epaule);      // l'épaule
+    pose(cyl(.067, .06, t.manches ? .3 : .15, maillot), 0, t.manches ? -.14 : -.07, 0, epaule);
+    pose(cyl(.052, .044, .28, t.manches ? maillot : peau), 0, -.15, 0, epaule);
+    const coude = new THREE.Group(); pose(coude, 0, -.29, 0, epaule);
+    pose(cyl(.044, .034, .25, t.manches ? maillot : peau), 0, -.12, 0, coude);
+    pose(new THREE.Mesh(new THREE.IcosahedronGeometry(t.gants ? .06 : .042, 0), t.gants ? Mc(0xe9e2c8) : peau), 0, -.27, 0, coude);
+    return {epaule, coude};
+  };
+  const bg = bras(-1), bd = bras(1);
+  pose(cyl(.05, .056, .1, peau), 0, .52, 0, corps);                                // le cou
+  const tete = new THREE.Group(); pose(tete, 0, .56, 0, corps);
+  const crane = pose(new THREE.Mesh(new THREE.IcosahedronGeometry(.112, 1), peau), 0, .12, 0, tete); crane.scale.set(.9, 1.1, 1);
+  pose(new THREE.Mesh(new THREE.BoxGeometry(.03, .045, .04), peau), 0, .1, .108, tete);          // le nez
+  pose(new THREE.Mesh(new THREE.BoxGeometry(.025, .015, .01), noir), -.04, .14, .1, tete);
+  pose(new THREE.Mesh(new THREE.BoxGeometry(.025, .015, .01), noir), .04, .14, .1, tete);
+  pose(new THREE.Mesh(new THREE.BoxGeometry(.02, .05, .03), peau), -.103, .12, 0, tete); pose(new THREE.Mesh(new THREE.BoxGeometry(.02, .05, .03), peau), .103, .12, 0, tete);
+  const calotte = () => { const m = new THREE.Mesh(new THREE.SphereGeometry(.122, 8, 5, 0, Math.PI*2, 0, Math.PI*.55), cheveux); m.scale.set(.92, 1.05, 1.04); return pose(m, 0, .14, -.01, tete); };
+  const c = t.coiffe;
+  if(c === 'mulet'){ calotte(); pose(new THREE.Mesh(new THREE.BoxGeometry(.19, .2, .07), cheveux), 0, .02, -.1, tete); }
+  if(c === 'frise'){ const m = pose(new THREE.Mesh(new THREE.IcosahedronGeometry(.15, 1), cheveux), 0, .18, -.015, tete); m.scale.set(1, .86, 1); }
+  if(c === 'raie'){ calotte(); pose(new THREE.Mesh(new THREE.BoxGeometry(.1, .04, .2), cheveux), .05, .245, .02, tete); }
+  if(c === 'long'){ calotte(); pose(new THREE.Mesh(new THREE.BoxGeometry(.22, .28, .07), cheveux), 0, .02, -.1, tete);
+    pose(new THREE.Mesh(new THREE.BoxGeometry(.03, .2, .14), cheveux), -.105, .08, -.03, tete); pose(new THREE.Mesh(new THREE.BoxGeometry(.03, .2, .14), cheveux), .105, .08, -.03, tete);
+    if(t.bandeau) pose(cyl(.118, .118, .03, Mc(0xf4f4f0), 9), 0, .2, -.005, tete); }
+  if(c === 'ras'){ const m = calotte(); m.scale.multiplyScalar(.97); }
+  if(c === 'degarni'){ const m = new THREE.Mesh(new THREE.SphereGeometry(.12, 8, 4, Math.PI*.2, Math.PI*1.6, Math.PI*.25, Math.PI*.3), cheveux); pose(m, 0, .12, -.01, tete); m.rotation.y = Math.PI; }
+  if(t.moustache) pose(new THREE.Mesh(new THREE.BoxGeometry(.085, .022, .02), cheveux), 0, .07, .105, tete);
+  scene.add(g);
+  return {g, corps, tete, hancheG:jg.hanche, genouG:jg.genou, chevilleG:jg.cheville, hancheD:jd.hanche, genouD:jd.genou, chevilleD:jd.cheville,
+    epauleG:bg.epaule, coudeG:bg.coude, epauleD:bd.epaule, coudeD:bd.coude, ombre:ombre(.42, .4), echelleBuste:1};
+}
+
+/* ---------- la figurine d'avant, telle qu'elle est dans le jeu, pour comparer ---------- */
+function ancienne(t){
+  const g = new THREE.Group(); g.rotation.order = 'YXZ'; g.scale.setScalar(.75);
+  const peau = Mc(t.peau), cheveux = Mc(t.cheveux), maillot = Mc(t.maillot), short = Mc(t.short), bas = Mc(t.bas), crampon = Mc(0x141414);
+  const rien = (w,h,d,mat,x,y,z,par) => pose(new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat), x, y, z, par);
+  const jambe = cote => { const hanche = new THREE.Group(); hanche.rotation.order='YXZ'; hanche.position.set(cote*.17,.98,0);
+    rien(.26,.46,.26,peau,0,-.23,0,hanche); const genou = new THREE.Group(); genou.position.y=-.46; hanche.add(genou);
+    rien(.22,.2,.22,peau,0,-.1,0,genou); rien(.25,.26,.25,bas,0,-.33,0,genou); rien(.25,.1,.36,crampon,0,-.48,.05,genou); g.add(hanche); return {hanche, genou}; };
+  const jg = jambe(-1), jd = jambe(1);
+  const corps = new THREE.Group(); corps.rotation.order='YXZ'; corps.position.y=.98; g.add(corps);
+  rien(.64,.3,.38,short,0,.02,0,corps); rien(.7,.68,.4,maillot,0,.5,0,corps);
+  const bras = cote => { const epaule = new THREE.Group(); epaule.rotation.order='XYZ'; epaule.position.set(cote*.46,.78,0); corps.add(epaule);
+    rien(.2,.36,.22,maillot,0,-.16,0,epaule); const coude = new THREE.Group(); coude.position.y=-.34; epaule.add(coude);
+    rien(.17,.3,.18,t.gants?Mc(0x2a2a2a):peau,0,-.15,0,coude); return {epaule, coude}; };
+  const bg = bras(-1), bd = bras(1);
+  const tete = new THREE.Group(); tete.position.y=.86; corps.add(tete);
+  rien(.18,.1,.18,peau,0,.04,0,tete); rien(.42,.42,.42,peau,0,.3,0,tete);
+  rien(.06,.06,.02,crampon,-.1,.32,.21,tete); rien(.06,.06,.02,crampon,.1,.32,.21,tete);
+  if(t.coiffe==='frise') rien(.56,.3,.54,cheveux,0,.58,-.03,tete); else rien(.46,.12,.46,cheveux,0,.55,-.01,tete);
+  if(t.coiffe==='mulet'||t.coiffe==='long') rien(.48,.42,.12,cheveux,0,.28,-.22,tete);
+  scene.add(g);
+  return {g, corps, tete, hancheG:jg.hanche, genouG:jg.genou, hancheD:jd.hanche, genouD:jd.genou,
+    epauleG:bg.epaule, coudeG:bg.coude, epauleD:bd.epaule, coudeD:bd.coude, ombre:ombre(.42, .4), echelleBuste:1};
+}
+
+/* ---------- les postures ----------
+   Une posture est un petit dictionnaire d'angles (en radians). Convention : la figurine regarde vers +z ;
+   un angle de hanche ou d'épaule négatif porte le membre vers l'avant ; un genou positif plie la jambe ;
+   un coude négatif plie l'avant-bras vers l'avant ; bras écarté : z négatif à gauche, z positif à droite. */
+const NEUTRE = {buste:0, torsion:0, roulis:0, hG:0, hD:0, hGz:0, hDz:0, hDy:0, gG:0, gD:0, cG:0, cD:0, eG:0, eD:0, eGz:-.08, eDz:.08, coG:-.15, coD:-.15, tete:0, teteY:0, haut:0, pente:0, inclin:0};
+const mix = (a, b, k) => { const r = {}; for(const n in NEUTRE) r[n] = (a[n] ?? NEUTRE[n]) + ((b[n] ?? NEUTRE[n]) - (a[n] ?? NEUTRE[n])) * k; return r; };
+const doux = k => k*k*(3-2*k);
+function suite(cles, k){   // cles : [[instant 0..1, posture], ...]
+  if(k <= cles[0][0]) return mix(cles[0][1], cles[0][1], 0);
+  for(let i=1;i<cles.length;i++){ const [t1, p1] = cles[i], [t0, p0] = cles[i-1];
+    if(k <= t1) return mix(p0, p1, doux((k-t0)/Math.max(1e-6, t1-t0))); }
+  return mix(cles[cles.length-1][1], cles[cles.length-1][1], 0);
+}
+
+/* la course : de la marche (v ~ 1,5 m/s) au sprint (v ~ 7 m/s) */
+function course(ph, v){
+  const s = Math.min(1, v/7), A = .28 + .62*s, Kg = .25 + 1.45*s;
+  const sn = Math.sin(ph), cs = Math.cos(ph);
+  return { buste: .04 + .26*s, torsion: .12*s*sn, roulis: .04*s*cs,
+    hG: -sn*A, hD: sn*A, gG: .12 + Kg*Math.max(0, cs) + .15*s*Math.max(0,-cs), gD: .12 + Kg*Math.max(0, -cs) + .15*s*Math.max(0,cs),
+    cG: .2*s*Math.max(0, -sn), cD: .2*s*Math.max(0, sn),
+    eG: sn*A*.95, eD: -sn*A*.95, eGz: -.12, eDz: .12, coG: -.5 - .9*s, coD: -.5 - .9*s,
+    tete: -.2*s, haut: (.015 + .05*s) * Math.abs(cs) };
+}
+const ARRET = { buste:.08, gG:.18, gD:.18, hG:-.05, hD:-.05, coG:-.35, coD:-.35, eGz:-.12, eDz:.12 };
+
+/* la frappe pleine, du droit : dernier appui, armé talon aux fesses, contact cheville verrouillée, accompagnement, retombée */
+const FRAPPE = [
+  [0,   {buste:.18, hG:-.55, gG:.25, hD:.45, gD:.7, eG:.2, eD:-.35, coG:-.6, coD:-.6}],
+  [.32, {buste:.06, torsion:-.32, hG:-.2, gG:.3, hD:.75, gD:1.9, cD:.5, eG:-.25, eGz:-1.25, coG:-.3, eD:.55, eDz:.35, coD:-.4, tete:.15}],
+  [.5,  {buste:.14, torsion:.05, hG:-.15, gG:.32, hD:-.7, gD:.35, cD:.55, eG:-.2, eGz:-1.3, eD:.3, eDz:.45, tete:.25}],
+  [.56, {buste:.12, torsion:.18, hG:-.1, gG:.28, hD:-1.05, gD:.08, cD:.55, eG:-.35, eGz:-1.2, eD:.2, eDz:.5, tete:.25}],
+  [.75, {buste:-.12, torsion:.32, hG:.05, gG:.2, hD:-1.6, gD:.05, cD:.4, eG:-.7, eGz:-.9, coG:-.4, eD:.4, eDz:.6, haut:.07, tete:.1}],
+  [1,   {buste:.1, hG:.25, gG:.45, hD:-.35, gD:.5, eG:.1, eGz:-.3, eD:-.1, coG:-.5, coD:-.5}],
+];
+const CONTACT_FRAPPE = .56;
+/* la passe intérieur du pied : la jambe s'ouvre, le pied tourné, un geste court et propre */
+const PASSE = [
+  [0,   {buste:.12, hG:-.35, gG:.25, hD:.25, gD:.45, eGz:-.4, eDz:.3}],
+  [.35, {buste:.1, torsion:-.12, hG:-.15, gG:.3, hD:.45, gD:.8, hDy:.8, hDz:.15, eGz:-.75, eG:-.1, eDz:.45, tete:.25}],
+  [.55, {buste:.12, torsion:.08, hG:-.12, gG:.3, hD:-.35, gD:.2, hDy:1.1, hDz:.25, cD:.1, eGz:-.8, eDz:.5, tete:.3}],
+  [.75, {buste:.08, torsion:.12, hG:-.08, gG:.25, hD:-.6, gD:.15, hDy:1.0, hDz:.2, eGz:-.6, eDz:.4, tete:.2}],
+  [1,   {buste:.08, hG:-.05, gG:.2, hD:-.1, gD:.3, eGz:-.2, eDz:.15}],
+];
+const CONTACT_PASSE = .55;
+/* le contrôle : on amortit, la jambe recule avec le ballon */
+const CONTROLE = [
+  [0, {buste:.1, hD:-.45, gD:.25, hDy:.9, eGz:-.5, eDz:.5, tete:.35}],
+  [.4,{buste:.14, hD:-.1, gD:.4, hDy:.7, eGz:-.4, eDz:.4, tete:.35}],
+  [1, {buste:.12, gG:.2, gD:.2, tete:.2}],
+];
+/* le plongeon du gardien, vers sa gauche */
+const PLONGEON = [
+  [0,   {buste:.25, gG:.6, gD:.6, hG:-.3, hD:-.3, eG:-.4, eD:-.4, eGz:-.5, eDz:.5, coG:-1, coD:-1}],
+  [.18, {buste:.3, gG:1, gD:1, hG:-.5, hD:-.5, eG:-.3, eD:-.3, eGz:-.6, eDz:.6, coG:-1.2, coD:-1.2, haut:-.15}],
+  [.45, {buste:.1, inclin:-1.25, hG:-.2, hD:.2, gG:.2, gD:.3, hDz:.4, eG:-.1, eD:-.1, eGz:-2.9, eDz:2.4, coG:0, coD:-.1, haut:.55, tete:-.1}],
+  [.7,  {buste:.1, inclin:-1.45, hG:-.2, hD:.3, gG:.4, gD:.6, eGz:-2.7, eDz:2.2, coG:-.2, coD:-.4, haut:.12}],
+  [1,   {buste:.1, inclin:-1.5, hG:-.4, hD:-.2, gG:.9, gD:.6, eGz:-2.5, eDz:2.4, coG:-.6, coD:-.6, haut:.12}],
+];
+/* l'avion : la course bras écartés, le corps qui penche dans le virage */
+const avion = (ph, v) => Object.assign(course(ph, v), {eG:0, eD:0, eGz:-1.5, eDz:1.5, coG:0, coD:0, roulis:-.35, buste:.15, tete:-.15});
+/* les mains sur les hanches, tête basse */
+const DEPIT = {buste:.22, tete:.45, eG:.15, eD:.15, eGz:-.55, eDz:.55, coG:-1.9, coD:-1.9, gG:.08, gD:.08};
+
+function applique(r, p, base){
+  p = Object.assign({}, NEUTRE, p);
+  r.corps.rotation.set(p.buste, p.torsion, p.roulis);
+  r.hancheG.rotation.set(p.hG, 0, p.hGz); r.hancheD.rotation.set(p.hD, p.hDy, p.hDz);
+  r.genouG.rotation.x = p.gG; r.genouD.rotation.x = p.gD;
+  if(r.chevilleG){ r.chevilleG.rotation.x = p.cG; r.chevilleD.rotation.x = p.cD; }
+  r.epauleG.rotation.set(p.eG, 0, p.eGz); r.epauleD.rotation.set(p.eD, 0, p.eDz);
+  r.coudeG.rotation.x = p.coG; r.coudeD.rotation.x = p.coD;
+  r.tete.rotation.set(p.tete, p.teteY, 0);
+  // jambes pliées : on abaisse le corps pour garder les crampons au sol
+  const plie = Math.min(p.gG, p.gD), desc = .97 * (1 - Math.cos(Math.min(.9, plie)*.55)) * .5;
+  r.g.position.set(base.x, Math.max(0, p.haut) + (p.haut < 0 ? p.haut : 0) - desc*.6, base.z);
+  r.g.rotation.set(0, base.cap, p.inclin);
+  r.ombre.position.set(base.x, .02, base.z); r.ombre.scale.setScalar(1 - Math.min(.5, Math.max(0, p.haut)));
+}
+
+/* ---------- la distribution ---------- */
+const DOM = {maillot:0x7a1f2b, short:0xf4f4f0, bas:0x7a1f2b, col:0xf4f4f0, bande:true};    // grenat et blanc
+const EXT = {maillot:0x1f3f8a, short:0x1f3f8a, bas:0xf4f4f0};
+const GK  = {maillot:0x2d7a3a, short:0x161616, bas:0x2d7a3a, manches:true, gants:true};
+const ROLES = {
+  A: Object.assign({}, DOM, {peau:PEAUX[1], cheveux:CHEVEUX[1], coiffe:'mulet', moustache:true}),
+  B: Object.assign({}, DOM, {peau:PEAUX[3], cheveux:CHEVEUX[0], coiffe:'frise'}),
+  C: Object.assign({}, DOM, {peau:PEAUX[0], cheveux:CHEVEUX[3], coiffe:'long', bandeau:true}),
+  D: Object.assign({}, EXT, {peau:PEAUX[0], cheveux:CHEVEUX[2], coiffe:'raie'}),
+  E: Object.assign({}, EXT, {peau:PEAUX[2], cheveux:CHEVEUX[4], coiffe:'degarni', moustache:true}),
+  K: Object.assign({}, GK,  {peau:PEAUX[1], cheveux:CHEVEUX[1], coiffe:'ras'}),
+};
+let modele = 'apres', R = {};
+function distribue(){
+  for(const n in R){ scene.remove(R[n].g); scene.remove(R[n].ombre); }
+  R = {}; for(const n in ROLES) R[n] = (modele === 'apres' ? athlete : ancienne)(ROLES[n]);
+}
+distribue();
+
+/* ---------- le ballon d'époque : blanc à pans noirs ---------- */
+const ballon = new THREE.Group(); scene.add(ballon);
+{ const geo = new THREE.IcosahedronGeometry(.11, 1); const cols = []; const pos = geo.attributes.position;
+  for(let i=0;i<pos.count;i+=3){ const c = (i/3) % 5 === 0 ? [.08,.08,.08] : [.97,.97,.95]; for(let k=0;k<3;k++) cols.push(...c); }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  ballon.add(new THREE.Mesh(geo, new THREE.MeshLambertMaterial({vertexColors:true, flatShading:true}))); }
+const ombreB = ombre(.16, .5);
+
+/* ---------- le scénario : débordement, passe, contrôle, frappe, plongeon, but, l'avion ----------
+   Tout est écrit en secondes sur une boucle de 11 s. Chaque joueur dit où il est, d'où il vient et ce qu'il fait. */
+const V = (x, z) => new THREE.Vector3(x, 0, z);
+const lerpV = (a, b, k) => new THREE.Vector3(a.x + (b.x-a.x)*k, 0, a.z + (b.z-a.z)*k);
+const cl = (x, a, b) => Math.max(a, Math.min(b, x));
+const BOUCLE = 11;
+const T_PASSE = 2.2, D_PASSE = .7, T_RECOIT = 3.45, T_FRAPPE = 5.0, D_FRAPPE = .8;
+const T_CONTACT_P = T_PASSE + D_PASSE*CONTACT_PASSE, T_CONTACT_F = T_FRAPPE + D_FRAPPE*CONTACT_FRAPPE;
+const pA0 = V(-13, -7), pA1 = V(-5.2, -3.2);          // A déborde
+const pB0 = V(-3, 8), pB1 = V(2.6, 2.4), pB2 = V(10.2, .7);   // B appelle, contrôle, file au but
+const BUT = new THREE.Vector3(17.4, 1.55, -2.7), FILET = new THREE.Vector3(18.5, .11, -2.9);
+
+const etats = {}; // allure et cumul de foulée par joueur
+function trajet(nom, t, pts){   // pts : [[t, pos], ...] ; rend {pos, v, cap}
+  let i = 1; while(i < pts.length-1 && t > pts[i][0]) i++;
+  const [t0, p0] = pts[i-1], [t1, p1] = pts[i]; const k = cl((t - t0)/Math.max(1e-6, t1 - t0), 0, 1);
+  const pos = lerpV(p0, p1, doux(k)), d = p0.distanceTo(p1), v = (t > t0 && t < t1) ? d/(t1-t0) * 6*k*(1-k) : 0;
+  const cap = d > .01 ? Math.atan2(p1.x - p0.x, p1.z - p0.z) : null;
+  return {pos, v, cap};
+}
+function marche(nom, dt, v){ const e = etats[nom] || (etats[nom] = {ph:0, cap:0}); e.ph += dt * (v*1.15 + (v > .2 ? 4.5 : 0)) ; return e; }
+function tourne(nom, cible, dt, vit=8){ const e = etats[nom]; let d = cible - e.cap; while(d > Math.PI) d -= 2*Math.PI; while(d < -Math.PI) d += 2*Math.PI; e.cap += d * Math.min(1, dt*vit); return e.cap; }
+
+function joue(t, dt){
+  /* --- A : débordement, puis passe, puis il suit --- */
+  {
+    let p, base;
+    if(t < T_PASSE){ const tr = trajet('A', t, [[0, pA0], [T_PASSE, pA1]]); const v = 5.6; const e = marche('A', dt, v);
+      p = course(e.ph, v); base = {x:tr.pos.x, z:tr.pos.z, cap:tourne('A', tr.cap ?? 0, dt)}; }
+    else if(t < T_PASSE + D_PASSE){ const k = (t - T_PASSE)/D_PASSE; marche('A', dt, 0);
+      const cible = Math.atan2(pB1.x - pA1.x, pB1.z - pA1.z) - .9;    // passe de l'intérieur : le corps de biais
+      p = suite(PASSE, k); base = {x:pA1.x + k*.6, z:pA1.z + k*.3, cap:tourne('A', cible, dt, 6)}; }
+    else if(t < 7.2){ const tr = trajet('A', t, [[T_PASSE + D_PASSE, V(-4.6, -2.9)], [7.2, V(11, 6.5)]]); const e = marche('A', dt, tr.v);
+      p = course(e.ph, tr.v); base = {x:tr.pos.x, z:tr.pos.z, cap:tourne('A', tr.cap ?? 0, dt)}; }
+    else { const tr = trajet('A', t, [[7.2, V(11, 6.5)], [9.6, V(12.6, 10.4)]]); const e = marche('A', dt, tr.v);
+      p = avion(e.ph, Math.max(2, tr.v)); p.eGz = -2.6; p.eDz = 2.6; p.coG = -.3; p.coD = -.3; base = {x:tr.pos.x, z:tr.pos.z, cap:tourne('A', tr.cap ?? 0, dt)}; }
+    applique(R.A, p, base);
+  }
+  /* --- B : appel, contrôle orienté, conduite, frappe, l'avion --- */
+  {
+    let p, base;
+    if(t < T_RECOIT - .25){ const tr = trajet('B', t, [[0, pB0], [T_RECOIT - .25, pB1]]); const e = marche('B', dt, tr.v + 1);
+      p = course(e.ph, tr.v + 1); base = {x:tr.pos.x, z:tr.pos.z, cap:tourne('B', t > 2 ? Math.atan2(pA1.x - pB1.x, pA1.z - pB1.z) + 1.2 : (tr.cap ?? 0), dt)}; }
+    else if(t < T_RECOIT + .45){ const k = (t - T_RECOIT + .25)/.7; marche('B', dt, 0);
+      p = suite(CONTROLE, k); base = {x:pB1.x, z:pB1.z, cap:tourne('B', Math.atan2(pA1.x - pB1.x, pA1.z - pB1.z) + .9, dt)}; }
+    else if(t < T_FRAPPE){ const tr = trajet('B', t, [[T_RECOIT + .45, pB1], [T_FRAPPE, pB2]]); const v = Math.max(4, tr.v); const e = marche('B', dt, v);
+      p = course(e.ph, v); base = {x:tr.pos.x, z:tr.pos.z, cap:tourne('B', tr.cap ?? 0, dt)}; }
+    else if(t < T_FRAPPE + D_FRAPPE){ const k = (t - T_FRAPPE)/D_FRAPPE; marche('B', dt, 0);
+      p = suite(FRAPPE, k); const cap = Math.atan2(BUT.x - pB2.x, BUT.z - pB2.z) + .12;
+      base = {x:pB2.x + Math.sin(cap)*k*.7, z:pB2.z + Math.cos(cap)*k*.7, cap:tourne('B', cap, dt, 10)}; }
+    else if(t < 6.6){ const q = pB2.clone().add(V(.55, -.1)); const k = (t - T_FRAPPE - D_FRAPPE)/(6.6 - T_FRAPPE - D_FRAPPE);
+      p = mix(ARRET, {buste:-.1, tete:-.3, eG:-.3, eD:-.3, eGz:-.3, eDz:.3, coG:-1.6, coD:-1.6}, doux(cl(k*2, 0, 1))); base = {x:q.x, z:q.z, cap:tourne('B', Math.atan2(BUT.x - q.x, BUT.z - q.z), dt)}; }
+    else { const q = pB2.clone().add(V(.55, -.1)); const tr = trajet('B', t, [[6.6, q], [8.4, V(13.5, 8.5)], [10.2, V(9.5, 11)]]); const e = marche('B', dt, tr.v);
+      p = avion(e.ph, Math.max(2, tr.v)); base = {x:tr.pos.x, z:tr.pos.z, cap:tourne('B', tr.cap ?? 0, dt, 5)}; }
+    applique(R.B, p, base);
+  }
+  /* --- C : le latéral qui accompagne au trot, puis rejoint la fête --- */
+  {
+    const tr = t < 6.6 ? trajet('C', t, [[0, V(-12, 9)], [6.6, V(4, 9)]]) : trajet('C', t, [[6.6, V(4, 9)], [10.5, V(10.5, 10.6)]]);
+    const v = t < 6.6 ? Math.max(2.4, tr.v) : tr.v; const e = marche('C', dt, v);
+    const p = t < 6.6 ? course(e.ph, v) : Object.assign(course(e.ph, v), {eG:-2.6, eD:-2.6, coG:-.2, coD:-.2});
+    applique(R.C, p, {x:tr.pos.x, z:tr.pos.z, cap:tourne('C', tr.cap ?? 0, dt)});
+  }
+  /* --- D : le défenseur qui revient au sprint, trop tard ; E : le stoppeur, mains sur les hanches après le but --- */
+  {
+    const tr = trajet('D', t, [[0, V(-1, -6)], [2.4, V(1, -5)], [5.3, V(9.1, -.9)], [6.2, V(9.6, -.6)]]); const e = marche('D', dt, tr.v);
+    const p = t > 6.4 ? DEPIT : course(e.ph, tr.v);
+    const cap = t > 6.2 ? tourne('D', Math.atan2(BUT.x - 9.6, BUT.z + .6), dt, 3) : tourne('D', tr.cap ?? 0, dt);
+    applique(R.D, p, {x:tr.pos.x, z:tr.pos.z, cap});
+    const tr2 = trajet('E', t, [[0, V(8, 4.5)], [3.2, V(8.4, 3.6)], [5.1, V(11.2, 2.2)], [5.8, V(11.8, 1.6)]]); const e2 = marche('E', dt, tr2.v);
+    const p2 = t > 6.3 ? DEPIT : (tr2.v < .5 ? ARRET : course(e2.ph, tr2.v));
+    const cap2 = (t < 3.2 || t > 5.8) ? tourne('E', Math.atan2(ballonPos.x - tr2.pos.x, ballonPos.z - tr2.pos.z), dt, 4) : tourne('E', tr2.cap ?? 0, dt);
+    applique(R.E, p2, {x:tr2.pos.x, z:tr2.pos.z, cap:cap2});
+  }
+  /* --- K : le gardien suit le ballon, puis plonge du mauvais côté de quelques centimètres --- */
+  {
+    let p, base; const xg = 16.2;
+    if(t < 5.2){ const zc = cl(ballonPos.z * .25, -1.5, 1.5); const e = marche('K', dt, .6);
+      const zk = (etats.K.z ?? 0) + (zc - (etats.K.z ?? 0)) * Math.min(1, dt*2); etats.K.z = zk;
+      p = Object.assign({}, ARRET, {buste:.3, gG:.55, gD:.55, hG:-.35, hD:-.35, hGz:.12, hDz:-.12, eG:-.4, eD:-.4, eGz:-.45, eDz:.45, coG:-1, coD:-1, haut:-.1 + .02*Math.sin(t*9)});
+      base = {x:xg, z:zk, cap:-Math.PI/2}; }
+    else { const k = cl((t - 5.2)/1.15, 0, 1); const z0 = etats.K.z ?? 0;
+      p = suite(PLONGEON, k); base = {x:xg + .2*k, z:z0 - 2.1*doux(cl(k*1.4, 0, 1)), cap:-Math.PI/2}; }
+    applique(R.K, p, base);
+  }
+}
+
+/* le ballon : conduite au pied, passe à ras de terre, contrôle, conduite, frappe en cloche légère, filet */
+let ballonPos = new THREE.Vector3();
+function piedDe(r){ const v = new THREE.Vector3(); r.chevilleD ? r.chevilleD.getWorldPosition(v) : r.genouD.getWorldPosition(v); return v; }
+function ballonA(t){
+  const devant = (r, d) => { const c = r.g.rotation.y; return new THREE.Vector3(r.g.position.x + Math.sin(c)*d, .11, r.g.position.z + Math.cos(c)*d); };
+  if(t < T_CONTACT_P){
+    if(t > T_PASSE){ const f = piedDe(R.A); return new THREE.Vector3(f.x, .11, f.z).lerp(devant(R.A, .5), .4); }
+    const touche = (t % .62)/.62; return devant(R.A, .45 + .75*touche*(1-touche)*2);
+  }
+  if(t < T_RECOIT){ const k = (t - T_CONTACT_P)/(T_RECOIT - T_CONTACT_P), a = devant(R.A, .5), b = pB1.clone().add(V(-.35, .45));
+    const p = lerpV(a, b, 1 - (1-k)*(1-k)); p.y = .11 + .06*Math.abs(Math.sin(k*9))*(1-k); return p; }
+  if(t < T_RECOIT + .5){ const k = (t - T_RECOIT)/.5; const a = pB1.clone().add(V(-.35, .45)), b = pB1.clone().add(V(.9, -.2)); const p = lerpV(a, b, doux(k)); p.y = .11; return p; }
+  if(t < T_CONTACT_F){
+    if(t > T_FRAPPE){ const c = R.B.g.rotation.y; return new THREE.Vector3(pB2.x + Math.sin(c)*.75, .11, pB2.z + Math.cos(c)*.75); }
+    const touche = ((t - T_RECOIT - .5) % .55)/.55; return devant(R.B, .5 + .8*touche*(1-touche)*2);
+  }
+  const depart = new THREE.Vector3(pB2.x + Math.sin(R.B.g.rotation.y)*.75, .11, pB2.z + Math.cos(R.B.g.rotation.y)*.75);
+  const T_BUT = T_CONTACT_F + .42;
+  if(t < T_BUT){ const k = (t - T_CONTACT_F)/(T_BUT - T_CONTACT_F); const p = depart.clone().lerp(BUT, k); p.y = .11 + (BUT.y - .11)*k + 1.1*k*(1-k); return p; }
+  if(t < T_BUT + .5){ const k = (t - T_BUT)/.5; const p = BUT.clone().lerp(FILET, k); p.y = BUT.y + (FILET.y - BUT.y)*k*k; return p; }
+  return FILET.clone();
+}
+
+/* ---------- la caméra ---------- */
+let camMode = 'action', angle = .75, angleMain = 0, hauteur = .9, vise = new THREE.Vector3(2, 0, 0);
+let tire = null;
+cv.addEventListener('pointerdown', e => { tire = {x:e.clientX, a:angleMain}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => { if(tire) angleMain = tire.a - (e.clientX - tire.x) * .008; });
+cv.addEventListener('pointerup', () => tire = null);
+
+/* ---------- le rendu en pixels ---------- */
+let pixels = 1.5; const NIV = [[1, 'Pixels : nets'], [1.5, 'Pixels : fins'], [2.5, 'Pixels : gros']];
+function taille(){ const w = innerWidth, h = innerHeight; renderer.setPixelRatio(1); renderer.setSize(Math.round(w/pixels), Math.round(h/pixels), false);
+  camera.aspect = w/h; camera.fov = w < h ? 44 : 30; camera.updateProjectionMatrix(); }
+addEventListener('resize', taille); taille();
+
+/* ---------- les boutons ---------- */
+let vitesse = 1;
+const bM = document.getElementById('bModele'), bR = document.getElementById('bRalenti'), bP = document.getElementById('bPixels'), bC = document.getElementById('bCam');
+bM.onclick = () => { modele = modele === 'apres' ? 'avant' : 'apres'; distribue(); bM.textContent = modele === 'apres' ? "Voir l'avant" : "Voir l'après"; document.getElementById('titre').textContent = modele === 'apres' ? 'APRÈS' : 'AVANT'; };
+bR.onclick = () => { vitesse = vitesse === 1 ? .3 : 1; bR.classList.toggle('on', vitesse !== 1); };
+bP.onclick = () => { const i = (NIV.findIndex(n => n[0] === pixels) + 1) % NIV.length; pixels = NIV[i][0]; bP.textContent = NIV[i][1]; taille(); };
+bC.onclick = () => { camMode = camMode === 'action' ? 'large' : camMode === 'large' ? 'pres' : 'action'; bC.textContent = 'Caméra : ' + ({action:'action', large:'large', pres:'au plus près'})[camMode]; };
+
+/* ---------- la boucle ---------- */
+let t = 0, avant = performance.now();
+function image(now){
+  const dt = Math.min(.05, (now - avant)/1000) * vitesse; avant = now;
+  t += dt; if(t >= BOUCLE){ t = 0; for(const n in etats) delete etats[n]; }
+  joue(t, dt);
+  ballonPos = ballonA(t); ballon.position.copy(ballonPos);
+  ballon.rotation.x += dt * 9; ballon.rotation.z += dt * 4;
+  ombreB.position.set(ballonPos.x, .02, ballonPos.z); ombreB.scale.setScalar(Math.max(.4, 1 - ballonPos.y*.25));
+  angle += dt * .05;
+  const cible = camMode === 'large' ? new THREE.Vector3(3, 0, 1) : ballonPos.clone().setY(0).lerp(V(8, 1), .25);
+  vise.lerp(cible, Math.min(1, dt*2.2));
+  const dist = camMode === 'large' ? 46 : camMode === 'pres' ? 11 : 24, a = angle + angleMain;
+  camera.position.set(vise.x + Math.sin(a)*dist, dist*hauteur*.62, vise.z + Math.cos(a)*dist);
+  camera.lookAt(vise.x, camMode === 'pres' ? .9 : .4, vise.z);
+  renderer.render(scene, camera);
+  requestAnimationFrame(image);
+}
+requestAnimationFrame(image);
+</script>
+</body>
+</html>

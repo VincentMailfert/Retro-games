@@ -2915,6 +2915,13 @@ toujours « raconter quelque chose ».
   direct (`.stFil`), tenues à jour par `stadeDirectBarre` depuis `stadeDirectScore` et `stadeDirectLigne` (`STD.ids`,
   `STD.der`). On entre déjà rapproché (zoom 0,55 en portrait, 0,8 en paysage) ; Échap, le bouton ou quitter le direct
   (`stadeDirectFerme`, après `match3dFerme`) en sortent.
+- **LES JOUEURS ATHLÉTIQUES ET LES SIÈGES AUX COULEURS DU CLUB (v3.10, choix de l'auteur du 18/11/2026 « 1A 2A mais pas
+  charpente et façade », prototype `docs/prototype-joueurs.html`)**, dans le bloc MATCH3D. `figurine()` est réécrite :
+  7,5 têtes, buste en V, membres en cylindres à sept pans, tête en icosaèdre, coiffures `COIFFES2` (court, mulet, raie,
+  frisé, long avec bandeau parfois, ras, dégarni), moustache, chaussettes roulées, short court ; mêmes articulations
+  (hanche à .98) plus `chevilleG/D`, donc allures, frappes, fêtes et banc inchangés. `ECHELLE` passe de 2,3 à 2,75.
+  Les gradins (`matRang`) prennent la couleur du maillot du club qui reçoit (un rang sur deux plus sombre, un sur cinq à
+  la couleur du short) ; **la charpente, le toit et la façade restent tels quels, à la demande de l'auteur.**
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup

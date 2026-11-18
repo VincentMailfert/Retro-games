@@ -243,12 +243,19 @@ function fabriqueMatch3D(THREE, o){
      Un côté = une bande de gradins le long d'un bord du rectangle intérieur (RX, RZ). Avec des virages, les quatre côtés
      se rejoignent par des coins arrondis : chaque rang devient un quart d'anneau autour du coin du rectangle. */
   const beton = M(0x9c9a8f), betonClair = M(0xb9b6a8), betonSombre = M(0x7d7b72);
+  /* LES SIÈGES AUX COULEURS DU CLUB (v3.10, choix de l'auteur du 18/11/2026 : « sièges grenat pour Metz », mais pas la
+     charpente ni la façade) : les gradins prennent la couleur du maillot du club qui reçoit, un rang sur deux un ton plus
+     sombre, et un rang sur cinq à la couleur du short, comme les bandes de sièges des stades des années 90. */
+  const teinte = (h, k) => { const c = new THREE.Color(hexInt(h)); c.lerp(new THREE.Color(0x8a8a86), .22); return c.multiplyScalar(k).getHex(); };
+  const coulSiege = o.dom&&o.dom.maillot||'#9c9a8f', coulBande = o.dom&&o.dom.short||'#f4edd8';
+  const siege1 = M(teinte(coulSiege, 1)), siege2 = M(teinte(coulSiege, .82)), siegeBande = M(teinte(coulBande, .95));
+  const matRang = r => (r%5===3) ? siegeBande : (r%2 ? siege2 : siege1);
   const places = [];
   const nCote = { fond:nFond, avant:nAvant };
   // cotés : 'N' (fond, z<0), 'S' (devant, z>0), 'O' (gauche, x<0), 'E' (droite, x>0). La caméra regarde depuis S et E.
   const rangsDe = c => (c==='N'||c==='O') ? nFond : nAvant;
   function rangDroit(cote, r, x0, x1){
-    const h=MARCHE*(r+1), d=r*PAS+PAS/2, long=x1-x0, mid=(x0+x1)/2, mat=r%2?beton:betonClair;
+    const h=MARCHE*(r+1), d=r*PAS+PAS/2, long=x1-x0, mid=(x0+x1)/2, mat=matRang(r);
     let m;
     if(cote==='N') m=box(long,h,PAS,mat,mid,h/2,-(RZ+d));
     if(cote==='S') m=box(long,h,PAS,mat,mid,h/2,(RZ+d));
@@ -260,7 +267,7 @@ function fabriqueMatch3D(THREE, o){
       places.push({x:p.x, y:h+.75, z:p.z, ph:rnd()*6.28, k:.6+rnd()*.8, camp:0, r:rnd(), cote, rang:r}); }
   }
   function rangCoin(sx, sz, r){
-    const h=MARCHE*(r+1), d=r*PAS+PAS/2, mat=r%2?beton:betonClair, cx=sx*RX, cz=sz*RZ;
+    const h=MARCHE*(r+1), d=r*PAS+PAS/2, mat=matRang(r), cx=sx*RX, cz=sz*RZ;
     const segs=Math.max(3, Math.round(d/2.4));
     // l'arc va de la direction de la ligne de touche (sz) à celle de la ligne de but (sx)
     const debut = sz>0 ? Math.PI/2 : -Math.PI/2, fin = sx>0 ? 0 : Math.PI;
@@ -556,7 +563,7 @@ function fabriqueMatch3D(THREE, o){
      ================================================================================================ */
   const PEAU = [0xf0c8a0,0xd9a77a,0x8d5a3b,0xc48b5e,0x5a3a26];
   const CHEVEUX = [0x2b1d12,0x6b4423,0xd8b46a,0x111111,0x8a5a2b];
-  const ECHELLE = 2.3;
+  const ECHELLE = 2.75;   // 2,3 jusqu'à la v3.09 : les joueurs athlétiques sont plus élancés, on les grandit un peu pour garder leur taille à l'écran
   const joueurs = [], gardiens = {};
   const SENS = {dom:1, ext:-1};
   const adverse = c => c==='dom'?'ext':'dom';
@@ -579,50 +586,78 @@ function fabriqueMatch3D(THREE, o){
     const m=new THREE.Mesh(geoOmbre, new THREE.MeshBasicMaterial({map:texOmbre, color:0x0a1a08, transparent:true, opacity:force, depthWrite:false}));
     m.renderOrder=2; scene.add(m); return m;
   }
+  /* LES JOUEURS ATHLÉTIQUES (v3.10, choix de l'auteur du 18/11/2026 « 1A », d'après docs/prototype-joueurs.html) : fini le
+     « petit bonhomme ». 7,5 têtes de haut au lieu de 6, épaules plus larges que la taille, cuisses et mollets galbés, en
+     formes taillées à facettes (cylindres à sept pans, tête en icosaèdre) pour garder le grain rétro. Le rétro tient au
+     look : mulet, frisé, raie, cheveux longs (parfois un bandeau), crâne dégarni, moustache, short court, chaussettes
+     roulées sur la cheville. Mêmes articulations qu'avant (corps à la hanche, à .98), on y ajoute la cheville : les allures,
+     les frappes, les fêtes et le banc n'ont pas changé d'une ligne. ECHELLE passe de 2,3 à 2,75 pour garder leur taille
+     à l'écran. */
+  const COIFFES2 = ['court','mulet','raie','frise','long','ras','court','mulet','degarni','raie'];
+  const cyl = (rh, rb, h, mat, seg=7) => new THREE.Mesh(new THREE.CylinderGeometry(rh, rb, h, seg), mat);
+  const ico = (r, d, mat) => new THREE.Mesh(new THREE.IcosahedronGeometry(r, d), mat);
+  const pose3 = (m, x, y, z, par) => { m.position.set(x, y, z); par.add(m); return m; };
   function figurine(tenue, gardien, habille){
     const g = new THREE.Group(); g.scale.setScalar(ECHELLE); g.rotation.order='YXZ';   // le cap d'abord, puis la bascule autour du corps
     const peau = M(PEAU[(rnd()*PEAU.length)|0]);
-    const cheveux = M(CHEVEUX[(rnd()*CHEVEUX.length)|0]), coiffe = COIFFES[(rnd()*COIFFES.length)|0];
+    const cheveux = M(CHEVEUX[(rnd()*CHEVEUX.length)|0]), coiffe = habille ? ['court','raie','degarni','ras'][(rnd()*4)|0] : COIFFES2[(rnd()*COIFFES2.length)|0];
+    const moustache = rnd() < (habille ? .45 : .2), bandeau = coiffe==='long' && rnd() < .5, bande = rnd() < .5;
     const maillot = M(hexInt(gardien?tenue.gk:tenue.maillot)), short = M(hexInt(gardien?'#1a1a1a':tenue.short));
-    const bas = gardien ? maillot : M(hexInt(tenue.bas||tenue.short)), crampon = M(0x141414);
-    const rien = (w,h,d,mat,x,y,z,par) => box(w,h,d,mat,x,y,z,par,false);
-    /* les jambes : la hanche porte la cuisse, le genou porte le tibia, la chaussette et le crampon */
+    const bas = gardien ? maillot : M(hexInt(tenue.bas||tenue.short)), noir = M(0x141414), blanc = M(0xf2f2ec);
+    const manches = gardien || habille;
+    /* le bassin et le short court (pantalon pour les entraîneurs et le banc) */
+    pose3(cyl(.17, .185, .2, short, 8), 0, .99, 0, g).scale.z = .66;
     const jambe = cote => {
-      const hanche=new THREE.Group(); hanche.position.set(cote*.17,.98,0);
-      rien(.26,.46,.26,habille?short:peau,0,-.23,0,hanche);
-      const genou=new THREE.Group(); genou.position.y=-.46; hanche.add(genou);
-      rien(.22,.2,.22,habille?short:peau,0,-.1,0,genou);
-      rien(.25,.26,.25,bas,0,-.33,0,genou);
-      rien(.25,.1,.36,crampon,0,-.48,.05,genou);
-      g.add(hanche); return {hanche, genou};
+      const hanche=new THREE.Group(); hanche.position.set(cote*.095,.98,0); g.add(hanche);
+      pose3(cyl(.098, .092, habille ? .44 : .15, short, 8), 0, habille ? -.22 : -.05, 0, hanche).scale.z = .9;
+      pose3(cyl(.088, .066, .44, habille ? short : peau), 0, -.24, 0, hanche);
+      const genou=new THREE.Group(); genou.position.y=-.45; hanche.add(genou);
+      pose3(cyl(.062, .05, .2, habille ? short : peau), 0, -.09, .005, genou);
+      pose3(cyl(.052, .044, .05, bas, 8), 0, -.2, 0, genou);
+      pose3(cyl(.048, .042, .16, habille ? short : bas), 0, -.3, 0, genou);
+      if(bande && !habille && !gardien) pose3(cyl(.049, .049, .025, blanc, 8), 0, -.24, 0, genou);
+      const cheville=new THREE.Group(); cheville.position.y=-.41; genou.add(cheville);
+      pose3(new THREE.Mesh(new THREE.BoxGeometry(.095, .075, .27), noir), 0, -.035, .055, cheville);
+      if(!habille) pose3(new THREE.Mesh(new THREE.BoxGeometry(.1, .02, .12), blanc), 0, -.01, .03, cheville);
+      return {hanche, genou, cheville};
     };
     const jg=jambe(-1), jd=jambe(1);
-    /* le haut du corps pivote aux hanches : il penche en avant au sprint, en arrière au freinage */
+    /* le buste en V, qui pivote à la hanche */
     const corps=new THREE.Group(); corps.position.y=.98; g.add(corps);
-    rien(.64,.3,.38,short,0,.02,0,corps);
-    rien(.7,.68,.4,maillot,0,.5,0,corps);
-    rien(.3,.06,.1,gardien?maillot:short,0,.8,.17,corps);   // le col
-    if(habille) rien(.74,.44,.44,maillot,0,-.1,0,corps);      // le bas du manteau ou de la veste
+    pose3(cyl(.235, .165, .46, maillot, 8), 0, .28, 0, corps).scale.z = .58;
+    pose3(cyl(.075, .085, .05, gardien||habille ? maillot : short, 8), 0, .52, .005, corps);   // le col
+    if(habille) pose3(cyl(.2, .24, .4, maillot, 8), 0, -.02, 0, corps).scale.z = .7;          // le bas du manteau ou de la veste
     const bras = cote => {
-      const epaule=new THREE.Group(); epaule.position.set(cote*.46,.78,0); corps.add(epaule);
-      rien(.2,.36,.22,maillot,0,-.16,0,epaule);
-      const coude=new THREE.Group(); coude.position.y=-.34; epaule.add(coude);
-      rien(.17,.3,.18,gardien?M(0x2a2a2a):habille?maillot:peau,0,-.15,0,coude);
+      const epaule=new THREE.Group(); epaule.position.set(cote*.25,.46,0); corps.add(epaule);
+      pose3(ico(.075, 0, maillot), 0, 0, 0, epaule);
+      pose3(cyl(.067, .06, manches ? .3 : .15, maillot), 0, manches ? -.14 : -.07, 0, epaule);
+      pose3(cyl(.052, .044, .28, manches ? maillot : peau), 0, -.15, 0, epaule);
+      const coude=new THREE.Group(); coude.position.y=-.29; epaule.add(coude);
+      pose3(cyl(.044, .034, .25, manches ? maillot : peau), 0, -.12, 0, coude);
+      pose3(ico(gardien ? .06 : .042, 0, gardien ? M(0xe9e2c8) : peau), 0, -.27, 0, coude);
       return {epaule, coude};
     };
     const bg=bras(-1), bd=bras(1);
-    const tete=new THREE.Group(); tete.position.y=.86; corps.add(tete);
-    rien(.18,.1,.18,peau,0,.04,0,tete);
-    rien(.42,.42,.42,peau,0,.3,0,tete);
-    rien(.06,.06,.02,M(0x1a1a1a),-.1,.32,.21,tete); rien(.06,.06,.02,M(0x1a1a1a),.1,.32,.21,tete);
-    if(coiffe!=='ras') rien(.46,.12,.46,cheveux,0,.55,-.01,tete);
-    if(coiffe==='court'||coiffe==='raie') rien(.46,.24,.1,cheveux,0,.4,-.2,tete);
-    if(coiffe==='raie') rien(.12,.08,.36,cheveux,.16,.6,.02,tete);
-    if(coiffe==='long'){ rien(.48,.42,.12,cheveux,0,.28,-.22,tete); rien(.06,.3,.36,cheveux,-.23,.36,-.03,tete); rien(.06,.3,.36,cheveux,.23,.36,-.03,tete); }
-    if(coiffe==='frise') rien(.56,.3,.54,cheveux,0,.58,-.03,tete);
-    if(coiffe==='ras') rien(.44,.04,.44,cheveux,0,.52,-.01,tete);
+    pose3(cyl(.05, .056, .1, peau), 0, .57, 0, corps);                                        // le cou
+    const tete=new THREE.Group(); tete.position.y=.61; corps.add(tete);
+    pose3(ico(.112, 1, peau), 0, .12, 0, tete).scale.set(.9, 1.1, 1);
+    pose3(new THREE.Mesh(new THREE.BoxGeometry(.03, .045, .04), peau), 0, .1, .108, tete);    // le nez
+    pose3(new THREE.Mesh(new THREE.BoxGeometry(.025, .015, .01), noir), -.04, .14, .1, tete);
+    pose3(new THREE.Mesh(new THREE.BoxGeometry(.025, .015, .01), noir), .04, .14, .1, tete);
+    pose3(new THREE.Mesh(new THREE.BoxGeometry(.02, .05, .03), peau), -.103, .12, 0, tete); pose3(new THREE.Mesh(new THREE.BoxGeometry(.02, .05, .03), peau), .103, .12, 0, tete);
+    const calotte = () => { const m = new THREE.Mesh(new THREE.SphereGeometry(.122, 8, 5, 0, Math.PI*2, 0, Math.PI*.55), cheveux); m.scale.set(.92, 1.05, 1.04); return pose3(m, 0, .14, -.01, tete); };
+    if(coiffe==='court') calotte();
+    if(coiffe==='mulet'){ calotte(); pose3(new THREE.Mesh(new THREE.BoxGeometry(.19, .2, .07), cheveux), 0, .02, -.1, tete); }
+    if(coiffe==='frise') pose3(ico(.15, 1, cheveux), 0, .18, -.015, tete).scale.set(1, .86, 1);
+    if(coiffe==='raie'){ calotte(); pose3(new THREE.Mesh(new THREE.BoxGeometry(.1, .04, .2), cheveux), .05, .245, .02, tete); }
+    if(coiffe==='long'){ calotte(); pose3(new THREE.Mesh(new THREE.BoxGeometry(.22, .28, .07), cheveux), 0, .02, -.1, tete);
+      pose3(new THREE.Mesh(new THREE.BoxGeometry(.03, .2, .14), cheveux), -.105, .08, -.03, tete); pose3(new THREE.Mesh(new THREE.BoxGeometry(.03, .2, .14), cheveux), .105, .08, -.03, tete);
+      if(bandeau) pose3(cyl(.118, .118, .03, blanc, 9), 0, .2, -.005, tete); }
+    if(coiffe==='ras') calotte().scale.multiplyScalar(.97);
+    if(coiffe==='degarni'){ const m = new THREE.Mesh(new THREE.SphereGeometry(.12, 8, 4, Math.PI*.2, Math.PI*1.6, Math.PI*.25, Math.PI*.3), cheveux); m.rotation.y = Math.PI; pose3(m, 0, .12, -.01, tete); }
+    if(moustache) pose3(new THREE.Mesh(new THREE.BoxGeometry(.085, .022, .02), cheveux), 0, .07, .105, tete);
     scene.add(g);
-    return {g, corps, tete, hancheG:jg.hanche, genouG:jg.genou, hancheD:jd.hanche, genouD:jd.genou,
+    return {g, corps, tete, hancheG:jg.hanche, genouG:jg.genou, chevilleG:jg.cheville, hancheD:jd.hanche, genouD:jd.genou, chevilleD:jd.cheville,
       epauleG:bg.epaule, coudeG:bg.coude, epauleD:bd.epaule, coudeD:bd.coude, ombre:ombreAuSol(.34), cap:0, vPrec:0, penche:0, roulis:0, regard:0, regardT:0, frappe:0, saut:0};
   }
   function placesFormation(xi){
