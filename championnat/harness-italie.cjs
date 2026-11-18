@@ -186,7 +186,9 @@ for (const cle of CLES) {
      rencontrera (seule exception admise à la règle « on ne touche pas aux assertions »). */
   const PARTICULES = new Set(["Le", "La", "Les", "De", "Del", "Della", "Da", "Das", "Dos", "Di", "Du",
     "Van", "Von", "Der", "Ten", "Ter", "El", "Al", "Ben", "Bin", "Mac", "Mc", "O", "Saint", "San",
-    "Mio", "Sarr", "Aït", "Dalla", "Santa"]);
+    "Mio", "Sarr", "Aït", "Dalla", "Santa",
+    /* ITA 1990-91 : Rafael Martín Vázquez (Torino), double nom espagnol, déjà blanchi par harness9293 (OM). */
+    "Martín"]);
   const suspects = Object.keys(ou).filter(n => {
     const m = /^[A-ZÀ-Þ]\.(-[A-ZÀ-Þ]\.)? ([A-ZÀ-Þ][a-zà-ÿ']+) [A-ZÀ-Þ]/.exec(n);
     return m && !PARTICULES.has(m[2]);

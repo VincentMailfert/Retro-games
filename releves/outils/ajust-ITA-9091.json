@@ -1,0 +1,28 @@
+{
+ "_note": "ITA 1990-91 (assemblée le 18/11/2026). Première saison italienne : aucune ancre italienne, 699 notes calculées et 20 héritées du recruteur de l'été. Distinctions vérifiées sur la Wikipédia anglaise (« 1990 Ballon d'Or », « 1990–91 Serie A », « 1990–91 Serie B »). Aucune pépite forcée : Transfermarkt (historique de transferts compris) injoignable cette nuit.",
+ "_forcer": [],
+ "_retirer": [
+  ["TOR", "Júnior", "aucun nom libre : « Júnior » est déjà un attaquant né vers 1970 dans le jeu, et Leovegildo Júnior est un défenseur né en 1954 (185 minutes)"]
+ ],
+ "_ajouter": [
+  ["TOR", "Gianluca Atzori", "remplace Júnior : défenseur au club depuis avant le coup d'envoi selon Transfermarkt (87 minutes)"]
+ ],
+ "_graphie": [
+  ["SAM", "Toninho Cerezo", "Toninho Cerezo", "surnom brésilien : « Toninho » n'est pas un prénom à réduire à son initiale (Antônio Carlos Cerezo)"],
+  ["BAI", "Gerson Caçapa", "Gerson Caçapa", "surnom brésilien, écrit en entier par Transfermarkt, comme Júlio César ou João Paulo"]
+ ],
+ "L. Matthäus": [89, 89, "Ballon d'or 1990 (137 points), seize buts en championnat, deuxième buteur de Serie A"],
+ "S. Schillaci": [81, 83, "deuxième du Ballon d'or 1990, meilleur buteur de la Coupe du monde 1990"],
+ "A. Brehme": [83, 83, "troisième du Ballon d'or 1990, champion du monde"],
+ "G. Vialli": [85, 87, "meilleur buteur de la Serie A avec dix-neuf buts, champion d'Italie"],
+ "R. Mancini": [84, 85, "champion d'Italie avec la Sampdoria, l'autre moitié du duo de Vialli"],
+ "Toninho Cerezo": [74, 74, "trente-cinq ans, champion d'Italie avec la Sampdoria (1 607 minutes), le calcul le laissait à 68"],
+ "C. Aguilera": [79, 79, "quinze buts, troisième buteur de la Serie A, quatrième place du Genoa"],
+ "G. Giannini": [77, 78, "capitaine de la Roma et international, le calcul le laissait à 74"],
+ "R. Donadoni": [79, 79, "international titulaire du Milan, le calcul le laissait à 76"],
+ "G. Zola": [75, 86, "vingt-quatre ans, au Napoli de Maradona, le calcul le laissait à 71"],
+ "A. Balbo": [76, 80, "vingt-deux buts, co-meilleur buteur de la Serie B (avec Baiano et Casagrande)"],
+ "F. Baiano": [75, 78, "vingt-deux buts, co-meilleur buteur de la Serie B, Foggia champion"],
+ "Casagrande": [75, 75, "vingt-deux buts, co-meilleur buteur de la Serie B, Ascoli promu"],
+ "G. Signori": [71, 82, "dans le trident de Zeman à Foggia, champion de Serie B, vingt-deux ans"]
+}
