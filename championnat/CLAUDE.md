@@ -6366,6 +6366,41 @@ marqueur en rend un. **Aucune ligne du jeu n'a bougé**, d'où aucune version ne
 compléteront, cas réel par cas réel et avec une note (« Lo », « Dal »…), comme ANG 1999-00 l'a fait pour « Dalla ».
 Gardé par **`harness-italie.cjs`**.
 
+### ITA 1990-91 — LE SCUDETTO DE BOSKOV (v3.05)
+Première saison italienne, assemblée par la tâche planifiée le 18/11/2026 à partir du relevé brut du 15/11 (`secours/2026-11-15`), mis
+au format de phase 1 dans `releves/ITA-1990-91`. **Transfermarkt était injoignable cette nuit** (`.de`, `.com`, `.co.uk`, historique de
+transferts compris) ; Wikipédia répondait. La Sampdoria de Boskov prend son seul scudetto (cinquante et un points, **deux points la
+victoire jusqu'en 1993-94**), cinq devant le Milan et l'Inter ; **Vialli meilleur buteur avec dix-neuf buts (85)**, Mancini 84,
+**Matthäus Ballon d'or 1990 (89)**, Schillaci deuxième (81), Brehme troisième (83). En Serie B, Baiano, Balbo et Casagrande co-meilleurs
+buteurs (vingt-deux buts). Sièges = `SIEGES_ITA[1990]`.
+**Le plateau à sa vraie taille** (décision de l'auteur, v3.00) : dix-huit clubs en Serie A, les vingt de Serie B, **aucun repêché ni
+écarté** ; `CLASSEMENT_REEL["ITA-1990-91"]` est exactement le plateau. Monza, Licata et Como restent dans `brut.json` pour arbitrer les
+doublons. **720 vrais joueurs** (20 × 18 + 18 × 20) ; le harnais de pays en veut exactement autant.
+**Notes** : aucune ancre italienne avant elle, donc **700 calculées et 20 héritées du recruteur de l'été** (Van Basten 89, Baresi 87,
+Maradona 87…) ; élite 70.3 / 70, dessous 65.8 / 66. Quatorze ajustements (`ajust-ITA-9091.json`), distinctions vérifiées sur la Wikipédia
+anglaise (« 1990 Ballon d'Or », « 1990–91 Serie A », « 1990–91 Serie B »). **Aucune pépite forcée**, faute d'historique de transferts.
+**Les arrivées ne sont pas recoupées** : « Im Team seit » seul (2 avant le 9 septembre 1990, coup d'envoi commun aux deux divisions ; 0
+pendant la saison, écarté ; 1 après, gardé avec sa remarque, 68 retenus ; `null`, 119 retenus). **Quarante et un doublons** rangés au
+club de leur dernière arrivée datée avant le coup d'envoi : **Ravanelli à Avellino** (199 minutes) et non à la Reggiana (2 875), à
+recouper le jour où l'historique répond.
+**L'Italie de 1990 joue à deux pointes** : vingt et un ailiers (Linksaußen, Rechtsaußen, Winger) passent en attaque là où l'effectif n'a
+pas quatre avant-centres ; six clubs restent sous quatre (Bologna, Foggia et son trident Rambaudi-Baiano-Signori, Cremonese, Taranto à
+trois, Brescia et Barletta à deux), tolérés comme Arsenal en ANG 2009-10.
+**Les pièges.** (1) **Deux Ciro Ferrara**, nés en 1967, défenseurs tous deux : celui du Napoli garde « C. Ferrara » (le jeu le connaît
+à la Juventus de 1995), celui de la Salernitana prend son nom entier ; `controle-graphies.cjs` signale la paire, ce sont deux hommes.
+(2) **Deux A. Orlando à l'Udinese** : Angelo garde l'initiale, Alessandro son nom entier ; Andrea Bianchi (Lucchese), Marco Ferrari
+(Parma) et Domenico Agostini (Taranto) en toutes lettres, leur nom court étant pris. (3) **Júnior** (Torino, défenseur né en 1954) n'a
+aucun nom libre : remplacé par Gianluca Atzori. **Angelo Calisti** (Hellas), né en 1948 selon la source, ligne retirée. (4) Les
+**surnoms brésiliens** que le résolveur abrégeait (« T. Cerezo », « G. Caçapa ») gardent leur forme par `_graphie` ; les noms courts
+italiens que Transfermarkt n'abrège pas (Luca Fusi, Ivo Pulga, Ciro Muro, Luca Moz, Edi Bivi) prennent leur initiale. (5) **Martín**
+(Rafael Martín Vázquez, Torino) entre dans la liste des particules de `harness-italie.cjs`, avec une note, comme dans `harness9293`.
+**Les outils prennent le pays en paramètre** : `verifie-releve.cjs` le lit dans le nom du dossier (taille de l'élite, deux ou trois
+points la victoire, effectif total), `assemble.cjs` le prend en quatrième argument (`ajust-<PAYS>-AAAA.json`, vivier du pays en plus du
+vivier commun), `inserer.cjs` dans `reglages.pays` (première saison d'un pays : tables après les dernières tables anglaises, entrée en fin
+de `SAISONS`, ligne `reel` dans `CLASSEMENT_REEL`). **Vérifié neutre pour l'Angleterre** : mêmes défauts aux quinze relevés anglais,
+même sortie d'assemblage pour 1994-95 et 2009-10, même `index.html` à l'insertion. Validation dédiée : **`harness-ita9091.cjs`**.
+**Restent à revoir quand Transfermarkt répondra** : les arrivées `1` et `null`, Ravanelli, et les pépites.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
