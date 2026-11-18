@@ -739,6 +739,14 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
   .boTxt{flex:1;display:flex;flex-direction:column;font-size:14px;}
   .boTxt .dim{font-size:13px;}
   .boAch{white-space:nowrap;min-height:40px;}
+  /* v3.13, ESSAI DES MISES EN PAGE DU DIRECT (provisoire, cf. MISES) : le commentaire face à l'image */
+  .ctlMise{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:4px 0 2px;font-size:13px;}
+  .ctlMise .act{padding:4px 8px;font-size:13px;min-height:32px;}
+  body.mise-soustitre .stDirect.en3d:not(.plein) .stFil{display:block;position:absolute;left:8px;right:8px;bottom:8px;z-index:2;padding:6px 10px;background:rgba(7,11,26,.84);border:2px solid #1d2633;pointer-events:none;font-family:var(--font-ui);font-size:22px;line-height:1.15;color:var(--clair);max-height:3.7em;overflow:hidden;}
+  body.mise-fige .stDirect.en3d.fige .stFil{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;position:absolute;inset:0;z-index:2;padding:12px 18px;background:rgba(7,11,26,.66);border:0;pointer-events:none;font-family:var(--font-ui);font-size:clamp(20px,3.4vw,32px);line-height:1.15;color:var(--clair);text-align:center;}
+  body.mode-direct.mise-vignette .stDirect:not(.plein){width:min(100%,36vh,420px);margin:6px auto 2px;}
+  body.mode-direct.mise-vignette #ticker{font-size:23px;line-height:1.25;}
+  body.mode-direct.mise-vignette #ticker>p.evt:first-child{font-size:26px;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -757,7 +765,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.12"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.13"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -25586,7 +25594,7 @@ function directSemaine(o){
     moiClub:()=>Hc.id===G.monClub?Hc:Ac, actif:()=>!fini && i<=sif()}) : null;
   const apres=(k, d)=>{ const go=()=>{ tickerTimer=setTimeout(tic,d); }; if(arrets) arrets.apres(k, go); else go(); };
   const tic=()=>{
-    if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
+    if(PAUSE_DIRECT || figeEnCours()){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
     // montée de tension : deux battements d'anticipation, devant un but comme devant une grosse occasion
@@ -25615,10 +25623,10 @@ function directSemaine(o){
     if(mo && !moFait && lg && lg.mo && courante===idxMo())
       return traiteMoment(lg, ()=>{ tickerTimer=setTimeout(tic, tickerDelai); }, true);
     if(lg && lg.g){ const contre=lg.g.cote!==G.monClub;
-      celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
+      butApresFilet(()=>celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(H.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(A.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
-        detail:lg.x}, ()=>{ const d=match3dActif()?Math.max(300,tickerDelai):300; match3dSuite(lignes[i], d); apres(courante,d); }); // avec la maquette, le temps de rejouer l'engagement
+        detail:lg.x}, ()=>{ const d=match3dActif()?Math.max(300,tickerDelai):300; match3dSuite(lignes[i], d); apres(courante,d); })); // avec la maquette, le temps de rejouer l'engagement ; v3.13 : la fenêtre attend que le ballon soit au fond
       return;
     }
     if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE
@@ -26506,7 +26514,7 @@ function lanceMatch(instant){
     actif:()=>!!G._pend && i<lignes.length});
   const apres=(k, d)=>{ const go=()=>{ tickerTimer=setTimeout(tic,d); }; if(arrets) arrets.apres(k, go); else go(); };
   const tic=()=>{
-    if(PAUSE_DIRECT){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
+    if(PAUSE_DIRECT || figeEnCours()){ tickerTimer=setTimeout(tic,250); return; } // en pause : on repasse sans avancer
     if(i>=lignes.length){ fin(); return; }
     const lg=lignes[i];
     // montée de tension : deux battements d'anticipation avant le flash, devant un BUT (lg.g) comme devant
@@ -26537,10 +26545,10 @@ function lanceMatch(instant){
     }
     if(lg && lg.g){ // BUT
       const contre=lg.g.cote!==G.monClub;
-      celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
+      butApresFilet(()=>celebreFlash({classe:contre?"contre":"", gros:titreBut(lg.g,contre),
         sub:`<b class="jaune">${esc(eM.h.nom)} ${lg.g.sh} - ${lg.g.sa} ${esc(eM.a.nom)}</b> · ${lg.m}'`,
         buteur:`${lg.g.but} ${lg.m}' ⚽`,
-        detail:lg.x}, ()=>{ const d=match3dActif()?Math.max(300,tickerDelai):300; match3dSuite(lignes[i], d); apres(courante,d); }); // avec la maquette, le temps de rejouer l'engagement
+        detail:lg.x}, ()=>{ const d=match3dActif()?Math.max(300,tickerDelai):300; match3dSuite(lignes[i], d); apres(courante,d); })); // avec la maquette, le temps de rejouer l'engagement ; v3.13 : la fenêtre attend que le ballon soit au fond
       return;
     }
     if(lg && lg.c && lg.c.rouge){ // CARTON ROUGE
@@ -30740,6 +30748,23 @@ function fabriqueMatch3D(THREE, o){
       }
       ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir,teteType,durTir,loin:v==='loin'||v==='tir'||v==='cf'};
     }
+    /* v3.13 (retour de l'auteur : « souvent la balle passe d'un côté à l'autre très brusquement, il faudrait que ce soit
+       par une succession de passes ») : quand l'action appartient à l'équipe qui n'a pas le ballon, son porteur le
+       recevait au pied d'un coup, à trente mètres parfois. On ouvre désormais l'action par la récupération : le plus
+       proche va chercher le ballon, puis le donne à celui qui lance l'attaque. Tout le reste de l'action glisse d'autant. */
+    if(ACT && !balleArretee && info.genre!=='corner-annonce' && !(B.porteur && B.porteur.camp===info.att) && porteur.pos.distanceTo(P0)>6){
+      const I = plusProche(champ, P0)[0] || porteur, p = I===porteur ? .18 : .32, r = u=>p+(1-p)*u;
+      for(const ks of K.values()) for(const k of ks) k.u=r(k.u);
+      for(const sg of S){ sg.u0=r(sg.u0); sg.u1=r(sg.u1); }
+      if(ACT.uTir<=1) ACT.uTir=r(ACT.uTir); if(ACT.uTacle!=null && ACT.uTacle<=1) ACT.uTacle=r(ACT.uTacle);
+      const bx=P0.x*s, bz=P0.z*s;
+      S.unshift({u0:0, u1:p*.5, a:new THREE.Vector3(P0.x,.62,P0.z), haut:.4});           // le ballon flotte, on va le chercher
+      key(I, p*.5, bx, bz);
+      if(I===porteur) S.splice(1,0,{u0:p*.5, u1:p, j:I});                                  // il repart balle au pied
+      else { const px=porteur.pos.x*s, pz=porteur.pos.z*s;                                // la passe au lanceur de l'attaque
+        S.splice(1,0,{u0:p*.5, u1:p, a:new THREE.Vector3(porteur.pos.x,.62,porteur.pos.z), haut:.8});
+        key(I, p, bx+2, bz); key(porteur, p, px, pz); }
+    }
     for(const [j,ks] of K){ ks.sort((a,b)=>a.u-b.u); ks.unshift({u:0,x:j.pos.x,z:j.pos.z}); j.tombe=0; }
     B.porteur=null; B.vol=null; B.filet=null; B.libre=null;
     if(ACT.A && info.genre!=='carton') montrerNom(ACT.A, ACT.T+1.6);
@@ -30800,7 +30825,8 @@ function fabriqueMatch3D(THREE, o){
       B.porteur=plusProche(equipe(info.def).filter(j=>!j.gardien), B.pos)[0]; etat.decision=1.2; return;
     }
     if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4);
-      if(!info.ligne.g) banniere('BUT !', a.A&&a.A.nom||'', 2600); return; }
+      if(a.scoreFilet){ etat.sc=a.scoreFilet; dessinerEcran(); }                       // v3.13 : le score change quand c'est au fond
+      banniere('BUT !', (info.ligne.g&&info.ligne.g.but)||(a.A&&a.A.nom)||'', 2600); return; }
     if(g==='arret'){
       const x=info.ligne.x||'', force = typeof window!=='undefined' && window.__geste==='claquette';
       const claque = force || /claqu|détourn|repouss|bout des doigts|en corner|boxe|des poings|parade|horizontal/i.test(x) || (!/capt|bloqu|s'empare|cueill|gants|sûr|dans ses bras/i.test(x) && Math.random()<(a.loin?.65:.4));   // v3.12 : de loin, il repousse plus souvent
@@ -30839,7 +30865,10 @@ function fabriqueMatch3D(THREE, o){
     const x=l.x||'';
     if(ACT && ACT.info.ligne===l) ACT.recue=true;                              // le tir part
     else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; if(etat.phase==='replacement' || (etat.phase==='avant' && etat.envoiDemande)) forceEnvoi(); lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
-    if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
+    /* v3.13 (retour de l'auteur : « un joueur a marqué mais je n'ai même pas eu le temps de voir la balle rentrer ») : quand
+       le tir est en l'air, le score et la bannière attendent qu'il soit au fond (issue) ; delaiFilet() dit au jeu combien. */
+    if(l.g && ACT && ACT.info.ligne===l && ACT.but) ACT.scoreFilet=[l.g.sh,l.g.sa];
+    else if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
       if(!(ACT && ACT.info.ligne===l) && etat.phase==='jeu'){
         const j=joueurs.find(p=>p.nom===l.g.but); if(j){ debutFete(j); montrerNom(j,4); } } }
     if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; releveGardiens(); banniere('FIN DU MATCH','',4000); }
@@ -31123,7 +31152,30 @@ function fabriqueMatch3D(THREE, o){
       }
       j.couche=false;
       if(etat.phase==='but' && etat.buteur && j.camp) poseFete(j, now, v);
-      if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
+      /* v3.13 (retour de l'auteur : « quand les joueurs tombent, ils sont tout droit, comme raides ») : on ne bascule plus
+         d'un bloc. Les genoux lâchent, le buste part en avant, les bras amortissent, on roule un peu en se tenant la
+         jambe, puis on se relève en poussant sur les mains. */
+      if(j.tombe>0){
+        if(!j.tombe0 || j.tombe>j.tombe0+.01){ j.tombe0=j.tombe; j.roule=Math.random()<.5?-1:1; }
+        const u=clamp(1-j.tombe/j.tombe0,0,1), r=j.roule||1;
+        let rx, ry, rz=0;
+        if(u<.28){ const w=u/.28, e=w*w;                                    // les jambes lâchent, on part en avant
+          rx=1.4*e; ry=.3+.05*w;
+          j.genouG.rotation.x=.4+.9*w; j.genouD.rotation.x=.2+.6*w; j.hancheG.rotation.x=-.2-.5*w; j.hancheD.rotation.x=.1;
+          j.epauleG.rotation.set(-1.2-1.0*w,0,-.3); j.epauleD.rotation.set(-1.1-1.0*w,0,.3); j.coudeG.rotation.x=j.coudeD.rotation.x=-.5;
+          j.corps.rotation.set(.35*w,0,.1*r); j.tete.rotation.x=-.5*w; }
+        else if(u<.8){ const w=(u-.28)/.52, roule=Math.sin(w*Math.PI);     // au sol : on se tient la jambe, on roule
+          rx=1.4; ry=.32; rz=.55*roule*r;
+          j.genouG.rotation.x=1.5; j.genouD.rotation.x=.3+.8*roule; j.hancheG.rotation.x=-.9; j.hancheD.rotation.x=-.3*roule;
+          j.epauleG.rotation.set(-.9,0,-.4); j.epauleD.rotation.set(-1.4,0,.2); j.coudeG.rotation.x=j.coudeD.rotation.x=-1.6;
+          j.corps.rotation.set(.45,0,.15*r); j.tete.rotation.x=-.6; }
+        else { const w=(u-.8)/.2;                                           // on se relève en poussant sur les mains
+          rx=1.4*(1-w); ry=.32*(1-w);
+          j.genouG.rotation.x=1.5*(1-w)+.1; j.genouD.rotation.x=1.2*(1-w)+.1; j.hancheG.rotation.x=-1.0*(1-w); j.hancheD.rotation.x=-.6*(1-w);
+          j.epauleG.rotation.set(-.4*(1-w),0,-.2); j.epauleD.rotation.set(-.4*(1-w),0,.2); j.coudeG.rotation.x=j.coudeD.rotation.x=-.3;
+          j.corps.rotation.set(.5*(1-w),0,0); j.tete.rotation.x=-.4*(1-w); }
+        j.g.rotation.set(rx, j.cap, rz); j.g.position.y=ry;
+      } else j.tombe0=0;
       if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
       /* v2.99 (retour de l'auteur du 16/11/2026 : au coup de sifflet, les gardiens rejoignaient le rond central couchés,
          en glissant sur le ventre) : un plongeon ne survit pas à l'action qui l'a lancé. Sans action en cours ni temps de
@@ -31309,6 +31361,10 @@ function fabriqueMatch3D(THREE, o){
 
   return {
     annonce, ligne,
+    /* v3.13 : dans combien de millisecondes le tir de but en cours sera au fond (0 s'il n'y en a pas) */
+    delaiFilet(){ const a=ACT; if(!a || !a.but || !a.durTir || a.uTir>1) return 0;
+      const s = a.u<a.uTir ? .25+a.durTir : (1-a.u)/Math.max(1e-3,1-a.uTir)*a.durTir;
+      return Math.round(s*1000)+250; },
     camera(m){ cam.mode=m; },
     zoom(z){ if(typeof z==='number') cam.zoom=clamp(z,.3,1.5); return cam.zoom; },
     ferme(){
@@ -31357,14 +31413,14 @@ function match3dOuvre(H, A, o, dom, ext, R){
     stade:Object.assign({}, R||{}, {cap}), // tout l'état du stade, comme la maquette de l'écran Club : chez vous le vôtre, ailleurs celui du club qui reçoit
     dom:{id:H.id, maillot:dom[0], short:dom[1], xi:xiDuMatch(H, o && o.onzeFn)},
     ext:{id:A.id, maillot:ext[0], short:ext[1], xi:xiDuMatch(A, o && o.onzeFn)},
-    enPause:()=>PAUSE_DIRECT };
+    enPause:()=>PAUSE_DIRECT || figeEnCours() };
   match3dCharge().then(THREE=>{
     if(!M3D || M3D.jeton!==jeton) return;
     const bande=document.getElementById("stDirect"); if(!bande) return;
     const cv=document.createElement("canvas"); cv.className="st3d"; cv.setAttribute("role","img"); cv.setAttribute("aria-label","Le match en maquette");
     bande.appendChild(cv);
     let sc=null; try{ sc=fabriqueMatch3D(THREE, Object.assign({canvas:cv}, reglages)); }catch(e){ cv.remove(); M3D=null; stadeDirect2D(); return; }
-    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d"); bande.classList.remove("attente3d"); if(STD){ STD.attente=false; if(STD.secours){ clearTimeout(STD.secours); STD.secours=null; } } stadeDirectBoutonPlein(bande);
+    M3D.sc=sc; M3D.cv=cv; bande.classList.add("en3d"); bande.classList.remove("attente3d"); barreMise(); if(STD){ STD.attente=false; if(STD.secours){ clearTimeout(STD.secours); STD.secours=null; } } stadeDirectBoutonPlein(bande);
     if(STD && STD.tic){ clearInterval(STD.tic); STD.tic=null; } // la bande 2D s'efface et ne se repeint plus
     for(const [f,a] of M3D.file){ try{ sc[f](...a); }catch(e){} }
     M3D.file=[];
@@ -31372,11 +31428,53 @@ function match3dOuvre(H, A, o, dom, ext, R){
   }).catch(()=>{ if(M3D && M3D.jeton===jeton){ M3D=null; stadeDirect2D(); } });
 }
 function match3dEnvoie(f, args){ if(!M3D) return; if(M3D.sc){ try{ M3D.sc[f](...args); }catch(e){} } else M3D.file.push([f, args]); }
-function match3dLigne(l){ if(l) match3dEnvoie("ligne", [l]); }
+function match3dLigne(l){ figeSur(l); if(l) match3dEnvoie("ligne", [l]); } // v3.13, essai « Figé » : l’image s’arrête sur le temps fort
 function match3dAnnonce(l, ms){ if(l) match3dEnvoie("annonce", [l, ms]); }
 /* la ligne qui suit : une ligne qui aura sa montée de tension sera annoncée par la montée elle-même */
 function match3dSuite(l, ms){ if(!l) return; if((l.g || (l.q && l.q.bu)) && (l._monte||0)<2) return; match3dAnnonce(l, ms); }
 function match3dFerme(){ if(!M3D) return; const m=M3D; M3D=null; if(m.veille) clearInterval(m.veille); if(m.sc){ try{ m.sc.ferme(); }catch(e){} } if(m.cv) m.cv.remove(); }
+/* LE BUT QU'ON VOIT ENTRER (v3.13, retour de l'auteur : « je n'ai même pas eu le temps de voir la balle rentrer ») : la
+   grande fenêtre du but attend que la maquette ait mis le ballon au fond (delaiFilet), image figée comprise. */
+function match3dDelaiFilet(){ try{ return M3D && M3D.sc && M3D.sc.delaiFilet ? M3D.sc.delaiFilet() : 0; }catch(e){ return 0; } }
+function butApresFilet(fn){
+  const d=match3dActif() ? match3dDelaiFilet()+figeReste() : 0;
+  if(d<=0) return fn();
+  setTimeout(()=>{ if(typeof document!=="undefined" && document.body && document.body.classList.contains("mode-direct")) fn(); }, d);
+}
+/* ESSAI DES QUATRE MISES EN PAGE (v3.13, chantier « le commentaire et l'image », demande de l'auteur du 18/11/2026 :
+   « on a fait des super commentaires, mais plus personne ne les lira ») : un sélecteur provisoire sous la bande du
+   direct, pour comparer en jouant. « image » = comme avant ; « soustitre » = la ligne s'écrit en grand sur l'image ;
+   « fige » = sur un temps fort, l'image s'arrête deux secondes, la ligne en grand par-dessus ; « vignette » = l'image
+   rétrécit, le fil grossit. Le choix est retenu dans le navigateur. À retirer une fois la version choisie. */
+const MISES=[["image","Image"],["soustitre","Sous-titre"],["fige","Figé"],["vignette","Vignette"]];
+let MISE=(()=>{ try{ const v=localStorage.getItem("d1manager_mise_v1"); return MISES.some(m=>m[0]===v) ? v : "image"; }catch(e){ return "image"; } })();
+let FIGE_FIN=0;
+function figeReste(){ return Math.max(0, FIGE_FIN-Date.now()); }
+function figeEnCours(){ return MISE==="fige" && figeReste()>0; }
+function poseMise(v){
+  MISE=v; try{ localStorage.setItem("d1manager_mise_v1", v); }catch(e){}
+  if(typeof document==="undefined" || !document.body) return;
+  for(const [k] of MISES) document.body.classList.toggle("mise-"+k, k===MISE);
+  const bar=document.getElementById("ctlMise"); if(bar) bar.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.v===MISE));
+  FIGE_FIN=0; const bande=document.getElementById("stDirect"); if(bande) bande.classList.remove("fige");
+  stadeDirectBarre();
+}
+function barreMise(){
+  if(typeof document==="undefined" || !document.getElementById) return;
+  const bande=document.getElementById("stDirect"); if(!bande || document.getElementById("ctlMise")) return;
+  bande.insertAdjacentHTML("afterend", `<div id="ctlMise" class="ctlMise"><span class="dim">Essai :</span>${MISES.map(([k,t])=>`<button class="act" data-v="${k}">${t}</button>`).join("")}</div>`);
+  document.querySelectorAll("#ctlMise button").forEach(b=>b.onclick=()=>poseMise(b.dataset.v));
+  poseMise(MISE);
+}
+/* une ligne qui raconte un temps fort : tir, but, arrêt, raté, carton */
+function ligneFortes(l){ return !!l && (!!l.g || !!l.c || (l.t==="occ" && (l.ic==="arret" || l.ic==="rate"))); }
+function figeSur(l){
+  if(MISE!=="fige" || !match3dActif() || !ligneFortes(l)) return;
+  FIGE_FIN=Date.now()+2000;
+  const bande=document.getElementById("stDirect"); if(!bande) return;
+  bande.classList.add("fige");
+  setTimeout(()=>{ const b=document.getElementById("stDirect"); if(b && figeReste()<=0) b.classList.remove("fige"); }, 2050);
+}
 function stadeAutre(cap){ const s=stadeDefaut(); cap=cap||12000;
   return {cap, aff:.8, virages:cap>=22000?1:0, eclairage:cap>=30000?2:1, toit:cap>=42000?1:0, loges:cap>=35000?1:0, ecran:cap>=28000?1:0,
     chauffante:0, led:cap>=45000?1:0, boutique:0, buvette:cap>=15000?1:0, restaurant:0, musee:0, hotel:0, transport:cap>=40000?1:0,
@@ -31457,7 +31555,18 @@ function stadeDirectBarre(){
   const barre=bande.querySelector(".stBarre"), fil=bande.querySelector(".stFil"); if(!barre || !fil) return;
   const [h,a]=STD.sc, ids=STD.ids||["",""], m=STD.der ? String(STD.der.m).padStart(2,"0")+"'" : "";
   barre.innerHTML=`<span>${esc(ids[0])}</span><b>${h} - ${a}</b><span>${esc(ids[1])}</span><span>${m}</span>`;
-  fil.innerHTML=STD.der ? `<b>${m}</b>${esc(STD.der.x||"")}` : "";
+  const tx=STD.der ? String(STD.der.x||"") : "";
+  if(STD.machine){ clearInterval(STD.machine); STD.machine=null; }
+  /* v3.13, essai « Sous-titre » : la ligne s'écrit lettre après lettre, comme au télétexte (les autres versions l'écrivent d'un coup) */
+  if(MISE==="soustitre" && tx && !REDUIT && STD.tape!==tx){
+    STD.tape=tx; let n=0; const pas=Math.max(1, Math.round(tx.length/60));
+    fil.innerHTML=`<b>${m}</b><span></span>`; const sp=fil.querySelector("span");
+    const id=setInterval(()=>{ n=Math.min(tx.length, n+pas); if(sp) sp.textContent=tx.slice(0,n);
+      if(n>=tx.length || !STD || STD.machine!==id){ clearInterval(id); if(STD && STD.machine===id) STD.machine=null; } }, 28);
+    STD.machine=id;
+    return;
+  }
+  fil.innerHTML=STD.der ? `<b>${m}</b>${esc(tx)}` : "";
 }
 function stadeDirectScore(sh, sa){
   if(!STD) return;

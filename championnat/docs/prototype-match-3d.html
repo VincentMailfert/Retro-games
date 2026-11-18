@@ -1148,6 +1148,23 @@ function fabriqueMatch3D(THREE, o){
       }
       ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir,teteType,durTir,loin:v==='loin'||v==='tir'||v==='cf'};
     }
+    /* v3.13 (retour de l'auteur : « souvent la balle passe d'un côté à l'autre très brusquement, il faudrait que ce soit
+       par une succession de passes ») : quand l'action appartient à l'équipe qui n'a pas le ballon, son porteur le
+       recevait au pied d'un coup, à trente mètres parfois. On ouvre désormais l'action par la récupération : le plus
+       proche va chercher le ballon, puis le donne à celui qui lance l'attaque. Tout le reste de l'action glisse d'autant. */
+    if(ACT && !balleArretee && info.genre!=='corner-annonce' && !(B.porteur && B.porteur.camp===info.att) && porteur.pos.distanceTo(P0)>6){
+      const I = plusProche(champ, P0)[0] || porteur, p = I===porteur ? .18 : .32, r = u=>p+(1-p)*u;
+      for(const ks of K.values()) for(const k of ks) k.u=r(k.u);
+      for(const sg of S){ sg.u0=r(sg.u0); sg.u1=r(sg.u1); }
+      if(ACT.uTir<=1) ACT.uTir=r(ACT.uTir); if(ACT.uTacle!=null && ACT.uTacle<=1) ACT.uTacle=r(ACT.uTacle);
+      const bx=P0.x*s, bz=P0.z*s;
+      S.unshift({u0:0, u1:p*.5, a:new THREE.Vector3(P0.x,.62,P0.z), haut:.4});           // le ballon flotte, on va le chercher
+      key(I, p*.5, bx, bz);
+      if(I===porteur) S.splice(1,0,{u0:p*.5, u1:p, j:I});                                  // il repart balle au pied
+      else { const px=porteur.pos.x*s, pz=porteur.pos.z*s;                                // la passe au lanceur de l'attaque
+        S.splice(1,0,{u0:p*.5, u1:p, a:new THREE.Vector3(porteur.pos.x,.62,porteur.pos.z), haut:.8});
+        key(I, p, bx+2, bz); key(porteur, p, px, pz); }
+    }
     for(const [j,ks] of K){ ks.sort((a,b)=>a.u-b.u); ks.unshift({u:0,x:j.pos.x,z:j.pos.z}); j.tombe=0; }
     B.porteur=null; B.vol=null; B.filet=null; B.libre=null;
     if(ACT.A && info.genre!=='carton') montrerNom(ACT.A, ACT.T+1.6);
@@ -1208,7 +1225,8 @@ function fabriqueMatch3D(THREE, o){
       B.porteur=plusProche(equipe(info.def).filter(j=>!j.gardien), B.pos)[0]; etat.decision=1.2; return;
     }
     if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4);
-      if(!info.ligne.g) banniere('BUT !', a.A&&a.A.nom||'', 2600); return; }
+      if(a.scoreFilet){ etat.sc=a.scoreFilet; dessinerEcran(); }                       // v3.13 : le score change quand c'est au fond
+      banniere('BUT !', (info.ligne.g&&info.ligne.g.but)||(a.A&&a.A.nom)||'', 2600); return; }
     if(g==='arret'){
       const x=info.ligne.x||'', force = typeof window!=='undefined' && window.__geste==='claquette';
       const claque = force || /claqu|détourn|repouss|bout des doigts|en corner|boxe|des poings|parade|horizontal/i.test(x) || (!/capt|bloqu|s'empare|cueill|gants|sûr|dans ses bras/i.test(x) && Math.random()<(a.loin?.65:.4));   // v3.12 : de loin, il repousse plus souvent
@@ -1247,7 +1265,10 @@ function fabriqueMatch3D(THREE, o){
     const x=l.x||'';
     if(ACT && ACT.info.ligne===l) ACT.recue=true;                              // le tir part
     else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; if(etat.phase==='replacement' || (etat.phase==='avant' && etat.envoiDemande)) forceEnvoi(); lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
-    if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
+    /* v3.13 (retour de l'auteur : « un joueur a marqué mais je n'ai même pas eu le temps de voir la balle rentrer ») : quand
+       le tir est en l'air, le score et la bannière attendent qu'il soit au fond (issue) ; delaiFilet() dit au jeu combien. */
+    if(l.g && ACT && ACT.info.ligne===l && ACT.but) ACT.scoreFilet=[l.g.sh,l.g.sa];
+    else if(l.g){ etat.sc=[l.g.sh,l.g.sa]; dessinerEcran(); banniere('BUT !', l.g.but, 2600);
       if(!(ACT && ACT.info.ligne===l) && etat.phase==='jeu'){
         const j=joueurs.find(p=>p.nom===l.g.but); if(j){ debutFete(j); montrerNom(j,4); } } }
     if(l.t==='sys' && /^COUP DE SIFFLET FINAL/.test(x)){ etat.phase='fin'; ACT=null; ATT=null; releveGardiens(); banniere('FIN DU MATCH','',4000); }
@@ -1531,7 +1552,30 @@ function fabriqueMatch3D(THREE, o){
       }
       j.couche=false;
       if(etat.phase==='but' && etat.buteur && j.camp) poseFete(j, now, v);
-      if(j.tombe>0){ j.g.rotation.x=-Math.PI/2*Math.min(1,(1.6-j.tombe)*5); j.g.position.y=.3; }
+      /* v3.13 (retour de l'auteur : « quand les joueurs tombent, ils sont tout droit, comme raides ») : on ne bascule plus
+         d'un bloc. Les genoux lâchent, le buste part en avant, les bras amortissent, on roule un peu en se tenant la
+         jambe, puis on se relève en poussant sur les mains. */
+      if(j.tombe>0){
+        if(!j.tombe0 || j.tombe>j.tombe0+.01){ j.tombe0=j.tombe; j.roule=Math.random()<.5?-1:1; }
+        const u=clamp(1-j.tombe/j.tombe0,0,1), r=j.roule||1;
+        let rx, ry, rz=0;
+        if(u<.28){ const w=u/.28, e=w*w;                                    // les jambes lâchent, on part en avant
+          rx=1.4*e; ry=.3+.05*w;
+          j.genouG.rotation.x=.4+.9*w; j.genouD.rotation.x=.2+.6*w; j.hancheG.rotation.x=-.2-.5*w; j.hancheD.rotation.x=.1;
+          j.epauleG.rotation.set(-1.2-1.0*w,0,-.3); j.epauleD.rotation.set(-1.1-1.0*w,0,.3); j.coudeG.rotation.x=j.coudeD.rotation.x=-.5;
+          j.corps.rotation.set(.35*w,0,.1*r); j.tete.rotation.x=-.5*w; }
+        else if(u<.8){ const w=(u-.28)/.52, roule=Math.sin(w*Math.PI);     // au sol : on se tient la jambe, on roule
+          rx=1.4; ry=.32; rz=.55*roule*r;
+          j.genouG.rotation.x=1.5; j.genouD.rotation.x=.3+.8*roule; j.hancheG.rotation.x=-.9; j.hancheD.rotation.x=-.3*roule;
+          j.epauleG.rotation.set(-.9,0,-.4); j.epauleD.rotation.set(-1.4,0,.2); j.coudeG.rotation.x=j.coudeD.rotation.x=-1.6;
+          j.corps.rotation.set(.45,0,.15*r); j.tete.rotation.x=-.6; }
+        else { const w=(u-.8)/.2;                                           // on se relève en poussant sur les mains
+          rx=1.4*(1-w); ry=.32*(1-w);
+          j.genouG.rotation.x=1.5*(1-w)+.1; j.genouD.rotation.x=1.2*(1-w)+.1; j.hancheG.rotation.x=-1.0*(1-w); j.hancheD.rotation.x=-.6*(1-w);
+          j.epauleG.rotation.set(-.4*(1-w),0,-.2); j.epauleD.rotation.set(-.4*(1-w),0,.2); j.coudeG.rotation.x=j.coudeD.rotation.x=-.3;
+          j.corps.rotation.set(.5*(1-w),0,0); j.tete.rotation.x=-.4*(1-w); }
+        j.g.rotation.set(rx, j.cap, rz); j.g.position.y=ry;
+      } else j.tombe0=0;
       if(j.plongeReste>0){ j.plongeReste-=dt; if(j.plongeReste<=0) j.plongeF=0; }
       /* v2.99 (retour de l'auteur du 16/11/2026 : au coup de sifflet, les gardiens rejoignaient le rond central couchés,
          en glissant sur le ventre) : un plongeon ne survit pas à l'action qui l'a lancé. Sans action en cours ni temps de
@@ -1717,6 +1761,10 @@ function fabriqueMatch3D(THREE, o){
 
   return {
     annonce, ligne,
+    /* v3.13 : dans combien de millisecondes le tir de but en cours sera au fond (0 s'il n'y en a pas) */
+    delaiFilet(){ const a=ACT; if(!a || !a.but || !a.durTir || a.uTir>1) return 0;
+      const s = a.u<a.uTir ? .25+a.durTir : (1-a.u)/Math.max(1e-3,1-a.uTir)*a.durTir;
+      return Math.round(s*1000)+250; },
     camera(m){ cam.mode=m; },
     zoom(z){ if(typeof z==='number') cam.zoom=clamp(z,.3,1.5); return cam.zoom; },
     ferme(){
