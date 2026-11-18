@@ -2917,6 +2917,13 @@ toujours « raconter quelque chose ».
   voir le jeu). Au téléphone, en `mode-direct`, le fil remonte juste sous le stade et prend la hauteur libre, la dernière
   ligne ressort, les commandes se tassent en deux rangées de 34 px en bas. **`remonteFil(tk)`** remplace `tk.scrollTop=0` :
   une ligne neuve ne ramène en haut que si l'on y est déjà, qui relit les lignes d'avant n'est plus ramené de force.
+- **LE COUP DE SIFFLET SUR ORDINATEUR (v3.07, 18/11/2026, retour de l'auteur : « grosse galère de trouver ce bouton sur
+  desktop une fois le match terminé »)** : en 2:1 sur toute la largeur, la maquette mangeait presque tout l'écran d'un
+  ordinateur et le fil, où tombent la feuille et les deux cartes du multiplex, n'avait plus qu'un filet. Au sifflet,
+  `afficheFeuille` pose la classe **`direct-fini`** sur `body` : la maquette se resserre au centre (`width:min(100%,64vh)`,
+  même proportion, donc un tiers de la hauteur au plus ; rien ne change au téléphone, déjà sous ce plafond). Le bouton de
+  bas de carte (« Le classement ▸ », « Partager le score », « Prochaine journée ») est **collant au bas du fil**
+  (`position:sticky`) : visible même quand la carte dépasse. La classe tombe au coup d'envoi suivant et dans `abandonneDirect`.
 - **LE CENTRE D'ENTRAÎNEMENT EN CAMPUS (v1.53)** : l'ancien `G.centre` (un niveau de 1 à 5, 8 MF × niveau, une ligne de
   texte) devient un **campus de six bâtiments à trois niveaux, plus un château**. **Référence visuelle et fonctionnelle :
   `docs/prototype-centre.html`**, conçu avec l'auteur (copie de l'artifact « Le centre d'entraînement ») ; on ne réinvente

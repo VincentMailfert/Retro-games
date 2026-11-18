@@ -596,6 +596,14 @@ body.mode-direct #corps>.panelDirect{display:flex;flex-direction:column;flex:1 1
 body.mode-direct #ticker{flex:1 1 auto;max-height:none;min-height:0;font-size:19px}
 body.mode-direct #ticker p{margin-bottom:5px}
 body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton verdict/prochaine journée (coupe & europe) */
+/* AU COUP DE SIFFLET (v3.07, retour de l'auteur : « grosse galère de trouver ce bouton sur ordinateur une fois le match
+   terminé »). Sur un écran d'ordinateur, la maquette en 2:1 prend toute la largeur, donc presque toute la hauteur : le
+   téléscripteur, où tombent la feuille de match et les deux cartes, n'avait plus qu'un filet en bas de page. Le match fini,
+   la maquette se resserre au centre (même proportion, un tiers de la hauteur au plus) et le fil récupère la place. Sur
+   téléphone, la règle ne change rien : la largeur de l'écran est déjà sous ce plafond. */
+body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:6px auto 2px}
+/* et le bouton de la carte reste collé au bas du fil, même quand la carte est plus haute que lui */
+#mpxHote .mpx>p.ctr:last-child{position:sticky;bottom:-10px;z-index:1;margin:9px -10px -10px !important;padding:9px 10px 10px;background:#060d18;border-top:1px solid var(--line)}
 
 #vCycle, #tacOuvre{display:none}
 .tacTiroir{display:inline}
@@ -746,7 +754,7 @@ body.mode-direct #corps>#preMatchAct{flex:0 0 auto;margin:8px 0 0} /* bouton ver
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.06"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.07"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -24665,7 +24673,7 @@ function rafraichir(){ if(EN_TEST())return; if(VUECLUB) ecranClubVue(VUECLUB); e
 function abandonneDirect(){
   PAUSE_DIRECT=false; UID_SOIR=null; // un match quitté ne reste jamais figé
   stadeDirectFerme();
-  if(typeof document!=="undefined" && document.body) document.body.classList.remove("mode-direct","mode-intro"); // on quitte le plein écran match (ou le mot d'ouverture)
+  if(typeof document!=="undefined" && document.body) document.body.classList.remove("mode-direct","mode-intro","direct-fini"); // on quitte le plein écran match (ou le mot d'ouverture)
   if(tickerTimer){ clearTimeout(tickerTimer); tickerTimer=null; }
   if(butFlashTimer){ clearTimeout(butFlashTimer); butFlashTimer=null; }
   const bf=document.getElementById("butFlash"); if(bf) bf.remove();
@@ -26283,7 +26291,7 @@ function rendMultiplex(hote, carte, fini){
 
 function lanceMatch(instant){
   // le coup d'envoi est donné : on passe en mode direct plein écran (le match prend tout l'écran), retiré au sifflet par abandonneDirect
-  if(document.body) document.body.classList.add("mode-direct");
+  if(document.body){ document.body.classList.add("mode-direct"); document.body.classList.remove("direct-fini"); }
   // le coup d'envoi est donné : on retire les boutons d'avant-match (ils reviendront en « Prochaine journée 📆 » au sifflet)
   { const bJ=document.getElementById("bJouer"); if(bJ&&bJ.style) bJ.style.display="none";
     const bV=document.getElementById("bVite");  if(bV&&bV.style) bV.style.display="none"; }
@@ -26375,6 +26383,7 @@ function lanceMatch(instant){
       // LE MULTIPLEX (v1.17) : les neuf autres scores ne tombent plus en vrac sous la feuille — ils
       // ouvrent une carte qui dit lesquels comptent, suivie du classement et de ce qu'on y a gagné.
       // Le bouton de sortie vit désormais au bas de la seconde carte : on passe donc par elle.
+      if(document.body) document.body.classList.add("direct-fini"); // v3.07 : la maquette se resserre, le fil et ses boutons reprennent la place
       remonteFil(tk);
       rendMultiplex(document.getElementById("mpxHote"), 1, ()=>montre("calendrier"));
       ouvreDefis(); // un défi relevé ce samedi : sa fenêtre, tout de suite (v2.81)
