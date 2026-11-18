@@ -757,7 +757,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.11"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.12"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -30377,8 +30377,24 @@ function fabriqueMatch3D(THREE, o){
       publicMesh.setColorAt(i,tmpC.set(visiteur? ce[(rnd()*ce.length)|0] : cd[(rnd()*cd.length)|0])); });
     publicMesh.instanceMatrix.needsUpdate=true; if(publicMesh.instanceColor) publicMesh.instanceColor.needsUpdate=true; }
 
-  /* ---------- le ballon ---------- */
-  const ballon = new THREE.Mesh(new THREE.IcosahedronGeometry(.62,0), new THREE.MeshLambertMaterial({color:0xfafafa, flatShading:true}));
+  /* ---------- le ballon ----------
+     v3.12 (retour de l'auteur : « la balle ressemble à une grosse boule de neige ») : plus petit, et ses douze
+     pentagones noirs, le ballon des années 90. Un icosaèdre redécoupé : les facettes qui entourent chacun des douze
+     sommets d'origine passent au noir. Le jeu le pose toujours à .62 du sol (B.pos) ; on le descend au rendu. */
+  const R_BALLON = .44;
+  const ballon = (()=>{
+    const geo = new THREE.IcosahedronGeometry(R_BALLON, 2), pos = geo.attributes.position, n = pos.count;
+    const t = (1+Math.sqrt(5))/2, som = [[-1,t,0],[1,t,0],[-1,-t,0],[1,-t,0],[0,-1,t],[0,1,t],[0,-1,-t],[0,1,-t],[t,0,-1],[t,0,1],[-t,0,-1],[-t,0,1]]
+      .map(v=>new THREE.Vector3(...v).normalize());
+    const col = new Float32Array(n*3), c = new THREE.Vector3(), noir = new THREE.Color(0x1d1d24), blanc = new THREE.Color(0xf1ede2);
+    for(let f=0; f<n; f+=3){
+      c.set(0,0,0); for(let k=0;k<3;k++) c.add(new THREE.Vector3().fromBufferAttribute(pos, f+k)); c.normalize();
+      const pres = Math.max(...som.map(s=>s.dot(c))), teinte = pres>Math.cos(18*Math.PI/180) ? noir : blanc;
+      for(let k=0;k<3;k++) teinte.toArray(col, (f+k)*3);
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    return new THREE.Mesh(geo, new THREE.MeshLambertMaterial({vertexColors:true, flatShading:true}));
+  })();
   ballon.castShadow = false; scene.add(ballon);
   const ombreBallon = ombreAuSol(.4);
   const B = { pos:new THREE.Vector3(0,.62,0), porteur:null, vol:null, filet:null, libre:null };
@@ -30525,6 +30541,16 @@ function fabriqueMatch3D(THREE, o){
     else if(ph==='centre' || /centre|de la tête|tête plongeante/i.test(x)) voie='centre';
     else if(ph==='lob' || /lob/i.test(x)) voie='lob';
     else if(ph==='face' || ph==='drib' || /seul face|face-à-face|percée|déboule|slalom/i.test(x)) voie='face';
+    /* v3.12 (retour de l'auteur : « on a envie de voir plus de frappes depuis l'extérieur de la surface, repoussées par le
+       gardien ») : une ligne qui ne dit pas d'où part le tir ne finit plus forcément sous la barre. Les mots décident
+       quand ils le peuvent ; sinon, la frappe vient de dix-sept à vingt-neuf mètres, d'autant plus souvent que le
+       gardien s'en mêle. */
+    if(!mo && voie==='combi' && !ph && /^(arret|rate|poteau|but)$/.test(genre)){
+      const presMot=/pousse|seul|bout portant|six mètres|petit filet|de près|à bout|sur la ligne|de la tête|tête|reprise|rebond|relâch|plat du pied|ajuste|glisse|une-deux|talonnade|mêlée|contre/i.test(x);
+      const loinMot=/frappe|arme|enroul|puissant|sèche|lucarne|limite de la surface|entrée de la surface|vingt|boulet|missile|pétard/i.test(x);
+      const p={arret:.7, rate:.6, poteau:.5, but:.3}[genre];
+      if(!presMot && (loinMot || Math.random()<p)) voie='tir';
+    }
     const att = genre==='carton' ? adverse(camp) : camp;
     return {genre, voie, camp, att, def:adverse(att), gkBut:mo==='gkbut', nomTireur:nomMo||(l.g&&l.g.but)||(l.q&&l.q.but)||(l.c&&l.c.nom)||null,
       nomPasseur:(l.g&&l.g.pas)||null, rouge:!!(l.c&&l.c.rouge), ligne:l};
@@ -30627,8 +30653,8 @@ function fabriqueMatch3D(THREE, o){
       if(C){ key(C,.5,cx-8,cz+side*3); key(C,.8,cx-1.5,cz+side*2.5); }
       depart={ax:cx,z:cz,y:hy};
     }
-    else if(v==='loin'){                                  // v2.99 : la frappe part de vingt-cinq à trente-deux mètres, et ça se voit
-      const az=clamp(z0*.5,-14,14), bx=alea(20,27);
+    else if(v==='loin' || v==='tir'){                     // v2.99 : la frappe part de vingt-cinq à trente-deux mètres, et ça se voit
+      const az=clamp(z0*.5,-14,14), bx = v==='tir' ? alea(23.5,35.5) : alea(20,27);   // v3.12 : « tir », de 17 à 29 m
       key(porteur,.15,clamp(ax0+4,-30,bx-7),z0); pied(0,.28,porteur);
       vol(.28,.46,bx-6,az,.62,1); key(A,.46,bx-6,az);
       pied(.46,.72,A); key(A,.72,bx-1,az*.8);
@@ -30669,8 +30695,8 @@ function fabriqueMatch3D(THREE, o){
       vol(.22,.38,28,-side*9,.62,.6); key(M2,.38,28,-side*9);
       pied(.38,.5,M2); key(M2,.5,32,-side*7);
       vol(.5,.66,40,az,.62,.6); key(A,.4,35,az+side*4); key(A,.66,40,az);
-      pied(.66,.8,A); key(A,.8,43,az*.7);
-      depart={ax:44,z:az*.7,y:.62};
+      pied(.66,.8,A); key(A,.8,40.5,az*.7);               // v3.12 : au point de penalty, plus dans les six mètres
+      depart={ax:41.5,z:az*.7,y:.62};
     }
 
     /* LA RÈGLE DU HORS-JEU : à chaque instant de l'action, la défense recule pour garder au moins un défenseur entre
@@ -30697,8 +30723,13 @@ function fabriqueMatch3D(THREE, o){
       else if(g==='arret'){ tz=alea(-4,4); ty=alea(.5,2.6); }
       else if(g==='poteau'){ if(Math.random()<.5){ tz=signe()*BUT_L/2; ty=alea(1,3.5); } else { tz=alea(-4,4); ty=BUT_H; } }
       else { if(Math.random()<.65){ tz=signe()*alea(BUT_L/2+1.5,BUT_L/2+6); ty=alea(.5,3); } else { tz=alea(-4,4); ty=alea(6,8); } ax=L/2+1; }
-      const hauteur = v==='cf'?4.6 : v==='lob'?11 : v==='but50'?17 : v==='loin'?2.6 : .8;
+      const hauteur = v==='cf'?4.6 : v==='lob'?11 : v==='but50'?17 : v==='loin'?2.6 : v==='tir'?1.6 : .8;
       S.push({u0:uTir,u1:1,a:new THREE.Vector3(s*ax,ty,s*tz),haut:hauteur});
+      /* v3.12 (« les frappes ne sont pas fortes ») : le tir part quand la ligne tombe et file à la vitesse d'une vraie
+         frappe, en mètres par seconde : une frappe de loin traverse vingt-cinq mètres en moins d'une seconde. */
+      const dTir=Math.hypot(ax-(depart?depart.ax:44), tz-(depart?depart.z:0));
+      const vTir = v==='lob'||v==='but50' ? 20 : v==='centre'||v==='aile'||v==='corner' ? 19 : v==='cf' ? 26 : v==='pen' ? 27 : v==='loin'||v==='tir' ? 30 : 25;
+      const durTir=clamp(dTir/vTir, .22, 1.3);
       let dir=0;
       if(gk){
         const z0g=clamp(depart?depart.z*.25:0,-3,3);
@@ -30707,7 +30738,7 @@ function fabriqueMatch3D(THREE, o){
         key(gk, 1, L/2-1.8, plonge);
         dir = v==='lob'||v==='but50' ? 0 : (Math.sign(s*(plonge-z0g)) || 1);   // lobé, le gardien court vers sa ligne, il ne plonge pas
       }
-      ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir,teteType};
+      ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir,teteType,durTir,loin:v==='loin'||v==='tir'||v==='cf'};
     }
     for(const [j,ks] of K){ ks.sort((a,b)=>a.u-b.u); ks.unshift({u:0,x:j.pos.x,z:j.pos.z}); j.tombe=0; }
     B.porteur=null; B.vol=null; B.filet=null; B.libre=null;
@@ -30721,8 +30752,14 @@ function fabriqueMatch3D(THREE, o){
   const SUSPENS=.94;
   function avanceAction(dt){
     const a=ACT;
-    const vitesse = a.recue ? Math.max(1/a.T, (1-a.u)/.22) : 1/a.T;
-    a.u=Math.min(a.recue?1:SUSPENS, a.u + dt*vitesse);
+    /* v3.12 : un tir (uTir < 1) ne part plus en avance pour ramper jusqu'à 94 % de sa course en attendant la ligne : on
+       arrive au pied du tireur pile quand elle tombe (hold), puis le ballon file en durTir secondes. */
+    const tir = a.uTir<1 && a.durTir, hold = tir ? a.uTir : SUSPENS;
+    let vitesse;
+    if(!a.recue) vitesse = tir ? hold/a.T : 1/a.T;
+    else if(tir && a.u>=hold) vitesse = (1-hold)/a.durTir;
+    else vitesse = tir ? Math.max(1/a.T, (hold-a.u)/.25) : Math.max(1/a.T, (1-a.u)/.22);
+    a.u=Math.min(a.recue?1:hold, a.u + dt*vitesse);
     for(const [j,ks] of a.K){
       let k=0; while(k<ks.length-2 && ks[k+1].u<a.u) k++;
       const p=ks[k], q=ks[Math.min(k+1,ks.length-1)];
@@ -30766,7 +30803,7 @@ function fabriqueMatch3D(THREE, o){
       if(!info.ligne.g) banniere('BUT !', a.A&&a.A.nom||'', 2600); return; }
     if(g==='arret'){
       const x=info.ligne.x||'', force = typeof window!=='undefined' && window.__geste==='claquette';
-      const claque = force || /claqu|détourn|repouss|bout des doigts|en corner|boxe|des poings|parade|horizontal/i.test(x) || (!/capt|bloqu|s'empare|cueill|gants|sûr|dans ses bras/i.test(x) && Math.random()<.4);
+      const claque = force || /claqu|détourn|repouss|bout des doigts|en corner|boxe|des poings|parade|horizontal/i.test(x) || (!/capt|bloqu|s'empare|cueill|gants|sûr|dans ses bras/i.test(x) && Math.random()<(a.loin?.65:.4));   // v3.12 : de loin, il repousse plus souvent
       if(claque && a.gk){                                // v3.11 : la claquette, le ballon repart à côté du poteau
         if(force) window.__geste=null;
         a.gk.claque=.6; const cz=(Math.sign(B.pos.z*s)||signe())*(BUT_L/2+alea(4,9));
@@ -31233,7 +31270,7 @@ function fabriqueMatch3D(THREE, o){
     majJeu(dJeu);
     lanceAttente();
     poserJoueurs(dJeu, now);
-    { const dx=B.pos.x-ballon.position.x, dz=B.pos.z-ballon.position.z; ballon.position.copy(B.pos); if(!fige){ ballon.rotation.x+=dz/.62; ballon.rotation.z-=dx/.62; } }
+    { const dx=B.pos.x-ballon.position.x, dz=B.pos.z-ballon.position.z; ballon.position.copy(B.pos); ballon.position.y-=.62-R_BALLON; if(!fige){ ballon.rotation.x+=dz/R_BALLON; ballon.rotation.z-=dx/R_BALLON; } }
     const c=ambianceCible(), k=Math.min(1,dt*2);
     ambC.fond.lerp(c.fond,k); ambC.sCol.lerp(c.sCol,k); ambC.sI+=(c.sI-ambC.sI)*k; ambC.hCiel.lerp(c.hCiel,k); ambC.hSol.lerp(c.hSol,k);
     ambC.hI+=(c.hI-ambC.hI)*k; ambC.spots+=(c.spots-ambC.spots)*k; ambC.pos.lerp(c.pos,k);

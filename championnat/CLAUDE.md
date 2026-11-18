@@ -2934,6 +2934,20 @@ toujours « raconter quelque chose ».
   **Claquette** (`j.claque`) : sur un arrêt dont la ligne dit claque/détourne/repousse/en corner… (ou quatre fois sur dix
   sans mot de prise de balle), le gardien boxe le ballon à côté du poteau au lieu de le garder. Pour essayer :
   `window.__geste = 'tacle' | 'crochet' | 'claquette'`.
+- **LE BALLON ET LES FRAPPES (v3.12, retour de l'auteur du 18/11/2026 : « la balle ressemble à une grosse boule de neige »,
+  « de nombreuses frappes sont faites juste devant le gardien, elles ne sont pas fortes, on a envie de voir plus de
+  frappes depuis l'extérieur de la surface, repoussées par le gardien »)**, dans le bloc MATCH3D. **Le ballon** : rayon
+  `R_BALLON` = 0,44 (0,62 avant), icosaèdre redécoupé (détail 2) dont les facettes autour des douze sommets d'origine
+  passent au noir (douze pentagones) ; le jeu le pose toujours à 0,62 (`B.pos.y`), le rendu le descend de 0,62 − R.
+  **D'où part le tir** : une ligne d'arrêt, de raté, de poteau ou de but sans phase du moteur et sans mot de près
+  (`pousse`, `seul`, `à bout portant`, `de la tête`, `rebond`…) devient la voie **`tir`** (17 à 29 m) si elle dit
+  « frappe », « arme », « lucarne »… ou, à défaut, 7 fois sur 10 sur un arrêt, 6 sur un raté, 5 sur un poteau, 3 sur un
+  but. La combinaison par défaut finit au point de penalty (10,5 m) au lieu de 8,5 m ; le face-à-face reste collé au
+  gardien. **La force** : avant, le tir partait à 80 % de l'action, rampait jusqu'à 94 % en attendant la ligne (le ballon
+  restait en l'air devant le gardien) puis finissait en 0,22 s. Désormais l'action arrive au pied du tireur **pile quand
+  la ligne tombe** (`hold` = `uTir`), puis le ballon file en `durTir` = distance ÷ vitesse (30 m/s de loin, 25 près, 19
+  sur un centre, 20 sur un lob), soit moins d'une seconde pour vingt-cinq mètres. **Le gardien repousse** (claquette) 65 %
+  des arrêts de loin sans mot de prise de balle (`ACT.loin`), 40 % ailleurs.
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup
