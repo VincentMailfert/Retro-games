@@ -2670,6 +2670,12 @@ toujours « raconter quelque chose ».
   blessé, et je ne peux pas en emprunter un »)** : `empruntJoueur` ne regarde plus `fenetreOuverte()`, et les trois boutons
   d'emprunt (« Prêt » de la fiche club adverse, « Emprunter » de la fiche joueur, « Prêt » du mercato) ne sont plus grisés
   hors fenêtre. L'ACHAT reste cantonné aux fenêtres. Tarif et durées inchangés (`tarifPret`, `dureesPret`, rien après la J37).
+  **PAS DE TRICHE À L'EMPRUNT (v3.09, demande de l'auteur : « prendre le gardien de l'adversaire direct puis le renvoyer
+  après le match »)** : `refusEmprunt(j)` donne le motif d'un refus du club prêteur, ou `null`. Deux refus : le PROCHAIN
+  adversaire en championnat ne prête rien (`prochainContre`), et aucun club ne prête un homme de son onze de départ
+  (`onze(proprio)`). Branché sur `empruntJoueur`, `modalPret` (sens in) et les trois boutons d'emprunt (grisés, motif en
+  infobulle). Le renvoi express était déjà fermé : un emprunté ne se rend pas avant terme, pige minimale de 5 journées.
+  `harness-progression.cjs` choisit désormais ses empruntés parmi les joueurs prêtables.
   **LE PRÊT D'UNE SAISON (v1.72, demande de l'auteur)** : `dureesPret()` ajoute aux piges de 5/10/15 journées une
   pige qui court **jusqu'à la J38** dès qu'il reste plus de 15 journées : « Toute la saison » l'été (J0-J4),
   « Jusqu'en juin » ensuite. Aucun autre câblage : le prêté joue titulaire chez l'hôte (`_joue=1`) et progresse

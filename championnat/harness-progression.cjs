@@ -41,7 +41,7 @@ global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,clubById,onze,byUid,aMoi,progression,selections," +
-  "preteJoueur,empruntJoueur,tarifPret,retourPret,traiterPrets,refusDepart," +
+  "preteJoueur,empruntJoueur,refusEmprunt,tarifPret,retourPret,traiterPrets,refusDepart," +
   "getG:function(){return G;},setG:function(x){G=x;}};";
 const api = new Function(script + epilogue)();
 
@@ -63,8 +63,10 @@ let moi = api.clubById(G.monClub);
 const jeunes = moi.joueurs.filter(j => j.age <= 23 && j.pot > j.note).sort((x, y) => (y.pot - y.note) - (x.pot - x.note));
 const maison = jeunes[0];
 const aPreter = jeunes.find(j => j !== maison && j.pos !== "G") || jeunes[1];
-const adv = G.clubs.find(c => c.id !== G.monClub && c.joueurs.some(j => j.age <= 23 && j.pot > j.note && j.pos === aPreter.pos));
-const aEmprunter = adv.joueurs.filter(j => j.age <= 23 && j.pot > j.note && j.pos === aPreter.pos)
+// v3.09 : un club ne prête ni un titulaire ni à son prochain adversaire (refusEmprunt) : on prend un remplaçant prêtable
+const pretable = j => j.age <= 23 && j.pot > j.note && j.pos === aPreter.pos && !api.refusEmprunt(j);
+const adv = G.clubs.find(c => c.id !== G.monClub && c.joueurs.some(pretable));
+const aEmprunter = adv.joueurs.filter(pretable)
   .sort((x, y) => (y.pot - y.note) - (x.pot - x.note))[0];
 ok(!!maison && !!aPreter && !!aEmprunter, "trois cobayes trouvés (maison, à prêter, à emprunter)");
 
@@ -115,8 +117,9 @@ G = api.getG(); moi = api.clubById(G.monClub);
 const espoir = moi.joueurs.filter(j => j.age <= 21 && j.pot - j.note >= 8 && j.pos !== "G")
   .sort((x, y) => (y.pot - y.note) - (x.pot - x.note))[0];
 ok(!!espoir, "un espoir prêtable trouvé : " + (espoir ? espoir.nom + " (" + espoir.age + " ans, note " + espoir.note + "/pot " + espoir.pot + ")" : "aucun"));
-const adv2 = G.clubs.find(c => c.id !== G.monClub && c.joueurs.some(j => j.pos === espoir.pos && j.age >= 24));
-const renfort = adv2.joueurs.find(j => j.pos === espoir.pos && j.age >= 24);
+const pretable2 = j => j.pos === espoir.pos && j.age >= 24 && !api.refusEmprunt(j);
+const adv2 = G.clubs.find(c => c.id !== G.monClub && c.joueurs.some(pretable2));
+const renfort = adv2.joueurs.find(pretable2);
 api.empruntJoueur(renfort, 15, api.tarifPret(renfort));         // on remplace avant de prêter
 const hote2 = G.clubs.filter(c => c.id !== G.monClub && c.id !== adv2.id && c.pres <= moi.pres).sort((x, y) => x.pres - y.pres)[0];
 api.preteJoueur(espoir, 15, api.tarifPret(espoir), hote2);
