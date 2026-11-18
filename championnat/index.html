@@ -757,7 +757,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.10"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.11"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -30250,7 +30250,7 @@ function fabriqueMatch3D(THREE, o){
     if(moustache) pose3(new THREE.Mesh(new THREE.BoxGeometry(.085, .022, .02), cheveux), 0, .07, .105, tete);
     scene.add(g);
     return {g, corps, tete, hancheG:jg.hanche, genouG:jg.genou, chevilleG:jg.cheville, hancheD:jd.hanche, genouD:jd.genou, chevilleD:jd.cheville,
-      epauleG:bg.epaule, coudeG:bg.coude, epauleD:bd.epaule, coudeD:bd.coude, ombre:ombreAuSol(.34), cap:0, vPrec:0, penche:0, roulis:0, regard:0, regardT:0, frappe:0, saut:0};
+      epauleG:bg.epaule, coudeG:bg.coude, epauleD:bd.epaule, coudeD:bd.coude, ombre:ombreAuSol(.34), cap:0, vPrec:0, penche:0, roulis:0, regard:0, regardT:0, frappe:0, saut:0, tetePl:0, tacle:0, feinte:0, feinteDir:1, touche:0, claque:0};
   }
   function placesFormation(xi){
     const X={G:-.93, D:-.6, M:-.25, A:.12}, par={G:[],D:[],M:[],A:[]};
@@ -30447,6 +30447,17 @@ function fabriqueMatch3D(THREE, o){
     if(coupeur) B.vol={de:dep, a:pt, t:0, d:Math.max(.25,dep.distanceTo(pt)/24), haut:.6, recepteur:coupeur};
     else B.vol={de:dep, a:arr, t:0, d:Math.max(.3,dist/(lob?20:25)), haut: lob||dist>32 ? Math.min(9,dist*.18) : .5, recepteur:vers};
   }
+  /* v3.11, LE DRIBBLE : le ballon n'est plus collé à 1,4 m du pied. Une touche par foulée, il file un peu devant puis
+     le joueur le rattrape ; pendant un crochet, il part sur le côté avec l'extérieur du pied. */
+  function conduite(p, dir){
+    const v=p.vel.length(), o2=new THREE.Vector3();
+    if(v<2) return [o2, 1.3];
+    const k=((p.phase/(2*Math.PI))%1+1)%1;
+    if(k<.12 && !(p.touche>0)) p.touche=.2;
+    let d2=1.1+1.5*Math.sin(k*Math.PI)*clamp(v/7,.4,1);
+    if(p.feinte>0){ const u=1-p.feinte/.7; if(u>.45){ const lat=new THREE.Vector3(-dir.z,0,dir.x).multiplyScalar(p.feinteDir*2.2*Math.min(1,(u-.45)*4)); o2.copy(lat); d2=1.2; } }
+    return [o2, d2];
+  }
   function decider(p){
     const s=sens(p), coeq=equipe(p.camp).filter(j=>j!==p && !j.gardien), adv=equipe(adverse(p.camp));
     const haut=p.pos.x*s>L/2-28;
@@ -30548,7 +30559,7 @@ function fabriqueMatch3D(THREE, o){
     const pied=(u0,u1,j)=>S.push({u0,u1,j});
     const vol=(u0,u1,ax,z,y,haut)=>S.push({u0,u1,a:new THREE.Vector3(s*ax,y,s*z),haut});
     const ax0 = clamp(P0.x*s, -40, 30), z0 = clamp(P0.z*s, -28, 28);
-    let uTir=.8, depart=null, fini=false;
+    let uTir=.8, depart=null, fini=false, teteType=null;
     const v=info.voie;
     const balleArretee = v==='cf' || v==='pen' || v==='corner' || !!etat.corner || info.genre==='corner-annonce' || info.genre==='carton';
 
@@ -30558,7 +30569,7 @@ function fabriqueMatch3D(THREE, o){
       key(V,.15,vx,vz); pied(0,.7,V); key(V,.7,vx+9,vz+2*side);
       key(fautif,.4,vx+4,vz+side*6); key(fautif,.7,vx+8.6,vz+2*side+.4);
       S.push({u0:.7,u1:1,a:new THREE.Vector3(s*(vx+11),.62,s*(vz+3*side)),haut:.3});
-      ACT={info,s,K,S,T,u:0,uTir:2,gk:null,A:V,fautif,victime:V}; fini=true;
+      ACT={info,s,K,S,T,u:0,uTir:2,gk:null,A:V,fautif,victime:V,tacleur:fautif,uTacle:.5}; fini=true;
     }
     else if(info.genre==='corner-annonce'){
       key(P,.12,clamp(ax0+3,-30,30),z0); pied(0,.25,P);
@@ -30594,11 +30605,11 @@ function fabriqueMatch3D(THREE, o){
       S.push({u0:0,u1:.22,a:new THREE.Vector3(s*fx,.62,s*fz),haut:.2});
       const cible={ax:L/2-7.5, z:-c.side*1.2};
       key(A,.25,cible.ax-6,cible.z+c.side*5); key(A,.62,cible.ax,cible.z);
-      vol(.25,.62,cible.ax,cible.z,2.6,4.5);
+      teteType='saut'; vol(.25,.62,cible.ax,cible.z,5.8,4.5);
       autresC.slice(0,3).forEach((j,i)=>{ key(j,.4,L/2-10-i*2.5,(i-1)*5); key(j,1,L/2-10-i*2.5,(i-1)*5); });
       def.filter(d=>!d.gardien).slice(0,4).forEach((d,i)=>{ key(d,.4,L/2-6-i*1.5,(i-1.5)*3.4); key(d,1,L/2-6.5-i*1.5,(i-1.5)*3.4); });
-      depart={ax:cible.ax,z:cible.z,y:2.4}; uTir=.74;
-      S.push({u0:.62,u1:.74,a:new THREE.Vector3(s*cible.ax,2.4,s*cible.z),haut:0});
+      depart={ax:cible.ax,z:cible.z,y:5.8}; uTir=.74;
+      S.push({u0:.62,u1:.74,a:new THREE.Vector3(s*cible.ax,5.8,s*cible.z),haut:0});
     }
     else if(v==='centre' || v==='aile'){
       const W = v==='aile' ? A : (P!==A?P:autres[0]);
@@ -30608,10 +30619,13 @@ function fabriqueMatch3D(THREE, o){
       vol(.2,.36,30,side*29,.62,1.5); key(W,.36,30,side*29);
       pied(.36,.6,W); key(W,.6,46,side*30);
       const cx=L/2-8, cz=-side*1.5;
-      vol(.6,.8,cx,cz,2.2,4);
+      /* v3.11 : le centre arrive à hauteur de tête (on la voyait reprise du pied), ou à mi-hauteur pour une tête plongeante */
+      const pl = /plongeante/i.test(info.ligne.x||'') || (!/volée|reprise|du pied|demi-volée/i.test(info.ligne.x||'') && Math.random()<.3);
+      const hy = pl ? 1.7 : 5.8; teteType = pl ? 'plongeante' : 'saut';
+      vol(.6,.8,cx,cz,hy,4);
       key(tete,.45,cx-9,cz-side*6); key(tete,.8,cx,cz);
       if(C){ key(C,.5,cx-8,cz+side*3); key(C,.8,cx-1.5,cz+side*2.5); }
-      depart={ax:cx,z:cz,y:2.2};
+      depart={ax:cx,z:cz,y:hy};
     }
     else if(v==='loin'){                                  // v2.99 : la frappe part de vingt-cinq à trente-deux mètres, et ça se voit
       const az=clamp(z0*.5,-14,14), bx=alea(20,27);
@@ -30645,8 +30659,8 @@ function fabriqueMatch3D(THREE, o){
       if(gk) { key(gk,.55,L/2-1.8,0); key(gk,.8,L/2-4.5,az*.25); }
       if(info.genre==='horsjeu' || info.genre==='perdu'){
         S.push({u0:.8,u1:1,a:new THREE.Vector3(s*47,.62,s*az*.3),haut:.2});
-        const D=plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*44,0,s*az*.4))[0]; if(D && info.genre==='perdu') key(D,.95,46,az*.35);
-        ACT={info,s,K,S,T,u:0,uTir:2,gk:null,A}; fini=true;
+        const D=plusProche(def.filter(j=>!j.gardien), new THREE.Vector3(s*44,0,s*az*.4))[0]; if(D && info.genre==='perdu'){ key(D,.7,41,az*.5); key(D,.95,46.5,az*.35); }
+        ACT={info,s,K,S,T,u:0,uTir:2,gk:null,A, tacleur: info.genre==='perdu' ? D : null, uTacle:.74}; fini=true;
       }
     }
     else {
@@ -30693,7 +30707,7 @@ function fabriqueMatch3D(THREE, o){
         key(gk, 1, L/2-1.8, plonge);
         dir = v==='lob'||v==='but50' ? 0 : (Math.sign(s*(plonge-z0g)) || 1);   // lobé, le gardien court vers sa ligne, il ne plonge pas
       }
-      ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir};
+      ACT={info,s,K,S,T,u:0,uTir,gk,A,but:g==='but',dir,teteType};
     }
     for(const [j,ks] of K){ ks.sort((a,b)=>a.u-b.u); ks.unshift({u:0,x:j.pos.x,z:j.pos.z}); j.tombe=0; }
     B.porteur=null; B.vol=null; B.filet=null; B.libre=null;
@@ -30719,10 +30733,11 @@ function fabriqueMatch3D(THREE, o){
     }
     const seg=a.S.find(s=>a.u>=s.u0 && a.u<=s.u1) || a.S[a.S.length-1];
     if(seg){
-      if(seg.j){ const p=seg.j, dir=p.vel.lengthSq()>.1?p.vel.clone().normalize():new THREE.Vector3(a.s,0,0); B.pos.set(p.pos.x+dir.x*1.3,.62,p.pos.z+dir.z*1.3); }
+      if(seg.j){ const p=seg.j, dir=p.vel.lengthSq()>.1?p.vel.clone().normalize():new THREE.Vector3(a.s,0,0); const [o2,d2]=conduite(p, dir); B.pos.set(p.pos.x+dir.x*d2+o2.x,.62,p.pos.z+dir.z*d2+o2.z); }
       else { if(!seg.de){ seg.de=B.pos.clone(); toucheBallon(); } const f=clamp((a.u-seg.u0)/Math.max(1e-6,seg.u1-seg.u0),0,1);
         B.pos.lerpVectors(seg.de, seg.a, f); B.pos.y = seg.de.y+(seg.a.y-seg.de.y)*f + Math.sin(f*Math.PI)*seg.haut; }
     }
+    if(a.tacleur && !a.tacleLance && a.u>=a.uTacle){ a.tacleLance=true; a.tacleur.tacle=.9; }
     if(a.gk && a.dir && a.u>a.uTir+(1-a.uTir)*.35) a.gk.plongeF = clamp((a.u-a.uTir)/(1-a.uTir),0,1)*a.dir;
     if(a.u>=1) issue();
   }
@@ -30749,7 +30764,15 @@ function fabriqueMatch3D(THREE, o){
     }
     if(g==='but'){ B.filet={s, t:0, a:B.pos.clone()}; debutFete(a.A); montrerNom(a.A, 4);
       if(!info.ligne.g) banniere('BUT !', a.A&&a.A.nom||'', 2600); return; }
-    if(g==='arret'){ if(a.gk){ B.porteur=a.gk; a.gk.tient=1.1; etat.decision=1.1; } return; }
+    if(g==='arret'){
+      const x=info.ligne.x||'', force = typeof window!=='undefined' && window.__geste==='claquette';
+      const claque = force || /claqu|détourn|repouss|bout des doigts|en corner|boxe|des poings|parade|horizontal/i.test(x) || (!/capt|bloqu|s'empare|cueill|gants|sûr|dans ses bras/i.test(x) && Math.random()<.4);
+      if(claque && a.gk){                                // v3.11 : la claquette, le ballon repart à côté du poteau
+        if(force) window.__geste=null;
+        a.gk.claque=.6; const cz=(Math.sign(B.pos.z*s)||signe())*(BUT_L/2+alea(4,9));
+        B.libre={t:0, d:.6, de:B.pos.clone(), a:new THREE.Vector3(s*(L/2-alea(2,5)), .62, s*cz), haut:alea(2,4), ensuite:'def', camp:info.def};
+        return; }
+      if(a.gk){ B.porteur=a.gk; a.gk.tient=1.1; etat.decision=1.1; } return; }
     if(g==='poteau'){ B.libre={t:0, d:.55, de:B.pos.clone(), a:new THREE.Vector3(s*(L/2-12), .62, s*alea(-10,10)), haut:2, ensuite:'def', camp:info.def}; return; }
     const sortie=B.pos.clone(); sortie.x=s*(L/2+5); sortie.y=.62;
     B.libre={t:0, d:.45, de:B.pos.clone(), a:sortie, haut:.6, ensuite:'six', camp:info.def};
@@ -30832,9 +30855,15 @@ function fabriqueMatch3D(THREE, o){
         else if(b.ensuite==='def'){ B.porteur=plusProche(equipe(b.camp).filter(j=>!j.gardien), B.pos)[0]; etat.decision=.6; }
       }
     } else if(B.porteur){
-      const p=B.porteur, dir=p.vel.lengthSq()>.1?p.vel.clone().normalize():new THREE.Vector3(sens(p),0,0);
+      const p=B.porteur;
+      if(!p.gardien && !(p.feinte>0) && etat.phase==='jeu'){
+        const [adv,d]=plusProche(equipe(adverse(p.camp)).filter(j=>!j.gardien), p.pos);
+        const force = typeof window!=='undefined' && window.__geste==='crochet';
+        if(force || (adv && d<6 && Math.random()<dt*.9)){ p.feinte=.7; p.feinteDir=signe(); if(force) window.__geste=null; }
+      }
+      const dir=p.vel.lengthSq()>.1?p.vel.clone().normalize():new THREE.Vector3(sens(p),0,0);
       if(p.gardien && p.tient>0) B.pos.set(p.pos.x+dir.x*.5,1.6,p.pos.z+dir.z*.5);
-      else B.pos.set(p.pos.x+dir.x*1.4,.62,p.pos.z+dir.z*1.4);
+      else { const [o2,d2]=conduite(p, dir); B.pos.set(p.pos.x+dir.x*d2+o2.x,.62,p.pos.z+dir.z*d2+o2.z); }
     }
 
     if(etat.phase==='pause'){ etat.attente-=dt; if(etat.attente<=0){ SENS.dom*=-1; SENS.ext*=-1; placerCoupEnvoi('ext'); etat.phase='jeu'; } }
@@ -30879,7 +30908,8 @@ function fabriqueMatch3D(THREE, o){
           if(!j.gardien){ j.cible.set(sc*(L/2-6-(j.num%4)*2.5), 0, sc*((j.num%5)-2)*3.2+(j.camp==='dom'?.8:-.8)); continue; }
         }
         if(j.gardien){ j.cible.set(-s*(L/2-2.5),0,clamp(bz*.18,-4,4)); continue; }
-        if(j===B.porteur){ j.cible.set(j.pos.x+s*10,0,j.pos.z*.85); continue; }
+        if(j===B.porteur){ const cr = j.feinte>0 && j.feinte<.4 ? j.feinteDir*9 : 0;   // après la feinte, le crochet part sur le côté
+          j.cible.set(j.pos.x+s*10,0,j.pos.z*.85 + cr*(Math.abs(j.vel.x)>.5?Math.sign(j.vel.x||1):1)); continue; }
         if(B.vol && B.vol.recepteur===j){ j.cible.copy(B.vol.a); j.cible.y=0; continue; }
         if(j===presseur){ j.cible.set(bx,0,bz); continue; }
         const attaque = campBallon===c ? 1 : 0;
@@ -30890,6 +30920,7 @@ function fabriqueMatch3D(THREE, o){
     for(const j of joueurs){
       if(j.dehors || (ACT && ACT.K.has(j))) continue;
       if(j.tombe>0){ j.tombe-=dt; j.vel.multiplyScalar(.85); continue; }
+      if(j.tacle>0){ j.vel.multiplyScalar(Math.pow(.18,dt)); j.pos.addScaledVector(j.vel,dt); continue; }
       if(etat.phase==='but' && j===etat.buteur && etat.fete==='genoux' && etat.celebration>1.1){ j.vel.multiplyScalar(Math.pow(.3,dt)); j.pos.addScaledVector(j.vel,dt); continue; }
       if(etat.phase==='but' && etat.fete==='pile' && j.camp===etat.buteur.camp && j.couche){ j.vel.set(0,0,0); continue; }
       const d=j.cible.clone().sub(j.pos); d.y=0; const dist=d.length();
@@ -30934,8 +30965,18 @@ function fabriqueMatch3D(THREE, o){
         else decider(p);
       }
       if(B.porteur && !B.porteur.gardien){
-        const [adv,d]=plusProche(equipe(adverse(p.camp)).filter(j=>!j.gardien), p.pos);
-        if(adv && d<1.9 && Math.random()<dt*.7){ B.porteur=adv; etat.decision=alea(.4,1.2); }
+        const [adv,d]=plusProche(equipe(adverse(p.camp)).filter(j=>!j.gardien && !(j.tacle>0)), p.pos);
+        const force = typeof window!=='undefined' && window.__geste==='tacle';
+        /* v3.11 : le tacle glissé. Le défenseur se jette, le ballon file, le porteur saute par-dessus ou tombe */
+        if(adv && (force || (d<5 && d>2 && Math.random()<dt*.3))){
+          adv.tacle=.9; adv.vel.set(B.pos.x-adv.pos.x,0,B.pos.z-adv.pos.z).setLength(11);
+          const ou=B.pos.clone().addScaledVector(adv.vel.clone().normalize(), 7); ou.y=.62;
+          ou.x=clamp(ou.x,-L/2+2,L/2-2); ou.z=clamp(ou.z,-Lg/2+1,Lg/2-1);
+          B.porteur=null; B.libre={t:0, d:.5, de:B.pos.clone(), a:ou, haut:.4, ensuite:'def', camp:adv.camp};
+          if(Math.random()<.5) p.saut=.45; else p.tombe=1.1;
+          if(force) window.__geste=null;
+        }
+        else if(adv && d<1.9 && Math.random()<dt*.7){ adv.frappe=.34; B.porteur=adv; etat.decision=alea(.4,1.2); }
       }
     }
   }
@@ -30996,13 +31037,44 @@ function fabriqueMatch3D(THREE, o){
         j.hancheG.rotation.x=-.15; j.genouG.rotation.x=.25;
         j.epauleG.rotation.set(-.3,0,1.1); j.epauleD.rotation.set(.4,0,-.7); j.corps.rotation.x=u<.4?-.1:.25;
       }
-      /* la tête : petit saut, buste qui fouette vers l'avant */
+      /* les petites touches du dribble : un coup de pied court, la jambe droite à peine armée */
+      if(j.touche>0){ j.touche-=dt; const u=clamp(1-j.touche/.2,0,1); j.hancheD.rotation.x = .35-.9*Math.sin(u*Math.PI); j.genouD.rotation.x = .5*(1-u); }
+      /* le crochet : on enjambe le ballon (passement de jambes), on se penche d'un côté, et on part de l'autre */
+      if(j.feinte>0){ j.feinte-=dt; const u=clamp(1-j.feinte/.7,0,1), d=j.feinteDir;
+        if(u<.45){ const w=Math.sin(u/.45*Math.PI);
+          j.hancheD.rotation.set(-.55*w, 0, d*.65*w); j.genouD.rotation.x=.5*w; j.corps.rotation.set(.15, 0, -d*.32*w);
+          j.epauleG.rotation.set(0,0,-.5-.5*w); j.epauleD.rotation.set(0,0,.5+.5*w); }
+        else { const w=Math.sin((u-.45)/.55*Math.PI); j.corps.rotation.set(.25, 0, d*.35*w); j.hancheG.rotation.z=-d*.3*w; } }
+      /* la tête : appel sur un pied, bras en avant pour s'élever, buste cambré puis le coup de tête qui fouette */
       if(j.saut>0){
         j.saut-=dt; const u=clamp(1-j.saut/.55,0,1);
         j.g.position.y += Math.sin(u*Math.PI)*1.4*ECHELLE*.5;
-        j.genouG.rotation.x=j.genouD.rotation.x=.9*Math.sin(u*Math.PI);
-        j.epauleG.rotation.set(-.4,0,.9); j.epauleD.rotation.set(-.4,0,-.9);
-        j.corps.rotation.x = u<.5 ? -.25 : .45; j.tete.rotation.x = u<.5 ? -.3 : .5;
+        j.hancheG.rotation.x=-.25*Math.sin(u*Math.PI); j.genouG.rotation.x=.9*Math.sin(u*Math.PI);
+        j.hancheD.rotation.x=-.9*Math.sin(u*Math.PI); j.genouD.rotation.x=1.5*Math.sin(u*Math.PI);
+        const elan = u<.45 ? -1.5 : -.6;
+        j.epauleG.rotation.set(elan,0,-.35); j.epauleD.rotation.set(elan,0,.35); j.coudeG.rotation.x=j.coudeD.rotation.x=-.6;
+        j.corps.rotation.x = u<.45 ? -.35 : .42; j.tete.rotation.x = u<.45 ? -.45 : .55;
+      }
+      /* la tête plongeante : le corps à l'horizontale, bras le long du corps vers l'avant, puis la réception sur le ventre */
+      if(j.tetePl>0){
+        j.tetePl-=dt; const u=clamp(1-j.tetePl/.95,0,1);
+        const vol=Math.min(1,u/.25), sol=u>.6;
+        j.g.rotation.set(1.45*vol, j.cap, 0);
+        j.g.position.y = sol ? .35 : .35+Math.sin(Math.min(1,u/.6)*Math.PI)*1.2;
+        j.hancheG.rotation.x=j.hancheD.rotation.x=.25; j.genouG.rotation.x=.5; j.genouD.rotation.x=.25;
+        j.epauleG.rotation.set(sol?-2.2:-2.9,0,-.25); j.epauleD.rotation.set(sol?-2.2:-2.9,0,.25); j.coudeG.rotation.x=j.coudeD.rotation.x=sol?-.6:0;
+        j.corps.rotation.set(0,0,0); j.tete.rotation.x = u<.35 ? -.7 : -.3;
+        j.couche = sol;
+      }
+      /* le tacle glissé : assis en arrière sur la hanche, jambe d'attaque tendue au ras du sol, l'autre repliée dessous */
+      if(j.tacle>0){
+        j.tacle-=dt; const u=clamp(1-j.tacle/.9,0,1), w=Math.min(1,u/.15)*(u>.8?Math.max(0,1-(u-.8)/.2):1);
+        j.g.rotation.set(-1.1*w, j.cap, .3*w);
+        j.g.position.y = .25*w;
+        j.hancheD.rotation.set(-.5*w,0,0); j.genouD.rotation.x=.05; j.hancheG.rotation.set(.2*w,0,-.2*w); j.genouG.rotation.x=1.5*w;
+        j.epauleG.rotation.set(.5*w,0,-.9*w); j.epauleD.rotation.set(-.3*w,0,.8*w); j.coudeG.rotation.x=j.coudeD.rotation.x=-.3;
+        j.corps.rotation.set(.35*w,0,0); j.tete.rotation.x=.35*w;
+        j.couche = w>.5;
       }
       if(etat.phase==='avant' && j.camp && v<1.2 && etat.tEntree>ENTREE.marche-.4){       // le salut au public
         const u=Math.sin(now/170+j.num*.7);
@@ -31022,9 +31094,14 @@ function fabriqueMatch3D(THREE, o){
       if(j.gardien && j.plongeF && !(ACT && ACT.gk===j) && !(j.plongeReste>0)) j.plongeF=0;
       if(j.gardien && j.plongeF){ const f=Math.min(1,Math.abs(j.plongeF)*2);
         j.g.rotation.z = 1.35*f*Math.sign(j.plongeF)*sens(j); j.g.position.y=.25+Math.sin(Math.min(1,Math.abs(j.plongeF))*Math.PI)*.9;
-        j.epauleG.rotation.set(0,0,-2.6*f); j.epauleD.rotation.set(0,0,2.6*f); j.coudeG.rotation.x=j.coudeD.rotation.x=0; }
+        j.epauleG.rotation.set(0,0,-2.6*f); j.epauleD.rotation.set(0,0,2.6*f); j.coudeG.rotation.x=j.coudeD.rotation.x=0;
+        /* la claquette : le bras du côté du plongeon tendu au bout, l'autre replié, et le poignet qui fouette */
+        if(j.claque>0){ j.claque-=dt; const u=clamp(1-j.claque/.6,0,1), haut=j.g.rotation.z>0;
+          const tendu=haut?j.epauleG:j.epauleD, plie=haut?j.epauleD:j.epauleG, cT=haut?j.coudeG:j.coudeD, cP=haut?j.coudeD:j.coudeG;
+          tendu.rotation.set(0,0,(haut?-1:1)*3.05); cT.rotation.x = u<.3 ? 0 : -.7*Math.sin(Math.min(1,(u-.3)/.3)*Math.PI);
+          plie.rotation.set(-.6,0,(haut?1:-1)*1.2); cP.rotation.x=-1.4; } }
       /* l'ombre : longue, dans l'axe de la lumière, qui rétrécit quand le joueur décolle */
-      const haut = Math.max(0,j.g.position.y), couche = j.tombe>0 || j.couche || (j.gardien && j.plongeF) ? 1 : 0;
+      const haut = Math.max(0,j.g.position.y), couche = j.tombe>0 || j.couche || j.tacle>0 || j.tetePl>0 || (j.gardien && j.plongeF) ? 1 : 0;
       const lo = couche ? 3 : (1.6+5.2*ax.l)/(1+haut*.15), la = couche ? 2.6 : 1.7;
       j.ombre.visible=true; j.ombre.position.set(j.pos.x+ax.x*lo*.42, .06, j.pos.z+ax.z*lo*.42);
       j.ombre.rotation.y=Math.atan2(ax.x,ax.z); j.ombre.scale.set(la, 1, lo);
@@ -31085,6 +31162,7 @@ function fabriqueMatch3D(THREE, o){
   function toucheBallon(de){
     const j = de || plusProche(joueurs.filter(x=>!x.dehors && !x.gardien), B.pos)[0];
     if(!j || j.pos.distanceTo(new THREE.Vector3(B.pos.x,0,B.pos.z))>4.5) return;
+    if(ACT && ACT.teteType==='plongeante' && j===ACT.A && B.pos.y>1.2){ j.tetePl=.95; return; }
     if(B.pos.y>2.6) j.saut=.55; else j.frappe=.34;
   }
 

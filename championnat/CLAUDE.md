@@ -2922,6 +2922,18 @@ toujours « raconter quelque chose ».
   (hanche à .98) plus `chevilleG/D`, donc allures, frappes, fêtes et banc inchangés. `ECHELLE` passe de 2,3 à 2,75.
   Les gradins (`matRang`) prennent la couleur du maillot du club qui reçoit (un rang sur deux plus sombre, un sur cinq à
   la couleur du short) ; **la charpente, le toit et la façade restent tels quels, à la demande de l'auteur.**
+- **LA TÊTE, LE TACLE, LE DRIBBLE ET LA CLAQUETTE (v3.11, choix de l'auteur du 18/11/2026)**, dans le bloc MATCH3D.
+  **Tête** : centres et corners arrivent à 5,8 (hauteur de tête des joueurs athlétiques, ils partaient du pied à 2,2) ;
+  sur un centre, `teteType` vaut `plongeante` si la ligne le dit ou une fois sur trois hors volée (ballon à 1,7, `j.tetePl`,
+  corps à l'horizontale puis sur le ventre), sinon `saut` (appel, bras en avant, buste cambré qui fouette). **Tacle**
+  (`j.tacle`, 0,9 s, assis en arrière, jambe tendue) : en jeu, un défenseur à 2-5 m se jette de temps en temps, le ballon
+  file (`B.libre`, `ensuite:'def'`) et le porteur saute par-dessus ou tombe ; sur un carton, la faute est un tacle
+  (`ACT.tacleur`, `uTacle`) ; sur un ballon `perdu`, le défenseur tacle. Le tacleur glisse sans pilotage. **Dribble**
+  (`conduite(p, dir)`) : une touche par foulée (`j.touche`), le ballon file devant puis se fait rattraper ; face à un
+  adversaire à moins de 6 m, crochet (`j.feinte`, passement de jambes puis départ sur le côté, `feinteDir`).
+  **Claquette** (`j.claque`) : sur un arrêt dont la ligne dit claque/détourne/repousse/en corner… (ou quatre fois sur dix
+  sans mot de prise de balle), le gardien boxe le ballon à côté du poteau au lieu de le garder. Pour essayer :
+  `window.__geste = 'tacle' | 'crochet' | 'claquette'`.
 - **LE VRAI STADE DANS LA MAQUETTE ET LE DIRECT AU TÉLÉPHONE (v2.90, 13/11/2026)** : `match3dOuvre` passe à la maquette
   TOUT l'état du stade (`etatStade3D` chez vous, `stadeAutre` ailleurs) : rangs selon la capacité, virages en coins arrondis,
   toit en anneau complet et écran dessous, éclairage 1 à 3 (mâts, pylônes, rampe de toit), kop (drapeaux, tifo au coup
