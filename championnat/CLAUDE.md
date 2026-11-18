@@ -6366,7 +6366,7 @@ marqueur en rend un. **Aucune ligne du jeu n'a bougé**, d'où aucune version ne
 compléteront, cas réel par cas réel et avec une note (« Lo », « Dal »…), comme ANG 1999-00 l'a fait pour « Dalla ».
 Gardé par **`harness-italie.cjs`**.
 
-### ITA 1990-91 — LE SCUDETTO DE BOSKOV (v3.05)
+### ITA 1990-91 — LE SCUDETTO DE BOSKOV (v3.05 préparée, NON LIVRÉE : harness-recruteur rouge, voir le journal du 18/11/2026)
 Première saison italienne, assemblée par la tâche planifiée le 18/11/2026 à partir du relevé brut du 15/11 (`secours/2026-11-15`), mis
 au format de phase 1 dans `releves/ITA-1990-91`. **Transfermarkt était injoignable cette nuit** (`.de`, `.com`, `.co.uk`, historique de
 transferts compris) ; Wikipédia répondait. La Sampdoria de Boskov prend son seul scudetto (cinquante et un points, **deux points la
