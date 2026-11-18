@@ -1,5 +1,5 @@
 // Vérificateur d'un relevé de saison (phase 1 de IMPORT_SAISON.md).
-// Usage : node releves/verifie-releve.cjs releves/ANG-1994-95
+// Usage : node releves/verifie-releve.cjs releves/ANG-1994-95   (ou ITA-1990-91 : le pays se lit dans le nom du dossier)
 // Il ne touche à rien : il lit le relevé et le registre des clubs du jeu, et dit
 // « RELEVÉ VERT » ou la liste des défauts. Code de sortie 0 si vert, 1 sinon.
 "use strict";
@@ -21,12 +21,23 @@ function litJSON(nom) {
   catch (e) { err(`${nom} n'est pas du JSON valide : ${e.message}`); return null; }
 }
 
-// Registre des clubs anglais du jeu, lu dans index.html (lecture seule).
+// Le pays se lit dans le nom du dossier (ANG-…, ITA-…). Tout ce qui en dépend est ici.
+const PAYS = (/^([A-Z]{3})-\d{4}-\d{2}$/.exec(path.basename(path.resolve(dossier))) || [])[1] || "ANG";
+const anDossier = +((/-(\d{4})-/.exec(path.basename(path.resolve(dossier))) || [])[1]);
+// l'élite à sa vraie taille (la Serie A à dix-huit jusqu'en 2003-04, décision de l'auteur v3.00), vingt ailleurs
+const TAILLE_D1 = (PAYS === "ITA" && anDossier <= 2003) ? 18 : 20;
+const CLASSES_D1 = PAYS === "ITA" ? [TAILLE_D1] : [20, 22];
+const CLASSES_D2 = PAYS === "ITA" ? [20, 22, 24] : [24];
+// deux points la victoire en Italie jusqu'en 1993-94, trois ensuite (et toujours trois en Angleterre dans le chantier)
+const PTS_VICTOIRE = (PAYS === "ITA" && anDossier <= 1993) ? 2 : 3;
+const NB_RETENUS = TAILLE_D1 * 20 + 20 * 18;
+
+// Registre des clubs du pays dans le jeu, lu dans index.html (lecture seule).
 const racine = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(racine, "championnat", "index.html"), "utf8");
-const bloc = html.slice(html.indexOf("const CLUBS_ANG=["), html.indexOf("];", html.indexOf("const CLUBS_ANG=[")));
+const bloc = html.slice(html.indexOf(`const CLUBS_${PAYS}=[`), html.indexOf("];", html.indexOf(`const CLUBS_${PAYS}=[`)));
 const CODES_ANG = new Set([...bloc.matchAll(/id:"([A-Z]+)"/g)].map(m => m[1]));
-if (CODES_ANG.size < 50) err(`registre CLUBS_ANG illisible (${CODES_ANG.size} codes trouvés)`);
+if (CODES_ANG.size < 50) err(`registre CLUBS_${PAYS} illisible (${CODES_ANG.size} codes trouvés)`);
 
 // Identifiants Transfermarkt vérifiés des clubs (releves/clubs-tm.json).
 const TABLE_TM = JSON.parse(fs.readFileSync(path.join(__dirname, "clubs-tm.json"), "utf8")).clubs;
@@ -34,7 +45,7 @@ const TABLE_TM = JSON.parse(fs.readFileSync(path.join(__dirname, "clubs-tm.json"
 // Effectifs connus, pour le contrôle d'identité : ceux du jeu (STARS_ANGxxxx) et ceux des
 // autres relevés posés à côté de celui-ci. Clé : année du coup d'envoi → code → noms courts.
 const connus = {};
-for (const m of html.matchAll(/const STARS_(?:D2_)?ANG(\d{2})(\d{2})=\{([\s\S]*?)\n\};/g)) {
+for (const m of html.matchAll(new RegExp(`const STARS_(?:D2_)?${PAYS}(\\d{2})(\\d{2})=\\{([\\s\\S]*?)\\n\\};`, "g"))) {
   const a = (+m[1] < 50 ? 2000 : 1900) + +m[1];
   connus[a] = connus[a] || {};
   for (const c of m[3].matchAll(/\n ([A-Z]{3}):\[([\s\S]*?)\]\],?/g))
@@ -42,7 +53,7 @@ for (const m of html.matchAll(/const STARS_(?:D2_)?ANG(\d{2})(\d{2})=\{([\s\S]*?
 }
 const dossierReleves = path.dirname(path.resolve(dossier));
 for (const k of fs.readdirSync(dossierReleves)) {
-  const mk = /^ANG-(\d{4})-\d{2}$/.exec(k);
+  const mk = new RegExp(`^${PAYS}-(\\d{4})-\\d{2}$`).exec(k);
   if (!mk || k === path.basename(path.resolve(dossier))) continue;
   try {
     const p2 = JSON.parse(fs.readFileSync(path.join(dossierReleves, k, "plateau.json"), "utf8"));
@@ -55,8 +66,8 @@ for (const k of fs.readdirSync(dossierReleves)) {
 }
 
 const cleDossier = path.basename(path.resolve(dossier));
-const mCle = /^ANG-(\d{4})-(\d{2})$/.exec(cleDossier);
-if (!mCle) err(`le dossier doit s'appeler ANG-AAAA-AA (trouvé : ${cleDossier})`);
+const mCle = new RegExp(`^${PAYS}-(\\d{4})-(\\d{2})$`).exec(cleDossier);
+if (!mCle) err(`le dossier doit s'appeler ${PAYS}-AAAA-AA (trouvé : ${cleDossier})`);
 const an = mCle ? +mCle[1] : NaN;
 if (mCle && (an + 1) % 100 !== +mCle[2]) err(`clé incohérente : ${cleDossier}`);
 
@@ -75,10 +86,10 @@ function verifieClassement(nom, rangs, taillesPermises) {
     if (r.j !== jAttendu) err(`${ou} : ${r.j} matchs joués, attendu ${jAttendu}`);
     if (r.g + r.n + r.p !== r.j) err(`${ou} : g+n+p = ${r.g + r.n + r.p} ≠ j = ${r.j}`);
     const pen = r.penalite || 0;
-    if (3 * r.g + r.n - pen !== r.pts) err(`${ou} : 3×${r.g}+${r.n}${pen ? "−" + pen : ""} = ${3 * r.g + r.n - pen} ≠ ${r.pts} points`);
+    if (PTS_VICTOIRE * r.g + r.n - pen !== r.pts) err(`${ou} : ${PTS_VICTOIRE}×${r.g}+${r.n}${pen ? "−" + pen : ""} = ${PTS_VICTOIRE * r.g + r.n - pen} ≠ ${r.pts} points`);
     if (r.pts > ptsPrec) err(`${ou} : ${r.pts} points, plus que le club classé au-dessus`);
     ptsPrec = r.pts;
-    if (r.code != null && !CODES_ANG.has(r.code)) err(`${ou} : code ${r.code} inconnu de CLUBS_ANG`);
+    if (r.code != null && !CODES_ANG.has(r.code)) err(`${ou} : code ${r.code} inconnu de CLUBS_${PAYS}`);
     sg += r.g; sp += r.p; sbp += r.bp; sbc += r.bc;
   });
   if (sg !== sp) err(`${nom} : ${sg} victoires pour ${sp} défaites (doivent être égales)`);
@@ -87,22 +98,23 @@ function verifieClassement(nom, rangs, taillesPermises) {
 let d1 = [], d2 = [];
 if (P) {
   if (P.cle !== cleDossier) err(`plateau.cle = ${P.cle}, attendu ${cleDossier}`);
-  if (P.pays !== "ANG") err(`plateau.pays = ${P.pays}, attendu ANG`);
+  if (P.pays !== PAYS) err(`plateau.pays = ${P.pays}, attendu ${PAYS}`);
   if (P.an !== an) err(`plateau.an = ${P.an}, attendu ${an}`);
   if (!Array.isArray(P.sources) || P.sources.length === 0) err("plateau.sources vide : citer les pages réellement lues");
-  verifieClassement("classementD1", P.classementD1, [20, 22]);
-  verifieClassement("classementD2", P.classementD2, [24]);
+  verifieClassement("classementD1", P.classementD1, CLASSES_D1);
+  verifieClassement("classementD2", P.classementD2, CLASSES_D2);
   d1 = P.d1 || []; d2 = P.d2 || [];
   const tous = [...d1, ...d2];
-  if (d1.length !== 20) err(`d1 : ${d1.length} clubs, attendu 20`);
+  if (d1.length !== TAILLE_D1) err(`d1 : ${d1.length} clubs, attendu ${TAILLE_D1}`);
   if (d2.length !== 20) err(`d2 : ${d2.length} clubs, attendu 20`);
   if (new Set(tous).size !== tous.length) err("un club figure deux fois dans d1/d2");
-  tous.forEach(c => { if (!CODES_ANG.has(c)) err(`club retenu ${c} inconnu de CLUBS_ANG (arrêter : c'est du moteur, pas de la donnée)`); });
+  tous.forEach(c => { if (!CODES_ANG.has(c)) err(`club retenu ${c} inconnu de CLUBS_${PAYS} (arrêter : c'est du moteur, pas de la donnée)`); });
   const auClassement = new Set([...(P.classementD1 || []), ...(P.classementD2 || [])].map(r => r.code));
   tous.forEach(c => { if (!auClassement.has(c)) err(`club retenu ${c} absent des deux classements`); });
   const nbClassés = (P.classementD1 || []).length + (P.classementD2 || []).length;
   const ecartes = P.ecartes || [];
-  if (nbClassés - 40 !== ecartes.length) err(`${nbClassés} clubs classés, 40 retenus : il faut ${nbClassés - 40} écartés justifiés, il y en a ${ecartes.length}`);
+  const nbPlateau = TAILLE_D1 + 20;
+  if (nbClassés - nbPlateau !== ecartes.length) err(`${nbClassés} clubs classés, ${nbPlateau} retenus : il faut ${nbClassés - nbPlateau} écartés justifiés, il y en a ${ecartes.length}`);
   ecartes.forEach(e => { if (!e.raison || e.raison.length < 10) err(`écarté ${e.code || e.club} sans raison écrite`); });
   ecartes.forEach(e => {
     if (/anti-?robot|inaccessible|bloqu|human verification|403|405/i.test(e.raison || ""))
@@ -191,7 +203,7 @@ if (J && P) {
   if (sansTM > 40) err(`${sansTM} retenus sans identifiant Transfermarkt : la source principale a manqué, s'arrêter au lieu de tout prendre ailleurs`);
   for (const div of ["d1", "d2"]) if (maigres[div] > 3) err(`${div} : ${maigres[div]} clubs à moins de dix joueurs documentés, la saison n'est pas mûre`);
   const nbRetenus = [...d1, ...d2].reduce((s, c) => s + ((J[c] || []).filter(j => j.retenu).length), 0);
-  if (nbRetenus !== 760) err(`${nbRetenus} joueurs retenus au total, attendu 760`);
+  if (nbRetenus !== NB_RETENUS) err(`${nbRetenus} joueurs retenus au total, attendu ${NB_RETENUS}`);
   const sansPrenom = [...d1, ...d2].flatMap(c => (J[c] || []).filter(j => j.retenu && j.prenom === "")).length;
   if (sansPrenom > 40) alerte(`${sansPrenom} retenus sans prénom : vérifier qu'il ne s'agit pas d'un oubli`);
 }
@@ -210,4 +222,4 @@ if (erreurs.length) {
   console.log(`\n${erreurs.length} défaut(s) : relevé NON conforme.`);
   process.exit(1);
 }
-console.log(`RELEVÉ VERT : ${cleDossier}, 40 clubs, 760 joueurs retenus.`);
+console.log(`RELEVÉ VERT : ${cleDossier}, ${TAILLE_D1 + 20} clubs, ${NB_RETENUS} joueurs retenus.`);
