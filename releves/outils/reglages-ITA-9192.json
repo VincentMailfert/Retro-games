@@ -1,0 +1,16 @@
+{
+ "pays": "ITA",
+ "an": 1991,
+ "version_avant": "3.15",
+ "version_apres": "3.16",
+ "nom": "Le Milan des invaincus",
+ "sous": "Fabio Capello succède à Sacchi et son Milan traverse le championnat sans perdre un seul match : vingt-deux victoires, douze nuls, cinquante-six points, huit devant la Juventus. Banni d'Europe pour un an après la nuit de Marseille, il n'a que la Serie A à jouer, et Marco van Basten la finit meilleur buteur avec vingt-cinq buts, devant Roberto Baggio. La Sampdoria championne en titre va jusqu'en finale de la Coupe des champions, perdue contre Barcelone ; l'Inter, huitième, se retrouve sans Europe. Le Foggia de Zeman, promu, finit neuvième, Baiano troisième buteur. En Serie B, le Brescia de Ganz est champion, et Casertana tombe au match d'appui contre Taranto.",
+ "euroC1": ["SAM"],
+ "euroC2": ["ROM"],
+ "euroC3": ["TOR", "INT", "PAR", "GEN"],
+ "reel": {
+  "d1": "MIL JUV TOR NAP ROM SAM PAR INT FOG LAZ ATA FIO CAG GEN BAI HEL CRM ASC",
+  "d2": "BRS PES ANC UDI COS PIS REG CES LUC LEC PIA PAD BGN MOD VEN TAR CAS PAL MES AVE"
+ },
+ "entete": "ITA 1991-92 (v3.16) : « Le Milan des invaincus ». La deuxième saison italienne, assemblée par la tâche planifiée le 19/11/2026 à partir du relevé releves/ITA-1991-92 (Transfermarkt, effectif et temps de jeu de la saison 1991, arrivées recoupées par l'historique de transferts ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 519 notes héritées de 1990-91 vieillies d'un an, 3 du recruteur de l'été, 198 calculées, dix ajustées à la main (releves/outils/ajust-ITA-9192.json)."
+}
