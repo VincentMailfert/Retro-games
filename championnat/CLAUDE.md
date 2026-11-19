@@ -6493,6 +6493,36 @@ harnais (`conforme`) lit désormais les listes italiennes (`VIVIER_PEPITES_ITA`,
 sans cela, Di Matteo et Albertini sortaient « absents de la liste ».
 **Restent à revoir quand Transfermarkt répondra** : les arrivées `1` et `null`, Ravanelli, et les pépites.
 
+### ITA 1991-92 — LE MILAN DES INVAINCUS (v3.16)
+Deuxième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 19/11/2026 (`secours/2026-11-19`). **Transfermarkt
+répondait, historique de transferts compris** (`.de` pour les pages, `.com` pour `ceapi/transferHistory`). Le Milan de Capello, banni
+d'Europe, traverse la Serie A **sans une défaite** (22 victoires, 12 nuls, 56 points) ; **Van Basten meilleur buteur avec vingt-cinq
+buts (90)**, R. Baggio 86, Baiano 78 ; en Serie B, **Ganz meilleur buteur (19 buts, 74)**. Sièges = `SIEGES_ITA[1991]` (la Sampdoria seule
+en C1, le Milan nulle part). Coup d'envoi commun aux deux divisions le **1er septembre 1991**.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté ; Piacenza, Venezia, Casertana et Palermo (montés de C1) entrent au relevé,
+identifiants dans `releves/clubs-tm.json`. Quatre clubs de Serie B à trente-cinq points : rangés dans l'ordre réel (Venezia, Taranto,
+Casertana battue au match d'appui, Palermo). Les rangs du `plateau.json` sont des POSITIONS (1 à 20), pas des rangs ex aequo : le
+vérificateur l'exige.
+**Notes** : **519 héritées de 1990-91 vieillies d'un an**, 3 du recruteur de l'été, 198 calculées ; élite 70.7 / 71, dessous 65.8 / 66.
+Dix ajustements (`ajust-ITA-9192.json`), buteurs vérifiés sur « 1991–92 Serie A » (anglaise) et « Serie B 1991-1992 » (italienne).
+**Les arrivées sont recoupées, pour la première fois en Italie** : tout homme dont « Im Team seit » est vide, postérieure au coup
+d'envoi ou contredite par un doublon passe par l'historique (314 hommes) : club au coup d'envoi = dernier transfert daté avant le
+1er septembre ; arrivée dans la saison = écarté (32, dont **Antonio Conte, rangé à Lecce**, à la Juventus en novembre) ; un passage
+« U19 → équipe première » du même club n'est pas une arrivée (Cannavaro, Dal Canto, Ghirardello, Guardalben). Quatre retenus restent à
+`arrivee` 1, tous à trente minutes ou moins.
+**Les pièges.** (1) **La page de saison Transfermarkt peut manquer des hommes** : la Sampdoria et Parma n'en ont que dix-neuf
+utilisables. Complétés par **Sergio Porcù** (relevé en 1990-91, historique « Sampdoria → fin de carrière » en juillet 1992) et **Mario
+Lemme** (page Wikipédia « 1991–92 Parma AC season », arrivé de Vastese le 1er juillet 1991), poste et naissance sur leur fiche
+(`…/<slug>/profil/spieler/<id>`, avec le slug : sans lui la page revient vide), minutes `null`. **Diego Ficarra**, listé à Parma, était à
+la Triestina : une ligne de la page de saison n'est pas une preuve. (2) **« Silas » est déjà un homme du jeu** (Wolverhampton, ANG
+2003-04) : Paulo Silas en toutes lettres par `_graphie` ; Careca Bianchesi aussi (surnom brésilien). (3) **Les graphies « E. D. Bianco »,
+« M. P. Scanio », « G. D. Pulpito » viennent de 1990-91** (le résolveur ne connaît pas « Dal » ni les patronymes doubles) : le jeu gagne,
+elles sont reconduites telles quelles pour que le même homme garde le même nom ; à revoir un jour avec l'auteur, pour les deux saisons
+ensemble. (4) **Pisa à trois attaquants**, faute d'un quatrième à la source, toléré comme en 1990-91. (5) Renato Buso, « Rechtes
+Mittelfeld » chez Transfermarkt, est attaquant dans la page Wikipédia de la Sampdoria : passé en A.
+**Pépite forcée** : **Fabio Cannavaro** (dix-huit ans, zéro minute, 62/90). Del Piero, Inzaghi, Vieri et Panucci passent seuls.
+Validation dédiée : **`harness-ita9192.cjs`** (dont l'âge suivi : un homme de 1990-91 prend un an exactement).
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
