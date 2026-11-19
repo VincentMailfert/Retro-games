@@ -88,7 +88,7 @@
    "penalite": 0
   },
   {
-   "rang": 6,
+   "rang": 7,
    "club": "Parma",
    "code": "PAR",
    "j": 34,
@@ -140,7 +140,7 @@
    "penalite": 0
   },
   {
-   "rang": 10,
+   "rang": 11,
    "club": "Atalanta",
    "code": "ATA",
    "j": 34,
@@ -179,7 +179,7 @@
    "penalite": 0
   },
   {
-   "rang": 13,
+   "rang": 14,
    "club": "Genoa",
    "code": "GEN",
    "j": 34,
@@ -350,7 +350,7 @@
    "penalite": 0
   },
   {
-   "rang": 8,
+   "rang": 9,
    "club": "Lucchese",
    "code": "LUC",
    "j": 38,
@@ -363,7 +363,7 @@
    "penalite": 0
   },
   {
-   "rang": 8,
+   "rang": 10,
    "club": "Lecce",
    "code": "LEC",
    "j": 38,
@@ -389,7 +389,7 @@
    "penalite": 0
   },
   {
-   "rang": 11,
+   "rang": 12,
    "club": "Padova",
    "code": "PAD",
    "j": 38,
@@ -402,7 +402,7 @@
    "penalite": 0
   },
   {
-   "rang": 11,
+   "rang": 13,
    "club": "Bologna",
    "code": "BGN",
    "j": 38,
@@ -415,7 +415,7 @@
    "penalite": 0
   },
   {
-   "rang": 11,
+   "rang": 14,
    "club": "Modena",
    "code": "MOD",
    "j": 38,
@@ -441,7 +441,7 @@
    "penalite": 0
   },
   {
-   "rang": 15,
+   "rang": 16,
    "club": "Taranto",
    "code": "TAR",
    "j": 38,
@@ -454,7 +454,7 @@
    "penalite": 0
   },
   {
-   "rang": 15,
+   "rang": 17,
    "club": "Casertana",
    "code": "CAS",
    "j": 38,
@@ -467,7 +467,7 @@
    "penalite": 0
   },
   {
-   "rang": 15,
+   "rang": 18,
    "club": "Palermo",
    "code": "PAL",
    "j": 38,
