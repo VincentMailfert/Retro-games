@@ -1926,7 +1926,10 @@ function fabriqueMatch3D(THREE, o){
     /* v3.13 : dans combien de millisecondes le tir de but en cours sera au fond (0 s'il n'y en a pas) */
     delaiFilet(){ const a=ACT; if(!a || !a.but || !a.durTir || a.uTir>1) return 0;
       const s = a.u<a.uTir ? .25+a.durTir : (1-a.u)/Math.max(1e-3,1-a.uTir)*a.durTir;
-      return Math.round(s*1000)+250; },
+      /* v3.17 (retour de l'auteur : « la fenêtre s'affiche au moment même où la balle franchit la ligne, on n'a pas le temps
+         de la voir au fond du filet ») : le tir vise la ligne, puis le ballon met 0,35 s à gagner le fond (B.filet) et le
+         filet tremble 1,2 s. On attend qu'il y soit, plus une seconde pour le voir trembler. */
+      return Math.round(s*1000)+350+1100; },
     camera(m){ cam.mode=m; },
     zoom(z){ if(typeof z==='number') cam.zoom=clamp(z,.3,1.5); return cam.zoom; },
     ferme(){

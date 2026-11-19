@@ -2954,6 +2954,9 @@ toujours « raconter quelque chose ».
   (`j.tombe0` retient la durée). **Le but** : quand le tir est en l'air, `ligne(l)` met le score de côté
   (`ACT.scoreFilet`) et `issue()` l'affiche avec la bannière, ballon au fond ; l'API rend `delaiFilet()` (ms jusqu'au
   filet). Côté jeu, `butApresFilet(fn)` retarde la grande fenêtre du but (`celebreFlash`) d'autant, image figée comprise.
+  **v3.17 (19/11/2026, retour de l'auteur : « la fenêtre s'affiche au moment même où la balle franchit la ligne »)** :
+  le tir vise la ligne (`ax=L/2`), le ballon gagne ensuite le fond en 0,35 s (`B.filet`) et le filet tremble 1,2 s ;
+  `delaiFilet()` rend désormais le temps jusqu'à la ligne + 350 ms (le fond) + 1 100 ms (le filet qui tremble), au lieu de + 250 ms.
   **La récupération** : quand l'action appartient à l'équipe qui n'a pas le ballon, l'action commence par le plus proche
   qui va le chercher puis le passe au lanceur de l'attaque (toutes les clés glissent de 18 à 32 %), au lieu d'un ballon
   téléporté au pied d'un joueur lointain. **LE SOUS-TITRE**, choisi par l'auteur parmi quatre versions essayées en
