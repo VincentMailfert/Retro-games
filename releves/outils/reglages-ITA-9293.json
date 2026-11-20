@@ -1,0 +1,16 @@
+{
+ "pays": "ITA",
+ "an": 1992,
+ "version_avant": "3.17",
+ "version_apres": "3.18",
+ "nom": "Parme triomphe à Wembley",
+ "sous": "Le Milan de Capello garde son titre, quatre points devant l'Inter, mais sa série de cinquante-huit matchs sans défaite tombe en mars, à San Siro, sur un coup franc d'Asprilla : c'est Parme, qui gagne aussi la Coupe des coupes à Wembley. Le Milan perd la finale de la Ligue des champions contre Marseille, la Juventus de Roberto Baggio gagne la Coupe UEFA, le Torino la Coupe d'Italie. Giuseppe Signori, arrivé de Foggia, finit meilleur buteur avec vingt-six buts pour la Lazio, et la Fiorentina descend en Serie B pour la première fois depuis cinquante-quatre ans. Les gardiens n'ont plus le droit de prendre à la main une passe en retrait. En Serie B, la Reggiana est championne pour la première fois, et Oliver Bierhoff marque vingt buts pour Ascoli.",
+ "euroC1": ["MIL"],
+ "euroC2": ["PAR"],
+ "euroC3": ["JUV", "TOR", "ROM", "NAP"],
+ "reel": {
+  "d1": "MIL INT PAR JUV LAZ CAG SAM ATA TOR ROM NAP FOG GEN UDI BRS FIO ANC PES",
+  "d2": "REG CRM PIA LEC PAD ASC COS PIS CES BAI VEN HEL LUC MZA MOD AND SPA BGN TAR TER"
+ },
+ "entete": "ITA 1992-93 (v3.18) : « Parme triomphe à Wembley ». La troisième saison italienne, assemblée par la tâche planifiée le 20/11/2026 à partir du relevé releves/ITA-1992-93 (Transfermarkt, effectif et temps de jeu de la saison 1992, arrivées datées par les listes de transferts des clubs et les pages de détail de transfert ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 505 notes héritées de 1991-92 vieillies d'un an, 37 de plus loin, 8 du recruteur de l'été, les autres calculées, quatorze ajustées à la main (releves/outils/ajust-ITA-9293.json)."
+}

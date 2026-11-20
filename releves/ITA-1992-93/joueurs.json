@@ -3351,12 +3351,12 @@
    "naissance": "1975-07-23",
    "matchs": 1,
    "minutes": 68,
-   "arrivee": 0,
+   "arrivee": 2,
    "retenu": false,
    "force": false,
    "deja_au_jeu": true,
    "source": "tm",
-   "remarque": "arrivé le 1993-01-01, pendant la saison (page de transfert Transfermarkt)"
+   "remarque": "« Im Team seit » 1993-01-01 : c'est son passage de la Primavera (Atalanta U20) à l'équipe première du même club (liste des transferts d'hiver du club), pas une arrivée ; au club au coup d'envoi"
   },
   {
    "tm": 22247,
@@ -4227,20 +4227,20 @@
    "remarque": "« Im Team seit » vide ; recoupement impossible (historique de transferts de Transfermarkt refusé à la tâche, aucun transfert daté)"
   },
   {
-   "tm": 253296,
-   "nom": "Fabrizio Carli",
-   "court": "F. Carli",
-   "prenom": "Fabrizio",
+   "tm": 5958,
+   "nom": "Francesco Totti",
+   "court": "F. Totti",
+   "prenom": "Francesco",
    "poste": "A",
-   "naissance": "1974-11-04",
-   "matchs": 0,
-   "minutes": 0,
-   "arrivee": 1,
+   "naissance": "1976-09-27",
+   "matchs": 2,
+   "minutes": 6,
+   "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
-   "remarque": "« Im Team seit » vide ; recoupement impossible (historique de transferts de Transfermarkt refusé à la tâche, aucun transfert daté)"
+   "remarque": "« Im Team seit » 1993-01-01 : c'est son passage de la Primavera (AS Rom U20) à l'équipe première du même club (liste des transferts d'hiver du club), pas une arrivée ; au club au coup d'envoi"
   },
   {
    "tm": 5968,
@@ -4289,22 +4289,6 @@
    "deja_au_jeu": true,
    "source": "tm",
    "remarque": ""
-  },
-  {
-   "tm": 5958,
-   "nom": "Francesco Totti",
-   "court": "F. Totti",
-   "prenom": "Francesco",
-   "poste": "A",
-   "naissance": "1976-09-27",
-   "matchs": 2,
-   "minutes": 6,
-   "arrivee": 0,
-   "retenu": false,
-   "force": false,
-   "deja_au_jeu": true,
-   "source": "tm",
-   "remarque": "arrivé le 1993-01-01, pendant la saison (page de transfert Transfermarkt)"
   },
   {
    "tm": 253294,
@@ -4377,6 +4361,22 @@
    "prenom": "Marco",
    "poste": "M",
    "naissance": "1974-11-14",
+   "matchs": 0,
+   "minutes": 0,
+   "arrivee": 1,
+   "retenu": false,
+   "force": false,
+   "deja_au_jeu": false,
+   "source": "tm",
+   "remarque": "« Im Team seit » vide ; recoupement impossible (historique de transferts de Transfermarkt refusé à la tâche, aucun transfert daté)"
+  },
+  {
+   "tm": 253296,
+   "nom": "Fabrizio Carli",
+   "court": "F. Carli",
+   "prenom": "Fabrizio",
+   "poste": "A",
+   "naissance": "1974-11-04",
    "matchs": 0,
    "minutes": 0,
    "arrivee": 1,
