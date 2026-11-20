@@ -2,7 +2,7 @@
    La plupart des saisons de départ sont fermées ; un titre de D1, à n'importe quelle année d'une carrière,
    rapporte une clé dans le championnat de sa saison de départ, et la clé ouvre une saison fermée du même
    championnat.
-   A) une partie neuve ne voit ouvertes que les six saisons de départ
+   A) une partie neuve ne voit ouvertes que les sept saisons de départ
    B) un titre de D1 crédite une clé, même en deuxième année après une montée ; un titre de D2, non
    C) regagner la même saison ne crédite pas une deuxième clé
    D) une clé ouvre une saison, et une seule (et jamais dans l'autre championnat)
@@ -49,7 +49,7 @@ global.getComputedStyle = () => makeStub();
 global.requestAnimationFrame = (cb) => setTimeout(cb, 0); global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 const epilogue = "\n;return {nouvellePartie,jouerJournee,intersaison,classement,clubById,sauvegardeLocale,chargeLocale,partiesListe," +
-  "ecranAccueil,ficheClubAccueil,ecranBilan,SAISONS,CLUBS,CLUBS_D2,PROGKEY,SAVEKEY,SAISONS_OUVERTES," +
+  "ecranAccueil,ficheClubAccueil,saisonOuverteProche,ecranBilan,SAISONS,CLUBS,CLUBS_D2,PROGKEY,SAVEKEY,SAISONS_OUVERTES," +
   "saisonOuverte,clesDispo,ouvreSaison,progGagne,progRattrape,progFusionne,progEmpreinte,progNette,prog,progMag," +
   "titreElite,cleDepart,cleDuBilan,chDeSaison,progVide," +
   "getG:function(){return G;},setG:function(x){G=x;},setAccueil:function(k){SAISON_ACCUEIL=k;},getPARTIE:function(){return PARTIE;}};";
@@ -70,15 +70,15 @@ function finitSaison(api, enTete) {
 }
 
 /* ===== A) partie neuve ===== */
-console.log("A) Une partie neuve ne voit ouvertes que les six saisons de départ");
+console.log("A) Une partie neuve ne voit ouvertes que les sept saisons de départ");
 let LS = nouveauLS(), api = appareil(LS);
 {
   const S = api.SAISONS, cles = Object.keys(S);
   const ouv = cles.filter(k => api.saisonOuverte(k));
-  ok(ouv.length === 6 && ["1990-91", "1995-96", "2005-06", "ANG-1990-91", "ANG-1995-96", "ANG-2000-01"].every(k => ouv.includes(k)),
-    "six saisons ouvertes, trois par championnat : " + ouv.join(", "));
-  ok(api.SAISONS_OUVERTES.every(k => S[k]), "les six saisons de la constante existent toutes dans SAISONS");
-  ok(["FR", "ANG"].every(ch => api.SAISONS_OUVERTES.filter(k => api.chDeSaison(k) === ch).length === 3), "trois en France, trois en Angleterre");
+  ok(ouv.length === 7 && ["1990-91", "1995-96", "2000-01", "2005-06", "ANG-1990-91", "ANG-1995-96", "ANG-2000-01"].every(k => ouv.includes(k)),
+    "sept saisons ouvertes, quatre en France et trois en Angleterre : " + ouv.join(", "));
+  ok(api.SAISONS_OUVERTES.every(k => S[k]), "les sept saisons de la constante existent toutes dans SAISONS");
+  ok(api.SAISONS_OUVERTES.filter(k => api.chDeSaison(k) === "FR").length === 4 && api.SAISONS_OUVERTES.filter(k => api.chDeSaison(k) === "ANG").length === 3, "quatre en France (2000-01 ajoutée en v3.20), trois en Angleterre");
   ok(cles.length - ouv.length >= 20, (cles.length - ouv.length) + " saisons fermées sur " + cles.length);
   ok(api.clesDispo("FR") === 0 && api.clesDispo("ANG") === 0, "zéro clé dans chaque championnat");
   ok(Object.keys(LS._m).length === 0, "rien n'est écrit dans le navigateur au simple fait de regarder");
@@ -258,9 +258,21 @@ console.log("\nH) À l'écran");
   ok(/Aucune clé en poche\. Gagnez un titre de champion en première division pour en gagner une\./.test(ligne) && !/bOuvreSaison/.test(ligne), "sur une saison fermée sans clé : une seule ligne, qui dit les clés, sans bouton");
   ok((h.match(/class="startclub"/g) || []).length >= 36, "les clubs de la saison fermée restent visibles");
   a.ficheClubAccueil(a.SAISONS["1993-94"].d1[0]);
-  ok(/disabled[^>]*>🔒 SAISON FERMÉE</.test(FICHE.innerHTML) && !/Prendre les rênes/.test(FICHE.innerHTML), "la fiche d'un club d'une saison fermée ne laisse pas lancer la carrière");
+  ok(/🔒 <b>Saison fermée\.<\/b>/.test(FICHE.innerHTML) && !/Prendre les rênes/.test(FICHE.innerHTML) && !/id="bLance"/.test(FICHE.innerHTML), "la fiche d'un club d'une saison fermée ne laisse pas lancer la carrière");
+  // v3.20 : la fiche fermée n'est plus une impasse (retour d'un joueur, Le Havre 2000-01)
+  ok(/Soyez champion de première division en partant d'une saison ✅ ouverte : chaque titre donne une clé, qui ouvre la saison de votre choix\./.test(FICHE.innerHTML), "sans clé, la fiche dit comment ouvrir la saison");
+  { const id = "LEH", T = a.SAISONS["1993-94"], dans = T.d1.includes(id) || T.d2.includes(id);
+    if (dans) { a.ficheClubAccueil(id);
+      const m = FICHE.innerHTML.match(/id="bAutreSaison" data-k="([^"]+)"[^>]*>([^<]*)</);
+      ok(m && a.saisonOuverte(m[1]) && (a.SAISONS[m[1]].d1.includes(id) || a.SAISONS[m[1]].d2.includes(id)) && /Le Havre/.test(m[2]),
+        "le Havre en 1993-94 renvoie au Havre dans la saison ouverte la plus proche : " + (m && m[1] + " · " + m[2])); } }
+  { const sk = Object.keys(a.SAISONS).filter(k => !a.saisonOuverte(k) && (a.SAISONS[k].pays || "FR") === "FR");
+    let manque = 0; for (const k of sk) for (const id of a.SAISONS[k].d1.concat(a.SAISONS[k].d2)) { const p = a.saisonOuverteProche(k, id); if (!p || !a.saisonOuverte(p.k)) manque++; }
+    ok(manque === 0, "chaque club de chaque saison fermée a une sortie vers une saison ouverte de son pays"); }
   a.progGagne("1995-96", "p1"); a.ecranAccueil(); h = APP.innerHTML;
   ok(/1 clé en poche/.test(h) && /id="bOuvreSaison"/.test(h) && /🔑 1</.test(h), "avec une clé : la ligne le dit, et un bouton propose d'ouvrir");
+  a.ficheClubAccueil(a.SAISONS["1993-94"].d1[0]);
+  ok(/id="bCleFiche"[^>]*>🔑 Ouvrir 1993-94</.test(FICHE.innerHTML) && /1 clé en poche/.test(FICHE.innerHTML) && !/bAutreSaison/.test(FICHE.innerHTML), "avec une clé, la fiche du club propose d'ouvrir la saison sur place");
   a.setAccueil("ANG-1993-94"); a.ecranAccueil();
   ok(/🔑 0</.test(APP.innerHTML) && /Aucune clé/.test(APP.innerHTML), "le compte est par championnat : la clé française ne se voit pas en Angleterre");
   a.setAccueil("1995-96"); a.ficheClubAccueil(a.SAISONS["1995-96"].d1[0]);

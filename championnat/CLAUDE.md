@@ -170,7 +170,7 @@ toujours « raconter quelque chose ».
   copie d'ici a tout envoyé et que la ligne a bougé depuis `base`, on lâche `G` et on rapatrie la plus avancée, avec un
   message. Journées jamais envoyées ici : on n'y touche pas, l'envoi tranche comme avant. Jamais en plein match ni
   par-dessus une fenêtre (`ecranOccupe`), au plus toutes les 15 s (`NUAGE_REVEIL_T`). Gardé par la section P de
-  `harness-compte.cjs` (rouge sur la v3.18). Les copies déjà nées restent : on ne les efface pas d'office.
+  `harness-compte.cjs` (rouge sur la v3.20). Les copies déjà nées restent : on ne les efface pas d'office.
   Au passage (choix de l'auteur), une ligne de « Vos autres carrières » qui ne vit qu'en ligne garde la place du crayon
   (bouton invisible) : toutes les lignes ont la même largeur.
   **Connecté, le navigateur n'est plus qu'une mémoire de travail** : il garde les `MAX_PARTIES` (4) plus récentes,
@@ -4174,8 +4174,9 @@ et la buvette sont pris). `harness-noms.cjs` refuse tout le reste.
 ### LES SAISONS VERROUILLÉES (v2.22, consigne de l'auteur du 28/10/2026)
 Le joueur doit avoir une raison de s'investir : la plupart des saisons de départ démarrent **fermées**, et il les
 ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« LES SAISONS VERROUILLÉES »).
-- **Ouvertes d'office** : la constante **`SAISONS_OUVERTES`**, six saisons, une par époque et par championnat
-  (France 1990-91, 1995-96, 2005-06 ; Angleterre `ANG-1990-91`, `ANG-1995-96`, `ANG-2000-01`). L'Angleterre est
+- **Ouvertes d'office** : la constante **`SAISONS_OUVERTES`**, sept saisons (France 1990-91, 1995-96, 2000-01,
+  2005-06 ; Angleterre `ANG-1990-91`, `ANG-1995-96`, `ANG-2000-01`). France 2000-01 ajoutée en v3.20, promise par
+  l'auteur à un joueur qui voulait prendre Le Havre en 2001. L'Angleterre est
   ouverte comme la France. C'est la seule liste à toucher pour changer la donne de départ.
 - **Une saison gagnée** = un titre de **D1** remporté par une carrière partie de cette saison, **à n'importe quelle
   année** (v2.24, choix de l'auteur : « on peut prendre un club de 2e division, le faire monter, et c'est quand on est
@@ -4202,7 +4203,13 @@ ouvre en gagnant. Le module vit juste sous la copie en ligne des carrières (« 
   un titre de champion en première division pour en gagner une. » (seconde phrase demandée par l'auteur en v2.23,
   reformulée par lui en v2.24 : sans elle, on ne comprenait pas comment gagner une clé) ou
   « 🔒 1 clé en poche. 🔑 Ouvrir » sous le sélecteur, `confirme` quand on choisit une saison fermée avec une clé
-  (`proposeOuverture`), et « 🔒 SAISON FERMÉE » grisé à la place de « PRENDRE LES RÊNES » dans la fiche d'un club.
+  (`proposeOuverture`). **La fiche d'un club d'une saison fermée (v3.20, retour d'un vrai joueur du 20/11/2026 : il
+  n'avait pas compris comment jouer la saison choisie)** n'est plus une impasse : à la place de « PRENDRE LES RÊNES »,
+  `ficheFermee` dit la règle en une phrase (information de situation : la règle qui refuse le geste) et offre toujours
+  une sortie : avec une clé, « 🔑 Ouvrir AAAA-AA » sur place (puis la fiche se rouvre, lançable) ; sans clé, le même
+  club dans la saison ouverte la plus proche de son pays (`saisonOuverteProche`, « ▶ Le Havre AC en 1995-96 »), ou à
+  défaut la saison ouverte la plus proche. Le vieux bouton grisé « 🔒 SAISON FERMÉE » ne subsiste que dans le contrat
+  de la carrière d'entraîneur.
   Le sélecteur range les saisons de chaque pays **par année** (v2.23 : elles entrent dans `SAISONS` dans l'ordre où
   on les ajoute, et les anglaises 1990-94, arrivées après, s'affichaient en bas). Le bandeau de l'accueil, en haut à
   droite, dit « Rétro football management » (v2.23, choix de l'auteur) au lieu de la division du pays regardé.
@@ -6539,7 +6546,7 @@ Mittelfeld » chez Transfermarkt, est attaquant dans la page Wikipédia de la Sa
 **Pépite forcée** : **Fabio Cannavaro** (dix-huit ans, zéro minute, 62/90). Del Piero, Inzaghi, Vieri et Panucci passent seuls.
 Validation dédiée : **`harness-ita9192.cjs`** (dont l'âge suivi : un homme de 1990-91 prend un an exactement).
 
-### ITA 1992-93 — PARME TRIOMPHE À WEMBLEY (v3.18)
+### ITA 1992-93 — PARME TRIOMPHE À WEMBLEY (v3.20)
 Troisième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 20/11/2026 (`secours/2026-11-20`). Le Milan de
 Capello garde son titre (cinquante points, quatre devant l'Inter) mais perd sa série de **cinquante-huit matchs sans défaite** le 21 mars,
 à San Siro, sur un coup franc d'Asprilla : c'est Parme, qui gagne aussi la Coupe des coupes à Wembley. **Signori meilleur buteur avec

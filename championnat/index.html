@@ -779,7 +779,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.19"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.20"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -1373,7 +1373,7 @@ const ANECDOTES=["On dit qu'il n'a jamais manqué un entraînement.","Sa grand-m
    (choix de l'auteur, plutôt qu'un faux prénom sur un vrai joueur). Joueur généré (nom de NOMS) : un prénom
    d'époque de son origine, qui commence par son initiale, toujours le même pour un même nom (tirage haché). */
 const PRENOMS_VRAIS={
- /* ITA 1992-93 (v3.18) : 147 prénoms neufs, 1 vides */
+ /* ITA 1992-93 (v3.20) : 147 prénoms neufs, 1 vides */
  "A. Bottazzi":"Andrea", "A. Chimenti":"Antonio", "A. Damiani":"Alessandro",
  "A. Del Piano":"Alessio", "A. Di Muri":"Augusto", "A. Di Napoli":"Arturo", "A. Mangoni":"Andrea",
  "A. Oliva":"Angelo", "A. Pedroni":"Alessandro", "A. Pierini":"Alessandro",
@@ -12064,7 +12064,7 @@ const STARS_D2_ITA9192={
 };
 const D1_ITA9192=["MIL","JUV","TOR","NAP","ROM","SAM","PAR","INT","FOG","LAZ","ATA","FIO","CAG","GEN","BAI","HEL","CRM","ASC"];
 const D2_ITA9192=["BRS","PES","ANC","UDI","COS","PIS","REG","CES","LUC","LEC","PIA","PAD","BGN","MOD","VEN","TAR","CAS","PAL","MES","AVE"];
-/* ITA 1992-93 (v3.18) : « Parme triomphe à Wembley ». La troisième saison italienne, assemblée par la tâche planifiée le 20/11/2026 à partir du relevé releves/ITA-1992-93 (Transfermarkt, effectif et temps de jeu de la saison 1992, arrivées datées par les listes de transferts des clubs et les pages de détail de transfert ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 505 notes héritées de 1991-92 vieillies d'un an, 37 de plus loin, 8 du recruteur de l'été, les autres calculées, dix-huit ajustées à la main (releves/outils/ajust-ITA-9293.json). */
+/* ITA 1992-93 (v3.20) : « Parme triomphe à Wembley ». La troisième saison italienne, assemblée par la tâche planifiée le 20/11/2026 à partir du relevé releves/ITA-1992-93 (Transfermarkt, effectif et temps de jeu de la saison 1992, arrivées datées par les listes de transferts des clubs et les pages de détail de transfert ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 505 notes héritées de 1991-92 vieillies d'un an, 37 de plus loin, 8 du recruteur de l'été, les autres calculées, dix-huit ajustées à la main (releves/outils/ajust-ITA-9293.json). */
 const STARS_ITA9293={
  MIL:[["S. Rossi","G",28,74,75],["F. Antonioli","G",23,62,67],
    ["P. Maldini","D",24,85,91],["F. Baresi","D",32,85,88],["A. Costacurta","D",26,77,80],["M. Tassotti","D",32,77,79],["S. Nava","D",23,71,75],
@@ -23512,7 +23512,7 @@ async function nuageReveil(){
    un autre. Au premier compte qui s'y connecte, la progression de l'invité devient la sienne. Elle porte
    aussi les RÉSULTATS de chaque fin de saison (pour un futur classement entre joueurs), que rien
    n'affiche encore. Connecté, elle part en ligne (table `progression`, fonction pousse_progression). */
-const SAISONS_OUVERTES=["1990-91","1995-96","2005-06","ANG-1990-91","ANG-1995-96","ANG-2000-01"]; // ouvertes d'office : une par époque et par championnat
+const SAISONS_OUVERTES=["1990-91","1995-96","2000-01","2005-06","ANG-1990-91","ANG-1995-96","ANG-2000-01"]; // ouvertes d'office : une par époque et par championnat (France 2000-01 ajoutée en v3.20, promise à un joueur)
 const PROGKEY="d1manager_progression_v1"; // {der, ratt, par:{"" ou uid:{gagnees:[{k,pid,t,an}], ouvertes:[k], resultats:[…], maj, envoye}}}
 const PROG_RES_MAX=400;                   // résultats de fin de saison gardés au plus (~40 Ko)
 let PROG_MAG=null, PROG_TIRE=false, PROG_EN_COURS=null;
@@ -24705,16 +24705,56 @@ function ficheClubAccueil(id){
     <p class="ficheActions">
       ${saisonOuverte(SAISON_ACCUEIL)
         ? `<button class="big" id="bLance" style="display:block;width:100%;margin-bottom:6px">Prendre les rênes ${esc(deClub(c.nom, paysDeSaison(SAISON_ACCUEIL)))}</button>`
-        : `<button class="big" id="bLance" disabled style="display:block;width:100%;margin-bottom:6px">🔒 SAISON FERMÉE</button>`}
+        : ficheFermee(id, SAISON_ACCUEIL)}
       <button class="act" id="bRetour" style="display:block;width:100%">← Choisir un autre club</button>
     </p></div>`;
   fiche.style.display="flex";
-  document.getElementById("bLance").onclick=()=>{
+  const bL=document.getElementById("bLance");
+  if(bL) bL.onclick=()=>{
     if(!saisonOuverte(SAISON_ACCUEIL)) return; // revérifié au clic
     if(!placeDispo()) return; // le navigateur ne peut pas retenir une carrière de plus
     fermeFiche(); nouvellePartie(id, SAISON_ACCUEIL);
   };
+  const bC=document.getElementById("bCleFiche"); // une clé en poche : on ouvre la saison sans quitter le club
+  if(bC) bC.onclick=()=>{
+    const k=SAISON_ACCUEIL, S=SAISONS[k], n=clesDispo(chDeSaison(k)); if(!S || n<1) return;
+    confirme({titre:"🔑 OUVRIR "+S.titre+" ?", coul:"#ffd24a",
+      texte:"« "+S.nom+" » s'ouvre pour de bon. "+(n>1?"Il vous restera "+(n-1)+" clé"+(n>2?"s":"")+".":"C'est votre seule clé."),
+      oui:"Ouvrir la saison", non:"Pas maintenant",
+      onOui:()=>{ if(ouvreSaison(k)){ ecranAccueil(); ficheClubAccueil(id); } }});
+  };
+  const bA=document.getElementById("bAutreSaison"); // pas de clé : le même club (ou la même époque) dans une saison ouverte
+  if(bA) bA.onclick=()=>{
+    const k=bA.dataset.k, T=SAISONS[k]; if(!T || !saisonOuverte(k)) return;
+    SAISON_ACCUEIL=k;
+    const ici=T.d1.includes(id)||T.d2.includes(id);
+    if(ici) ACCUEIL_DIV=T.d1.includes(id)?1:2;
+    fermeFiche(); ecranAccueil();
+    if(ici) ficheClubAccueil(id);
+  };
   document.getElementById("bRetour").onclick=fermeFiche;
+}
+/* LA FICHE D'UNE SAISON FERMÉE (v3.20, retour d'un joueur du 20/11/2026 : « j'ai voulu prendre Le Havre en 2001
+   mais c'était pas possible », il n'avait pas compris comment faire). Le bouton grisé seul était une impasse :
+   la fiche dit maintenant la règle qui refuse le geste (information de situation, pas un mode d'emploi), et
+   offre toujours une sortie. Une clé en poche : on ouvre la saison sur place. Sinon : le même club dans la saison
+   ouverte la plus proche de son pays, ou à défaut la saison ouverte la plus proche. */
+function saisonOuverteProche(k, id){ // {k, ici} : ici = le club y joue
+  const S=SAISONS[k]; if(!S) return null;
+  const p=S.pays||"FR", cand=Object.keys(SAISONS).filter(x=>(SAISONS[x].pays||"FR")===p && saisonOuverte(x));
+  const dist=x=>Math.abs(SAISONS[x].an-S.an), joue=x=>SAISONS[x].d1.includes(id)||SAISONS[x].d2.includes(id);
+  const tri=l=>l.slice().sort((a,b)=>dist(a)-dist(b)||SAISONS[a].an-SAISONS[b].an);
+  const avec=tri(cand.filter(joue));
+  if(avec.length) return {k:avec[0], ici:true};
+  const sans=tri(cand); return sans.length?{k:sans[0], ici:false}:null;
+}
+function ficheFermee(id, k){
+  const S=SAISONS[k], n=clesDispo(chDeSaison(k));
+  if(n>0) return `<p style="margin:0 0 8px;font-size:14px">🔒 <b>Saison fermée.</b> <span class="dim">${n} clé${n>1?"s":""} en poche.</span></p>
+        <button class="big" id="bCleFiche" style="display:block;width:100%;margin-bottom:6px">🔑 Ouvrir ${esc(S.titre)}</button>`;
+  const alt=saisonOuverteProche(k, id), T=alt&&SAISONS[alt.k], c=metaSaison(id, S.an);
+  return `<p style="margin:0 0 8px;font-size:14px">🔒 <b>Saison fermée.</b> <span class="dim">Soyez champion de première division en partant d'une saison ✅ ouverte : chaque titre donne une clé, qui ouvre la saison de votre choix.</span></p>
+        ${alt?`<button class="big" id="bAutreSaison" data-k="${esc(alt.k)}" style="display:block;width:100%;margin-bottom:6px">${alt.ici?`▶ ${esc(c.nom)} en ${esc(T.titre)}`:`▶ Jouer ${esc(T.titre)}, saison ouverte`}</button>`:""}`;
 }
 function proposeOuverture(k){ // dépenser une clé, avec la confirmation habituelle
   const S=SAISONS[k], n=clesDispo(chDeSaison(k)); if(!S || saisonOuverte(k) || n<1) return;
