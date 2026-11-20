@@ -76,6 +76,20 @@ années 90, première division portugaise) : le jeu joue toujours à 20, sauf d�
 pour ces pays. Applique la règle déjà écrite pour la D1 française 1997-98 dans `CLAUDE.md` (repêchés ou écartés
 selon le classement réel), et écris au journal quels clubs entrent ou sortent.
 
+**Le recruteur de l'été trop maigre (décision de l'auteur du 20/11/2026, réponse « 1A »)** : quand `harness-recruteur.cjs`
+rougit sur une saison de départ italienne parce que le vivier de l'été tombe sous 25 noms (les hommes de la liste commune
+jouent en Italie, donc sont au plateau), **n'arrête pas la nuit** : ajoute à `VIVIER_SAISON_ITA[<année>]` juste assez de
+**joueurs fictifs comme Cavedagni** (1990) et les six de 1992 pour atteindre 25. Même forme : nom court à initiale, poste,
+année de naissance plausible, note de 66 à 69, un club de l'étranger (la Suisse italienne et romande va bien), le drapeau
+`"ITA"`, un prénom italien, et un commentaire qui les dit **fictifs** avec la date et la décision. **Chaque patronyme se vérifie**
+avant d'être écrit : aucun footballeur de ce nom sur les Wikipédia anglaise et italienne (recherche par l'API de recherche),
+aucun homme de ce nom dans `index.html` ni dans `releves/`. Écris-le au journal et dans la section de la saison de `CLAUDE.md`.
+C'est la seule invention de données permise, et elle ne vaut que pour ce cas.
+
+**Les arrivées non recoupées (décision du 20/11/2026, « 2A »)** : ITA 1992-93 a livré 28 retenus à `arrivee` 1, faute
+d'historique de transferts (`ceapi` refusé). On ne les reprend pas maintenant. Le jour où l'historique répond pendant une nuit,
+signale-le au journal ; leur reprise sera une étape à part, décidée par l'auteur.
+
 **Sans accès au réseau, aucun relevé n'est possible.** Si Transfermarkt et Wikipédia sont injoignables
 (essaie `.com`, `.de`, `.co.uk`), ne relève rien, n'invente rien : pousse seulement une ligne de journal
 qui le dit, et la case reste vide.

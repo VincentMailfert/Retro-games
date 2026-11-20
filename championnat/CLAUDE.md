@@ -6570,7 +6570,7 @@ de l'auteur : **six joueurs fictifs comme Cavedagni**, dans `VIVIER_SAISON_ITA[1
 patronyme a été cherché sur les Wikipédia anglaise et italienne (aucun footballeur, aucune page de personne à ce nom) et dans le jeu et
 les relevés italiens (aucun homme). Écartés à la vérification : Montagnoli et Bertagnolli (footballeurs), Strambelli, Tosoratti
 (basketteur), Ferracuti, Morandotti. **Le recruteur tombe à 25 noms tout juste** : la question reviendra sans doute pour 1993 (dont la
-liste italienne est vide) et 1994 ; la nuit qui la rencontre s'arrête et propose à l'auteur la même solution, sans la prendre d'elle-même.
+liste italienne est vide) et 1994 ; **l'auteur a tranché le 20/11/2026 (« 1A ») : la nuit qui la rencontre ajoute d'office des joueurs fictifs comme Cavedagni**, selon la règle écrite dans `routine-consigne.md`. Les 28 arrivées non recoupées restent en l'état (« 2A ») jusqu'à ce que l'historique de transferts réponde.
 Au passage, **le patronyme fictif « Brancaccio » de `NOMS_ITA` était porté par un vrai gardien de la SPAL** (Maurizio Brancaccio, relevé
 cette saison) et rougissait `harness-textes-ita.cjs` : remplacé par « Tartaglione », absent du jeu (correction permise par la consigne).
 
