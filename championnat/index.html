@@ -24793,7 +24793,7 @@ function panneauCarrieres(parties){ // l'étagère des carrières en cours, la d
        <button class="startclub carGo" data-id="${esc(p.id)}" style="display:flex;align-items:center;gap:9px">
          ${blason(metaClub(p.clubId)||{id:p.clubId},22)}<span style="flex:1;line-height:1.15"><b>${esc(p.nom||p.club)}</b><br><span class="sous">${sous(p)} · ${esc(ilYA(p.maj))}</span>${p.enjeu?`<br><span class="sous fort">${esc(p.enjeu)}</span>`:""}</span><span class="dim">▶</span>
        </button>
-       ${p.enLigne?"":`<button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>`}
+       ${p.enLigne?`<span class="act" aria-hidden="true" style="visibility:hidden">✏️</span>`:`<button class="act carRen" data-id="${esc(p.id)}" title="Renommer">✏️</button>`}
        <button class="act carDel" data-id="${esc(p.id)}" title="Supprimer">🗑️</button>
      </div>`).join("")}
      ${partiesListe().length>=MAX_PARTIES && !nuageEvincable()

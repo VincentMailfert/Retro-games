@@ -171,6 +171,8 @@ toujours « raconter quelque chose ».
   message. Journées jamais envoyées ici : on n'y touche pas, l'envoi tranche comme avant. Jamais en plein match ni
   par-dessus une fenêtre (`ecranOccupe`), au plus toutes les 15 s (`NUAGE_REVEIL_T`). Gardé par la section P de
   `harness-compte.cjs` (rouge sur la v3.18). Les copies déjà nées restent : on ne les efface pas d'office.
+  Au passage (choix de l'auteur), une ligne de « Vos autres carrières » qui ne vit qu'en ligne garde la place du crayon
+  (bouton invisible) : toutes les lignes ont la même largeur.
   **Connecté, le navigateur n'est plus qu'une mémoire de travail** : il garde les `MAX_PARTIES` (4) plus récentes,
   les autres vivent en ligne (`NUAGE_MAX` = 10) et sont rapatriées à l'ouverture (`ouvreCarriere` → `nuagePrepare`).
   `nuageLibere` ne retire **qu'une carrière de ce compte, à jour en ligne, et pas celle qui est ouverte** ; hors
