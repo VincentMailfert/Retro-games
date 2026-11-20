@@ -624,6 +624,24 @@
    "nom": "Palermo",
    "nom_tm": "US Palermo",
    "pays": "ITA"
+  },
+  "AND": {
+   "tm": 4085,
+   "nom": "Fidelis Andria",
+   "nom_tm": "AS Fidelis Andria",
+   "pays": "ITA"
+  },
+  "SPA": {
+   "tm": 2722,
+   "nom": "SPAL",
+   "nom_tm": "SP Ars et Labor",
+   "pays": "ITA"
+  },
+  "TER": {
+   "tm": 1103,
+   "nom": "Ternana",
+   "nom_tm": "PC Ternana",
+   "pays": "ITA"
   }
  },
  "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA. Piacenza (1408), Venezia (607), Casertana (4106) et Palermo (458) ajoutés le 19/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1991-92 (IT2, saison_id 1991)."

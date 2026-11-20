@@ -6526,6 +6526,54 @@ Mittelfeld » chez Transfermarkt, est attaquant dans la page Wikipédia de la Sa
 **Pépite forcée** : **Fabio Cannavaro** (dix-huit ans, zéro minute, 62/90). Del Piero, Inzaghi, Vieri et Panucci passent seuls.
 Validation dédiée : **`harness-ita9192.cjs`** (dont l'âge suivi : un homme de 1990-91 prend un an exactement).
 
+### ITA 1992-93 — PARME TRIOMPHE À WEMBLEY (v3.18)
+Troisième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 20/11/2026 (`secours/2026-11-20`). Le Milan de
+Capello garde son titre (cinquante points, quatre devant l'Inter) mais perd sa série de **cinquante-huit matchs sans défaite** le 21 mars,
+à San Siro, sur un coup franc d'Asprilla : c'est Parme, qui gagne aussi la Coupe des coupes à Wembley. **Signori meilleur buteur avec
+vingt-six buts (81)**, R. Baggio 87 (Ballon d'or 1993), Balbo 78 ; en Serie B, **Bierhoff meilleur buteur (20 buts, 72)**. Sièges =
+`SIEGES_ITA[1992]`. Coup d'envoi commun aux deux divisions le **6 septembre 1992**.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté. Brescia et l'Udinese finissent à trente points, Brescia perd le match
+d'appui. **Monza, Fidelis Andria, SPAL et Ternana** (montés de C1) entrent au relevé ; identifiants Transfermarkt de `AND` (4085), `SPA`
+(2722, « SP Ars et Labor ») et `TER` (1103) lus sur le classement Transfermarkt de la saison 1992 et ajoutés à `releves/clubs-tm.json`.
+**Notes** : **505 héritées de 1991-92 vieillies d'un an**, 37 de plus loin, 8 du recruteur de l'été, 170 calculées ; élite 70.6 / 71,
+dessous 66.3 / 67. Dix-huit ajustements (`ajust-ITA-9293.json`), buteurs vérifiés sur « 1992–93 Serie A » (anglaise) et « Serie B
+1992-1993 » (italienne).
+**LES ARRIVÉES SANS L'HISTORIQUE DE TRANSFERTS (méthode nouvelle, à réutiliser).** Cette nuit, l'appel à `ceapi/transferHistory` a été
+refusé à la tâche, et les pages de joueur de Transfermarkt (profil, `leistungsdatendetails`, `transfers`) sont désormais construites en
+JavaScript : la page brute ne contient plus les données. Deux pages de **club** et une de **transfert** suffisent pourtant :
+(1) la liste des transferts du club, été et hiver séparés : `https://www.transfermarkt.de/a/transfers/verein/<id>/saison_id/<AAAA>/pos//detailpos/0/w_s/s/plus/1`
+(`w_s/w` pour l'hiver), chaque ligne portant un lien `/jumplist/transfers/spieler/<joueur>/transfer_id/<t>` ;
+(2) ce lien, qui ouvre une page **servie en HTML** dont le bloc « Transferdetails » donne la date exacte (« Transferzeitpunkt ») et les
+deux clubs (`/verein/<id>`, cédant puis acquéreur). 130 pages pour 300 hommes à recouper. Club au coup d'envoi = acquéreur du dernier
+transfert daté au plus tard le jour du coup d'envoi ; arrivée datée pendant la saison = écarté (42 hommes). **Piège : la liste « été »
+d'une saison italienne contient aussi la session d'automne** (octobre-novembre) : Desideri (Udinese, 20/11/1992), Campilongo (Venezia,
+14/10/1992), Soldà (Monza, 01/10/1992) y sont. Une présence dans la liste d'été ne prouve rien, seule la date du détail tranche.
+**28 retenus restent à `arrivee` 1** (aucun transfert daté, absents du relevé 1991-92), dont quatorze titulaires de petits clubs (Monza,
+SPAL, Ternana surtout) : à recouper le jour où l'historique répond.
+**Les pièges.** (1) **Totti et Tacchinardi « arrivés le 1er janvier 1993 »** : c'est leur passage de la Primavera (« AS Rom U20 »,
+« Atalanta U20 ») à l'équipe première du même club, pas une arrivée ; au club au coup d'envoi. Totti (seize ans, 58/92) est retenu par le
+minimum d'attaquants de la Roma, **Tacchinardi forcé** (dix-sept ans, 61/84). (2) **Papin est « J.-P. Papin »** dans les saisons
+françaises : le résolveur ne trouve pas cette forme, `_graphie` la lui donne (86/86, Ballon d'or 1991). (3) **La page de saison du Milan
+liste Desailly (90 minutes), Panucci, Răducioiu et Alessandro Orlando**, tous ailleurs en 1992-93 : Desailly retiré (à Marseille, arrivé à
+Milan le 10/11/1993), les trois autres à leur club par la date. (4) **Gianluca De Angelis** (Ancona), « né en 1981 », ligne fausse de la
+source, retirée. (5) **La Lazio à trois attaquants** (Signori, Riedle, Neri) : la page Wikipédia italienne de la saison range Madonna
+parmi les attaquants de la Lazio cédés à la SPAL à l'automne, Transfermarkt le fait passer de Piacenza à la SPAL le 1er juillet ; sans
+date sûre, il reste à la SPAL, et la Lazio est tolérée comme Pisa en 1991-92 (le vérificateur de relevé le signale). (6) Treize ailiers
+passent en attaque là où il manquait un quatrième avant-centre (Lombardo, van 't Schip, Kolyvanov, Mattei et Marronaro…).
+Validation dédiée : **`harness-ita9293.cjs`**.
+**LE RECRUTEUR DE L'ÉTÉ 1992 ÉTAIT TROP MAIGRE, ET L'AUTEUR A TRANCHÉ PAR SIX JOUEURS FICTIFS (20/11/2026).** Même blocage qu'en
+1990-91 : au départ d'une carrière italienne en 1992, `harness-recruteur.cjs` comptait **19 noms pour un plancher de 25**, vingt-trois des
+quarante-deux hommes de `VIVIER_SAISON[1992]` jouant vraiment en Italie (Papin, Savićević, Lentini, Vialli, Gascoigne, Asprilla…). Décision
+de l'auteur : **six joueurs fictifs comme Cavedagni**, dans `VIVIER_SAISON_ITA[1992]` avec un commentaire qui les dit fictifs :
+**G. Lanfrancotti** (G, 1966, AC Bellinzona), **M. Belcastrini** (D, 1967, FC Lugano), **P. Pezzaroli** (D, 1969, FC Chiasso),
+**S. Cavalcoli** (M, 1968, Servette FC), **F. Sguazzini** (A, 1970, FC Locarno), **A. Rinaldotti** (A, 1971, FC Sion), notés 66 à 69. Chaque
+patronyme a été cherché sur les Wikipédia anglaise et italienne (aucun footballeur, aucune page de personne à ce nom) et dans le jeu et
+les relevés italiens (aucun homme). Écartés à la vérification : Montagnoli et Bertagnolli (footballeurs), Strambelli, Tosoratti
+(basketteur), Ferracuti, Morandotti. **Le recruteur tombe à 25 noms tout juste** : la question reviendra sans doute pour 1993 (dont la
+liste italienne est vide) et 1994 ; la nuit qui la rencontre s'arrête et propose à l'auteur la même solution, sans la prendre d'elle-même.
+Au passage, **le patronyme fictif « Brancaccio » de `NOMS_ITA` était porté par un vrai gardien de la SPAL** (Maurizio Brancaccio, relevé
+cette saison) et rougissait `harness-textes-ita.cjs` : remplacé par « Tartaglione », absent du jeu (correction permise par la consigne).
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
