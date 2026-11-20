@@ -779,7 +779,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.18"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.19"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -23437,13 +23437,62 @@ function carrieresAffichees(){
 /* AVANT D'OUVRIR une carrière, la version la plus avancée doit être dans le navigateur : on rapatrie celle qui
    ne vit qu'en ligne, et celle qui a avancé ailleurs si la copie locale n'a rien de neuf. Une copie locale qui
    a des journées jamais envoyées est ouverte telle quelle : c'est l'envoi qui tranchera le conflit. */
+/* L'ÉTAT FRAIS D'UNE CARRIÈRE EN LIGNE (v3.19), lu au moment où l'on s'en sert. La liste de l'accueil ne suffit
+   pas : elle date de trente secondes au moins, et elle n'est pas encore arrivée quand on clique « Reprendre » dans
+   la seconde qui suit le lancement. Dans les deux cas on ouvrait la copie du navigateur, restée en arrière, on la
+   rejouait, et l'envoi tranchait un conflit de plus : une « … (autre version) » à chaque passage d'un appareil à
+   l'autre (bug du 20/11/2026, quatre Olympique Lyonnais à J18, J18, J19 et J21). Rend la ligne (sans les données),
+   null si elle n'existe pas en ligne, undefined sans réseau. */
+async function nuageLigneFraiche(id){
+  const r=await nuageAppel("/rest/v1/carrieres?id=eq."+encodeURIComponent(id)+"&select=id,maj,fiche,version", "GET", null, true);
+  if(!r.ok || !Array.isArray(r.donnees)) return undefined;
+  const l=r.donnees[0]||null;
+  if(NUAGE_LISTE){ NUAGE_LISTE=NUAGE_LISTE.filter(x=>x.id!==id); if(l) NUAGE_LISTE.unshift(l); }
+  return l;
+}
 async function nuagePrepare(id){
-  if(!nuageAllume() || !NUAGE_LISTE) return {ok:true};
-  const loc=partiesListe().find(e=>e.id===id), srv=NUAGE_LISTE.find(l=>l.id===id);
+  if(!nuageAllume()) return {ok:true};
+  const loc=partiesListe().find(e=>e.id===id);
+  let srv=await nuageLigneFraiche(id);
+  if(srv===undefined){ // pas de réseau : la dernière liste connue, à défaut la copie du navigateur
+    if(!NUAGE_LISTE) return {ok:true};
+    srv=NUAGE_LISTE.find(l=>l.id===id)||null;
+  }
   if(!srv) return loc?{ok:true}:{ok:false, code:"absente"};
   if(loc){ const x=nuageEtatLit()[id];
     if(!x || x.envoye!==loc.maj || x.base===(+srv.maj||0)) return {ok:true}; }
   return nuageRapatrie(id);
+}
+/* LA CARRIÈRE RESTÉE OUVERTE DANS UN ONGLET (v3.19). Le téléphone qu'on rallume, l'ordinateur qu'on retrouve :
+   l'onglet reprend la partie qu'il avait en mémoire, sans rien demander à personne, alors que la même carrière a
+   pu avancer entre-temps sur l'autre appareil. Au retour sur l'onglet, on regarde donc en ligne. Si la copie
+   d'ici a tout envoyé et que la ligne a bougé depuis, c'est que l'autre appareil a joué : on lâche la partie en
+   mémoire et on reprend la plus avancée, sans conflit ni copie. Si la copie d'ici a des journées jamais
+   envoyées, on n'y touche pas : c'est l'envoi qui tranchera, comme avant. Jamais en plein match ni par-dessus
+   une fenêtre ouverte ; au plus une fois toutes les quinze secondes. */
+let NUAGE_REVEIL_T=0;
+function ecranOccupe(){
+  if(EN_TEST() || typeof document==="undefined" || !document.body) return false;
+  return !!MSG_ANNUL || document.body.classList.contains("mode-direct");
+}
+async function nuageReveil(){
+  if(!nuageAllume() || !G || !PARTIE || G._pend) return "rien";
+  const t=Date.now(); if(t-NUAGE_REVEIL_T<15000) return "rien"; NUAGE_REVEIL_T=t;
+  const id=PARTIE.id, x=nuageEtatLit()[id], loc=partiesListe().find(e=>e.id===id);
+  if(!x || !loc || x.envoye!==loc.maj) return "rien";
+  const srv=await nuageLigneFraiche(id);
+  if(!srv || x.base===(+srv.maj||0)) return "rien";
+  // la réponse a pris du temps : on revérifie que rien n'a bougé ici entre-temps
+  const loc2=partiesListe().find(e=>e.id===id), x2=nuageEtatLit()[id];
+  if(!G || !PARTIE || PARTIE.id!==id || G._pend || ecranOccupe() || !loc2 || !x2 || x2.envoye!==loc2.maj) return "rien";
+  const g0=G, p0=PARTIE; G=null; PARTIE=null; // nuageRapatrie refuse d'écrire sous la carrière ouverte
+  const r=await nuageRapatrie(id);
+  if(!r.ok){ if(!G && !PARTIE){ G=g0; PARTIE=p0; } return "rien"; }
+  chargeLocale(id);
+  const f=srv.fiche||{};
+  message("« "+(f.nom||f.club||"Cette carrière")+" » a avancé sur un autre appareil. On reprend là où vous en êtes : "+(f.saison||"")+", journée "+(f.journee||"?")+".",
+    {titre:"☁️ VOS CARRIÈRES EN LIGNE"});
+  return "repris";
 }
 
 /* =====================================================================
@@ -32318,8 +32367,9 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
      navigateur coupe, et une sauvegarde dépasse les 64 Ko qu'il laisse partir à la fermeture) : ce n'est pas
      grave, la carrière reste marquée et part au prochain lancement ou au retour du réseau. Sans compte,
      nuagePlanifie ne fait rien. */
-  document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="hidden") return;
+  document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="hidden"){ nuageReveil(); return; }
     if(G) sauvegardeLocale(true); nuagePlanifie("cache"); });
+  window.addEventListener("focus",()=>nuageReveil()); // l'ordinateur qu'on retrouve sans que l'onglet ait été caché
   window.addEventListener("online",()=>nuagePlanifie("reseau"));
   setTimeout(mesureDemarrage, 800); // la mesure du parcours : première visite et retours (cf. LA MESURE DU PARCOURS)
   if(compteLit()) setTimeout(()=>nuagePlanifie("demarrage"), 1500); // un joueur connecté : ce qui attendait depuis la dernière fois

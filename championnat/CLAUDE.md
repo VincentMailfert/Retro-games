@@ -160,6 +160,17 @@ toujours « raconter quelque chose ».
   le même dans chaque onglet : le serveur reçoit deux fois la même ligne (`maj` identique → simple mise à jour), et un
   onglet qui trouve la copie déjà faite efface son double local (jamais la clé partagée, jamais la carrière ouverte).
   Gardé par la fin de la section F de `harness-compte.cjs` (deux onglets, avec et sans verrou ; rouge sur la v2.91).
+  **v3.19, on ne rejoue plus une copie en retard** (le même bug revenu le 20/11/2026 : quatre « Olympique Lyonnais
+  (autre version) » à J18, J18, J19 et J21, nées cette fois d'un passage à l'autre appareil et non d'onglets
+  concurrents). Deux trous : (1) `nuagePrepare` se fiait à `NUAGE_LISTE`, qui date de 30 s au moins et qui est
+  encore `null` quand on clique « Reprendre » dans la seconde du lancement (il rendait alors `ok` sans rien
+  vérifier) ; il relit désormais l'état frais de CETTE carrière (`nuageLigneFraiche`, une requête sans les données),
+  et ne retombe sur la liste qu'à défaut de réseau. (2) Une carrière restée OUVERTE dans un onglet reprenait la partie
+  en mémoire au réveil : `nuageReveil`, branché sur `visibilitychange` (visible) et `focus`, regarde en ligne ; si la
+  copie d'ici a tout envoyé et que la ligne a bougé depuis `base`, on lâche `G` et on rapatrie la plus avancée, avec un
+  message. Journées jamais envoyées ici : on n'y touche pas, l'envoi tranche comme avant. Jamais en plein match ni
+  par-dessus une fenêtre (`ecranOccupe`), au plus toutes les 15 s (`NUAGE_REVEIL_T`). Gardé par la section P de
+  `harness-compte.cjs` (rouge sur la v3.18). Les copies déjà nées restent : on ne les efface pas d'office.
   **Connecté, le navigateur n'est plus qu'une mémoire de travail** : il garde les `MAX_PARTIES` (4) plus récentes,
   les autres vivent en ligne (`NUAGE_MAX` = 10) et sont rapatriées à l'ouverture (`ouvreCarriere` → `nuagePrepare`).
   `nuageLibere` ne retire **qu'une carrière de ce compte, à jour en ligne, et pas celle qui est ouverte** ; hors

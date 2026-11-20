@@ -21,6 +21,9 @@
    O) l'incitation à créer un compte (v2.38) : le bouton qui dit « Sauvegarder en ligne », la ligne de l'accueil,
       le rappel de fin de saison (deux textes, plafond de trois, coupé par « Non merci »), le debrief qui ne compte
       une vue qu'à l'écran, l'étagère pleine ; et toujours pas une requête sans compte
+   P) deux appareils qui se passent la main (v3.19, bug du 20/11/2026) : « Reprendre » cliqué avant que la liste en
+      ligne soit arrivée, et la carrière restée ouverte dans un onglet qu'on retrouve, prennent la version la plus
+      avancée au lieu de rejouer une copie en retard (plus de « … (autre version) » à chaque changement d'appareil)
    Usage : node harness-compte.cjs                                                           */
 const fs = require("fs");
 const path = require("path");
@@ -190,7 +193,7 @@ const epilogue = "\n;return {nouvellePartie,jouerJournee,sauvegardeLocale,charge
   "nuageSynchronise,nuagePlanifie,nuageListe,nuageRapatrie,nuageCompresse,nuageDecompresse,nuageEtatLit,avanceDe," +
   "progGagne,ouvreSaison,clesDispo,saisonOuverte,progSynchronise," +
   "libIndicateur,ligneAppareil,panneauCarrieres,propCompte,propLit,cablePropCompte,cleDepart,PROPKEY," +
-  "getG:function(){return G;},setG:function(x){G=x;},getPARTIE:function(){return PARTIE;}," +
+  "nuageReveil,setReveil:function(v){NUAGE_REVEIL_T=v;},getListe:function(){return NUAGE_LISTE;},getG:function(){return G;},setG:function(x){G=x;},getPARTIE:function(){return PARTIE;}," +
   "getEtat:function(){return NUAGE_ETAT;},setDernier:function(v){NUAGE_DERNIER=v;}};";
 function appareil(nom, ls) {
   const d = { nom, ls: ls || nouveauLS() };
@@ -682,6 +685,50 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   ok(io.libIndicateur() !== "☁️ Sauvegarder en ligne" && /Sauvegardé en ligne|En attente de connexion/.test(io.libIndicateur()), "connecté, le bouton redevient l'indicateur (" + io.libIndicateur() + ")");
   ok(io.ligneAppareil() === "" && !/ligneAppareil/.test(io.panneauCarrieres(io.carrieresAffichees())), "connecté, la ligne de l'accueil disparaît");
   ok(io.propCompte() === "" && io.propCompte("saison") === "", "connecté, ni debrief ni fin de saison ne proposent de compte");
+
+
+  /* ===== P) deux appareils qui se passent la main ===== */
+  console.log("\nP) Deux appareils qui se passent la main, sans fabriquer de copie");
+  const PA = appareil("ordinateur de Paul"); let pa = sur(PA); allume(pa);
+  await pa.compteInscription("paul@exemple.fr", "motdepasse");
+  pa.nouvellePartie(pa.CLUBS[3].id); joue(pa, 2); const idP = pa.getPARTIE().id;
+  await pa.nuageSynchronise();
+  const PT = appareil("téléphone de Paul"); let pt = sur(PT); allume(pt);
+  await pt.compteConnexion("paul@exemple.fr", "motdepasse"); await pt.nuageRafraichitListe();
+  ok((await pt.nuagePrepare(idP)).ok && reel(() => pt.chargeLocale(idP)), "le téléphone rapatrie la carrière");
+  joue(pt, 3); await pt.nuageSynchronise();
+  const majT = pt.getG()._maj, jT = pt.getG().journee;
+  // l'ordinateur relance la page et clique « Reprendre » tout de suite : la liste en ligne n'est pas encore là
+  const PA2 = appareil("ordinateur de Paul, rechargé", PA.ls); pa = sur(PA2); allume(pa);
+  ok(pa.getListe() === null, "au lancement, la liste en ligne n'est pas encore arrivée");
+  ok((await pa.nuagePrepare(idP)).ok, "« Reprendre » ouvre quand même la carrière");
+  const surDisque = JSON.parse(PA2.ls.getItem(pa.partiesListe().find((e) => e.id === idP).k));
+  ok(surDisque._maj === majT && surDisque.journee === jT, "et c'est la version jouée sur le téléphone, pas la copie en retard (J" + surDisque.journee + ")");
+  reel(() => pa.chargeLocale(idP));
+  joue(pa, 1); await pa.nuageSynchronise();
+  const nP = () => lignesDe("paul@exemple.fr").length;
+  ok(nP() === 1 && !lignesDe("paul@exemple.fr").some((l) => /autre version/.test((l.fiche || {}).nom || "")), "aucune « (autre version) » en ligne");
+  // le téléphone avait laissé la carrière ouverte dans son onglet : on le rallume
+  pt = sur(PT);
+  ok(pt.getG() && pt.getG().journee === jT, "le téléphone a toujours la partie d'avant en mémoire");
+  pt.setReveil(0); const majO = lignesDe("paul@exemple.fr")[0].maj;
+  ok((await pt.nuageReveil()) === "repris", "au retour sur l'onglet, il voit que la carrière a avancé ailleurs");
+  ok(JSON.parse(PT.ls.getItem(pt.getPARTIE().k))._maj >= majO && pt.getG().journee === jT + 1 && pt.getPARTIE().id === idP, "et reprend la version de l'ordinateur, sous le même identifiant");
+  ok(/a avancé sur un autre appareil/.test(pt.MSG_JOURNAL[pt.MSG_JOURNAL.length - 1] || ""), "le joueur en est prévenu");
+  joue(pt, 1); await pt.nuageSynchronise();
+  ok(nP() === 1 && !pt.partiesListe().some((e) => /autre version/.test(e.nom || "")), "il rejoue, il renvoie : toujours une seule carrière, aucune copie");
+  pt.setReveil(0);
+  ok((await pt.nuageReveil()) === "rien" && pt.getG().journee === jT + 2, "rien n'a bougé ailleurs : le réveil ne touche à rien");
+  // des journées jamais envoyées ici : on n'y touche pas, c'est l'envoi qui tranchera (comme avant)
+  pa = sur(PA2); pa.setG(null); await pa.nuageRafraichitListe();
+  ok((await pa.nuagePrepare(idP)).ok && reel(() => pa.chargeLocale(idP)) && pa.getG().journee === jT + 2, "l'ordinateur reprend, à jour");
+  joue(pa, 1); await pa.nuageSynchronise();
+  pt = sur(PT); SRV.panne = true; joue(pt, 1); SRV.panne = false; pt.setReveil(0);
+  const jPt = pt.getG().journee;
+  ok((await pt.nuageReveil()) === "rien" && pt.getG().journee === jPt, "une journée jouée ici et pas encore envoyée : le réveil ne la jette pas");
+  SRV.panne = true; pt.setReveil(0);
+  ok((await pt.nuageReveil()) === "rien", "sans réseau, le réveil ne fait rien");
+  SRV.panne = false;
 
   console.log(FAILS ? `\n❌ ${FAILS} test(s) en échec` : "\n✅ HARNAIS COMPTE : TOUT EST VERT");
   process.exit(FAILS ? 1 : 0);
