@@ -6561,6 +6561,18 @@ parmi les attaquants de la Lazio cédés à la SPAL à l'automne, Transfermarkt 
 date sûre, il reste à la SPAL, et la Lazio est tolérée comme Pisa en 1991-92 (le vérificateur de relevé le signale). (6) Treize ailiers
 passent en attaque là où il manquait un quatrième avant-centre (Lombardo, van 't Schip, Kolyvanov, Mattei et Marronaro…).
 Validation dédiée : **`harness-ita9293.cjs`**.
+**LE RECRUTEUR DE L'ÉTÉ 1992 ÉTAIT TROP MAIGRE, ET L'AUTEUR A TRANCHÉ PAR SIX JOUEURS FICTIFS (20/11/2026).** Même blocage qu'en
+1990-91 : au départ d'une carrière italienne en 1992, `harness-recruteur.cjs` comptait **19 noms pour un plancher de 25**, vingt-trois des
+quarante-deux hommes de `VIVIER_SAISON[1992]` jouant vraiment en Italie (Papin, Savićević, Lentini, Vialli, Gascoigne, Asprilla…). Décision
+de l'auteur : **six joueurs fictifs comme Cavedagni**, dans `VIVIER_SAISON_ITA[1992]` avec un commentaire qui les dit fictifs :
+**G. Lanfrancotti** (G, 1966, AC Bellinzona), **M. Belcastrini** (D, 1967, FC Lugano), **P. Pezzaroli** (D, 1969, FC Chiasso),
+**S. Cavalcoli** (M, 1968, Servette FC), **F. Sguazzini** (A, 1970, FC Locarno), **A. Rinaldotti** (A, 1971, FC Sion), notés 66 à 69. Chaque
+patronyme a été cherché sur les Wikipédia anglaise et italienne (aucun footballeur, aucune page de personne à ce nom) et dans le jeu et
+les relevés italiens (aucun homme). Écartés à la vérification : Montagnoli et Bertagnolli (footballeurs), Strambelli, Tosoratti
+(basketteur), Ferracuti, Morandotti. **Le recruteur tombe à 25 noms tout juste** : la question reviendra sans doute pour 1993 (dont la
+liste italienne est vide) et 1994 ; la nuit qui la rencontre s'arrête et propose à l'auteur la même solution, sans la prendre d'elle-même.
+Au passage, **le patronyme fictif « Brancaccio » de `NOMS_ITA` était porté par un vrai gardien de la SPAL** (Maurizio Brancaccio, relevé
+cette saison) et rougissait `harness-textes-ita.cjs` : remplacé par « Tartaglione », absent du jeu (correction permise par la consigne).
 
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
