@@ -2,6 +2,9 @@
 // Bucket privé « loterie-photos » : a-preparer.json (les jours à venir, envoyés par le PC chaque midi)
 // et jour-NNN/photo-<horodatage>.<ext> (les photos déposées). Le PC les rapatrie avant de fabriquer la vidéo.
 // Protégée par un code : seules les empreintes SHA-256 sont ici (le code de la page, le secret du PC).
+// Depuis le 20/11/2026 : un joueur introuvable se retire de la page (action « ecarte »). Les joueurs suivants
+// avancent d'un jour, leurs photos avec eux, et la réserve (les deux tirages après la semaine) comble le trou.
+// Le retrait est noté dans ecartes.json ; le PC le refait chez lui à midi, puis le marque vu.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const EMPREINTES = new Set([
@@ -14,6 +17,9 @@ const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers
   "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const rep = (o: unknown, status = 200) => Response.json(o, { status, headers: CORS });
 const dossier = (j: number) => `jour-${String(j).padStart(3, "0")}`;
+const PHOTO = /^photo-\d+\.(jpg|png|webp)$/;
+const parisJour = (d: Date) => new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Paris" }).format(d);
+const parisHeure = (d: Date) => +new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", hourCycle: "h23" }).format(d);
 
 async function empreinte(s: string) {
   const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -47,35 +53,82 @@ Deno.serve(async (req) => {
   try { c = await req.json(); } catch { return rep({ erreur: "demande illisible" }, 400); }
   const jour = Number.isInteger(c.jour) && c.jour > 0 && c.jour < 10000 ? c.jour : 0;
 
-  const photos = async (j: number) => {
+  const noms = async (j: number) => {
     const { data, error } = await seau.list(dossier(j), { limit: 50, sortBy: { column: "name", order: "asc" } });
     if (error) throw new Error(error.message);
-    const noms = (data || []).map(f => f.name).filter(n => /^photo-\d+\.(jpg|png|webp)$/.test(n));
-    if (!noms.length) return [];
-    const { data: s, error: e2 } = await seau.createSignedUrls(noms.map(n => `${dossier(j)}/${n}`), 3600);
+    return (data || []).map(f => f.name).filter(n => PHOTO.test(n));
+  };
+  const photos = async (j: number) => {
+    const n = await noms(j);
+    if (!n.length) return [];
+    const { data: s, error: e2 } = await seau.createSignedUrls(n.map(x => `${dossier(j)}/${x}`), 3600);
     if (e2) throw new Error(e2.message);
-    return noms.map((nom, i) => ({ nom, url: s![i].signedUrl }));
+    return n.map((nom, i) => ({ nom, url: s![i].signedUrl }));
+  };
+  const litJson = async (f: string, defaut: any) => {
+    const { data, error } = await seau.download(f);
+    if (error) return defaut;
+    try { return JSON.parse(await data.text()); } catch { return defaut; }
+  };
+  const ecritJson = async (f: string, o: unknown) => {
+    const { error } = await seau.upload(f, new Blob([JSON.stringify(o)], { type: "application/json" }), { upsert: true, contentType: "application/json" });
+    if (error) throw new Error(error.message);
   };
 
   try {
-    // le PC envoie les jours à venir (jour, date, joueur, club…) : la page les affiche
+    // le PC envoie les jours à venir (jour, date, joueur, club…) et la fin de la semaine (après : la réserve).
+    // Il dit aussi quels retraits il a refaits chez lui (vus). Un retrait qu'il n'a pas encore vu : on garde
+    // la page telle quelle (elle a déjà avancé), le PC le verra demain.
     if (c.action === "semaine" && Array.isArray(c.jours)) {
-      const corps = JSON.stringify({ maj: new Date().toISOString(), jours: c.jours.slice(0, 14) });
-      const { error } = await seau.upload("a-preparer.json", new Blob([corps], { type: "application/json" }), { upsert: true, contentType: "application/json" });
-      return error ? rep({ erreur: error.message }, 500) : rep({ ok: true });
+      const vus = new Set((Array.isArray(c.vus) ? c.vus : []).map(Number));
+      const ecartes = (await litJson("ecartes.json", [])) as any[];
+      const reste = ecartes.filter(e => !vus.has(e.id));
+      if (reste.length !== ecartes.length) await ecritJson("ecartes.json", reste);
+      if (reste.length) return rep({ erreur: `retrait en attente (jour ${reste[0].jour}) : la page n'est pas remplacée` }, 409);
+      await ecritJson("a-preparer.json", { maj: new Date().toISOString(), fin: Number.isInteger(c.fin) ? c.fin : null, jours: c.jours.slice(0, 14) });
+      return rep({ ok: true });
     }
+    // le PC, avant tout : les retraits faits sur la page depuis son dernier passage, dans l'ordre
+    if (c.action === "ecartes") return rep({ ecartes: await litJson("ecartes.json", []) });
     // la page : les jours à venir, avec leurs photos déjà déposées
     if (c.action === "etat") {
-      const { data, error } = await seau.download("a-preparer.json");
-      if (error) return rep({ maj: null, jours: [] });
-      const e = JSON.parse(await data.text());
+      const e = await litJson("a-preparer.json", null);
+      if (!e) return rep({ maj: null, fin: null, jours: [] });
       for (const t of e.jours) t.photos = await photos(t.jour);
       return rep(e);
+    }
+    // la page : « rien trouvé pour ce joueur ». Ses photos partent, les suivants avancent d'un jour avec les leurs.
+    if (c.action === "ecarte" && jour) {
+      const e = await litJson("a-preparer.json", null);
+      const jours = (e?.jours || []).slice().sort((a: any, b: any) => a.jour - b.jour);
+      const i = jours.findIndex((t: any) => t.jour === jour);
+      if (i < 0) return rep({ erreur: "ce jour n'est plus dans la liste : rechargez la page" }, 404);
+      if (c.nom && jours[i].nom !== c.nom) return rep({ erreur: "la liste a changé entre-temps : rechargez la page" }, 409);
+      const auj = parisJour(new Date());
+      if (jours[i].date < auj || (jours[i].date === auj && parisHeure(new Date()) >= 12))
+        return rep({ erreur: "sa vidéo est déjà faite : trop tard pour le retirer" }, 409);
+      const anciennes = await noms(jour);
+      if (anciennes.length) { const { error } = await seau.remove(anciennes.map(n => `${dossier(jour)}/${n}`)); if (error) throw new Error(error.message); }
+      for (let k = i + 1; k < jours.length; k++) {
+        const de = jours[k].jour, vers = jours[k - 1].jour;
+        for (const n of await noms(de)) {
+          const { error } = await seau.move(`${dossier(de)}/${n}`, `${dossier(vers)}/${n}`);
+          if (error) throw new Error(error.message);
+        }
+      }
+      const retire = jours[i];
+      const suite = jours.map((t: any, k: number) => k < i ? t : k === jours.length - 1 ? null
+        : Object.assign({}, jours[k + 1], { jour: t.jour, date: t.date })).filter(Boolean);
+      const ecartes = (await litJson("ecartes.json", [])) as any[];
+      ecartes.push({ id: Date.now(), jour, nom: retire.nom, quand: new Date().toISOString() });
+      await ecritJson("ecartes.json", ecartes);
+      await ecritJson("a-preparer.json", Object.assign({}, e, { jours: suite }));
+      return rep({ ok: true, retire: retire.nom });
     }
     // le PC, avant de fabriquer la vidéo du jour
     if (c.action === "liste" && jour) return rep({ photos: await photos(jour) });
     if (c.action === "depot" && jour) {
-      if ((await photos(jour)).length >= MAX) return rep({ erreur: `déjà ${MAX} photos : retirez-en une d'abord` }, 409);
+      if ((await noms(jour)).length >= MAX) return rep({ erreur: `déjà ${MAX} photos : retirez-en une d'abord` }, 409);
       const im = await image(c);
       if (!EXT[im.type]) return rep({ erreur: `format non pris (${im.type || "inconnu"}) : essayez une autre image` }, 415);
       if (im.octets.length < 2000) return rep({ erreur: "image trop petite : ouvrez-la en grand avant de la prendre" }, 415);
@@ -84,7 +137,7 @@ Deno.serve(async (req) => {
       const { error } = await seau.upload(`${dossier(jour)}/${nom}`, new Blob([im.octets], { type: im.type }), { contentType: im.type });
       return error ? rep({ erreur: error.message }, 500) : rep({ ok: true, nom });
     }
-    if (c.action === "suppr" && jour && /^photo-\d+\.(jpg|png|webp)$/.test(c.nom || "")) {
+    if (c.action === "suppr" && jour && PHOTO.test(c.nom || "")) {
       const { error } = await seau.remove([`${dossier(jour)}/${c.nom}`]);
       return error ? rep({ erreur: error.message }, 500) : rep({ ok: true });
     }

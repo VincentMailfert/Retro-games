@@ -9,7 +9,9 @@
 <!-- La loterie du championnat : déposer les photos des joueurs tirés, depuis n'importe quel appareil (13/11/2026).
      Les jours à venir sont envoyés par la fabrique du PC chaque midi ; les photos vont dans le bucket privé
      « loterie-photos » par la fonction Supabase loterie-photos (code d'accès, docs/loterie-photos.ts).
-     Le PC les rapatrie avant de fabriquer la vidéo du jour. Rien ici n'est lu par le jeu. -->
+     Le PC les rapatrie avant de fabriquer la vidéo du jour. Rien ici n'est lu par le jeu.
+     Depuis le 20/11/2026 : « Rien trouvé » retire un joueur ; les suivants avancent d'un jour avec leurs photos,
+     et les deux joueurs en réserve (après la semaine) prennent la suite. Le PC refait le retrait à midi. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -68,6 +70,13 @@ h2{font-size:19px;line-height:1.25;margin:4px 0 0;overflow-wrap:anywhere}
 .aide{color:var(--dim);font-size:13px;margin-top:28px;border-top:1px solid var(--bord);padding-top:14px}
 .aide button{min-height:36px;font-size:13px;margin-top:6px}
 .cache{display:none}
+.j.res{background:var(--dim)}
+.sep{font:600 14px "IBM Plex Sans",sans-serif;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin:30px 0 4px}
+.sep+.intro{margin:0 0 14px}
+.bas{display:flex;justify-content:flex-end;margin-top:6px}
+.retire{min-height:36px;font-size:13px;font-weight:600;padding:0 12px;color:var(--dim);background:transparent;border:2px solid transparent}
+.retire:hover{color:var(--rouge);border-color:var(--rouge)}
+.retire.sur{color:var(--fond);background:var(--rouge);border-color:var(--rouge)}
 @media (max-width:520px){h1{font-size:25px} .ph img{height:84px} .ajout{width:84px;height:84px} .zone{min-height:106px}}
 @media (hover:none){.bureau{display:none}}
 </style>
@@ -75,7 +84,7 @@ h2{font-size:19px;line-height:1.25;margin:4px 0 0;overflow-wrap:anywhere}
 <body>
 <main>
   <header><h1>LOTERIE <span>·</span> LES PHOTOS</h1><span class="maj" id="maj"></span></header>
-  <p class="intro" id="intro">Une à trois photos par joueur, avant midi le jour de sa vidéo. Sans photo, la vidéo montre sa fiche du jeu.</p>
+  <p class="intro" id="intro">Une à trois photos par joueur, avant midi le jour de sa vidéo. Sans photo, la vidéo montre sa fiche du jeu. Rien trouvé pour un joueur : retirez-le, les suivants avancent d'un jour.</p>
 
   <form class="acces cache" id="acces">
     <label for="code">Code d'accès</label>
@@ -138,23 +147,26 @@ function liens(t) {
     [`Google, ${an}`, `https://www.google.com/search?tbm=isch&q=${q(`"${t.nom}" football ${an}`)}`],
     ["Bing", `https://www.bing.com/images/search?q=${q(`${t.nom} footballeur ${t.club}`)}`]];
 }
+const enReserve = t => ETAT && Number.isInteger(ETAT.fin) && t.jour > ETAT.fin;
 function carte(t) {
-  const q = quand(t.date), n = t.photos.length;
+  const q = quand(t.date), n = t.photos.length, res = enReserve(t);
   const vignettes = t.photos.map(p => `<div class="ph"><img src="${esc(p.url)}" alt="" loading="lazy">${q.passe ? "" : `<button type="button" data-suppr="${esc(p.nom)}" aria-label="Retirer cette photo">×</button>`}</div>`).join("");
   return `<article data-j="${t.jour}" class="${q.passe ? "passe" : ""}${choisi === t.jour ? " choisi" : ""}">
     <div class="tete"><div class="bl">${t.blason || ""}</div>
-      <div class="qui"><div class="quand"><span class="j">Jour ${t.jour}</span><span class="${q.urgent ? "urgent" : ""}">${esc(q.txt)}</span></div>
+      <div class="qui"><div class="quand">${res ? `<span class="j res">Réserve</span><span>jour ${t.jour}, ${esc(q.txt)}</span>` : `<span class="j">Jour ${t.jour}</span><span class="${q.urgent ? "urgent" : ""}">${esc(q.txt)}</span>`}</div>
         <h2>${esc(t.nom)}</h2><p class="det">${esc(t.poste)} · ${esc(t.club)} · ${esc(t.saison)} · D${esc(t.div)}</p></div>
       <span class="compte${n ? " ok" : ""}">${n} / ${MAX}</span></div>
     ${q.passe ? "" : `<p class="liens">${liens(t).map(([l, u]) => `<a href="${u}" target="_blank" rel="noopener">${esc(l)}</a>`).join("")}</p>`}
     <div class="zone">${vignettes}${!q.passe && n < MAX ? `<button type="button" class="ajout" data-ajout><b>＋</b>Photo</button>` : ""}${!n ? `<span class="vide">${q.passe ? "Sans photo : la vidéo a montré sa fiche." : "Aucune photo pour l'instant."}</span>` : ""}</div>
     ${!q.passe && n < MAX ? `<form class="lien" data-lien><input type="url" inputmode="url" placeholder="ou collez le lien d'une image" aria-label="Lien d'une image"><button class="creux" type="submit">Ajouter</button></form>` : ""}
-    <p class="msg"></p></article>`;
+    <p class="msg"></p>
+    ${q.passe ? "" : `<div class="bas"><button type="button" class="retire" data-ecarte>Rien trouvé : retirer ce joueur</button></div>`}</article>`;
 }
 function dessine() {
   if (!ETAT) return;
   const jours = ETAT.jours.slice().sort((a, b) => a.jour - b.jour);
-  $("cartes").innerHTML = jours.length ? jours.map(carte).join("")
+  const sep = `<h3 class="sep">En réserve</h3><p class="intro">Ils prennent la suite quand vous retirez un joueur. Vous pouvez déjà leur mettre des photos.</p>`;
+  $("cartes").innerHTML = jours.length ? jours.map((t, i) => (enReserve(t) && !(i && enReserve(jours[i - 1])) ? sep : "") + carte(t)).join("")
     : `<p class="intro">Aucun jour à préparer pour l'instant : la fabrique du PC envoie les prochains tirages chaque jour à midi.</p>`;
   $("maj").textContent = ETAT.maj ? "tirages du " + new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(ETAT.maj)) : "";
   $("aide").classList.remove("cache");
@@ -199,6 +211,20 @@ async function envoie(a, sources) {
   const b = document.querySelector(`article[data-j="${jourDe(a)}"]`);
   dit(b, erreur ? (ok ? `${ok} photo(s) ajoutée(s), une a échoué : ${erreur}` : erreur) : (ok > 1 ? `${ok} photos ajoutées.` : "Photo ajoutée."), erreur ? "ko" : "ok");
 }
+// « Rien trouvé » : un premier clic arme le bouton, le second retire le joueur (les suivants avancent d'un jour)
+async function ecarte(a, b) {
+  if (!b.classList.contains("sur")) {
+    document.querySelectorAll(".retire.sur").forEach(x => { x.classList.remove("sur"); x.textContent = "Rien trouvé : retirer ce joueur"; });
+    b.classList.add("sur"); b.textContent = "Confirmer : retirer ce joueur"; return;
+  }
+  const t = ETAT.jours.find(x => x.jour === jourDe(a)); if (!t) return;
+  a.classList.add("sablier"); dit(a, "Retrait…");
+  try {
+    await appel({ action: "ecarte", jour: t.jour, nom: t.nom }); choisi = null; await charge(true);
+    const b2 = document.querySelector(`article[data-j="${t.jour}"]`);
+    dit(b2, `${t.nom} est retiré. ${b2 ? "Les joueurs suivants ont avancé d'un jour, avec leurs photos." : ""}`, "ok");
+  } catch (e) { a.classList.remove("sablier"); dit(a, e.message, "ko"); }
+}
 async function retire(a, nom) {
   a.classList.add("sablier"); dit(a, "Retrait…");
   try { await appel({ action: "suppr", jour: jourDe(a), nom }); await charge(true); }
@@ -226,6 +252,7 @@ document.addEventListener("click", e => {
   const a = carteDe(e.target); if (!a) return;
   if (e.target.closest("[data-ajout]")) { cible = a; $("fichier").click(); return; }
   const s = e.target.closest("[data-suppr]"); if (s) { retire(a, s.dataset.suppr); return; }
+  const x = e.target.closest("[data-ecarte]"); if (x) { ecarte(a, x); return; }
   if (e.target.closest("a, input, button, form")) return;
   choisi = jourDe(a); document.querySelectorAll("article").forEach(x => x.classList.toggle("choisi", x === a));
   if (!a.classList.contains("passe")) dit(a, "Carte choisie : Ctrl+V colle l'image copiée.");
