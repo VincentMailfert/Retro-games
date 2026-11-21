@@ -188,7 +188,9 @@ for (const cle of CLES) {
     "Van", "Von", "Der", "Ten", "Ter", "El", "Al", "Ben", "Bin", "Mac", "Mc", "O", "Saint", "San",
     "Mio", "Sarr", "Aït", "Dalla", "Santa",
     /* ITA 1990-91 : Rafael Martín Vázquez (Torino), double nom espagnol, déjà blanchi par harness9293 (OM). */
-    "Martín"]);
+    "Martín",
+    /* ITA 1993-94 : Julio César Dely Valdés (Cagliari), double nom panaméen, déjà « J. Dely Valdés » dans les saisons françaises. */
+    "Dely"]);
   const suspects = Object.keys(ou).filter(n => {
     const m = /^[A-ZÀ-Þ]\.(-[A-ZÀ-Þ]\.)? ([A-ZÀ-Þ][a-zà-ÿ']+) [A-ZÀ-Þ]/.exec(n);
     return m && !PARTICULES.has(m[2]);

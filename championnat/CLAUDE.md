@@ -6594,6 +6594,48 @@ liste italienne est vide) et 1994 ; **l'auteur a tranché le 20/11/2026 (« 1A �
 Au passage, **le patronyme fictif « Brancaccio » de `NOMS_ITA` était porté par un vrai gardien de la SPAL** (Maurizio Brancaccio, relevé
 cette saison) et rougissait `harness-textes-ita.cjs` : remplacé par « Tartaglione », absent du jeu (correction permise par la consigne).
 
+### ITA 1993-94 — LA LEÇON D'ATHÈNES (v3.21)
+Quatrième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 21/11/2026 (`secours/2026-11-21`). Le Milan de
+Capello prend son troisième titre de suite avec **trente-six buts marqués et quinze encaissés** (cinquante points, trois devant la
+Juventus), puis bat Barcelone 4-0 en finale de la Ligue des champions à Athènes. **Signori meilleur buteur pour la deuxième fois (vingt-trois
+buts, 82)**, Zola 80, R. Baggio 88 (Ballon d'or 1993), Silenzi 75 ; en Serie B, **Agostini meilleur buteur (18 buts, 73)**, la Fiorentina
+de Batistuta remonte. **Dernière saison à deux points la victoire.** Sièges = `SIEGES_ITA[1993]`. Coup d'envoi commun le **29 août 1993**.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté. Padova monte au barrage contre Cesena ; Pisa, Acireale et Pescara (trois
+points de pénalité) finissent à trente-cinq, Pisa perd le barrage de maintien contre Acireale. **Vicenza (2655), Acireale (4337, « ASD
+Acireale Calcio ») et Ravenna (1105, « US Ravenna »)**, montés de C1 et déjà dans `CLUBS_ITA`, entrent au relevé ; identifiants lus sur
+le classement Transfermarkt de la Serie B 1993 et ajoutés à `releves/clubs-tm.json`.
+**Notes** : **495 héritées de 1992-93 vieillies d'un an**, 65 de plus loin, 2 du recruteur de l'été, 158 calculées ; élite 70.6 / 71,
+dessous 66.2 / 66. Onze ajustements (`ajust-ITA-9394.json`), buteurs vérifiés sur « 1993–94 Serie A » (anglaise) et « Serie A / Serie B
+1993-1994 » (italiennes). **Nesta forcé** (dix-sept ans, 60/90) ; Inzaghi relevé à 66/84 (treize buts en Serie B avec l'Hellas).
+**Les arrivées**, sans l'historique (`ceapi` toujours refusé) : la méthode de 1992-93 (listes de transferts des clubs, puis 165 pages de
+détail de transfert pour 312 hommes à recouper ; 44 arrivés en cours de saison écartés, dont **Desailly** et **Bokšić**). **Deux règles
+nouvelles, à réutiliser** : (1) **deux transferts datés du même jour se lisent en chaîne** (le club d'arrivée de l'un est le club de départ
+de l'autre) : Ambrosio, « Atalanta U20 → Atalanta » puis « Atalanta → Pisa » le 1er juillet, est à Pisa, et non à l'Atalanta comme le
+donnait un simple tri ; (2) **une ligne de la liste d'HIVER du club datée du 1er juillet porte la date par défaut de Transfermarkt** : le
+mouvement s'est fait à l'hiver (Altomare, Napoli au coup d'envoi, Lucchese ensuite). Le passage « U20 → équipe première » du même club
+reste une non-arrivée (Colacone à Parma, Morfeo à l'Atalanta).
+**LE PIÈGE DE LA SAISON : LA DATE PAR DÉFAUT DU 1ER JUILLET.** Transfermarkt date du 1er juillet bien des transferts d'automne. La page
+Wikipédia italienne de la saison de l'Udinese dit Pizzi « acquistato dal Parma a novembre » et Helveg « acquistato dall'Odense a
+novembre » : **Pizzi rangé à Parma, Helveg écarté**. Flamigni, « ceduto nel calciomercato autunnale » par Brescia, est au Brescia au coup
+d'envoi. Là où aucune seconde source ne parle, la date tranche (Valtolina, Marchegiani, Fiorentini, Signorelli, Dondo écartés de clubs où
+ils ont pourtant joué) : à revoir le jour où l'historique répond. **Les pages « Calciatore in rosa » des saisons de club sont la bonne
+seconde source pour l'Italie** : notes d'arrivée et de départ par session, et rôles (P, D, C, A).
+**Les autres pièges.** (1) **Deux Andrea Bianchi milieux nés à un an d'écart** (1969 au Genoa, déjà au jeu ; 1970 à Fidelis Andria) : le
+résolveur les confond, celui d'Andria n'a aucun nom libre (« A. Bianchi » est Alessandro Bianchi, de l'Inter) et cède sa place à **Marco
+Mazzoli** (`_ajouter`). (2) Papin reste « J.-P. Papin » par `_graphie`. (3) **Rôles repris de Wikipédia** là où il manquait un homme à un
+poste : Brolin milieu (Parma), Pittana, L. Rodríguez, Ambrosetti et Pupita attaquants, Baldini défenseur (Pisa). (4) **Cesena, Fidelis
+Andria et Cosenza à trois attaquants**, ailiers compris, tolérés comme la Lazio en 1992-93 (le vérificateur de relevé est rouge sur ces trois
+minimums, et seulement eux). (5) Andrea Bariglione (Sampdoria), sans date de naissance ni ligne d'effectif, retiré du relevé. (6) **« J. Dely Valdés »** (Julio César Dely Valdés, Cagliari, graphie des saisons françaises) rougissait `harness-italie.cjs` (« prénom composé avalé ») : « Dely » entre dans sa liste de particules, avec une note, comme « Martín » en 1990-91. (7) `harness-formations.cjs` a rougi une fois sur un tirage (Saint-Étienne et le 5-3-2), vert à la relance : aléa du harnais, sans lien avec la saison.
+Validation dédiée : **`harness-ita9394.cjs`**.
+**LE RECRUTEUR DE L'ÉTÉ 1993, ET L'ASSERTION QUI LE VOULAIT VIDE.** Au départ d'une carrière italienne en 1993, `harness-recruteur.cjs`
+comptait **22 noms pour un plancher de 25**. Selon la décision « 1A » de l'auteur (20/11/2026), trois joueurs fictifs entrent dans
+`VIVIER_SAISON_ITA[1993]`, avec un commentaire qui les dit fictifs : **R. Scarpellotti** (D, 1967, FC Lugano), **D. Mazzolarini** (M, 1969,
+FC Chiasso), **C. Cardellotti** (A, 1970, FC Locarno), notés 66 à 68. Chaque patronyme : zéro résultat à la recherche des Wikipédia anglaise
+et italienne, aucun homme de ce nom dans le jeu ni dans les relevés (Gherardacci, Vernicchi et Benvegnudi écartés, la recherche renvoyant
+des pages). **Mais le même harnais exigeait que l'été 1993 italien reste vide** (« un seul été vide, 1993, où aucun Italien ne joue à
+l'étranger »). J'ai gardé le sens de cette assertion — aucun homme RÉEL en 1993 — en y nommant les trois fictifs (`FICTIFS_1993`), avec
+une note. **À relire par l'auteur** : s'il préfère une autre forme, c'est une ligne à changer.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
