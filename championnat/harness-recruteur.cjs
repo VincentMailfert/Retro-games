@@ -192,7 +192,10 @@ try {
   const VI = api.VIVIER_SAISON_ITA, ans = Object.keys(VI).map(Number);
   if (!(ans.length === 20 && ans.every(a => a >= 1990 && a <= 2009))) fail("les étés des Italiens de l'étranger : " + ans.join(","));
   else ok("vingt étés, de 1990 à 2009");
-  const vides = ans.filter(a => !VI[a].length);
+  /* Les trois joueurs FICTIFS de l'été 1993 (décision de l'auteur « 1A » du 20/11/2026, ajoutés le 21/11/2026 par ITA 1993-94)
+     ne sont pas des Italiens de l'étranger réels : l'été 1993 doit rester sans AUCUN homme réel, ce que vérifie la ligne suivante. */
+  const FICTIFS_1993 = new Set(["R. Scarpellotti", "D. Mazzolarini", "C. Cardellotti"]);
+  const vides = ans.filter(a => !VI[a].filter(e => !(a === 1993 && FICTIFS_1993.has(e[0]))).length);
   if (vides.join() !== "1993") fail("étés vides inattendus : " + vides.join(",")); else ok("un seul été vide, 1993, où aucun Italien ne joue à l'étranger");
   const malForme = []; for (const a of ans) for (const e of VI[a]) if (e.length !== 8 || e[6] !== "ITA" || !e[7] || /—/.test(e[5]) || !"GDMA".includes(e[1]) || e[3] > e[4]) malForme.push(a + " " + e[0]);
   if (malForme.length) fail("entrées mal formées : " + malForme.join(", ")); else ok("toutes au format de VIVIER_SAISON, drapeau « ITA », prénom renseigné, note sous le potentiel");
