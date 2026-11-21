@@ -642,7 +642,25 @@
    "nom": "Ternana",
    "nom_tm": "PC Ternana",
    "pays": "ITA"
+  },
+  "VIC": {
+   "tm": 2655,
+   "nom": "Vicenza",
+   "nom_tm": "Vicenza Calcio",
+   "pays": "ITA"
+  },
+  "ACR": {
+   "tm": 4337,
+   "nom": "Acireale",
+   "nom_tm": "ASD Acireale Calcio",
+   "pays": "ITA"
+  },
+  "RAV": {
+   "tm": 1105,
+   "nom": "Ravenna",
+   "nom_tm": "US Ravenna",
+   "pays": "ITA"
   }
  },
- "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA. Piacenza (1408), Venezia (607), Casertana (4106) et Palermo (458) ajoutés le 19/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1991-92 (IT2, saison_id 1991)."
+ "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA. Piacenza (1408), Venezia (607), Casertana (4106) et Palermo (458) ajoutés le 19/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1991-92 (IT2, saison_id 1991). Vicenza (2655), Acireale (4337) et Ravenna (1105) ajoutés le 21/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1993-94 (IT2, saison_id 1993)."
 }
