@@ -46,7 +46,7 @@
   coup d'envoi. Rôles repris de ces pages là où il manquait un homme à un poste : Brolin milieu (Parma), Pittana (Udinese),
   L. Rodríguez (Atalanta), Ambrosetti (Brescia) et Pupita (Cesena) attaquants, Baldini défenseur (Pisa).
 - **Aucun doublon retenu deux fois** : tous les hommes listés dans deux clubs sont tranchés par les dates (Sensini à l'Udinese,
-  Bigliardi et Tresoldi à l'Atalanta, Festa au Cagliari, Carnevale à l'Udinese, Desailly à Marseille…).
+  Bigliardi et Tresoldi à l'Atalanta, Festa à l'Inter (Roma en janvier), Carnevale à l'Udinese, Desailly à Marseille…).
 - **Test de non-régression** : les pages Transfermarkt 1992 du Milan et de Lecce, lues par le parseur de cette nuit, contiennent
   les vingt et dix-huit retenus livrés en 1992-93, aucun marqué « nicht im Kader ».
 

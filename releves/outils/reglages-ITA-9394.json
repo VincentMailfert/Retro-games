@@ -1,0 +1,16 @@
+{
+ "pays": "ITA",
+ "an": 1993,
+ "version_avant": "3.20",
+ "version_apres": "3.21",
+ "nom": "La leçon d'Athènes",
+ "sous": "Le Milan de Capello prend son troisième scudetto de suite avec trente-six buts marqués et quinze encaissés, trois points devant la Juventus, puis écrase le Barcelone de Cruyff 4-0 en finale de la Ligue des champions à Athènes. L'Inter gagne la Coupe UEFA en finissant treizième, un point au-dessus de la zone rouge ; Parme perd la finale de la Coupe des coupes contre Arsenal, la Sampdoria gagne la Coupe d'Italie contre Ancona, club de Serie B. Giuseppe Signori est meilleur buteur pour la deuxième année de suite, avec vingt-trois buts. C'est la dernière saison à deux points la victoire. En Serie B, la Fiorentina de Batistuta remonte tout de suite, et Massimo Agostini marque dix-huit buts pour Ancona.",
+ "euroC1": ["MIL"],
+ "euroC2": ["PAR", "TOR"],
+ "euroC3": ["INT", "CAG", "JUV", "LAZ"],
+ "reel": {
+  "d1": "MIL JUV LAZ SAM PAR NAP ROM TOR FOG CRM GEN CAG INT REG PIA UDI ATA LEC",
+  "d2": "FIO BAI BRS PAD CES VEN ASC ANC AND LUC VIC HEL COS PAL PES ACR PIS RAV MOD MZA"
+ },
+ "entete": "ITA 1993-94 (v3.21) : « La leçon d'Athènes ». La quatrième saison italienne, assemblée par la tâche planifiée le 21/11/2026 à partir du relevé releves/ITA-1993-94 (Transfermarkt, effectif et temps de jeu de la saison 1993, arrivées datées par les listes de transferts des clubs et les pages de détail de transfert, recoupées par les pages Wikipédia italiennes de saison des clubs ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 495 notes héritées de 1992-93 vieillies d'un an, 65 de plus loin, 2 du recruteur de l'été, les autres calculées, dix ajustées à la main (releves/outils/ajust-ITA-9394.json)."
+}
