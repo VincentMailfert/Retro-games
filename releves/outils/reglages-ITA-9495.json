@@ -1,0 +1,26 @@
+{
+ "pays": "ITA",
+ "an": 1994,
+ "version_avant": "3.21",
+ "version_apres": "3.22",
+ "nom": "La Vieille Dame se réveille",
+ "sous": "Pour la première saison à trois points la victoire, la Juventus de Marcello Lippi joue en 4-3-3 et reprend le scudetto après neuf ans d'attente, dix points devant Parme et la Lazio. Elle gagne aussi la Coupe d'Italie contre Parme, qui la bat en finale de la Coupe UEFA. Le Milan finit quatrième et perd la finale de la Ligue des champions contre l'Ajax. Gabriel Batistuta, avec la Fiorentina promue, marque lors des onze premières journées et finit meilleur buteur avec vingt-six buts. Padova se sauve aux tirs au but contre Genoa. En Serie B, Piacenza est champion, et Giovanni Pisano marque vingt et un buts pour la Salernitana.",
+ "euroC1": [
+  "MIL"
+ ],
+ "euroC2": [
+  "SAM"
+ ],
+ "euroC3": [
+  "INT",
+  "JUV",
+  "LAZ",
+  "PAR",
+  "NAP"
+ ],
+ "reel": {
+  "d1": "JUV PAR LAZ MIL ROM INT NAP SAM CAG FIO TOR BAI CRM PAD GEN FOG REG BRS",
+  "d2": "PIA UDI VIC ATA SAL ANC PRG CES VEN HEL PES PAL AND CHI COS LUC ACR ASC COM LEC"
+ },
+ "entete": "ITA 1994-95 (v3.22) : « La Vieille Dame se réveille ». La cinquième saison italienne, assemblée par la tâche planifiée le 22/11/2026 à partir du relevé releves/ITA-1994-95 (Transfermarkt, effectif et temps de jeu de la saison 1994, arrivées datées par les listes de transferts des clubs et les pages de détail de transfert, recoupées par les pages Wikipédia italiennes de saison des clubs ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 498 notes héritées de 1993-94 vieillies d'un an, 74 de plus loin, 3 du recruteur de l'été, les autres calculées, vingt-deux ajustées à la main (releves/outils/ajust-ITA-9495.json)."
+}
