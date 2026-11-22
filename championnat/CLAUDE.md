@@ -6636,6 +6636,46 @@ des pages). **Mais le même harnais exigeait que l'été 1993 italien reste vide
 l'étranger »). J'ai gardé le sens de cette assertion — aucun homme RÉEL en 1993 — en y nommant les trois fictifs (`FICTIFS_1993`), avec
 une note. **À relire par l'auteur** : s'il préfère une autre forme, c'est une ligne à changer.
 
+### ITA 1994-95 — LA VIEILLE DAME SE RÉVEILLE (v3.22)
+Cinquième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 22/11/2026 (`secours/2026-11-22`). **Première
+saison à trois points la victoire** : la Juventus de Lippi, en 4-3-3, reprend le scudetto après neuf ans (soixante-treize points, dix devant
+Parma et la Lazio), gagne la Coupe d'Italie contre Parma et perd contre lui la finale de la Coupe UEFA ; le Milan finit quatrième et perd la
+finale de la Ligue des champions contre l'Ajax. **Batistuta meilleur buteur avec vingt-six buts (85)**, buteur lors des onze premières
+journées ; Balbo 80, Zola 82, Rizzitelli 76 ; **Maldini troisième du Ballon d'or 1994 (87)**, R. Baggio deuxième (88). En Serie B,
+**Pisano meilleur buteur (21 buts, 71)**, Cornacchini 73. Sièges = `SIEGES_ITA[1994]`. Coup d'envoi commun le **4 septembre 1994**.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté. Padova et Genoa finissent à quarante points, Padova se sauve aux tirs au but
+(barrage du 10 juin 1995). Cosenza perd neuf points de pénalité. **Perugia (839, « AC Perugia Calcio ») et le Chievo (862, « Chievo
+Verona »)**, montés de C1 et déjà dans `CLUBS_ITA`, entrent dans `releves/clubs-tm.json` (classement Transfermarkt de la Serie B 1994).
+**Notes** : **498 héritées de 1993-94 vieillies d'un an**, 74 de plus loin, 3 du recruteur de l'été, 145 calculées ; élite 70.6 / 71,
+dessous 66.2 / 67. Vingt-deux ajustements (`ajust-ITA-9495.json`), buteurs vérifiés sur « Serie A 1994-1995 » et « Serie B 1994-1995 »
+(italiennes). **L'héritage ment pour trois hommes de la Juventus** : Peruzzi sortait à 68, Ravanelli à 62 (sa note d'Avellino, reconduite
+de saison en saison), Del Piero à 64 ; relevés à 80, 80 et 78. **Pépites forcées** : Cristiano Zanetti (Fiorentina, dix-sept ans, 60/85),
+Morfeo (Atalanta, dix-huit ans, 66/84), Zambrotta (Como, dix-sept ans, 56/86), tous au club au coup d'envoi (« Im Team seit » antérieur,
+aucun transfert dans la saison).
+**Les arrivées**, sans l'historique (`ceapi` toujours refusé) : la méthode de 1992-93 et ses deux règles de 1993-94 (transferts du même jour
+en chaîne, ligne d'hiver datée du 1er juillet = mouvement d'hiver). Cette nuit, on ne lit les pages de détail que pour les hommes qui en ont
+besoin : « Im Team seit » vide ou postérieure au coup d'envoi, listé dans deux clubs, ou parti du club dans les listes de la saison (358
+hommes, 241 pages, contre 520 si l'on prend tout homme présent dans une liste). Une arrivée d'été datée par « Im Team seit » n'est pas
+relue : la page de détail porterait la même date. 81 arrivés en cours de saison écartés, dont **Gullit à la Sampdoria** (au Milan au coup
+d'envoi, échangé avec Melli en novembre), **Orlando à la Juventus** (16 septembre ; la page de la Juventus dit « sessione autunnale »),
+Muzzi à Cagliari, Cadete à Brescia.
+**LES PAGES WIKIPÉDIA DE SAISON DES 38 CLUBS, LUES EN ENTIER.** L'API de recherche de Wikipédia a répondu « 429 » à la tâche ; les pages
+se trouvent par leur titre exact, `<nom officiel du club> 1994-1995` lu en `action=raw` (« Juventus Football Club », « Società Sportiva
+Lazio », « Unione Sportiva Città di Palermo », « Associazione Calcio ChievoVerona »…, accents encodés dans l'URL). Les notes des lignes
+« Calciatore in rosa » (`<ref>` et `{{efn}}`, nommées ou non) disent qui arrive ou part en cours de saison ; **elles tranchent contre
+Transfermarkt**, comme en 1993-94 : Rui Águas et Mozzini (Reggiana, novembre), Minaudo (Piacenza, « sessione autunnale »), Marcão (Torino),
+Zironelli et Valtolina (Chievo, « sessione invernale ») écartés ; Dionigi à la Reggiana (« ceduto a novembre al Como »), Sartor à la
+Juventus (« ceduto durante la sessione autunnale ») et Luiso au Torino (« ceduto a stagione in corso ») au coup d'envoi, donc écartés de
+Como, Vicenza et Pescara où Transfermarkt les mettait. Ces corrections sont des surcharges écrites dans le relevé, avec leur citation.
+**Les autres pièges.** (1) **Piacenza à trois attaquants** (Inzaghi, De Vitis, l'ailier Piovani) : Wikipédia n'en liste pas d'autre ;
+Ferazzoli, au club au coup d'envoi selon les dates, n'est ni sur la page d'effectif ni dans la liste, il n'est pas ajouté (le vérificateur
+de relevé est rouge sur ce seul minimum, toléré comme en 1993-94). (2) Quatorze ailiers en attaque (Lentini, Lombardo, Robbiati…).
+(3) **Trois lignes fausses de la source retirées** : Simone Masini (Reggiana, « né en 1984 »), « N. N. Vinzioli » (Vicenza) et Scuderi
+(Acireale), sans naissance. (4) **Deux Bernardi** : Alberto (Torino, né en 1977) garde « A. Bernardi », Antonio (Brescia, né en 1976) son nom
+entier ; `controle-graphies.cjs` signale la paire, ce sont deux hommes. (5) 17 retenus restent à `arrivee` 1 (dont cinq de Como, promu de
+C1). (6) `harness-formations.cjs` a rougi une fois sur un tirage (Le Havre et le 5-3-2), vert trois fois à la relance. Validation dédiée : **`harness-ita9495.cjs`**.
+**Le recruteur de l'été 1994 tient seul** : 26 noms au départ d'une carrière italienne, aucun joueur fictif à ajouter.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
