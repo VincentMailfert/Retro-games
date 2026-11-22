@@ -6673,7 +6673,7 @@ de relevé est rouge sur ce seul minimum, toléré comme en 1993-94). (2) Quator
 (3) **Trois lignes fausses de la source retirées** : Simone Masini (Reggiana, « né en 1984 »), « N. N. Vinzioli » (Vicenza) et Scuderi
 (Acireale), sans naissance. (4) **Deux Bernardi** : Alberto (Torino, né en 1977) garde « A. Bernardi », Antonio (Brescia, né en 1976) son nom
 entier ; `controle-graphies.cjs` signale la paire, ce sont deux hommes. (5) 17 retenus restent à `arrivee` 1 (dont cinq de Como, promu de
-C1). Validation dédiée : **`harness-ita9495.cjs`**.
+C1). (6) `harness-formations.cjs` a rougi une fois sur un tirage (Le Havre et le 5-3-2), vert trois fois à la relance. Validation dédiée : **`harness-ita9495.cjs`**.
 **Le recruteur de l'été 1994 tient seul** : 26 noms au départ d'une carrière italienne, aucun joueur fictif à ajouter.
 
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
