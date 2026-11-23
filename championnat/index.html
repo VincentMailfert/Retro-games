@@ -744,7 +744,8 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
   .parPal{display:grid;grid-template-columns:30px 26px 1fr auto;align-items:center;gap:6px;padding:6px 8px;border:1px solid #1f3352;color:#6f7f98;font-size:14px;}
   .parPal .parN{font:22px VT323,monospace;text-align:center;}
   .parPal .parIco{filter:grayscale(1);opacity:.6;text-align:center;}
-  .parPal .parGain{white-space:nowrap;font-size:13px;}
+  .parPal .parGain{white-space:nowrap;font-size:13px;text-align:right;line-height:1.3;}
+  .parPal .parDef{font-size:12px;}
   .parPal.ok{border-color:#ffd24a;color:#ffd24a;background:rgba(255,210,74,.07);}
   .parPal.ok .parIco,.parPal.vise .parIco{filter:none;opacity:1;}
   .parPal.vise{border-color:#e8eef8;color:#e8eef8;}
@@ -24368,31 +24369,33 @@ function parrainageAnnonce(){ // un nouveau filleul, dit une fois, jamais en ple
   const pa=palierParrain(ap), franchi=pa && pa.n>av ? pa : null;
   d.vu=d.n; parrainEcrit(o);
   message((neufs>1?neufs+" amis ont":"Un ami a")+" rejoint Multiplex grâce à toi."+(pts?" +"+FMT(pts)+" ⭐":"")
-    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : tes points de défis passent à ×"+multTxt(franchi.mult)+".":""),
+    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : les points de tes défis sont "+(franchi.mult>=2?multLib(franchi.mult):"augmentés de "+Math.round((franchi.mult-1)*100)+" %")+".":""),
     {titre:franchi?franchi.ico+" "+franchi.nom.toUpperCase():"🤝 PARRAINAGE"});
   return true;
 }
 function multTxt(m){ return String(m).replace(".", ","); }
+function multLib(m){ // le bonus des défis dit en mots : +25 %, +50 %, doublés, triplés (« ×1,25 » ne parlait à personne)
+  return m===2?"doublés" : m===3?"triplés" : "+"+Math.round((m-1)*100)+" %"; }
 function grilleParrainHTML(n){ // la grille des paliers : franchis en or, le prochain en blanc, les autres en grisé
   const suiv=palierSuivant(n);
   return `<div class="parGrille">${PARRAIN_GRILLE.map(g=>{ const ok=n>=g.n, vise=suiv&&suiv.n===g.n;
     return `<div class="parPal${ok?" ok":""}${vise?" vise":""}"><span class="parN">${g.n}</span><span class="parIco">${g.ico}</span>
       <span class="parNom">${esc(g.nom)}</span>
-      <span class="parGain">${g.mult>1?`<b>×${multTxt(g.mult)}</b> défis`:""}${g.prime?`${g.mult>1?" · ":""}+${FMT(g.prime)} ⭐`:(g.mult>1?"":"+"+FMT(PARRAIN_PTS)+" ⭐")}</span></div>`; }).join("")}</div>
+      <span class="parGain">${g.prime?`+${FMT(g.prime)} ⭐`:"+"+FMT(PARRAIN_PTS)+" ⭐"}${g.mult>1?`<br><span class="parDef">points des défis <b>${multLib(g.mult)}</b></span>`:""}</span></div>`; }).join("")}</div>
     ${suiv?`<div class="parBarre"><i style="width:${Math.round(100*n/suiv.n)}%"></i></div>
       <p class="dim" style="font-size:13px;text-align:center">${n} / ${suiv.n} · encore ${suiv.n-n} ami${suiv.n-n>1?"s":""} pour ${suiv.ico} ${esc(suiv.nom)}</p>`
       :`<p class="fort" style="text-align:center">🏆 Stade plein. Merci.</p>`}`;
 }
 function parrainageHTML(){ // le panneau de la salle des trophées (et de la fenêtre)
   const s=compteLit(), d=s&&parrainDe(s.uid), n=d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0;
-  const base=`<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b>, et les paliers multiplient tes points de défis.</p>${grilleParrainHTML(n)}`;
+  const base=`<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b>.</p><p style="margin-top:4px">Et plus tu invites, plus chaque défi réussi te rapporte.</p>${grilleParrainHTML(n)}`;
   if(!s) return `${base}<p style="margin-top:10px"><button class="big" id="bParrainCompte" style="width:100%">Créer mon compte et avoir mon lien</button></p>`;
   if(!d || !d.code) return `${base}<p class="dim">Ton lien arrive…</p>`;
   const l=lienParrainage(d.code);
   return `${base}
     <p style="margin:10px 0 8px"><input id="parrainLien" readonly value="${esc(l)}" style="width:100%;box-sizing:border-box;font:15px VT323,monospace;letter-spacing:.5px;padding:6px 8px;background:#0b1626;color:#ffd24a;border:1px solid #27466e"></p>
     <p><button class="big" id="bParrainPartage" style="width:100%">Partager mon lien</button></p>
-    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Bonus en cours : défis ×${multTxt(multParrain(n))} (+${FMT(bonusDefisParrain())} ⭐)</p>`:""}`;
+    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Tes défis sont ${multParrain(n)>=2?multLib(multParrain(n)):"augmentés de "+Math.round((multParrain(n)-1)*100)+" %"} : +${FMT(bonusDefisParrain())} ⭐ déjà gagnés grâce à tes amis</p>`:""}`;
 }
 function cableParrainage(redessine){
   const $=id=>typeof document!=="undefined"&&document.getElementById?document.getElementById(id):null;
@@ -24628,7 +24631,7 @@ function ouvreDefis(suite){
   const club=d=>{ const c=d.club?(metaClub(d.club)||{nom:d.club}):null; return c?`<b>${esc(c.nom)}</b> · `:""; };
   fiche.innerHTML=`<div class="fbox ctr" style="max-width:420px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:18px">
       <h2 style="color:#ffd24a">🎯 ${ids.length>1?"DÉFIS RÉUSSIS":"DÉFI RÉUSSI"}</h2>
-      ${ids.map(id=>{ const d=DEFI_DE[id]; return `<p style="margin-top:10px;font-size:17px">${club(d)}${esc(d.nom)}</p><p class="trPts" style="font-size:24px;margin:2px 0">+${FMT(Math.round(d.pts*multParrain()))} <span class="dim">pts${multParrain()>1?" · ×"+multTxt(multParrain())+" 🤝":""}</span></p>`; }).join("")}
+      ${ids.map(id=>{ const d=DEFI_DE[id]; return `<p style="margin-top:10px;font-size:17px">${club(d)}${esc(d.nom)}</p><p class="trPts" style="font-size:24px;margin:2px 0">+${FMT(Math.round(d.pts*multParrain()))} <span class="dim">pts${multParrain()>1?" · bonus parrainage "+multLib(multParrain()):""}</span></p>`; }).join("")}
       <p class="dim" style="margin-top:8px">⭐ ${FMT(soldePoints())} pts</p>
       <p style="margin-top:12px"><button class="big" id="bDefiOk">Génial !</button></p></div>`;
   fiche.style.display="flex";
