@@ -6676,6 +6676,48 @@ entier ; `controle-graphies.cjs` signale la paire, ce sont deux hommes. (5) 17 r
 C1). (6) `harness-formations.cjs` a rougi une fois sur un tirage (Le Havre et le 5-3-2), vert trois fois à la relance. Validation dédiée : **`harness-ita9495.cjs`**.
 **Le recruteur de l'été 1994 tient seul** : 26 noms au départ d'une carrière italienne, aucun joueur fictif à ajouter.
 
+### ITA 1995-96 — LE LIBÉRIEN DE SAN SIRO (v3.23)
+Sixième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 23/11/2026 (`secours/2026-11-23`). George Weah, arrivé
+du PSG, et Roberto Baggio, venu de la Juventus, rejoignent le Milan de Capello : quinzième titre, soixante-treize points, huit devant la
+Juventus, qui gagne la Ligue des champions à Rome contre l'Ajax ; la Fiorentina gagne la Coupe d'Italie contre l'Atalanta. **Weah Ballon
+d'or 1995 (89)**, Del Piero quatrième (84), Zola sixième (84), Maldini septième (88). **Protti (Bari, relégué) et Signori meilleurs buteurs avec
+vingt-quatre buts (77 et 84)**, Chiesa 79 ; en Serie B, **Hübner meilleur buteur (vingt-deux buts, 72)**, Montella 71. Buffon joue son premier
+match à dix-sept ans le 19 novembre (64/92). Sièges = `SIEGES_ITA[1995]`. Coup d'envoi commun le **27 août 1995**.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté, aucune pénalité. **La Pistoiese (1307, « AC Pistoiese »)**, montée de C1 et
+déjà dans `CLUBS_ITA`, entre dans `releves/clubs-tm.json` (classement Transfermarkt de la Serie B 1995) ; Bologna, Reggina et Avellino y
+étaient. **Notes** : 509 héritées de 1994-95 vieillies d'un an, 61 de plus loin, 6 du recruteur de l'été, 144 calculées ; élite 70.4 / 70,
+dessous 66.1 / 67. Vingt-cinq ajustements (`ajust-ITA-9596.json`), buteurs vérifiés sur « Serie A 1995-1996 » et « Serie B 1995-1996 »
+(italiennes), Ballon d'or sur « 1995 Ballon d'Or » (anglaise). **Cristiano Zanetti forcé** (dix-huit ans, quinze minutes, « aggregato dalla
+Primavera » à la Fiorentina).
+**Les arrivées**, sans l'historique (`ceapi` non appelé : l'environnement de la tâche a refusé la commande qui le contenait) : la méthode de
+1992-93 et ses règles de 1993-94. **Nouveau : les listes de transferts se lisent en deux tables, arrivées (« Zugänge ») et départs
+(« Abgänge »)**, coupées au titre `<h2>` « Abgänge » (le mot apparaît aussi plus haut dans le menu de la page : chercher le titre, pas le
+mot). On ne lit une page de détail que pour un homme dont « Im Team seit » est vide ou postérieure au coup d'envoi, listé dans deux clubs,
+ou qui figure dans un départ du club ou une liste d'un autre club : 387 pages au lieu de 528. Club au coup d'envoi = destination du dernier
+transfert daté au plus tard le coup d'envoi ; s'il n'y en a pas, **club de départ du premier transfert daté après**. 79 arrivés en cours de
+saison écartés (Delvecchio à la Roma, Ingesson et Ripa à Bari, O'Neill à Cagliari, Mancini à la Lazio, Aloisi à la Cremonese, van Utrecht à
+Padova, Tramezzani à Cesena).
+**LES PAGES WIKIPÉDIA DE SAISON DES 38 CLUBS.** Les titres se trouvent d'un coup par l'API (`prop=links` de « Serie A 1995-1996 » et
+« Serie B 1995-1996 », titres finissant par « 1995-1996 ») ; Genoa est une redirection vers « Genoa 1893 1995-1996 ». Chaque ligne
+« Calciatore in rosa » se lit en entier (la note est souvent DANS le paramètre `nome`, et une note `{{cita libro…}}` contient des `}}` :
+couper à la ligne, pas au premier `}}`). **Elles tranchent contre la date par défaut du 1er juillet** : au coup d'envoi, Branca à la Roma
+(« ceduto nella sessione invernale » ; l'Inter le dit « acquistato durante la sessione autunnale »), Pistone et Briaschi à Vicenza, Cravero à
+la Lazio (« ceduto a settembre al Torino »), Minaudo à l'Atalanta, Cozza au Torino, Nicolini à la Cremonese, Corrado à Genoa, Bracaloni au
+Chievo, Bortoluzzi et Monari à Avellino ; arrivés en cours de saison, Pittana (Vicenza), Nava (Padova), Scarafoni, Compagno et Barraco
+(Palermo), Sclosa et Nardini (Pistoiese). **Pirri** (Cremonese, « ceduto a stagione in corso ») et **Verolino** (Napoli, « aggregato dalla
+Primavera »), marqués « nicht im Kader » par Transfermarkt, sont gardés comme attaquants de la rosa. Toutes ces surcharges sont écrites
+dans la `remarque` du relevé avec leur citation.
+**Les pièges.** (1) **Reggiana et Ancona rougissent le contrôle d'identité du vérificateur de relevé** (deux et un retenus en commun avec
+1994-95) : ce ne sont pas de faux clubs, mais des effectifs refaits (la page de la Reggiana décrit le mercato : Ballotta, Caini, Cevoli,
+Tangorra, Ziliani, Strada, Colucci, Schenardi, Pietranera). Identité prouvée par les rosas Wikipédia (15/18 et 18/18 retenus). (2) **Trois
+clubs à trois attaquants** : Cremonese (Florjančič, Tentoni, Pirri), Reggina (les trois attaquants de sa rosa) et Ancona (Artistico, Lemme et
+Lucidi rangés « A » par la rosa), tolérés comme Piacenza en 1994-95. (3) Un milieu passe en attaque seulement s'il est ailier chez
+Transfermarkt ou rangé « A » par la rosa Wikipédia. (4) Jonathan Bachini (Udinese, aucune minute) est dans l'onglet de temps de jeu mais pas
+sur la page d'effectif : non relevé. (5) **Scarafoni** (Palermo, 3 094 minutes) écarté sur la seule note « acquistato nel corso della
+stagione ». (6) 24 retenus restent à `arrivee` 1, dont Buffon (centre de formation de Parma). (7) Les graphies du jeu à initiale double
+(« E. D. Bianco », « D. D. Carri », « A. D. Canto », « G. D. Pulpito ») viennent des saisons précédentes et sont reprises telles quelles.
+Validation dédiée : **`harness-ita9596.cjs`**.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
