@@ -296,7 +296,7 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   ok(api.palierSuivant(4).n === 5 && api.palierSuivant(20) === null, "le prochain palier après 4 est 5, rien après 20");
   // le multiplicateur s'applique aux points de défis, recalculés
   const pd = api.pointsDefis();
-  ok(api.bonusDefisParrain() === Math.round(pd * 2) && api.pointsGagnes() === pd * 3 + api.pointsParrainage(), "défis " + pd + " ×3 dans les points gagnés");
+  ok(api.pointsGagnes() === (pd + api.pointsParrainage()) * 3, "au stade plein, le total des points (" + (pd + api.pointsParrainage()) + ") ×3 = " + api.pointsGagnes());
   // l'annonce dit le palier franchi : de 1 à 5 amis
   for (let i = 0; i < 30; i++) delete SRV.parrainages["faux" + i];
   await api.parrainageRafraichit(true);
@@ -304,8 +304,8 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   for (let i = 0; i < 4; i++) SRV.parrainages["kop" + i] = uidV;
   await api.parrainageRafraichit(true);
   const der = api.MSG_JOURNAL[api.MSG_JOURNAL.length - 1] || "", net = der.replace(/[\s  ]/g, "");
-  ok(/4amisontrejointMultiplexgrâceàtoi\.\+5000⭐/.test(net), "4 amis de plus : 2 000 + 1 000 + 2 000 de primes annoncés (« " + der.split("\n")[0] + " »)");
-  ok(/LE KOP : tous tes points de défis sont multipliés par 1,5, ceux déjà gagnés comme ceux à venir/.test(der), "le palier du kop est annoncé");
+  ok(/4amisontrejointMultiplexgrâceàtoi\.\+7750⭐/.test(net), "4 amis de plus : de 500 à (2 500 + 3 000) ×1,5 = 8 250, soit +7 750 annoncés (« " + der.split("\n")[0] + " »)");
+  ok(/LE KOP : le total de tes points est multiplié par 1,5/.test(der), "le palier du kop est annoncé");
   for (let i = 0; i < 4; i++) delete SRV.parrainages["kop" + i];
   await api.parrainageRafraichit(true);
 

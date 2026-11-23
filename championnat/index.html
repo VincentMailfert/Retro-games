@@ -24339,8 +24339,11 @@ function palierParrain(n){ n=(n==null)?filleulsIci():n; let p=null; for(const g 
 function palierSuivant(n){ n=(n==null)?filleulsIci():n; return PARRAIN_GRILLE.find(g=>g.n>n)||null; }
 function multParrain(n){ const p=palierParrain(n); return p?p.mult:1; }
 function primesParrain(n){ n=(n==null)?filleulsIci():n; return PARRAIN_GRILLE.filter(g=>n>=g.n).reduce((t,g)=>t+g.prime,0); }
-function bonusDefisParrain(){ return Math.round(pointsDefis()*(multParrain()-1)); }
-function pointsGagnes(){ return pointsDefis()+bonusDefisParrain()+pointsParrainage(); }
+// choix de l'auteur (23/11/2026, « total des points ×1,5 ») : le multiplicateur porte sur le TOTAL des points gagnés
+// (défis + amis + primes), passés et à venir. Les dépenses de la boutique ne sont pas multipliées.
+function gainsTotal(n){ n=(n==null)?filleulsIci():n; return Math.round((pointsDefis()+n*PARRAIN_PTS+primesParrain(n))*multParrain(n)); }
+function bonusDefisParrain(){ const n=filleulsIci(); return gainsTotal(n)-(pointsDefis()+n*PARRAIN_PTS+primesParrain(n)); } // ce que le multiplicateur ajoute
+function pointsGagnes(){ return gainsTotal(); }
 function lienParrainage(code){ return "https://multiplex.club/?p="+code; }
 function parrainageRafraichit(force){ // (4) le code du parrain et ses filleuls ; vrai si quelque chose a changé
   if(!nuageAllume()) return Promise.resolve(false);
@@ -24365,11 +24368,11 @@ function parrainageAnnonce(){ // un nouveau filleul, dit une fois, jamais en ple
   const o=parrainLit(), d=o.par&&o.par[s.uid]; if(!d || !(d.n>(+d.vu||0))) return false;
   if(!EN_TEST() && (MSG_ANNUL || (typeof document!=="undefined" && document.body && document.body.classList.contains("mode-direct")))) return false;
   const av=Math.min(+d.vu||0, PARRAIN_MAX), ap=Math.min(d.n, PARRAIN_MAX), neufs=d.n-(+d.vu||0);
-  const pts=Math.max(0, ap-av)*PARRAIN_PTS+primesParrain(ap)-primesParrain(av);
+  const pts=Math.max(0, gainsTotal(ap)-gainsTotal(av));
   const pa=palierParrain(ap), franchi=pa && pa.n>av ? pa : null;
   d.vu=d.n; parrainEcrit(o);
   message((neufs>1?neufs+" amis ont":"Un ami a")+" rejoint Multiplex grâce à toi."+(pts?" +"+FMT(pts)+" ⭐":"")
-    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : tous tes points de défis sont multipliés par "+multTxt(franchi.mult)+", ceux déjà gagnés comme ceux à venir.":""),
+    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : le total de tes points est multiplié par "+multTxt(franchi.mult)+".":""),
     {titre:franchi?franchi.ico+" "+franchi.nom.toUpperCase():"🤝 PARRAINAGE"});
   return true;
 }
@@ -24380,21 +24383,21 @@ function grilleParrainHTML(n){ // la grille des paliers : franchis en or, le pro
   return `<div class="parGrille">${PARRAIN_GRILLE.map(g=>{ const ok=n>=g.n, vise=suiv&&suiv.n===g.n;
     return `<div class="parPal${ok?" ok":""}${vise?" vise":""}"><span class="parN">${g.n}</span><span class="parIco">${g.ico}</span>
       <span class="parNom">${esc(g.nom)}</span>
-      <span class="parGain">${g.prime?`+${FMT(g.prime)} ⭐`:"+"+FMT(PARRAIN_PTS)+" ⭐"}${g.mult>1?`<br><span class="parDef">points des défis <b>${multLib(g.mult)}</b></span>`:""}</span></div>`; }).join("")}</div>
+      <span class="parGain">${g.prime?`+${FMT(g.prime)} ⭐`:"+"+FMT(PARRAIN_PTS)+" ⭐"}${g.mult>1?`<br><span class="parDef">total des points <b>${multLib(g.mult)}</b></span>`:""}</span></div>`; }).join("")}</div>
     ${suiv?`<div class="parBarre"><i style="width:${Math.round(100*n/suiv.n)}%"></i></div>
       <p class="dim" style="font-size:13px;text-align:center">${n} / ${suiv.n} · encore ${suiv.n-n} ami${suiv.n-n>1?"s":""} pour ${suiv.ico} ${esc(suiv.nom)}</p>`
       :`<p class="fort" style="text-align:center">🏆 Stade plein. Merci.</p>`}`;
 }
 function parrainageHTML(){ // le panneau de la salle des trophées (et de la fenêtre)
   const s=compteLit(), d=s&&parrainDe(s.uid), n=d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0;
-  const base=`<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b>.</p><p style="margin-top:4px">À chaque palier, <b>tous</b> tes points de défis sont multipliés : ceux déjà gagnés, tout de suite, et ceux à venir.</p>${grilleParrainHTML(n)}`;
+  const base=`<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b>.</p>${grilleParrainHTML(n)}`;
   if(!s) return `${base}<p style="margin-top:10px"><button class="big" id="bParrainCompte" style="width:100%">Créer mon compte et avoir mon lien</button></p>`;
   if(!d || !d.code) return `${base}<p class="dim">Ton lien arrive…</p>`;
   const l=lienParrainage(d.code);
   return `${base}
     <p style="margin:10px 0 8px"><input id="parrainLien" readonly value="${esc(l)}" style="width:100%;box-sizing:border-box;font:15px VT323,monospace;letter-spacing:.5px;padding:6px 8px;background:#0b1626;color:#ffd24a;border:1px solid #27466e"></p>
     <p><button class="big" id="bParrainPartage" style="width:100%">Partager mon lien</button></p>
-    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Tes points de défis sont multipliés par ${multTxt(multParrain(n))} : +${FMT(bonusDefisParrain())} ⭐ déjà gagnés grâce à tes amis</p>`:""}`;
+    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Total des points ×${multTxt(multParrain(n))} : +${FMT(bonusDefisParrain())} ⭐ déjà gagnés grâce à tes amis</p>`:""}`;
 }
 function cableParrainage(redessine){
   const $=id=>typeof document!=="undefined"&&document.getElementById?document.getElementById(id):null;
