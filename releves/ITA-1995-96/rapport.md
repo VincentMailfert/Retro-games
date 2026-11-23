@@ -46,8 +46,10 @@
   stagione » ou « nel calciomercato autunnale-invernale »). **Pirri** (Cremonese, « ceduto a stagione in corso ») et **Verolino**
   (Napoli, « aggregato dalla formazione Primavera »), marqués « nicht im Kader » par Transfermarkt, sont dans la rosa comme attaquants :
   gardés au club. Chaque correction est écrite dans la `remarque` du joueur, avec sa citation.
-- **Test de non-régression** : le parseur de cette nuit relit la page Transfermarkt 1995 de la Juventus avec les trente-cinq hommes de
-  la page, mêmes minutes que l'onglet de temps de jeu ; les retenus de chaque club ont été confrontés un à un aux rosas Wikipédia.
+- **Contrôle du parseur** : pour chacun des 38 clubs, la page d'effectif et l'onglet de temps de jeu donnent les mêmes hommes, à une
+  exception près (Jonathan Bachini, Udinese, présent dans l'onglet de temps de jeu sans aucune minute mais absent de la page d'effectif :
+  non relevé, il n'aurait pas été retenu). Les retenus de chaque club ont été confrontés un à un aux rosas Wikipédia : en dehors des
+  graphies (Stoičkov, Roberto Carlos, Florjančič, Turone), seuls des remplaçants sans minute ou presque manquent aux rosas.
 
 ## Doutes
 
