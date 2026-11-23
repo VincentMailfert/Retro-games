@@ -24369,7 +24369,7 @@ function parrainageAnnonce(){ // un nouveau filleul, dit une fois, jamais en ple
   const pa=palierParrain(ap), franchi=pa && pa.n>av ? pa : null;
   d.vu=d.n; parrainEcrit(o);
   message((neufs>1?neufs+" amis ont":"Un ami a")+" rejoint Multiplex grâce à toi."+(pts?" +"+FMT(pts)+" ⭐":"")
-    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : points des défis "+multLib(franchi.mult)+".":""),
+    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : tous tes points de défis sont multipliés par "+multTxt(franchi.mult)+", ceux déjà gagnés comme ceux à venir.":""),
     {titre:franchi?franchi.ico+" "+franchi.nom.toUpperCase():"🤝 PARRAINAGE"});
   return true;
 }
@@ -24387,14 +24387,14 @@ function grilleParrainHTML(n){ // la grille des paliers : franchis en or, le pro
 }
 function parrainageHTML(){ // le panneau de la salle des trophées (et de la fenêtre)
   const s=compteLit(), d=s&&parrainDe(s.uid), n=d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0;
-  const base=`<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b>.</p><p style="margin-top:4px">Et plus tu invites, plus chaque défi réussi te rapporte.</p>${grilleParrainHTML(n)}`;
+  const base=`<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b>.</p><p style="margin-top:4px">À chaque palier, <b>tous</b> tes points de défis sont multipliés : ceux déjà gagnés, tout de suite, et ceux à venir.</p>${grilleParrainHTML(n)}`;
   if(!s) return `${base}<p style="margin-top:10px"><button class="big" id="bParrainCompte" style="width:100%">Créer mon compte et avoir mon lien</button></p>`;
   if(!d || !d.code) return `${base}<p class="dim">Ton lien arrive…</p>`;
   const l=lienParrainage(d.code);
   return `${base}
     <p style="margin:10px 0 8px"><input id="parrainLien" readonly value="${esc(l)}" style="width:100%;box-sizing:border-box;font:15px VT323,monospace;letter-spacing:.5px;padding:6px 8px;background:#0b1626;color:#ffd24a;border:1px solid #27466e"></p>
     <p><button class="big" id="bParrainPartage" style="width:100%">Partager mon lien</button></p>
-    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Points des défis ${multLib(multParrain(n))} : +${FMT(bonusDefisParrain())} ⭐ déjà gagnés grâce à tes amis</p>`:""}`;
+    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Tes points de défis sont multipliés par ${multTxt(multParrain(n))} : +${FMT(bonusDefisParrain())} ⭐ déjà gagnés grâce à tes amis</p>`:""}`;
 }
 function cableParrainage(redessine){
   const $=id=>typeof document!=="undefined"&&document.getElementById?document.getElementById(id):null;
