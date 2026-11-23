@@ -1,0 +1,25 @@
+{
+ "pays": "ITA",
+ "an": 1995,
+ "version_avant": "3.22",
+ "version_apres": "3.23",
+ "nom": "Le Libérien de San Siro",
+ "sous": "George Weah, arrivé du Paris Saint-Germain, et Roberto Baggio, venu de la Juventus, rejoignent le Milan de Fabio Capello, qui prend son quinzième titre avec huit points d'avance sur la Juventus. Weah reçoit le Ballon d'or 1995. La Juventus se console à Rome en gagnant la Ligue des champions contre l'Ajax aux tirs au but, et la Fiorentina de Batistuta gagne la Coupe d'Italie contre l'Atalanta. Igor Protti, avec Bari qui descend, et Giuseppe Signori finissent meilleurs buteurs avec vingt-quatre buts chacun. À Parme, un gardien de dix-sept ans, Gianluigi Buffon, joue son premier match le 19 novembre. En Serie B, Bologna est champion et Dario Hübner marque vingt-deux buts pour Cesena.",
+ "euroC1": [
+  "JUV"
+ ],
+ "euroC2": [
+  "PAR"
+ ],
+ "euroC3": [
+  "LAZ",
+  "MIL",
+  "ROM",
+  "INT"
+ ],
+ "reel": {
+  "d1": "MIL JUV LAZ FIO ROM PAR INT SAM VIC CAG UDI NAP ATA PIA BAI TOR CRM PAD",
+  "d2": "BGN HEL PRG REG SAL LUC PAL GEN PES CES COS FOG VEN CHI RGC BRS AND AVE ANC PST"
+ },
+ "entete": "ITA 1995-96 (v3.23) : « Le Libérien de San Siro ». La sixième saison italienne, assemblée par la tâche planifiée le 23/11/2026 à partir du relevé releves/ITA-1995-96 (Transfermarkt, effectif et temps de jeu de la saison 1995, arrivées datées par les listes de transferts des clubs et les pages de détail de transfert, recoupées par les pages Wikipédia italiennes de saison des clubs ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 509 notes héritées de 1994-95 vieillies d'un an, 61 de plus loin, 6 du recruteur de l'été, les autres calculées, vingt-cinq ajustées à la main (releves/outils/ajust-ITA-9596.json)."
+}
