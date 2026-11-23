@@ -197,6 +197,7 @@ const epilogue = "\n;return {nouvellePartie,jouerJournee,sauvegardeLocale,charge
   "compteInscription,compteConnexion,compteDepuisLien,compteNouveauMdp,texteErreur,compteDeconnexion,compteSupprime,compteOubli,compteLit," +
   "nuageSynchronise,nuagePlanifie,nuageListe,nuageRapatrie,nuageCompresse,nuageDecompresse,nuageEtatLit,avanceDe," +
   "parrainageDepuisAdresse,parrainageRafraichit,parrainageAnnonce,codeRecu,pointsParrainage,pointsGagnes,soldePoints,parrainageHTML,lienParrainage,PARRAINKEY,PARRAIN_PTS,PARRAIN_MAX," +
+  "PARRAIN_GRILLE,palierParrain,palierSuivant,multParrain,primesParrain,bonusDefisParrain,pointsDefis,parrainSeuilAtteint,invitationASignaler,parrainMatchJoue,PARRAIN_SEUILS,PARRAIN_PAS," +
   "progGagne,ouvreSaison,clesDispo,saisonOuverte,progSynchronise," +
   "libIndicateur,ligneAppareil,panneauCarrieres,propCompte,propLit,cablePropCompte,cleDepart,PROPKEY," +
   "getG:function(){return G;},setG:function(x){G=x;},getPARTIE:function(){return PARTIE;}," +
@@ -277,12 +278,41 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   ok(api.pointsParrainage() === api.PARRAIN_PTS && api.soldePoints() === avant + 500, "+500 au solde (" + avant + " → " + api.soldePoints() + ")");
   ok(api.MSG_JOURNAL.some((m) => /Un ami a rejoint Multiplex grâce à toi. \+500 ⭐/.test(m)), "le nouveau filleul est annoncé");
   ok(lsDe(vin).par[api.compteLit().uid].vu === 1 && api.parrainageAnnonce() === false, "annoncé une seule fois");
-  ok(/1 ami inscrit/.test(api.parrainageHTML()), "« 1 ami inscrit » dans la salle des trophées");
+  ok(/1 \/ 3 · encore 2 amis pour/.test(api.parrainageHTML()), "« 1 / 3 · encore 2 amis » sous la grille");
   // le plafond
   const uidV = api.compteLit().uid;
   for (let i = 0; i < 30; i++) SRV.parrainages["faux" + i] = uidV;
   await api.parrainageRafraichit(true);
-  ok(api.pointsParrainage() === api.PARRAIN_MAX * api.PARRAIN_PTS, "31 filleuls : plafonné à " + api.PARRAIN_MAX + " × 500 = " + api.pointsParrainage());
+  ok(api.pointsParrainage() === api.PARRAIN_MAX * api.PARRAIN_PTS + 23000, "31 filleuls : plafonné à " + api.PARRAIN_MAX + " × 500 + 23 000 de primes = " + api.pointsParrainage());
+  ok(api.multParrain() === 3 && /Stade plein/.test(api.parrainageHTML()), "au dernier palier : défis ×3, « Stade plein »");
+
+  /* ===== H) la grille ===== */
+  console.log("H) La grille des paliers (v3.24)");
+  const grille = [[0,1,0,null],[1,1,0,"Premier supporter"],[2,1,0,"Premier supporter"],[3,1.25,1000,"Le comptoir"],[4,1.25,1000,"Le comptoir"],[5,1.5,3000,"Le kop"],[9,1.5,3000,"Le kop"],[10,2,8000,"La tribune"],[19,2,8000,"La tribune"],[20,3,23000,"Le stade plein"]];
+  for (const [n, m, pr, nom] of grille) {
+    const p = api.palierParrain(n);
+    ok(api.multParrain(n) === m && api.primesParrain(n) === pr && (p ? p.nom : null) === nom, n + " ami(s) : ×" + m + ", primes " + pr + ", palier " + nom);
+  }
+  ok(api.palierSuivant(4).n === 5 && api.palierSuivant(20) === null, "le prochain palier après 4 est 5, rien après 20");
+  // le multiplicateur s'applique aux points de défis, recalculés
+  const pd = api.pointsDefis();
+  ok(api.bonusDefisParrain() === Math.round(pd * 2) && api.pointsGagnes() === pd * 3 + api.pointsParrainage(), "défis " + pd + " ×3 dans les points gagnés");
+  // l'annonce dit le palier franchi : de 1 à 5 amis
+  for (let i = 0; i < 30; i++) delete SRV.parrainages["faux" + i];
+  await api.parrainageRafraichit(true);
+  ok(api.multParrain() === 1, "retour à 1 ami : ×1");
+  for (let i = 0; i < 4; i++) SRV.parrainages["kop" + i] = uidV;
+  await api.parrainageRafraichit(true);
+  const der = api.MSG_JOURNAL[api.MSG_JOURNAL.length - 1] || "", net = der.replace(/[\s  ]/g, "");
+  ok(/4amisontrejointMultiplexgrâceàtoi\.\+5000⭐/.test(net), "4 amis de plus : 2 000 + 1 000 + 2 000 de primes annoncés (« " + der.split("\n")[0] + " »)");
+  ok(/LE KOP : tes points de défis passent à ×1,5/.test(der), "le palier du kop est annoncé");
+  for (let i = 0; i < 4; i++) delete SRV.parrainages["kop" + i];
+  await api.parrainageRafraichit(true);
+
+  /* ===== I) les seuils de la fenêtre ===== */
+  console.log("I) La fenêtre d'invitation : ses seuils");
+  const seuils = [[0,0],[7,0],[8,8],[24,8],[25,25],[59,25],[60,60],[109,60],[110,110],[160,160],[175,160]];
+  for (const [mj, s] of seuils) ok(api.parrainSeuilAtteint(mj) === s, mj + " matchs : seuil " + s);
   for (let i = 0; i < 30; i++) delete SRV.parrainages["faux" + i];
   await api.parrainageRafraichit(true);
   // déconnecté : les points restent ceux du dernier compte connecté (comme la progression)

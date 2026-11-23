@@ -4307,6 +4307,17 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
 - Gardé par **`harness-trophees.cjs`** (sections A à M, dont une carrière de six saisons où chaque défi de match
   réussi est contrôlé contre le score du soir, la boutique en L, la jeune légende en M).
 
+### LA GRILLE ET LA FENÊTRE DU PARRAINAGE (v3.24, demande de l'auteur du 23/11/2026)
+« Mettre le parrainage plus en avant, à travers une fenêtre quand on a joué un certain nombre de matchs », et « une vraie
+incitation, comme une grille ». **La grille** (`PARRAIN_GRILLE`) : 1 ami 🧣 Premier supporter ; 3 🍻 Le comptoir (défis ×1,25,
++1 000 ⭐) ; 5 📣 Le kop (×1,5, +2 000) ; 10 🏟️ La tribune (×2, +5 000) ; 20 🏆 Le stade plein (×3, +15 000). Les 500 ⭐ par ami
+restent. Le multiplicateur porte sur TOUS les points de défis (passés et futurs), rien n'est stocké : `pointsGagnes` =
+défis + `bonusDefisParrain` + `pointsParrainage` (qui inclut les primes). L'annonce d'un nouveau filleul dit le palier franchi.
+**La fenêtre** (`ouvreInvitation`, en fin de chaîne de la semaine, après la caisse) : le navigateur compte les matchs joués
+toutes carrières confondues (`PARRAINKEY.mj`, `parrainMatchJoue` dans `finirJournee`) ; elle vient à 8, 25 et 60 matchs puis
+tous les 50 (`PARRAIN_SEUILS`, `PARRAIN_PAS`), une fois par seuil (`PARRAINKEY.fen`), jamais au-delà de 20 filleuls.
+Sections H et I de `harness-parrainage.cjs`.
+
 ### LE PARRAINAGE (v3.03, demande de l'auteur du 17/11/2026)
 Chaque compte a son lien `https://multiplex.club/?p=CODE` (six caractères, alphabet sans 0/O ni 1/I). Un ami qui
 arrive par ce lien et crée son compte rapporte **500 points** (`PARRAIN_PTS`) au parrain, tout seul, dès que son

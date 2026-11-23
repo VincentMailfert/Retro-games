@@ -739,6 +739,17 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
   .trSolde{color:#ffd24a;font-weight:bold;}
   .trPts{font-size:30px;letter-spacing:1px;margin:8px 0 2px;color:#ffd24a;}
   .trGrille{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+  /* la grille du parrainage (v3.24) */
+  .parGrille{display:flex;flex-direction:column;gap:4px;margin:10px 0 8px;}
+  .parPal{display:grid;grid-template-columns:30px 26px 1fr auto;align-items:center;gap:6px;padding:6px 8px;border:1px solid #1f3352;color:#6f7f98;font-size:14px;}
+  .parPal .parN{font:22px VT323,monospace;text-align:center;}
+  .parPal .parIco{filter:grayscale(1);opacity:.6;text-align:center;}
+  .parPal .parGain{white-space:nowrap;font-size:13px;}
+  .parPal.ok{border-color:#ffd24a;color:#ffd24a;background:rgba(255,210,74,.07);}
+  .parPal.ok .parIco,.parPal.vise .parIco{filter:none;opacity:1;}
+  .parPal.vise{border-color:#e8eef8;color:#e8eef8;}
+  .parBarre{height:8px;border:1px solid #27466e;background:#0b1626;margin:4px 0 4px;}
+  .parBarre i{display:block;height:100%;background:#ffd24a;}
   .trCase{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1px solid #38507a;font-size:12px;text-align:center;}
   .trCase b{font-size:22px;color:#ffd24a;}
   .trCase .trEmo{font-size:22px;}
@@ -779,7 +790,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.23"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.24"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -15942,6 +15953,7 @@ function finirJournee(delta){
   CHANGEMENTS={}; // le coup de sifflet est acté : la coupe et l'Europe qui suivent composent avec onze(), comme avant
   const {res,pend}=P;
   if(pend){
+    parrainMatchJoue(); // v3.24 : le compteur qui déclenche la fenêtre d'invitation
     const {r,h,a,hid,aid,pre,e}=pend;
     if(r.moment && delta){
       const t=byUid(r.moment.uid);
@@ -24308,9 +24320,26 @@ function parrainageInscrit(){ const o=parrainLit(); if(o.recu){ delete o.recu; p
 function parrainDe(uid){ const o=parrainLit(); return (o.par&&uid&&o.par[uid])||null; }
 function pointsParrainage(){ // les filleuls du compte d'ici (le dernier connecté, comme prog())
   const s=compteLit(), d=parrainDe(s?s.uid:progMag().der);
-  return d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX)*PARRAIN_PTS:0;
+  const n=d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0;
+  return n*PARRAIN_PTS+primesParrain(n); // les 500 par ami, plus les primes des paliers franchis (v3.24)
 }
-function pointsGagnes(){ return pointsDefis()+pointsParrainage(); }
+/* LA GRILLE DU PARRAINAGE (v3.24, demande de l'auteur du 23/11/2026 : « une vraie incitation, comme une grille :
+   tu parraines 5 personnes, t'as un multiplicateur ; 10, encore plus »). En plus des 500 ⭐ par ami, chaque palier
+   franchi verse une prime unique et relève le multiplicateur des points de DÉFIS (tous, passés et à venir : rien
+   n'est stocké, tout se recalcule depuis le nombre de filleuls). Le palier atteint est annoncé une fois. */
+const PARRAIN_GRILLE=[
+  {n:1,  nom:"Premier supporter", ico:"🧣", prime:0,     mult:1},
+  {n:3,  nom:"Le comptoir",       ico:"🍻", prime:1000,  mult:1.25},
+  {n:5,  nom:"Le kop",            ico:"📣", prime:2000,  mult:1.5},
+  {n:10, nom:"La tribune",        ico:"🏟️", prime:5000,  mult:2},
+  {n:20, nom:"Le stade plein",    ico:"🏆", prime:15000, mult:3}];
+function filleulsIci(){ const s=compteLit(), d=parrainDe(s?s.uid:progMag().der); return d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0; }
+function palierParrain(n){ n=(n==null)?filleulsIci():n; let p=null; for(const g of PARRAIN_GRILLE) if(n>=g.n) p=g; return p; }
+function palierSuivant(n){ n=(n==null)?filleulsIci():n; return PARRAIN_GRILLE.find(g=>g.n>n)||null; }
+function multParrain(n){ const p=palierParrain(n); return p?p.mult:1; }
+function primesParrain(n){ n=(n==null)?filleulsIci():n; return PARRAIN_GRILLE.filter(g=>n>=g.n).reduce((t,g)=>t+g.prime,0); }
+function bonusDefisParrain(){ return Math.round(pointsDefis()*(multParrain()-1)); }
+function pointsGagnes(){ return pointsDefis()+bonusDefisParrain()+pointsParrainage(); }
 function lienParrainage(code){ return "https://multiplex.club/?p="+code; }
 function parrainageRafraichit(force){ // (4) le code du parrain et ses filleuls ; vrai si quelque chose a changé
   if(!nuageAllume()) return Promise.resolve(false);
@@ -24334,33 +24363,88 @@ function parrainageAnnonce(){ // un nouveau filleul, dit une fois, jamais en ple
   const s=compteLit(); if(!s) return false;
   const o=parrainLit(), d=o.par&&o.par[s.uid]; if(!d || !(d.n>(+d.vu||0))) return false;
   if(!EN_TEST() && (MSG_ANNUL || (typeof document!=="undefined" && document.body && document.body.classList.contains("mode-direct")))) return false;
-  const neufs=d.n-(+d.vu||0), pts=Math.max(0, Math.min(d.n, PARRAIN_MAX)-Math.min(+d.vu||0, PARRAIN_MAX))*PARRAIN_PTS;
+  const av=Math.min(+d.vu||0, PARRAIN_MAX), ap=Math.min(d.n, PARRAIN_MAX), neufs=d.n-(+d.vu||0);
+  const pts=Math.max(0, ap-av)*PARRAIN_PTS+primesParrain(ap)-primesParrain(av);
+  const pa=palierParrain(ap), franchi=pa && pa.n>av ? pa : null;
   d.vu=d.n; parrainEcrit(o);
-  message((neufs>1?neufs+" amis ont":"Un ami a")+" rejoint Multiplex grâce à toi."+(pts?" +"+FMT(pts)+" ⭐":""), {titre:"🤝 PARRAINAGE"});
+  message((neufs>1?neufs+" amis ont":"Un ami a")+" rejoint Multiplex grâce à toi."+(pts?" +"+FMT(pts)+" ⭐":"")
+    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : tes points de défis passent à ×"+multTxt(franchi.mult)+".":""),
+    {titre:franchi?franchi.ico+" "+franchi.nom.toUpperCase():"🤝 PARRAINAGE"});
   return true;
 }
-function parrainageHTML(){ // le panneau de la salle des trophées
-  const s=compteLit(), d=s&&parrainDe(s.uid);
-  if(!s) return `<p class="dim">Crée ton compte : chaque ami qui s'inscrit avec ton lien te rapporte ${FMT(PARRAIN_PTS)} ⭐.</p>
-    <button class="act" id="bParrainCompte">Créer mon compte</button>`;
-  if(!d || !d.code) return `<p class="dim">Ton lien arrive…</p>`;
+function multTxt(m){ return String(m).replace(".", ","); }
+function grilleParrainHTML(n){ // la grille des paliers : franchis en or, le prochain en blanc, les autres en grisé
+  const suiv=palierSuivant(n);
+  return `<div class="parGrille">${PARRAIN_GRILLE.map(g=>{ const ok=n>=g.n, vise=suiv&&suiv.n===g.n;
+    return `<div class="parPal${ok?" ok":""}${vise?" vise":""}"><span class="parN">${g.n}</span><span class="parIco">${g.ico}</span>
+      <span class="parNom">${esc(g.nom)}</span>
+      <span class="parGain">${g.mult>1?`<b>×${multTxt(g.mult)}</b> défis`:""}${g.prime?`${g.mult>1?" · ":""}+${FMT(g.prime)} ⭐`:(g.mult>1?"":"+"+FMT(PARRAIN_PTS)+" ⭐")}</span></div>`; }).join("")}</div>
+    ${suiv?`<div class="parBarre"><i style="width:${Math.round(100*n/suiv.n)}%"></i></div>
+      <p class="dim" style="font-size:13px;text-align:center">${n} / ${suiv.n} · encore ${suiv.n-n} ami${suiv.n-n>1?"s":""} pour ${suiv.ico} ${esc(suiv.nom)}</p>`
+      :`<p class="fort" style="text-align:center">🏆 Stade plein. Merci.</p>`}`;
+}
+function parrainageHTML(){ // le panneau de la salle des trophées (et de la fenêtre)
+  const s=compteLit(), d=s&&parrainDe(s.uid), n=d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0;
+  const base=`<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b>, et les paliers multiplient tes points de défis.</p>${grilleParrainHTML(n)}`;
+  if(!s) return `${base}<p style="margin-top:10px"><button class="big" id="bParrainCompte" style="width:100%">Créer mon compte et avoir mon lien</button></p>`;
+  if(!d || !d.code) return `${base}<p class="dim">Ton lien arrive…</p>`;
   const l=lienParrainage(d.code);
-  return `<p>Chaque ami qui s'inscrit avec ton lien : <b>+${FMT(PARRAIN_PTS)} ⭐</b></p>
-    <p style="margin:8px 0"><input id="parrainLien" readonly value="${esc(l)}" style="width:100%;box-sizing:border-box;font:15px VT323,monospace;letter-spacing:.5px;padding:6px 8px;background:#0b1626;color:#ffd24a;border:1px solid #27466e"></p>
-    <p><button class="act" id="bParrainPartage">Partager mon lien</button></p>
-    ${d.n?`<p class="dim" style="font-size:13px">${d.n} ami${d.n>1?"s":""} inscrit${d.n>1?"s":""}</p>`:""}`;
+  return `${base}
+    <p style="margin:10px 0 8px"><input id="parrainLien" readonly value="${esc(l)}" style="width:100%;box-sizing:border-box;font:15px VT323,monospace;letter-spacing:.5px;padding:6px 8px;background:#0b1626;color:#ffd24a;border:1px solid #27466e"></p>
+    <p><button class="big" id="bParrainPartage" style="width:100%">Partager mon lien</button></p>
+    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Bonus en cours : défis ×${multTxt(multParrain(n))} (+${FMT(bonusDefisParrain())} ⭐)</p>`:""}`;
 }
 function cableParrainage(redessine){
   const $=id=>typeof document!=="undefined"&&document.getElementById?document.getElementById(id):null;
   const bc=$("bParrainCompte"); if(bc) bc.onclick=()=>{ COMPTE_ONGLET="inscription"; fenetreCompte(); };
   const bp=$("bParrainPartage"), ch=$("parrainLien");
   if(bp && ch) bp.onclick=async()=>{
-    const l=ch.value, t="Viens jouer à Multiplex, le plaisir du foot rétro :";
+    const l=ch.value, t="Prends un club des années 90 et réécris l'histoire. Viens jouer à Multiplex avec moi, c'est gratuit :";
     try{ if(navigator.share) return await navigator.share({text:t, url:l}); }catch(e){ if(e && e.name==="AbortError") return; }
     try{ await navigator.clipboard.writeText(l); bp.textContent="Lien copié ✓"; }
     catch(e){ if(ch.select) ch.select(); }
   };
   if(compteLit()) parrainageRafraichit().then(c=>{ if(c && redessine) redessine(); });
+}
+/* LA FENÊTRE D'INVITATION (v3.24, demande de l'auteur du 23/11/2026 : « mettre le parrainage plus en avant, à
+   travers une fenêtre quand on a joué un certain nombre de matchs »). Le navigateur compte les matchs joués, toutes
+   carrières confondues (`PARRAINKEY.mj`, +1 dans finirJournee). La fenêtre vient dans la chaîne de la semaine, en
+   dernier, quand le compteur passe un seuil de PARRAIN_SEUILS (puis tous les PARRAIN_PAS matchs), une seule fois
+   par seuil (`PARRAINKEY.fen`). Jamais au-delà du dernier palier, jamais pendant un renvoi ou une saison finie. */
+const PARRAIN_SEUILS=[8, 25, 60];
+const PARRAIN_PAS=50;
+function parrainMatchJoue(){ if(EN_TEST()) return; const o=parrainLit(); o.mj=(+o.mj||0)+1; parrainEcrit(o); }
+function parrainSeuilAtteint(mj){ // le dernier seuil passé pour mj matchs joués (0 si aucun)
+  let s=0; for(const x of PARRAIN_SEUILS) if(mj>=x) s=x;
+  const der=PARRAIN_SEUILS[PARRAIN_SEUILS.length-1];
+  if(mj>=der+PARRAIN_PAS) s=der+Math.floor((mj-der)/PARRAIN_PAS)*PARRAIN_PAS;
+  return s;
+}
+function invitationASignaler(){
+  if(!G || G.vire || G.finie || G.ete) return false;
+  if(filleulsIci()>=PARRAIN_MAX) return false;
+  const o=parrainLit(), s=parrainSeuilAtteint(+o.mj||0);
+  return s>0 && s>(+o.fen||0);
+}
+function ouvreInvitation(suite){
+  suite=suite||(()=>{});
+  if(EN_TEST() || !invitationASignaler()) return suite();
+  const fiche=document.getElementById("fiche"); if(!fiche || !fiche.style) return suite();
+  const o=parrainLit(); o.fen=parrainSeuilAtteint(+o.mj||0); parrainEcrit(o);
+  const ferme=()=>{ window._penEnCours=false; fermeFiche(); suite(); };
+  const rend=()=>{
+    fiche.innerHTML=`<div class="fbox" style="max-width:460px;width:100%;max-height:92vh;overflow:auto;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:14px">
+      <h2>🤝 ${FMT(+o.mj||0)} MATCHS SUR LE BANC</h2>
+      <p class="dim" style="margin-bottom:8px">Tes potes aussi ont un club de cœur.</p>
+      ${parrainageHTML()}
+      <p style="margin-top:12px;text-align:center"><button class="lien" id="bInvFerme">Plus tard</button></p></div>`;
+    fiche.querySelector("#bInvFerme").onclick=ferme;
+    const bc=fiche.querySelector("#bParrainCompte");
+    cableParrainage(()=>{ if(fiche.querySelector("#bInvFerme")) rend(); });
+    if(bc) bc.onclick=()=>{ window._penEnCours=false; fermeFiche(); COMPTE_ONGLET="inscription"; fenetreCompte(); };
+  };
+  rend();
+  fiche.style.display="flex"; window._penEnCours=true;
 }
 function fenetreParrainage(){ // le lien des pieds de page (accueil et jeu) : le même panneau, dans une fenêtre
   if(EN_TEST()||!msgbox||!msgbox.style) return;
@@ -24544,7 +24628,7 @@ function ouvreDefis(suite){
   const club=d=>{ const c=d.club?(metaClub(d.club)||{nom:d.club}):null; return c?`<b>${esc(c.nom)}</b> · `:""; };
   fiche.innerHTML=`<div class="fbox ctr" style="max-width:420px;background:#0b1626;border:2px solid #ffd24a;box-shadow:0 0 40px rgba(0,0,0,.85);padding:18px">
       <h2 style="color:#ffd24a">🎯 ${ids.length>1?"DÉFIS RÉUSSIS":"DÉFI RÉUSSI"}</h2>
-      ${ids.map(id=>{ const d=DEFI_DE[id]; return `<p style="margin-top:10px;font-size:17px">${club(d)}${esc(d.nom)}</p><p class="trPts" style="font-size:24px;margin:2px 0">+${FMT(d.pts)} <span class="dim">pts</span></p>`; }).join("")}
+      ${ids.map(id=>{ const d=DEFI_DE[id]; return `<p style="margin-top:10px;font-size:17px">${club(d)}${esc(d.nom)}</p><p class="trPts" style="font-size:24px;margin:2px 0">+${FMT(Math.round(d.pts*multParrain()))} <span class="dim">pts${multParrain()>1?" · ×"+multTxt(multParrain())+" 🤝":""}</span></p>`; }).join("")}
       <p class="dim" style="margin-top:8px">⭐ ${FMT(soldePoints())} pts</p>
       <p style="margin-top:12px"><button class="big" id="bDefiOk">Génial !</button></p></div>`;
   fiche.style.display="flex";
@@ -26087,7 +26171,7 @@ function ecranCalendrier(){
   // à la place du match du samedi (panneauRdv), et la semaine passe d'abord — on compose son équipe de coupe en
   // sachant qui est blessé. Seule la promo billets attend : elle concerne le samedi, pas le mercredi.
   // Chaque étape se consume (G.incident, G.confPresse, G.notifs… remis à zéro) : revenir sur l'écran ne rejoue rien.
-  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDefis(()=>ouvreDebrief(()=>ouvreTonnerre(()=>ouvreMarche(()=>ouvreMaillot(()=>ouvreCaisse(rdv?null:ouvrePromo))))))));
+  const finChaine=()=>ouvreArc(()=>ouvreConf(()=>ouvreDefis(()=>ouvreDebrief(()=>ouvreTonnerre(()=>ouvreMarche(()=>ouvreMaillot(()=>ouvreCaisse(()=>ouvreInvitation(rdv?null:ouvrePromo)))))))));
   ouvreLivraison(()=>ouvreLivraisonCentre(()=>{
     if(G.incident){ ouvreEre(()=>ouvreIncident(finChaine)); }
     else { ouvreEre(finChaine); } }));

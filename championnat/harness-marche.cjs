@@ -171,7 +171,7 @@ G.caisseJ=[-2e6,-2e6,-2e6];
 ok(api.caisseASignaler()!=="deborde", "la caisse descend : jamais « déborde »");
 
 console.log("I) dans la chaîne et dans la journée");
-ok(/ouvreMaillot\(\(\)=>ouvreCaisse\(rdv\?null:ouvrePromo\)\)/.test(html), "la caisse suit le maillot dans la chaîne de la semaine");
+ok(/ouvreMaillot\(\(\)=>ouvreCaisse\(\(\)=>ouvreInvitation\(rdv\?null:ouvrePromo\)\)\)/.test(html), "la caisse suit le maillot dans la chaîne de la semaine, puis l'invitation au parrainage (v3.24)");
 ok(/G\.caisseJ=\(G\.caisseJ\|\|\[\]\)\.concat\(Math\.round\(G\.tresorerie-caisse0\)\)/.test(html), "finirJournee note le solde de chaque journée jouée");
 { G.caisseJ=[]; G._pend=null; }
 
