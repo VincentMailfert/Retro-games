@@ -24369,13 +24369,12 @@ function parrainageAnnonce(){ // un nouveau filleul, dit une fois, jamais en ple
   const pa=palierParrain(ap), franchi=pa && pa.n>av ? pa : null;
   d.vu=d.n; parrainEcrit(o);
   message((neufs>1?neufs+" amis ont":"Un ami a")+" rejoint Multiplex grâce à toi."+(pts?" +"+FMT(pts)+" ⭐":"")
-    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : les points de tes défis sont "+(franchi.mult>=2?multLib(franchi.mult):"augmentés de "+Math.round((franchi.mult-1)*100)+" %")+".":""),
+    +(franchi&&franchi.mult>1?"\n\n"+franchi.ico+" "+franchi.nom.toUpperCase()+" : points des défis "+multLib(franchi.mult)+".":""),
     {titre:franchi?franchi.ico+" "+franchi.nom.toUpperCase():"🤝 PARRAINAGE"});
   return true;
 }
 function multTxt(m){ return String(m).replace(".", ","); }
-function multLib(m){ // le bonus des défis dit en mots : +25 %, +50 %, doublés, triplés (« ×1,25 » ne parlait à personne)
-  return m===2?"doublés" : m===3?"triplés" : "+"+Math.round((m-1)*100)+" %"; }
+function multLib(m){ return "×"+multTxt(m); } // choix de l'auteur (23/11/2026) : « points des défis ×1,25 », ×1,5, ×2, ×3
 function grilleParrainHTML(n){ // la grille des paliers : franchis en or, le prochain en blanc, les autres en grisé
   const suiv=palierSuivant(n);
   return `<div class="parGrille">${PARRAIN_GRILLE.map(g=>{ const ok=n>=g.n, vise=suiv&&suiv.n===g.n;
@@ -24395,7 +24394,7 @@ function parrainageHTML(){ // le panneau de la salle des trophées (et de la fen
   return `${base}
     <p style="margin:10px 0 8px"><input id="parrainLien" readonly value="${esc(l)}" style="width:100%;box-sizing:border-box;font:15px VT323,monospace;letter-spacing:.5px;padding:6px 8px;background:#0b1626;color:#ffd24a;border:1px solid #27466e"></p>
     <p><button class="big" id="bParrainPartage" style="width:100%">Partager mon lien</button></p>
-    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Tes défis sont ${multParrain(n)>=2?multLib(multParrain(n)):"augmentés de "+Math.round((multParrain(n)-1)*100)+" %"} : +${FMT(bonusDefisParrain())} ⭐ déjà gagnés grâce à tes amis</p>`:""}`;
+    ${bonusDefisParrain()>0?`<p class="dim" style="font-size:13px;margin-top:6px">Points des défis ${multLib(multParrain(n))} : +${FMT(bonusDefisParrain())} ⭐ déjà gagnés grâce à tes amis</p>`:""}`;
 }
 function cableParrainage(redessine){
   const $=id=>typeof document!=="undefined"&&document.getElementById?document.getElementById(id):null;

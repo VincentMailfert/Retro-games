@@ -305,7 +305,7 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   await api.parrainageRafraichit(true);
   const der = api.MSG_JOURNAL[api.MSG_JOURNAL.length - 1] || "", net = der.replace(/[\s  ]/g, "");
   ok(/4amisontrejointMultiplexgrâceàtoi\.\+5000⭐/.test(net), "4 amis de plus : 2 000 + 1 000 + 2 000 de primes annoncés (« " + der.split("\n")[0] + " »)");
-  ok(/LE KOP : les points de tes défis sont augmentés de 50 %/.test(der), "le palier du kop est annoncé");
+  ok(/LE KOP : points des défis ×1,5/.test(der), "le palier du kop est annoncé");
   for (let i = 0; i < 4; i++) delete SRV.parrainages["kop" + i];
   await api.parrainageRafraichit(true);
 
