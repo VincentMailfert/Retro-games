@@ -4337,6 +4337,12 @@ publiée à part (artifact « Multiplex · Les légendes »), puis branchée : u
   harnais) : en carrière, la pépite de la saison au maillot de son club (`kitDuClub` lit `BLASONS`), hors carrière
   l'exemple d'Henry à Monaco.
 - La signature : la carte arrive de dos (le M), se retourne, rayons dorés, « … rejoint votre club » (`revelation`).
+- **v3.29 (retour de l'auteur du 24/11/2026 : « qu'est-ce que fait Robben au FC Nantes ? »)** : la carte de la jeune
+  légende montrait la meilleure pépite de la carrière EN COURS, ici un joker du vivier pioché par Nantes dans une partie
+  avec Lyon. Trompeur, puisque l'avantage ne joue qu'au départ d'une carrière neuve. Elle fait désormais défiler, en CSS
+  seul, cinq vrais exemples (`PEPITES_EX` : Zidane et Vieira à Cannes, Henry à Monaco, Cissé à Auxerre, Gerrard à
+  Liverpool), sous « La pépite de votre saison de départ ». Et une carte verrouillée n'affiche plus son prix sous le
+  cadenas (les deux textes se chevauchaient).
 - Gardé par **`harness-legendes.cjs`** (sections A à H, dont six saisons avec un Platini de 17 ans pour toujours).
 
 ### LE MAILLOT DU CLUB (v3.28, demande de l'auteur du 24/11/2026, maquette validée le même jour)

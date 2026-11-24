@@ -141,9 +141,10 @@ console.log("G) L'écran");
   const api = appareil(nouveauLS()); riche(api);
   let h = api.boutiqueHTML(false);
   ok(/<h3>Les légendes<\/h3>/.test(h) && (h.match(/data-leg="/g) || []).length === 8, "le rayon et ses huit cartes");
-  ok(/lgPep/.test(h) && /Henry en 1995-96/.test(h) && (h.match(/class="boArt/g) || []).length === 8, "hors carrière, la jeune légende montre l'exemple d'Henry ; chaque article a sa ligne");
+  ok(/lgPep/.test(h) && /Thierry Henry · AS Monaco · 1995-96/.test(h) && /Zinédine Zidane|Zinedine Zidane/.test(h) && (h.match(/class="boArt/g) || []).length === 8, "la jeune légende fait défiler de vrais exemples ; chaque article a sa ligne");
   api.nouvellePartie(api.SAISONS["1995-96"].d1[0], "1995-96");
-  h = api.boutiqueHTML(true); ok(/ans · /.test(h) && !/Henry en 1995-96/.test(h), "en carrière, elle montre la pépite de la saison");
+  h = api.boutiqueHTML(true); ok(/Thierry Henry · AS Monaco/.test(h) && (h.match(/class="lgEx/g) || []).length === 10, "en carrière aussi, les mêmes exemples, jamais la pépite de la partie en cours");
+  ok(!/dès [^<]*<\/div>\s*<\/div>\s*<span class="lgVerrou"/.test(api.boutiqueHTML(false).replace(/\n/g, "")), "une carte verrouillée n'affiche pas son prix sous le cadenas");
   api.acheteLegende(api.LEG_DE.kopa, "top", "toujours"); h = api.boutiqueHTML(true);
   ok(/POUR TOUJOURS/.test(h), "la carte acquise porte son ruban");
   let err = null; try { api.ficheLegende("cruyff", () => {}); api.ecranTrophees(); } catch (e) { err = e; }

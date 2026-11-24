@@ -822,6 +822,14 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
   @keyframes lgRetourne{0%{transform:rotateY(180deg) scale(.8)}60%{transform:rotateY(-15deg) scale(1.06)}100%{transform:rotateY(0) scale(1)}}
   @keyframes lgApp{from{opacity:0}to{opacity:1}}
   @keyframes lgTourne{to{transform:rotate(360deg)}}
+  .lgPile{position:relative;width:40%;max-width:170px;flex:none;aspect-ratio:3/4.3;}
+  .lgPile .lgEx{position:absolute;inset:0;opacity:0;animation:lgDefile 15s infinite;}
+  .lgPile .lgEx:first-child{opacity:1;}
+  .lgPile .lgCarte{width:100%;height:100%;}
+  .lgPileTxt{display:grid;font-size:14px;color:var(--clair);}
+  .lgPileTxt .lgEx{grid-area:1/1;opacity:0;animation:lgDefile 15s infinite;}
+  @keyframes lgDefile{0%{opacity:0}3%{opacity:1}18%{opacity:1}21%{opacity:0}100%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){ .lgPile .lgEx,.lgPileTxt .lgEx{animation:none;} .lgPile .lgEx:not(:nth-child(3)),.lgPileTxt .lgEx:not(:nth-child(3)){display:none;} .lgPile .lgEx:nth-child(3),.lgPileTxt .lgEx:nth-child(3){opacity:1;} }
   /* LE MAILLOT DU CLUB (v3.28) : de face sous le stade, et la galerie des saisons */
   .mlClub{margin:14px 0 6px;}
   .mlVitrine{background:radial-gradient(circle at 50% 35%,#1a2c48 0,#0a1424 70%);border:1px solid #1d2c45;padding:14px 8px 8px;text-align:center;}
@@ -854,7 +862,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.28"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.29"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -25259,25 +25267,33 @@ function carteDeLeg(L, ver, o){
   return carteLegHTML(Object.assign({note:v.note, haut:ver==="jeune"?v.age+" ANS · POT. "+v.pot:L.poste, nat:L.pays,
     maillot:maillotPixel(L.kit, L.court, L.num)}, o||{}));
 }
-function pepiteHTML(){ // la jeune légende, avec son visage de maillot : la pépite qu'on obtiendrait
-  const A=ART_DE.legende, r=achatPossible("legende");
-  let p=null;
-  try{ const moi=(G&&G.clubs&&G.monClub)?clubById(G.monClub):null; const x=moi?pepiteDuDepart(moi):null;
-    if(x) p={nom:x.j.nom, age:x.j.age, note:x.j.note, pot:x.j.pot, pos:x.j.pos, club:x.de, ici:true}; }catch(e){ p=null; }
-  if(!p) p={nom:"T. Henry", age:18, note:"★", pot:null, pos:"A", club:metaClub("MON")||{id:"MON", nom:"AS Monaco"}};
-  const num={G:1,D:4,M:8,A:9}[p.pos]||9;
+/* La jeune légende ne joue qu'au départ d'une carrière NEUVE : sa carte montre donc de vrais exemples tirés des saisons
+   du jeu, qui défilent, et non la pépite de la carrière en cours (retour de l'auteur du 24/11/2026 : « qu'est-ce que fait
+   Robben au FC Nantes ? », un joker du vivier pioché par Nantes dans sa partie avec Lyon). Le défilé est en CSS seul. */
+const PEPITES_EX=[
+  {nom:"Z. Zidane", age:18, pos:"M", club:"CAN", s:"1990-91"},
+  {nom:"P. Vieira", age:17, pos:"M", club:"CAN", s:"1993-94"},
+  {nom:"T. Henry", age:18, pos:"A", club:"MON", s:"1995-96"},
+  {nom:"D. Cissé", age:17, pos:"A", club:"AJA", s:"1998-99"},
+  {nom:"S. Gerrard", age:20, pos:"M", club:"LIV", s:"2000-01"},
+];
+function pepiteHTML(){
+  const A=ART_DE.legende, r=achatPossible("legende"), n=PEPITES_EX.length;
   const etat=r==="acquis"?`<span class="fort">✅ Acquis</span>`
     : `<button class="act boAch" data-art="legende"${r?" disabled":""}>⭐ ${FMT(A.prix)}</button>`;
-  const qui=p.ici ? `${esc(nomLong(p.nom))}, ${p.age} ans · ${esc(p.club.nom)}` : `Henry en 1995-96, Zidane en 1990-91…`;
-  return `<div class="boArt lgPep${r==="acquis"?" ok":""}">${carteLegHTML({note:p.note, haut:p.pot?p.age+" ANS · POT. "+p.pot:p.age+" ANS", nat:"", maillot:maillotPixel(kitDuClub(p.club.id), nomMaillot(p.nom), num), cls:"lgFixe"})}
-    <span class="lgPepTxt"><b>${esc(A.nom)}</b><span class="dim">${qui}</span>${etat}</span></div>`;
+  const anim=i=>` style="animation-delay:${i*3}s;animation-duration:${n*3}s"`;
+  const cartes=PEPITES_EX.map((p,i)=>`<div class="lgEx"${anim(i)}>${carteLegHTML({note:"★", haut:p.age+" ANS · "+p.s, nat:"",
+    maillot:maillotPixel(kitDuClub(p.club), nomMaillot(p.nom), {G:1,D:4,M:8,A:9}[p.pos]||9), cls:"lgFixe"})}</div>`).join("");
+  const noms=PEPITES_EX.map((p,i)=>{ const c=metaClub(p.club); return `<span class="lgEx"${anim(i)}>${esc(nomLong(p.nom))} · ${esc(c?c.nom:p.club)} · ${p.s}</span>`; }).join("");
+  return `<div class="boArt lgPep${r==="acquis"?" ok":""}"><div class="lgPile">${cartes}</div>
+    <span class="lgPepTxt"><b>${esc(A.nom)}</b><span class="dim">La pépite de votre saison de départ</span><span class="lgPileTxt">${noms}</span>${etat}</span></div>`;
 }
 function legendesHTML(){
   const solde=soldePoints();
   const tuile=L=>{ const perm=legPerm(L.id), ici=legDansClub(L.id), min=Math.min(...L.prix);
     const bloque=!perm && !ici && solde<min;
     const ruban=perm?"POUR TOUJOURS":ici?(ici.legende.fin==null?"POUR TOUJOURS":"DANS VOTRE CLUB"):"";
-    return carteDeLeg(L, perm||"top", {pied:ruban?"":"dès "+FMT(min), ruban, verrou:bloque?min-solde:0, cls:bloque?"lgBloque":"", attr:` data-leg="${L.id}"`}); };
+    return carteDeLeg(L, perm||"top", {pied:(ruban||bloque)?"":"dès "+FMT(min), ruban, verrou:bloque?min-solde:0, cls:bloque?"lgBloque":"", attr:` data-leg="${L.id}"`}); };
   return `<h3>Les légendes</h3>${pepiteHTML()}<div class="lgGrille">${LEGENDES_BOUT.map(tuile).join("")}</div>`;
 }
 function ficheLegende(id, redessine){
