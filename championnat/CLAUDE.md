@@ -4339,6 +4339,25 @@ publiée à part (artifact « Multiplex · Les légendes »), puis branchée : u
 - La signature : la carte arrive de dos (le M), se retourne, rayons dorés, « … rejoint votre club » (`revelation`).
 - Gardé par **`harness-legendes.cjs`** (sections A à H, dont six saisons avec un Platini de 17 ans pour toujours).
 
+### LE MAILLOT DU CLUB (v3.28, demande de l'auteur du 24/11/2026, maquette validée le même jour)
+Inspiré des maillots des légendes : sur l'écran Club, **sous le stade** (choix de l'auteur), le maillot de la saison vu
+de face (`maillotFace(clubId, sponsor, cachet)`, canvas 112 × 112, même recette pixel que `maillotPixel`), aux couleurs du
+blason (`kitDuClub` : uni, rayé, moitiés, diagonale), avec l'écusson sur le cœur et le **sponsor floqué** en lettres 5 × 7
+(`MP_F5`), coupé en deux lignes équilibrées si le nom est long. Retour de l'auteur sur la maquette : le sponsor en
+3 × 5 étiré « n'est pas lisible », d'où la police 5 × 7 et la grille plus fine.
+- **La coupe suit le rang de l'équipementier** (`cachetEquip` lit les trois listes, `coupeMaillot`) : col polo boutonné,
+  liseré et motif ton sur ton pour le plus coté (1), col en V et flancs (0,78), coutures d'épaule contrastées (0,55),
+  col rond (0,28), flocage de travers pour l'atelier du coin (0,14), maillot nu sans équipementier. **Aucun logo ni
+  signature de marque** : un insigne neutre suffit.
+- **La galerie** : `archiveMaillot` range `{s, c, sp, eq}` dans `G.maillots` à l'intersaison, juste avant `G.saisonIdx++`
+  (donc avant la remise à zéro du sponsor et de l'équipementier), 40 au plus. Elle s'affiche dès la deuxième saison,
+  défile du doigt et s'ouvre sur la saison en cours (bordée d'or). Choix de l'auteur : **la face seule**, pas de dos.
+- **Le match en 3D** (choix de l'auteur) : `motif3D(club, couleurs)` passe `motif` à `dom`/`ext` ; le moteur (prototype
+  `docs/prototype-match-3d.html`, greffé par `docs/greffe-match-3d.cjs`) enroule une texture 32 × 16 autour du buste
+  (`texMaillot` : rayures, moitiés, diagonale, bande, col tout autour, bandeau de sponsor sur la poitrine, **pour votre
+  club seulement**). Sans motif, le buste reste uni comme avant. Gardiens, banc et arbitre ne changent pas.
+- Gardé par **`harness-maillot.cjs`** (A à E, dont six saisons et six maillots rangés).
+
 ### LE STADE EN VITRINE SUR L'ÉCRAN CLUB (v3.26, demande de l'auteur du 23/11/2026, prototype validé le 24/11/2026)
 L'auteur trouvait que l'aperçu du stade « ne vend pas du rêve » (du rétro pas soigné) et que la vue en grand forçait à tourner
 le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par `docs/construit-stade-3d.cjs`).

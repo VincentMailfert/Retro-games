@@ -647,6 +647,27 @@ function fabriqueMatch3D(THREE, o){
   const cyl = (rh, rb, h, mat, seg=7) => new THREE.Mesh(new THREE.CylinderGeometry(rh, rb, h, seg), mat);
   const ico = (r, d, mat) => new THREE.Mesh(new THREE.IcosahedronGeometry(r, d), mat);
   const pose3 = (m, x, y, z, par) => { m.position.set(x, y, z); par.add(m); return m; };
+  /* LE MAILLOT DU CLUB SUR LES JOUEURS (v3.28, choix de l'auteur du 24/11/2026) : quand le jeu passe un motif
+     (tenue.motif = {type, b, col, sponsor, sp}), le buste porte une petite texture en pixels, enroulée autour du torse :
+     rayures, moitiés, diagonale ou bande, le col de la couleur qui tranche, et un bandeau de sponsor sur la poitrine.
+     Sans motif, le buste reste uni comme avant. Une texture par tenue, partagée par les onze. */
+  const texMaillots = {};
+  function texMaillot(t){
+    const m=t.motif; if(!m) return null;
+    const cle=JSON.stringify([t.maillot, m]); if(texMaillots[cle]) return texMaillots[cle];
+    const c=document.createElement('canvas'); c.width=32; c.height=16; const x=c.getContext('2d');
+    const A=t.maillot, B=m.b||t.short;
+    x.fillStyle=A; x.fillRect(0,0,32,16); x.fillStyle=B;
+    if(m.type==='stripes') for(let i=0;i<32;i+=4) x.fillRect(i+2,0,2,16);
+    if(m.type==='band'){ x.fillRect(14,0,4,16); x.fillRect(0,0,2,16); x.fillRect(30,0,2,16); }
+    if(m.type==='halves'){ x.fillRect(16,0,8,16); x.fillRect(0,0,8,16); }
+    if(m.type==='diag') for(let yy=0;yy<16;yy++) x.fillRect(Math.round(10+yy*0.8),yy,12,1);
+    x.fillStyle=m.col||B; x.fillRect(0,0,32,1);                                     // le col, tout autour
+    if(m.sponsor){ x.fillStyle=m.sp||B; for(let i=10;i<22;i++) if((i-10)%3!==2) x.fillRect(i,5,1,3); } // le sponsor sur la poitrine
+    const tx=new THREE.CanvasTexture(c); tx.magFilter=tx.minFilter=THREE.NearestFilter; tx.wrapS=THREE.RepeatWrapping; tx.offset.x=.5;
+    tx.colorSpace=THREE.SRGBColorSpace;
+    return texMaillots[cle]=new THREE.MeshLambertMaterial({map:tx, flatShading:true});
+  }
   function figurine(tenue, gardien, habille){
     const g = new THREE.Group(); g.scale.setScalar(ECHELLE); g.rotation.order='YXZ';   // le cap d'abord, puis la bascule autour du corps
     const peau = M(PEAU[(rnd()*PEAU.length)|0]);
@@ -674,8 +695,9 @@ function fabriqueMatch3D(THREE, o){
     const jg=jambe(-1), jd=jambe(1);
     /* le buste en V, qui pivote à la hanche */
     const corps=new THREE.Group(); corps.position.y=.98; g.add(corps);
-    pose3(cyl(.235, .165, .46, maillot, 8), 0, .28, 0, corps).scale.z = .58;
-    pose3(cyl(.075, .085, .05, gardien||habille ? maillot : short, 8), 0, .52, .005, corps);   // le col
+    const motif = !gardien && !habille && tenue.motif ? texMaillot(tenue) : null;
+    pose3(cyl(.235, .165, .46, motif||maillot, 8), 0, .28, 0, corps).scale.z = .58;
+    pose3(cyl(.075, .085, .05, gardien||habille ? maillot : motif ? M(hexInt(tenue.motif.col||tenue.short)) : short, 8), 0, .52, .005, corps);   // le col
     if(habille) pose3(cyl(.2, .24, .4, maillot, 8), 0, -.02, 0, corps).scale.z = .7;          // le bas du manteau ou de la veste
     const bras = cote => {
       const epaule=new THREE.Group(); epaule.position.set(cote*.25,.46,0); corps.add(epaule);
