@@ -4307,7 +4307,7 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
 - Gardé par **`harness-trophees.cjs`** (sections A à M, dont une carrière de six saisons où chaque défi de match
   réussi est contrôlé contre le score du soir, la boutique en L, la jeune légende en M).
 
-### LE STADE EN VITRINE SUR L'ÉCRAN CLUB (v3.25, demande de l'auteur du 23/11/2026, prototype validé le 24/11/2026)
+### LE STADE EN VITRINE SUR L'ÉCRAN CLUB (v3.26, demande de l'auteur du 23/11/2026, prototype validé le 24/11/2026)
 L'auteur trouvait que l'aperçu du stade « ne vend pas du rêve » (du rétro pas soigné) et que la vue en grand forçait à tourner
 le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par `docs/construit-stade-3d.cjs`).
 - **Le moteur MATCH3D a un mode vitrine** (`o.vitrine`, retouché dans `docs/prototype-match-3d.html` puis greffé) : le stade
@@ -4329,6 +4329,8 @@ le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par 
   le stade prend la hauteur et fait environ deux fois la largeur de l'écran, on s'y promène du doigt ; deux boutons tournent
   d'un quart de tour. La fermeture la rend à la carte. Le campus garde l'ancienne vue en grand.
 - La zone cliquable du rang à venir (`.pxCible`) est masquée en 3D : on lance la tribune par les boutons des projets.
+- **Le brouillard est un voile léger en vitrine** (`Fog` 285-470 au lieu de 230-330 dans le direct), choix de l'auteur du
+  24/11/2026 : « diminue l'intensité du brouillard ».
 
 ### LA GRILLE ET LA FENÊTRE DU PARRAINAGE (v3.24, demande de l'auteur du 23/11/2026)
 « Mettre le parrainage plus en avant, à travers une fenêtre quand on a joué un certain nombre de matchs », et « une vraie

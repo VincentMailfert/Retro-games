@@ -511,7 +511,7 @@
   #mqGrand .mqFerme{position:absolute; right:10px; top:10px; z-index:2; width:44px; height:44px; padding:10px; background:rgba(7,11,26,.78); border:2px solid #1d2633; border-radius:4px; cursor:pointer;}
   #mqGrand .mqFerme svg{display:block; width:100%; height:100%;}
   @media (orientation:portrait) and (max-width:700px){ #mqGrand canvas{width:min(100dvh, calc(100vw * var(--r))); transform:rotate(90deg);} }
-  /* LE STADE EN VITRINE (v3.25) : la maquette 3D se pose sur le pixel art, qui reste dessous en secours. En grand, elle
+  /* LE STADE EN VITRINE (v3.26) : la maquette 3D se pose sur le pixel art, qui reste dessous en secours. En grand, elle
      ne se couche plus : elle couvre l'écran et l'on s'y promène du doigt. */
   .maquette canvas.st3dVit{position:absolute; inset:0; z-index:1; display:block; width:100%; height:100%; image-rendering:pixelated; image-rendering:crisp-edges; touch-action:pan-y; cursor:grab;}
   .maquette.en3d canvas.pxStade{visibility:hidden;}
@@ -800,7 +800,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.25"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.26"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -31193,7 +31193,7 @@ if(typeof document!=="undefined" && typeof document.addEventListener==="function
     e.stopPropagation(); if(b.parentNode && b.parentNode.classList.contains("en3d") && vitrineGrand()) return;
     const cv=b.parentNode && b.parentNode.querySelector("canvas.pxStade, canvas.pxCampus"); if(cv) maquetteGrand(cv); });
 
-/* LE STADE EN VITRINE (v3.25, choix de l'auteur du 24/11/2026 après le prototype docs/prototype-stade-3d.html : « l'aperçu
+/* LE STADE EN VITRINE (v3.26, choix de l'auteur du 24/11/2026 après le prototype docs/prototype-stade-3d.html : « l'aperçu
    ne vend pas du rêve », puis « j'adore »). Sur l'écran Club, le stade est celui du match en direct : le moteur MATCH3D en
    mode vitrine, sans joueurs, aux couleurs du club, qui tourne lentement tant qu'on n'y touche pas. Un doigt le fait
    tourner, deux doigts zooment et tournent, un double toucher rapproche puis revient. Toutes les étapes y sont : la
@@ -31334,7 +31334,7 @@ function fabriqueMatch3D(THREE, o){
   const ST = Object.assign({cap:25000, aff:.8, virages:0, toit:0, ecran:0, eclairage:1, kop:0, loges:0, led:0,
     boutique:0, buvette:0, restaurant:0, musee:0, hotel:0, transport:0, legende:0, style:'lumiere'}, o.stade||{});
   const cap = ST.cap||25000, bol = !!ST.virages;
-  /* LES QUATRE TRIBUNES (v3.25, la vitrine de l'écran Club, question de l'auteur du 24/11/2026 : « ça reprend bien toutes
+  /* LES QUATRE TRIBUNES (v3.26, la vitrine de l'écran Club, question de l'auteur du 24/11/2026 : « ça reprend bien toutes
      les étapes ? ») : ST.rangs = [N, S, E, O] donne la profondeur de chaque côté, telle que le jeu la fait grandir (une
      tribune après l'autre, puis la cuvette qui s'uniformise avec les virages). Sans ST.rangs, le direct de toujours :
      deux tribunes de même hauteur, ou la cuvette complète avec les virages. */
@@ -32656,7 +32656,8 @@ function fabriqueMatch3D(THREE, o){
   const CIEL = o.meteo==='boue' ? 'pluie' : (o.meteo||'sec');
   { const neige = CIEL==='neige'?.5 : CIEL==='gel'?.22 : 0, boue = o.meteo==='boue'?.55 : CIEL==='pluie'?.18 : 0;
     if(neige||boue){ matPelouse.map.dispose(); matPelouse.map=texturePelouse(neige,boue); matPelouse.needsUpdate=true; }
-    if(CIEL==='brouillard') scene.fog=new THREE.Fog(0xb9bcc0, 230, 330); }
+    // la vitrine de l'écran Club : un voile léger (choix de l'auteur du 24/11/2026 : « diminue l'intensité du brouillard »)
+    if(CIEL==='brouillard') scene.fog = o.vitrine ? new THREE.Fog(0xb9bcc0, 285, 470) : new THREE.Fog(0xb9bcc0, 230, 330); }
   function ambianceCible(){
     const a=AMB[HEURE], c=CIEL, gris = c==='pluie'?.55 : c==='neige'?.8 : c==='brouillard'?.65 : 1;
     return { fond:new THREE.Color(a.fond).lerp(new THREE.Color(HEURE==='nuit'?0x0d121c:0x9aa3a8),1-gris), sCol:new THREE.Color(a.soleil[0]), sI:a.soleil[1]*gris,
@@ -33442,7 +33443,7 @@ function ecranClub(){
   document.querySelectorAll(".bProj").forEach(b=>b.onclick=()=>{ lanceProjet(b.dataset.id); cableChoixStyle(); });
   { const bT=document.getElementById("bToitRet"); if(bT) bT.onclick=()=>{ G.stade.ferme=G.stade.ferme?0:1; montre("club"); }; }
   peintStades(); // v2.63 : la maquette est un canvas, on la peint une fois posée
-  stadeVitrine(); // v3.25 : la maquette 3D se pose dessus
+  stadeVitrine(); // v3.26 : la maquette 3D se pose dessus
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade
   document.querySelectorAll(".bCoachIn").forEach(b=>b.onclick=()=>ouvreRecrutement(b.dataset.id));
   document.querySelectorAll(".bCoachOut").forEach(b=>b.onclick=()=>remercierCoach(b.dataset.id));
