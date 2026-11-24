@@ -514,7 +514,9 @@
   /* LE STADE EN VITRINE (v3.26) : la maquette 3D se pose sur le pixel art, qui reste dessous en secours. En grand, elle
      ne se couche plus : elle couvre l'écran et l'on s'y promène du doigt. */
   .maquette canvas.st3dVit{position:absolute; inset:0; z-index:1; display:block; width:100%; height:100%; image-rendering:pixelated; image-rendering:crisp-edges; touch-action:pan-y; cursor:grab;}
-  .maquette.en3d canvas.pxStade{visibility:hidden;}
+  .maquette.en3d canvas.pxStade, .maquette.en3d canvas.pxCampus{visibility:hidden;}
+  /* v3.31 : le campus en 3D, posé sur le pixel art ; au téléphone, plus de maquette deux fois plus large à faire défiler */
+  .cadreC.en3d{overflow:hidden;} .cadreC.en3d canvas.pxCampus{width:100%;} .cadreCw>.pxBadge{z-index:2;}
   .maquette.en3d .pxCible{display:none;}
   .maquette.en3d .pxLeg, .maquette.en3d .pxBadge{z-index:2;}
   #mqGrand.vit canvas.st3dVit{position:absolute; inset:0; width:100%; height:100%; transform:none; touch-action:none; image-rendering:pixelated; image-rendering:crisp-edges;}
@@ -862,7 +864,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.30"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.31"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -31703,13 +31705,18 @@ function maquetteGrandFerme(sansSortie){
   if(SVIT && SVIT.cv && o.contains(SVIT.cv)){ // la vitrine rentre dans sa carte (si l'écran Club est toujours là)
     SVIT.cv.remove(); try{ SVIT.sc.remplir(false); }catch(e){}
     const b=document.querySelector(".cp-stade .maquette"); if(b) vitrinePose(b, SVIT.cv); }
+  if(CVIT && CVIT.cv && o.contains(CVIT.cv)){ // le campus aussi (v3.31)
+    CVIT.cv.remove(); try{ CVIT.sc.remplir(false); }catch(e){}
+    const b=document.querySelector(".cadreC"); if(b) vitrinePose(b, CVIT.cv); }
   o.remove(); maquetteGrand.api=false;
   const direct=document.getElementById("stDirect"); if(!(direct && direct.classList.contains("plein"))) document.body.classList.remove("stPleinOuvert");
   if(!sansSortie){ try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){} }
 }
 if(typeof document!=="undefined" && typeof document.addEventListener==="function")
   document.addEventListener("click",e=>{ const b=e.target && e.target.closest && e.target.closest(".mqPlein"); if(!b) return;
-    e.stopPropagation(); if(b.parentNode && b.parentNode.classList.contains("en3d") && vitrineGrand()) return;
+    e.stopPropagation();
+    const mq=b.parentNode && (b.parentNode.classList.contains("maquette") ? b.parentNode : b.parentNode.querySelector(".maquette")); // le campus garde son bouton hors de la maquette
+    if(mq && mq.classList.contains("en3d") && vitrineGrand(mq.classList.contains("cadreC") ? CVIT : SVIT)) return;
     const cv=b.parentNode && b.parentNode.querySelector("canvas.pxStade, canvas.pxCampus"); if(cv) maquetteGrand(cv); });
 
 /* LE STADE EN VITRINE (v3.26, choix de l'auteur du 24/11/2026 après le prototype docs/prototype-stade-3d.html : « l'aperçu
@@ -31766,10 +31773,11 @@ function stadeVitrine(){
     const b=document.querySelector(".cp-stade .maquette"); if(b && !b.querySelector("canvas.st3dVit")) vitrinePose(b, cv);
   }).catch(()=>{ if(SVIT && SVIT.jeton===jeton) SVIT=null; });
 }
-function vitrineGrand(){
-  const v=SVIT; if(!v || !v.cv || !v.sc || typeof document==="undefined") return false;
+function vitrineGrand(v){
+  v=v||SVIT; if(!v || !v.cv || !v.sc || typeof document==="undefined") return false;
+  vitrineGrand.v=v;
   maquetteGrandFerme(true);
-  const o=document.createElement("div"); o.id="mqGrand"; o.className="vit"; o.setAttribute("role","dialog"); o.setAttribute("aria-modal","true"); o.setAttribute("aria-label","Le stade en grand");
+  const o=document.createElement("div"); o.id="mqGrand"; o.className="vit"; o.setAttribute("role","dialog"); o.setAttribute("aria-modal","true"); o.setAttribute("aria-label", v===CVIT ? "Le centre d'entraînement en grand" : "Le stade en grand");
   const bouton=(cls, label, svg, style)=>{ const b=document.createElement("button"); b.className=cls; b.type="button"; b.setAttribute("aria-label",label); if(style) b.style.cssText=style; b.innerHTML=svg; return b; };
   const f=bouton("mqFerme","Fermer",'<svg viewBox="0 0 16 16" fill="none" stroke="#f2f5fa" stroke-width="2.2" aria-hidden="true"><path d="M2 2l12 12M14 2L2 14"/></svg>');
   const g=bouton("mqTourne","Tourner vers la gauche",'<svg viewBox="0 0 16 16" fill="none" stroke="#f2f5fa" stroke-width="2" aria-hidden="true"><path d="M3 7a5.5 5.5 0 1 1 1.6 5.5"/><path d="M1 3.5L3 7l3.6-1.6"/></svg>',"left:max(10px, env(safe-area-inset-left))");
@@ -31780,9 +31788,43 @@ function vitrineGrand(){
   if(!vitrineGrand.ecoute){ vitrineGrand.ecoute=true; let debout=innerHeight>innerWidth;
     document.addEventListener("keydown",e=>{ if(e.key==="Escape") maquetteGrandFerme(); });
     addEventListener("resize",()=>{ const dd=innerHeight>innerWidth; if(dd===debout) return; debout=dd;
-      const m=document.getElementById("mqGrand"); if(SVIT && SVIT.sc && m && SVIT.cv && m.contains(SVIT.cv)) SVIT.sc.remplir(dd); }); }
+      const m=document.getElementById("mqGrand"), vv=vitrineGrand.v; if(vv && vv.sc && m && vv.cv && m.contains(vv.cv)) vv.sc.remplir(dd); }); }
   f.focus();
   return true;
+}
+
+/* LE CENTRE D'ENTRAÎNEMENT EN VITRINE (v3.31, demande de l'auteur du 24/11/2026 : « le rendu du stade en 3D est canon hors
+   match, je veux la même chose pour le centre d'entraînement », prototype docs/prototype-centre-3d.html validé le même
+   jour : « wow j'adore »). Le moteur CAMPUS3D (greffé par docs/greffe-campus-3d.cjs) reprend le plan de CAMPUSPIX en
+   mètres : quatre terrains, six familles à trois niveaux, le château, la halle, la grue du chantier en cours. Même vitrine
+   que le stade : l'île qui tourne lentement, un doigt pour tourner, deux pour zoomer, la vue en grand sans rotation.
+   Le pixel art reste dessous en secours. La scène est gardée d'un rendu à l'autre ; refaite si le campus, le club,
+   le mois ou le temps changent (vitrineMoment, comme le stade). */
+let CVIT=null;
+function campusVitrineFerme(){ const v=CVIT; CVIT=null; if(!v) return; if(v.sc){ try{ v.sc.ferme(); }catch(e){} } if(v.cv) v.cv.remove(); }
+function campusVitrine(){
+  if(typeof document==="undefined" || !document.querySelector) return;
+  const px=document.querySelector(".cadreC canvas.pxCampus"); if(!px) return;
+  const boite=px.parentNode; if(!boite || boite.querySelector("canvas.st3dVit")) return;
+  if(!match3dPossible()) return;
+  let R; try{ R=JSON.parse(px.dataset.r); }catch(e){ return; }
+  const c=clubById(G.monClub); if(!c) return;
+  const B=BLASONS[c.id]||{a:"#9aa3b2",b:"#3a4252"}, mo=vitrineMoment(R);
+  const k=JSON.stringify(Object.assign({}, R, {jour:0}))+"|"+c.id+"|"+mo.heure+"|"+mo.meteo;
+  if(CVIT && CVIT.k===k){ if(CVIT.cv) vitrinePose(boite, CVIT.cv); return; } // la même scène, recousue dans la nouvelle carte
+  campusVitrineFerme();
+  const jeton={}; CVIT={jeton, k, sc:null, cv:null};
+  match3dCharge().then(THREE=>{
+    if(!CVIT || CVIT.jeton!==jeton) return;
+    const cv=document.createElement("canvas"); cv.className="st3dVit"; cv.setAttribute("role","img");
+    cv.setAttribute("aria-label", px.getAttribute("aria-label")||"Maquette du campus");
+    let sc=null;
+    try{ sc=fabriqueCampus3D(THREE, { canvas:cv, pixels:1.5, heure:mo.heure, meteo:mo.meteo, campus:R, club:{maillot:B.a, short:B.b},
+      cache:()=>!cv.isConnected || (!document.getElementById("mqGrand") && cv.offsetParent===null) }); }
+    catch(e){ CVIT=null; return; }
+    CVIT.sc=sc; CVIT.cv=cv;
+    const b=document.querySelector(".cadreC"); if(b && !b.querySelector("canvas.st3dVit")) vitrinePose(b, cv);
+  }).catch(()=>{ if(CVIT && CVIT.jeton===jeton) CVIT=null; });
 }
 
 /* LE STADE EN DIRECT (v2.83, demande de l'auteur du 13/11/2026) : pendant les trois directs (samedi, Coupe de France, Europe),
@@ -33750,6 +33792,528 @@ function fabriqueMatch3D(THREE, o){
   };
 }
 /* ---- MATCH3D : FIN ---- */
+/* ---- CAMPUS3D : DÉBUT ----
+   LE CENTRE D'ENTRAÎNEMENT EN MAQUETTE 3D, pour l'écran Club (la même vitrine que le stade, moteur à part : le campus
+   n'a rien à voir avec un match). Ce bloc est recopié tel quel dans le jeu par docs/greffe-campus-3d.cjs : on ne
+   le retouche jamais dans index.html, on le retouche ici et on relance la greffe.
+   fabriqueCampus3D(THREE, o) pose la scène dans o.canvas et rend {remplir, tourne, recentre, ferme}.
+   o = { canvas, pixels (taille d'un pixel de jeu, 1,5 par défaut), heure ("jour", "soir", "nuit"),
+         meteo ("sec", "pluie", "neige", "gel", "brouillard"), campus (l'état de CAMPUSPIX : terrains, physique,
+         medical, vie, academie, video de 0 à 3, chateau 0/1, annee, mois, jour, chantier null | {id, n}),
+         club ({maillot, short}), cache (fonction, facultative), erreur (fonction, facultative) }
+   LE PLAN est celui du pixel art, en mètres : le campus fait 240 m (x) sur 200 m (y), la route au nord, le parking et le
+   portail au nord-ouest, quatre terrains, six familles de bâtiments et le château dans le bois de l'ouest. Un point (x, y)
+   du plan, à la hauteur z, est posé en (x − 120, z, y − 98) dans la scène : la vue de départ est celle du pixel art. */
+function fabriqueCampus3D(THREE, o){
+  o = Object.assign({pixels:1.5, heure:'jour', meteo:'sec', campus:{}, club:{}}, o||{});
+  const canvas = o.canvas;
+  const reduit = typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:false, powerPreference:'high-performance'});
+  renderer.setPixelRatio(1);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.BasicShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1,1,1,-1,1,1200);
+  let vivant = true, idRaf = 0;
+  const signale = e => { if(signale.vu) return; signale.vu=true; try{ console.error(e); }catch(_){} if(o.erreur) o.erreur(e); };
+  const clamp = THREE.MathUtils.clamp;
+  const hasard=(a,b)=>{ let t=(a*374761393+b*668265263)|0; t=(t^(t>>>13))*1274126177|0; return ((t^(t>>>16))>>>0)/4294967296; };
+  const hexInt = h => parseInt(String(h).slice(1),16);
+
+  /* ---------- l'état du campus, et le mois ---------- */
+  const R = Object.assign({terrains:0,physique:0,medical:0,vie:0,academie:0,video:0,chateau:0,annee:1996,mois:8,jour:1,chantier:null}, o.campus||{});
+  const chId = R.chantier && R.chantier.id, chN = R.chantier && R.chantier.n;
+  const mois = ((R.mois|0)%12+12)%12;
+  const SA = { hiver: mois===11||mois<=1, automne: mois===9||mois===10, printemps: mois>=2&&mois<=4, fleurs: mois===3,
+    sapin: mois===11, resemis: mois===5||mois===6, usure:[.7,.8,.85,.9,1,0,0,.05,.15,.3,.45,.6][mois] };
+  const CIEL = o.meteo||'sec';
+  const neigeSol = CIEL==='neige'||CIEL==='gel';
+  const MAILLOT = hexInt(o.club.maillot||'#c8312f'), SHORT = hexInt(o.club.short||'#f4edd8');
+
+  /* ---------- les matériaux ---------- */
+  const cacheM = new Map();
+  const M = c => { if(!cacheM.has(c)) cacheM.set(c, new THREE.MeshLambertMaterial({color:c, flatShading:true})); return cacheM.get(c); };
+  const M2 = c => new THREE.MeshLambertMaterial({color:c, flatShading:true, side:THREE.DoubleSide});
+  const COUL = { route:0x56606f, marque:0xe8ecf2, herbe:neigeSol?0xe4eaee:0x4f8f3a, bord:neigeSol?0xd8e0e6:0x47833a,
+    beton:0x8d93a6, beton2:0x6f7690, clair:0xd9dbe3, brique:0xa4664c, tuile:0xb4613f, verre:0x86acd0, verre2:0x35658f,
+    pierre:0xd6c8a6, pierre2:0xa89c84, ardoise:0x3b4a63, tole:0x7d8596, chantier:0xe0913c, chantier2:0xa5622b,
+    bois:0x7a5a3a, eau:0x3f8fcf, terre:0x8a6a45, rouge:0xd8433a, jaune:0xffd24a, blanc:0xf2f5fa, peau:0xe2b58f, encre:0x1a1d26 };
+  const toitNeige = M(0xeef2f6);
+  const fenetres = [];            // les façades dont les vitres s'allument le soir
+  const lampes = [];              // les têtes de lampadaires et de pylônes
+  const clignos = [];             // les feux rouges des mâts, le gyrophare
+  const matLampe = new THREE.MeshLambertMaterial({color:0x444444, emissive:0x000000});
+
+  /* une façade : le mur, ses vitres en gros pixels (deux pixels par mètre), et la carte des vitres allumées le soir */
+  function facade(w, h, mat, graine, dens, verre){
+    const ppm=2, W=Math.max(2,Math.round(w*ppm)), H=Math.max(2,Math.round(h*ppm));
+    const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+    const g=document.createElement('canvas'); g.width=W; g.height=H; const y=g.getContext('2d');
+    y.fillStyle='#000'; y.fillRect(0,0,W,H);
+    const css=n=>'#'+n.toString(16).padStart(6,'0');
+    if(mat==='chantier'){                                  // l'échafaudage : des tubes, des planchers, une bâche
+      x.fillStyle=css(COUL.chantier); x.fillRect(0,0,W,H);
+      x.fillStyle=css(COUL.chantier2);
+      for(let i=0;i<W;i+=4) x.fillRect(i,0,1,H);
+      for(let j=H-1;j>=0;j-=5) x.fillRect(0,j,W,1);
+      for(let i=0;i<W;i+=8) for(let j=0;j<H;j++) if(((i+j)%8)===0) x.fillRect(i+(j%8)/2|0,j,1,1);
+    } else {
+      x.fillStyle=css(COUL[mat]||COUL.beton); x.fillRect(0,0,W,H);
+      for(let i=0;i<W*H/9;i++){ x.fillStyle=Math.random()<.5?'rgba(0,0,0,.05)':'rgba(255,255,255,.05)'; x.fillRect((Math.random()*W)|0,(Math.random()*H)|0,1,1); }
+      if(dens>0){
+        const etages=Math.max(1,Math.floor(h/3.3)), pas=verre?3:5;
+        for(let f=0;f<etages;f++){
+          const j=H-Math.round((f*3.3+1.1)*ppm)-2;
+          for(let i=2,k=0;i<W-2;i+=pas,k++){
+            const allume = hasard(graine*31+f, k*7+graine)<dens;
+            x.fillStyle = verre ? '#cfe2f2' : '#26496e'; x.fillRect(i, j, verre?2:2, 3);
+            if(!verre){ x.fillStyle='#4d7aa3'; x.fillRect(i, j, 1, 1); }
+            if(allume){ y.fillStyle = hasard(k,f+graine)<.2 ? '#bfe0ff' : '#ffd98a'; y.fillRect(i, j, 2, 3); }
+          }
+          if(verre){ x.fillStyle='rgba(255,255,255,.35)'; x.fillRect(0,j+3,W,1); }
+        }
+      }
+    }
+    const t=new THREE.CanvasTexture(c), tg=new THREE.CanvasTexture(g);
+    for(const z of [t,tg]){ z.magFilter=THREE.NearestFilter; z.minFilter=THREE.LinearMipmapLinearFilter; z.colorSpace=THREE.SRGBColorSpace; }   // vue de loin, sans fourmillement ; de près, en gros pixels
+    const m=new THREE.MeshLambertMaterial({map:t, emissiveMap:tg, emissive:0x000000, flatShading:true});
+    if(dens>0 && mat!=='chantier') fenetres.push(m);
+    return m;
+  }
+
+  /* ---------- lumières ---------- */
+  const hemi = new THREE.HemisphereLight(0xfff4dc, 0x4a5a3a, 1.4); scene.add(hemi);
+  const soleil = new THREE.DirectionalLight(0xfff1d6, 2.6);
+  soleil.position.set(-60,110,70); soleil.castShadow = true;
+  soleil.shadow.mapSize.set(2048,2048);
+  Object.assign(soleil.shadow.camera,{left:-175,right:175,top:175,bottom:-175,near:10,far:600});
+  soleil.shadow.bias = -0.0015;
+  scene.add(soleil);
+
+  /* ---------- l'île ---------- */
+  const CX=120, CY=98, ileL=292, ileP=268;           // x de −26 à 266, y de −36 à 232
+  const box = (w,h,d,mat,x=0,y=0,z=0,parent=scene,ombre=true) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+    m.position.set(x,y,z); m.castShadow=ombre; m.receiveShadow=true; parent.add(m); return m; };
+  /* un pavé posé sur le plan : x0..x1, y0..y1, de z0 à z1 (en mètres) */
+  const pave = (x0,x1,y0,y1,z0,z1,mat,ombre=true) => box(x1-x0, z1-z0, y1-y0, mat, (x0+x1)/2-CX, (z0+z1)/2, (y0+y1)/2-CY, scene, ombre);
+  const sol = (x0,x1,y0,y1,mat,h=.12) => pave(x0,x1,y0,y1,0,h,mat,false);
+  const V = (x,y,z) => new THREE.Vector3(x-CX, z, y-CY);
+  /* une forme faite de triangles du plan : [[x,y,z],…] trois par trois */
+  function tris(liste, mat){
+    const a=new Float32Array(liste.length*3);
+    liste.forEach((p,i)=>{ a[i*3]=p[0]-CX; a[i*3+1]=p[2]; a[i*3+2]=p[1]-CY; });
+    const g=new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(a,3)); g.computeVertexNormals();
+    const m=new THREE.Mesh(g, mat); m.castShadow=true; m.receiveShadow=true; scene.add(m); return m; }
+  const quad = (a,b,c,d) => [a,b,c, a,c,d];
+
+  const herbeIle = M(COUL.bord);
+  box(ileL, 3, ileP, herbeIle, 0, -1.5, 0);
+  { let graine=11; const rnd=()=>{ graine=(graine*16807)%2147483647; return graine/2147483647; };
+    const terre=[M(0x7a4a2a), M(0x5e3a22), M(0x6b6b63), M(0x55554f)];
+    [[0.97,6,-6],[0.9,7,-12.5],[0.76,8,-20],[0.55,9,-28.5],[0.3,8,-37]].forEach(([k,h,y],i)=>{
+      box(ileL*k, h, ileP*k, terre[Math.min(i,3)], (rnd()-.5)*8, y, (rnd()-.5)*8).castShadow=false;
+      /* les rochers restent sous leur couche : un rocher posé au hasard dépassait du bord de l'île (retour de l'auteur du 24/11/2026 : « normal ce bloc sous le terrain ? ») */
+      for(let j=0;j<5;j++){ const w=8+rnd()*16, d=8+rnd()*16, mx=Math.max(0,(ileL*k-w)/2-2), mz=Math.max(0,(ileP*k-d)/2-2);
+        box(w, h*(.6+rnd()*.6), d, terre[Math.min(i+1,3)], (rnd()-.5)*2*mx, y-1-rnd()*3, (rnd()-.5)*2*mz).castShadow=false; } }); }
+
+  /* le gazon du campus, la route, les allées, le parking, la clôture */
+  sol(0,240,0,200, M(COUL.herbe), .06);
+  const matRoute = M(COUL.route), matMarque = M(COUL.marque);
+  sol(-26,266,-22,-8, matRoute);
+  for(let x=-22;x<262;x+=10) sol(x,x+5,-15.4,-14.6, matMarque, .16);
+  sol(4,238,48,56, matRoute); sol(137,148,56,198, matRoute); sol(48,238,122,130, matRoute); sol(14,30,-8,48, matRoute);
+  sol(6,46,6,46, matRoute);
+  for(let x=10;x<46;x+=6){ sol(x-.25,x+.25,8,20, matMarque,.16); sol(x-.25,x+.25,32,44, matMarque,.16); }
+  { const matCl=M(0xcfd5e2), poteau=(x,y)=>pave(x-.25,x+.25,y-.25,y+.25,0,1.4,matCl);
+    const lisse=(x0,x1,y0,y1)=>pave(x0,x1,y0,y1,1.1,1.35,matCl,false);
+    lisse(0,12,-.15,.15); lisse(32,240,-.15,.15); lisse(0,240,199.85,200.15); lisse(-.15,.15,0,200); lisse(239.85,240.15,0,200);
+    for(let x=0;x<=240;x+=8){ if(x<12||x>32) poteau(x,0); poteau(x,200); }
+    for(let y=8;y<200;y+=8){ poteau(0,y); poteau(240,y); } }
+
+  /* ---------- les terrains ---------- */
+  const T=[[60,60,135,120],[150,60,225,120],[60,132,135,192],[150,132,225,192]];
+  function textureTerrain(w,h,sorte,tonte,neige){
+    const ppm=3, W=Math.round(w*ppm), H=Math.round(h*ppm), c=document.createElement('canvas'); c.width=W; c.height=H;
+    const x=c.getContext('2d');
+    const K={herbe:['#4e9439','#5aa143'], pele:['#5a8f3c','#6a9a44'], stab:['#b08456','#9c7448'], synth:['#3f9a4a','#49a85c'], terre:['#7d5c3c','#6d4f33'], friche:['#3d6b34','#45773a']}[sorte];
+    if(tonte||(SA.resemis&&sorte==='herbe')) K[0]='#5fa848', K[1]='#6cb553';
+    if(sorte==='friche'){ x.fillStyle=K[0]; x.fillRect(0,0,W,H);
+      for(let i=0;i<W*H/12;i++){ x.fillStyle=Math.random()<.5?'#2f5a2b':'#5c8a45'; x.fillRect((Math.random()*W)|0,(Math.random()*H)|0,1+(Math.random()*2|0),1); } }
+    else for(let b=0;b<8;b++){ x.fillStyle=K[b%2]; x.fillRect(Math.floor(b*W/8),0,Math.ceil(W/8)+1,H); }
+    for(let i=0;i<W*H/16;i++){ x.fillStyle=Math.random()<.5?'rgba(0,0,0,.06)':'rgba(255,255,255,.05)'; x.fillRect((Math.random()*W)|0,(Math.random()*H)|0,1,1); }
+    if(sorte==='terre'){ x.fillStyle='#8a6a45'; for(let j=12;j<H;j+=15) x.fillRect(6,j,W-12,3); }
+    if(sorte==='pele'){ x.fillStyle='#8b7346';
+      for(const [cx,cy,rx,ry] of [[.07,.5,.06,.14],[.93,.5,.06,.14],[.5,.5,.1,.09],[.26,.2,.04,.05],[.69,.8,.05,.05]]){ x.beginPath(); x.ellipse(cx*W,cy*H,rx*W,ry*H,0,0,Math.PI*2); x.fill(); } }
+    if(SA.usure>0 && sorte==='herbe' && !tonte){ const u=SA.usure; x.fillStyle=`rgba(125,100,60,${.35+.45*u})`;
+      for(const cx of [.08,.92]){ x.beginPath(); x.ellipse(cx*W,H/2,(.03+.04*u)*W,(.06+.08*u)*H,0,0,Math.PI*2); x.fill(); }
+      if(u>.4){ x.beginPath(); x.ellipse(W/2,H/2,(.04+.04*u)*W,(.04+.05*u)*H,0,0,Math.PI*2); x.fill(); } }
+    if(neige){ x.fillStyle='rgba(238,243,248,.82)'; x.fillRect(0,0,W,H); }
+    if(sorte!=='terre' && sorte!=='friche'){
+      x.strokeStyle = sorte==='stab' ? '#f0e2c0' : neige ? '#c3ccd6' : '#f2f2ea'; x.lineWidth=2;
+      const P=v=>v*ppm, m=2, L=w-2*m, Hh=h-2*m;
+      x.strokeRect(P(m),P(m),P(L),P(Hh));
+      x.beginPath(); x.moveTo(P(w/2),P(m)); x.lineTo(P(w/2),P(h-m)); x.stroke();
+      x.beginPath(); x.arc(P(w/2),P(h/2),P(6),0,Math.PI*2); x.stroke();
+      x.strokeRect(P(m),P(h/2-13),P(11),P(26)); x.strokeRect(P(w-m-11),P(h/2-13),P(11),P(26));
+    }
+    const t=new THREE.CanvasTexture(c); t.magFilter=THREE.NearestFilter; t.minFilter=THREE.LinearMipmapLinearFilter; t.colorSpace=THREE.SRGBColorSpace;
+    return t;
+  }
+  const matBut = M(0xf4f4f2);
+  function terrain([x0,y0,x1,y1], sorte, tonte, chauffe){
+    const w=x1-x0, h=y1-y0, neige = neigeSol && !chauffe && sorte!=='synth';
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshLambertMaterial({map:textureTerrain(w,h,sorte,tonte,neige)}));
+    m.rotation.x=-Math.PI/2; m.position.set((x0+x1)/2-CX, .1, (y0+y1)/2-CY); m.receiveShadow=true; scene.add(m);
+    if(sorte==='friche' || sorte==='terre') return;
+    const my=(y0+y1)/2;
+    for(const [xe,s] of [[x0+2,-1],[x1-2,1]]){
+      pave(xe-.15,xe+.15,my-3.8,my-3.5,0,2.4,matBut); pave(xe-.15,xe+.15,my+3.5,my+3.8,0,2.4,matBut);
+      pave(xe-.15,xe+.15,my-3.8,my+3.8,2.3,2.5,matBut);
+      pave(xe+s*1.4-.1,xe+s*1.4+.1,my-3.8,my+3.8,0,.2,matBut,false); }
+  }
+  const t = R.terrains|0, chT = chId==='terrains', neuf = chT ? chN : -1, k4 = (R.annee||1996)<2002 ? 'stab' : 'synth';
+  terrain(T[0], neuf===1?'terre':(t===0?'pele':'herbe'), t>=3, t>=3);
+  terrain(T[1], t>=1 ? (neuf===1?'terre':'herbe') : 'friche', t>=3, t>=3);
+  terrain(T[2], t>=2 ? (neuf===2?'terre':'herbe') : 'friche', false, false);
+  terrain(T[3], t>=2 ? (neuf===2?'terre':k4) : 'friche', false, false);
+  const terrainsActifs = [T[0]].concat(t>=1&&neuf!==1?[T[1]]:[], t>=2&&neuf!==2?[T[2]]:[], t>=2&&neuf!==2&&!(t>=3)?[T[3]]:[]);
+
+  /* ---------- ce qui dépasse : les bâtiments ---------- */
+  let CH=false;                      // vrai : ce qu'on pose est en chantier (bâche orange, pas de vitre)
+  function batiment(x0,x1,y0,y1,z0,z1,mat,graine,dens=.7){
+    const vr = mat==='verre', m = CH ? 'chantier' : mat, d = (mat==='tole'||CH) ? 0 : dens;
+    const fx = facade(y1-y0, z1-z0, m, graine, d, vr), fz = facade(x1-x0, z1-z0, m, graine+3, d, vr);
+    const toit = CH ? M(COUL.chantier2) : neigeSol ? toitNeige : M(mat==='brique'?COUL.tuile:mat==='verre'?0x6c8fb3:mat==='pierre'?COUL.pierre2:mat==='tole'?0x646c7c:0xa2a8b8);
+    const g=new THREE.Mesh(new THREE.BoxGeometry(x1-x0, z1-z0, y1-y0), [fx,fx,toit,toit,fz,fz]);
+    g.position.set((x0+x1)/2-CX, (z0+z1)/2, (y0+y1)/2-CY); g.castShadow=g.receiveShadow=true; scene.add(g);
+    if(!CH && z1-z0>4 && mat!=='verre'){ const ac=M(0x5d6478); // l'acrotère, un liseré sombre en haut des murs
+      pave(x0-.15,x1+.15,y0-.15,y1+.15,z1-.01,z1+.35,neigeSol?toitNeige:ac,false); }
+    return g;
+  }
+  /* le toit à deux pans : le faîtage court dans la longueur */
+  function toit2(x0,x1,y0,y1,z,h){
+    const mt = CH ? M2(COUL.chantier) : neigeSol ? M2(0xeef2f6) : M2(COUL.ardoise), mp = CH ? M2(COUL.chantier2) : M2(COUL.beton);
+    if(y1-y0 >= x1-x0){ const xm=(x0+x1)/2;
+      tris([...quad([x0,y0,z],[x0,y1,z],[xm,y1,z+h],[xm,y0,z+h]), ...quad([x1,y0,z],[xm,y0,z+h],[xm,y1,z+h],[x1,y1,z])], mt);
+      tris([[x0,y0,z],[x1,y0,z],[xm,y0,z+h], [x0,y1,z],[xm,y1,z+h],[x1,y1,z]], mp); }
+    else { const ym=(y0+y1)/2;
+      tris([...quad([x0,y0,z],[x1,y0,z],[x1,ym,z+h],[x0,ym,z+h]), ...quad([x0,y1,z],[x0,ym,z+h],[x1,ym,z+h],[x1,y1,z])], mt);
+      tris([[x0,y0,z],[x0,ym,z+h],[x0,y1,z], [x1,y0,z],[x1,y1,z],[x1,ym,z+h]], mp); }
+  }
+  /* le pavillon : quatre pans vers un faîtage court */
+  function croupe(x0,x1,y0,y1,z,h,mat){
+    const xm=(x0+x1)/2, a=y0+(x1-x0)/2*.8, b=y1-(x1-x0)/2*.8;
+    tris([...quad([x0,y0,z],[x0,y1,z],[xm,b,z+h],[xm,a,z+h]), ...quad([x1,y1,z],[x1,y0,z],[xm,a,z+h],[xm,b,z+h]),
+      [x0,y0,z],[xm,a,z+h],[x1,y0,z], [x1,y1,z],[xm,b,z+h],[x0,y1,z]], mat); }
+  function pyramide(cx,cy,r,z,h,mat){
+    const g=new THREE.Mesh(new THREE.ConeGeometry(r*Math.SQRT2, h, 4, 1), mat); g.rotation.y=Math.PI/4;
+    g.position.set(cx-CX, z+h/2, cy-CY); g.castShadow=true; scene.add(g); return g; }
+  const enseigne = (x0,x1,y,z) => { if(CH) return; const m=new THREE.MeshLambertMaterial({color:COUL.jaune, emissive:0x000000}); lampes.push({m, c:0xffc83a});
+    pave(x0+1,x1-1,y-.1,y+.35,z,z+1.4,m,false); };
+  const fanion = (x,y,z,c) => { if(CH) return; pave(x-.12,x+.12,y-.12,y+.12,z,z+6,M(0xd0d4dc)); const f=pave(x+.12,x+2.6,y-.06,y+.06,z+4.4,z+5.9,M(c),false); drapeaux.push(f); };
+  const drapeaux = [], nageurs = [], vapeur = [], jet = [];
+  const poser = (ch, fn) => { const w=CH; CH=ch; fn(); CH=w; };
+
+  /* la vie de groupe : le préfabriqué, les vestiaires en brique, la maison du club, la résidence */
+  { const n=R.vie|0, ch=chId==='vie';
+    poser(ch,()=>{
+      if(n===0){ batiment(62,84,22,36,0,5,'beton',3,.5); }
+      else if(n===1){ batiment(54,98,14,40,0,6.5,'brique',11,.75); }
+      else { batiment(54,98,12,42,0,13,'clair',21,.8);
+        if(n===3){ batiment(54,80,12,34,13,24,'clair',31,.8); enseigne(58,76,34,26); }
+        if(!CH){ sol(58,96,42,49, M(COUL.bois), .3);
+          for(const [x,c] of [[64,COUL.jaune],[76,COUL.blanc],[88,COUL.rouge]]){ pave(x-.12,x+.12,45.9,46.1,0,2.6,M(0xd9dbe3));
+            const p=new THREE.Mesh(new THREE.ConeGeometry(2.4,1,8,1), M(c)); p.position.set(x-CX,3,46-CY); p.castShadow=true; scene.add(p);
+            pave(x-2.6,x-.6,45,47,0,.8,M(0x9a7a55)); pave(x+.6,x+2.6,45,47,0,.8,M(0x9a7a55)); } } } }); }
+
+  /* le médical : l'infirmerie, le cabinet, la clinique et son ambulance */
+  { const n=R.medical|0, ch=chId==='medical', matCroix=M(COUL.rouge);
+    const croixToit=(x,y,z)=>{ if(CH) return; pave(x-2.2,x+2.2,y-.7,y+.7,z,z+.2,matCroix,false); pave(x-.7,x+.7,y-2.2,y+2.2,z,z+.2,matCroix,false); };
+    const croixMur=(x,y,z)=>{ if(CH) return; pave(x,x+.25,y-1.6,y+1.6,z-.5,z+.5,matCroix,false); pave(x,x+.25,y-.5,y+.5,z-1.6,z+1.6,matCroix,false); };
+    poser(ch,()=>{
+      if(n===1){ batiment(112,132,18,36,0,5,'clair',41,.6); croixToit(122,27,5.4); }
+      if(n===2){ batiment(108,136,12,40,0,10,'clair',51,.75); croixMur(136,26,7.5); }
+      if(n===3){ batiment(107,137,10,42,0,14,'verre',61,.85); croixMur(137,26,10); batiment(107,124,42,50,0,6,'clair',63,.6);
+        if(!ch){ pave(127,135,44.5,48.5,.5,3.2,M(0xf2f2ee)); pave(127,135,48.45,48.6,1.3,1.8,matCroix,false);
+          for(const x of [128.5,133.5]) for(const y of [44.5,48.5]) pave(x-.5,x+.5,y-.25,y+.25,0,.9,M(COUL.encre),false);
+          const g=new THREE.MeshLambertMaterial({color:0x2a5fd0, emissive:0x000000}); pave(130.4,131.6,46,47,3.2,3.7,g,false); clignos.push({m:g, c:0x3a7aff, v:2.2}); } } }); }
+
+  /* la préparation physique : le hangar de muscu, la salle et la balnéo, le labo */
+  { const n=R.physique|0, ch=chId==='physique';
+    poser(ch,()=>{
+      if(n===1){ batiment(148,178,14,38,0,7,'tole',0,0); if(!CH) pave(156,166,37.9,38.1,0,5,M(0x2a2e3a),false); }
+      if(n>=2){ batiment(146,176,12,40,0,10,'beton',71,.7);
+        if(n===3) batiment(150,172,16,36,10,17,'verre',73,.9);
+        if(!ch){ pave(179,193,13,31,0,.5,M(COUL.pierre2)); const eau=new THREE.MeshLambertMaterial({color:COUL.eau, emissive:0x000000});
+          pave(180.5,191.5,14.5,29.5,.45,.55,eau,false); lampes.push({m:eau, c:0x1e5a8a});
+          nageurs.push(...[[183,19,1],[188,25,-1],[185,27,1]].map(([x,y,v],i)=>{ const h=pave(x-.4,x+.4,y-.4,y+.4,.5,1.1,M(COUL.peau),false); return {h,x,y,v,i}; })); }
+        if(n===3 && !ch){ pave(182,188,33,39,0,6,M(COUL.clair)); for(let i=0;i<3;i++){ const b=pave(184+i,185+i,35,36,6,7,M(0xf4f6fa),false); vapeur.push({b,i}); } } } }); }
+
+  /* la vidéo : le préfabriqué et son antenne, la salle et sa parabole, la cellule et sa tour */
+  { const n=R.video|0, ch=chId==='video', mat=M(0xc9cfe0);
+    poser(ch,()=>{
+      if(n===1){ batiment(206,222,20,32,0,5,'beton',81,.5); if(!CH){ pave(213.85,214.15,25.85,26.15,5,11,mat); pave(211,217,25.9,26.1,9.8,10.1,mat,false); pave(212,216,25.9,26.1,8.3,8.6,mat,false); } }
+      if(n===2){ batiment(200,230,14,38,0,8,'beton',91,.35); if(!CH){ batiment(221,227,18,24,8,10,'tole',0,0);
+        const p=new THREE.Mesh(new THREE.CylinderGeometry(2.6,.4,1.2,10,1,true), M2(0xe6e9f0)); p.rotation.z=-.7; p.rotation.y=-.6; p.position.set(224-CX,13,21-CY); scene.add(p); } }
+      if(n===3){ batiment(198,232,12,40,0,8,'beton',95,.35); batiment(206,224,18,34,8,30,'beton',97,.65); batiment(205,225,17,35,30,37,'verre',99,1);
+        if(!CH){ pave(214.8,215.2,25.8,26.2,37,46,mat); const f=new THREE.MeshLambertMaterial({color:0x8a1010, emissive:0x000000}); pave(214.6,215.4,25.6,26.4,46,46.8,f,false); clignos.push({m:f, c:0xff2a2a, v:1}); } }
+    });
+    if(n===3 && !ch) for(const [x,y] of [[233,55],[53,55]]){ pave(x-.3,x+.3,y-.3,y+.3,0,32,mat);
+      pave(x-1.4,x+1.4,y-.8,y+.8,31,33,M(0x2a2e3a)); const f=new THREE.MeshLambertMaterial({color:0x8a1010, emissive:0x000000}); pave(x-.3,x+.3,y-.3,y+.3,33,33.7,f,false); clignos.push({m:f, c:0xff2a2a, v:1.3}); } }
+
+  /* l'académie : l'internat, le centre agréé, le centre de renom et sa petite tribune */
+  { const n=R.academie|0, ch=chId==='academie', chat=R.chateau?1:0;
+    poser(ch,()=>{
+      if(n===1){ batiment(14,30,78,106,0,5.5,'beton',101,.8); toit2(14,30,78,106,5.5,4); }
+      if(n>=2){ if(n===3){ batiment(12,32,58,108,0,14,'beton',101,.78); toit2(12,32,58,108,14,3.5); } else { batiment(12,32,58,108,0,9,'beton',101,.75); toit2(12,32,58,108,9,3.5); }
+        batiment(32,46,58,72,0,9,'beton',105,.7); fanion(48,60,9,COUL.jaune); }
+      if(n===3){ batiment(32,44,84,100,0,12,'verre',107,.95); enseigne(44,44,92,13.5);
+        const tranches = chat ? [[134,150],[161,190]] : [[134,190]], gr=M(0x9aa1b5);
+        for(const [ya,yb] of tranches){ pave(46,49.5,ya,yb,0,4.5,gr); pave(49.5,53,ya,yb,0,3,gr); pave(53,57,ya,yb,0,1.5,gr);
+          if(!CH){ const sp=[COUL.jaune,COUL.blanc,COUL.rouge,MAILLOT];
+            for(const [xa,z] of [[47.6,4.5],[51.2,3],[55,1.5]]) for(let y=ya+1.5;y<yb-1;y+=2.2){ const h=hasard(Math.round(y*3),Math.round(xa)); if(h<.5) pave(xa-.5,xa+.5,y-.5,y+.5,z,z+1.3,M(sp[Math.floor(h*8)%4]),false); }
+            pave(44.5,51,ya-1,yb+1,9,9.4,M(0x6f7690)); pave(45.8,46.2,ya,ya+.4,4.5,9,M(0xb8bfd2)); pave(45.8,46.2,yb-.4,yb,4.5,9,M(0xb8bfd2)); } } } }); }
+
+  /* ---------- les arbres ---------- */
+  const matTronc=M(0x5a3a22);
+  const FEUILLE = neigeSol ? [0xdfe8e4,0xcfdcd8] : SA.automne ? [0xc27a2c,0x9a5a24,0xd99a3a] : SA.printemps ? [0x4f9f4f,0x3f8f45] : [0x2f6b3a,0x3a7d42,0x256b45];
+  const matsFeuille = FEUILLE.map(c=>M(c)), matFleur=M(0xe9a3bd), matSapinF=M(neigeSol?0xcfdcd8:0x255a30);
+  function arbre(x,y,grand,i){
+    const h=grand?3.2:2.4, r=grand?4.2:3.3;
+    pave(x-.4,x+.4,y-.4,y+.4,0,h+1,matTronc);
+    if(SA.hiver && !neigeSol){ for(let k=0;k<3;k++){ const b=pave(x-.15,x+.15,y-.15,y+.15,h,h+3,matTronc,false); b.rotation.z=(k-1)*.6; b.rotation.x=(k%2?.4:-.4); } return; }
+    const g=new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), SA.fleurs&&i%2===0 ? matFleur : matsFeuille[i%matsFeuille.length]);
+    g.position.set(x-CX, h+r*.75, y-CY); g.rotation.y=i; g.castShadow=true; g.receiveShadow=true; scene.add(g);
+    if(SA.hiver && neigeSol){ const s=new THREE.Mesh(new THREE.IcosahedronGeometry(r*.7,0), toitNeige); s.position.set(x-CX, h+r*1.2, y-CY); scene.add(s); }
+  }
+  const cypres=(x,y)=>{ pave(x-.3,x+.3,y-.3,y+.3,0,1.5,matTronc); const c=new THREE.Mesh(new THREE.ConeGeometry(1.7,10,6,1), matSapinF); c.position.set(x-CX,6.5,y-CY); c.castShadow=true; scene.add(c); };
+
+  /* ---------- le château, ou à défaut le bois ---------- */
+  const chatCh = chId==='chateau';
+  if(!R.chateau && !chatCh){ [[14,126],[26,124],[38,128],[20,138],[33,140],[12,152],[26,150],[40,154],[18,166],[32,168],[42,178],[14,182],[27,186],[38,192]].forEach(([x,y],i)=>arbre(x,y,i%3===0,i)); }
+  else poser(chatCh,()=>{
+    sol(3,46,116,199,M(neigeSol?0xd0dbe0:0x2f6b3a),.08);
+    const eau=new THREE.MeshLambertMaterial({color:chatCh?0x7d5c3c:(neigeSol?0x9cc4e0:0x3a78b0), emissive:0x000000});
+    sol(6,44,127,189,eau,.14); sol(9,41,130,186,M(neigeSol?0xe4eaee:0x4a8a40),.3);
+    sol(41,59,152,160,M(COUL.pierre2),.6);
+    if(!chatCh){ const f=pave(50,53,154.5,157.5,0,.8,M(COUL.pierre2)); const j=pave(51.3,51.7,155.8,156.2,.8,3.5,M(0xcfe6ff),false); jet.push(j);
+      for(const [x,y] of [[11,133],[39,133],[11,183],[39,183]]) cypres(x,y);
+      [[8,194],[18,195],[28,194],[38,195],[5,122],[16,121],[28,122],[40,121]].forEach(([x,y],i)=>arbre(x,y,false,i+3)); }
+    const ard = CH ? M(COUL.chantier) : neigeSol ? toitNeige : M(COUL.ardoise);
+    const tour=(cx,cy,r,h,hc,c)=>{ batiment(cx-r,cx+r,cy-r,cy+r,0,h,'pierre',Math.round(cx*cy),.6); pyramide(cx,cy,r+.6,h,hc,ard); if(c) fanion(cx,cy,h+hc,c); };
+    tour(13,142,3.4,18,10,COUL.blanc); tour(19,158,4.2,30,12,MAILLOT);
+    batiment(13,33,142,174,0,13,'pierre',121,.85); croupe(13,33,142,174,13,8,CH?M2(COUL.chantier):neigeSol?M2(0xeef2f6):M2(COUL.ardoise));
+    if(!CH) pave(32.9,33.2,155,161,0,5,M(COUL.bois),false);
+    tour(13,174,3.4,18,10); tour(33,142,3.4,18,10,SHORT); tour(33,174,3.4,18,10);
+  });
+
+  /* ---------- la halle couverte, sur le quatrième terrain ---------- */
+  if(t>=3) poser(chT&&chN===3,()=>{ const x0=146,x1=229,y0=128,y1=196,zw=8,hv=13,N=12;
+    const arc=[]; for(let q=0;q<=N;q++){ const u=q/N; arc.push([y0+(y1-y0)*u, zw+hv*Math.sin(Math.PI*u)]); }
+    const voute = CH ? M2(COUL.chantier) : neigeSol ? M2(0xeef2f6) : M2(0xc9cfe0), cote = CH ? M2(COUL.chantier2) : M2(0x8d93a6);
+    const L=[]; for(let q=0;q<N;q++){ const a=arc[q], b=arc[q+1]; L.push(...quad([x0,a[0],a[1]],[x1,a[0],a[1]],[x1,b[0],b[1]],[x0,b[0],b[1]])); }
+    tris(L, voute);
+    tris([...quad([x0,y0,0],[x1,y0,0],[x1,y0,zw],[x0,y0,zw]), ...quad([x0,y1,0],[x1,y1,0],[x1,y1,zw],[x0,y1,zw])], cote);
+    const pign=[]; for(let q=0;q<N;q++) for(const x of [x0,x1]) pign.push([x,(y0+y1)/2,0],[x,arc[q][0],arc[q][1]],[x,arc[q+1][0],arc[q+1][1]]);
+    const vit = CH ? M2(COUL.chantier2) : new THREE.MeshLambertMaterial({color:0x4d7aa3, emissive:0x000000, side:THREE.DoubleSide, flatShading:true});
+    tris(pign, vit); if(!CH) lampes.push({m:vit, c:0x8a7440});
+    for(const x of [x0,x1]) tris([[x,y0,0],[x,y1,0],[x,(y0+y1)/2,0]], vit);
+    if(!CH){ for(let x=x0+8;x<x1;x+=10){ const L2=[]; for(let q=0;q<N;q++){ const a=arc[q], b=arc[q+1]; L2.push(...quad([x-.3,a[0],a[1]+.05],[x+.3,a[0],a[1]+.05],[x+.3,b[0],b[1]+.05],[x-.3,b[0],b[1]+.05])); } tris(L2, M2(0x8d93a6)); }
+      pave(x0,x1,y1-.1,y1+.2,3.6,4.2,M(COUL.jaune),false); enseigne(x1,x1+16,y1+.3,zw+.5); } });
+
+  /* ---------- les pylônes d'éclairage ---------- */
+  const spots=[];
+  { const projos=[];
+    if(t===2 && neuf!==2) projos.push([147,129,1],[228,129,1],[147,195,1],[228,195,1]);
+    if(t>=3) projos.push([58,58,0],[137,58,0],[58,122,0],[137,122,0]);
+    const gris=M(0xb8bfd2);
+    for(const [x,y,k] of projos){ pave(x-.35,x+.35,y-.35,y+.35,0,24,gris);
+      const tete=pave(x-1.6,x+1.6,y-1.6,y+1.6,24,26,matLampe,false);
+      const T_=T[k===1?3:0], cxT=(T_[0]+T_[2])/2, cyT=(T_[1]+T_[3])/2;
+      const sp=new THREE.SpotLight(0xfff3d0, 0, 0, .75, .6, 0); sp.position.copy(V(x,y,24)); sp.target.position.copy(V((x+cxT)/2,(y+cyT)/2,0));
+      scene.add(sp, sp.target); spots.push(sp); } }
+
+  /* lampadaires le long de l'allée centrale */
+  for(let x=20;x<238;x+=36){ pave(x-.15,x+.15,47.5,47.8,0,5,M(0x6f7690)); pave(x-.6,x+.6,47.2,48.1,5,5.4,matLampe,false); }
+
+  /* ---------- le décor fixe : portail, voitures, car du club, arbres, drapeaux ---------- */
+  { const pr=M(COUL.pierre);
+    pave(12,15,-2,1,0,6.5,pr); pave(29,32,-2,1,0,6.5,pr); pave(12,32,-1.5,.5,6.5,8.2,pr);
+    const en=new THREE.MeshLambertMaterial({color:COUL.jaune, emissive:0x000000}); pave(16,28,.5,.7,7,7.8,en,false); lampes.push({m:en, c:0xffc83a});
+    for(const [x,c] of [[8,MAILLOT],[36,SHORT]]){ pave(x-.15,x+.15,-3.15,-2.85,0,10,M(0xd0d4dc)); drapeaux.push(pave(x+.15,x+3.2,-3.05,-2.95,7.8,9.8,M(c),false)); } }
+  const voiture=(x,y,c,r)=>{ const g=new THREE.Group(); g.position.copy(V(x,y,0)); g.rotation.y=r||0; scene.add(g);
+    box(4,1,1.9,M(c),0,.85,0,g); box(2.2,.8,1.7,M(0x35506e),-.2,1.75,0,g); box(4.05,.3,1.95,M(COUL.encre),0,.3,0,g,false); };
+  [[12.7,13.5,0xd8433a],[24.7,13.5,0x3a6fc9],[36.7,37.5,0xc9cfe6],[18.7,37.5,0x256b45],[42.7,13.5,0xf2f5fa]].forEach(([x,y,c])=>voiture(x,y,c,Math.PI/2));
+  { const g=new THREE.Group(); g.position.copy(V(76.5,51.75,0)); scene.add(g);   // le car du club, aux couleurs du maillot
+    box(13,3.6,4.9,M(MAILLOT),0,2.7,0,g); box(13.05,1.1,4.95,M(0x2e4a6a),0,3.3,0,g,false); box(13.05,.7,4.95,M(SHORT),0,1.4,0,g,false);
+    box(13,.25,4.9,M(neigeSol?0xeef2f6:0xd9dbe3),0,4.6,0,g,false);
+    for(const x of [-4.2,4]) for(const z of [-2.45,2.45]) box(1.3,1.3,.4,M(COUL.encre),x,.65,z,g,false); }
+  [[-6,20],[-7,48],[-6,76],[-8,104],[-6,132],[-7,160],[-6,188],[60,-4],[100,-5],[150,-4],[200,-5],[246,-4]].forEach(([x,y],i)=>arbre(x,y,true,i));
+  [[70,206],[110,207],[160,206],[205,207],[246,40],[247,90],[246,150],[252,206],[-14,212]].forEach(([x,y],i)=>arbre(x,y,false,i+5));
+  /* décembre : le sapin du club, guirlande qui clignote */
+  const guirlande=[];
+  if(SA.sapin){ pave(51.6,52.4,6.6,7.4,0,1.5,matTronc);
+    [[4.2,0,4],[3.2,3,3.6],[2.2,5.8,3.2]].forEach(([r,z,h])=>{ const c=new THREE.Mesh(new THREE.ConeGeometry(r,h,7,1), M(0x1f5a32)); c.position.copy(V(52,7,1.5+z+h/2)); c.castShadow=true; scene.add(c); });
+    for(let i=0;i<14;i++){ const a=i*2.4, z=2+i*.55, r=Math.max(.7,4-i*.25); const m=new THREE.MeshLambertMaterial({color:[0xd8433a,0xffd24a,0x3a6fc9][i%3], emissive:0x000000});
+      pave(52+Math.cos(a)*r-.3,52+Math.cos(a)*r+.3,7+Math.sin(a)*r-.3,7+Math.sin(a)*r+.3,z,z+.6,m,false); guirlande.push({m,c:[0xff4a3a,0xffd24a,0x5a8fff][i%3],i}); }
+    pave(51.6,52.4,6.6,7.4,9.8,10.8,M(COUL.jaune),false); }
+
+  /* ---------- la grue du chantier ---------- */
+  let fleche=null;
+  { const posG={vie:[100,30],medical:[141,46],physique:[194,46],video:[236,46],academie:[50,84],terrains:[141,126],chateau:[50,140]};
+    if(chId && posG[chId]){ const [gx,gy]=posG[chId], jaune=M(0xf2b632), h=chId==='video'?52:38;
+      pave(gx-1.5,gx+1.5,gy-1.5,gy+1.5,0,1,M(0x6f7690));
+      pave(gx-1.1,gx+1.1,gy-1.1,gy+1.1,1,h,jaune);                                   // le mât, plein, pour qu'on le voie sur la carte
+      for(let z=2.5;z<h;z+=3) pave(gx-1.2,gx+1.2,gy-1.2,gy+1.2,z,z+.5,M(0xb07a12),false);   // ses croisillons
+      fleche=new THREE.Group(); fleche.position.copy(V(gx,gy,h)); scene.add(fleche);
+      box(30,1.8,1.8,jaune,10,.5,0,fleche); box(9,1.6,1.6,jaune,-6,.5,0,fleche); box(3,2.4,2,M(0x6f7690),-9,.2,0,fleche);
+      box(2.2,2.2,2,M(0x2e4a6a),0,-1.3,0,fleche); box(.8,4,.8,jaune,0,2.6,0,fleche);
+      const cable=box(.12,14,.12,M(0x222222),20,-7,0,fleche,false); box(2.4,1,2.4,M(0x8d93a6),20,-14.5,0,fleche); } }
+
+  /* ---------- la vie sur les terrains : un jeu réduit, une course en file, les gamins de l'académie ---------- */
+  const joueurs=[];
+  const matPeau=M(COUL.peau), matShort=M(SHORT), matMaillot=M(MAILLOT), matChasuble=M(0xf2d21b), matGamin=M(0xf2f5fa), matCoach=M(0x2a2e3a);
+  function figurine(maillot, petit){ const s=petit?1.3:1.75, g=new THREE.Group(); scene.add(g);
+    const jg=box(.35*s,.95*s,.35*s,matShort,-.2*s,.48*s,0,g), jd=box(.35*s,.95*s,.35*s,matShort,.2*s,.48*s,0,g);
+    box(.85*s,.9*s,.45*s,maillot,0,1.35*s,0,g); box(.45*s,.45*s,.45*s,matPeau,0,2.05*s,0,g);
+    return {g,jg,jd}; }
+  terrainsActifs.forEach((Tq,k)=>{
+    const [x0,y0,x1,y1]=Tq, mx=(x0+x1)/2, my=(y0+y1)/2, gamins = k===2 && (R.academie|0)>=1;
+    if(k===1){ for(let i=0;i<9;i++){ const f=figurine(matMaillot); joueurs.push({f, mode:'tour', x0:x0+5,x1:x1-5,y0:y0+5,y1:y1-5, u:i*.035}); } return; }
+    const n = gamins ? 12 : 10;
+    for(let i=0;i<n;i++){ const f=figurine(i%2?matChasuble:(gamins?matGamin:matMaillot), gamins);
+      const j={f, mode:'jeu', cx:mx+(k===0?-10:6), cy:my, rx:gamins?14:16, ry:gamins?11:13, x:mx, y:my, tx:mx, ty:my, t:0, i};
+      j.x=j.tx=j.cx+(hasard(i,k)-.5)*2*j.rx; j.y=j.ty=j.cy+(hasard(k,i)-.5)*2*j.ry; joueurs.push(j); }
+    const c=figurine(matCoach); joueurs.push({f:c, mode:'fixe', x:mx+(k===0?-10:6), y:y1-3});
+    if(!gamins){ for(let i=0;i<6;i++) pave(mx+18+i*3.2-.4,mx+18+i*3.2+.4,my+((i%2)?3:-3)-.4,my+((i%2)?3:-3)+.4,0,.8,M(0xff8a1a),false); }
+  });
+  if(t>=3 && !(chT&&chN===3)){ /* sous la halle, rien ne se voit : on l'imagine pleine */ }
+
+  /* ---------- pluie et neige ---------- */
+  const NP=900, goutte=[]; for(let i=0;i<NP;i++) goutte.push({x:(Math.random()-.5)*ileL, y:Math.random()*90, z:(Math.random()-.5)*ileP, v:70+Math.random()*25});
+  const pluieGeo=new THREE.BufferGeometry(), pluiePos=new Float32Array(NP*6); pluieGeo.setAttribute('position', new THREE.BufferAttribute(pluiePos,3));
+  const pluie=new THREE.LineSegments(pluieGeo, new THREE.LineBasicMaterial({color:0xaec4d8, transparent:true, opacity:.4})); pluie.frustumCulled=false; scene.add(pluie);
+  const neigeGeo=new THREE.BufferGeometry(), neigePos=new Float32Array(NP*3); neigeGeo.setAttribute('position', new THREE.BufferAttribute(neigePos,3));
+  const flocons=new THREE.Points(neigeGeo, new THREE.PointsMaterial({color:0xffffff, size:1.6, sizeAttenuation:false, transparent:true, opacity:.75})); flocons.frustumCulled=false; scene.add(flocons);
+  pluie.visible = CIEL==='pluie'; flocons.visible = CIEL==='neige';
+  if(CIEL==='brouillard') scene.fog = new THREE.Fog(0xb9bcc0, 330, 560);
+
+  /* ---------- les ambiances : celles du stade ---------- */
+  const AMB = {
+    jour:{fond:0xe9e1cf, soleil:[0xfff1d6,2.6], hemi:[0xfff4dc,0x4a5a3a,1.4], spots:0, pos:[-60,110,70]},
+    soir:{fond:0xe7b98d, soleil:[0xffa060,1.6], hemi:[0xffd2a8,0x3a3048,.9], spots:1.6, pos:[-120,40,40]},
+    nuit:{fond:0x121a2a, soleil:[0x8aa0d0,.35], hemi:[0x3a4a70,0x101418,.35], spots:4.2, pos:[60,110,-60]} };
+  const HEURE = AMB[o.heure] ? o.heure : 'jour';
+  { const a=AMB[HEURE], gris = CIEL==='pluie'?.55 : CIEL==='neige'?.8 : CIEL==='brouillard'?.65 : 1;
+    scene.background = new THREE.Color(a.fond).lerp(new THREE.Color(HEURE==='nuit'?0x0d121c:0x9aa3a8), 1-gris);
+    if(scene.fog) scene.fog.color.copy(scene.background);
+    soleil.color.setHex(a.soleil[0]); soleil.intensity=a.soleil[1]*gris; soleil.position.set(...a.pos);
+    hemi.color.setHex(a.hemi[0]); hemi.groundColor.setHex(a.hemi[1]); hemi.intensity=a.hemi[2]*(CIEL==='sec'?1:.85);
+    for(const s of spots) s.intensity=a.spots*(CIEL==='sec'?1:1.15)*.8; }
+  const allume = HEURE!=='jour';
+  for(const m of fenetres) m.emissive.setHex(allume?0xffffff:0x000000);
+  matLampe.emissive.setHex(allume?0xfff2c8:0x000000);
+  for(const l of lampes) l.m.emissive.setHex(allume?l.c:0x000000);
+
+  /* ---------- la caméra de vitrine : celle du stade, à la taille du campus ---------- */
+  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, demi:120, zoom:1, pan:{x:0,y:0}, panV:{x:0,y:0}, remplir:false, tranquille:-1e9 };
+  const taille = () => ({w:Math.max(1,canvas.clientWidth||300), h:Math.max(1,canvas.clientHeight||150)});
+  const RAYON = Math.hypot(ileL, ileP)/2, EL = .62, CIBLE = new THREE.Vector3(0,-2,0);
+  const vitrineHaut = () => RAYON*Math.sin(EL) + 24;
+  function vitrineDemi(){ const {w,h}=taille(), asp=w/h;
+    return cam.remplir ? Math.max(vitrineHaut()*.8, RAYON*.46/asp) : Math.max(RAYON*.8/asp, vitrineHaut()*.8); }
+  function bornePan(){ const {w,h}=taille(), asp=w/h, d=vitrineDemi()*cam.zoom;
+    const mx=Math.max(0, RAYON*1.02-d*asp), my=Math.max(0, vitrineHaut()-d);
+    cam.pan.x=clamp(cam.pan.x,-mx,mx); cam.pan.y=clamp(cam.pan.y,-my,my); return mx>3 || my>3; }
+  const V_DROITE=new THREE.Vector3(), V_HAUT=new THREE.Vector3();
+  let glisse=null, pince=null, dernierTap=0; const doigts=new Map();
+  function placerCamera(dt){
+    const d=vitrineDemi()*cam.zoom; cam.demi+=(d-cam.demi)*Math.min(1,dt*6);
+    if(!reduit && doigts.size===0 && performance.now()-cam.tranquille>6000) cam.angleCible+=dt*.12;   // le tour lent, tant qu'on n'y touche pas
+    cam.angle+=(cam.angleCible-cam.angle)*Math.min(1,dt*6);
+    const D=500;
+    camera.position.set(CIBLE.x+Math.sin(cam.angle)*Math.cos(EL)*D, CIBLE.y+Math.sin(EL)*D, CIBLE.z+Math.cos(cam.angle)*Math.cos(EL)*D);
+    camera.lookAt(CIBLE);
+    bornePan(); const kp=Math.min(1,dt*10); cam.panV.x+=(cam.pan.x-cam.panV.x)*kp; cam.panV.y+=(cam.pan.y-cam.panV.y)*kp;
+    camera.updateMatrixWorld(); camera.position.addScaledVector(V_DROITE.setFromMatrixColumn(camera.matrixWorld,0), cam.panV.x).addScaledVector(V_HAUT.setFromMatrixColumn(camera.matrixWorld,1), cam.panV.y);
+    const {w,h}=taille(), asp=w/h;
+    camera.left=-cam.demi*asp; camera.right=cam.demi*asp; camera.top=cam.demi; camera.bottom=-cam.demi; camera.updateProjectionMatrix();
+  }
+  const ecart=()=>{ const v=[...doigts.values()]; return Math.hypot(v[0].x-v[1].x, v[0].y-v[1].y)||1; };
+  const biais=()=>{ const v=[...doigts.values()]; return Math.atan2(v[1].y-v[0].y, v[1].x-v[0].x); };
+  const parPixel=()=>2*vitrineDemi()*cam.zoom/taille().h;
+  const surDown=e=>{ doigts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+    cam.tranquille=performance.now();
+    if(doigts.size===2){ glisse=null; pince={d:ecart(), z:cam.zoom, b:biais(), a:cam.angleCible}; }
+    else if(doigts.size===1){ glisse={x:e.clientX,y:e.clientY,a:cam.angleCible, px:cam.pan.x, py:cam.pan.y, promene:bornePan()};
+      const t=performance.now();
+      if(t-dernierTap<320){ if(cam.zoom<.95 && !cam.remplir){ cam.zoom=1; cam.pan.x=cam.pan.y=0; } else cam.zoom=clamp(cam.zoom*.55,.25,1.5); glisse=null; }
+      dernierTap=t; } };
+  const surMove=e=>{ if(!doigts.has(e.pointerId)) return; doigts.set(e.pointerId,{x:e.clientX,y:e.clientY}); cam.tranquille=performance.now();
+    if(pince && doigts.size>=2){ cam.zoom=clamp(pince.z*pince.d/ecart(), .25, 1.5); e.preventDefault&&e.preventDefault();
+      let db=biais()-pince.b; db=Math.atan2(Math.sin(db),Math.cos(db)); cam.angleCible=pince.a+db; }
+    else if(glisse && glisse.promene){ const k=parPixel(); cam.pan.x=glisse.px-(e.clientX-glisse.x)*k; cam.pan.y=glisse.py+(e.clientY-glisse.y)*k; bornePan(); }
+    else if(glisse) cam.angleCible=glisse.a-(e.clientX-glisse.x)*0.008; };
+  const surUp=e=>{ doigts.delete(e&&e.pointerId); if(doigts.size<2) pince=null; if(doigts.size===0) glisse=null; };
+  const surMolette=e=>{ if(!e.ctrlKey && !cam.remplir && !(typeof document!=='undefined' && document.fullscreenElement)) return;
+    cam.tranquille=performance.now(); e.preventDefault(); cam.zoom=clamp(cam.zoom*Math.exp(e.deltaY*.0025), .25, 1.5); };
+  canvas.addEventListener('wheel',surMolette,{passive:false});
+  canvas.addEventListener('pointerdown',surDown); canvas.addEventListener('pointermove',surMove);
+  canvas.addEventListener('pointerup',surUp); canvas.addEventListener('pointercancel',surUp);
+  canvas.addEventListener('webglcontextlost', e=>e.preventDefault());
+  let dernierW=0, dernierH=0;
+  function redimensionner(){ const {w,h}=taille(); if(w===dernierW && h===dernierH) return; dernierW=w; dernierH=h;
+    renderer.setSize(Math.max(80,Math.floor(w/o.pixels)), Math.max(40,Math.floor(h/o.pixels)), false); }
+
+  /* ---------- la boucle ---------- */
+  let avant=performance.now(), horloge=0;
+  function image(now){
+    redimensionner();
+    const dt=Math.min(.05,(now-avant)/1000); avant=now; horloge+=dt; const tt=horloge;
+    for(const j of joueurs){
+      if(j.mode==='tour'){ j.u=(j.u+dt*.012)%1; const W=j.x1-j.x0, H=j.y1-j.y0, per=2*(W+H); let d=j.u*per, x, y, cap;
+        if(d<W){ x=j.x0+d; y=j.y0; cap=0; } else if((d-=W)<H){ x=j.x1; y=j.y0+d; cap=1; } else if((d-=H)<W){ x=j.x1-d; y=j.y1; cap=2; } else { d-=W; x=j.x0; y=j.y1-d; cap=3; }
+        j.f.g.position.copy(V(x,y,0)); j.f.g.rotation.y=[Math.PI/2,0,-Math.PI/2,Math.PI][cap]; j.vit=1; }
+      else if(j.mode==='jeu'){ j.t-=dt; if(j.t<=0){ j.tx=j.cx+(Math.random()-.5)*2*j.rx; j.ty=j.cy+(Math.random()-.5)*2*j.ry; j.t=1.5+Math.random()*3; }
+        const dx=j.tx-j.x, dy=j.ty-j.y, d=Math.hypot(dx,dy), v=Math.min(d, dt*5.5); j.vit=d>.3?1:0;
+        if(d>.01){ j.x+=dx/d*v; j.y+=dy/d*v; j.f.g.rotation.y=Math.atan2(dx,dy); }
+        j.f.g.position.copy(V(j.x,j.y,0)); }
+      else { j.f.g.position.copy(V(j.x,j.y,0)); j.vit=0; }
+      const pas = j.vit ? Math.sin(tt*11+(j.i||0))*.6 : 0; j.f.jg.rotation.x=pas; j.f.jd.rotation.x=-pas;
+    }
+    for(const n of nageurs){ const k=Math.sin(tt*.6+n.i*2)*3.2; n.h.position.x=n.x+k*n.v-CX; }
+    for(const v of vapeur){ const k=((tt*.8+v.i/3)%1); v.b.position.y=6.5+k*4; v.b.scale.setScalar(1+k*1.5); v.b.visible=k<.9; }
+    for(const j of jet) j.scale.y=.85+Math.sin(tt*6)*.15;
+    for(let i=0;i<drapeaux.length;i++) drapeaux[i].rotation.y=Math.sin(tt*2.5+i)*.25;
+    for(const c of clignos) c.m.emissive.setHex(Math.sin(tt*Math.PI*c.v)>.2?c.c:0x000000);
+    for(const g of guirlande) g.m.emissive.setHex(((Math.floor(tt*2)+g.i)%3)===0?g.c:0x000000);
+    if(fleche) fleche.rotation.y=Math.sin(tt*.18)*1.4;
+    if(pluie.visible && !reduit){ for(let i=0;i<550;i++){ const g=goutte[i]; g.y-=g.v*dt; if(g.y<0){g.y=60+Math.random()*30;g.x=(Math.random()-.5)*ileL;g.z=(Math.random()-.5)*ileP;} pluiePos.set([g.x,g.y,g.z,g.x+.6,g.y+3.2,g.z+.4],i*6); } pluieGeo.attributes.position.needsUpdate=true; pluieGeo.setDrawRange(0,1100); }
+    if(flocons.visible && !reduit){ for(let i=0;i<NP;i++){ const g=goutte[i]; g.y-=g.v*.09*dt; g.x+=Math.sin(tt+i)*dt*2; if(g.y<0){g.y=60+Math.random()*30;g.x=(Math.random()-.5)*ileL;g.z=(Math.random()-.5)*ileP;} neigePos.set([g.x,g.y,g.z],i*3); } neigeGeo.attributes.position.needsUpdate=true; }
+    placerCamera(dt);
+    renderer.render(scene,camera);
+  }
+  function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); if(o.cache && o.cache()){ avant=now; return; } try{ image(now); }catch(e){ signale(e); } }
+  cam.demi=vitrineDemi();
+  idRaf=requestAnimationFrame(boucle);
+
+  return {
+    /* remplir(oui) cadre le campus sur la hauteur (la vue en grand), tourne(d) le fait pivoter de d radians, recentre() revient au départ */
+    remplir(oui){ cam.remplir=!!oui; cam.zoom=1; cam.pan.x=cam.pan.y=0; cam.tranquille=performance.now(); },
+    tourne(d){ cam.angleCible+=d; cam.tranquille=performance.now(); },
+    recentre(){ cam.zoom=1; cam.pan.x=cam.pan.y=0; },
+    ferme(){
+      if(!vivant) return; vivant=false; cancelAnimationFrame(idRaf);
+      canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
+      canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp); canvas.removeEventListener('wheel',surMolette);
+      scene.traverse(x=>{ if(x.geometry) x.geometry.dispose(); const m=x.material; if(m){ (Array.isArray(m)?m:[m]).forEach(mm=>{ if(mm.map) mm.map.dispose(); if(mm.emissiveMap) mm.emissiveMap.dispose(); mm.dispose(); }); } });
+      renderer.dispose(); try{ renderer.forceContextLoss(); }catch(_){}
+    }
+  };
+}
+/* ---- CAMPUS3D : FIN ---- */
 let STD=null;
 /* LE MATCH EN MAQUETTE 3D (v2.89, choix de l'auteur du 13/11/2026, prototype docs/prototype-match-3d.html, chantier
    docs/chantier-match-3d.md). La bande du stade en direct montre le match en 3D : le moteur MATCH3D (bloc greffé juste
@@ -33787,7 +34351,7 @@ function motif3D(club, coul){ // le maillot porté dans la maquette 3D (v3.28) :
   }catch(e){ return null; }
 }
 function match3dOuvre(H, A, o, dom, ext, R){
-  match3dFerme(); stadeVitrineFerme(); // une seule scène 3D à la fois : la vitrine se refera au retour sur l'écran Club
+  match3dFerme(); stadeVitrineFerme(); campusVitrineFerme(); // une seule scène 3D à la fois : la vitrine se refera au retour sur l'écran Club
   if(!match3dPossible()) return;
   const jeton={}; M3D={jeton, sc:null, cv:null, file:[], veille:null};
   const heure=heureDuMatch(o), eteIndien=!!(METEO_MATCH && METEO_MATCH.cle==="eteIndien"), cap=(R && R.cap)||H.cap||20000;
@@ -33995,6 +34559,7 @@ function ecranClub(){
   { const bT=document.getElementById("bToitRet"); if(bT) bT.onclick=()=>{ G.stade.ferme=G.stade.ferme?0:1; montre("club"); }; }
   peintStades(); // v2.63 : la maquette est un canvas, on la peint une fois posée
   stadeVitrine(); // v3.26 : la maquette 3D se pose dessus
+  campusVitrine(); // v3.31 : le campus aussi
   document.querySelectorAll(".stTrib").forEach(el=>el.onclick=()=>lanceProjet(el.dataset.id)); // clic sur un gradin → agrandir le stade
   document.querySelectorAll(".bCoachIn").forEach(b=>b.onclick=()=>ouvreRecrutement(b.dataset.id));
   document.querySelectorAll(".bCoachOut").forEach(b=>b.onclick=()=>remercierCoach(b.dataset.id));

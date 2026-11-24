@@ -4364,6 +4364,27 @@ blason (`kitDuClub` : uni, rayé, moitiés, diagonale), avec l'écusson sur le c
   club seulement**). Sans motif, le buste reste uni comme avant. Gardiens, banc et arbitre ne changent pas.
 - Gardé par **`harness-maillot.cjs`** (A à E, dont six saisons et six maillots rangés).
 
+### LE CENTRE D'ENTRAÎNEMENT EN VITRINE SUR L'ÉCRAN CLUB (v3.31, demande de l'auteur du 24/11/2026, prototype validé le même jour)
+« Le rendu du stade en 3D est canon hors match, je veux la même chose pour le centre d'entraînement », puis « wow j'adore ».
+Prototype : `docs/prototype-centre-3d.html`. Moteur à part (le campus n'a rien d'un match) : **`fabriqueCampus3D(THREE, o)`**,
+bloc entre « CAMPUS3D : DÉBUT » et « CAMPUS3D : FIN », greffé juste après le bloc MATCH3D par **`node docs/greffe-campus-3d.cjs`**
+(rejouable, idempotent ; **on ne touche jamais le bloc dans le jeu**, on retouche le prototype puis on relance).
+- **Le plan est celui de CAMPUSPIX, en mètres** (240 × 200, le point (x, y) du plan posé en (x − 120, z, y − 98)) : quatre
+  terrains (pelé, herbe, stabilisé puis synthétique après 2002, terre pendant un chantier, friche avant), les six familles à
+  leurs trois niveaux, la halle en voûte, le château et ses douves (sinon le bois), le portail, le parking, le car et les
+  drapeaux aux couleurs du club, les pylônes. `o.campus` = l'état peint par la maquette (`data-r` de `canvas.pxCampus` :
+  familles, chateau, annee, mois, chantier) ; le chantier en cours passe sous bâche orange avec sa grue.
+- **La vie** : jeu réduit, footing autour du deuxième terrain, gamins de l'académie, nageurs de la balnéo, vapeur du labo,
+  gyrophare de l'ambulance, feux des mâts. **Au fil des mois** : arbres roux, nus, en fleurs en avril, sapin en décembre ;
+  la neige blanchit sol, toits et terrains, sauf les terrains chauffants (terrains au niveau 3). Heure et temps :
+  `vitrineMoment`, comme le stade.
+- **Branchement** (`campusVitrine`, appelé après `stadeVitrine` dans `ecranClub`) : la toile `canvas.st3dVit` se pose sur
+  `.cadreC` (classe `en3d`, pixel art caché dessous en secours, mêmes conditions que le stade : `match3dPossible`). Scène
+  gardée dans **`CVIT`** (clé = état sans la journée + club + moment). Au téléphone, plus de maquette à 190 % à faire défiler.
+- **En grand** : `vitrineGrand(v)` sert les deux (le bouton du campus est dans `.cadreCw`, hors de la maquette : le clic
+  cherche la `.maquette` voisine) ; `maquetteGrandFerme` rend chaque toile à sa carte. `match3dOuvre` ferme aussi `CVIT`.
+- Les rochers sous l'île restent sous leur couche (retour de l'auteur : « normal ce bloc sous le terrain ? »).
+
 ### LE STADE EN VITRINE SUR L'ÉCRAN CLUB (v3.26, demande de l'auteur du 23/11/2026, prototype validé le 24/11/2026)
 L'auteur trouvait que l'aperçu du stade « ne vend pas du rêve » (du rétro pas soigné) et que la vue en grand forçait à tourner
 le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par `docs/construit-stade-3d.cjs`).
