@@ -678,7 +678,19 @@
    "nom": "Pistoiese",
    "nom_tm": "AC Pistoiese",
    "pays": "ITA"
+  },
+  "CDS": {
+   "tm": 3512,
+   "nom": "Castel di Sangro",
+   "nom_tm": "ASD Castel di Sangro",
+   "pays": "ITA"
+  },
+  "EMP": {
+   "tm": 749,
+   "nom": "Empoli",
+   "nom_tm": "FC Empoli",
+   "pays": "ITA"
   }
  },
- "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA. Piacenza (1408), Venezia (607), Casertana (4106) et Palermo (458) ajoutés le 19/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1991-92 (IT2, saison_id 1991). Vicenza (2655), Acireale (4337) et Ravenna (1105) ajoutés le 21/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1993-94 (IT2, saison_id 1993). Perugia (839) et Chievo Verona (862) ajoutés le 22/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1994-95 (IT2, saison_id 1994). Pistoiese (1307) ajoutée le 23/11/2026, relevée sur la page de championnat Transfermarkt.de Serie B 1995-96 (IT2, saison_id 1995)."
+ "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA. Piacenza (1408), Venezia (607), Casertana (4106) et Palermo (458) ajoutés le 19/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1991-92 (IT2, saison_id 1991). Vicenza (2655), Acireale (4337) et Ravenna (1105) ajoutés le 21/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1993-94 (IT2, saison_id 1993). Perugia (839) et Chievo Verona (862) ajoutés le 22/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1994-95 (IT2, saison_id 1994). Pistoiese (1307) ajoutée le 23/11/2026, relevée sur la page de championnat Transfermarkt.de Serie B 1995-96 (IT2, saison_id 1995). Castel di Sangro (3512) et Empoli (749) ajoutés le 24/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1996-97 (IT2, saison_id 1996)."
 }
