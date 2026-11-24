@@ -284,11 +284,11 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   for (let i = 0; i < 30; i++) SRV.parrainages["faux" + i] = uidV;
   await api.parrainageRafraichit(true);
   ok(api.pointsParrainage() === api.PARRAIN_MAX * api.PARRAIN_PTS + 23000, "31 filleuls : plafonné à " + api.PARRAIN_MAX + " × 500 + 23 000 de primes = " + api.pointsParrainage());
-  ok(api.multParrain() === 3 && /Stade plein/.test(api.parrainageHTML()), "au dernier palier : défis ×3, « Stade plein »");
+  ok(api.multParrain() === 3 && /Légende\. Merci/.test(api.parrainageHTML()), "au dernier palier : défis ×3, « Légende »");
 
   /* ===== H) la grille ===== */
   console.log("H) La grille des paliers (v3.24)");
-  const grille = [[0,1,0,null],[1,1,0,"Premier supporter"],[2,1,0,"Premier supporter"],[3,1.25,1000,"Le comptoir"],[4,1.25,1000,"Le comptoir"],[5,1.5,3000,"Le kop"],[9,1.5,3000,"Le kop"],[10,2,8000,"La tribune"],[19,2,8000,"La tribune"],[20,3,23000,"Le stade plein"]];
+  const grille = [[0,1,0,null],[1,1,0,"Junior"],[2,1,0,"Junior"],[3,1.25,1000,"Titulaire"],[4,1.25,1000,"Titulaire"],[5,1.5,3000,"Capitaine"],[9,1.5,3000,"Capitaine"],[10,2,8000,"International"],[19,2,8000,"International"],[20,3,23000,"Légende"]];
   for (const [n, m, pr, nom] of grille) {
     const p = api.palierParrain(n);
     ok(api.multParrain(n) === m && api.primesParrain(n) === pr && (p ? p.nom : null) === nom, n + " ami(s) : ×" + m + ", primes " + pr + ", palier " + nom);
@@ -305,7 +305,7 @@ const ok = (c, m) => { if (c) console.log("  ✓ " + m); else fail(m); };
   await api.parrainageRafraichit(true);
   const der = api.MSG_JOURNAL[api.MSG_JOURNAL.length - 1] || "", net = der.replace(/[\s  ]/g, "");
   ok(/4amisontrejointMultiplexgrâceàtoi\.\+7750⭐/.test(net), "4 amis de plus : de 500 à (2 500 + 3 000) ×1,5 = 8 250, soit +7 750 annoncés (« " + der.split("\n")[0] + " »)");
-  ok(/LE KOP : le total de tes points est multiplié par 1,5/.test(der), "le palier du kop est annoncé");
+  ok(/CAPITAINE : le total de tes points est multiplié par 1,5/.test(der), "le palier Capitaine est annoncé");
   for (let i = 0; i < 4; i++) delete SRV.parrainages["kop" + i];
   await api.parrainageRafraichit(true);
 

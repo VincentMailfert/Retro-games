@@ -4366,8 +4366,8 @@ le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par 
 
 ### LA GRILLE ET LA FENÊTRE DU PARRAINAGE (v3.24, demande de l'auteur du 23/11/2026)
 « Mettre le parrainage plus en avant, à travers une fenêtre quand on a joué un certain nombre de matchs », et « une vraie
-incitation, comme une grille ». **La grille** (`PARRAIN_GRILLE`) : 1 ami 🧣 Premier supporter ; 3 🍻 Le comptoir (points des défis ×1,25,
-+1 000 ⭐) ; 5 📣 Le kop (×1,5, +2 000) ; 10 🏟️ La tribune (×2, +5 000) ; 20 🏆 Le stade plein (×3, +15 000). Écrit « total des points ×1,25 » : le multiplicateur porte sur le TOTAL des points gagnés (défis + amis + primes, `gainsTotal`), choix de l'auteur du 23/11 pour que ce soit limpide ; la boutique n'est pas multipliée. Les 500 ⭐ par ami
+incitation, comme une grille ». **La grille** (`PARRAIN_GRILLE`) : 1 ami 👟 Junior ; 3 👕 Titulaire (points des défis ×1,25,
++1 000 ⭐) ; 5 🎖️ Capitaine (×1,5, +2 000) ; 10 🌍 International (×2, +5 000) ; 20 🏆 Légende (×3, +15 000). Écrit « total des points ×1,25 » : le multiplicateur porte sur le TOTAL des points gagnés (défis + amis + primes, `gainsTotal`), choix de l'auteur du 23/11 pour que ce soit limpide ; la boutique n'est pas multipliée. Les 500 ⭐ par ami
 restent. Le multiplicateur porte sur TOUS les points de défis (passés et futurs, RÉTROACTIF par choix de l'auteur du 23/11, à dire noir sur blanc dans la fenêtre), rien n'est stocké : `pointsGagnes` =
 défis + `bonusDefisParrain` + `pointsParrainage` (qui inclut les primes). L'annonce d'un nouveau filleul dit le palier franchi.
 **La fenêtre** (`ouvreInvitation`, en fin de chaîne de la semaine, après la caisse) : le navigateur compte les matchs joués

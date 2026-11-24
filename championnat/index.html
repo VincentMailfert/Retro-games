@@ -24579,11 +24579,11 @@ function pointsParrainage(){ // les filleuls du compte d'ici (le dernier connect
    franchi verse une prime unique et relève le multiplicateur des points de DÉFIS (tous, passés et à venir : rien
    n'est stocké, tout se recalcule depuis le nombre de filleuls). Le palier atteint est annoncé une fois. */
 const PARRAIN_GRILLE=[
-  {n:1,  nom:"Premier supporter", ico:"🧣", prime:0,     mult:1},
-  {n:3,  nom:"Le comptoir",       ico:"🍻", prime:1000,  mult:1.25},
-  {n:5,  nom:"Le kop",            ico:"📣", prime:2000,  mult:1.5},
-  {n:10, nom:"La tribune",        ico:"🏟️", prime:5000,  mult:2},
-  {n:20, nom:"Le stade plein",    ico:"🏆", prime:15000, mult:3}];
+  {n:1,  nom:"Junior",        ico:"👟", prime:0,     mult:1},   // noms en niveaux de joueur (choix de l'auteur, 24/11/2026)
+  {n:3,  nom:"Titulaire",     ico:"👕", prime:1000,  mult:1.25},
+  {n:5,  nom:"Capitaine",     ico:"🎖️", prime:2000,  mult:1.5},
+  {n:10, nom:"International", ico:"🌍", prime:5000,  mult:2},
+  {n:20, nom:"Légende",       ico:"🏆", prime:15000, mult:3}];
 function filleulsIci(){ const s=compteLit(), d=parrainDe(s?s.uid:progMag().der); return d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0; }
 function palierParrain(n){ n=(n==null)?filleulsIci():n; let p=null; for(const g of PARRAIN_GRILLE) if(n>=g.n) p=g; return p; }
 function palierSuivant(n){ n=(n==null)?filleulsIci():n; return PARRAIN_GRILLE.find(g=>g.n>n)||null; }
@@ -24636,7 +24636,7 @@ function grilleParrainHTML(n){ // la grille des paliers : franchis en or, le pro
       <span class="parGain">${g.prime?`+${FMT(g.prime)} ⭐`:"+"+FMT(PARRAIN_PTS)+" ⭐"}${g.mult>1?`<br><span class="parDef">Total des points <b>${multLib(g.mult)}</b></span>`:""}</span></div>`; }).join("")}</div>
     ${suiv?`<div class="parBarre"><i style="width:${Math.round(100*n/suiv.n)}%"></i></div>
       <p class="dim" style="font-size:13px;text-align:center">${n} / ${suiv.n} · encore ${suiv.n-n} ami${suiv.n-n>1?"s":""} pour ${suiv.ico} ${esc(suiv.nom)}</p>`
-      :`<p class="fort" style="text-align:center">🏆 Stade plein. Merci.</p>`}`;
+      :`<p class="fort" style="text-align:center">🏆 Légende. Merci.</p>`}`;
 }
 function parrainageHTML(){ // le panneau de la salle des trophées (et de la fenêtre)
   const s=compteLit(), d=s&&parrainDe(s.uid), n=d?Math.min(Math.max(0,+d.n||0), PARRAIN_MAX):0;
