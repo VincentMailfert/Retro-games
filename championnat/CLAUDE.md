@@ -4307,6 +4307,29 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
 - Gardé par **`harness-trophees.cjs`** (sections A à M, dont une carrière de six saisons où chaque défi de match
   réussi est contrôlé contre le score du soir, la boutique en L, la jeune légende en M).
 
+### LE STADE EN VITRINE SUR L'ÉCRAN CLUB (v3.25, demande de l'auteur du 23/11/2026, prototype validé le 24/11/2026)
+L'auteur trouvait que l'aperçu du stade « ne vend pas du rêve » (du rétro pas soigné) et que la vue en grand forçait à tourner
+le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par `docs/construit-stade-3d.cjs`).
+- **Le moteur MATCH3D a un mode vitrine** (`o.vitrine`, retouché dans `docs/prototype-match-3d.html` puis greffé) : le stade
+  seul, sans joueurs, arbitre, bancs garnis ni ballon ; il tourne lentement tant qu'on n'y touche pas (6 s de calme) ; un doigt
+  le fait tourner, ou s'y promène quand on a zoomé ; deux doigts zooment et tournent ; double toucher : rapproche, puis revient.
+  API en plus : `remplir(oui)` (cadrage sur la hauteur, la vue en grand), `tourne(d)`, `recentre()` ; `o.cache()` vrai = plus
+  de rendu (carte hors écran, sous-onglet caché). Sans `o.vitrine`, le direct ne change pas.
+- **Les quatre tribunes** : `o.stade.rangs = [N, S, E, O]` donne la profondeur de chaque côté. `rangsVitrine(cap, virages)`
+  la compte comme le pixel art (`rangs`/`profondeurs` de STADEPIX, ×1,8) : le stade grandit une tribune après l'autre, coins
+  ouverts sans virages, toiture par tribune à sa hauteur, puis cuvette qui s'uniformise avec les virages. Le direct ne passe
+  pas `rangs` : il garde ses côtés de même hauteur (choix de l'auteur pour le match).
+- **Branchement** (`stadeVitrine`, appelé après `peintStades()` dans `ecranClub`) : la toile 3D se pose sur le pixel art
+  (`.maquette.en3d`, le pixel art caché dessous reste le secours : pas de WebGL, mouvement réduit, harnais, pas de three.js) et
+  n'est plus repeinte. La scène est gardée d'un rendu à l'autre (`SVIT`, clé = état du stade + club + moment) et recousue dans
+  la nouvelle carte ; refaite seulement si le stade, le club ou le moment changent. `match3dOuvre` la ferme (une seule scène 3D).
+- **Au fil des mois** (`vitrineMoment`) : soir d'octobre à avril, jour de mai à septembre ; neige ou gel l'hiver, pluie ou
+  brouillard certaines semaines d'automne et de printemps (la journée sert de graine).
+- **En grand** (`vitrineGrand`) : la même toile passe dans `#mqGrand.vit`, plein écran, sans rotation ; téléphone tenu droit,
+  le stade prend la hauteur et fait environ deux fois la largeur de l'écran, on s'y promène du doigt ; deux boutons tournent
+  d'un quart de tour. La fermeture la rend à la carte. Le campus garde l'ancienne vue en grand.
+- La zone cliquable du rang à venir (`.pxCible`) est masquée en 3D : on lance la tribune par les boutons des projets.
+
 ### LA GRILLE ET LA FENÊTRE DU PARRAINAGE (v3.24, demande de l'auteur du 23/11/2026)
 « Mettre le parrainage plus en avant, à travers une fenêtre quand on a joué un certain nombre de matchs », et « une vraie
 incitation, comme une grille ». **La grille** (`PARRAIN_GRILLE`) : 1 ami 🧣 Premier supporter ; 3 🍻 Le comptoir (points des défis ×1,25,
