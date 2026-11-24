@@ -104,7 +104,13 @@ const MATCHS = /*MATCHS*/[{"heure":"nuit","dom":{"id":"PSG","nom":"Paris Saint-G
          camera ("auto", "large", "ballon"), heure ("jour", "soir", "nuit"),
          meteo ("sec", "pluie", "boue", "neige", "gel", "brouillard"), stade ({cap, toit, ecran, pylones}),
          dom / ext ({id, maillot, short, xi:[{nom, pos}]}), enPause (fonction), banniere (fonction, facultative),
-         erreur (fonction, facultative) }
+         erreur (fonction, facultative), vitrine (facultatif, voir plus bas), cache (fonction, facultative) }
+   LA VITRINE (prototype du 24/11/2026, demande de l'auteur : « prendre la vue 3D du stade pour la mettre dans l'aperçu »,
+   docs/prototype-stade-3d.html) : o.vitrine = true montre le stade seul, sans joueurs ni ballon, pour l'écran Club. Il
+   tourne lentement sur lui-même tant qu'on n'y touche pas. Un doigt fait tourner le stade, ou s'y promène quand on a
+   zoomé ; deux doigts zooment et tournent ; un double toucher zoome ou revient au cadrage. remplir(true) cadre le stade
+   sur la hauteur de l'écran (la vue en grand au téléphone tenu droit) : il déborde sur les côtés et l'on s'y promène.
+   o.cache() vrai : la scène ne se redessine plus (la carte est sortie de l'écran), la batterie respire.
    LA SCÈNE NE DÉCIDE DE RIEN : le moteur du jeu écrit le fil, la scène le met en image. annonce(l, ms) prévient
    qu'une ligne s'affichera dans ms millisecondes (l'action démarre et s'arrête juste avant le tir) ;
    ligne(l) dit qu'elle s'affiche (le tir part, le score change, la mi-temps tombe). */
@@ -1808,10 +1814,25 @@ function fabriqueMatch3D(THREE, o){
      Avant, toute action se regardait de près, et c'est de près qu'un geste approximatif se voit. */
   const gros = { t:0, sur:null };
   const grosPlan = (sur, t) => { gros.sur=sur; gros.t=t; };
-  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, cible:new THREE.Vector3(), demi:80, mode:o.camera, zoom:1 };   // zoom : réglé aux doigts (pincer), 1 = cadrage automatique
+  const cam = { angle:Math.PI/4, angleCible:Math.PI/4, cible:new THREE.Vector3(), demi:80, mode:o.camera, zoom:1,
+    pan:{x:0,y:0}, panV:{x:0,y:0}, remplir:false, tranquille:-1e9 };   // pan, remplir, tranquille : la vitrine seule   // zoom : réglé aux doigts (pincer), 1 = cadrage automatique
   const taille = () => ({w:Math.max(1,canvas.clientWidth||300), h:Math.max(1,canvas.clientHeight||150)});
+  /* la vitrine : tout le stade et son île dans le cadre, quel que soit l'angle (le rayon couvre les coins) */
+  const RAYON = Math.hypot(ileL, ileP)/2, EL = .6;
+  const vitrineHaut = () => RAYON*Math.sin(EL) + 22;                  // l'île vue d'en haut, plus les rochers dessous
+  /* la carte : tout le stade dans le cadre (un peu serré, les coins de l'île frôlent le bord quand il tourne) ; la vue en
+     grand au téléphone tenu droit : le stade fait un peu moins de deux fois la largeur de l'écran, on s'y promène */
+  function vitrineDemi(){ const {w,h}=taille(), asp=w/h;
+    return cam.remplir ? Math.max(vitrineHaut()*.9, RAYON*.56/asp) : Math.max(RAYON*.9/asp, vitrineHaut()*.9); }
+  function bornePan(){
+    const {w,h}=taille(), asp=w/h, d=vitrineDemi()*cam.zoom;
+    const mx=Math.max(0, RAYON*1.02-d*asp), my=Math.max(0, vitrineHaut()-d);
+    cam.pan.x=clamp(cam.pan.x,-mx,mx); cam.pan.y=clamp(cam.pan.y,-my,my);
+    return mx>3 || my>3;
+  }
   function cadrage(){
     const {w,h}=taille(), asp=w/h;
+    if(o.vitrine) return {cible:new THREE.Vector3(0,-4,0), demi:vitrineDemi()};
     const large = {cible:new THREE.Vector3(0,-4,0), demi:Math.max(72,104/asp)*ileL/168};
     if(cam.mode==='large' && etat.phase!=='but') return large;
     const pres = Math.max(28, 40/asp);
@@ -1832,16 +1853,20 @@ function fabriqueMatch3D(THREE, o){
     if(etat.phase==='pause'||etat.phase==='fin'||etat.phase==='avant'||etat.phase==='replacement') return {cible:new THREE.Vector3(0,-2,0), demi:Math.min(large.demi, pres*2.1)};
     return {cible:new THREE.Vector3(p.x*.2,-1,p.z*.12), demi:Math.min(large.demi, Math.max(41, 66/asp))};   // le plan large
   }
+  const V_DROITE=new THREE.Vector3(), V_HAUT=new THREE.Vector3();
   function placerCamera(dt){
     const c=cadrage(), k=Math.min(1,dt*(etat.phase==='but'||ACT?2:1.1));
-    if(cam.zoom<1){ const suivi=clamp((1-cam.zoom)*1.6,0,1), p=(etat.phase==='but'&&etat.buteur)?etat.buteur.pos:B.pos;   // zoomé, on colle davantage au ballon
+    if(cam.zoom<1 && !o.vitrine){ const suivi=clamp((1-cam.zoom)*1.6,0,1), p=(etat.phase==='but'&&etat.buteur)?etat.buteur.pos:B.pos;   // zoomé, on colle davantage au ballon
       c.cible.lerp(new THREE.Vector3(p.x,0,p.z), suivi); }
     c.demi*=cam.zoom;
     cam.cible.lerp(c.cible,k); cam.demi+=(c.demi-cam.demi)*Math.min(1,k*2.5);
+    if(o.vitrine && !reduit && doigts.size===0 && performance.now()-cam.tranquille>6000) cam.angleCible+=dt*.12;   // le tour lent, tant qu'on n'y touche pas
     cam.angle+=(cam.angleCible-cam.angle)*Math.min(1,dt*6);
-    const el=.6, D=300;
+    const el=EL, D=300;
     camera.position.set(cam.cible.x+Math.sin(cam.angle)*Math.cos(el)*D, cam.cible.y+Math.sin(el)*D, cam.cible.z+Math.cos(cam.angle)*Math.cos(el)*D);
     camera.lookAt(cam.cible);
+    if(o.vitrine){ bornePan(); const kp=Math.min(1,dt*10); cam.panV.x+=(cam.pan.x-cam.panV.x)*kp; cam.panV.y+=(cam.pan.y-cam.panV.y)*kp;
+      camera.updateMatrixWorld(); camera.position.addScaledVector(V_DROITE.setFromMatrixColumn(camera.matrixWorld,0), cam.panV.x).addScaledVector(V_HAUT.setFromMatrixColumn(camera.matrixWorld,1), cam.panV.y); }
     const {w,h}=taille(), asp=w/h, dec=o.decalage||0;
     camera.left=-cam.demi*asp; camera.right=cam.demi*asp; camera.top=cam.demi*(1-dec); camera.bottom=-cam.demi*(1+dec);
     camera.updateProjectionMatrix();
@@ -1852,15 +1877,25 @@ function fabriqueMatch3D(THREE, o){
   let glisse=null, pince=null, dernierTap=0;
   const doigts=new Map();
   const ecart=()=>{ const v=[...doigts.values()]; return Math.hypot(v[0].x-v[1].x, v[0].y-v[1].y)||1; };
+  const biais=()=>{ const v=[...doigts.values()]; return Math.atan2(v[1].y-v[0].y, v[1].x-v[0].x); };
+  const parPixel=()=>2*vitrineDemi()*cam.zoom/taille().h;            // la vitrine : unités du monde par pixel d'écran
   const surDown=e=>{ doigts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
-    if(doigts.size===2){ glisse=null; pince={d:ecart(), z:cam.zoom}; }
-    else if(doigts.size===1){ glisse={x:e.clientX,a:cam.angleCible};
-      const t=performance.now(); if(t-dernierTap<320){ cam.zoom=1; cam.angleCible=Math.PI/4; } dernierTap=t; } };
+    cam.tranquille=performance.now();
+    if(doigts.size===2){ glisse=null; pince={d:ecart(), z:cam.zoom, b:biais(), a:cam.angleCible}; }
+    else if(doigts.size===1){ glisse={x:e.clientX,y:e.clientY,a:cam.angleCible, px:cam.pan.x, py:cam.pan.y, promene: !!o.vitrine && bornePan()};
+      const t=performance.now();
+      if(t-dernierTap<320){ if(o.vitrine){ if(cam.zoom<.95 && !cam.remplir){ cam.zoom=1; cam.pan.x=cam.pan.y=0; } else cam.zoom=clamp(cam.zoom*.55,.3,1.5); glisse=null; }
+        else { cam.zoom=1; cam.angleCible=Math.PI/4; } }
+      dernierTap=t; } };
   const surMove=e=>{ if(!doigts.has(e.pointerId)) return; doigts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pince && doigts.size>=2){ cam.zoom=clamp(pince.z*pince.d/ecart(), .3, 1.5); e.preventDefault&&e.preventDefault(); }
+    cam.tranquille=performance.now();
+    if(pince && doigts.size>=2){ cam.zoom=clamp(pince.z*pince.d/ecart(), .3, 1.5); e.preventDefault&&e.preventDefault();
+      if(o.vitrine){ let db=biais()-pince.b; db=Math.atan2(Math.sin(db),Math.cos(db)); cam.angleCible=pince.a+db; } }
+    else if(glisse && glisse.promene){ const k=parPixel(); cam.pan.x=glisse.px-(e.clientX-glisse.x)*k; cam.pan.y=glisse.py+(e.clientY-glisse.y)*k; bornePan(); }
     else if(glisse) cam.angleCible=glisse.a-(e.clientX-glisse.x)*0.008; };
   const surUp=e=>{ doigts.delete(e&&e.pointerId); if(doigts.size<2) pince=null; if(doigts.size===0) glisse=null; };
-  const surMolette=e=>{ if(!e.ctrlKey && !(typeof document!=='undefined' && document.fullscreenElement)) return;
+  const surMolette=e=>{ if(!e.ctrlKey && !(o.vitrine && cam.remplir) && !(typeof document!=='undefined' && document.fullscreenElement)) return;
+    cam.tranquille=performance.now();
     e.preventDefault(); cam.zoom=clamp(cam.zoom*Math.exp(e.deltaY*.0025), .3, 1.5); };
   canvas.addEventListener('wheel',surMolette,{passive:false});
   canvas.addEventListener('pointerdown',surDown); canvas.addEventListener('pointermove',surMove);
@@ -1881,10 +1916,11 @@ function fabriqueMatch3D(THREE, o){
     const fige = !!o.enPause();
     const dJeu = fige ? 0 : dt*(typeof window!=='undefined' && window.__vit || 1);
     horloge+=dJeu; if(gros.t>0) gros.t-=dJeu;
+    if(!o.vitrine){
     majJeu(dJeu);
     lanceAttente();
     poserJoueurs(dJeu, now);
-    { const dx=B.pos.x-ballon.position.x, dz=B.pos.z-ballon.position.z; ballon.position.copy(B.pos); ballon.position.y-=.62-R_BALLON; if(!fige){ ballon.rotation.x+=dz/R_BALLON; ballon.rotation.z-=dx/R_BALLON; } }
+    { const dx=B.pos.x-ballon.position.x, dz=B.pos.z-ballon.position.z; ballon.position.copy(B.pos); ballon.position.y-=.62-R_BALLON; if(!fige){ ballon.rotation.x+=dz/R_BALLON; ballon.rotation.z-=dx/R_BALLON; } } }
     const c=ambianceCible(), k=Math.min(1,dt*2);
     ambC.fond.lerp(c.fond,k); ambC.sCol.lerp(c.sCol,k); ambC.sI+=(c.sI-ambC.sI)*k; ambC.hCiel.lerp(c.hCiel,k); ambC.hSol.lerp(c.hSol,k);
     ambC.hI+=(c.hI-ambC.hI)*k; ambC.spots+=(c.spots-ambC.spots)*k; ambC.pos.lerp(c.pos,k);
@@ -1913,9 +1949,14 @@ function fabriqueMatch3D(THREE, o){
     placerCamera(dt);
     renderer.render(scene,camera);
   }
-  function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); try{ image(now); }catch(e){ signale(e); } }
+  function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); if(o.cache && o.cache()){ avant=now; return; } try{ image(now); }catch(e){ signale(e); } }
 
   placerEntree();
+  if(o.vitrine){                                      // la vitrine : le stade seul, la pelouse vide
+    for(const f of figurants){ f.g.visible=false; if(f.ombre) f.ombre.visible=false; }
+    for(const r of remplacants){ r.g.visible=false; if(r.ombre) r.ombre.visible=false; }
+    ballon.visible=false; ombreBallon.visible=false;
+  }
   dessinerEcran();
   if(typeof document!=='undefined' && document.fonts) document.fonts.ready.then(()=>{ if(vivant) dessinerEcran(); });
   cam.demi=cadrage().demi;
@@ -1932,6 +1973,11 @@ function fabriqueMatch3D(THREE, o){
       return Math.round(s*1000)+350+1100; },
     camera(m){ cam.mode=m; },
     zoom(z){ if(typeof z==='number') cam.zoom=clamp(z,.3,1.5); return cam.zoom; },
+    /* la vitrine : remplir(oui) cadre le stade sur la hauteur (la vue en grand), tourne(d) le fait pivoter de d radians,
+       recentre() revient au cadrage de départ */
+    remplir(oui){ cam.remplir=!!oui; cam.zoom=1; cam.pan.x=cam.pan.y=0; cam.tranquille=performance.now(); },
+    tourne(d){ cam.angleCible+=d; cam.tranquille=performance.now(); },
+    recentre(){ cam.zoom=1; cam.pan.x=cam.pan.y=0; },
     ferme(){
       if(!vivant) return; vivant=false; cancelAnimationFrame(idRaf);
       canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
