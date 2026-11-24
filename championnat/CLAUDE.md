@@ -6729,6 +6729,45 @@ stagione ». (6) 24 retenus restent à `arrivee` 1, dont Buffon (centre de forma
 (« E. D. Bianco », « D. D. Carri », « A. D. Canto », « G. D. Pulpito ») viennent des saisons précédentes et sont reprises telles quelles.
 Validation dédiée : **`harness-ita9596.cjs`**.
 
+### ITA 1996-97 — DEL PIERO À TOKYO (v3.25)
+Septième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 24/11/2026 (`secours/2026-11-24`). La Juventus de
+Lippi, championne d'Europe en titre, gagne la Coupe intercontinentale à Tokyo (un but de Del Piero contre River Plate) puis la Supercoupe
+d'Europe contre le PSG, et reprend le scudetto avec deux points d'avance sur le Parma d'Ancelotti ; elle perd la finale de la Ligue des
+champions à Munich contre Dortmund. Le Vicenza de Guidolin gagne la Coupe d'Italie, le Milan finit onzième. **Del Piero quatrième du Ballon
+d'or 1996 (86)**, Desailly huitième, Djorkaeff neuvième. **Inzaghi meilleur buteur avec vingt-quatre buts pour l'Atalanta (81)**, Montella
+vingt-deux (79), Balbo, Tovalieri (Reggiana puis Cagliari, 74), Negri (75), Luiso (73) ; en Serie B, **Dionigi meilleur buteur (vingt-quatre
+buts, 72)**, Bellucci et Cerbone vingt. **Pirlo**, dix-sept ans à Brescia, sortait à 57/73 : relevé à 62/90 ; Buffon, titulaire à Parma à
+dix-huit ans, 72. Sièges = `SIEGES_ITA[1996]`. Coup d'envoi commun le **8 septembre 1996**.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté. Piacenza se sauve au barrage contre Cagliari. **Ravenna perd trois points**
+(`penalite` 3). **Castel di Sangro (3512, « ASD Castel di Sangro ») et Empoli (749, « FC Empoli »)**, montés de C1 et déjà dans `CLUBS_ITA`,
+entrent dans `releves/clubs-tm.json` (classement Transfermarkt de la Serie B 1996). **Notes** : 509 héritées de 1995-96 vieillies d'un an, 51
+de plus loin, 8 du recruteur de l'été, 152 calculées ; élite 70.5 / 70, dessous 66.5 / 67. Quatorze ajustements (`ajust-ITA-9697.json`),
+buteurs vérifiés sur « Serie A 1996-1997 » et « Serie B 1996-1997 » (italiennes), Ballon d'or sur « 1996 Ballon d'Or » (anglaise).
+**Les arrivées**, sans l'historique (`ceapi` refusé par l'environnement de la tâche) : la méthode de 1995-96, listes de transferts en deux
+tables puis pages de détail pour les seuls hommes qui en ont besoin (600 hommes, 464 pages). 92 arrivés en cours de saison écartés (Dimas à la
+Juventus, Stanić et Pedros à Parma, Candela à la Roma, Kanchelskis à la Fiorentina, Blomqvist au Milan, Gattuso et Materazzi à Perugia).
+**Nouveau, et à garder : un homme sans aucun transfert daté et sans « Im Team seit » antérieure au coup d'envoi, mais présent au même club
+dans le relevé de la saison précédente, compte au club au coup d'envoi** (66 hommes, dont O'Neill à Cagliari et Buffon à Parma) ; il ne
+reste que 16 retenus à `arrivee` 1, contre 24 en 1995-96.
+**LES NOTES WIKIPÉDIA NOMMÉES.** Une page de saison réutilise souvent une note par son nom (`<ref name="Cedutoinverno"/>`, `{{efn|name=…}}`) :
+le premier lecteur ne voyait que les notes écrites en entier sur la ligne et manquait Locatelli, Saudati, Ipoua, Foglia, Biato… **Résoudre
+les notes nommées sur toute la page avant de lire les lignes « Calciatore in rosa ».** Elles tranchent contre la date par défaut du 1er
+juillet : arrivés en cours de saison, Ferrante et Rocco au Torino (Rocco reste à Perugia au coup d'envoi), Delli Carri à Piacenza (Genoa
+« fino a settembre »), Longhi à la Reggiana, Biato à la Lucchese, Castellazzi, Fig et Brioschi à Padova, Locatelli à l'Udinese, Tovalieri
+à Cagliari, Giunta à l'Hellas ; au coup d'envoi, Locatelli au Milan, Biato et Foglia au Torino, Pedone et Tovalieri à la Reggiana
+(Transfermarkt met Pedone à la Reggina : confusion probable des deux clubs), Pioli, Ciocci et Giunta à Padova, Marin à la Reggina,
+Pisciotta à Palermo. Surcharges écrites dans la `remarque` du relevé, avec leur citation.
+**Les pièges.** (1) **Le Lecce rougit le contrôle d'identité du vérificateur de relevé** : sa dernière saison au jeu est 1994-95, il est
+descendu en C1 puis remonté deux fois de suite, un seul retenu en commun ; identité prouvée par la rosa Wikipédia (18/18). (2) **Bachini**
+(Lecce, 1 088 minutes) est dans l'onglet de temps de jeu mais pas sur la page d'effectif : gardé, naissance lue sur sa fiche Transfermarkt,
+la page du Lecce le dit prêté par l'Udinese et aligné en Coppa Italia avant le coup d'envoi. (3) **Un innommable : Reinaldo** (Hellas, deux
+matchs), dont le nom est porté au jeu par un autre homme : retiré (`_retirer`), l'ailier **Binotto passe en attaque** (`_corriger`) et
+**Ferrarese** (dix-huit ans, rosa Wikipédia) est promu (`_ajouter`). (4) Huit ailiers ou « A » de la rosa passent en attaque (Zanini,
+Kolyvanov, Nervo, Gautieri, Francioso, Rastelli, Ricchetti, Vasari). (5) Da Rold (Lucchese) gardé au coup d'envoi sur la date du 1er
+septembre de Transfermarkt malgré une note « autunnale-invernale » (2 832 minutes). (6) Trois prénoms écrits depuis le nom complet de
+Transfermarkt, qui n'abrège pas ces noms : Hazem (Emam), Márcio (Amoroso), Zé (Zé Maria, au jeu « Z. Maria »).
+Validation dédiée : **`harness-ita9697.cjs`**.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
