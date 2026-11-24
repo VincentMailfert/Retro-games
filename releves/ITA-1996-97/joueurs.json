@@ -710,7 +710,7 @@
    "tm": 6081,
    "nom": "Zé Maria",
    "court": "Zé Maria",
-   "prenom": "",
+   "prenom": "Zé",
    "poste": "D",
    "naissance": "1973-07-25",
    "matchs": 25,
@@ -720,7 +720,7 @@
    "force": false,
    "deja_au_jeu": false,
    "source": "tm",
-   "remarque": ""
+   "remarque": "prénom d'usage tiré du nom complet Transfermarkt (nom court non abrégé par la source)"
   },
   {
    "tm": 511998,
@@ -2380,7 +2380,7 @@
    "tm": 55533,
    "nom": "Hazem Emam",
    "court": "Hazem Emam",
-   "prenom": "",
+   "prenom": "Hazem",
    "poste": "M",
    "naissance": "1975-04-17",
    "matchs": 4,
@@ -2390,13 +2390,13 @@
    "force": false,
    "deja_au_jeu": false,
    "source": "tm",
-   "remarque": ""
+   "remarque": "prénom d'usage tiré du nom complet Transfermarkt (nom court non abrégé par la source)"
   },
   {
    "tm": 1263,
    "nom": "Márcio Amoroso",
    "court": "Márcio Amoroso",
-   "prenom": "",
+   "prenom": "Márcio",
    "poste": "A",
    "naissance": "1974-07-05",
    "matchs": 29,
@@ -2406,7 +2406,7 @@
    "force": false,
    "deja_au_jeu": false,
    "source": "tm",
-   "remarque": ""
+   "remarque": "prénom d'usage tiré du nom complet Transfermarkt (nom court non abrégé par la source)"
   },
   {
    "tm": 223008,

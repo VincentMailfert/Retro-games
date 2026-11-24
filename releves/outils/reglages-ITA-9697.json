@@ -1,0 +1,26 @@
+{
+ "pays": "ITA",
+ "an": 1996,
+ "version_avant": "3.24",
+ "version_apres": "3.25",
+ "nom": "Del Piero à Tokyo",
+ "sous": "La Juventus de Marcello Lippi, championne d'Europe en titre, gagne la Coupe intercontinentale à Tokyo grâce à un but d'Alessandro Del Piero contre River Plate, puis la Supercoupe d'Europe contre le Paris Saint-Germain, et reprend le scudetto avec deux points d'avance sur le Parma de Carlo Ancelotti. Elle perd en revanche la finale de la Ligue des champions à Munich contre le Borussia Dortmund. Filippo Inzaghi, à l'Atalanta, finit meilleur buteur avec vingt-quatre buts, devant Vincenzo Montella. Le Vicenza de Francesco Guidolin gagne la Coupe d'Italie, et le Milan finit onzième. En Serie B, Brescia est champion, et Castel di Sangro, un bourg de cinq mille habitants, se maintient pour sa première saison.",
+ "euroC1": [
+  "MIL",
+  "JUV"
+ ],
+ "euroC2": [
+  "FIO"
+ ],
+ "euroC3": [
+  "LAZ",
+  "ROM",
+  "PAR",
+  "INT"
+ ],
+ "reel": {
+  "d1": "JUV PAR INT LAZ UDI SAM BGN VIC FIO ATA MIL ROM NAP PIA CAG PRG HEL REG",
+  "d2": "BRS EMP LEC BAI GEN PES CHI RAV TOR RGC FOG PAD VEN LUC SAL CDS COS CES PAL CRM"
+ },
+ "entete": "ITA 1996-97 (v3.25) : « Del Piero à Tokyo ». La septième saison italienne, assemblée par la tâche planifiée le 24/11/2026 à partir du relevé releves/ITA-1996-97 (Transfermarkt, effectif et temps de jeu de la saison 1996, arrivées datées par les listes de transferts des clubs et les pages de détail de transfert, recoupées par les pages Wikipédia italiennes de saison des clubs ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 509 notes héritées de 1995-96 vieillies d'un an, 51 de plus loin, 8 du recruteur de l'été, les autres calculées, quatorze ajustées à la main (releves/outils/ajust-ITA-9697.json)."
+}

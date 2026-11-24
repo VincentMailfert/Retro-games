@@ -1,0 +1,27 @@
+{
+ "_note": "ITA 1996-97 (assemblée le 24/11/2026). Septième saison italienne : notes héritées de 1995-96 vieillies d'un an, puis de plus loin, du recruteur, les autres calculées. Buteurs vérifiés sur la Wikipédia italienne (« Serie A 1996-1997 », « Serie B 1996-1997 ») et le classement du Ballon d'or 1996 sur la Wikipédia anglaise (« 1996 Ballon d'Or »). Arrivées datées par les listes de transferts des clubs et les pages de détail de transfert de Transfermarkt, recoupées par les pages Wikipédia italiennes de saison des clubs.",
+ "_forcer": [],
+ "_retirer": [
+  ["HEL", "Reinaldo", "innommable : « Reinaldo » est déjà porté dans le jeu par un autre homme (autre naissance), et Transfermarkt ne lui donne pas d'autre nom court ; deux matchs, soixante et une minutes (jurisprudence ANG 1990-91 et ANG 2004-05 : le club promeut le suivant)"]
+ ],
+ "_corriger": [
+  ["HEL", "Jonatan Binotto", {"poste": "A"}, "ailier droit (« Rechtsaußen » chez Transfermarkt), passé en attaque pour tenir quatre attaquants une fois Reinaldo retiré"]
+ ],
+ "_ajouter": [
+  ["HEL", "Claudio Ferrarese", "dix-huit ans, ailier du centre de formation, dans la rosa Wikipédia de l'Hellas 1996-1997 (un match), déjà au club dans le relevé 1995-96, aucun transfert dans les listes de la saison : le suivant à promouvoir"]
+ ],
+ "A. Del Piero": [86, 93, "vingt-deux ans, quatrième du Ballon d'or 1996, buteur de la finale de la Coupe intercontinentale à Tokyo contre River Plate"],
+ "F. Inzaghi": [81, 86, "meilleur buteur de Serie A avec vingt-quatre buts pour l'Atalanta"],
+ "V. Montella": [79, 84, "vingt-deux buts pour la Sampdoria, deuxième buteur de Serie A"],
+ "S. Tovalieri": [74, 75, "seize buts en Serie A, entre la Reggiana et Cagliari"],
+ "M. Negri": [75, 77, "quinze buts pour Perugia"],
+ "P. Luiso": [73, 74, "quatorze buts pour Piacenza, qui se sauve au barrage"],
+ "C. Vieri": [77, 86, "vingt-trois ans, arrivé de l'Atalanta, buteur de la Juventus championne"],
+ "G. Buffon": [72, 93, "dix-huit ans, titulaire dans les buts de Parma, deuxième du championnat"],
+ "A. Pirlo": [62, 90, "dix-sept ans, du centre de formation de Brescia, champion de Serie B ; le jeu le portait à 57/73"],
+ "D. Dionigi": [72, 74, "meilleur buteur de Serie B avec vingt-quatre buts pour la Reggina"],
+ "C. Bellucci": [71, 77, "vingt buts pour Venezia, deuxième buteur de Serie B"],
+ "R. Cerbone": [70, 70, "vingt buts pour le Chievo, deuxième buteur de Serie B"],
+ "F. Giampaolo": [69, 71, "seize buts pour Pescara"],
+ "C. Francioso": [72, 72, "quinze buts pour le Lecce promu"]
+}
