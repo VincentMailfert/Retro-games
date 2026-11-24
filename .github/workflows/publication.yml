@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploiement.outputs.page_url }}
+      url: ${{ steps.essai1.outputs.page_url || steps.essai2.outputs.page_url || steps.essai3.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -51,5 +51,20 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-      - id: deploiement
+      # La mise en ligne ne retrouve parfois pas le site qu'on vient d'envoyer (« No artifacts named
+      # github-pages », panne côté GitHub : 4 échecs sur 5 le 24/11/2026). On réessaie deux fois, après
+      # une petite attente, avant de déclarer l'échec.
+      - id: essai1
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.essai1.outcome == 'failure'
+        run: sleep 20
+      - id: essai2
+        if: steps.essai1.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.essai2.outcome == 'failure'
+        run: sleep 45
+      - id: essai3
+        if: steps.essai2.outcome == 'failure'
         uses: actions/deploy-pages@v4
