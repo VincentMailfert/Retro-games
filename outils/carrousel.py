@@ -22,17 +22,17 @@ CSS = f"""
 *{{margin:0;padding:0;box-sizing:border-box}}
 body{{width:1080px;height:1350px;background:#0b1626;color:#e8eef8;font-family:Plex,sans-serif;position:relative;overflow:hidden}}
 .fond{{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#16304f 0%,#0b1626 65%)}}
-.cadre{{position:absolute;inset:36px;border:4px solid #ffd24a;padding:70px 72px;display:flex;flex-direction:column}}
-.kick{{font-family:Silk;color:#ffd24a;font-size:34px;letter-spacing:4px}}
-h1{{font-family:Arch;font-size:76px;line-height:1.08;color:#fff;margin-top:26px}}
-.txt{{font-size:40px;line-height:1.4;color:#c9d4e4;margin-top:30px}}
+.cadre{{position:absolute;inset:36px;border:4px solid #ffd24a;padding:96px 100px 150px;display:flex;flex-direction:column;justify-content:center}}
+.kick{{font-family:Silk;color:#ffd24a;font-size:26px;letter-spacing:4px}}
+h1{{font-family:Arch;font-size:60px;line-height:1.1;color:#fff;margin-top:22px}}
+.txt{{font-size:32px;line-height:1.45;color:#c9d4e4;margin-top:30px}}
 .txt b{{color:#ffd24a;font-weight:600}}
-.img{{margin-top:36px;flex:1;min-height:0;display:flex;align-items:center;justify-content:center}}
+.img{{margin-top:44px;max-height:640px;display:flex;align-items:center;justify-content:center}}
 .img img{{max-width:100%;max-height:100%;border:3px solid #27466e}}
-.logo{{width:760px;margin:10px auto 0}}
-.c h1{{text-align:center;font-size:80px;margin-top:70px}} .c .txt{{text-align:center}}
-.cta{{margin-top:60px;background:#ffd24a;color:#0b1626;font-family:Arch;font-size:52px;text-align:center;padding:26px}}
-.pied{{margin-top:auto;padding-top:24px;display:flex;justify-content:space-between;font-family:VT;font-size:46px;color:#ffd24a}}
+.logo{{width:560px;margin:10px auto 0}}
+.c h1{{text-align:center;font-size:60px;margin-top:80px}} .c .txt{{text-align:center}}
+.cta{{margin-top:70px;background:#ffd24a;color:#0b1626;font-family:Arch;font-size:38px;text-align:center;padding:20px}}
+.pied{{position:absolute;left:100px;right:100px;bottom:70px;display:flex;justify-content:space-between;font-family:VT;font-size:38px;color:#ffd24a}}
 .pied .n{{color:#6f7f98}}
 """
 def page(corps, i, n, gauche="multiplex.club"):
@@ -45,7 +45,7 @@ async def main(src, out):
     logo = open(os.path.join(ICI, "logo.svg")).read()
     pages = []
     cv = c["couverture"]
-    pages.append(f"<div class='c' style='display:flex;flex-direction:column;flex:1'><div class=logo>{logo}</div><h1>{gras(cv['titre'])}</h1><p class=txt>{gras(cv.get('sous',''))}</p></div>")
+    pages.append(f"<div class='c'><div class=logo>{logo}</div><h1>{gras(cv['titre'])}</h1><p class=txt>{gras(cv.get('sous',''))}</p></div>")
     for d in c["diapos"]:
         img = f"<div class=img><img src='file://{os.path.abspath(d['image'])}'></div>" if d.get("image") else ""
         pages.append(f"<div class=kick>{e(d.get('kick','NOUVEAU'))}</div><h1>{gras(d['titre'])}</h1><p class=txt>{gras(d.get('texte',''))}</p>{img}")
