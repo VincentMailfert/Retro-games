@@ -4307,6 +4307,38 @@ la boutique à points et les défis de club viendront après). **Pas d'argent r�
 - Gardé par **`harness-trophees.cjs`** (sections A à M, dont une carrière de six saisons où chaque défi de match
   réussi est contrôlé contre le score du soir, la boutique en L, la jeune légende en M).
 
+### LES GRANDES LÉGENDES (v3.27, demande de l'auteur du 23/11/2026, maquette validée le 24/11/2026)
+L'auteur trouvait que l'achat de la jeune légende « ne donne pas envie » : on paie sans voir qui arrive. Maquette
+publiée à part (artifact « Multiplex · Les légendes »), puis branchée : un rayon **« Les légendes »** ouvre la boutique
+(salle des trophées et `ecranBoutique`), en cartes dorées avec, au centre, le **maillot floqué vu de dos en pixel art**.
+- **Pas de visage** : on ne dessine pas de vraies personnes. Le maillot (couleurs d'époque, sans écusson ni marque), le
+  nom floqué et le numéro font la reconnaissance. `maillotPixel(kit, nom, num)` le peint sur un canvas 80 × 80
+  (lumière d'en haut à gauche, plis, couture d'épaule, contour sombre, lettres 3 × 5 et chiffres 5 × 7 × 3 dessinés au
+  pixel, sans police), mis en cache ; vide au harnais. Choix de l'auteur pendant la maquette : nom petit au niveau
+  des omoplates, numéro juste dessous, manches en biais, **aucun effet de reflet** (« trop classique des animations
+  IA »), pas de nom en arc (illisible à cette taille).
+- **Huit légendes** (`LEGENDES_BOUT`) : Cruyff, Platini, Maradona, Van Basten, Beckenbauer, Di Stéfano, Eusébio, Kopa,
+  toutes retirées avant 1990 sauf Maradona et Van Basten, qui portent `reel` : si le vrai joueur est sur les pelouses
+  de la saison (Naples 1990-91, Milan jusqu'en 1995), la légende attend (`legSurTerrain`), jamais de doublon. Papin
+  avait été écarté pour la même raison (il joue toute la décennie en France).
+- Deux versions (règles de l'auteur du 13/11) : **au sommet** (note 93 à 98) ou **à ses débuts** (16 à 19 ans, potentiel
+  du sommet, on le voit grandir). Caractères fidèles (`traits`), salaire à moitié (`salMult:0.5`). Aucun garde-fou
+  d'équilibre.
+- Trois durées : **1 saison** et **3 saisons** dans la carrière en cours (une fois par saison et par légende, refusé s'il
+  est déjà au club), **pour toujours** (achetable hors carrière : il arrive tout de suite si une carrière est ouverte,
+  puis au départ de chaque carrière neuve par `boutiqueAuDepart`). Le joueur porte `legende:{id, ver, fin}` ; à
+  l'intersaison, juste après `G.saisonIdx++`, `departsLegendes` renvoie les locations échues.
+- **Format des achats** (contraint par `progNette`) : article `leg<id>z<version>z<durée>` (« legcruyffzjeunezun »),
+  identifiant `leg-<id>-toujours` ou article + carrière + saison. `prixAchat` remplace la lecture directe de `ART_DE`
+  dans `depensePoints`.
+- Une légende **ne se vend pas, ne se prête pas** (`refusDepart`), n'est jamais visée par `genOffreExt` ni emportée
+  par un incident qui « vend » (`eff`).
+- **La jeune légende** quitte la liste et prend sa carte en tête du rayon (`pepiteHTML`, ligne `.boArt` gardée pour le
+  harnais) : en carrière, la pépite de la saison au maillot de son club (`kitDuClub` lit `BLASONS`), hors carrière
+  l'exemple d'Henry à Monaco.
+- La signature : la carte arrive de dos (le M), se retourne, rayons dorés, « … rejoint votre club » (`revelation`).
+- Gardé par **`harness-legendes.cjs`** (sections A à H, dont six saisons avec un Platini de 17 ans pour toujours).
+
 ### LE STADE EN VITRINE SUR L'ÉCRAN CLUB (v3.26, demande de l'auteur du 23/11/2026, prototype validé le 24/11/2026)
 L'auteur trouvait que l'aperçu du stade « ne vend pas du rêve » (du rétro pas soigné) et que la vue en grand forçait à tourner
 le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par `docs/construit-stade-3d.cjs`).

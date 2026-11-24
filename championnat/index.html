@@ -779,6 +779,49 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
   .boIco{font-size:22px;width:28px;text-align:center;}
   .boTxt{flex:1;display:flex;flex-direction:column;font-size:14px;}
   .boTxt .dim{font-size:13px;}
+  /* LES GRANDES LÉGENDES (v3.27) : cartes dorées, maillot pixel vu de dos, fiche et signature */
+  .lgGrille{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 14px;}
+  .lgCarte{position:relative;display:block;width:100%;aspect-ratio:3/4.3;border:none;border-radius:0;cursor:pointer;font:inherit;color:inherit;padding:4px;
+    background:linear-gradient(160deg,#fff1c2 0%,#e2bb5c 30%,#b0812a 72%,#7d5718 100%);box-shadow:0 0 0 2px #000,0 5px 0 #000;overflow:hidden;}
+  .lgCarte:active{transform:translateY(2px);}
+  .lgCarte.lgFixe{cursor:default;} .lgCarte.lgFixe:active{transform:none;}
+  .lgIn{height:100%;background:linear-gradient(180deg,#14243d,#0a1424);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:7px 6px 6px;}
+  .lgHaut{width:100%;display:flex;justify-content:space-between;align-items:flex-start;text-align:left;}
+  .lgNote{font-family:var(--font-led);font-size:22px;color:#fff1c2;line-height:1;}
+  .lgPoste{font-family:var(--font-led);font-size:9px;color:#e2bb5c;margin-top:4px;}
+  .lgNat{font-family:var(--font-led);font-size:10px;background:#000;color:var(--clair);padding:2px 4px;}
+  .lgNat:empty{display:none;}
+  .lgJer{width:88%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45));}
+  .lgPied{font-size:13px;color:#fff1c2;min-height:16px;}
+  .lgCarte.lgBloque{background:linear-gradient(160deg,#7a7a7a,#3e3e3e);}
+  .lgCarte.lgBloque .lgIn{filter:grayscale(1) brightness(.5);}
+  .lgVerrou{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:13px;color:var(--clair);}
+  .lgVerrou::before{content:"🔒";display:block;font-size:18px;margin-bottom:4px;}
+  .lgRuban{position:absolute;top:47%;left:-12px;right:-12px;transform:rotate(-12deg);background:#ff6f61;color:#fff;font-family:var(--font-led);font-size:10px;text-align:center;padding:5px 0;box-shadow:0 3px 0 #000;}
+  .lgPep{gap:14px;}
+  .lgPep .lgCarte{width:40%;max-width:170px;flex:none;}
+  .lgPepTxt{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:14px;}
+  .lgFiche{position:relative;max-width:420px;width:100%;background:#0b1626;border:2px solid #e2bb5c;box-shadow:0 0 40px rgba(0,0,0,.85);padding:16px 14px 16px;max-height:94vh;overflow:auto;}
+  .lgFiche .lgCarte{width:60%;max-width:230px;margin:0 auto 14px;}
+  .lgFerme{position:absolute;right:8px;top:4px;background:none;border:none;color:var(--dim);font-size:28px;cursor:pointer;line-height:1;}
+  .lgSeg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;}
+  .lgSeg.d3{grid-template-columns:1fr 1fr 1fr;}
+  .lgOpt{background:#060d18;border:2px solid #1d2c45;color:var(--clair);font:inherit;font-size:14px;padding:8px;text-align:left;cursor:pointer;}
+  .lgOpt small{display:block;color:var(--dim);font-size:13px;}
+  .lgOpt.sel{border-color:#e2bb5c;background:#121c2c;}
+  .lgOpt[disabled]{opacity:.4;cursor:not-allowed;}
+  .lgRev{position:fixed;inset:0;background:radial-gradient(circle,#231c08 0,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;overflow:hidden;}
+  .lgRayons{position:absolute;width:160vmax;height:160vmax;left:50%;top:50%;margin:-80vmax 0 0 -80vmax;background:repeating-conic-gradient(rgba(226,187,92,.09) 0 8deg,transparent 8deg 16deg);animation:lgTourne 30s linear infinite,lgApp 1s 1.6s both;pointer-events:none;}
+  .lgFlip{width:min(62vw,240px);perspective:900px;z-index:1;}
+  .lgFace{position:relative;width:100%;aspect-ratio:3/4.3;transform-style:preserve-3d;animation:lgRetourne 1.4s cubic-bezier(.2,.8,.2,1) .4s both;}
+  .lgFace>.lgCarte,.lgDos{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+  .lgDos{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,#14243d 0 10px,#0e1b30 10px 20px);box-shadow:0 0 0 5px #e2bb5c,0 0 0 7px #000;display:flex;align-items:center;justify-content:center;}
+  .lgMsg{font-family:var(--font-led);font-size:15px;text-align:center;line-height:1.7;color:var(--clair);z-index:1;padding:0 20px;animation:lgApp .6s 1.9s both;}
+  .lgMsg b{color:#e2bb5c;font-weight:normal;}
+  .lgOk{z-index:1;animation:lgApp .4s 2.4s both;}
+  @keyframes lgRetourne{0%{transform:rotateY(180deg) scale(.8)}60%{transform:rotateY(-15deg) scale(1.06)}100%{transform:rotateY(0) scale(1)}}
+  @keyframes lgApp{from{opacity:0}to{opacity:1}}
+  @keyframes lgTourne{to{transform:rotate(360deg)}}
   .boAch{white-space:nowrap;min-height:40px;}
   /* v3.13, LE SOUS-TITRE DU DIRECT (choix de l’auteur) : la ligne en cours s’écrit en bas de l’image 3D */
   .stDirect.en3d:not(.plein) .stFil{display:block;position:absolute;left:8px;right:8px;bottom:8px;z-index:2;padding:6px 10px;background:rgba(7,11,26,.84);border:2px solid #1d2633;pointer-events:none;font-family:var(--font-ui);font-size:22px;line-height:1.15;color:var(--clair);max-height:3.7em;overflow:hidden;}
@@ -800,7 +843,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.26"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.27"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -4123,6 +4166,7 @@ function manqueEffectif(c, sansJ){
 }
 /* motif de refus d'un départ volontaire, ou null si la Ligue laisse passer */
 function refusDepart(c, j){
+  if(j && j.legende) return nomLong(j.nom)+" est une légende : il ne se vend pas et ne se prête pas.";
   const m=manqueEffectif(c, j), poste=["G","D","M","A"].find(p=>m[p]);
   if(poste) return "Le règlement impose au moins "+PLANCHER[poste]+" "+LIB_POSTES[poste]+" sous contrat, il ne vous en resterait que "+(PLANCHER[poste]-m[poste])+". Recrutez d'abord à ce poste.";
   if(m.total) return "Votre effectif est au plancher réglementaire ("+PLANCHER_TOTAL+" joueurs : 11 titulaires et 5 remplaçants). Recrutez avant de céder.";
@@ -16492,7 +16536,7 @@ function eff(j, e){
   if(e.groupe) moi.joueurs.forEach(x=>{ if(x!==j) x.moral=Math.max(5,Math.min(100,(x.moral||65)+e.groupe)); });
   if(e.ego)   j.ego = Math.max(1,Math.min(10,(j.ego||5)+e.ego));
   if(e.brassard){ moi.joueurs.forEach(x=>x.capitaine=false); j.capitaine=true; }
-  if(e.vend){ // le joueur s'en va, on encaisse une indemnité
+  if(e.vend && !j.legende){ // le joueur s'en va, on encaisse une indemnité (une légende ne se vend pas, v3.27)
     const prix=Math.round(valeur(j)*(e.vend)/1e5)*1e5;
     moi.joueurs=moi.joueurs.filter(x=>x!==j);
     const dest=PICK(ETR_ACHETEURS.concat(G.clubs.filter(c=>c.id!==G.monClub).map(c=>c.nom)));
@@ -18142,7 +18186,7 @@ function ventesEnCours(){
 /* ---------- Offres étrangères spontanées ---------- */
 function genOffreExt(){
   const moi=clubById(G.monClub);
-  const cibles=moi.joueurs.filter(j=>!j.pretIn && (j.note>=82 || j.pot>=86));
+  const cibles=moi.joueurs.filter(j=>!j.pretIn && !j.legende && (j.note>=82 || j.pot>=86));
   if(!cibles.length) return null;
   const j=PICK(cibles);
   const vPot=valeur({...j, note:Math.round((j.note+j.pot)/2)}); // ils ont vu le potentiel, eux aussi
@@ -23457,6 +23501,7 @@ function intersaison(){
   }
   // nouvelle saison
   G.saisonIdx++;
+  departsLegendes(rec); // les légendes louées dont le bail est échu repartent (v3.27)
   { const a=anneeJeu(); G.saison=a+"-"+String((a+1)%100).padStart(2,"0"); } // dérivé de l'année de base (départ 95/96 OU 96/97…)
   G.journee=0; G.histo=[]; G.finie=false; G.presse=[]; G.affaire=null; G.truque=false; G.risque=0;
   G.hdm=null; G.alm={phrase:null,depeche:null}; // l'almanach se referme : la saison suivante a le sien
@@ -24924,7 +24969,7 @@ const BOUTIQUE=[
   {art:"rallonge",   ray:"coup", ico:"💼", nom:"La rallonge du président",     sous:"+5 M au budget transferts",                    prix:250},
 ];
 const ART_DE=Object.fromEntries(BOUTIQUE.map(a=>[a.art,a]));
-function depensePoints(){ return prog().achats.reduce((n,a)=>n+((ART_DE[a.art]||{}).prix||0), 0); }
+function depensePoints(){ return prog().achats.reduce((n,a)=>n+prixAchat(a.art), 0); } // prixAchat : articles ET légendes (v3.27)
 function soldePoints(){ return Math.max(0, pointsGagnes()-depensePoints()); } // défis + parrainage (v3.03)
 function acquis(art){ return prog().achats.some(a=>a.art===art && a.id===art); }
 function idAchat(art){ const A=ART_DE[art]; if(!A) return null;
@@ -24977,7 +25022,288 @@ function boutiqueAuDepart(clubId){ // appelée par nouvellePartie, une carrière
   if(acquis("legende")){ const L=pepiteDuDepart(moi); if(L){ L.de.joueurs=L.de.joueurs.filter(x=>x!==L.j);
     L.j.club=moi.id; L.j.titu=false; L.j.avendre=false; moi.joueurs.push(L.j);
     G.news.push("🌟 "+nomLong(L.j.nom)+", "+L.j.age+" ans, quitte "+L.de.nom+" pour vous rejoindre."); } }
+  for(const L of LEGENDES_BOUT){ const v=legPerm(L.id); if(!v) continue; // les grandes légendes signées pour toujours (v3.27)
+    if(arriveLegende(moi, L, v, null)) G.news.push("🌟 "+L.nom+" est là, comme dans chacune de vos carrières."); }
   if(faits.length) G.news.push("⭐ Vos avantages vous suivent : "+faits.join(", ")+".");
+}
+/* ---------- LES GRANDES LÉGENDES (v3.27, demande de l'auteur du 23/11/2026, maquette validée le 24/11/2026) ----------
+   Un rayon de la boutique à points : Cruyff, Platini, Maradona… se signent avec des points, au sommet de leur forme
+   ou à leurs débuts (le gamin de 17 ans qu'on voit grandir jusqu'à son potentiel). Trois durées : une saison ou trois
+   saisons dans la carrière en cours (comme un coup de pouce, une fois par saison et par légende), ou POUR TOUJOURS :
+   il arrive tout de suite si une carrière est ouverte, puis au départ de chaque carrière neuve (`boutiqueAuDepart`).
+   Règles de l'auteur (13/11/2026) : aucun garde-fou d'équilibre, notes au-dessus de 90, caractères fidèles, et
+   l'anachronisme est assumé. Une légende ne se vend pas, ne se prête pas et ne part pas sur une offre (`refusDepart`,
+   `genOffreExt`, `eff`). À l'intersaison, une location échue repart (`departsLegendes`). Si le vrai joueur foule déjà
+   les pelouses de la saison (Maradona à Naples en 1990-91, Van Basten à Milan), la légende attend (`legSurTerrain`).
+   Le joueur porte `legende:{id, ver, fin}` (`fin` = dernière saison jouée, null = pour toujours).
+   Les maillots sont dessinés pixel par pixel sur canvas (80 × 80, `maillotPixel`), vus de dos, sans écusson ni marque :
+   lumière d'en haut à gauche, plis, couture d'épaule, contour sombre, nom et numéro floqués. */
+const LEGENDES_BOUT=[
+ {id:"cruyff", nom:"Johan Cruyff", court:"CRUYFF", num:14, pos:"M", poste:"MILIEU OFF.", nat:"ETR", pays:"NED",
+  kit:{type:"band", a:"#f1ede3", b:"#c8102e", col:"#c8102e", cuff:"#c8102e", txt:"#161616", out:"#f1ede3"},
+  top:{age:27, note:97}, jeune:{age:17, note:74, pot:97}, prix:[1200,2800,6000], traits:{ego:9,agress:4,fragile:4,venal:7}},
+ {id:"platini", nom:"Michel Platini", court:"PLATINI", num:10, pos:"M", poste:"MENEUR", nat:"FR", pays:"FRA",
+  kit:{type:"stripes", a:"#f1ede3", b:"#161616", col:"#161616", cuff:"#161616", txt:"#f1ede3", out:"#161616", box:"#161616"},
+  top:{age:29, note:96}, jeune:{age:17, note:71, pot:96}, prix:[1100,2600,5600], traits:{ego:7,agress:2,fragile:3,venal:3,tireur:true}},
+ {id:"maradona", nom:"Diego Maradona", court:"MARADONA", num:10, pos:"M", poste:"MENEUR", nat:"ETR", pays:"ARG", reel:"D. Maradona",
+  kit:{type:"plain", a:"#4a97dc", b:"#1f4f8f", col:"#1f4f8f", cuff:"#1f4f8f", txt:"#ffffff", out:"#1f4f8f"},
+  top:{age:26, note:98}, jeune:{age:16, note:77, pot:98}, prix:[1400,3200,7000], traits:{ego:9,agress:5,fragile:5,venal:7,tireur:true}},
+ {id:"vanbasten", nom:"Marco van Basten", court:"VAN BASTEN", num:9, pos:"A", poste:"AVANT-CENTRE", nat:"ETR", pays:"NED", reel:"M. van Basten",
+  kit:{type:"stripes", a:"#c8102e", b:"#161616", col:"#161616", cuff:"#161616", txt:"#f1ede3", out:"#161616", box:"#161616"},
+  top:{age:24, note:95}, jeune:{age:18, note:73, pot:95}, prix:[1000,2400,5200], traits:{ego:6,agress:4,fragile:9,venal:4}},
+ {id:"beckenbauer", nom:"Franz Beckenbauer", court:"BECKENBAUER", num:5, pos:"D", poste:"LIBÉRO", nat:"ETR", pays:"GER",
+  kit:{type:"plain", a:"#c8102e", b:"#f1ede3", col:"#f1ede3", cuff:"#f1ede3", txt:"#f1ede3", out:"#6e0716"},
+  top:{age:28, note:96}, jeune:{age:18, note:72, pot:96}, prix:[1100,2600,5600], traits:{ego:8,agress:2,fragile:2,venal:5}},
+ {id:"distefano", nom:"Alfredo Di Stéfano", court:"DI STEFANO", num:9, pos:"A", poste:"AVANT-CENTRE", nat:"ETR", pays:"ESP",
+  kit:{type:"plain", a:"#f4f2ec", b:"#cfcabd", col:"#f4f2ec", cuff:"#f4f2ec", txt:"#1a2a4f", out:"#f4f2ec"},
+  top:{age:30, note:96}, jeune:{age:19, note:73, pot:96}, prix:[1100,2600,5600], traits:{ego:8,agress:4,fragile:2,venal:5}},
+ {id:"eusebio", nom:"Eusébio", court:"EUSEBIO", num:10, pos:"A", poste:"ATTAQUANT", nat:"ETR", pays:"POR",
+  kit:{type:"plain", a:"#d0142c", b:"#8f0a1f", col:"#f1ede3", cuff:"#f1ede3", txt:"#f1ede3", out:"#5c0614"},
+  top:{age:24, note:95}, jeune:{age:18, note:75, pot:95}, prix:[1000,2400,5200], traits:{ego:4,agress:3,fragile:5,venal:3,tireur:true}},
+ {id:"kopa", nom:"Raymond Kopa", court:"KOPA", num:7, pos:"A", poste:"AILIER", nat:"FR", pays:"FRA",
+  kit:{type:"sleeves", a:"#c8102e", b:"#f1ede3", col:"#f1ede3", cuff:"#f1ede3", txt:"#f1ede3", out:"#6e0716"},
+  top:{age:27, note:93}, jeune:{age:18, note:70, pot:93}, prix:[900,2200,4800], traits:{ego:5,agress:2,fragile:3,venal:4}},
+];
+const LEG_DE=Object.fromEntries(LEGENDES_BOUT.map(L=>[L.id,L]));
+const LEG_DUREE={un:0,trois:1,toujours:2};
+/* L'achat d'une légende suit le format de la progression (`progNette` : article en minuscules, identifiant en
+   [A-Za-z0-9_-]) : article `leg<id>z<version>z<durée>` (« legcruyffzjeunezun »), identifiant égal à l'article
+   suivi de la carrière et de la saison pour une location, `leg-<id>-toujours` pour toujours. */
+const artLeg=(L,ver,dur)=>"leg"+L.id+"z"+ver+"z"+dur;
+function prixAchat(art){ // le prix d'un achat de la progression : article de la boutique, ou signature d'une légende
+  const A=ART_DE[art]; if(A) return A.prix||0;
+  const m=/^leg([a-y]+)z(top|jeune)z(un|trois|toujours)$/.exec(art||""); if(!m || !LEG_DE[m[1]]) return 0;
+  return LEG_DE[m[1]].prix[LEG_DUREE[m[3]]];
+}
+function legPerm(id){ const a=prog().achats.find(x=>x.id==="leg-"+id+"-toujours"); return a ? (/zjeunez/.test(a.art)?"jeune":"top") : null; } // la version acquise pour toujours
+function legDansClub(id){ const moi=(G&&G.monClub)?clubById(G.monClub):null; return moi ? moi.joueurs.find(j=>j.legende&&j.legende.id===id)||null : null; }
+function legSurTerrain(L){ // le vrai joueur joue déjà cette saison : la légende attend
+  if(!L.reel || !G || !G.clubs) return false;
+  return G.clubs.concat(G.autre||[]).some(c=>(c.joueurs||[]).some(j=>j.nom===L.reel && !j.legende));
+}
+const sufLeg=()=>"-"+String(G.pid).replace(/[^A-Za-z0-9_]/g,"").slice(0,48)+"-"+(G.saisonIdx||1);
+function idAchatLeg(L, ver, dur){
+  if(dur==="toujours") return "leg-"+L.id+"-toujours";
+  if(!G || !G.pid) return null;
+  return artLeg(L,ver,dur)+sufLeg();
+}
+function achatLegPossible(L, ver, dur){ // null si on peut signer, sinon la raison (courte)
+  if(dur==="toujours" && legPerm(L.id)) return "acquis";
+  if(dur!=="toujours"){
+    if(!idAchatLeg(L, ver, dur)) return "partie";
+    if(legDansClub(L.id)) return "club";
+    if(legSurTerrain(L)) return "terrain";
+    const suf=sufLeg(); if(prog().achats.some(a=>a.id.indexOf("leg"+L.id+"z")===0 && a.id.endsWith(suf))) return "saison";
+  }
+  if(soldePoints()<prixAchat(artLeg(L,ver,dur))) return "points";
+  return null;
+}
+function joueurLegende(L, ver){
+  const v=ver==="jeune"?L.jeune:L.top, t=L.traits||{};
+  const j={nom:L.nom, pos:L.pos, age:v.age, note:v.note, pot:ver==="jeune"?v.pot:v.note,
+           buts:0,passes:0,matchs:0,avendre:false,fav:false,titu:false,club:"EXT",uid:uidGen(),bless:0,susp:0,
+           moral:90, sansJouer:0, nat:L.nat, salMult:0.5, ego:t.ego, agress:t.agress, fragile:t.fragile, venal:t.venal,
+           tireurElite:!!t.tireur, histoire:"Débarqué d'une autre époque. Personne au club n'ose lui demander comment."};
+  j.note0=j.note;
+  initTraits(j);
+  return j;
+}
+function arriveLegende(moi, L, ver, fin){ // renvoie le joueur arrivé (ou prolongé), null si la légende attend
+  const deja=moi.joueurs.find(j=>j.legende&&j.legende.id===L.id);
+  if(deja){ if(fin==null || (deja.legende.fin!=null && fin>deja.legende.fin)) deja.legende.fin=fin; return deja; }
+  if(legSurTerrain(L)) return null;
+  const j=joueurLegende(L, ver); j.club=moi.id; j.legende={id:L.id, ver, fin}; moi.joueurs.push(j);
+  return j;
+}
+function acheteLegende(L, ver, dur){ // vrai si la signature est faite
+  if(achatLegPossible(L, ver, dur)) return false;
+  prog().achats.push({id:idAchatLeg(L, ver, dur), art:artLeg(L,ver,dur), t:Date.now()}); progSauve(true); progPlanifie();
+  const moi=(G&&G.pid&&G.monClub)?clubById(G.monClub):null;
+  if(moi){
+    const fin = dur==="toujours" ? null : (G.saisonIdx||1)+(dur==="trois"?2:0);
+    const j=arriveLegende(moi, L, ver, fin);
+    if(j) G.news.unshift("🌟 "+L.nom+" signe chez vous"+(fin==null?" : il ne vous quittera plus.":dur==="trois"?" pour trois saisons.":" pour la saison."));
+  }
+  return true;
+}
+function departsLegendes(rec){ // à l'intersaison, une fois la nouvelle saison numérotée : les locations échues repartent
+  const moi=clubById(G.monClub); if(!moi) return;
+  for(const j of moi.joueurs.slice()) if(j.legende && j.legende.fin!=null && j.legende.fin<G.saisonIdx){
+    moi.joueurs=moi.joueurs.filter(x=>x!==j); j.titu=false; j.capitaine=false;
+    rec.push("🌟 "+j.nom+" rend son maillot et repart dans la légende.");
+  }
+}
+
+/* --- le maillot vu de dos, en pixel art --- */
+const MP_G=80;
+const MP_DEMI=[[29,1.5],[13,5.5],[2,19],[10,29.5],[17.5,23],[17.5,78]];
+const MP_POLY=[...MP_DEMI.slice().reverse(), [33,2.6],[40,3],[47,2.6], ...MP_DEMI.map(([x,y])=>[80-x,y])];
+function mpDedans(px,py){ let c=false;
+  for(let i=0,j=MP_POLY.length-1;i<MP_POLY.length;j=i++){ const [xi,yi]=MP_POLY[i],[xj,yj]=MP_POLY[j];
+    if(((yi>py)!==(yj>py)) && px<(xj-xi)*(py-yi)/(yj-yi)+xi) c=!c; }
+  return c; }
+function mpSeg(px,py,ax,ay,bx,by){ const dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));
+  return Math.hypot(px-ax-t*dx,py-ay-t*dy); }
+const mpHex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const mpMix=(c,t,k)=>c.map((v,i)=>Math.round(v+(t[i]-v)*k));
+const mpTons=h=>{ const c=mpHex(h); return [mpMix(c,[0,0,0],.32),mpMix(c,[0,0,0],.15),c,mpMix(c,[255,255,255],.22)]; };
+const MP_BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const MP_F3={A:"010101111101101",B:"110101110101110",C:"011100100100011",D:"110101101101110",E:"111100110100111",
+ F:"111100110100100",G:"011100101101011",H:"101101111101101",I:"111010010010111",J:"001001001101010",K:"101101110101101",
+ L:"100100100100111",O:"010101101101010",P:"110101110100100",Q:"010101101110011",R:"110101110101101",S:"011100010001110",
+ T:"111010010010010",U:"101101101101111",V:"101101101101010",X:"101101010101101",Y:"101101010010010",Z:"111001010100111",
+ M:["10001","11011","10101","10001","10001"],W:["10001","10001","10101","11011","10001"],N:["1001","1101","1011","1001","1001"]};
+function mpGlyphe(ch){ if(ch===" ") return {w:2,l:["00","00","00","00","00"]};
+  const g=MP_F3[ch]; if(!g) return null; if(Array.isArray(g)) return {w:g[0].length,l:g};
+  return {w:3,l:[0,1,2,3,4].map(i=>g.slice(i*3,i*3+3))}; }
+const MP_CHIF=["01110100011000110001100011000101110","00100011000010000100001000010001110","01110100010000100010001000100011111",
+ "11111000100010000010000011000101110","00010001100101010010111110001000010","11111100001111000001000011000101110",
+ "00110010001000011110100011000101110","11111000010001000100010000100001000","01110100011000101110100011000101110",
+ "01110100011000101111000010001001100"];
+const MP_CACHE={};
+function maillotPixel(k, nom, num){ // une <img> du maillot ; vide au harnais (pas de canvas)
+  const cle=JSON.stringify([k,nom,num]); if(MP_CACHE[cle]!=null) return MP_CACHE[cle];
+  let cv=null; try{ cv=document.createElement("canvas"); if(!cv || !cv.getContext || EN_TEST()) return ""; }catch(e){ return ""; }
+  const G_=MP_G, M=[...Array(G_)].map((_,y)=>[...Array(G_)].map((_,x)=>mpDedans(x+.5,y+.5)));
+  const m=(x,y)=>x>=0&&y>=0&&x<G_&&y<G_&&M[y][x];
+  const px=[...Array(G_)].map(()=>Array(G_).fill(null)), base=[...Array(G_)].map(()=>Array(G_).fill(null));
+  for(let y=0;y<G_;y++) for(let x=0;x<G_;x++){
+    if(!M[y][x]) continue;
+    const cx=x+.5, cy=y+.5, mx=cx<40?cx:80-cx, corps=cx>17.5&&cx<62.5;
+    let col=k.a;
+    if(k.type==="stripes" && corps) col=(Math.floor((x-18)/6)%2)?k.b:k.a;
+    if(k.type==="band" && x>=34 && x<=45) col=k.b;
+    if(k.type==="sleeves" && !corps) col=k.b;
+    if(k.type==="halves") col=cx<40?k.a:k.b;
+    if(k.type==="diag") col=(cx+cy*0.8)>58?k.b:k.a;
+    if(mpSeg(mx,cy,2,19,10,29.5)<2.6) col=k.cuff||k.b;
+    let colPose=false;
+    if(cy<7 && mx>27.5 && mx<40.1 && cy<1.5+(mx-29)*0.11+3.2){ col=k.col||k.b; colPose=true; }
+    base[y][x]=col;
+    let L=0.64+0.1*(40-cx)/40;
+    if(!colPose){
+      L-=0.22*Math.exp(-Math.pow(mpSeg(cx,cy,19,26,29,78),2)/2.5);
+      L-=0.22*Math.exp(-Math.pow(mpSeg(cx,cy,61,26,51,78),2)/2.5);
+      L-=0.11*Math.exp(-Math.pow(mpSeg(cx,cy,40,8,40,76),2)/3);
+      if(mpSeg(mx,cy,13,5.5,17.5,23)<0.7) L-=0.26;
+      if(!corps && cy>14) L-=0.08;
+      if(cy<9) L+=0.1;
+    } else if(cy>3.8+(mx-29)*0.11) L-=0.25;
+    if(!m(x+1,y)) L-=0.26; else if(!m(x+2,y)) L-=0.1;
+    if(!m(x-1,y)) L+=0.14;
+    if(!m(x,y+1)) L-=0.22;
+    if(!m(x,y-1)) L+=0.12;
+    if(cy>74) L-=0.08;
+    const v=L+(MP_BAYER[y%4][x%4]/16-.5)*0.07, t=mpTons(col);
+    px[y][x]=v<0.36?t[0]:v<0.54?t[1]:v<0.8?t[2]:t[3];
+  }
+  const pose=(x,y,c)=>{ if(m(x,y)) px[y][x]=c; };
+  const pave=(x0,y0,w,h,c)=>{ for(let y=y0;y<y0+h;y++) for(let x=x0;x<x0+w;x++) pose(x,y,c); };
+  let gl=[...String(nom||"")].map(mpGlyphe).filter(Boolean);
+  const larg=g=>g.reduce((s,q)=>s+q.w,0)+g.length-1;
+  if(larg(gl)>44){ const der=String(nom).split(" ").pop(); gl=[...der].map(mpGlyphe).filter(Boolean); }
+  const nw=larg(gl); let nx=Math.round(40-nw/2); const ny=16;
+  if(k.box){ const pc=mpHex(k.box), pe=mpMix(pc,[0,0,0],.5);
+    pave(nx-2,ny-3,nw+4,10,pe); pave(nx-1,ny-2,nw+2,8,pc); pave(25,26,30,27,pe); pave(26,27,28,25,pc); }
+  const tc=mpHex(k.txt), oc=mpHex(k.out||"#000000");
+  gl.forEach(g=>{ g.l.forEach((r,ry)=>[...r].forEach((b,rx)=>{ if(b==="1") pose(nx+rx,ny+ry,tc); })); nx+=g.w+1; });
+  const ch=String(num).split("").map(Number), S=3, dw=5*S, ecart=3, tw=ch.length*dw+(ch.length-1)*ecart;
+  let dx=Math.round(40-tw/2); const dy=29, pts=[];
+  ch.forEach(d=>{ for(let r=0;r<7;r++) for(let c=0;c<5;c++) if(MP_CHIF[d][r*5+c]==="1")
+    for(let a=0;a<S;a++) for(let b=0;b<S;b++) pts.push([dx+c*S+b, dy+r*S+a]); dx+=dw+ecart; });
+  const P=new Set(pts.map(p=>p+""));
+  pts.forEach(([x,y])=>[[1,0],[-1,0],[0,1],[0,-1],[1,1]].forEach(([a,b])=>{ if(!P.has([x+a,y+b]+"")) pose(x+a,y+b,oc); }));
+  pts.forEach(([x,y])=>pose(x,y,tc));
+  cv.width=cv.height=G_; const ctx=cv.getContext("2d");
+  for(let y=0;y<G_;y++) for(let x=0;x<G_;x++){
+    let c=px[y][x];
+    if(!c){ const n=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>m(x+a,y+b)?base[y+b][x+a]:null).find(Boolean);
+      if(!n) continue; c=mpMix(mpHex(n),[0,0,0],.68); }
+    ctx.fillStyle="rgb("+c+")"; ctx.fillRect(x,y,1,1);
+  }
+  return MP_CACHE[cle]=`<img class="lgJer" alt="" src="${cv.toDataURL()}">`;
+}
+function nomMaillot(nom){ // « T. Henry » → « HENRY », sans accents ; les lettres absentes du flocage sautent
+  const n=String(nom||"").replace(/^(\p{Lu}\.[-\s]?)+\s*/u,"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();
+  return n.replace(/[^A-Z ]/g,"");
+}
+function kitDuClub(id){ // le maillot d'un club du jeu, d'après les couleurs de son blason
+  const B=BLASONS[id]||{a:"#666666",b:"#333333",st:"uni"};
+  const a=/^#[0-9a-f]{6}$/i.test(B.a)?B.a:"#666666", b=/^#[0-9a-f]{6}$/i.test(B.b)?B.b:"#333333";
+  const clair=h=>{ const c=mpHex(h); return (0.299*c[0]+0.587*c[1]+0.114*c[2])>150; };
+  const type={ray:"stripes", v:"halves", diag:"diag"}[B.st]||"plain";
+  if(type!=="plain") return {type, a, b, col:b, cuff:b, txt:"#f1ede3", out:"#161616", box:"#161616"};
+  const txt=clair(a)?(clair(b)?"#161616":b):(clair(b)?b:"#f1ede3");
+  return {type, a, b, col:b, cuff:b, txt, out:clair(txt)?mpMix(mpHex(a),[0,0,0],.55).map(v=>v.toString(16).padStart(2,"0")).reduce((s,v)=>s+v,"#"):"#f1ede3"};
+}
+function carteLegHTML(o){ // o : {note, haut, nat, maillot, pied, ruban, verrou, cls, attr}
+  return `<button type="button" class="lgCarte${o.cls?" "+o.cls:""}"${o.attr||""}><div class="lgIn">
+    <div class="lgHaut"><div><div class="lgNote">${o.note}</div>${o.haut?`<div class="lgPoste">${esc(o.haut)}</div>`:""}</div><div class="lgNat">${esc(o.nat)}</div></div>
+    ${o.maillot}<div class="lgPied">${o.pied||""}</div></div>
+    ${o.verrou?`<span class="lgVerrou">encore ${FMT(o.verrou)}</span>`:""}${o.ruban?`<span class="lgRuban">${esc(o.ruban)}</span>`:""}</button>`;
+}
+function carteDeLeg(L, ver, o){
+  const v=ver==="jeune"?L.jeune:L.top;
+  return carteLegHTML(Object.assign({note:v.note, haut:ver==="jeune"?v.age+" ANS · POT. "+v.pot:L.poste, nat:L.pays,
+    maillot:maillotPixel(L.kit, L.court, L.num)}, o||{}));
+}
+function pepiteHTML(){ // la jeune légende, avec son visage de maillot : la pépite qu'on obtiendrait
+  const A=ART_DE.legende, r=achatPossible("legende");
+  let p=null;
+  try{ const moi=(G&&G.clubs&&G.monClub)?clubById(G.monClub):null; const x=moi?pepiteDuDepart(moi):null;
+    if(x) p={nom:x.j.nom, age:x.j.age, note:x.j.note, pot:x.j.pot, pos:x.j.pos, club:x.de, ici:true}; }catch(e){ p=null; }
+  if(!p) p={nom:"T. Henry", age:18, note:"★", pot:null, pos:"A", club:metaClub("MON")||{id:"MON", nom:"AS Monaco"}};
+  const num={G:1,D:4,M:8,A:9}[p.pos]||9;
+  const etat=r==="acquis"?`<span class="fort">✅ Acquis</span>`
+    : `<button class="act boAch" data-art="legende"${r?" disabled":""}>⭐ ${FMT(A.prix)}</button>`;
+  const qui=p.ici ? `${esc(nomLong(p.nom))}, ${p.age} ans · ${esc(p.club.nom)}` : `Henry en 1995-96, Zidane en 1990-91…`;
+  return `<div class="boArt lgPep${r==="acquis"?" ok":""}">${carteLegHTML({note:p.note, haut:p.pot?p.age+" ANS · POT. "+p.pot:p.age+" ANS", nat:"", maillot:maillotPixel(kitDuClub(p.club.id), nomMaillot(p.nom), num), cls:"lgFixe"})}
+    <span class="lgPepTxt"><b>${esc(A.nom)}</b><span class="dim">${qui}</span>${etat}</span></div>`;
+}
+function legendesHTML(){
+  const solde=soldePoints();
+  const tuile=L=>{ const perm=legPerm(L.id), ici=legDansClub(L.id), min=Math.min(...L.prix);
+    const bloque=!perm && !ici && solde<min;
+    const ruban=perm?"POUR TOUJOURS":ici?(ici.legende.fin==null?"POUR TOUJOURS":"DANS VOTRE CLUB"):"";
+    return carteDeLeg(L, perm||"top", {pied:ruban?"":"dès "+FMT(min), ruban, verrou:bloque?min-solde:0, cls:bloque?"lgBloque":"", attr:` data-leg="${L.id}"`}); };
+  return `<h3>Les légendes</h3>${pepiteHTML()}<div class="lgGrille">${LEGENDES_BOUT.map(tuile).join("")}</div>`;
+}
+function ficheLegende(id, redessine){
+  const L=LEG_DE[id]; if(!L) return;
+  let ver=legPerm(L.id)||"top", dur=null;
+  const DUREES=[["un","1 saison"],["trois","3 saisons"],["toujours","Pour toujours"]];
+  const LIB={partie:"En partie", acquis:"Acquis", club:"Déjà chez vous", terrain:"Sur les terrains", saison:"Pris cette saison"};
+  const peint=()=>{
+    const r=d=>achatLegPossible(L, ver, d), prix=d=>L.prix[LEG_DUREE[d]];
+    if(dur==null || r(dur)) dur=(DUREES.find(([d])=>!r(d))||[null])[0];
+    const choix=DUREES.map(([d,lib])=>{ const x=r(d), off=x && x!=="points";
+      return `<button type="button" class="lgOpt${d===dur?" sel":""}" data-d="${d}"${x?" disabled":""}>${lib}<small>${off?LIB[x]:FMT(prix(d))+" pts"}</small></button>`; }).join("");
+    const manque=DUREES.map(([d])=>r(d)==="points"?prix(d)-soldePoints():null).filter(x=>x!=null);
+    const bouton=dur ? `Signer · ⭐ ${FMT(prix(dur))}` : manque.length ? `Encore ${FMT(Math.min(...manque))} points` : "Indisponible";
+    ouvreMsg(`<div class="fbox lgFiche">
+      <button type="button" class="lgFerme" aria-label="Fermer">×</button>
+      ${carteDeLeg(L, ver, {cls:"lgFixe", pied:esc(L.nom)})}
+      <div class="lgSeg">
+        <button type="button" class="lgOpt${ver==="top"?" sel":""}" data-v="top">Au sommet<small>Note ${L.top.note}</small></button>
+        <button type="button" class="lgOpt${ver==="jeune"?" sel":""}" data-v="jeune">Ses débuts<small>${L.jeune.age} ans · ${L.jeune.note} → ${L.jeune.pot}</small></button>
+      </div>
+      <div class="lgSeg d3">${choix}</div>
+      <button class="big lgSigne"${dur?"":" disabled"} style="display:block;width:100%;margin-top:6px">${bouton}</button>
+    </div>`, ()=>{});
+    msgbox.querySelector(".lgFerme").onclick=fermeMessage;
+    msgbox.querySelectorAll(".lgOpt[data-v]").forEach(b=>b.onclick=()=>{ ver=b.dataset.v; peint(); });
+    msgbox.querySelectorAll(".lgOpt[data-d]").forEach(b=>b.onclick=()=>{ if(!b.disabled){ dur=b.dataset.d; peint(); } });
+    msgbox.querySelector(".lgSigne").onclick=()=>{ if(!dur || !acheteLegende(L, ver, dur)) return; revelation(L, ver, redessine); };
+  };
+  peint();
+}
+function revelation(L, ver, apres){ // la carte arrive de dos, se retourne, et la légende signe
+  const fin=()=>{ videMessage(); if(apres) apres(); };
+  ouvreMsg(`<div class="lgRev"><div class="lgRayons"></div>
+    <div class="lgFlip"><div class="lgFace">${carteDeLeg(L, ver, {cls:"lgFixe"})}<div class="lgDos">${logoMultiplex(64)}</div></div></div>
+    <p class="lgMsg"><b>${esc(L.nom.toUpperCase())}</b><br>rejoint votre club</p>
+    <p class="lgOk"><button class="big" id="bLgOk">Continuer</button></p></div>`, fin);
+  msgbox.querySelector("#bLgOk").onclick=fin;
 }
 function boutiqueHTML(enJeu){
   const carte=A=>{ const r=achatPossible(A.art), ok=!r;
@@ -24986,10 +25312,11 @@ function boutiqueHTML(enJeu){
       : r==="partie"?`<span class="dim">En partie</span>`
       : `<button class="act boAch" data-art="${A.art}"${ok?"":" disabled"}>⭐ ${FMT(A.prix)}</button>`;
     return `<div class="boArt${r==="acquis"?" ok":""}"><span class="boIco">${A.ico}</span><span class="boTxt"><b>${esc(A.nom)}</b><span class="dim">${esc(A.sous)}</span></span>${etat}</div>`; };
-  return `<h3>Pour toutes vos carrières</h3>${BOUTIQUE.filter(a=>a.ray==="perm").map(carte).join("")}
+  return `${legendesHTML()}<h3>Pour toutes vos carrières</h3>${BOUTIQUE.filter(a=>a.ray==="perm" && a.art!=="legende").map(carte).join("")}
     <h3 style="margin-top:12px">Pour la saison en cours</h3>${BOUTIQUE.filter(a=>a.ray==="coup").map(carte).join("")}`;
 }
 function cableBoutique(redessine){
+  app.querySelectorAll(".lgCarte[data-leg]").forEach(b=>b.onclick=()=>ficheLegende(b.dataset.leg, redessine));
   app.querySelectorAll(".boAch").forEach(b=>b.onclick=()=>{ const A=ART_DE[b.dataset.art]; if(!A || achatPossible(A.art)) return;
     confirme({titre:A.ico+" "+A.nom.toUpperCase()+" ?", coul:"#ffd24a",
       texte:A.sous+". Il vous restera "+FMT(soldePoints()-A.prix)+" points.",
