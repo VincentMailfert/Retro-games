@@ -870,7 +870,7 @@
    "tm": 21966,
    "nom": "Zé Elias",
    "court": "Zé Elias",
-   "prenom": "",
+   "prenom": "Zé",
    "poste": "M",
    "naissance": "1976-09-25",
    "matchs": 30,
@@ -880,7 +880,7 @@
    "force": false,
    "deja_au_jeu": false,
    "source": "tm",
-   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Leverkusen→Inter)"
+   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Leverkusen→Inter); prénom lu dans le nom complet de Transfermarkt (le jeu l'abrège à l'initiale)"
   },
   {
    "tm": 262074,
@@ -4900,7 +4900,7 @@
    "tm": 97546,
    "nom": "Paco Soares",
    "court": "Paco Soares",
-   "prenom": "",
+   "prenom": "Paco",
    "poste": "A",
    "naissance": "1979-12-14",
    "matchs": 8,
@@ -4910,7 +4910,7 @@
    "force": false,
    "deja_au_jeu": false,
    "source": "tm",
-   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 FC Motagua→Sampdoria)"
+   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 FC Motagua→Sampdoria); prénom lu dans le nom complet de Transfermarkt (le jeu l'abrège à l'initiale)"
   },
   {
    "tm": 3526,
@@ -18810,7 +18810,7 @@
    "tm": 22136,
    "nom": "David Dei",
    "court": "David Dei",
-   "prenom": "",
+   "prenom": "David",
    "poste": "G",
    "naissance": "1974-01-20",
    "matchs": 7,
@@ -18820,7 +18820,7 @@
    "force": false,
    "deja_au_jeu": false,
    "source": "tm",
-   "remarque": "au club au coup d'envoi selon l'historique de transferts (1996-07-01 Benevento→Ancona)"
+   "remarque": "au club au coup d'envoi selon l'historique de transferts (1996-07-01 Benevento→Ancona); prénom lu dans le nom complet de Transfermarkt (le jeu l'abrège à l'initiale)"
   },
   {
    "tm": 338051,
@@ -20110,7 +20110,7 @@
    "tm": 335829,
    "nom": "Antonio Nicola Calabro",
    "court": "Antonio Nicola Calabro",
-   "prenom": "",
+   "prenom": "Antonio Nicola",
    "poste": "D",
    "naissance": "1976-08-10",
    "matchs": 20,
@@ -20120,7 +20120,7 @@
    "force": false,
    "deja_au_jeu": false,
    "source": "tm",
-   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Casarano→Castel di Sangr)"
+   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Casarano→Castel di Sangr); prénom lu dans le nom complet de Transfermarkt (le jeu l'abrège à l'initiale)"
   },
   {
    "tm": 15339,

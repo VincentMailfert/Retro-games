@@ -1,0 +1,16 @@
+{
+ "pays": "ITA",
+ "an": 1997,
+ "version_avant": "3.31",
+ "version_apres": "3.32",
+ "nom": "Le Frioul de Bierhoff",
+ "sous": "Ronaldo, Ballon d'or à vingt et un ans, arrive du FC Barcelone à l'Inter, qui mène tout l'automne et gagne la Coupe UEFA à Paris contre la Lazio. Mais la Juventus de Marcello Lippi prend le dessus au printemps, gagne le choc du 26 avril à Turin dans la polémique du contact entre Iuliano et Ronaldo, et remporte son vingt-cinquième scudetto avec cinq points d'avance ; elle perd ensuite la finale de la Ligue des champions à Amsterdam contre le Real Madrid. L'Udinese d'Alberto Zaccheroni finit troisième, portée par les vingt-sept buts d'Oliver Bierhoff, meilleur buteur. La Lazio gagne la Coupe d'Italie contre le Milan, et Napoli descend avec quatorze points. En Serie B, la Salernitana de Marco Di Vaio est championne.",
+ "euroC1": ["JUV", "PAR"],
+ "euroC2": ["VIC"],
+ "euroC3": ["INT", "LAZ", "UDI", "SAM"],
+ "reel": {
+  "d1": "JUV INT UDI ROM FIO PAR LAZ BGN SAM MIL BAI PIA EMP VIC BRS ATA LEC NAP",
+  "d2": "SAL VEN CAG PRG TOR RGC HEL TRV GEN CHI REG AND PES RAV LUC MZA FOG ANC PAD CDS"
+ },
+ "entete": "ITA 1997-98 (v3.32) : « Le Frioul de Bierhoff ». La huitième saison italienne, assemblée par la tâche planifiée le 25/11/2026 à partir du relevé releves/ITA-1997-98 (Transfermarkt, effectif et temps de jeu de la saison 1997, arrivées datées par l'historique de transferts de chaque homme, recoupées par les pages Wikipédia italiennes de saison des clubs ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 475 notes héritées de 1996-97 vieillies d'un an, 67 de plus loin, 4 du recruteur de l'été, les autres calculées, dix ajustées à la main (releves/outils/ajust-ITA-9798.json)."
+}
