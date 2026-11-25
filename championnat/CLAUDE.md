@@ -6871,6 +6871,42 @@ septembre de Transfermarkt malgré une note « autunnale-invernale » (2 832 min
 Transfermarkt, qui n'abrège pas ces noms : Hazem (Emam), Márcio (Amoroso), Zé (Zé Maria, au jeu « Z. Maria »).
 Validation dédiée : **`harness-ita9697.cjs`**.
 
+### ITA 1997-98 — LE FRIOUL DE BIERHOFF (v3.32)
+Huitième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 25/11/2026 (`secours/2026-11-25`). Ronaldo, Ballon
+d'or 1997 à vingt et un ans, arrive du FC Barcelone à l'Inter, qui mène l'automne et gagne la Coupe UEFA à Paris contre la Lazio ; la
+Juventus de Lippi gagne le choc du 26 avril (le contact Iuliano-Ronaldo) et son vingt-cinquième scudetto, cinq points devant, puis perd
+la finale de la Ligue des champions contre le Real Madrid. L'Udinese de Zaccheroni troisième ; la Lazio gagne la Coupe d'Italie ; Napoli
+descend avec quatorze points. **Ronaldo 90/92, Zidane troisième du Ballon d'or (87), Bierhoff meilleur buteur avec vingt-sept buts (82)**,
+Hübner (75) et Carmine Esposito (73) ; en Serie B, **Di Vaio meilleur buteur (vingt et un buts, 72/84)**, Ferrante, Muzzi, Paci, Biagioni.
+Sièges = `SIEGES_ITA[1997]`. Coup d'envoi commun le **31 août 1997**.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté, aucune pénalité. Perugia monté au barrage contre le Torino (même total).
+**La Serie B de la Wikipédia anglaise est incohérente** (246 victoires pour 245 défaites : la ligne de Perugia est fausse) : le classement
+vient de la **Wikipédia italienne**, qui met aussi la Reggina devant l'Hellas et la Lucchese devant Monza. **Treviso (2251, « Treviso FBC
+1993 »)**, monté de C1 et déjà dans `CLUBS_ITA`, entre dans `releves/clubs-tm.json`. **Notes** : 475 héritées de 1996-97 vieillies d'un an,
+67 de plus loin, 4 du recruteur de l'été, 174 calculées ; élite 70.1 / 70, dessous 66.2 / 67. Dix ajustements (`ajust-ITA-9798.json`).
+**LES ARRIVÉES PAR L'HISTORIQUE, DE NOUVEAU.** `ceapi/transferHistory/list/<id>` répond (`.com`, repli `.de` sur une réponse vide) : lu pour
+les 1 175 hommes, à 1,2 seconde d'intervalle, sans blocage. Club au coup d'envoi = destination du dernier transfert daté au plus tard le
+coup d'envoi, sinon club de départ du premier transfert daté après ; **les équipes de jeunes du club (« Milan U19 ») comptent comme le
+club**. Un homme que l'historique fait **partir du club** avant le coup d'envoi est écarté (Blomqvist, Asprilla, Luzardi), même s'il était là
+en 1996-97 ; la règle du relevé précédent ne vaut que quand l'historique ne dit rien de contraire. 167 arrivés en cours de saison écartés
+(Davids, Vierchowod le 6 septembre, Pedros le 4, Andreas Andersson le 1er, Ganz, Maniero, Colonnese, Dorigo, Francioso à Monza).
+Test de non-régression : la même règle au coup d'envoi de 1996 retrouve les arrivées du relevé ITA-1996-97 (Juventus 19/19, Parma 21/21).
+**LES ROSAS WIKIPÉDIA, ET LEUR LIMITE.** Elles tranchent toujours contre une date par défaut de Transfermarkt (70 surcharges). **Mais une note
+« ceduto … a stagione in corso » ne surcharge pas un homme que l'historique place dans un AUTRE club au coup d'envoi** : elle dit seulement
+qu'il est reparti (Zamboni, à la Juventus au coup d'envoi puis à Napoli en octobre ; Pedros, Andersson, Conte, Balducci, Campioli). Elle ne
+remet au club que l'homme dont l'historique le fait sortir de ce même club au 1er juillet (Simone Inzaghi à Piacenza, Chianese à
+l'Atalanta, Sulcis à Cagliari, Scarponi au Torino). Lire aussi le paramètre `nome =` avec ses espaces (Andria, Treviso) : sinon la rosa perd
+dix noms. **Une note peut parler d'autre chose qu'un transfert** : « Dall'8 marzo 1998 » chez Fuser (Lazio) est le brassard de capitaine.
+**Les pièges.** (1) **Andria et Ancona rougissent le contrôle d'identité** (dernière saison relevée 1995-96, effectifs refaits) : 18/18 dans
+leurs rosas. (2) **Ivan** : Salernitana pour Transfermarkt (450 minutes), Foggia pour la rosa de Foggia (« ceduto … a stagione avviata ») ;
+gardé à Foggia, qui n'avait sinon qu'un gardien au coup d'envoi. (3) **Gregori** (Venezia, 3 330 minutes) renvoyé à l'Hellas le 1er juillet
+par l'historique (fin de prêt) : gardé, la rosa de Venezia le compte sans note ; même règle (rosa sans note, temps de jeu) pour Cerretti,
+Morabito, Cevoli (Transfermarkt écrit Reggina pour la Reggiana) et Tisci. (4) **Savićević passe en attaque** au Milan (« centrocampista o
+attaccante »), Andersson et Ganz étant arrivés après le coup d'envoi ; **Aimo Diana en défense** à Brescia (« D » de la rosa). (5) **Trois
+fiches Transfermarkt fantômes** (Federici 1988, Ferrari 1986, Esposito 1995 : un homonyme lié au mauvais homme) retirées du relevé. (6) Les
+deux Tedesco de la Salernitana : Giovanni « G. Tedesco », Giacomo « Giacomo Tedesco », graphies du jeu.
+Validation dédiée : **`harness-ita9798.cjs`**.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
