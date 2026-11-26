@@ -17,7 +17,7 @@
   6 septembre 1998 en Serie B**. Pour la première fois en Italie, les deux divisions ne commencent pas le même jour : chaque club est
   jugé au coup d'envoi de sa division.
 - **Pépites** : aucune forcée au relevé.
-- **Noms proposés** : « Zaccheroni coiffe la Lazio » (le Milan, septième la saison d'avant, passe la Lazio à la trente-troisième
+- **Noms proposés** : « Zaccheroni coiffe la Lazio » (le Milan, dixième la saison d'avant, passe la Lazio à l'avant-dernière
   journée et gagne le titre à Perugia), « Le sprint de Zaccheroni ».
 
 ## Vérifié
