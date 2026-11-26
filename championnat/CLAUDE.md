@@ -6907,6 +6907,44 @@ fiches Transfermarkt fantômes** (Federici 1988, Ferrari 1986, Esposito 1995 : u
 deux Tedesco de la Salernitana : Giovanni « G. Tedesco », Giacomo « Giacomo Tedesco », graphies du jeu.
 Validation dédiée : **`harness-ita9798.cjs`**.
 
+### ITA 1998-99 — ZACCHERONI COIFFE LA LAZIO (v3.33)
+Neuvième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 26/11/2026 (`secours/2026-11-26`). Alberto
+Zaccheroni arrive de l'Udinese au Milan, dixième la saison d'avant, avec Bierhoff et Helveg ; la Fiorentina de Trapattoni est championne
+d'hiver, la Lazio d'Eriksson compte jusqu'à sept points d'avance, et le Milan du jeune Abbiati (titulaire après la suspension de Rossi) la
+passe à l'avant-dernière journée et gagne le titre à Perugia, un point devant. La Lazio gagne la dernière Coupe des coupes, Parma la Coupe
+UEFA à Moscou et la Coupe d'Italie ; la Juventus finit septième, l'Inter huitième. **Zidane, Ballon d'or 1998, 90/91** ; Batistuta sixième
+(87), Thuram septième (84), Davids huitième (83). **Márcio Amoroso meilleur buteur avec vingt-deux buts pour l'Udinese (83)**, Batistuta,
+Bierhoff (83), Delvecchio (77), Muzzi, Crespo (81) ; en Serie B, **Ferrante meilleur buteur (vingt-six buts, 75)**, Hübner et Caccia.
+Sièges = `SIEGES_ITA[1998]`.
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté. **Empoli perd deux points** (`penalite` 2). Classements de la Wikipédia
+anglaise, cohérents, recoupés par l'italienne (qui met Napoli devant Ravenna à égalité de points : ordre anglais gardé, sans effet).
+Cesena, Ternana, Cosenza et Cremonese étaient déjà dans `releves/clubs-tm.json`. **Notes** : 466 héritées de 1997-98 vieillies d'un an,
+101 de plus loin, 3 du recruteur de l'été, 150 calculées ; élite 70.2 / 70, dessous 66.1 / 66. Treize ajustements (`ajust-ITA-9899.json`).
+**DEUX COUPS D'ENVOI.** Pour la première fois en Italie, les divisions ne commencent pas le même jour : **le 12 septembre 1998 en Serie A,
+le 6 en Serie B**. Chaque club est jugé au coup d'envoi de sa division (Răducioiu à Brescia et Sussi à la Reggina, transférés le
+1er septembre, sont là ; Fresi, transféré le 1er septembre à la Salernitana, aussi, malgré une note « sessione invernale »).
+**Les arrivées** : l'historique `ceapi` répond toujours, lu pour les 1 195 hommes. 170 arrivés en cours de saison écartés (Henry à la
+Juventus le 18 janvier, Morfeo au Milan le 22 octobre, Gattuso à la Salernitana, Recoba à Venezia, Pecchia à la Sampdoria, Fábio Júnior,
+Giovanni Lopez). Test de non-régression au coup d'envoi de 1997 : Juventus 26/26, Parma 26/26, Inter 27/27, Lazio 21/21. Rosas Wikipédia :
+37 surcharges (22 arrivés en cours de saison malgré le 1er juillet, 15 partis après le coup d'envoi), appariées à l'orthographe près
+(« Florjancic » et « Florijančič »), 719 des 720 retenus retrouvés dans la rosa de leur club (Luciano y est « Eriberto »).
+**DEUX RÈGLES NEUVES, À GARDER.** (1) **Une note « acquistato » d'automne ou d'hiver ne surcharge pas un homme qui a joué plus de matchs que
+sa division n'a de journées** : Marco Zamboni (Lecce, quarante-deux matchs) était là toute la saison, la note nommée réutilisée sur sa
+ligne ne le concerne pas. (2) **Un homme que deux clubs revendiquent après une surcharge « ceduto » reste à son ancien club s'il y a joué
+cette saison**, et il arrive au nouveau en cours de saison : Buonocore à Ravenna, Tangorra à Perugia, Morrone à Cosenza, Imbriani à Napoli
+(l'arbitrage par le seul historique les envoyait à Venezia, au Genoa, à Empoli et au Genoa).
+**Les pièges.** (1) **Fidelis Andria rougit encore le contrôle d'identité** du vérificateur de relevé (deux retenus en commun avec
+1997-98, effectif refait) : 18/18 dans sa rosa. Ternana, sans saison voisine relevée : 18/18 dans sa rosa. (2) **Six hommes passent en
+attaque** : Paulo Sérgio (Roma), Piovani (Piacenza), Francioso (Genoa), rangés « A » par leur rosa ; Fabris (Ternana) et Vecchiola
+(Genoa), ailiers droits ; **Leonardo au Milan**, trequartista derrière Bierhoff et Weah, Morfeo, Datti et Iannuzzi étant arrivés après le
+coup d'envoi. (3) Deux fiches fantômes retirées (Salvatore Papa « 1990 », Tommaso Coletti « 1984 »). (4) Bachini (Udinese), absent de la
+page d'effectif, garde la naissance du relevé 1997-98 ; Godeas (Udinese), Scandroglio (Empoli) et Sciacca (Ravenna) gardés par la règle
+de Gregori (rosa sans note, temps de jeu au club). (5) **Graphies du jeu à relire par l'auteur** : le jeu écrit depuis les premières
+saisons italiennes « F. D. Moro », « A. D. Canto » et « D. D. Carri » (Dal Moro, Dal Canto, Delli Carri), où la particule a été réduite à
+une initiale ; la règle « la graphie du jeu gagne » les reconduit, je ne les ai pas corrigées. (6) Les deux Tedesco de la Salernitana,
+« G. Tedesco » et « Giacomo Tedesco ».
+Validation dédiée : **`harness-ita9899.cjs`**.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus
