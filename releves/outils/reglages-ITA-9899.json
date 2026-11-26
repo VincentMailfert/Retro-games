@@ -1,0 +1,27 @@
+{
+ "pays": "ITA",
+ "an": 1998,
+ "version_avant": "3.32",
+ "version_apres": "3.33",
+ "nom": "Zaccheroni coiffe la Lazio",
+ "sous": "Alberto Zaccheroni arrive de l'Udinese au Milan, dixième la saison d'avant, avec Oliver Bierhoff et Thomas Helveg. La Fiorentina de Trapattoni et Batistuta est championne d'hiver, puis la Lazio d'Eriksson, de Vieri et de Salas, compte jusqu'à sept points d'avance au printemps. Le Milan du jeune Abbiati revient, la passe à l'avant-dernière journée et remporte le titre à Perugia, un point devant la Lazio, qui se console avec la dernière Coupe des coupes. Parma gagne la Coupe UEFA à Moscou contre Marseille et la Coupe d'Italie contre la Fiorentina. Márcio Amoroso, de l'Udinese, est meilleur buteur avec vingt-deux buts. La Juventus du Ballon d'or Zidane finit septième, l'Inter de Ronaldo huitième, et la Sampdoria descend. En Serie B, l'Hellas Verona est champion.",
+ "euroC1": [
+  "JUV",
+  "INT"
+ ],
+ "euroC2": [
+  "LAZ"
+ ],
+ "euroC3": [
+  "UDI",
+  "ROM",
+  "FIO",
+  "PAR",
+  "BGN"
+ ],
+ "reel": {
+  "d1": "MIL LAZ FIO PAR ROM UDI JUV INT BGN BAI VEN PIA CAG PRG SAL SAM VIC EMP",
+  "d2": "HEL TOR LEC RGC PES ATA BRS TRV RAV NAP CHI GEN CES TER MZA COS REG AND LUC CRM"
+ },
+ "entete": "ITA 1998-99 (v3.33) : « Zaccheroni coiffe la Lazio ». La neuvième saison italienne, assemblée par la tâche planifiée le 26/11/2026 à partir du relevé releves/ITA-1998-99 (Transfermarkt, effectif et temps de jeu de la saison 1998, arrivées datées par l'historique de transferts de chaque homme au coup d'envoi de sa division, le 12 septembre 1998 en Serie A et le 6 en Serie B, recoupées par les pages Wikipédia italiennes de saison des clubs ; Wikipédia anglaise et italienne pour les classements et les buteurs). La Serie A à dix-huit clubs, la Serie B à vingt : 360 + 360 vrais joueurs. 466 notes héritées de 1997-98 vieillies d'un an, 101 de plus loin, 3 du recruteur de l'été, les autres calculées, treize ajustées à la main (releves/outils/ajust-ITA-9899.json)."
+}
