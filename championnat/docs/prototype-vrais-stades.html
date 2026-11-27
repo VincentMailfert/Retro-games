@@ -69,6 +69,7 @@ body.bloque{overflow:hidden}
   <div class="reglages">
     <div id="gClub"></div>
     <div class="groupe" id="gVersion"><span>Version</span></div>
+    <div class="groupe" id="gRendu"><span>Rendu</span></div>
     <div class="groupe" id="gHeure"><span>Heure</span></div>
     <div class="groupe" id="gMeteo"><span>Temps</span></div>
   </div>
@@ -90,6 +91,7 @@ body.bloque{overflow:hidden}
   <div class="note">
     <p>Fais glisser le stade du doigt pour le tourner. À deux doigts, on zoome. Un double toucher rapproche, un autre revient.</p>
     <p>Le bouton du coin ouvre le stade en grand, sans tourner le téléphone : on s'y promène de gauche à droite.</p>
+    <p>« Rendu » compare trois images : celle du jeu aujourd'hui, la même lissée (les pixels ne clignotent plus quand le stade tourne), et une version aux pixels plus fins.</p>
     <p>« Jeu aujourd'hui » montre le stade que le jeu donne à ce club en ce moment, pour comparer.</p>
     <p>Le bouton jaune agrandit une tribune : le vrai stade est le point de départ, il grandit ensuite avec tes travaux.</p>
     <p>Pour un stade à l'anglaise, le second bouton construit les virages : les quatre coins se ferment, à la hauteur des tribunes voisines.</p>
@@ -2117,10 +2119,26 @@ function fabriqueMatch3D(THREE, o){
   canvas.addEventListener('pointerup',surUp); canvas.addEventListener('pointercancel',surUp);
   canvas.addEventListener('webglcontextlost', e=>e.preventDefault());
 
+  /* LE LISSAGE (o.lisse = 2, 3 ou 4, facultatif ; retour de l'auteur du 27/11/2026 sur les vrais stades : « comment réduire
+     la pixellisation quand l'écran tourne ? »). Les pixels du jeu restent aussi gros, mais chacun devient la MOYENNE de
+     lisse × lisse points de la scène au lieu d'un seul point tiré au centre : une lame de béton plus fine qu'un pixel ne
+     clignote plus quand le stade tourne, elle garde une teinte stable. Sans o.lisse, le rendu de toujours. */
+  const LISSE = (o.lisse|0)>=2 ? clamp(o.lisse|0, 2, 4) : 0;
+  let cibleLisse=null, passeLisse=null;
+  if(LISSE){
+    cibleLisse = new THREE.WebGLRenderTarget(2, 2, {type:THREE.HalfFloatType, minFilter:THREE.NearestFilter, magFilter:THREE.NearestFilter});
+    const mat = new THREE.ShaderMaterial({uniforms:{t:{value:cibleLisse.texture}, pas:{value:new THREE.Vector2(1,1)}}, depthTest:false, depthWrite:false,
+      vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }',
+      fragmentShader:'uniform sampler2D t; uniform vec2 pas; varying vec2 vUv;\nvoid main(){ vec3 c=vec3(0.); const int K='+LISSE+';\n for(int i=0;i<K;i++) for(int j=0;j<K;j++) c+=texture2D(t, vUv+(vec2(float(i),float(j))-float(K-1)*.5)*pas).rgb;\n gl_FragColor=vec4(c/float(K*K),1.);\n #include <colorspace_fragment>\n}'});
+    passeLisse = {scene:new THREE.Scene(), cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1), mat};
+    passeLisse.scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), mat));
+  }
   let dernierW=0, dernierH=0;
   function redimensionner(){
     const {w,h}=taille(); if(w===dernierW && h===dernierH) return; dernierW=w; dernierH=h;
-    renderer.setSize(Math.max(80,Math.floor(w/o.pixels)), Math.max(40,Math.floor(h/o.pixels)), false);
+    const W=Math.max(80,Math.floor(w/o.pixels)), H=Math.max(40,Math.floor(h/o.pixels));
+    renderer.setSize(W, H, false);
+    if(cibleLisse){ cibleLisse.setSize(W*LISSE, H*LISSE); passeLisse.mat.uniforms.pas.value.set(1/(W*LISSE), 1/(H*LISSE)); }
   }
 
   /* ---------- boucle ---------- */
@@ -2162,7 +2180,8 @@ function fabriqueMatch3D(THREE, o){
     if(pluie.visible && !reduit){ for(let i=0;i<550;i++){ const g=goutte[i]; g.y-=g.v*dt; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} pluiePos.set([g.x,g.y,g.z,g.x+.6,g.y+3.2,g.z+.4],i*6); } pluieGeo.attributes.position.needsUpdate=true; }
     if(flocons.visible && !reduit){ for(let i=0;i<650;i++){ const g=goutte[i]; g.y-=g.v*.09*dt; g.x+=Math.sin(tt+i)*dt*2; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} neigePos.set([g.x,g.y,g.z],i*3); } neigeGeo.attributes.position.needsUpdate=true; }
     placerCamera(dt);
-    renderer.render(scene,camera);
+    if(cibleLisse){ renderer.setRenderTarget(cibleLisse); renderer.render(scene,camera); renderer.setRenderTarget(null); renderer.render(passeLisse.scene,passeLisse.cam); }
+    else renderer.render(scene,camera);
   }
   function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); if(o.cache && o.cache()){ avant=now; return; } try{ image(now); }catch(e){ signale(e); } }
 
@@ -2198,6 +2217,7 @@ function fabriqueMatch3D(THREE, o){
       canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
       canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp); canvas.removeEventListener('wheel',surMolette);
       scene.traverse(x=>{ if(x.geometry) x.geometry.dispose(); const m=x.material; if(m){ (Array.isArray(m)?m:[m]).forEach(mm=>{ if(mm.map) mm.map.dispose(); mm.dispose(); }); } });
+      if(cibleLisse){ cibleLisse.dispose(); passeLisse.mat.dispose(); }
       renderer.dispose(); try{ renderer.forceContextLoss(); }catch(_){}
     }
   };
@@ -2304,8 +2324,11 @@ function etatStade(){
 }
 const HEURES = [['jour','Jour'],['soir','Soir'],['nuit','Nuit']];
 const METEOS = [['sec','Sec'],['pluie','Pluie'],['neige','Neige'],['brouillard','Brouillard']];
-const R = { club:0, version:'vrai', plus:0, ferme:0, heure:'jour', meteo:'sec' };
-try{ const q=new URLSearchParams(location.search); if(q.has('club')) R.club=+q.get('club')||0; if(q.get('version')) R.version=q.get('version'); if(q.has('plus')) R.plus=+q.get('plus')||0; if(q.has('ferme')) R.ferme=1; if(q.get('heure')) R.heure=q.get('heure'); if(q.get('meteo')) R.meteo=q.get('meteo'); }catch(e){}
+/* le rendu : « Actuel » = le jeu d'aujourd'hui ; « Lissé » = mêmes gros pixels, chacun moyenné sur 3 × 3 points ; « Fin » = pixels
+   plus petits (1 au lieu de 1,5) et moyennés sur 2 × 2 */
+const RENDUS = {actuel:{pixels:1.5, lisse:0}, lisse:{pixels:1.5, lisse:3}, fin:{pixels:1, lisse:2}};
+const R = { club:0, version:'vrai', plus:0, ferme:0, rendu:'lisse', heure:'jour', meteo:'sec' };
+try{ const q=new URLSearchParams(location.search); if(q.has('club')) R.club=+q.get('club')||0; if(q.get('version')) R.version=q.get('version'); if(q.has('plus')) R.plus=+q.get('plus')||0; if(q.has('ferme')) R.ferme=1; if(RENDUS[q.get('rendu')]) R.rendu=q.get('rendu'); if(q.get('heure')) R.heure=q.get('heure'); if(q.get('meteo')) R.meteo=q.get('meteo'); }catch(e){}
 
 const $ = id => document.getElementById(id);
 const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
@@ -2320,7 +2343,7 @@ function monte(){
   (ouvert?$('placeGrand'):$('placeCarte')).append(canvas);
   canvas.addEventListener('webglcontextlost', ()=>{ $('alerte').hidden=false; $('alerte').textContent='La carte graphique a interrompu le rendu 3D. Recharge la page.'; });
   try{
-    SC=fabriqueMatch3D(THREE, { canvas, vitrine:true, pixels:1.5, heure:R.heure, meteo:R.meteo, stade:S.r,
+    SC=fabriqueMatch3D(THREE, { canvas, vitrine:true, pixels:RENDUS[R.rendu].pixels, lisse:RENDUS[R.rendu].lisse, heure:R.heure, meteo:R.meteo, stade:S.r,
       dom:{id:C.id, maillot:C.maillot, short:C.short, xi:[]}, ext:{id:'', maillot:'#1d4f9c', short:'#ffffff', xi:[]},
       cache:()=>!ouvert && !visible,
       erreur:e=>{ $('alerte').hidden=false; $('alerte').textContent='Erreur dans la maquette : '+(e&&e.message||e); } });
@@ -2339,7 +2362,7 @@ function monte(){
 }
 function marque(){
   document.querySelectorAll('.groupe.club button').forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.v===R.club)));
-  for(const [g,v] of [['gVersion',R.version],['gHeure',R.heure],['gMeteo',R.meteo]])
+  for(const [g,v] of [['gRendu',R.rendu],['gVersion',R.version],['gHeure',R.heure],['gMeteo',R.meteo]])
     document.querySelectorAll('#'+g+' button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v==String(v))));
 }
 function groupe(id, liste, cle, num){
@@ -2349,6 +2372,7 @@ function groupe(id, liste, cle, num){
 PAYS.forEach((pays,k)=>{ const d=document.createElement('div'); d.className='groupe club'; d.id='gPays'+k; const t=document.createElement('span'); t.textContent=pays; d.append(t); $('gClub').append(d);
   groupe('gPays'+k, CLUBS.map((c,i)=>[i,c.stade.replace(/^(Stade|Stadio) (de la |de |du )?/,'').replace(/^./,x=>x.toUpperCase()),c.pays]).filter(x=>x[2]===pays), 'club', true); });
 groupe('gVersion', [['vrai','Vrai stade'],['jeu',"Jeu aujourd'hui"]], 'version');
+groupe('gRendu', [['actuel','Actuel'],['lisse','Lissé'],['fin','Fin et lissé']], 'rendu');
 groupe('gHeure', HEURES, 'heure');
 groupe('gMeteo', METEOS, 'meteo');
 

@@ -2111,10 +2111,26 @@ function fabriqueMatch3D(THREE, o){
   canvas.addEventListener('pointerup',surUp); canvas.addEventListener('pointercancel',surUp);
   canvas.addEventListener('webglcontextlost', e=>e.preventDefault());
 
+  /* LE LISSAGE (o.lisse = 2, 3 ou 4, facultatif ; retour de l'auteur du 27/11/2026 sur les vrais stades : « comment réduire
+     la pixellisation quand l'écran tourne ? »). Les pixels du jeu restent aussi gros, mais chacun devient la MOYENNE de
+     lisse × lisse points de la scène au lieu d'un seul point tiré au centre : une lame de béton plus fine qu'un pixel ne
+     clignote plus quand le stade tourne, elle garde une teinte stable. Sans o.lisse, le rendu de toujours. */
+  const LISSE = (o.lisse|0)>=2 ? clamp(o.lisse|0, 2, 4) : 0;
+  let cibleLisse=null, passeLisse=null;
+  if(LISSE){
+    cibleLisse = new THREE.WebGLRenderTarget(2, 2, {type:THREE.HalfFloatType, minFilter:THREE.NearestFilter, magFilter:THREE.NearestFilter});
+    const mat = new THREE.ShaderMaterial({uniforms:{t:{value:cibleLisse.texture}, pas:{value:new THREE.Vector2(1,1)}}, depthTest:false, depthWrite:false,
+      vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }',
+      fragmentShader:'uniform sampler2D t; uniform vec2 pas; varying vec2 vUv;\nvoid main(){ vec3 c=vec3(0.); const int K='+LISSE+';\n for(int i=0;i<K;i++) for(int j=0;j<K;j++) c+=texture2D(t, vUv+(vec2(float(i),float(j))-float(K-1)*.5)*pas).rgb;\n gl_FragColor=vec4(c/float(K*K),1.);\n #include <colorspace_fragment>\n}'});
+    passeLisse = {scene:new THREE.Scene(), cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1), mat};
+    passeLisse.scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), mat));
+  }
   let dernierW=0, dernierH=0;
   function redimensionner(){
     const {w,h}=taille(); if(w===dernierW && h===dernierH) return; dernierW=w; dernierH=h;
-    renderer.setSize(Math.max(80,Math.floor(w/o.pixels)), Math.max(40,Math.floor(h/o.pixels)), false);
+    const W=Math.max(80,Math.floor(w/o.pixels)), H=Math.max(40,Math.floor(h/o.pixels));
+    renderer.setSize(W, H, false);
+    if(cibleLisse){ cibleLisse.setSize(W*LISSE, H*LISSE); passeLisse.mat.uniforms.pas.value.set(1/(W*LISSE), 1/(H*LISSE)); }
   }
 
   /* ---------- boucle ---------- */
@@ -2156,7 +2172,8 @@ function fabriqueMatch3D(THREE, o){
     if(pluie.visible && !reduit){ for(let i=0;i<550;i++){ const g=goutte[i]; g.y-=g.v*dt; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} pluiePos.set([g.x,g.y,g.z,g.x+.6,g.y+3.2,g.z+.4],i*6); } pluieGeo.attributes.position.needsUpdate=true; }
     if(flocons.visible && !reduit){ for(let i=0;i<650;i++){ const g=goutte[i]; g.y-=g.v*.09*dt; g.x+=Math.sin(tt+i)*dt*2; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} neigePos.set([g.x,g.y,g.z],i*3); } neigeGeo.attributes.position.needsUpdate=true; }
     placerCamera(dt);
-    renderer.render(scene,camera);
+    if(cibleLisse){ renderer.setRenderTarget(cibleLisse); renderer.render(scene,camera); renderer.setRenderTarget(null); renderer.render(passeLisse.scene,passeLisse.cam); }
+    else renderer.render(scene,camera);
   }
   function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); if(o.cache && o.cache()){ avant=now; return; } try{ image(now); }catch(e){ signale(e); } }
 
@@ -2192,6 +2209,7 @@ function fabriqueMatch3D(THREE, o){
       canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
       canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp); canvas.removeEventListener('wheel',surMolette);
       scene.traverse(x=>{ if(x.geometry) x.geometry.dispose(); const m=x.material; if(m){ (Array.isArray(m)?m:[m]).forEach(mm=>{ if(mm.map) mm.map.dispose(); mm.dispose(); }); } });
+      if(cibleLisse){ cibleLisse.dispose(); passeLisse.mat.dispose(); }
       renderer.dispose(); try{ renderer.forceContextLoss(); }catch(_){}
     }
   };

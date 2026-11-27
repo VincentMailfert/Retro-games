@@ -133,3 +133,8 @@ de la partie (« on retrouve le stade dès la première journée »), il grandit
 - **Reste à faire si l'auteur valide** : une table `STADES_VRAIS` par code de club dans le jeu, lue par `inferStade` au départ
   de la partie ; passer `forme` au direct et à la vitrine ; dire comment les travaux du joueur font grandir chaque fiche
   (`ST.rangs` passe déjà devant `forme.rangs`) ; des fiches par époque pour les stades rénovés.
+- **Le lissage (`o.lisse`, 27/11/2026, PAS greffé, à choisir par l'auteur)** : sur téléphone, la carte du stade ne fait qu'environ
+  225 pixels de jeu de large ; une lame de béton ou une ligne de la pelouse y est plus fine qu'un pixel, elle s'allume et
+  s'éteint quand le stade tourne. `o.lisse` (2 à 4) garde la même grille de pixels mais fait de chacun la moyenne de
+  lisse × lisse points (rendu dans une cible plus grande, puis réduit). La page d'essai compare « Actuel » (pixels 1,5),
+  « Lissé » (pixels 1,5, lisse 3) et « Fin et lissé » (pixels 1, lisse 2). Sans `o.lisse`, le rendu de toujours.
