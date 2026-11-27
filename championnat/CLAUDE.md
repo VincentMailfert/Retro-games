@@ -6945,6 +6945,45 @@ une initiale ; la règle « la graphie du jeu gagne » les reconduit, je ne les 
 « G. Tedesco » et « Giacomo Tedesco ».
 Validation dédiée : **`harness-ita9899.cjs`**.
 
+### ITA 1999-00 — LE DÉLUGE DE PÉROUSE (v3.34)
+Dixième saison italienne, relevée et assemblée la même nuit par la tâche planifiée le 27/11/2026 (`secours/2026-11-27`). La Lazio de
+Sven-Göran Eriksson, renforcée par Verón et Simeone, court tout le printemps derrière la Juventus de Carlo Ancelotti (jusqu'à neuf points de
+retard), gagne le derby puis à Turin, et revient à deux points avant la dernière journée. Le 14 mai 2000, elle bat la Reggina pendant qu'à
+Perugia, sur un terrain inondé, Pierluigi Collina fait reprendre le match après plus de soixante-dix minutes : un but d'Alessandro Calori
+fait tomber la Juventus, et la Lazio prend son deuxième scudetto, vingt-six ans après le premier, puis la Coupe d'Italie contre l'Inter.
+L'Inter passe Parma au match d'appui pour la quatrième place. **Shevchenko, troisième du Ballon d'or 1999 et meilleur buteur pour sa
+première saison au Milan (vingt-quatre buts, 88/92)** ; Batistuta quatrième du Ballon d'or (87), Vieri septième (86), Crespo (83),
+Montella (81), Ferrante (77) ; en Serie B, **Francioso meilleur buteur (vingt-quatre buts, 72)**, Di Michele, Schwoch, Comandini.
+Sièges = `SIEGES_ITA[1999]` (plus de C2).
+**Le plateau** : dix-huit plus vingt, aucun repêché ni écarté. **La Pistoiese perd quatre points** (`penalite` 4) et se sauve au double
+barrage contre Cesena. **Alzano Virescit (4338), Savoia (4341) et Fermana (4033)**, montés de C1 et déjà dans `CLUBS_ITA`, entrent dans
+`releves/clubs-tm.json`. Classements de la Wikipédia anglaise, cohérents, recoupés par l'italienne. **Notes** : 477 héritées de 1998-99
+vieillies d'un an, 91 de plus loin, 1 du recruteur de l'été, 151 calculées ; élite 70.1 / 70, dessous 65.8 / 66. Seize ajustements
+(`ajust-ITA-9900.json`), dont Nesta (81/90), Frey (69/88), Cassano (62/90), Gilardino (58/86) et Toni (70/86).
+**Les arrivées** : coups d'envoi le **28 août 1999 en Serie A**, le **29 en Serie B**. L'historique `ceapi` répond, lu pour les 1 256 hommes
+(l'anti-robot a refusé environ deux cents requêtes, toutes reprises). 146 arrivés en cours de saison écartés (Seedorf et Córdoba à
+l'Inter, Kennet Andersson à Bologna, Amoruso à Perugia le 1er septembre, Luís Oliveira à Cagliari le 8, Galante, Apolloni, Carparelli,
+Saudati, Juarez). Test de non-régression au coup d'envoi de 1998 : Parma 27/27, Inter 28/28, Juventus 25/26, Lazio 29/30 (les deux écarts
+sont des surcharges écrites de 1998-99). Rosas Wikipédia : 63 surcharges (30 arrivées en cours de saison malgré le 1er juillet, dont
+beaucoup « acquistati nella sessione estiva, a stagione in corso » : le marché d'été fermait après le coup d'envoi ; 19 départs après le
+coup d'envoi ; 14 par la règle de Gregori). **Lire aussi les notes `{{efn|…}}` posées après le modèle, sur la même ligne** (Juventus,
+Lazio, Roma, Parma…) : un parseur qui ne lit que les `<ref>` dans le paramètre `nome` en perd la moitié. Les deux règles de 1998-99
+appliquées (Dabo à l'Inter et non à Parma, Cimarelli à Lecce, Mazzeo à Brescia).
+**Les pièges.** (1) **Trois innommables** : Hilário et Dani (Perugia) et Hugo (Bari), noms d'usage déjà pris, sans autre nom libre (la fiche
+Transfermarkt répondait par l'anti-robot) : écartés de la présélection, comme Reinaldo en 1996-97. (2) **Six hommes passent en attaque**,
+tous « A » dans la rosa de leur club : Francioso (Genoa), Tarantino (Empoli), Kanyengele (Savoia), Foglia (Pistoiese), Rapaić (Perugia),
+Osmanovski (Bari). **La Pistoiese reste à trois attaquants** (vérificateur de relevé rouge sur ce seul minimum) : ses six autres
+attaquants sont arrivés en cours de saison. (3) **Pirlo forcé à l'Inter** : au club au coup d'envoi selon l'historique, prêté à la
+Reggina le 1er septembre sans avoir joué (d'où « Not in squad ») ; **Ronaldo forcé** (blessé, 390 minutes). (4) **Gattuso** : le résolveur
+lui donnait son nom entier parce qu'un « G. Gattuso » défenseur de 1994-95 est un autre homme ; `_graphie` (le champ des ajustements déjà employé pour
+l'Angleterre) lui rend « G. Gattuso », sa graphie du recruteur de l'été. (5) Gianluca De Angelis et Alberto Colombo en toutes lettres (les
+formes à initiale sont à d'autres hommes) ; Fábio Júnior devient « F. Júnior ». (6) Trois fiches fantômes retirées (Campagnolo « 1986 »,
+Bennardo « 1991 », Puglisi « 1993 »). (7) Pistoiese, Alzano, Savoia et Fermana, sans saison voisine relevée : 18/18 dans leurs rosas. (8) **`harness-effectif.cjs` rougit au hasard**
+(un club français sous le plancher sur une carrière tirée au hasard, `main` compris) : **pour prouver qu'une saison n'y est pour rien, fixer
+la graine** (`Math.random` remplacé par un générateur à graine dans une copie jetable du harnais) : `main` et la branche ont donné une sortie
+identique au caractère près sur quatre graines, rouge comprise.
+Validation dédiée : **`harness-ita9900.cjs`**.
+
 ### DIVERSIFIER LES SOURCES (consigne de l'auteur, 20/10/2026)
 
 **Transfermarkt reste la source de référence, mais elle n'est plus la seule, et une saison ne doit plus

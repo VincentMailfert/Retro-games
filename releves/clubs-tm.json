@@ -696,7 +696,25 @@
    "nom": "Treviso",
    "nom_tm": "Treviso FBC 1993",
    "pays": "ITA"
+  },
+  "ALZ": {
+   "tm": 4338,
+   "nom": "Alzano Virescit",
+   "nom_tm": "Alzano Virescit",
+   "pays": "ITA"
+  },
+  "SAV": {
+   "tm": 4341,
+   "nom": "Savoia",
+   "nom_tm": "AC Savoia 1908",
+   "pays": "ITA"
+  },
+  "FRM": {
+   "tm": 4033,
+   "nom": "Fermana",
+   "nom_tm": "Fermana Calcio 1920",
+   "pays": "ITA"
   }
  },
- "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA. Piacenza (1408), Venezia (607), Casertana (4106) et Palermo (458) ajoutés le 19/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1991-92 (IT2, saison_id 1991). Vicenza (2655), Acireale (4337) et Ravenna (1105) ajoutés le 21/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1993-94 (IT2, saison_id 1993). Perugia (839) et Chievo Verona (862) ajoutés le 22/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1994-95 (IT2, saison_id 1994). Pistoiese (1307) ajoutée le 23/11/2026, relevée sur la page de championnat Transfermarkt.de Serie B 1995-96 (IT2, saison_id 1995). Castel di Sangro (3512) et Empoli (749) ajoutés le 24/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1996-97 (IT2, saison_id 1996). Treviso (2251, « Treviso FBC 1993 ») ajouté le 25/11/2026, relevé sur la page de championnat Transfermarkt.de Serie B 1997-98 (IT2, saison_id 1997)."
+ "_note_ita": "Clubs italiens (code CLUBS_ITA -> verein), relevés le 15/11/2026 sur les pages de championnat Transfermarkt.de 1990-91 (Serie A IT1, Serie B IT2, Serie C1 IT3A pour Monza et Como). Licata (verein 31154, Serie C1 IT3B) n est pas dans CLUBS_ITA. Piacenza (1408), Venezia (607), Casertana (4106) et Palermo (458) ajoutés le 19/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1991-92 (IT2, saison_id 1991). Vicenza (2655), Acireale (4337) et Ravenna (1105) ajoutés le 21/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1993-94 (IT2, saison_id 1993). Perugia (839) et Chievo Verona (862) ajoutés le 22/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1994-95 (IT2, saison_id 1994). Pistoiese (1307) ajoutée le 23/11/2026, relevée sur la page de championnat Transfermarkt.de Serie B 1995-96 (IT2, saison_id 1995). Castel di Sangro (3512) et Empoli (749) ajoutés le 24/11/2026, relevés sur la page de championnat Transfermarkt.de Serie B 1996-97 (IT2, saison_id 1996). Treviso (2251, « Treviso FBC 1993 ») ajouté le 25/11/2026, relevé sur la page de championnat Transfermarkt.de Serie B 1997-98 (IT2, saison_id 1997). Alzano Virescit (4338), Savoia (4341, « AC Savoia 1908 ») et Fermana (4033, « Fermana Calcio 1920 ») ajoutés le 27/11/2026, relevés sur la page de championnat Transfermarkt.co.uk Serie B 1999-00 (IT2, saison_id 1999)."
 }
