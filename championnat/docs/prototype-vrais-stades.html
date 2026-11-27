@@ -42,6 +42,9 @@ canvas.vitrine{display:block;width:100%;height:100%;image-rendering:pixelated;im
 .ctr b{color:var(--clair)}
 .dim{color:var(--dim);font-size:13px}
 .prochain{display:block;width:100%;margin-top:10px;padding:11px;font:600 15px system-ui,sans-serif;color:#1a1300;background:var(--jaune);border:0;border-radius:4px;box-shadow:0 3px 0 #9c7c1c;cursor:pointer}
+.prochain.autre{background:#0e1d35;color:var(--txt);box-shadow:0 3px 0 #091426;border:1px solid var(--line)}
+#gClub{display:flex;flex-direction:column;gap:8px}
+.groupe span{width:74px}
 .note{margin-top:18px;font-size:14px;color:var(--dim)}
 .note p{margin:6px 0}
 .alerte{background:#5a1414;color:#fff;padding:10px;border-radius:4px;margin-bottom:10px}
@@ -64,7 +67,7 @@ body.bloque{overflow:hidden}
   <h1>PROTOTYPE · LES VRAIS STADES</h1>
   <div id="alerte" class="alerte" hidden></div>
   <div class="reglages">
-    <div class="groupe" id="gClub"><span>Club</span></div>
+    <div id="gClub"></div>
     <div class="groupe" id="gVersion"><span>Version</span></div>
     <div class="groupe" id="gHeure"><span>Heure</span></div>
     <div class="groupe" id="gMeteo"><span>Temps</span></div>
@@ -81,6 +84,7 @@ body.bloque{overflow:hidden}
     </div>
     <p class="ctr"><span id="nomStade"></span> · <b id="cap"></b> places · Prestige <span id="prestige"></span>/10</p>
     <button class="prochain" type="button" id="bProchain"></button>
+    <button class="prochain autre" type="button" id="bVirages"></button>
   </section>
 
   <div class="note">
@@ -88,6 +92,7 @@ body.bloque{overflow:hidden}
     <p>Le bouton du coin ouvre le stade en grand, sans tourner le téléphone : on s'y promène de gauche à droite.</p>
     <p>« Jeu aujourd'hui » montre le stade que le jeu donne à ce club en ce moment, pour comparer.</p>
     <p>Le bouton jaune agrandit une tribune : le vrai stade est le point de départ, il grandit ensuite avec tes travaux.</p>
+    <p>Pour un stade à l'anglaise, le second bouton construit les virages : les quatre coins se ferment, à la hauteur des tribunes voisines.</p>
   </div>
 </main>
 
@@ -176,14 +181,17 @@ function fabriqueMatch3D(THREE, o){
      passe devant quand le jeu a fait grandir une tribune), arrondi (0 à 12, des virages en vraie courbe), etages (1 ou 2,
      un nombre pour tout le stade ou {N, S, E, O}), toits ({N, S, E, O} : 'plat', 'incline' ou 'aucun'), couv (part de la
      tribune couverte), poutres (l'écart en mètres entre les poutres apparentes de la charpente), les couleurs (coulToit, coulCharpente, coulLisere, coulMur, coulBalcon), kop (des drapeaux sans
-     virages), et les signes distinctifs : portiques (le nombre de lames de béton qui portent le toit), riviere ('N').
+     virages), et les signes distinctifs : portiques (le nombre de lames de béton qui portent le toit), riviere ('N'),
+     tours ({forme:'rond'|'carre', coul, cercle, poutre}), arches (une porte monumentale par côté), arcades ('E' ou 'O',
+     une rangée d'arches derrière un but), et piste (la piste d'athlétisme : les tribunes reculent).
      SANS FICHE, RIEN NE CHANGE : chaque réglage retombe sur la valeur d'avant. */
   const F = (ST.forme && typeof ST.forme==='object') ? ST.forme : null;
   const coulF = (k, d) => (F && typeof F[k]==='string' && /^#[0-9a-f]{6}$/i.test(F[k])) ? hexInt(F[k]) : d;
   const rangsDits = Array.isArray(ST.rangs) && ST.rangs.length===4 ? ST.rangs : (F && Array.isArray(F.rangs) && F.rangs.length===4 ? F.rangs : null);
   const RANGS = rangsDits
     ? {N:clamp(rangsDits[0]|0,1,16), S:clamp(rangsDits[1]|0,1,16), E:clamp(rangsDits[2]|0,1,16), O:clamp(rangsDits[3]|0,1,16)} : null;
-  const ARR = (F && bol) ? clamp(+F.arrondi||0, 0, 12) : 0;                  // le rayon des virages, côté pelouse
+  const PISTE = F && F.piste ? 7 : 0;                                         // la piste d'athlétisme : les tribunes reculent de sept mètres
+  const ARR = (F && bol) ? clamp(+F.arrondi||0, 0, 12+PISTE*1.6) : 0;                  // le rayon des virages, côté pelouse
   const SAUT = 2.8;                                                          // la marche entre les deux étages
   const ETG = c => !F || !F.etages ? 1 : typeof F.etages==='number' ? F.etages : (F.etages[c] || (c==='C' ? Math.min(F.etages.N||1, F.etages.S||1, F.etages.E||1, F.etages.O||1) : 1));
   const coupe = n => Math.max(2, Math.round(n*.45));                         // le rang où commence l'étage du haut
@@ -194,7 +202,7 @@ function fabriqueMatch3D(THREE, o){
   const nFond = RANGS ? Math.max(RANGS.N, RANGS.S, RANGS.E, RANGS.O)
     : bol ? clamp(Math.round(3+cap/6500), 4, 16) : clamp(Math.round(2+cap/3000), 3, 9);   // rangs des côtés du fond
   const nAvant = nFond;                                                                                  // tous les côtés à la même hauteur (choix de l'auteur)
-  const RX = L/2+9, RZ = Lg/2+9, PAS = 2.2, MARCHE = 1.2;
+  const RX = L/2+9+PISTE, RZ = Lg/2+9+PISTE, PAS = 2.2, MARCHE = 1.2;
   const profX = RX + nFond*PAS, profZ = RZ + nFond*PAS;
   const ileL = Math.max(168, Math.ceil(2*profX + 44)), ileP = Math.max(128, Math.ceil(2*profZ + 46));
   soleil.shadow.camera.left = soleil.shadow.camera.bottom = -Math.max(110, ileL*.66);
@@ -240,9 +248,16 @@ function fabriqueMatch3D(THREE, o){
   const pelouse = new THREE.Mesh(new THREE.PlaneGeometry(L+10, Lg+10), matPelouse);
   pelouse.rotation.x = -Math.PI/2; pelouse.position.y = 0.02; pelouse.receiveShadow = true; scene.add(pelouse);
   /* la piste autour de la pelouse, jusqu'au pied des tribunes */
-  const matPiste = M(0x9a6b4a);
+  const matPiste = M(PISTE ? coulF('coulPiste', 0xb5553c) : 0x9a6b4a);
   box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, -(Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
   box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, (Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
+  if(PISTE){                                                   // la piste fait le tour, avec ses couloirs
+    for(const sx of [-1,1]) box(RX-L/2-5, .2, Lg+10, matPiste, sx*(L/2+5+(RX-L/2-5)/2), .1, 0, scene, false);
+    const ligne=M(0xf0ece0);
+    for(let k=1;k<=3;k++){ const e=5+k*2.6;
+      for(const sz of [-1,1]) box(L+2*e-6, .05, .22, ligne, 0, .22, sz*(Lg/2+e), scene, false);
+      for(const sx of [-1,1]) box(.22, .05, Lg+2*e-6, ligne, sx*(L/2+e), .22, 0, scene, false); }
+  }
   /* panneaux publicitaires, ou le ruban LED du club tout autour */
   const matLed = new THREE.MeshLambertMaterial({color:hexInt(o.dom&&o.dom.maillot||'#c8312f')}); matLed.emissive.setHex(hexInt(o.dom&&o.dom.maillot||'#c8312f')).multiplyScalar(.55);
   if(ST.led){
@@ -389,6 +404,7 @@ function fabriqueMatch3D(THREE, o){
       if(ST.eclairage>=3) rampe.push(box(.6, .5, lg-4, matRampe, sx*(t.d0-.6), t.h-1.1+(inc?Math.sin(PENTE)*t.larg:0), 0, scene, false)); }
     if(bol){ const segs=ARR?10:6;
       for(const sx of [-1,1]) for(const sz of [-1,1]){
+        if(toitDe(sz<0?'N':'S')==='aucun' || toitDe(sx<0?'O':'E')==='aucun') continue;   // pas de toit de virage entre deux tribunes dont l'une est découverte
         const n=Math.min(RANGS[sz<0?'N':'S'], RANGS[sx<0?'O':'E']), t=pan(n, 0, 'C'), rm=ARR+t.d0+t.larg/2-(F?1:0);
         const debut = sz>0 ? Math.PI/2 : -Math.PI/2, fin = sx>0 ? 0 : Math.PI;
         let da=fin-debut; if(da>Math.PI) da-=2*Math.PI; if(da<-Math.PI) da+=2*Math.PI;
@@ -557,6 +573,51 @@ function fabriqueMatch3D(THREE, o){
         const bras=box(t.larg*.92, 1.5, .9, matP, -(t.larg*.92)/2+2.6, t.h+1.35, 0, g); bras.rotation.z=-.05;   // le bras posé sur le toit
         box(2.2, 2.6, .9, matP, 1.4, H-1.3, 0, g, false);
       }
+    }
+    if(F.tours){
+      /* les tours : rondes et cerclées de rampes autour d'une cuvette (quatre grosses aux coins, qui portent de grandes
+         poutres au-dessus du toit, et de plus petites le long des côtés), ou carrées dans les coins ouverts d'un stade à
+         l'anglaise */
+      const T=F.tours, rond=T.forme!=='carre', matT=M(typeof T.coul==='string'?hexInt(T.coul):0xc9c6bc), matC=M(typeof T.cercle==='string'?hexInt(T.cercle):0x9d9a90);
+      const n=nFond, hS=hTrib('C',n)+5.5, D=prof(n);
+      const tour=(x,z,r,h)=>{
+        if(rond){ const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12), matT); c.position.set(x,h/2,z); c.castShadow=true; scene.add(c);
+          for(let k=1;k<=Math.floor(h/5);k++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(r+.35,r+.35,.9,12), matC); b.position.set(x,k*5-1.5,z); scene.add(b); } }
+        else { box(2*r, h, 2*r, matT, x, h/2, z); box(2*r+.8, 1.2, 2*r+.8, matC, x, h+.6, z); for(let k=1;k<=Math.floor(h/6);k++) box(2*r+.3, .6, 2*r+.3, matC, x, k*6-2, z, scene, false); }
+      };
+      if(bol && rond){
+        const X=RX+D+1.5, Z=RZ+D+1.5, H=hS+5.2;                                     // les poutres reposent sur le bord du toit
+        for(const sx of [-1,1]) for(const sz of [-1,1]) tour(sx*X, sz*Z, 5.2, H);
+        if(typeof T.poutre==='string'){ const matG=M(hexInt(T.poutre));                 // les grandes poutres, de tour à tour
+          for(const sz of [-1,1]){ box(2*X, 3, 1.6, matG, 0, H-1.5, sz*Z); box(2*X, .5, 1.6, matG, 0, H-5, sz*Z, scene, false);
+            for(let i=0;i<=14;i++) box(.5, 3.2, 1.2, matG, -X+i*2*X/14, H-3.4, sz*Z, scene, false); }
+          for(const sx of [-1,1]){ box(1.6, 3, 2*Z, matG, sx*X, H-1.5, 0); box(1.6, .5, 2*Z, matG, sx*X, H-5, 0, scene, false);
+            for(let i=0;i<=10;i++) box(1.2, 3.2, .5, matG, sx*X, H-3.4, -Z+i*2*Z/10, scene, false); } }
+        const hP=hS-1;                                                                 // les petites, le long des côtés
+        for(const sz of [-1,1]) for(const k of [-.34,.34]) tour(k*2*RX, sz*(RZ+D+3), 3.6, hP);
+        for(const sx of [-1,1]) tour(sx*(RX+D+3), 0, 3.6, hP);
+      } else if(!bol){
+        for(const sx of [-1,1]) for(const sz of [-1,1]){ const dx=prof(RANGS[sx<0?'O':'E']), dz=prof(RANGS[sz<0?'N':'S']), r=Math.min(dx,dz)*.42;
+          tour(sx*(L/2+4+r+2.2), sz*(Lg/2+4+r+2.2), r, hTrib('C',Math.max(RANGS[sx<0?'O':'E'],RANGS[sz<0?'N':'S']))+11); }
+      }
+    }
+    if(F.arches){
+      /* les grandes arches : une porte monumentale au milieu de chaque côté, derrière la tribune */
+      const matA=M(coulF('coulArche', 0xd9d2bf)), R=7.5;
+      const arche=(x,z,ry)=>{ const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
+        for(const s of [-1,1]) box(2.6, 9, 3.4, matA, s*R, 4.5, 0, g);
+        const a=new THREE.Mesh(new THREE.TorusGeometry(R, 1.5, 5, 10, Math.PI), matA); a.position.y=9; a.scale.z=2.2; a.castShadow=true; g.add(a);
+        box(2*R+7, 1.6, 4.2, matA, 0, 9+R+1.6, 0, g); for(const s of [-1,1]) box(3.4, R+2.4, 4.2, matA, s*(R+1.8), 9+(R+2.4)/2, 0, g); };
+      arche(0, RZ+prof(RANGS.S)+3.2, 0); arche(0, -(RZ+prof(RANGS.N)+3.2), 0);
+      arche(RX+prof(RANGS.E)+3.2, 0, Math.PI/2); arche(-(RX+prof(RANGS.O)+3.2), 0, Math.PI/2);
+    }
+    if(F.arcades==='E' || F.arcades==='O'){
+      /* les arcades : une rangée d'arches derrière un but, à la place d'une grande tribune */
+      const sx=F.arcades==='E'?1:-1, c=F.arcades, matA=M(coulF('coulArche', 0xe6dcc6)), nA=9, lg=2*(RZ-ARR)+6, pas=lg/nA, R=pas/2-.9, hp=7.5;
+      const x=sx*(RX+prof(RANGS[c])+3.4);
+      for(let i=0;i<=nA;i++) box(1.8, hp, 1.8, matA, x, hp/2, -lg/2+i*pas);
+      for(let i=0;i<nA;i++){ const a=new THREE.Mesh(new THREE.TorusGeometry(R, .9, 4, 8, Math.PI), matA); a.rotation.y=Math.PI/2; a.position.set(x, hp, -lg/2+(i+.5)*pas); a.scale.z=1.6; a.castShadow=true; scene.add(a); }
+      box(2.4, 1.3, lg+2, matA, x, hp+R+1.3, 0);
     }
     if(F.riviere==='N'){
       /* la rivière qui longe le stade derrière la tribune du fond, ses berges et ses peupliers */
@@ -2150,20 +2211,76 @@ function fabriqueMatch3D(THREE, o){
    mots du jeu (cap, virages, toit, eclairage...) et une `forme` que le moteur sait lire. Version des années 90, dessinée
    de mémoire : à corriger sur photos d'époque. Orientation : N et S sont les grandes tribunes le long des lignes de
    touche, E et O sont derrière les buts. Dans le jeu, ces fiches iraient dans une table STADES_VRAIS, par code de club. */
+const BETON = {coulToit:'#c2c5c6', coulCharpente:'#a9acac', coulLisere:'#e6e8e8', coulMur:'#b4b6b4', coulBalcon:'#dfe1e0'};
 const CLUBS = [
-  {id:'PSG', nom:'Paris Saint-Germain', stade:'Parc des Princes', maillot:'#1d2f6f', short:'#c8231f', pres:8,
-   fiche:{cap:48500, aff:.88, virages:1, toit:1, eclairage:3, kop:1, buvette:1, boutique:1, transport:1,
-     forme:{rangs:[13,13,13,13], arrondi:12, etages:2, couv:.86, portiques:50,
-       coulToit:'#c2c5c6', coulCharpente:'#a9acac', coulLisere:'#e6e8e8', coulMur:'#b4b6b4', coulBalcon:'#dfe1e0', coulPortique:'#cdd0cf'}}},
-  {id:'ASSE', nom:'AS Saint-Étienne', stade:'Stade Geoffroy-Guichard', maillot:'#1f8a45', short:'#f4f4f0', pres:8,
+  /* ---------------- France ---------------- */
+  {pays:'France', id:'PSG', nom:'Paris Saint-Germain', stade:'Parc des Princes', maillot:'#1d2f6f', short:'#c8231f', pres:10,
+   fiche:{cap:48000, aff:.88, virages:1, toit:1, eclairage:3, kop:1, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[13,13,13,13], arrondi:12, etages:2, couv:.86, portiques:50, ...BETON, coulPortique:'#cdd0cf'}}},
+  {pays:'France', id:'OM', nom:'Olympique de Marseille', stade:'Stade Vélodrome', maillot:'#f4f4f2', short:'#2c8fd6', pres:9,
+   fiche:{cap:42000, aff:.9, virages:1, toit:1, eclairage:2, kop:2, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[11,12,11,11], arrondi:12, piste:1, coulPiste:'#8f9296', toits:{N:'plat', S:'aucun', E:'aucun', O:'aucun'}, couv:.8,
+       coulToit:'#d0d3d4', coulCharpente:'#9aa0a6', coulLisere:'#2c8fd6', coulMur:'#c9c6ba'}}},
+  {pays:'France', id:'STE', nom:'AS Saint-Étienne', stade:'Stade Geoffroy-Guichard', maillot:'#1f8a45', short:'#f4f4f0', pres:8,
    fiche:{cap:36000, aff:.86, virages:0, toit:1, eclairage:2, kop:1, buvette:1, boutique:1, transport:1,
      forme:{rangs:[11,11,10,10], etages:{N:2, S:2, E:2, O:2}, toits:{N:'incline', S:'incline', E:'incline', O:'incline'}, couv:.7, kop:1, poutres:9,
        coulToit:'#c9d0cd', coulCharpente:'#1f7a3d', coulLisere:'#1f7a3d', coulMur:'#2c7d47', coulBalcon:'#e9ebe6'}}},
-  {id:'FCM', nom:'FC Metz', stade:'Stade Saint-Symphorien', maillot:'#8a1c2b', short:'#f4edd8', pres:6,
-   fiche:{cap:26700, aff:.82, virages:0, toit:1, eclairage:2, buvette:1, boutique:1, transport:1,
+  {pays:'France', id:'LEN', nom:'RC Lens', stade:'Stade Félix-Bollaert', maillot:'#c8231f', short:'#e8c21a', pres:7,
+   fiche:{cap:34000, aff:.9, virages:0, toit:1, eclairage:2, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[11,11,10,10], etages:{N:2, S:2, E:2, O:2}, couv:.78, poutres:12,
+       coulToit:'#cfd2d2', coulCharpente:'#8a8f96', coulLisere:'#e8c21a', coulMur:'#9a3b33', coulBalcon:'#e8c21a'}}},
+  {pays:'France', id:'NAN', nom:'FC Nantes', stade:'Stade de la Beaujoire', maillot:'#f2d21b', short:'#1f8a45', pres:8,
+   fiche:{cap:38000, aff:.85, virages:1, toit:1, eclairage:3, kop:1, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[15,15,8,8], arrondi:12, etages:{N:2, S:2, E:1, O:1, C:1}, couv:.8,
+       coulToit:'#e4e6e4', coulCharpente:'#b8bcbc', coulLisere:'#f2f2ee', coulMur:'#c4c6c2', coulBalcon:'#eceee9'}}},
+  {pays:'France', id:'LYO', nom:'Olympique Lyonnais', stade:'Stade de Gerland', maillot:'#f4f4f2', short:'#1d3f8f', pres:8,
+   fiche:{cap:35000, aff:.82, virages:1, toit:1, eclairage:2, kop:1, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[11,11,9,9], arrondi:11, toits:{N:'plat', S:'plat', E:'aucun', O:'aucun'}, couv:.8, arches:1,
+       coulToit:'#d2d2cc', coulCharpente:'#a6a69c', coulLisere:'#c8231f', coulMur:'#cfc7b2', coulArche:'#d9d2bf'}}},
+  {pays:'France', id:'MON', nom:'AS Monaco', stade:'Stade Louis-II', maillot:'#c8231f', short:'#f4f4f2', pres:8,
+   fiche:{cap:18000, aff:.6, virages:1, toit:1, eclairage:3, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[8,8,3,7], arrondi:14, piste:1, toits:{N:'plat', S:'plat', E:'aucun', O:'plat'}, couv:.9, arcades:'E',
+       coulToit:'#c98a5a', coulCharpente:'#e6dcc6', coulLisere:'#e6dcc6', coulMur:'#e6dcc6', coulArche:'#eadfc8'}}},
+  {pays:'France', id:'BOR', nom:'Girondins de Bordeaux', stade:'Parc Lescure', maillot:'#1d2f6f', short:'#f4f4f2', pres:8,
+   fiche:{cap:31000, aff:.8, virages:1, toit:1, eclairage:2, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[9,9,9,9], arrondi:16, piste:1, coulPiste:'#a3a59f', couv:.95,
+       coulToit:'#e9e4d6', coulCharpente:'#cfc8b6', coulLisere:'#f4f0e4', coulMur:'#efe9da'}}},
+  {pays:'France', id:'MET', nom:'FC Metz', stade:'Stade Saint-Symphorien', maillot:'#8a1c2b', short:'#f4edd8', pres:5,
+   fiche:{cap:23000, aff:.82, virages:0, toit:1, eclairage:2, buvette:1, boutique:1, transport:1,
      forme:{rangs:[10,8,5,5], etages:{N:2, S:1, E:1, O:1}, toits:{N:'plat', S:'plat', E:'aucun', O:'aucun'}, couv:.82, riviere:'N',
        coulToit:'#c8cacb', coulCharpente:'#8e93a3', coulLisere:'#8a1c2b', coulMur:'#a9a493', coulBalcon:'#f4edd8'}}},
+  /* ---------------- Angleterre ---------------- */
+  {pays:'Angleterre', id:'MUN', nom:'Manchester United', stade:'Old Trafford', maillot:'#c8231f', short:'#f4f4f2', pres:10,
+   fiche:{cap:44000, aff:.97, virages:1, toit:1, eclairage:3, kop:1, buvette:1, boutique:2, transport:1,
+     forme:{rangs:[11,11,11,11], arrondi:5, couv:.85, poutres:11,
+       coulToit:'#cfd3d6', coulCharpente:'#e9ebec', coulLisere:'#c8231f', coulMur:'#8f3a32'}}},
+  {pays:'Angleterre', id:'LIV', nom:'Liverpool', stade:'Anfield', maillot:'#c8231f', short:'#c8231f', pres:9,
+   fiche:{cap:41000, aff:.96, virages:0, toit:1, eclairage:2, kop:1, buvette:1, boutique:2, transport:1,
+     forme:{rangs:[9,11,8,14], etages:{N:1, S:2, E:1, O:1}, couv:.85, kop:1,
+       coulToit:'#c6cacd', coulCharpente:'#8a8f96', coulLisere:'#c8231f', coulMur:'#8f3a32', coulBalcon:'#f4f4f2'}}},
+  {pays:'Angleterre', id:'ARS', nom:'Arsenal', stade:'Highbury', maillot:'#c8231f', short:'#f4f4f2', pres:9,
+   fiche:{cap:38500, aff:.96, virages:0, toit:1, eclairage:3, buvette:1, boutique:2, transport:2,
+     forme:{rangs:[10,10,7,8], etages:{N:2, S:2, E:1, O:1}, couv:.9,
+       coulToit:'#d9d6cc', coulCharpente:'#f1ede2', coulLisere:'#c8231f', coulMur:'#f1ede2', coulBalcon:'#f1ede2'}}},
+  /* ---------------- Italie ---------------- */
+  {pays:'Italie', id:'MIL', nom:'AC Milan · Inter', stade:'San Siro', maillot:'#c8231f', short:'#1b1b1b', pres:10,
+   fiche:{cap:80018, aff:.85, virages:1, toit:1, eclairage:3, kop:2, buvette:2, boutique:2, transport:2,
+     forme:{rangs:[16,16,16,16], arrondi:4, etages:2, couv:.8, tours:{forme:'rond', coul:'#c9c6bc', cercle:'#9d9a90', poutre:'#b3261e'},
+       coulToit:'#d5d9dc', coulCharpente:'#b3261e', coulLisere:'#b3261e', coulMur:'#b9b6ac', coulBalcon:'#dcd9d0'}}},
+  {pays:'Italie', id:'JUV', nom:'Juventus · Torino', stade:'Stadio delle Alpi', maillot:'#f4f4f2', short:'#1b1b1b', pres:10,
+   fiche:{cap:69000, aff:.7, virages:1, toit:1, eclairage:3, kop:1, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[15,15,15,15], arrondi:22, piste:1, etages:2, couv:.6, poutres:14,
+       coulToit:'#e6e8e8', coulCharpente:'#8a8f96', coulLisere:'#f4f4f2', coulMur:'#b9bbb8', coulBalcon:'#e2e4e2'}}},
+  {pays:'Italie', id:'ROM', nom:'AS Roma · Lazio', stade:'Stadio Olimpico', maillot:'#8a1c2b', short:'#e8a21a', pres:9,
+   fiche:{cap:70634, aff:.8, virages:1, toit:1, eclairage:3, kop:2, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[14,14,14,14], arrondi:23, piste:1, couv:1,
+       coulToit:'#eceeed', coulCharpente:'#d9dcdb', coulLisere:'#f6f7f6', coulMur:'#d6d1c2'}}},
+  {pays:'Italie', id:'GEN', nom:'Genoa · Sampdoria', stade:'Stadio Luigi Ferraris', maillot:'#b3261e', short:'#1d2f6f', pres:8,
+   fiche:{cap:33205, aff:.85, virages:0, toit:1, eclairage:3, kop:1, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[11,11,11,11], etages:2, couv:.85, kop:1, tours:{forme:'carre', coul:'#a8402e', cercle:'#8a3226'},
+       coulToit:'#c9cccd', coulCharpente:'#8a8f96', coulLisere:'#a8402e', coulMur:'#a8402e', coulBalcon:'#e6e2d8'}}},
 ];
+const PAYS = ['France','Angleterre','Italie'];
 /* « Jeu aujourd'hui » : ce que le jeu déduit de la seule capacité (inferStade), le stade que ce club a en ce moment */
 const stadeDuJeu = cap => ({cap, aff:.8, eclairage:cap>=18000?2:1, toit:cap>=30000?1:0, virages:cap>=35000?1:0, kop:cap>=35000?1:0, boutique:1, buvette:1, transport:cap>=20000?1:0});
 /* les rangs de chaque tribune [N, S, E, O], comptés comme le pixel art du jeu (STADEPIX : rangs, profondeurs) : une
@@ -2179,15 +2296,16 @@ function etatStade(){
   const C=CLUBS[R.club];
   if(R.version==='jeu'){ const r=stadeDuJeu(C.fiche.cap); r.rangs=rangsVitrine(r.cap, r.virages); return {r, etape:"Le stade du jeu aujourd'hui"}; }
   const r=JSON.parse(JSON.stringify(C.fiche));
+  if(R.ferme && !r.virages){ r.virages=1; r.cap+=5000; r.kop=Math.max(1,r.kop||0); if(r.forme.tours && r.forme.tours.forme==='carre') delete r.forme.tours; }   // le projet « Virages » du jeu : les quatre coins se ferment
   if(R.plus>0){ const rg=r.forme.rangs.slice();
     for(let k=0;k<R.plus;k++){ let i=0; for(let j=1;j<4;j++) if(rg[j]<rg[i]) i=j; if(r.virages){ for(let j=0;j<4;j++) rg[j]=Math.min(16,rg[j]+1); } else rg[i]=Math.min(16,rg[i]+2); }
     r.rangs=rg; r.cap+=3500*R.plus; }
-  return {r, etape:R.plus ? 'Agrandi '+R.plus+' fois' : 'Au départ de la partie'};
+  return {r, etape:(R.ferme && !C.fiche.virages ? 'Virages construits' : R.plus ? 'Agrandi '+R.plus+' fois' : 'Au départ de la partie')+(R.ferme && !C.fiche.virages && R.plus ? ', agrandi '+R.plus+' fois' : '')};
 }
 const HEURES = [['jour','Jour'],['soir','Soir'],['nuit','Nuit']];
 const METEOS = [['sec','Sec'],['pluie','Pluie'],['neige','Neige'],['brouillard','Brouillard']];
-const R = { club:0, version:'vrai', plus:0, heure:'jour', meteo:'sec' };
-try{ const q=new URLSearchParams(location.search); if(q.has('club')) R.club=+q.get('club')||0; if(q.get('version')) R.version=q.get('version'); if(q.has('plus')) R.plus=+q.get('plus')||0; if(q.get('heure')) R.heure=q.get('heure'); if(q.get('meteo')) R.meteo=q.get('meteo'); }catch(e){}
+const R = { club:0, version:'vrai', plus:0, ferme:0, heure:'jour', meteo:'sec' };
+try{ const q=new URLSearchParams(location.search); if(q.has('club')) R.club=+q.get('club')||0; if(q.get('version')) R.version=q.get('version'); if(q.has('plus')) R.plus=+q.get('plus')||0; if(q.has('ferme')) R.ferme=1; if(q.get('heure')) R.heure=q.get('heure'); if(q.get('meteo')) R.meteo=q.get('meteo'); }catch(e){}
 
 const $ = id => document.getElementById(id);
 const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
@@ -2214,18 +2332,22 @@ function monte(){
   $('etape').textContent=$('etapeG').textContent=S.etape.toUpperCase();
   $('places').textContent=$('placesG').textContent=fmt(S.r.cap)+' PLACES';
   $('bProchain').hidden = R.version!=='vrai';
+  $('bVirages').hidden = R.version!=='vrai' || !!C.fiche.virages;
+  $('bVirages').textContent = R.ferme ? 'Rouvrir les coins' : 'Construire les virages (+5 000 places)';
   $('bProchain').textContent = R.plus<4 ? 'Agrandir une tribune (+3 500 places)' : 'Revenir au stade de départ';
   marque();
 }
 function marque(){
-  for(const [g,v] of [['gClub',R.club],['gVersion',R.version],['gHeure',R.heure],['gMeteo',R.meteo]])
+  document.querySelectorAll('.groupe.club button').forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.v===R.club)));
+  for(const [g,v] of [['gVersion',R.version],['gHeure',R.heure],['gMeteo',R.meteo]])
     document.querySelectorAll('#'+g+' button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v==String(v))));
 }
 function groupe(id, liste, cle, num){
   liste.forEach(([v,l])=>{ const b=document.createElement('button'); b.type='button'; b.dataset.v=v; b.textContent=l;
-    b.onclick=()=>{ R[cle]=num?+v:v; if(cle==='club'||cle==='version') R.plus=0; monte(); }; $(id).append(b); });
+    b.onclick=()=>{ R[cle]=num?+v:v; if(cle==='club'||cle==='version'){ R.plus=0; R.ferme=0; } monte(); }; $(id).append(b); });
 }
-groupe('gClub', CLUBS.map((c,i)=>[i,c.stade.replace('Stade ','')]), 'club', true);
+PAYS.forEach((pays,k)=>{ const d=document.createElement('div'); d.className='groupe club'; d.id='gPays'+k; const t=document.createElement('span'); t.textContent=pays; d.append(t); $('gClub').append(d);
+  groupe('gPays'+k, CLUBS.map((c,i)=>[i,c.stade.replace(/^(Stade|Stadio) (de la |de |du )?/,'').replace(/^./,x=>x.toUpperCase()),c.pays]).filter(x=>x[2]===pays), 'club', true); });
 groupe('gVersion', [['vrai','Vrai stade'],['jeu',"Jeu aujourd'hui"]], 'version');
 groupe('gHeure', HEURES, 'heure');
 groupe('gMeteo', METEOS, 'meteo');
@@ -2255,6 +2377,7 @@ function ferme(depuisHistorique){
   $('placeCarte').append(canvas); if(SC) SC.remplir(false);
   if(!depuisHistorique){ try{ if(history.state && history.state.grand) history.back(); }catch(e){} }
 }
+$('bVirages').onclick=()=>{ R.ferme=R.ferme?0:1; monte(); };
 $('bGrand').onclick=ouvre; $('bFerme').onclick=()=>ferme();
 $('bTourneG').onclick=()=>SC&&SC.tourne(-Math.PI/2); $('bTourneD').onclick=()=>SC&&SC.tourne(Math.PI/2);
 addEventListener('popstate', ()=>ferme(true));        // le bouton retour du téléphone referme

@@ -168,14 +168,17 @@ function fabriqueMatch3D(THREE, o){
      passe devant quand le jeu a fait grandir une tribune), arrondi (0 à 12, des virages en vraie courbe), etages (1 ou 2,
      un nombre pour tout le stade ou {N, S, E, O}), toits ({N, S, E, O} : 'plat', 'incline' ou 'aucun'), couv (part de la
      tribune couverte), poutres (l'écart en mètres entre les poutres apparentes de la charpente), les couleurs (coulToit, coulCharpente, coulLisere, coulMur, coulBalcon), kop (des drapeaux sans
-     virages), et les signes distinctifs : portiques (le nombre de lames de béton qui portent le toit), riviere ('N').
+     virages), et les signes distinctifs : portiques (le nombre de lames de béton qui portent le toit), riviere ('N'),
+     tours ({forme:'rond'|'carre', coul, cercle, poutre}), arches (une porte monumentale par côté), arcades ('E' ou 'O',
+     une rangée d'arches derrière un but), et piste (la piste d'athlétisme : les tribunes reculent).
      SANS FICHE, RIEN NE CHANGE : chaque réglage retombe sur la valeur d'avant. */
   const F = (ST.forme && typeof ST.forme==='object') ? ST.forme : null;
   const coulF = (k, d) => (F && typeof F[k]==='string' && /^#[0-9a-f]{6}$/i.test(F[k])) ? hexInt(F[k]) : d;
   const rangsDits = Array.isArray(ST.rangs) && ST.rangs.length===4 ? ST.rangs : (F && Array.isArray(F.rangs) && F.rangs.length===4 ? F.rangs : null);
   const RANGS = rangsDits
     ? {N:clamp(rangsDits[0]|0,1,16), S:clamp(rangsDits[1]|0,1,16), E:clamp(rangsDits[2]|0,1,16), O:clamp(rangsDits[3]|0,1,16)} : null;
-  const ARR = (F && bol) ? clamp(+F.arrondi||0, 0, 12) : 0;                  // le rayon des virages, côté pelouse
+  const PISTE = F && F.piste ? 7 : 0;                                         // la piste d'athlétisme : les tribunes reculent de sept mètres
+  const ARR = (F && bol) ? clamp(+F.arrondi||0, 0, 12+PISTE*1.6) : 0;                  // le rayon des virages, côté pelouse
   const SAUT = 2.8;                                                          // la marche entre les deux étages
   const ETG = c => !F || !F.etages ? 1 : typeof F.etages==='number' ? F.etages : (F.etages[c] || (c==='C' ? Math.min(F.etages.N||1, F.etages.S||1, F.etages.E||1, F.etages.O||1) : 1));
   const coupe = n => Math.max(2, Math.round(n*.45));                         // le rang où commence l'étage du haut
@@ -186,7 +189,7 @@ function fabriqueMatch3D(THREE, o){
   const nFond = RANGS ? Math.max(RANGS.N, RANGS.S, RANGS.E, RANGS.O)
     : bol ? clamp(Math.round(3+cap/6500), 4, 16) : clamp(Math.round(2+cap/3000), 3, 9);   // rangs des côtés du fond
   const nAvant = nFond;                                                                                  // tous les côtés à la même hauteur (choix de l'auteur)
-  const RX = L/2+9, RZ = Lg/2+9, PAS = 2.2, MARCHE = 1.2;
+  const RX = L/2+9+PISTE, RZ = Lg/2+9+PISTE, PAS = 2.2, MARCHE = 1.2;
   const profX = RX + nFond*PAS, profZ = RZ + nFond*PAS;
   const ileL = Math.max(168, Math.ceil(2*profX + 44)), ileP = Math.max(128, Math.ceil(2*profZ + 46));
   soleil.shadow.camera.left = soleil.shadow.camera.bottom = -Math.max(110, ileL*.66);
@@ -232,9 +235,16 @@ function fabriqueMatch3D(THREE, o){
   const pelouse = new THREE.Mesh(new THREE.PlaneGeometry(L+10, Lg+10), matPelouse);
   pelouse.rotation.x = -Math.PI/2; pelouse.position.y = 0.02; pelouse.receiveShadow = true; scene.add(pelouse);
   /* la piste autour de la pelouse, jusqu'au pied des tribunes */
-  const matPiste = M(0x9a6b4a);
+  const matPiste = M(PISTE ? coulF('coulPiste', 0xb5553c) : 0x9a6b4a);
   box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, -(Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
   box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, (Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
+  if(PISTE){                                                   // la piste fait le tour, avec ses couloirs
+    for(const sx of [-1,1]) box(RX-L/2-5, .2, Lg+10, matPiste, sx*(L/2+5+(RX-L/2-5)/2), .1, 0, scene, false);
+    const ligne=M(0xf0ece0);
+    for(let k=1;k<=3;k++){ const e=5+k*2.6;
+      for(const sz of [-1,1]) box(L+2*e-6, .05, .22, ligne, 0, .22, sz*(Lg/2+e), scene, false);
+      for(const sx of [-1,1]) box(.22, .05, Lg+2*e-6, ligne, sx*(L/2+e), .22, 0, scene, false); }
+  }
   /* panneaux publicitaires, ou le ruban LED du club tout autour */
   const matLed = new THREE.MeshLambertMaterial({color:hexInt(o.dom&&o.dom.maillot||'#c8312f')}); matLed.emissive.setHex(hexInt(o.dom&&o.dom.maillot||'#c8312f')).multiplyScalar(.55);
   if(ST.led){
@@ -381,6 +391,7 @@ function fabriqueMatch3D(THREE, o){
       if(ST.eclairage>=3) rampe.push(box(.6, .5, lg-4, matRampe, sx*(t.d0-.6), t.h-1.1+(inc?Math.sin(PENTE)*t.larg:0), 0, scene, false)); }
     if(bol){ const segs=ARR?10:6;
       for(const sx of [-1,1]) for(const sz of [-1,1]){
+        if(toitDe(sz<0?'N':'S')==='aucun' || toitDe(sx<0?'O':'E')==='aucun') continue;   // pas de toit de virage entre deux tribunes dont l'une est découverte
         const n=Math.min(RANGS[sz<0?'N':'S'], RANGS[sx<0?'O':'E']), t=pan(n, 0, 'C'), rm=ARR+t.d0+t.larg/2-(F?1:0);
         const debut = sz>0 ? Math.PI/2 : -Math.PI/2, fin = sx>0 ? 0 : Math.PI;
         let da=fin-debut; if(da>Math.PI) da-=2*Math.PI; if(da<-Math.PI) da+=2*Math.PI;
@@ -549,6 +560,51 @@ function fabriqueMatch3D(THREE, o){
         const bras=box(t.larg*.92, 1.5, .9, matP, -(t.larg*.92)/2+2.6, t.h+1.35, 0, g); bras.rotation.z=-.05;   // le bras posé sur le toit
         box(2.2, 2.6, .9, matP, 1.4, H-1.3, 0, g, false);
       }
+    }
+    if(F.tours){
+      /* les tours : rondes et cerclées de rampes autour d'une cuvette (quatre grosses aux coins, qui portent de grandes
+         poutres au-dessus du toit, et de plus petites le long des côtés), ou carrées dans les coins ouverts d'un stade à
+         l'anglaise */
+      const T=F.tours, rond=T.forme!=='carre', matT=M(typeof T.coul==='string'?hexInt(T.coul):0xc9c6bc), matC=M(typeof T.cercle==='string'?hexInt(T.cercle):0x9d9a90);
+      const n=nFond, hS=hTrib('C',n)+5.5, D=prof(n);
+      const tour=(x,z,r,h)=>{
+        if(rond){ const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12), matT); c.position.set(x,h/2,z); c.castShadow=true; scene.add(c);
+          for(let k=1;k<=Math.floor(h/5);k++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(r+.35,r+.35,.9,12), matC); b.position.set(x,k*5-1.5,z); scene.add(b); } }
+        else { box(2*r, h, 2*r, matT, x, h/2, z); box(2*r+.8, 1.2, 2*r+.8, matC, x, h+.6, z); for(let k=1;k<=Math.floor(h/6);k++) box(2*r+.3, .6, 2*r+.3, matC, x, k*6-2, z, scene, false); }
+      };
+      if(bol && rond){
+        const X=RX+D+1.5, Z=RZ+D+1.5, H=hS+5.2;                                     // les poutres reposent sur le bord du toit
+        for(const sx of [-1,1]) for(const sz of [-1,1]) tour(sx*X, sz*Z, 5.2, H);
+        if(typeof T.poutre==='string'){ const matG=M(hexInt(T.poutre));                 // les grandes poutres, de tour à tour
+          for(const sz of [-1,1]){ box(2*X, 3, 1.6, matG, 0, H-1.5, sz*Z); box(2*X, .5, 1.6, matG, 0, H-5, sz*Z, scene, false);
+            for(let i=0;i<=14;i++) box(.5, 3.2, 1.2, matG, -X+i*2*X/14, H-3.4, sz*Z, scene, false); }
+          for(const sx of [-1,1]){ box(1.6, 3, 2*Z, matG, sx*X, H-1.5, 0); box(1.6, .5, 2*Z, matG, sx*X, H-5, 0, scene, false);
+            for(let i=0;i<=10;i++) box(1.2, 3.2, .5, matG, sx*X, H-3.4, -Z+i*2*Z/10, scene, false); } }
+        const hP=hS-1;                                                                 // les petites, le long des côtés
+        for(const sz of [-1,1]) for(const k of [-.34,.34]) tour(k*2*RX, sz*(RZ+D+3), 3.6, hP);
+        for(const sx of [-1,1]) tour(sx*(RX+D+3), 0, 3.6, hP);
+      } else if(!bol){
+        for(const sx of [-1,1]) for(const sz of [-1,1]){ const dx=prof(RANGS[sx<0?'O':'E']), dz=prof(RANGS[sz<0?'N':'S']), r=Math.min(dx,dz)*.42;
+          tour(sx*(L/2+4+r+2.2), sz*(Lg/2+4+r+2.2), r, hTrib('C',Math.max(RANGS[sx<0?'O':'E'],RANGS[sz<0?'N':'S']))+11); }
+      }
+    }
+    if(F.arches){
+      /* les grandes arches : une porte monumentale au milieu de chaque côté, derrière la tribune */
+      const matA=M(coulF('coulArche', 0xd9d2bf)), R=7.5;
+      const arche=(x,z,ry)=>{ const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
+        for(const s of [-1,1]) box(2.6, 9, 3.4, matA, s*R, 4.5, 0, g);
+        const a=new THREE.Mesh(new THREE.TorusGeometry(R, 1.5, 5, 10, Math.PI), matA); a.position.y=9; a.scale.z=2.2; a.castShadow=true; g.add(a);
+        box(2*R+7, 1.6, 4.2, matA, 0, 9+R+1.6, 0, g); for(const s of [-1,1]) box(3.4, R+2.4, 4.2, matA, s*(R+1.8), 9+(R+2.4)/2, 0, g); };
+      arche(0, RZ+prof(RANGS.S)+3.2, 0); arche(0, -(RZ+prof(RANGS.N)+3.2), 0);
+      arche(RX+prof(RANGS.E)+3.2, 0, Math.PI/2); arche(-(RX+prof(RANGS.O)+3.2), 0, Math.PI/2);
+    }
+    if(F.arcades==='E' || F.arcades==='O'){
+      /* les arcades : une rangée d'arches derrière un but, à la place d'une grande tribune */
+      const sx=F.arcades==='E'?1:-1, c=F.arcades, matA=M(coulF('coulArche', 0xe6dcc6)), nA=9, lg=2*(RZ-ARR)+6, pas=lg/nA, R=pas/2-.9, hp=7.5;
+      const x=sx*(RX+prof(RANGS[c])+3.4);
+      for(let i=0;i<=nA;i++) box(1.8, hp, 1.8, matA, x, hp/2, -lg/2+i*pas);
+      for(let i=0;i<nA;i++){ const a=new THREE.Mesh(new THREE.TorusGeometry(R, .9, 4, 8, Math.PI), matA); a.rotation.y=Math.PI/2; a.position.set(x, hp, -lg/2+(i+.5)*pas); a.scale.z=1.6; a.castShadow=true; scene.add(a); }
+      box(2.4, 1.3, lg+2, matA, x, hp+R+1.3, 0);
     }
     if(F.riviere==='N'){
       /* la rivière qui longe le stade derrière la tribune du fond, ses berges et ses peupliers */

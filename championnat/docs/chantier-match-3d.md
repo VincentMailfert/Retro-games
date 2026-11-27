@@ -118,6 +118,18 @@ de la partie (« on retrouve le stade dès la première journée »), il grandit
 - `docs/prototype-vrais-stades.html` (moteur recopié par `node docs/construit-vrais-stades.cjs`) : trois fiches, Parc des
   Princes, Geoffroy-Guichard, Saint-Symphorien, version années 90 **dessinée de mémoire, à corriger sur photos d'époque**.
   « Jeu aujourd'hui » montre le stade déduit de la seule capacité, pour comparer. Le bouton jaune agrandit une tribune.
+- **Deuxième lot (27/11/2026 au soir, l'auteur : « c'est top », « fais-le pour les autres stades les plus connus »)** :
+  seize stades dans la page, rangés par pays. France : Parc des Princes, Vélodrome, Geoffroy-Guichard, Bollaert, Beaujoire,
+  Gerland, Louis-II, Parc Lescure, Saint-Symphorien. Angleterre : Old Trafford, Anfield, Highbury. Italie : San Siro,
+  Delle Alpi, Olimpico, Luigi Ferraris. Pièces ajoutées : `piste` (piste d'athlétisme, les tribunes reculent de 7 m),
+  `tours` (rondes et cerclées avec les grandes poutres rouges de San Siro, ou carrées dans les coins de Marassi),
+  `arches` (les portes de Gerland), `arcades` (les arches de Louis-II), et plus de toit de virage entre deux tribunes dont
+  l'une est découverte. Codes et capacités repris de `CLUBS`, `CLUBS_ANG`, `CLUBS_ITA`.
+- **Les virages (question de l'auteur)** : une fiche dit si le stade part fermé (`virages:1`, le projet « Virages » est alors
+  déjà fait et le kop est disponible) ou à l'anglaise (`virages:0`, `forme.kop` autorise les drapeaux derrière le but sans
+  virages). Le projet « Virages » du jeu ferme alors les quatre coins à la hauteur de la plus basse des deux tribunes
+  voisines, en gardant toits, charpente et couleurs de la fiche ; les tours carrées des coins disparaissent. Le bouton
+  « Construire les virages » de la page le montre.
 - **Reste à faire si l'auteur valide** : une table `STADES_VRAIS` par code de club dans le jeu, lue par `inferStade` au départ
   de la partie ; passer `forme` au direct et à la vitrine ; dire comment les travaux du joueur font grandir chaque fiche
   (`ST.rangs` passe déjà devant `forme.rangs`) ; des fiches par époque pour les stades rénovés.
