@@ -4385,6 +4385,19 @@ bloc entre « CAMPUS3D : DÉBUT » et « CAMPUS3D : FIN », greffé juste après
   cherche la `.maquette` voisine) ; `maquetteGrandFerme` rend chaque toile à sa carte. `match3dOuvre` ferme aussi `CVIT`.
 - Les rochers sous l'île restent sous leur couche (retour de l'auteur : « normal ce bloc sous le terrain ? »).
 
+### LE RENDU « FIN ET LISSÉ » DU STADE ET DU MATCH EN 3D (v3.35, choix de l'auteur du 27/11/2026)
+Retour de l'auteur, vidéo à l'appui : au téléphone, le stade « pixellise » quand il tourne. La carte ne faisait qu'environ 225
+pixels de jeu de large, les lignes de la pelouse et les éléments fins s'allumaient et s'éteignaient. Trois rendus essayés sur
+son téléphone (`docs/prototype-vrais-stades.html` pour le stade, `docs/prototype-match-rendu.html` pour le match) ; il a retenu
+« fin et lissé » pour les deux (« parfait, on déploie »).
+- **Moteur** (`docs/prototype-match-3d.html`, greffé) : `o.lisse` (2 à 4) rend la scène dans une cible `lisse` fois plus grande,
+  puis chaque pixel du jeu prend la moyenne de `lisse × lisse` points ; `o.etiquette` règle la hauteur des étiquettes en pixels de
+  jeu (12 par défaut). Sans ces options, le rendu d'avant.
+- **Jeu** : `RENDU_3D={pixels:1, lisse:2, etiquette:18}`, lu par `stadeVitrine` et `match3dOuvre`. Repli si un appareil peine :
+  `{pixels:1.5, lisse:3, etiquette:12}`. Le campus 3D n'a pas ce lissage et garde ses pixels de 1,5.
+- **Aussi greffé, mais endormi** : `o.stade.forme`, la fiche d'un vrai stade (voir `docs/chantier-match-3d.md`, « Les vrais
+  stades »). Le jeu ne passe encore aucune fiche : tous les stades restent ceux d'avant.
+
 ### LE STADE EN VITRINE SUR L'ÉCRAN CLUB (v3.26, demande de l'auteur du 23/11/2026, prototype validé le 24/11/2026)
 L'auteur trouvait que l'aperçu du stade « ne vend pas du rêve » (du rétro pas soigné) et que la vue en grand forçait à tourner
 le téléphone. Prototype : `docs/prototype-stade-3d.html` (moteur recopié par `docs/construit-stade-3d.cjs`).

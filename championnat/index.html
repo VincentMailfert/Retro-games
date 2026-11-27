@@ -864,7 +864,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.34"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.35"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -32354,7 +32354,7 @@ function stadeVitrine(){
     const cv=document.createElement("canvas"); cv.className="st3dVit"; cv.setAttribute("role","img");
     cv.setAttribute("aria-label", "Maquette du stade, "+FMT(c.cap)+" places");
     let sc=null;
-    try{ sc=fabriqueMatch3D(THREE, { canvas:cv, vitrine:true, pixels:1.5, heure:mo.heure, meteo:mo.meteo, stade:etat,
+    try{ sc=fabriqueMatch3D(THREE, { canvas:cv, vitrine:true, pixels:RENDU_3D.pixels, lisse:RENDU_3D.lisse, heure:mo.heure, meteo:mo.meteo, stade:etat,
       dom:{id:c.id, maillot:B.a, short:B.b, xi:[]}, ext:{id:"", maillot:"#1d4f9c", short:"#ffffff", xi:[]},
       cache:()=>!cv.isConnected || (!document.getElementById("mqGrand") && cv.offsetParent===null) }); }
     catch(e){ SVIT=null; return; }
@@ -32488,12 +32488,34 @@ function fabriqueMatch3D(THREE, o){
      les étapes ? ») : ST.rangs = [N, S, E, O] donne la profondeur de chaque côté, telle que le jeu la fait grandir (une
      tribune après l'autre, puis la cuvette qui s'uniformise avec les virages). Sans ST.rangs, le direct de toujours :
      deux tribunes de même hauteur, ou la cuvette complète avec les virages. */
-  const RANGS = Array.isArray(ST.rangs) && ST.rangs.length===4
-    ? {N:clamp(ST.rangs[0]|0,1,16), S:clamp(ST.rangs[1]|0,1,16), E:clamp(ST.rangs[2]|0,1,16), O:clamp(ST.rangs[3]|0,1,16)} : null;
+  /* LES VRAIS STADES (prototype du 27/11/2026, question de l'auteur : « est-ce qu'on est capable de reproduire le stade
+     de chaque club, genre le Parc des Princes ? ») : ST.forme est la FICHE d'un vrai stade, facultative. Elle ne dessine
+     rien de neuf toute seule, elle règle les pièces du stade de toujours : rangs [N, S, E, O] (le point de départ, ST.rangs
+     passe devant quand le jeu a fait grandir une tribune), arrondi (0 à 12, des virages en vraie courbe), etages (1 ou 2,
+     un nombre pour tout le stade ou {N, S, E, O}), toits ({N, S, E, O} : 'plat', 'incline' ou 'aucun'), couv (part de la
+     tribune couverte), poutres (l'écart en mètres entre les poutres apparentes de la charpente), les couleurs (coulToit, coulCharpente, coulLisere, coulMur, coulBalcon), kop (des drapeaux sans
+     virages), et les signes distinctifs : portiques (le nombre de lames de béton qui portent le toit), riviere ('N'),
+     tours ({forme:'rond'|'carre', coul, cercle, poutre}), arches (une porte monumentale par côté), arcades ('E' ou 'O',
+     une rangée d'arches derrière un but), et piste (la piste d'athlétisme : les tribunes reculent).
+     SANS FICHE, RIEN NE CHANGE : chaque réglage retombe sur la valeur d'avant. */
+  const F = (ST.forme && typeof ST.forme==='object') ? ST.forme : null;
+  const coulF = (k, d) => (F && typeof F[k]==='string' && /^#[0-9a-f]{6}$/i.test(F[k])) ? hexInt(F[k]) : d;
+  const rangsDits = Array.isArray(ST.rangs) && ST.rangs.length===4 ? ST.rangs : (F && Array.isArray(F.rangs) && F.rangs.length===4 ? F.rangs : null);
+  const RANGS = rangsDits
+    ? {N:clamp(rangsDits[0]|0,1,16), S:clamp(rangsDits[1]|0,1,16), E:clamp(rangsDits[2]|0,1,16), O:clamp(rangsDits[3]|0,1,16)} : null;
+  const PISTE = F && F.piste ? 7 : 0;                                         // la piste d'athlétisme : les tribunes reculent de sept mètres
+  const ARR = (F && bol) ? clamp(+F.arrondi||0, 0, 12+PISTE*1.6) : 0;                  // le rayon des virages, côté pelouse
+  const SAUT = 2.8;                                                          // la marche entre les deux étages
+  const ETG = c => !F || !F.etages ? 1 : typeof F.etages==='number' ? F.etages : (F.etages[c] || (c==='C' ? Math.min(F.etages.N||1, F.etages.S||1, F.etages.E||1, F.etages.O||1) : 1));
+  const coupe = n => Math.max(2, Math.round(n*.45));                         // le rang où commence l'étage du haut
+  const hRang = (c, r, n) => MARCHE*(r+1) + (ETG(c)>=2 && n>=5 && r>=coupe(n) ? SAUT : 0);
+  const hTrib = (c, n) => MARCHE*n + (ETG(c)>=2 && n>=5 ? SAUT : 0);
+  const toitDe = c => (F && F.toits && F.toits[c]) || 'plat';
+  const COUV = F && +F.couv>0 ? clamp(+F.couv, .2, 1) : .58;
   const nFond = RANGS ? Math.max(RANGS.N, RANGS.S, RANGS.E, RANGS.O)
     : bol ? clamp(Math.round(3+cap/6500), 4, 16) : clamp(Math.round(2+cap/3000), 3, 9);   // rangs des côtés du fond
   const nAvant = nFond;                                                                                  // tous les côtés à la même hauteur (choix de l'auteur)
-  const RX = L/2+9, RZ = Lg/2+9, PAS = 2.2, MARCHE = 1.2;
+  const RX = L/2+9+PISTE, RZ = Lg/2+9+PISTE, PAS = 2.2, MARCHE = 1.2;
   const profX = RX + nFond*PAS, profZ = RZ + nFond*PAS;
   const ileL = Math.max(168, Math.ceil(2*profX + 44)), ileP = Math.max(128, Math.ceil(2*profZ + 46));
   soleil.shadow.camera.left = soleil.shadow.camera.bottom = -Math.max(110, ileL*.66);
@@ -32539,9 +32561,16 @@ function fabriqueMatch3D(THREE, o){
   const pelouse = new THREE.Mesh(new THREE.PlaneGeometry(L+10, Lg+10), matPelouse);
   pelouse.rotation.x = -Math.PI/2; pelouse.position.y = 0.02; pelouse.receiveShadow = true; scene.add(pelouse);
   /* la piste autour de la pelouse, jusqu'au pied des tribunes */
-  const matPiste = M(0x9a6b4a);
+  const matPiste = M(PISTE ? coulF('coulPiste', 0xb5553c) : 0x9a6b4a);
   box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, -(Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
   box(2*RX, .2, RZ-Lg/2-5, matPiste, 0, .1, (Lg/2+5+(RZ-Lg/2-5)/2), scene, false);
+  if(PISTE){                                                   // la piste fait le tour, avec ses couloirs
+    for(const sx of [-1,1]) box(RX-L/2-5, .2, Lg+10, matPiste, sx*(L/2+5+(RX-L/2-5)/2), .1, 0, scene, false);
+    const ligne=M(0xf0ece0);
+    for(let k=1;k<=3;k++){ const e=5+k*2.6;
+      for(const sz of [-1,1]) box(L+2*e-6, .05, .22, ligne, 0, .22, sz*(Lg/2+e), scene, false);
+      for(const sx of [-1,1]) box(.22, .05, Lg+2*e-6, ligne, sx*(L/2+e), .22, 0, scene, false); }
+  }
   /* panneaux publicitaires, ou le ruban LED du club tout autour */
   const matLed = new THREE.MeshLambertMaterial({color:hexInt(o.dom&&o.dom.maillot||'#c8312f')}); matLed.emissive.setHex(hexInt(o.dom&&o.dom.maillot||'#c8312f')).multiplyScalar(.55);
   if(ST.led){
@@ -32581,7 +32610,7 @@ function fabriqueMatch3D(THREE, o){
   /* ---------- LES TRIBUNES ----------
      Un côté = une bande de gradins le long d'un bord du rectangle intérieur (RX, RZ). Avec des virages, les quatre côtés
      se rejoignent par des coins arrondis : chaque rang devient un quart d'anneau autour du coin du rectangle. */
-  const beton = M(0x9c9a8f), betonClair = M(0xb9b6a8), betonSombre = M(0x7d7b72);
+  const beton = M(0x9c9a8f), betonClair = M(0xb9b6a8), betonSombre = M(0x7d7b72), matTroncF = M(0x5a3a22);
   /* LES SIÈGES AUX COULEURS DU CLUB (v3.10, choix de l'auteur du 18/11/2026 : « sièges grenat pour Metz », mais pas la
      charpente ni la façade) : les gradins prennent la couleur du maillot du club qui reçoit, un rang sur deux un ton plus
      sombre, et un rang sur cinq à la couleur du short, comme les bandes de sièges des stades des années 90. */
@@ -32589,12 +32618,20 @@ function fabriqueMatch3D(THREE, o){
   const coulSiege = o.dom&&o.dom.maillot||'#9c9a8f', coulBande = o.dom&&o.dom.short||'#f4edd8';
   const siege1 = M(teinte(coulSiege, 1)), siege2 = M(teinte(coulSiege, .82)), siegeBande = M(teinte(coulBande, .95));
   const matRang = r => (r%5===3) ? siegeBande : (r%2 ? siege2 : siege1);
+  const matBalcon = M(coulF('coulBalcon', 0xd9d5c6)), matMur = F && F.coulMur ? M(coulF('coulMur', 0x7d7b72)) : null;
   const places = [];
   const nCote = { fond:nFond, avant:nAvant };
   // cotés : 'N' (fond, z<0), 'S' (devant, z>0), 'O' (gauche, x<0), 'E' (droite, x>0). La caméra regarde depuis S et E.
   const rangsDe = c => RANGS ? RANGS[c] : (c==='N'||c==='O') ? nFond : nAvant;
   function rangDroit(cote, r, x0, x1){
-    const h=MARCHE*(r+1), d=r*PAS+PAS/2, long=x1-x0, mid=(x0+x1)/2, mat=matRang(r);
+    const nC=rangsDe(cote), h=hRang(cote, r, nC), d=r*PAS+PAS/2, long=x1-x0, mid=(x0+x1)/2, mat=matRang(r);
+    if(ETG(cote)>=2 && nC>=5 && r===coupe(nC)){                // le balcon : un bandeau clair au pied de l'étage du haut
+      const yB=MARCHE*r+SAUT/2+.3, dB=r*PAS-.12;
+      if(cote==='N') box(long,SAUT-.5,.3,matBalcon,mid,yB,-(RZ+dB),scene,false);
+      if(cote==='S') box(long,SAUT-.5,.3,matBalcon,mid,yB,(RZ+dB),scene,false);
+      if(cote==='O') box(.3,SAUT-.5,long,matBalcon,-(RX+dB),yB,mid,scene,false);
+      if(cote==='E') box(.3,SAUT-.5,long,matBalcon,(RX+dB),yB,mid,scene,false);
+    }
     let m;
     if(cote==='N') m=box(long,h,PAS,mat,mid,h/2,-(RZ+d));
     if(cote==='S') m=box(long,h,PAS,mat,mid,h/2,(RZ+d));
@@ -32605,9 +32642,10 @@ function fabriqueMatch3D(THREE, o){
       const p = cote==='N'?{x:t,z:-(RZ+d)} : cote==='S'?{x:t,z:RZ+d} : cote==='O'?{x:-(RX+d),z:t} : {x:RX+d,z:t};
       places.push({x:p.x, y:h+.75, z:p.z, ph:rnd()*6.28, k:.6+rnd()*.8, camp:0, r:rnd(), cote, rang:r}); }
   }
-  function rangCoin(sx, sz, r){
-    const h=MARCHE*(r+1), d=r*PAS+PAS/2, mat=matRang(r), cx=sx*RX, cz=sz*RZ;
+  function rangCoin(sx, sz, r, nC){
+    const h=hRang('C', r, nC), d=r*PAS+PAS/2+ARR, mat=matRang(r), cx=sx*(RX-ARR), cz=sz*(RZ-ARR);
     const segs=Math.max(3, Math.round(d/2.4));
+    const balcon = ETG('C')>=2 && nC>=5 && r===coupe(nC);
     // l'arc va de la direction de la ligne de touche (sz) à celle de la ligne de but (sx)
     const debut = sz>0 ? Math.PI/2 : -Math.PI/2, fin = sx>0 ? 0 : Math.PI;
     let da = fin-debut; if(da>Math.PI) da-=2*Math.PI; if(da<-Math.PI) da+=2*Math.PI;
@@ -32615,17 +32653,19 @@ function fabriqueMatch3D(THREE, o){
       const a=debut+da*(i+.5)/segs, lg=Math.abs(da)*d/segs*1.08;
       const m=new THREE.Mesh(new THREE.BoxGeometry(lg,h,PAS), mat);
       m.position.set(cx+Math.cos(a)*d, h/2, cz+Math.sin(a)*d); m.rotation.y=-a+Math.PI/2; m.castShadow=m.receiveShadow=true; scene.add(m);
+      if(balcon){ const dB=d-PAS/2-.12, b=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(da)*dB/segs*1.08,SAUT-.5,.3), matBalcon);
+        b.position.set(cx+Math.cos(a)*dB, MARCHE*r+SAUT/2+.3, cz+Math.sin(a)*dB); b.rotation.y=-a+Math.PI/2; scene.add(b); }
     }
     const n=Math.max(1,Math.floor(Math.abs(da)*d/1.35));
     for(let i=0;i<n;i++){ if(rnd()<.06) continue; const a=debut+da*(i+.5)/n;
       places.push({x:cx+Math.cos(a)*d, y:h+.75, z:cz+Math.sin(a)*d, ph:rnd()*6.28, k:.6+rnd()*.8, camp:0, r:rnd(), cote:'C', rang:r}); }
   }
   if(bol){
-    for(const c of ['N','S']) for(let r=0;r<rangsDe(c);r++) rangDroit(c, r, -RX, RX);
-    for(const c of ['O','E']) for(let r=0;r<rangsDe(c);r++) rangDroit(c, r, -RZ, RZ);
+    for(const c of ['N','S']) for(let r=0;r<rangsDe(c);r++) rangDroit(c, r, -(RX-ARR), RX-ARR);
+    for(const c of ['O','E']) for(let r=0;r<rangsDe(c);r++) rangDroit(c, r, -(RZ-ARR), RZ-ARR);
     for(const sx of [-1,1]) for(const sz of [-1,1]){
       const n = RANGS ? Math.min(RANGS[sz<0?'N':'S'], RANGS[sx<0?'O':'E']) : (sz<0 && sx<0) ? nFond : nAvant;
-      for(let r=0;r<n;r++) rangCoin(sx, sz, r);
+      for(let r=0;r<n;r++) rangCoin(sx, sz, r, n);
     }
   } else if(RANGS){                                            // quatre tribunes séparées, les coins ouverts
     for(const c of ['N','S']) for(let r=0;r<RANGS[c];r++) rangDroit(c, r, -L/2-4, L/2+4);
@@ -32635,10 +32675,10 @@ function fabriqueMatch3D(THREE, o){
     for(let r=0;r<nAvant;r++) rangDroit('S', r, -L/2-4, L/2+4);
   }
   /* le mur de dos des côtés du fond (ou la façade de légende, plus bas) */
-  const hHaut = MARCHE*nFond, prof = n => n*PAS;
+  const hHaut = MARCHE*nFond + (F && RANGS && Math.max(ETG('N'),ETG('S'),ETG('E'),ETG('O'))>=2 && nFond>=5 ? SAUT : 0), prof = n => n*PAS;
   if(!ST.legende && RANGS){                                    // un mur par tribune, à sa hauteur
-    for(const [c,sz] of [['N',-1],['S',1]]){ const h=MARCHE*RANGS[c]+1.5; box(bol?2*RX:L+8, h, .8, betonSombre, 0, h/2, sz*(RZ+prof(RANGS[c])+.4)); }
-    for(const [c,sx] of [['O',-1],['E',1]]){ const h=MARCHE*RANGS[c]+1.5; box(.8, h, bol?2*RZ:Lg+8, betonSombre, sx*(RX+prof(RANGS[c])+.4), h/2, 0); }
+    for(const [c,sz] of [['N',-1],['S',1]]){ const h=hTrib(c,RANGS[c])+1.5; box(bol?2*(RX-ARR):L+8, h, .8, matMur||betonSombre, 0, h/2, sz*(RZ+prof(RANGS[c])+.4)); }
+    for(const [c,sx] of [['O',-1],['E',1]]){ const h=hTrib(c,RANGS[c])+1.5; box(.8, h, bol?2*(RZ-ARR):Lg+8, matMur||betonSombre, sx*(RX+prof(RANGS[c])+.4), h/2, 0); }
   } else if(!ST.legende){
     for(const sz of [-1,1]) box(bol?2*RX:L+8, hHaut+1.5, .8, betonSombre, 0, (hHaut+1.5)/2, sz*(RZ+prof(nFond)+.4));
     if(bol) for(const sx of [-1,1]) box(.8, hHaut+1.5, 2*RZ, betonSombre, sx*(RX+prof(nFond)+.4), (hHaut+1.5)/2, 0);
@@ -32649,7 +32689,7 @@ function fabriqueMatch3D(THREE, o){
   if(ST.loges){ const r=Math.floor((RANGS?RANGS.N:nFond)*.55), h=MARCHE*(r+1); box(bol?2*RX-6:L, 1.6, .4, matVitre, 0, h+.5, -(RZ+r*PAS+.3)); }
 
   /* le toit : un anneau gris clair au-dessus des rangs du haut, seulement côté fond pour ne rien cacher */
-  const matToit = M(0xc9cdd9), matToitDessous = M(0x8e93a3);
+  const matToit = M(coulF('coulToit', 0xc9cdd9)), matToitDessous = M(coulF('coulCharpente', 0x8e93a3)), matLisere = M(coulF('coulLisere', 0xc8312f));
   const hToit = hHaut + 5.5;
   let ecranTex=null, ecranCanvas=null;
   const rampe = [];
@@ -32657,27 +32697,37 @@ function fabriqueMatch3D(THREE, o){
   if(ST.toit && RANGS){
     /* une toiture par tribune, à sa hauteur ; avec les virages, des quarts d'anneau aux coins, à la hauteur du côté le plus bas */
     const matRampe = new THREE.MeshLambertMaterial({color:0x444444, emissive:0x000000});
-    const pan = (n, R0) => ({h:MARCHE*n+5.5, d0:R0+prof(n)*.42, larg:prof(n)*.62+2});
-    for(const [c,sz] of [['N',-1],['S',1]]){ const t=pan(RANGS[c], RZ), lg=bol?2*RX:L+8;
-      box(lg, .9, t.larg, matToit, 0, t.h, sz*(t.d0+t.larg/2-1));
+    /* avec une fiche : la part couverte (COUV), un toit par côté ('aucun' le retire, 'incline' le relève vers la pelouse) */
+    const pan = (n, R0, c) => F ? ({h:hTrib(c||'C',n)+5.5, d0:R0+prof(n)*(1-COUV), larg:prof(n)*COUV+2})
+                               : ({h:MARCHE*n+5.5, d0:R0+prof(n)*.42, larg:prof(n)*.62+2});
+    const PENTE = .13;
+    for(const [c,sz] of [['N',-1],['S',1]]){ if(toitDe(c)==='aucun') continue;
+      const t=pan(RANGS[c], RZ, c), lg=bol?2*(RX-ARR):L+8, inc=toitDe(c)==='incline';
+      const dalle=box(lg, .9, t.larg, matToit, 0, t.h+(inc?Math.sin(PENTE)*t.larg/2:0), sz*(t.d0+t.larg/2-1)); if(inc) dalle.rotation.x=sz*PENTE;
+      if(F && F.poutres){ const nb=Math.max(2,Math.round(lg/clamp(+F.poutres||10,5,30))); for(let i=0;i<=nb;i++) box(.9,.8,t.larg+1.4,matToitDessous,-lg/2+i*lg/nb,.8,0,dalle,false); }   // la charpente apparente
       for(let i=0;i<8;i++) box(.7, t.h, .7, matToitDessous, -lg/2+6+i*(lg-12)/7, t.h/2, sz*(RZ+prof(RANGS[c])+.2));
-      box(lg, .5, .5, M(0xc8312f), 0, t.h-.6, sz*(t.d0-1));
-      if(ST.eclairage>=3) rampe.push(box(lg-4, .5, .6, matRampe, 0, t.h-1.1, sz*(t.d0-.6), scene, false)); }
-    for(const [c,sx] of [['O',-1],['E',1]]){ const t=pan(RANGS[c], RX), lg=bol?2*RZ:Lg+8;
-      box(t.larg, .9, lg, matToit, sx*(t.d0+t.larg/2-1), t.h, 0);
+      box(lg, .5, .5, matLisere, 0, t.h-.6+(inc?Math.sin(PENTE)*t.larg:0), sz*(t.d0-1));
+      if(ST.eclairage>=3) rampe.push(box(lg-4, .5, .6, matRampe, 0, t.h-1.1+(inc?Math.sin(PENTE)*t.larg:0), sz*(t.d0-.6), scene, false)); }
+    for(const [c,sx] of [['O',-1],['E',1]]){ if(toitDe(c)==='aucun') continue;
+      const t=pan(RANGS[c], RX, c), lg=bol?2*(RZ-ARR):Lg+8, inc=toitDe(c)==='incline';
+      const dalle=box(t.larg, .9, lg, matToit, sx*(t.d0+t.larg/2-1), t.h+(inc?Math.sin(PENTE)*t.larg/2:0), 0); if(inc) dalle.rotation.z=-sx*PENTE;
+      if(F && F.poutres){ const nb=Math.max(2,Math.round(lg/clamp(+F.poutres||10,5,30))); for(let i=0;i<=nb;i++) box(t.larg+1.4,.8,.9,matToitDessous,0,.8,-lg/2+i*lg/nb,dalle,false); }
       for(let i=0;i<5;i++) box(.7, t.h, .7, matToitDessous, sx*(RX+prof(RANGS[c])+.2), t.h/2, -lg/2+6+i*(lg-12)/4);
-      box(.5, .5, lg, M(0xc8312f), sx*(t.d0-1), t.h-.6, 0);
-      if(ST.eclairage>=3) rampe.push(box(.6, .5, lg-4, matRampe, sx*(t.d0-.6), t.h-1.1, 0, scene, false)); }
-    if(bol){ const segs=6;
+      box(.5, .5, lg, matLisere, sx*(t.d0-1), t.h-.6+(inc?Math.sin(PENTE)*t.larg:0), 0);
+      if(ST.eclairage>=3) rampe.push(box(.6, .5, lg-4, matRampe, sx*(t.d0-.6), t.h-1.1+(inc?Math.sin(PENTE)*t.larg:0), 0, scene, false)); }
+    if(bol){ const segs=ARR?10:6;
       for(const sx of [-1,1]) for(const sz of [-1,1]){
-        const n=Math.min(RANGS[sz<0?'N':'S'], RANGS[sx<0?'O':'E']), t=pan(n, 0), rm=prof(n)*.42+t.larg/2;
+        if(toitDe(sz<0?'N':'S')==='aucun' || toitDe(sx<0?'O':'E')==='aucun') continue;   // pas de toit de virage entre deux tribunes dont l'une est découverte
+        const n=Math.min(RANGS[sz<0?'N':'S'], RANGS[sx<0?'O':'E']), t=pan(n, 0, 'C'), rm=ARR+t.d0+t.larg/2-(F?1:0);
         const debut = sz>0 ? Math.PI/2 : -Math.PI/2, fin = sx>0 ? 0 : Math.PI;
         let da=fin-debut; if(da>Math.PI) da-=2*Math.PI; if(da<-Math.PI) da+=2*Math.PI;
         for(let i=0;i<segs;i++){ const a=debut+da*(i+.5)/segs;
-          const m=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(da)*rm/segs*1.1,.9,t.larg), matToit);
-          m.position.set(sx*RX+Math.cos(a)*rm, t.h, sz*RZ+Math.sin(a)*rm); m.rotation.y=-a+Math.PI/2; m.castShadow=true; scene.add(m); } } }
+          const m=new THREE.Mesh(new THREE.BoxGeometry(F ? Math.abs(da)*(rm+t.larg/2)/segs*1.06 : Math.abs(da)*rm/segs*1.1,.9,t.larg), matToit);
+          m.position.set(sx*(RX-ARR)+Math.cos(a)*rm, t.h, sz*(RZ-ARR)+Math.sin(a)*rm); m.rotation.y=-a+Math.PI/2; m.castShadow=true; scene.add(m);
+          if(F){ const rl=rm-t.larg/2, l=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(da)*rl/segs*1.08,.5,.5), matLisere);
+            l.position.set(sx*(RX-ARR)+Math.cos(a)*rl, t.h-.6, sz*(RZ-ARR)+Math.sin(a)*rl); l.rotation.y=-a+Math.PI/2; scene.add(l); } } } }
     if(ST.ecran){                                              // l'écran sous la toiture de la tribune du fond
-      const t=pan(nN, RZ);
+      const t=pan(nN, RZ, 'N');
       ecranCanvas = document.createElement('canvas'); ecranCanvas.width=128; ecranCanvas.height=32;
       ecranTex = new THREE.CanvasTexture(ecranCanvas); ecranTex.magFilter=ecranTex.minFilter=THREE.NearestFilter; ecranTex.colorSpace=THREE.SRGBColorSpace;
       const ecran = new THREE.Mesh(new THREE.PlaneGeometry(18,4.5), new THREE.MeshBasicMaterial({map:ecranTex}));
@@ -32730,7 +32780,7 @@ function fabriqueMatch3D(THREE, o){
   /* le kop, dans le virage de gauche : drapeaux géants, puis tifo, puis sono et bâche */
   const drapeaux=[], matKop1=M(hexInt(o.dom&&o.dom.maillot||'#c8312f')), matKop2=M(hexInt(o.dom&&o.dom.short||'#ffffff'));
   let tifo=null;
-  if(bol && ST.kop){
+  if((bol || (F && F.kop)) && ST.kop){
     const xK=-(RX+prof(nO)*.5);
     for(let i=0;i<5;i++){ const z=-RZ+8+i*(2*RZ-16)/4, h=MARCHE*nO*.5+3;
       box(.25, 7, .25, betonSombre, xK, h+3.5, z);
@@ -32808,6 +32858,91 @@ function fabriqueMatch3D(THREE, o){
     if(st==='nid'){ const mat=matFacade[matFacade.length-1]; for(let i=0;i<10;i++){ const x=-RX+i*(2*RX)/9; for(const sgn of [-1,1]){ const b=new THREE.Mesh(new THREE.BoxGeometry(.6, yT+8, .6), mat); b.position.set(x, (yT+8)/2, -dZ); b.rotation.z=sgn*.5; scene.add(b); } } }
     if(st==='foret'){ const mat=M(0xf2f2ee); for(let i=0;i<24;i++){ const x=-RX+i*(2*RX)/23; box(.6, yT+4+rnd()*3, .6, mat, x, (yT+4)/2, -dZ); } }
     if(st==='deco' || st==='lumiere' || st==='brutal'){ /* le bord du toit prend la couleur du style */ }
+  }
+  /* LES SIGNES DISTINCTIFS D'UN VRAI STADE (ST.forme) : ce qui le fait reconnaître de loin */
+  if(F && RANGS){
+    if(F.portiques && bol){
+      /* les portiques : de hautes lames de béton plantées tout autour de la cuvette, qui montent plus haut que le toit et
+         le tiennent d'un bras tendu vers la pelouse */
+      const nP=clamp(F.portiques|0, 12, 60), n=nFond, D=prof(n)+1.6, ax=RX-ARR, az=RZ-ARR, rc=ARR+D;
+      const t={h:hTrib('C',n)+5.5, larg:prof(n)*COUV+2}, H=t.h+4.2, matP=M(coulF('coulPortique', 0xd8d2c0));
+      const quart=Math.PI/2*rc, tour=4*ax+4*az+4*quart;
+      /* le tour de la cuvette, dans l'ordre : côté S vers la droite, coin SE, côté E, coin NE, côté N, coin NO, côté O, coin SO */
+      const morceaux=[['d', 2*ax, -ax, az+rc, 1, 0, 0, 1], ['c', quart, ax, az, Math.PI/2, -1],
+                      ['d', 2*az, ax+rc, az, 0, -1, 1, 0], ['c', quart, ax, -az, 0, -1],
+                      ['d', 2*ax, ax, -(az+rc), -1, 0, 0, -1], ['c', quart, -ax, -az, -Math.PI/2, -1],
+                      ['d', 2*az, -(ax+rc), -az, 0, 1, -1, 0], ['c', quart, -ax, az, Math.PI, -1]];
+      for(let i=0;i<nP;i++){
+        let s=(i+.5)*tour/nP, x=0, z=0, nx=0, nz=1;
+        for(const m of morceaux){
+          if(s>m[1]){ s-=m[1]; continue; }
+          if(m[0]==='d'){ x=m[2]+m[4]*s; z=m[3]+m[5]*s; nx=m[6]; nz=m[7]; }
+          else { const a=m[4]+m[5]*s/rc; nx=Math.cos(a); nz=Math.sin(a); x=m[2]+nx*rc; z=m[3]+nz*rc; }
+          break;
+        }
+        const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=Math.atan2(-nz,nx); scene.add(g);
+        box(3.4, H, .9, matP, 1.2, H/2, 0, g);                               // la lame, debout derrière la tribune
+        box(1.6, H*.45, .9, matP, 3.4, H*.225, 0, g);                        // son pied, plus large
+        const bras=box(t.larg*.92, 1.5, .9, matP, -(t.larg*.92)/2+2.6, t.h+1.35, 0, g); bras.rotation.z=-.05;   // le bras posé sur le toit
+        box(2.2, 2.6, .9, matP, 1.4, H-1.3, 0, g, false);
+      }
+    }
+    if(F.tours){
+      /* les tours : rondes et cerclées de rampes autour d'une cuvette (quatre grosses aux coins, qui portent de grandes
+         poutres au-dessus du toit, et de plus petites le long des côtés), ou carrées dans les coins ouverts d'un stade à
+         l'anglaise */
+      const T=F.tours, rond=T.forme!=='carre', matT=M(typeof T.coul==='string'?hexInt(T.coul):0xc9c6bc), matC=M(typeof T.cercle==='string'?hexInt(T.cercle):0x9d9a90);
+      const n=nFond, hS=hTrib('C',n)+5.5, D=prof(n);
+      const tour=(x,z,r,h)=>{
+        if(rond){ const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12), matT); c.position.set(x,h/2,z); c.castShadow=true; scene.add(c);
+          for(let k=1;k<=Math.floor(h/5);k++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(r+.35,r+.35,.9,12), matC); b.position.set(x,k*5-1.5,z); scene.add(b); } }
+        else { box(2*r, h, 2*r, matT, x, h/2, z); box(2*r+.8, 1.2, 2*r+.8, matC, x, h+.6, z); for(let k=1;k<=Math.floor(h/6);k++) box(2*r+.3, .6, 2*r+.3, matC, x, k*6-2, z, scene, false); }
+      };
+      if(bol && rond){
+        const X=RX+D+1.5, Z=RZ+D+1.5, H=hS+5.2;                                     // les poutres reposent sur le bord du toit
+        for(const sx of [-1,1]) for(const sz of [-1,1]) tour(sx*X, sz*Z, 5.2, H);
+        if(typeof T.poutre==='string'){ const matG=M(hexInt(T.poutre));                 // les grandes poutres, de tour à tour
+          for(const sz of [-1,1]){ box(2*X, 3, 1.6, matG, 0, H-1.5, sz*Z); box(2*X, .5, 1.6, matG, 0, H-5, sz*Z, scene, false);
+            for(let i=0;i<=14;i++) box(.5, 3.2, 1.2, matG, -X+i*2*X/14, H-3.4, sz*Z, scene, false); }
+          for(const sx of [-1,1]){ box(1.6, 3, 2*Z, matG, sx*X, H-1.5, 0); box(1.6, .5, 2*Z, matG, sx*X, H-5, 0, scene, false);
+            for(let i=0;i<=10;i++) box(1.2, 3.2, .5, matG, sx*X, H-3.4, -Z+i*2*Z/10, scene, false); } }
+        const hP=hS-1;                                                                 // les petites, le long des côtés
+        for(const sz of [-1,1]) for(const k of [-.34,.34]) tour(k*2*RX, sz*(RZ+D+3), 3.6, hP);
+        for(const sx of [-1,1]) tour(sx*(RX+D+3), 0, 3.6, hP);
+      } else if(!bol){
+        for(const sx of [-1,1]) for(const sz of [-1,1]){ const dx=prof(RANGS[sx<0?'O':'E']), dz=prof(RANGS[sz<0?'N':'S']), r=Math.min(dx,dz)*.42;
+          tour(sx*(L/2+4+r+2.2), sz*(Lg/2+4+r+2.2), r, hTrib('C',Math.max(RANGS[sx<0?'O':'E'],RANGS[sz<0?'N':'S']))+11); }
+      }
+    }
+    if(F.arches){
+      /* les grandes arches : une porte monumentale au milieu de chaque côté, derrière la tribune */
+      const matA=M(coulF('coulArche', 0xd9d2bf)), R=7.5;
+      const arche=(x,z,ry)=>{ const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
+        for(const s of [-1,1]) box(2.6, 9, 3.4, matA, s*R, 4.5, 0, g);
+        const a=new THREE.Mesh(new THREE.TorusGeometry(R, 1.5, 5, 10, Math.PI), matA); a.position.y=9; a.scale.z=2.2; a.castShadow=true; g.add(a);
+        box(2*R+7, 1.6, 4.2, matA, 0, 9+R+1.6, 0, g); for(const s of [-1,1]) box(3.4, R+2.4, 4.2, matA, s*(R+1.8), 9+(R+2.4)/2, 0, g); };
+      arche(0, RZ+prof(RANGS.S)+3.2, 0); arche(0, -(RZ+prof(RANGS.N)+3.2), 0);
+      arche(RX+prof(RANGS.E)+3.2, 0, Math.PI/2); arche(-(RX+prof(RANGS.O)+3.2), 0, Math.PI/2);
+    }
+    if(F.arcades==='E' || F.arcades==='O'){
+      /* les arcades : une rangée d'arches derrière un but, à la place d'une grande tribune */
+      const sx=F.arcades==='E'?1:-1, c=F.arcades, matA=M(coulF('coulArche', 0xe6dcc6)), nA=9, lg=2*(RZ-ARR)+6, pas=lg/nA, R=pas/2-.9, hp=7.5;
+      const x=sx*(RX+prof(RANGS[c])+3.4);
+      for(let i=0;i<=nA;i++) box(1.8, hp, 1.8, matA, x, hp/2, -lg/2+i*pas);
+      for(let i=0;i<nA;i++){ const a=new THREE.Mesh(new THREE.TorusGeometry(R, .9, 4, 8, Math.PI), matA); a.rotation.y=Math.PI/2; a.position.set(x, hp, -lg/2+(i+.5)*pas); a.scale.z=1.6; a.castShadow=true; scene.add(a); }
+      box(2.4, 1.3, lg+2, matA, x, hp+R+1.3, 0);
+    }
+    if(F.riviere==='N'){
+      /* la rivière qui longe le stade derrière la tribune du fond, ses berges et ses peupliers */
+      const zR=-(profZ+11.5), matEau=new THREE.MeshLambertMaterial({color:0x3f7fb5, emissive:0x0a1a2a}), matBerge=M(0x6f9a4a);
+      box(ileL-2, .3, 8, matEau, 0, .1, zR, scene, false);
+      box(ileL-2, .5, 1.2, matBerge, 0, .25, zR+4.4, scene, false); box(ileL-2, .5, 1.2, matBerge, 0, .25, zR-4.4, scene, false);
+      const matPeup=M(0x3d7a3a), matPeupF=M(0x2f6a34);
+      for(let i=0;i<Math.round(ileL/9);i++){ const x=-ileL/2+7+i*9+(rnd()-.5)*2;
+        box(.7, 3, .7, matTroncF, x, 1.5, zR+6.2); const h=11+rnd()*5;
+        const f=new THREE.Mesh(new THREE.CylinderGeometry(.5, 1.9, h, 6), i%2?matPeup:matPeupF); f.position.set(x, 3+h/2, zR+6.2); f.castShadow=true; scene.add(f); }
+      { const xP=ileL*.22; box(7, .8, 11, M(0xb9b6a8), xP, .9, zR); for(const dz of [-3,3]) box(7.4, 1.6, .5, M(0x8c8a84), xP, 1.9, zR+dz*1.75); }   // le pont
+    }
   }
   const publicMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(.8,1.3,.8), new THREE.MeshLambertMaterial({flatShading:true}), Math.max(1,places.length));
   publicMesh.castShadow = false; publicMesh.receiveShadow = true;
@@ -33994,7 +34129,8 @@ function fabriqueMatch3D(THREE, o){
   const axeOmbre = () => { const p=soleil.position, h=Math.hypot(p.x,p.z)||1; return {x:-p.x/h, z:-p.z/h, l:clamp(h/Math.max(20,p.y),.4,1.6)}; };
   const ver = (x,y,t)=>x+(y-x)*Math.min(1,t);
   function poserJoueurs(dt, now){
-    const k = 12*2*cam.demi/Math.max(40, Math.floor(taille().h/o.pixels));   // une étiquette fait toujours 12 pixels de jeu de haut, en plein écran comme dans la petite bande du direct
+    const k = (o.etiquette>0?o.etiquette:12)*2*cam.demi/Math.max(40, Math.floor(taille().h/o.pixels));   // o.etiquette : la hauteur en pixels de jeu (12 par défaut ; 18 avec des pixels de 1 pour garder la même taille à l'écran)
+    //   // une étiquette fait toujours 12 pixels de jeu de haut, en plein écran comme dans la petite bande du direct
     const ax = axeOmbre();
     for(const j of figurants){
       if(j.dehors){ j.ombre.visible=false; continue; }
@@ -34295,10 +34431,26 @@ function fabriqueMatch3D(THREE, o){
   canvas.addEventListener('pointerup',surUp); canvas.addEventListener('pointercancel',surUp);
   canvas.addEventListener('webglcontextlost', e=>e.preventDefault());
 
+  /* LE LISSAGE (o.lisse = 2, 3 ou 4, facultatif ; retour de l'auteur du 27/11/2026 sur les vrais stades : « comment réduire
+     la pixellisation quand l'écran tourne ? »). Les pixels du jeu restent aussi gros, mais chacun devient la MOYENNE de
+     lisse × lisse points de la scène au lieu d'un seul point tiré au centre : une lame de béton plus fine qu'un pixel ne
+     clignote plus quand le stade tourne, elle garde une teinte stable. Sans o.lisse, le rendu de toujours. */
+  const LISSE = (o.lisse|0)>=2 ? clamp(o.lisse|0, 2, 4) : 0;
+  let cibleLisse=null, passeLisse=null;
+  if(LISSE){
+    cibleLisse = new THREE.WebGLRenderTarget(2, 2, {type:THREE.HalfFloatType, minFilter:THREE.NearestFilter, magFilter:THREE.NearestFilter});
+    const mat = new THREE.ShaderMaterial({uniforms:{t:{value:cibleLisse.texture}, pas:{value:new THREE.Vector2(1,1)}}, depthTest:false, depthWrite:false,
+      vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }',
+      fragmentShader:'uniform sampler2D t; uniform vec2 pas; varying vec2 vUv;\nvoid main(){ vec3 c=vec3(0.); const int K='+LISSE+';\n for(int i=0;i<K;i++) for(int j=0;j<K;j++) c+=texture2D(t, vUv+(vec2(float(i),float(j))-float(K-1)*.5)*pas).rgb;\n gl_FragColor=vec4(c/float(K*K),1.);\n #include <colorspace_fragment>\n}'});
+    passeLisse = {scene:new THREE.Scene(), cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1), mat};
+    passeLisse.scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), mat));
+  }
   let dernierW=0, dernierH=0;
   function redimensionner(){
     const {w,h}=taille(); if(w===dernierW && h===dernierH) return; dernierW=w; dernierH=h;
-    renderer.setSize(Math.max(80,Math.floor(w/o.pixels)), Math.max(40,Math.floor(h/o.pixels)), false);
+    const W=Math.max(80,Math.floor(w/o.pixels)), H=Math.max(40,Math.floor(h/o.pixels));
+    renderer.setSize(W, H, false);
+    if(cibleLisse){ cibleLisse.setSize(W*LISSE, H*LISSE); passeLisse.mat.uniforms.pas.value.set(1/(W*LISSE), 1/(H*LISSE)); }
   }
 
   /* ---------- boucle ---------- */
@@ -34340,7 +34492,8 @@ function fabriqueMatch3D(THREE, o){
     if(pluie.visible && !reduit){ for(let i=0;i<550;i++){ const g=goutte[i]; g.y-=g.v*dt; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} pluiePos.set([g.x,g.y,g.z,g.x+.6,g.y+3.2,g.z+.4],i*6); } pluieGeo.attributes.position.needsUpdate=true; }
     if(flocons.visible && !reduit){ for(let i=0;i<650;i++){ const g=goutte[i]; g.y-=g.v*.09*dt; g.x+=Math.sin(tt+i)*dt*2; if(g.y<0){g.y=alea(60,90);g.x=alea(-ileL/2,ileL/2);g.z=alea(-ileP/2,ileP/2);} neigePos.set([g.x,g.y,g.z],i*3); } neigeGeo.attributes.position.needsUpdate=true; }
     placerCamera(dt);
-    renderer.render(scene,camera);
+    if(cibleLisse){ renderer.setRenderTarget(cibleLisse); renderer.render(scene,camera); renderer.setRenderTarget(null); renderer.render(passeLisse.scene,passeLisse.cam); }
+    else renderer.render(scene,camera);
   }
   function boucle(now){ if(!vivant) return; idRaf=requestAnimationFrame(boucle); if(o.cache && o.cache()){ avant=now; return; } try{ image(now); }catch(e){ signale(e); } }
 
@@ -34376,6 +34529,7 @@ function fabriqueMatch3D(THREE, o){
       canvas.removeEventListener('pointerdown',surDown); canvas.removeEventListener('pointermove',surMove);
       canvas.removeEventListener('pointerup',surUp); canvas.removeEventListener('pointercancel',surUp); canvas.removeEventListener('wheel',surMolette);
       scene.traverse(x=>{ if(x.geometry) x.geometry.dispose(); const m=x.material; if(m){ (Array.isArray(m)?m:[m]).forEach(mm=>{ if(mm.map) mm.map.dispose(); mm.dispose(); }); } });
+      if(cibleLisse){ cibleLisse.dispose(); passeLisse.mat.dispose(); }
       renderer.dispose(); try{ renderer.forceContextLoss(); }catch(_){}
     }
   };
@@ -34939,12 +35093,19 @@ function motif3D(club, coul){ // le maillot porté dans la maquette 3D (v3.28) :
     return {type, b:deux, col:deux, sponsor:!!moi, sp:clair(fond)?(clair(deux)?"#161616":deux):(clair(deux)?deux:"#f1ede3"), inverse};
   }catch(e){ return null; }
 }
+/* LE RENDU « FIN ET LISSÉ » (v3.35, choix de l'auteur du 27/11/2026 après essai sur son téléphone, stade puis match : « on passe sur
+   fin et lissé », « parfait, on déploie »). Au téléphone, la carte du stade ne faisait qu'environ 225 pixels de jeu de large : les
+   lignes de la pelouse et les éléments fins clignotaient quand la scène tournait. Les pixels passent de 1,5 à 1, chacun est la
+   moyenne de 2 × 2 points de la scène (o.lisse du moteur), et les étiquettes passent de 12 à 18 pixels de jeu pour garder leur
+   taille à l'écran. Repli si un appareil peine : {pixels:1.5, lisse:3, etiquette:12} (« Lissé »), ou l'ancien {pixels:1.5, lisse:0,
+   etiquette:12}. Le campus 3D (fabriqueCampus3D) n'a pas ce lissage : il garde ses pixels de 1,5. */
+const RENDU_3D={pixels:1, lisse:2, etiquette:18};
 function match3dOuvre(H, A, o, dom, ext, R){
   match3dFerme(); stadeVitrineFerme(); campusVitrineFerme(); // une seule scène 3D à la fois : la vitrine se refera au retour sur l'écran Club
   if(!match3dPossible()) return;
   const jeton={}; M3D={jeton, sc:null, cv:null, file:[], veille:null};
   const heure=heureDuMatch(o), eteIndien=!!(METEO_MATCH && METEO_MATCH.cle==="eteIndien"), cap=(R && R.cap)||H.cap||20000;
-  const reglages={ pixels:1.5, camera:"auto", heure: eteIndien && heure==="jour" ? "soir" : heure, meteo:meteoDuMatch(),
+  const reglages={ pixels:RENDU_3D.pixels, lisse:RENDU_3D.lisse, etiquette:RENDU_3D.etiquette, camera:"auto", heure: eteIndien && heure==="jour" ? "soir" : heure, meteo:meteoDuMatch(),
     stade:Object.assign({}, R||{}, {cap}), // tout l'état du stade, comme la maquette de l'écran Club : chez vous le vôtre, ailleurs celui du club qui reçoit
     dom:{id:H.id, maillot:dom[0], short:dom[1], motif:motif3D(H, dom), xi:xiDuMatch(H, o && o.onzeFn)},
     ext:{id:A.id, maillot:ext[0], short:ext[1], motif:motif3D(A, ext), xi:xiDuMatch(A, o && o.onzeFn)},
