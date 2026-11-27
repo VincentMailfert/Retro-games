@@ -101,3 +101,23 @@ contestation montré comme un tacle.
 Pour vérifier une famille à l'œil : fabriquer une page d'essai avec une ligne de chaque sorte, puis regarder.
 Le garde-fou est `node harness-accord3d.cjs`.
 
+
+## Les vrais stades (prototype du 27/11/2026, branche chantier/vrais-stades, PAS greffé dans le jeu)
+
+Question de l'auteur : « est-ce qu'on est capable de reproduire le stade de chaque club, genre le Parc des Princes ? »,
+avec une crainte : ne pas lancer un gros travail qu'il faudrait refaire. Réponse : on ne refait rien, on ajoute une
+**fiche par club** que le moteur de toujours sait lire. Décision de l'auteur : le vrai stade est le **point de départ**
+de la partie (« on retrouve le stade dès la première journée »), il grandit ensuite avec les travaux.
+
+- `o.stade.forme` (facultative) règle les pièces existantes : `rangs` [N, S, E, O], `arrondi` (virages en vraie courbe),
+  `etages` (1 ou 2, avec un balcon clair), `toits` par côté (`plat`, `incline`, `aucun`), `couv`, `poutres` (charpente
+  apparente), les couleurs (`coulToit`, `coulCharpente`, `coulLisere`, `coulMur`, `coulBalcon`, `coulPortique`), `kop`
+  (drapeaux sans virages), et deux signes distinctifs : `portiques` (les lames de béton du Parc des Princes) et `riviere`.
+- **Sans fiche, rien ne change** : vérifié pièce par pièce sur les huit paliers de `prototype-stade-3d.html` (mêmes
+  géométries, mêmes places, mêmes couleurs avant et après la retouche).
+- `docs/prototype-vrais-stades.html` (moteur recopié par `node docs/construit-vrais-stades.cjs`) : trois fiches, Parc des
+  Princes, Geoffroy-Guichard, Saint-Symphorien, version années 90 **dessinée de mémoire, à corriger sur photos d'époque**.
+  « Jeu aujourd'hui » montre le stade déduit de la seule capacité, pour comparer. Le bouton jaune agrandit une tribune.
+- **Reste à faire si l'auteur valide** : une table `STADES_VRAIS` par code de club dans le jeu, lue par `inferStade` au départ
+  de la partie ; passer `forme` au direct et à la vitrine ; dire comment les travaux du joueur font grandir chaque fiche
+  (`ST.rangs` passe déjà devant `forme.rangs`) ; des fiches par époque pour les stades rénovés.
