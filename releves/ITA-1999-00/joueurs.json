@@ -1376,7 +1376,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 São Paulo→Milan)"
   },
@@ -2066,7 +2066,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Olympiacos→Inter)"
   },
@@ -2144,7 +2144,7 @@
    "matchs": 10,
    "minutes": 390,
    "arrivee": 2,
-   "retenu": true,
+   "retenu": false,
    "force": false,
    "deja_au_jeu": true,
    "source": "tm",
@@ -2160,11 +2160,11 @@
    "matchs": 0,
    "minutes": 0,
    "arrivee": 2,
-   "retenu": false,
-   "force": false,
+   "retenu": true,
+   "force": true,
    "deja_au_jeu": true,
    "source": "tm",
-   "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Brescia→Inter); « Not in squad during this season » chez Transfermarkt"
+   "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Brescia→Inter); « Not in squad during this season » chez Transfermarkt; pépite forcée : au club au coup d'envoi du 28 août selon l'historique, prêté à la Reggina le 1er septembre 1999 sans avoir joué pour l'Inter (d'où « Not in squad »)"
   },
   {
    "tm": 5783,
@@ -2337,10 +2337,10 @@
    "minutes": 390,
    "arrivee": 2,
    "retenu": true,
-   "force": false,
+   "force": true,
    "deja_au_jeu": true,
    "source": "tm",
-   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-25 Barcelona→Inter)"
+   "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-25 Barcelona→Inter); forcé : blessé au genou en novembre 1999 puis en avril 2000, peu de minutes, mais à l'Inter toute la saison"
   },
   {
    "tm": 28825,
@@ -3318,7 +3318,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Loko Moskau→AS Rom)"
   },
@@ -3446,7 +3446,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Flamengo→Roma)"
   },
@@ -3478,7 +3478,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-06-30 Lecce→AS Rom)"
   },
@@ -4474,7 +4474,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 SPAL→Udinese)"
   },
@@ -4634,7 +4634,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Willem II→Udinese)"
   },
@@ -4682,7 +4682,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Atlético-PR→Udinese)"
   },
@@ -4874,7 +4874,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 São Paulo→Udinese)"
   }
@@ -5068,7 +5068,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Hajduk Split→Hellas Verona)"
   },
@@ -6160,7 +6160,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 U. Católica→Reggina)"
   },
@@ -6368,7 +6368,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-08-01 Hajduk Split→Reggina)"
   },
@@ -6383,10 +6383,10 @@
    "minutes": 1899,
    "arrivee": 0,
    "retenu": false,
-   "force": false,
+   "force": true,
    "deja_au_jeu": true,
    "source": "tm",
-   "remarque": "arrivé en cours de saison selon l'historique de transferts (arrivé le 1999-09-01 (Inter→Reggina) ; au coup d'envoi : Inter)"
+   "remarque": "arrivé en cours de saison selon l'historique de transferts (arrivé le 1999-09-01 (Inter→Reggina) ; au coup d'envoi : Inter); pépite forcée : au club au coup d'envoi du 28 août selon l'historique, prêté à la Reggina le 1er septembre 1999 sans avoir joué pour l'Inter (d'où « Not in squad »)"
   },
   {
    "tm": 16744,
@@ -6432,7 +6432,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Montevarchi→Reggina)"
   },
@@ -6528,7 +6528,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-01-01 Varese→Reggina)"
   },
@@ -6576,7 +6576,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Gimnasia→Reggina)"
   }
@@ -7138,7 +7138,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Bologna U19→Bologna); Wikipédia d'accord : « Ceduto durante la sessione invernale di calciomercato. »"
   }
@@ -7380,7 +7380,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Chievo Verona→Lecce)"
   },
@@ -7492,7 +7492,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-16 FC Zürich→Lecce)"
   },
@@ -7700,7 +7700,7 @@
    "arrivee": 0,
    "retenu": false,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "arrivé en cours de saison selon l'historique de transferts (arrivé le 2000-01-01 (Bologna→Lecce) ; au coup d'envoi : Bologna)"
   },
@@ -7990,7 +7990,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Treviso→Bari)"
   },
@@ -8054,7 +8054,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Argentinos Jrs.→Bari)"
   },
@@ -8936,7 +8936,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Olympiacos→Torino)"
   },
@@ -9050,7 +9050,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Venezia U19→AC Venezia 1907)"
   },
@@ -9482,7 +9482,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Júbilo Iwata→AC Venezia 1907)"
   },
@@ -9498,7 +9498,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 EC Vitória→AC Venezia 1907); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   },
@@ -9610,7 +9610,7 @@
    "arrivee": 0,
    "retenu": false,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "arrivé en cours de saison selon l'historique de transferts (arrivé le 2000-01-01 (Ternana→AC Venezia 1907) ; au coup d'envoi : Ternana)"
   },
@@ -9626,7 +9626,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 HNK Rijeka→AC Venezia 1907)"
   },
@@ -9642,7 +9642,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-06-30 Sandonà→AC Venezia 1907); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   }
@@ -9772,7 +9772,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Racing→Cagliari)"
   },
@@ -9948,7 +9948,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Chievo Verona→Cagliari)"
   },
@@ -10140,7 +10140,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (2000-07-01 Cagliari U19→Cagliari)"
   },
@@ -10188,7 +10188,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 CD Olimpia→Cagliari)"
   },
@@ -10254,7 +10254,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-10-01 Como→Piacenza)"
   },
@@ -10462,7 +10462,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Pro Patria→Piacenza)"
   },
@@ -10912,7 +10912,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Cesena→Vicenza)"
   },
@@ -11282,7 +11282,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1996-07-01 Napoli U19→Napoli)"
   },
@@ -11394,7 +11394,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Napoli U19→Napoli)"
   },
@@ -11570,7 +11570,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 AC Bellinzona→SSC Neapel)"
   },
@@ -11762,7 +11762,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "ailleurs au coup d'envoi selon l'historique de transferts (2001-07-01 Quilmes→Poli Ejido), aucune arrivée datée au club pendant la saison; rosa Wikipédia du club sans note et 92 minutes jouées pour lui : gardé (règle de Gregori)"
   }
@@ -11876,7 +11876,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Carpi→Atalanta)"
   },
@@ -11940,7 +11940,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Atalanta U19→Atalanta)"
   },
@@ -12068,7 +12068,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Atalanta U19→Atalanta)"
   },
@@ -12470,7 +12470,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Brescia U19→Brescia)"
   },
@@ -12630,7 +12630,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Gimnasia→Brescia)"
   },
@@ -13418,7 +13418,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Torino→Genoa); Wikipédia d'accord : « Ceduto durante la sessione invernale del calciomercato. »"
   },
@@ -13562,7 +13562,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Monaco U19→Genoa)"
   },
@@ -13802,7 +13802,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (2001-07-01 Genua CFC→AC Parma)"
   },
@@ -13818,7 +13818,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Atletico Catania→Genoa)"
   },
@@ -13834,7 +13834,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Southampton→Genoa)"
   }
@@ -13868,7 +13868,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "ailleurs au coup d'envoi selon l'historique de transferts (1999-07-01 Salernitana→Lucchese), aucune arrivée datée au club pendant la saison; au club au coup d'envoi selon Wikipédia (parti en cours de saison) : « Ceduto durante la sessione estiva del calciomercato, a stagione in corso. »"
   },
@@ -13948,7 +13948,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Lecco→Salernitana); Wikipédia d'accord : « Ceduto durante la sessione estiva del calciomercato, a stagione in corso. »"
   },
@@ -14044,7 +14044,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Salernitana U19→Salernitana)"
   },
@@ -14364,7 +14364,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 FC Zürich→Salernitana)"
   },
@@ -14782,7 +14782,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Florenz→FC Empoli)"
   },
@@ -14798,7 +14798,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 UC AlbinoLeffe→FC Empoli); Wikipédia d'accord : « Ceduto durante la sessione invernale del calciomercato. »"
   },
@@ -14862,7 +14862,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Lumezzane→FC Empoli)"
   },
@@ -14958,7 +14958,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-06-30 Reggiana→FC Empoli)"
   },
@@ -14974,7 +14974,7 @@
    "arrivee": 0,
    "retenu": false,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "arrivé en cours de saison selon l'historique de transferts (arrivé le 1999-10-01 (Cosenza→FC Empoli) ; au coup d'envoi : Cosenza)"
   },
@@ -15054,7 +15054,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Monterotondo→FC Empoli)"
   },
@@ -15150,7 +15150,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Fermana→FC Empoli); Wikipédia d'accord : « Ceduto durante la sessione estiva del calciomercato, a stagione in corso. »"
   },
@@ -15248,7 +15248,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Giorgione→Treviso)"
   },
@@ -15376,7 +15376,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Marsala 1912→Treviso)"
   },
@@ -15520,7 +15520,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Arezzo→Treviso)"
   },
@@ -15696,7 +15696,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Giorgione→Treviso); Wikipédia d'accord : « Ceduto nella sesione invernale di calciomercato. »"
   },
@@ -16002,7 +16002,7 @@
    "arrivee": 0,
    "retenu": false,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "arrivé en cours de saison selon l'historique de transferts (arrivé le 2000-01-01 (Genoa→Ternana) ; au coup d'envoi : Genoa)"
   },
@@ -16354,7 +16354,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 SPAL→Ternana); Wikipédia d'accord : « Ceduto nella sessione invernale del calciomercato. »"
   }
@@ -16388,7 +16388,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Prato→Ravenna)"
   },
@@ -17094,7 +17094,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Gualdo→Cosenza)"
   },
@@ -17174,7 +17174,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-11-01 Lecco→Cosenza); Wikipédia d'accord : « Ceduto durante la sessione estiva del calciomercato, a stagione in corso. »"
   },
@@ -17526,7 +17526,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 CSKA Sofia→Cosenza)"
   }
@@ -17816,7 +17816,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "ailleurs au coup d'envoi selon l'historique de transferts (1997-07-01 L'Aquila→Sambenedettese), aucune arrivée datée au club pendant la saison; rosa Wikipédia du club sans note et 3379 minutes jouées pour lui : gardé (règle de Gregori)"
   },
@@ -18202,7 +18202,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Standard Liège→Calcio Monza)"
   },
@@ -18282,7 +18282,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Cosenza→Calcio Monza)"
   },
@@ -18298,7 +18298,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Milan→Calcio Monza)"
   },
@@ -18330,7 +18330,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (2002-07-01 Calcio Monza→Alessandria)"
   },
@@ -18570,7 +18570,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 FC Crotone→Calcio Monza)"
   },
@@ -18828,7 +18828,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-08-01 Lazio→Chievo Verona)"
   },
@@ -19180,7 +19180,7 @@
    "arrivee": 0,
    "retenu": false,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "arrivé en cours de saison selon l'historique de transferts (arrivé le 1999-10-01 (FC Empoli→Chievo Verona) ; au coup d'envoi : FC Empoli)"
   }
@@ -19230,7 +19230,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Mantova→Pistoiese); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   },
@@ -19422,7 +19422,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Fiorentina→Pistoiese)"
   },
@@ -19534,7 +19534,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Mantova→Pistoiese )"
   },
@@ -19678,7 +19678,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Fiorentina→Pistoiese)"
   },
@@ -19822,7 +19822,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Mantova→Pistoiese)"
   }
@@ -20192,7 +20192,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-06-30 Castel San P.→Cesena)"
   },
@@ -20224,7 +20224,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Lumezzane→Cesena)"
   },
@@ -20240,7 +20240,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Carpi→Cesena)"
   },
@@ -20256,7 +20256,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Rapid Bucharest→Cesena)"
   }
@@ -20290,7 +20290,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Cesena→Alzano Virescit)"
   },
@@ -20354,7 +20354,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1996-07-01 Brescello→Alzano Virescit)"
   },
@@ -20386,7 +20386,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-01-01 Atletico Catania→Alzano Virescit)"
   },
@@ -20434,7 +20434,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Trapani→Alzano Virescit)"
   },
@@ -20450,7 +20450,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Treviso→Alzano Virescit)"
   },
@@ -20482,7 +20482,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Ascoli→Alzano Virescit)"
   },
@@ -20498,7 +20498,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1996-07-01 Sassari Torres→Alzano Virescit)"
   },
@@ -20530,7 +20530,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Saronno→Alzano Virescit)"
   },
@@ -20610,7 +20610,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 AC Parma→Alzano Virescit)"
   },
@@ -20658,7 +20658,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1994-07-01 Lumezzane→Alzano Virescit)"
   },
@@ -20690,7 +20690,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Alessandria→Alzano Virescit); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   },
@@ -20836,7 +20836,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Gualdo→Savoia); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   },
@@ -20900,7 +20900,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1996-07-01 Ragusa→Savoia)"
   },
@@ -21028,7 +21028,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-07-01 Atletico Catania→Savoia); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   },
@@ -21140,7 +21140,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-11-01 Savoia→ASG Nocerina); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   },
@@ -21220,7 +21220,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Modena→Savoia); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   },
@@ -21236,7 +21236,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Udinese→Savoia)"
   },
@@ -21284,7 +21284,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Terracina→Savoia); passe en attaque (Right Winger chez Transfermarkt, « A » dans la rosa Wikipédia du club) pour tenir les quatre attaquants"
   },
@@ -21396,7 +21396,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (2000-07-01 Savoia Youth→Sangiuseppese)"
   },
@@ -21412,7 +21412,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Real Pozzuoli→Savoia); Wikipédia d'accord : « Ceduto nella sessione invernale di calciomercato. »"
   }
@@ -21462,7 +21462,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 AC Siena→Fermana)"
   },
@@ -21558,7 +21558,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Avellino→Fermana)"
   },
@@ -21590,7 +21590,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 AC Pisa→Fermana)"
   },
@@ -21670,7 +21670,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Gualdo→Fermana)"
   },
@@ -21830,7 +21830,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1997-06-30 Avellino→Fermana); Wikipédia d'accord : « Ceduto durante la sessione invernale del calciomercato. »"
   },
@@ -21894,7 +21894,7 @@
    "arrivee": 1,
    "retenu": false,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "ailleurs au coup d'envoi selon l'historique de transferts (1999-07-01 Teramo→Sassari Torres), aucune arrivée datée au club pendant la saison"
   },
@@ -21926,7 +21926,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Marsala 1912→Fermana); Wikipédia d'accord : « Ceduto durante la sessione invernale del calciomercato. »"
   },
@@ -21990,7 +21990,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1998-07-01 Giulianova→Fermana)"
   },
@@ -22102,7 +22102,7 @@
    "arrivee": 2,
    "retenu": true,
    "force": false,
-   "deja_au_jeu": false,
+   "deja_au_jeu": true,
    "source": "tm",
    "remarque": "au club au coup d'envoi selon l'historique de transferts (1999-07-01 Avellino→Fermana)"
   },
