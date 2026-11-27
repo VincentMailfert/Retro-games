@@ -32498,6 +32498,11 @@ function fabriqueMatch3D(THREE, o){
      tours ({forme:'rond'|'carre', coul, cercle, poutre}), arches (une porte monumentale par côté), arcades ('E' ou 'O',
      une rangée d'arches derrière un but), et piste (la piste d'athlétisme : les tribunes reculent).
      SANS FICHE, RIEN NE CHANGE : chaque réglage retombe sur la valeur d'avant. */
+  /* LE DÉCOR (o.decor, facultatif ; prototype du 27/11/2026 d'après un reel de vib3coded que l'auteur a montré : « comment on
+     peut s'en inspirer ? »). Rien dans les joueurs, tout autour du terrain : pubs (une liste de textes pour des panneaux
+     publicitaires lisibles), treillis (des pylônes en charpente ajourée, comme dans les années 90), tunnel (un auvent entre
+     les deux abris, là où sortent les équipes), lumiere (le jour tombe pendant le match). Sans o.decor, rien ne change. */
+  const DEC = (o.decor && typeof o.decor==='object') ? o.decor : {};
   const F = (ST.forme && typeof ST.forme==='object') ? ST.forme : null;
   const coulF = (k, d) => (F && typeof F[k]==='string' && /^#[0-9a-f]{6}$/i.test(F[k])) ? hexInt(F[k]) : d;
   const rangsDits = Array.isArray(ST.rangs) && ST.rangs.length===4 ? ST.rangs : (F && Array.isArray(F.rangs) && F.rangs.length===4 ? F.rangs : null);
@@ -32572,10 +32577,34 @@ function fabriqueMatch3D(THREE, o){
       for(const sx of [-1,1]) box(.22, .05, Lg+2*e-6, ligne, sx*(L/2+e), .22, 0, scene, false); }
   }
   /* panneaux publicitaires, ou le ruban LED du club tout autour */
+  const BUT_L_PUB = 8;                                          // pas de panneau juste derrière la cage
   const matLed = new THREE.MeshLambertMaterial({color:hexInt(o.dom&&o.dom.maillot||'#c8312f')}); matLed.emissive.setHex(hexInt(o.dom&&o.dom.maillot||'#c8312f')).multiplyScalar(.55);
   if(ST.led){
     for(const z of [-1,1]) box(L+6, 1.2, .3, matLed, 0, .6, z*(Lg/2+5), scene, false);
     for(const x of [-1,1]) box(.3, 1.2, Lg+2, matLed, x*(L/2+5), .6, 0, scene, false);
+  } else if(Array.isArray(DEC.pubs) && DEC.pubs.length){
+    /* des panneaux avec du texte : le long de la tribune d'en face et derrière le but de gauche (les deux côtés que la
+       caméra voit de face) ; devant et à droite, on n'en voit que le dos, bas et sombre */
+    const teintes=[['#c8312f','#ffffff'],['#ffd24a','#1a1300'],['#1d2b5a','#ffffff'],['#f4edd8','#1d2b5a'],['#2f6b3a','#ffffff'],['#e07b2a','#1a1300'],['#ffffff','#c8312f'],['#111418','#ffd24a']];
+    const mats=[], panneaux=[];
+    const peint=()=>{ panneaux.forEach(pn=>{ const c=pn.c, x=c.getContext('2d'); x.fillStyle=pn.t[0]; x.fillRect(0,0,c.width,c.height);
+        x.fillStyle=pn.t[1]; x.textAlign='center'; x.textBaseline='middle'; let px=13; x.font='bold '+px+'px "Silkscreen", "Courier New", monospace';
+        while(px>6 && x.measureText(pn.txt).width>c.width-6){ px--; x.font='bold '+px+'px "Silkscreen", "Courier New", monospace'; }
+        x.fillText(pn.txt, c.width/2, c.height/2+1); pn.tex.needsUpdate=true; }); };
+    const panneau=(txt,i)=>{ const c=document.createElement('canvas'); c.width=80; c.height=18;
+      const tex=new THREE.CanvasTexture(c); tex.magFilter=tex.minFilter=THREE.NearestFilter; tex.generateMipmaps=false; tex.colorSpace=THREE.SRGBColorSpace;
+      panneaux.push({c, tex, txt:String(txt).toUpperCase().slice(0,22), t:teintes[i%teintes.length]});
+      const m=new THREE.MeshLambertMaterial({map:tex}); mats.push(m); return m; };
+    const dos=M(0x2a2d33), nN=10, lgN=(L-2)/nN, nO=6, lgO=(Lg-2)/nO;
+    for(let i=0;i<nN;i++){ const x=-L/2+1+lgN*(i+.5);
+      box(lgN-.5, 2.3, .4, dos, x, 1.15, -(Lg/2+5));
+      const f=new THREE.Mesh(new THREE.PlaneGeometry(lgN-.5,2.3), panneau(DEC.pubs[i%DEC.pubs.length], i)); f.position.set(x,1.15,-(Lg/2+5)+.22); scene.add(f); }
+    for(let i=0;i<nO;i++){ const z=-Lg/2+1+lgO*(i+.5); if(Math.abs(z)<BUT_L_PUB) continue;
+      box(.4, 2.3, lgO-.5, dos, -(L/2+5), 1.15, z);
+      const f=new THREE.Mesh(new THREE.PlaneGeometry(lgO-.5,2.3), panneau(DEC.pubs[(i+3)%DEC.pubs.length], i+4)); f.rotation.y=Math.PI/2; f.position.set(-(L/2+5)+.22,1.15,z); scene.add(f); }
+    for(let i=0;i<nN;i++) box(lgN-.5, 1.1, .3, dos, -L/2+1+lgN*(i+.5), .55, (Lg/2+5), scene, false);
+    for(let i=0;i<nO;i++){ const z=-Lg/2+1+lgO*(i+.5); if(Math.abs(z)<BUT_L_PUB) continue; box(.3, 1.1, lgO-.5, dos, (L/2+5), .55, z, scene, false); }
+    peint(); if(typeof document!=='undefined' && document.fonts && document.fonts.ready) document.fonts.ready.then(peint);
   } else {
     const pubs = [0xc8312f,0xffd24a,0x1d2b5a,0xf4edd8,0x2f6b3a,0xe07b2a];
     for(let i=0;i<12;i++) box(9, 1.6, .5, M(pubs[i%pubs.length]), -L/2+4.5+i*(L-9)/11, .8, -(Lg/2+5));
@@ -32964,6 +32993,16 @@ function fabriqueMatch3D(THREE, o){
     const hP = niveauLum===2 ? 44 : 32, ecart = niveauLum===2 ? 1.25 : 1;
     for(const sx of [-1,1]) for(const sz of [-1,1]){
       const x = sx*(RX+prof(sz<0?nFond:nAvant)*.7+10)*ecart*.92, z = sz*(RZ+prof(sz<0?nFond:nAvant)*.6+9);
+      if(DEC.treillis){                                          // la tour en charpente : quatre montants qui se resserrent, des ceintures et des croisillons
+        const mt=M(0x55585c), tour=new THREE.Group(); tour.position.set(x,0,z); scene.add(tour);
+        const etages=niveauLum===2?9:7, hE=hP/etages, b0=niveauLum===2?3.4:2.6, b1=.9, larg=y=>b0+(b1-b0)*y/hP;
+        for(let e=0;e<etages;e++){ const y0=e*hE, w0=larg(y0), w1=larg(y0+hE), wm=(w0+w1)/2;
+          for(const a of [-1,1]) for(const b of [-1,1]){ const m=box(.34, hE+.1, .34, mt, a*wm/2, y0+hE/2, b*wm/2, tour); m.rotation.z=-a*(w0-w1)/2/hE; m.rotation.x=b*(w0-w1)/2/hE; }
+          for(const b of [-1,1]){ box(w1+.3, .22, .22, mt, 0, y0+hE, b*w1/2, tour, false); box(.22, .22, w1+.3, mt, b*w1/2, y0+hE, 0, tour, false);
+            const d=Math.hypot(wm,hE), ang=Math.atan2(hE,wm)*(e%2?1:-1);
+            const c1=box(d, .16, .16, mt, 0, y0+hE/2, b*wm/2, tour, false); c1.rotation.z=ang;
+            const c2=box(.16, .16, d, mt, b*wm/2, y0+hE/2, 0, tour, false); c2.rotation.x=-ang; } }
+      } else
       box(niveauLum===2?1.6:1.1, hP, niveauLum===2?1.6:1.1, M(0x4a4a46), x, hP/2, z);
       const tete = new THREE.Group(); tete.position.set(x,hP+.5,z); scene.add(tete);
       const lw = niveauLum===2 ? 8 : 5.5;
@@ -33229,6 +33268,14 @@ function fabriqueMatch3D(THREE, o){
   const remplacants = [], entraineurs = [];
   { const g0=graine;
     const zAbri = -(Lg/2+3.4), matToit = new THREE.MeshLambertMaterial({color:0x9fd2ee, transparent:true, opacity:.55}), matAbri=M(0x2d3138), matBanc=M(0x6b4a2e);
+    if(DEC.tunnel){                                              // l'auvent du tunnel, entre les deux abris, et la bouche sombre au pied de la tribune
+      const z0=-(Lg/2+1.2), z1=-(RZ+.6), lg=z0-z1, r=2.9, coul=hexInt(EQ.dom.maillot);
+      const voute=new THREE.Mesh(new THREE.CylinderGeometry(r, r, lg, 10, 1, true, -Math.PI/2, Math.PI), new THREE.MeshLambertMaterial({color:coul, side:THREE.DoubleSide, flatShading:true}));
+      voute.rotation.x=-Math.PI/2; voute.position.set(0, 1.6, (z0+z1)/2); voute.castShadow=true; scene.add(voute);
+      for(const sx of [-1,1]) box(.3, 1.6, lg, M(0xe9e6dc), sx*r, .8, (z0+z1)/2, scene, false);
+      for(let k=0;k<=3;k++){ const a=new THREE.Mesh(new THREE.TorusGeometry(r+.06, .16, 4, 10, Math.PI), M(0xf4f1e6)); a.position.set(0, 1.6, z0-k*lg/3); scene.add(a); }
+      box(2*r+1.2, 5, .5, M(0x15171b), 0, 2.5, z1-.1, scene, false);
+    }
     for(const camp of ['dom','ext']){
       const cx = camp==='dom' ? -13 : 13, T=EQ[camp];
       box(9.4, .14, 2.8, matToit, cx, 5.6, zAbri, scene, false);
@@ -33936,6 +33983,8 @@ function fabriqueMatch3D(THREE, o){
   }
   function ligne(l){
     if(!vivant || !l) return;
+    if(DEC.lumiere && typeof l.m==='number'){                    // le jour tombe : un match de fin d'après-midi finit sous les projecteurs
+      HEURE = HEURE0==='jour' ? (l.m>=70?'nuit' : l.m>=40?'soir' : 'jour') : HEURE0==='soir' ? (l.m>=45?'nuit':'soir') : HEURE0; }
     const x=l.x||'';
     if(ACT && ACT.info.ligne===l) ACT.recue=true;                              // le tir part
     else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; if(etat.phase==='replacement' || (etat.phase==='avant' && etat.envoiDemande)) forceEnvoi(); lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
@@ -33959,7 +34008,8 @@ function fabriqueMatch3D(THREE, o){
     soir:{fond:0xe7b98d, soleil:[0xffa060,1.6], hemi:[0xffd2a8,0x3a3048,.9], spots:1.6, pos:[-120,40,40]},
     nuit:{fond:0x121a2a, soleil:[0x8aa0d0,.35], hemi:[0x3a4a70,0x101418,.35], spots:4.2, pos:[60,110,-60]}
   };
-  const HEURE = AMB[o.heure] ? o.heure : 'jour';
+  let HEURE = AMB[o.heure] ? o.heure : 'jour';
+  const HEURE0 = HEURE;                                         // l'heure du coup d'envoi (DEC.lumiere la fait avancer)
   const CIEL = o.meteo==='boue' ? 'pluie' : (o.meteo||'sec');
   { const neige = CIEL==='neige'?.5 : CIEL==='gel'?.22 : 0, boue = o.meteo==='boue'?.55 : CIEL==='pluie'?.18 : 0;
     if(neige||boue){ matPelouse.map.dispose(); matPelouse.map=texturePelouse(neige,boue); matPelouse.needsUpdate=true; }
@@ -34466,7 +34516,7 @@ function fabriqueMatch3D(THREE, o){
     lanceAttente();
     poserJoueurs(dJeu, now);
     { const dx=B.pos.x-ballon.position.x, dz=B.pos.z-ballon.position.z; ballon.position.copy(B.pos); ballon.position.y-=.62-R_BALLON; if(!fige){ ballon.rotation.x+=dz/R_BALLON; ballon.rotation.z-=dx/R_BALLON; } } }
-    const c=ambianceCible(), k=Math.min(1,dt*2);
+    const c=ambianceCible(), k=Math.min(1,dt*(DEC.lumiere && HEURE!==HEURE0 ? .12 : 2));   // la nuit tombe doucement
     ambC.fond.lerp(c.fond,k); ambC.sCol.lerp(c.sCol,k); ambC.sI+=(c.sI-ambC.sI)*k; ambC.hCiel.lerp(c.hCiel,k); ambC.hSol.lerp(c.hSol,k);
     ambC.hI+=(c.hI-ambC.hI)*k; ambC.spots+=(c.spots-ambC.spots)*k; ambC.pos.lerp(c.pos,k);
     scene.background=ambC.fond; if(scene.fog) scene.fog.color.copy(ambC.fond);

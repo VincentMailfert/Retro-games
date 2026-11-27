@@ -2,7 +2,7 @@
 <html lang="fr">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Essai : le rendu du match</title>
+<title>Essai : le décor du match</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap">
@@ -28,6 +28,10 @@ body{background:var(--fond);color:var(--clair);overflow:hidden}
 .tableau .score{color:var(--jaune);padding:0 4px;font-weight:700;font-variant-numeric:tabular-nums;text-shadow:0 0 2px currentColor, 0 1px 0 rgba(0,0,0,.6)}
 .tableau .min{color:var(--jaune);font-variant-numeric:tabular-nums;min-width:3ch;text-align:right}
 .alerte{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:4;max-width:min(560px,calc(100% - 32px));background:#5a1414;color:#f2f5fa;border:3px solid #000;padding:8px 12px;font:14px/1.35 system-ui,sans-serif}
+.nomStade{position:fixed;left:max(12px,env(safe-area-inset-left));top:64px;z-index:4;pointer-events:none;opacity:0;transform:translateY(-6px);transition:opacity .7s,transform .7s;font-family:var(--led);text-shadow:0 2px 0 rgba(0,0,0,.75),0 0 6px rgba(0,0,0,.5)}
+.nomStade.on{opacity:1;transform:none}
+.nomStade b{display:block;font-size:22px;font-weight:700;line-height:1.05;color:#fff;letter-spacing:.06em;text-transform:uppercase;max-width:62vw}
+.nomStade span{display:block;margin-top:5px;font-size:11px;color:var(--jaune);letter-spacing:.06em}
 .banniere{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%) scale(.6);font-family:var(--led);font-weight:700;text-align:center;
   color:var(--jaune);text-shadow:4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
   opacity:0;pointer-events:none;transition:opacity .25s, transform .35s cubic-bezier(.2,1.6,.4,1);z-index:3;white-space:nowrap}
@@ -65,6 +69,7 @@ body{background:var(--fond);color:var(--clair);overflow:hidden}
   <span class="min" id="ips" title="Images par seconde" style="opacity:.75"></span>
 </div>
 <div class="alerte" id="alerte" hidden></div>
+<div class="nomStade" id="nomStade"><b id="nsNom"></b><span id="nsSous"></span></div>
 <div class="banniere" id="banniere"><span class="gros" id="banGros">BUT !</span><span class="nom" id="banNom"></span></div>
 
 <div class="bas">
@@ -82,6 +87,10 @@ body{background:var(--fond);color:var(--clair);overflow:hidden}
       <button id="s-moyen" data-v="moyen">Moyen</button>
       <button id="s-grand" data-v="grand">Grand</button>
       <button id="s-legende" data-v="legende">Légende</button>
+    </div>
+    <div class="groupe" id="gDecor" aria-label="Décor">
+      <button data-v="0">Décor actuel</button>
+      <button data-v="1" aria-pressed="true">Nouveau décor</button>
     </div>
     <div class="groupe" id="gRendu" aria-label="Rendu">
       <button data-v="actuel">Actuel</button>
@@ -182,6 +191,11 @@ function fabriqueMatch3D(THREE, o){
      tours ({forme:'rond'|'carre', coul, cercle, poutre}), arches (une porte monumentale par côté), arcades ('E' ou 'O',
      une rangée d'arches derrière un but), et piste (la piste d'athlétisme : les tribunes reculent).
      SANS FICHE, RIEN NE CHANGE : chaque réglage retombe sur la valeur d'avant. */
+  /* LE DÉCOR (o.decor, facultatif ; prototype du 27/11/2026 d'après un reel de vib3coded que l'auteur a montré : « comment on
+     peut s'en inspirer ? »). Rien dans les joueurs, tout autour du terrain : pubs (une liste de textes pour des panneaux
+     publicitaires lisibles), treillis (des pylônes en charpente ajourée, comme dans les années 90), tunnel (un auvent entre
+     les deux abris, là où sortent les équipes), lumiere (le jour tombe pendant le match). Sans o.decor, rien ne change. */
+  const DEC = (o.decor && typeof o.decor==='object') ? o.decor : {};
   const F = (ST.forme && typeof ST.forme==='object') ? ST.forme : null;
   const coulF = (k, d) => (F && typeof F[k]==='string' && /^#[0-9a-f]{6}$/i.test(F[k])) ? hexInt(F[k]) : d;
   const rangsDits = Array.isArray(ST.rangs) && ST.rangs.length===4 ? ST.rangs : (F && Array.isArray(F.rangs) && F.rangs.length===4 ? F.rangs : null);
@@ -256,10 +270,34 @@ function fabriqueMatch3D(THREE, o){
       for(const sx of [-1,1]) box(.22, .05, Lg+2*e-6, ligne, sx*(L/2+e), .22, 0, scene, false); }
   }
   /* panneaux publicitaires, ou le ruban LED du club tout autour */
+  const BUT_L_PUB = 8;                                          // pas de panneau juste derrière la cage
   const matLed = new THREE.MeshLambertMaterial({color:hexInt(o.dom&&o.dom.maillot||'#c8312f')}); matLed.emissive.setHex(hexInt(o.dom&&o.dom.maillot||'#c8312f')).multiplyScalar(.55);
   if(ST.led){
     for(const z of [-1,1]) box(L+6, 1.2, .3, matLed, 0, .6, z*(Lg/2+5), scene, false);
     for(const x of [-1,1]) box(.3, 1.2, Lg+2, matLed, x*(L/2+5), .6, 0, scene, false);
+  } else if(Array.isArray(DEC.pubs) && DEC.pubs.length){
+    /* des panneaux avec du texte : le long de la tribune d'en face et derrière le but de gauche (les deux côtés que la
+       caméra voit de face) ; devant et à droite, on n'en voit que le dos, bas et sombre */
+    const teintes=[['#c8312f','#ffffff'],['#ffd24a','#1a1300'],['#1d2b5a','#ffffff'],['#f4edd8','#1d2b5a'],['#2f6b3a','#ffffff'],['#e07b2a','#1a1300'],['#ffffff','#c8312f'],['#111418','#ffd24a']];
+    const mats=[], panneaux=[];
+    const peint=()=>{ panneaux.forEach(pn=>{ const c=pn.c, x=c.getContext('2d'); x.fillStyle=pn.t[0]; x.fillRect(0,0,c.width,c.height);
+        x.fillStyle=pn.t[1]; x.textAlign='center'; x.textBaseline='middle'; let px=13; x.font='bold '+px+'px "Silkscreen", "Courier New", monospace';
+        while(px>6 && x.measureText(pn.txt).width>c.width-6){ px--; x.font='bold '+px+'px "Silkscreen", "Courier New", monospace'; }
+        x.fillText(pn.txt, c.width/2, c.height/2+1); pn.tex.needsUpdate=true; }); };
+    const panneau=(txt,i)=>{ const c=document.createElement('canvas'); c.width=80; c.height=18;
+      const tex=new THREE.CanvasTexture(c); tex.magFilter=tex.minFilter=THREE.NearestFilter; tex.generateMipmaps=false; tex.colorSpace=THREE.SRGBColorSpace;
+      panneaux.push({c, tex, txt:String(txt).toUpperCase().slice(0,22), t:teintes[i%teintes.length]});
+      const m=new THREE.MeshLambertMaterial({map:tex}); mats.push(m); return m; };
+    const dos=M(0x2a2d33), nN=10, lgN=(L-2)/nN, nO=6, lgO=(Lg-2)/nO;
+    for(let i=0;i<nN;i++){ const x=-L/2+1+lgN*(i+.5);
+      box(lgN-.5, 2.3, .4, dos, x, 1.15, -(Lg/2+5));
+      const f=new THREE.Mesh(new THREE.PlaneGeometry(lgN-.5,2.3), panneau(DEC.pubs[i%DEC.pubs.length], i)); f.position.set(x,1.15,-(Lg/2+5)+.22); scene.add(f); }
+    for(let i=0;i<nO;i++){ const z=-Lg/2+1+lgO*(i+.5); if(Math.abs(z)<BUT_L_PUB) continue;
+      box(.4, 2.3, lgO-.5, dos, -(L/2+5), 1.15, z);
+      const f=new THREE.Mesh(new THREE.PlaneGeometry(lgO-.5,2.3), panneau(DEC.pubs[(i+3)%DEC.pubs.length], i+4)); f.rotation.y=Math.PI/2; f.position.set(-(L/2+5)+.22,1.15,z); scene.add(f); }
+    for(let i=0;i<nN;i++) box(lgN-.5, 1.1, .3, dos, -L/2+1+lgN*(i+.5), .55, (Lg/2+5), scene, false);
+    for(let i=0;i<nO;i++){ const z=-Lg/2+1+lgO*(i+.5); if(Math.abs(z)<BUT_L_PUB) continue; box(.3, 1.1, lgO-.5, dos, (L/2+5), .55, z, scene, false); }
+    peint(); if(typeof document!=='undefined' && document.fonts && document.fonts.ready) document.fonts.ready.then(peint);
   } else {
     const pubs = [0xc8312f,0xffd24a,0x1d2b5a,0xf4edd8,0x2f6b3a,0xe07b2a];
     for(let i=0;i<12;i++) box(9, 1.6, .5, M(pubs[i%pubs.length]), -L/2+4.5+i*(L-9)/11, .8, -(Lg/2+5));
@@ -648,6 +686,16 @@ function fabriqueMatch3D(THREE, o){
     const hP = niveauLum===2 ? 44 : 32, ecart = niveauLum===2 ? 1.25 : 1;
     for(const sx of [-1,1]) for(const sz of [-1,1]){
       const x = sx*(RX+prof(sz<0?nFond:nAvant)*.7+10)*ecart*.92, z = sz*(RZ+prof(sz<0?nFond:nAvant)*.6+9);
+      if(DEC.treillis){                                          // la tour en charpente : quatre montants qui se resserrent, des ceintures et des croisillons
+        const mt=M(0x55585c), tour=new THREE.Group(); tour.position.set(x,0,z); scene.add(tour);
+        const etages=niveauLum===2?9:7, hE=hP/etages, b0=niveauLum===2?3.4:2.6, b1=.9, larg=y=>b0+(b1-b0)*y/hP;
+        for(let e=0;e<etages;e++){ const y0=e*hE, w0=larg(y0), w1=larg(y0+hE), wm=(w0+w1)/2;
+          for(const a of [-1,1]) for(const b of [-1,1]){ const m=box(.34, hE+.1, .34, mt, a*wm/2, y0+hE/2, b*wm/2, tour); m.rotation.z=-a*(w0-w1)/2/hE; m.rotation.x=b*(w0-w1)/2/hE; }
+          for(const b of [-1,1]){ box(w1+.3, .22, .22, mt, 0, y0+hE, b*w1/2, tour, false); box(.22, .22, w1+.3, mt, b*w1/2, y0+hE, 0, tour, false);
+            const d=Math.hypot(wm,hE), ang=Math.atan2(hE,wm)*(e%2?1:-1);
+            const c1=box(d, .16, .16, mt, 0, y0+hE/2, b*wm/2, tour, false); c1.rotation.z=ang;
+            const c2=box(.16, .16, d, mt, b*wm/2, y0+hE/2, 0, tour, false); c2.rotation.x=-ang; } }
+      } else
       box(niveauLum===2?1.6:1.1, hP, niveauLum===2?1.6:1.1, M(0x4a4a46), x, hP/2, z);
       const tete = new THREE.Group(); tete.position.set(x,hP+.5,z); scene.add(tete);
       const lw = niveauLum===2 ? 8 : 5.5;
@@ -913,6 +961,14 @@ function fabriqueMatch3D(THREE, o){
   const remplacants = [], entraineurs = [];
   { const g0=graine;
     const zAbri = -(Lg/2+3.4), matToit = new THREE.MeshLambertMaterial({color:0x9fd2ee, transparent:true, opacity:.55}), matAbri=M(0x2d3138), matBanc=M(0x6b4a2e);
+    if(DEC.tunnel){                                              // l'auvent du tunnel, entre les deux abris, et la bouche sombre au pied de la tribune
+      const z0=-(Lg/2+1.2), z1=-(RZ+.6), lg=z0-z1, r=2.9, coul=hexInt(EQ.dom.maillot);
+      const voute=new THREE.Mesh(new THREE.CylinderGeometry(r, r, lg, 10, 1, true, -Math.PI/2, Math.PI), new THREE.MeshLambertMaterial({color:coul, side:THREE.DoubleSide, flatShading:true}));
+      voute.rotation.x=-Math.PI/2; voute.position.set(0, 1.6, (z0+z1)/2); voute.castShadow=true; scene.add(voute);
+      for(const sx of [-1,1]) box(.3, 1.6, lg, M(0xe9e6dc), sx*r, .8, (z0+z1)/2, scene, false);
+      for(let k=0;k<=3;k++){ const a=new THREE.Mesh(new THREE.TorusGeometry(r+.06, .16, 4, 10, Math.PI), M(0xf4f1e6)); a.position.set(0, 1.6, z0-k*lg/3); scene.add(a); }
+      box(2*r+1.2, 5, .5, M(0x15171b), 0, 2.5, z1-.1, scene, false);
+    }
     for(const camp of ['dom','ext']){
       const cx = camp==='dom' ? -13 : 13, T=EQ[camp];
       box(9.4, .14, 2.8, matToit, cx, 5.6, zAbri, scene, false);
@@ -1620,6 +1676,8 @@ function fabriqueMatch3D(THREE, o){
   }
   function ligne(l){
     if(!vivant || !l) return;
+    if(DEC.lumiere && typeof l.m==='number'){                    // le jour tombe : un match de fin d'après-midi finit sous les projecteurs
+      HEURE = HEURE0==='jour' ? (l.m>=70?'nuit' : l.m>=40?'soir' : 'jour') : HEURE0==='soir' ? (l.m>=45?'nuit':'soir') : HEURE0; }
     const x=l.x||'';
     if(ACT && ACT.info.ligne===l) ACT.recue=true;                              // le tir part
     else if(ATT && ATT.info.ligne===l){ const a=ATT; ATT=null; if(etat.phase==='replacement' || (etat.phase==='avant' && etat.envoiDemande)) forceEnvoi(); lanceAction(a.info, .6); if(ACT) ACT.recue=true; }
@@ -1643,7 +1701,8 @@ function fabriqueMatch3D(THREE, o){
     soir:{fond:0xe7b98d, soleil:[0xffa060,1.6], hemi:[0xffd2a8,0x3a3048,.9], spots:1.6, pos:[-120,40,40]},
     nuit:{fond:0x121a2a, soleil:[0x8aa0d0,.35], hemi:[0x3a4a70,0x101418,.35], spots:4.2, pos:[60,110,-60]}
   };
-  const HEURE = AMB[o.heure] ? o.heure : 'jour';
+  let HEURE = AMB[o.heure] ? o.heure : 'jour';
+  const HEURE0 = HEURE;                                         // l'heure du coup d'envoi (DEC.lumiere la fait avancer)
   const CIEL = o.meteo==='boue' ? 'pluie' : (o.meteo||'sec');
   { const neige = CIEL==='neige'?.5 : CIEL==='gel'?.22 : 0, boue = o.meteo==='boue'?.55 : CIEL==='pluie'?.18 : 0;
     if(neige||boue){ matPelouse.map.dispose(); matPelouse.map=texturePelouse(neige,boue); matPelouse.needsUpdate=true; }
@@ -2150,7 +2209,7 @@ function fabriqueMatch3D(THREE, o){
     lanceAttente();
     poserJoueurs(dJeu, now);
     { const dx=B.pos.x-ballon.position.x, dz=B.pos.z-ballon.position.z; ballon.position.copy(B.pos); ballon.position.y-=.62-R_BALLON; if(!fige){ ballon.rotation.x+=dz/R_BALLON; ballon.rotation.z-=dx/R_BALLON; } } }
-    const c=ambianceCible(), k=Math.min(1,dt*2);
+    const c=ambianceCible(), k=Math.min(1,dt*(DEC.lumiere && HEURE!==HEURE0 ? .12 : 2));   // la nuit tombe doucement
     ambC.fond.lerp(c.fond,k); ambC.sCol.lerp(c.sCol,k); ambC.sI+=(c.sI-ambC.sI)*k; ambC.hCiel.lerp(c.hCiel,k); ambC.hSol.lerp(c.hSol,k);
     ambC.hI+=(c.hI-ambC.hI)*k; ambC.spots+=(c.spots-ambC.spots)*k; ambC.pos.lerp(c.pos,k);
     scene.background=ambC.fond; if(scene.fog) scene.fog.color.copy(ambC.fond);
@@ -2258,7 +2317,16 @@ function meteoDe(x){ return /Il neige/.test(x)?'neige' : /champ de patates/.test
 /* L'ESSAI DU RENDU EN MATCH (27/11/2026) : « Actuel » = le jeu d'aujourd'hui ; « Lissé » = mêmes pixels, moyennés ; « Fin et lissé »
    = le rendu retenu par l'auteur pour le stade (pixels de 1, moyennés sur 2 × 2, étiquettes regrossies pour garder leur taille) */
 const RENDUS = {actuel:{pixels:1.5, lisse:0, etiquette:12}, lisse:{pixels:1.5, lisse:3, etiquette:12}, fin:{pixels:1, lisse:2, etiquette:18}};
-R.rendu='fin';
+R.rendu='fin'; R.decor=1;
+/* LE NOUVEAU DÉCOR (27/11/2026, d'après le reel de vib3coded) : des marques inventées, dans le ton des années 90 */
+const PUBS = ['Radio Plex','Café du Stade','3615 Foot','Garage Morel','Pains Martin','Télé Sport','Pneus Dubois','Meubles Girard','Multiplex','Crédit Rural'];
+const DECOR = {pubs:PUBS, treillis:1, tunnel:1, lumiere:1};
+function annonceStade(md){
+  const el=document.getElementById('nomStade'); clearTimeout(annonceStade.t); el.classList.remove('on'); if(!R.decor) return;
+  const m=/devant ([\d\s\u202f\u00a0]+) spectateurs/.exec(md.ev.map(e=>e.x).slice(0,3).join(' '));
+  document.getElementById('nsNom').textContent=md.dom.stade||''; document.getElementById('nsSous').textContent=m ? m[1].trim()+' spectateurs' : '';
+  requestAnimationFrame(()=>el.classList.add('on')); annonceStade.t=setTimeout(()=>el.classList.remove('on'), 9000);
+}
 { let n=0, t0=performance.now(); const el=document.getElementById('ips');   // le compteur d'images par seconde, pour juger la fluidité
   (function compte(t){ n++; if(t-t0>=1000){ el.textContent=Math.round(n*1000/(t-t0))+' i/s'; n=0; t0=t; } requestAnimationFrame(compte); })(t0); }
 let SC=null; const FIL={ md:null, i:-1, horloge:0, prochain:0 };
@@ -2268,13 +2336,13 @@ function chargeMatch(idx){
   if(SC){ SC.ferme(); const neuf=canvas.cloneNode(false); canvas.replaceWith(neuf); canvas=neuf; }   // un canevas neuf par match : l'ancien rend sa mémoire graphique
   canvas.addEventListener('webglcontextlost', e=>{ if(e.target!==canvas) return; elAlerte.hidden=false; elAlerte.textContent='La carte graphique a interrompu le rendu 3D. Recharge la page.'; });
   const x0=md.ev[0].x;
-  SC = fabriqueMatch3D(THREE, { canvas, pixels:RENDUS[R.rendu].pixels, lisse:RENDUS[R.rendu].lisse, etiquette:RENDUS[R.rendu].etiquette, decalage: TELEPHONE?.3:.16, camera:R.camera,
+  SC = fabriqueMatch3D(THREE, { canvas, pixels:RENDUS[R.rendu].pixels, lisse:RENDUS[R.rendu].lisse, etiquette:RENDUS[R.rendu].etiquette, decor:R.decor?DECOR:null, decalage: TELEPHONE?.3:.16, camera:R.camera,
     heure: /soleil rasant/.test(x0) && md.heure==='jour' ? 'soir' : md.heure, meteo: meteoDe(x0),
     stade:stadeEssai(md),
     dom:{id:md.dom.id, maillot:T.dom[0], short:T.dom[1], xi:md.dom.xi}, ext:{id:md.ext.id, maillot:T.ext[0], short:T.ext[1], xi:md.ext.xi},
     enPause:()=>R.delai===0, banniere,
     erreur:e=>{ elAlerte.hidden=false; elAlerte.textContent='Erreur dans la maquette : '+(e&&e.message||e); } });
-  FIL.md=md; FIL.i=-1; FIL.horloge=0; FIL.prochain=600;
+  FIL.md=md; FIL.i=-1; FIL.horloge=0; FIL.prochain=600; annonceStade(md);
   document.getElementById('cDom').textContent=md.dom.id; document.getElementById('cExt').textContent=md.ext.id;
   document.getElementById('pDom').style.background=T.dom[0]; document.getElementById('pExt').style.background=T.ext[0];
   elScore.textContent='0 - 0'; elMin.textContent="00'"; elFil.textContent='';
@@ -2313,6 +2381,10 @@ document.querySelectorAll('#gStade button').forEach(b=>b.addEventListener('click
   document.getElementById('s-legende').textContent = R.stade==='legende' ? NOM_STYLE[STYLES[R.style%STYLES.length]] : 'Légende';
   chargeMatch(R.match);
 }));
+document.querySelectorAll('#gDecor button').forEach(b=>b.addEventListener('click',()=>{
+  R.decor=+b.dataset.v; document.querySelectorAll('#gDecor button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  chargeMatch(R.match);
+}));
 document.querySelectorAll('#gRendu button').forEach(b=>b.addEventListener('click',()=>{
   R.rendu=b.dataset.v; document.querySelectorAll('#gRendu button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
   chargeMatch(R.match);
@@ -2320,6 +2392,6 @@ document.querySelectorAll('#gRendu button').forEach(b=>b.addEventListener('click
 document.querySelectorAll('#gCamera button').forEach(b=>b.addEventListener('click',()=>{
   R.camera=b.dataset.v; if(SC) SC.camera(R.camera); document.querySelectorAll('#gCamera button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
 }));
-chargeMatch(0);
+chargeMatch(2);   // Saint-Étienne - Lyon, coup d'envoi de jour : on voit la lumière tomber
 requestAnimationFrame(tourFil);
 </script>

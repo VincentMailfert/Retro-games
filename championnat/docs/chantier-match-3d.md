@@ -145,3 +145,14 @@ de la partie (« on retrouve le stade dès la première journée »), il grandit
   la page du match avec un rang « Rendu » (Actuel, Lissé, Fin et lissé) et un compteur d'images par seconde. `o.etiquette`
   (hauteur des étiquettes en pixels de jeu, 12 par défaut) passe à 18 avec des pixels de 1, pour garder la même taille à
   l'écran. En attente du verdict de l'auteur sur son téléphone (fluidité et allure).
+
+## Le décor du match (prototype du 27/11/2026, branche chantier/decor-match, PAS greffé)
+
+L'auteur a montré un reel de vib3coded (stade pixel art, tribunes pleines) : « comment on peut s'en inspirer ? ». Constat : ce
+qui rend sa scène vivante est autour du terrain, pas dans les joueurs. Cinq éléments, tous derrière `o.decor` (sans lui, rien
+ne change) : `pubs` (liste de textes, panneaux lisibles le long de la tribune d'en face et derrière le but de gauche ; le ruban
+LED garde la priorité), `treillis` (pylônes en charpente ajourée), `tunnel` (auvent aux couleurs du club entre les deux abris),
+`lumiere` (le jour tombe : un coup d'envoi de jour passe au soir à la 40e et à la nuit à la 70e, un coup d'envoi du soir passe à
+la nuit à la 45e). Le nom du stade au coup d'envoi est dans la page (`annonceStade`), pas dans le moteur.
+Page d'essai : `docs/prototype-match-rendu.html`, bouton « Décor actuel / Nouveau décor ». Marques inventées, ton années 90.
+Laissé de côté : son panneau de statistiques (trop chargé), le tir à la souris (chez nous le moteur décide), ses animations.
