@@ -1,0 +1,16 @@
+{
+ "pays": "ITA",
+ "an": 1999,
+ "version_avant": "3.33",
+ "version_apres": "3.34",
+ "nom": "Le déluge de Pérouse",
+ "sous": "La Lazio de Sven-Göran Eriksson, renforcée par Verón et Simeone, court tout le printemps derrière la Juventus de Carlo Ancelotti, qui compte jusqu'à neuf points d'avance. Les Romains gagnent le derby, puis à Turin, et ne sont plus qu'à deux points avant la dernière journée. Le 14 mai 2000, la Lazio bat la Reggina pendant qu'à Perugia, sous une pluie battante, l'arbitre Pierluigi Collina fait reprendre le match après plus de soixante-dix minutes d'attente : un but d'Alessandro Calori fait tomber la Juventus et donne à la Lazio son deuxième scudetto, vingt-six ans après le premier, avant la Coupe d'Italie gagnée contre l'Inter. Andriy Shevchenko, arrivé de Kiev au Milan, est meilleur buteur avec vingt-quatre buts. L'Inter de Vieri prend la quatrième place à Parma au match d'appui. En Serie B, Vicenza est champion.",
+ "euroC1": ["MIL", "LAZ", "FIO", "PAR"],
+ "euroC2": [],
+ "euroC3": ["ROM", "UDI", "BGN", "JUV"],
+ "reel": {
+  "d1": "LAZ JUV MIL INT PAR ROM FIO UDI HEL PRG RGC BGN LEC BAI TOR VEN CAG PIA",
+  "d2": "VIC NAP ATA BRS SAM GEN SAL EMP TRV TER RAV COS PES MZA CHI PST CES ALZ SAV FRM"
+ },
+ "entete": "ENTETE"
+}
