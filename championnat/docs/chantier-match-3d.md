@@ -141,3 +141,7 @@ de la partie (« on retrouve le stade dès la première journée »), il grandit
 - **Choix de l'auteur du 27/11/2026 : « on passe sur fin et lissé »** (pixels 1, lisse 2) pour le stade en vitrine. Pour le
   match, à essayer avant de trancher : neuf fois plus de points à calculer qu'aujourd'hui, et les étiquettes (12 pixels de
   jeu de haut) rapetissent d'un tiers à l'écran si on ne les regrossit pas.
+- **L'essai du rendu en match** : `docs/prototype-match-rendu.html` (moteur recopié par `node docs/construit-match-rendu.cjs`),
+  la page du match avec un rang « Rendu » (Actuel, Lissé, Fin et lissé) et un compteur d'images par seconde. `o.etiquette`
+  (hauteur des étiquettes en pixels de jeu, 12 par défaut) passe à 18 avec des pixels de 1, pour garder la même taille à
+  l'écran. En attente du verdict de l'auteur sur son téléphone (fluidité et allure).

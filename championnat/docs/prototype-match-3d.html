@@ -1803,7 +1803,8 @@ function fabriqueMatch3D(THREE, o){
   const axeOmbre = () => { const p=soleil.position, h=Math.hypot(p.x,p.z)||1; return {x:-p.x/h, z:-p.z/h, l:clamp(h/Math.max(20,p.y),.4,1.6)}; };
   const ver = (x,y,t)=>x+(y-x)*Math.min(1,t);
   function poserJoueurs(dt, now){
-    const k = 12*2*cam.demi/Math.max(40, Math.floor(taille().h/o.pixels));   // une étiquette fait toujours 12 pixels de jeu de haut, en plein écran comme dans la petite bande du direct
+    const k = (o.etiquette>0?o.etiquette:12)*2*cam.demi/Math.max(40, Math.floor(taille().h/o.pixels));   // o.etiquette : la hauteur en pixels de jeu (12 par défaut ; 18 avec des pixels de 1 pour garder la même taille à l'écran)
+    //   // une étiquette fait toujours 12 pixels de jeu de haut, en plein écran comme dans la petite bande du direct
     const ax = axeOmbre();
     for(const j of figurants){
       if(j.dehors){ j.ombre.visible=false; continue; }
