@@ -145,3 +145,19 @@ de la partie (« on retrouve le stade dès la première journée »), il grandit
   la page du match avec un rang « Rendu » (Actuel, Lissé, Fin et lissé) et un compteur d'images par seconde. `o.etiquette`
   (hauteur des étiquettes en pixels de jeu, 12 par défaut) passe à 18 avec des pixels de 1, pour garder la même taille à
   l'écran. En attente du verdict de l'auteur sur son téléphone (fluidité et allure).
+
+## Le nouvel accueil (prototype du 27/11/2026, branche chantier/accueil, PAS greffé)
+
+Demande de l'auteur : remplacer l'écran d'accueil par « quelque chose de beaucoup plus stylé, de beaucoup plus inspirant, à
+l'image du jeu, et qui donne vraiment envie de jouer ». L'accueil du jeu (`ecranVitrine`, v3.15) pose une image de stade en
+pixel art dans un cadre, entre le logo et le bouton. Maquette : `docs/prototype-accueil.html` (moteur recopié par
+`node docs/construit-accueil.cjs`).
+- **Le stade est l'écran** : un vrai stade en 3D (les fiches de `prototype-vrais-stades.html`), la nuit, en vitrine, rendu fin
+  et lissé, plein écran derrière le logo ; deux voiles sombres portent le logo en haut, le texte et le bouton en bas.
+- **Le nouveau joueur** : sept stades défilent, un toutes les neuf secondes, chacun avec sa question « Et si… » (Weah à Paris,
+  Metz champion en 1998, Cantona resté à Leeds…), la phrase retenue le 18/11 (« Prends un club des années 90 et réécris
+  l'histoire. »), les pays et le nombre de saisons, un seul bouton « Jouer ».
+- **Le joueur qui revient** : son stade, son club, où il en est, un seul bouton « Reprendre » avec le prochain match ; nouvelle
+  carrière, liste des carrières et trophées en liens discrets dessous. La longue liste des clubs passe derrière « Nouvelle carrière ».
+- À trancher avant greffe : charger la 3D dès l'accueil (poids, appareils sans WebGL : le fond de nuit, le logo et le bouton
+  restent), et le sort de l'accueil actuel du joueur qui revient (`ecranAccueil`).
