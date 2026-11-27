@@ -2327,7 +2327,7 @@ const METEOS = [['sec','Sec'],['pluie','Pluie'],['neige','Neige'],['brouillard',
 /* le rendu : « Actuel » = le jeu d'aujourd'hui ; « Lissé » = mêmes gros pixels, chacun moyenné sur 3 × 3 points ; « Fin » = pixels
    plus petits (1 au lieu de 1,5) et moyennés sur 2 × 2 */
 const RENDUS = {actuel:{pixels:1.5, lisse:0}, lisse:{pixels:1.5, lisse:3}, fin:{pixels:1, lisse:2}};
-const R = { club:0, version:'vrai', plus:0, ferme:0, rendu:'lisse', heure:'jour', meteo:'sec' };
+const R = { club:0, version:'vrai', plus:0, ferme:0, rendu:'fin', heure:'jour', meteo:'sec' };
 try{ const q=new URLSearchParams(location.search); if(q.has('club')) R.club=+q.get('club')||0; if(q.get('version')) R.version=q.get('version'); if(q.has('plus')) R.plus=+q.get('plus')||0; if(q.has('ferme')) R.ferme=1; if(RENDUS[q.get('rendu')]) R.rendu=q.get('rendu'); if(q.get('heure')) R.heure=q.get('heure'); if(q.get('meteo')) R.meteo=q.get('meteo'); }catch(e){}
 
 const $ = id => document.getElementById(id);

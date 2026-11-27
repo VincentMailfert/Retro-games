@@ -138,3 +138,6 @@ de la partie (« on retrouve le stade dès la première journée »), il grandit
   s'éteint quand le stade tourne. `o.lisse` (2 à 4) garde la même grille de pixels mais fait de chacun la moyenne de
   lisse × lisse points (rendu dans une cible plus grande, puis réduit). La page d'essai compare « Actuel » (pixels 1,5),
   « Lissé » (pixels 1,5, lisse 3) et « Fin et lissé » (pixels 1, lisse 2). Sans `o.lisse`, le rendu de toujours.
+- **Choix de l'auteur du 27/11/2026 : « on passe sur fin et lissé »** (pixels 1, lisse 2) pour le stade en vitrine. Pour le
+  match, à essayer avant de trancher : neuf fois plus de points à calculer qu'aujourd'hui, et les étiquettes (12 pixels de
+  jeu de haut) rapetissent d'un tiers à l'écran si on ne les regrossit pas.
