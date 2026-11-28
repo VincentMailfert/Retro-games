@@ -4385,6 +4385,27 @@ bloc entre « CAMPUS3D : DÉBUT » et « CAMPUS3D : FIN », greffé juste après
   cherche la `.maquette` voisine) ; `maquetteGrandFerme` rend chaque toile à sa carte. `match3dOuvre` ferme aussi `CVIT`.
 - Les rochers sous l'île restent sous leur couche (retour de l'auteur : « normal ce bloc sous le terrain ? »).
 
+### L'ACCUEIL EN 3D (v3.36, choix de l'auteur des 27 et 28/11/2026)
+Demande : « change l'écran d'accueil pour quelque chose de beaucoup plus stylé, de beaucoup plus inspirant, à l'image du jeu, et
+qui donne vraiment envie de jouer ». Maquette `docs/prototype-accueil.html` (branche `chantier/accueil-3d`), vue sur son
+téléphone : « tout est nickel, go ». Le stade n'est plus une image dans un cadre, il EST l'écran : 3D, nuit, projecteurs, rendu
+fin et lissé, deux voiles sombres pour le logo en haut et le texte en bas.
+- **Le nouveau joueur** (`ecranVitrine`) : sept vrais stades défilent (`ACCUEIL_STADES`, neuf secondes chacun, `A3_DUREE`), chacun
+  avec sa question « Et si… » ; la phrase du 18/11, les pays et le nombre de saisons (calculés sur `SAISONS`), un seul bouton
+  « Jouer » (`#bJouer`, garde son identifiant) qui ouvre `ecranAccueil`.
+- **Le joueur qui revient** (`ecranRetour`, si `retourVoulu()`) : le stade de SA carrière la plus récente, tel qu'il l'a bâti
+  (`stadeDeCarriere` lit `stade` et la capacité dans la sauvegarde, sans la charger), son club, où il en est, « Reprendre »
+  (`ouvreCarriere`) avec l'enjeu du moment ; « Nouvelle carrière », « Mes carrières » et les trophées mènent à l'accueil de toujours.
+- **Seulement au démarrage.** `retourAccueil` et tous les autres chemins ouvrent `ecranAccueil` comme avant.
+- **Sans 3D** (essais, pas de WebGL, mouvement réduit : `match3dPossible()` faux) : le nouveau joueur garde la vitrine en pixel
+  art (`ecranVitrinePix`, l'ancienne `ecranVitrine`), le joueur qui revient l'accueil de toujours.
+- **La scène** : `accueil3dMonte` (une toile `.a3Toile` dans `#acc3d`, fondu de 0,7 s), `accueil3dFerme` / `accueil3dQuitte`. Elle se
+  ferme toute seule dès que sa toile quitte la page (option `cache` du moteur) : pas de contexte WebGL oublié.
+- **Les fiches de vrais stades ne servent QU'ICI.** En jeu, chaque club garde son stade d'avant : brancher les vrais stades
+  (table par nom de stade, croissance avec les travaux) reste un chantier à part, voir `docs/chantier-match-3d.md`.
+- Vérifié dans un vrai navigateur (pas de harnais dédié) : vitrine, défilé, « Jouer », retour, trophées, nouvelle carrière,
+  reprise, repli sans 3D.
+
 ### LE RENDU « FIN ET LISSÉ » DU STADE ET DU MATCH EN 3D (v3.35, choix de l'auteur du 27/11/2026)
 Retour de l'auteur, vidéo à l'appui : au téléphone, le stade « pixellise » quand il tourne. La carte ne faisait qu'environ 225
 pixels de jeu de large, les lignes de la pelouse et les éléments fins s'allumaient et s'éteignaient. Trois rendus essayés sur

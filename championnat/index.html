@@ -492,6 +492,41 @@
   /* liens et boutons du pied de page : 44 px au doigt (ils en faisaient 18 à 28) */
   .footer .act, .footer a{display:inline-flex; align-items:center; min-height:44px; padding:0 10px; vertical-align:middle;}
   /* la vitrine (v3.15) : une affiche pour la première visite, sur la largeur d'un téléphone même sur grand écran */
+  /* L'ACCUEIL EN 3D (v3.36) : le stade est l'écran. Une toile plein écran, deux voiles sombres (le logo en haut, le texte et le
+     bouton en bas), le stade net au milieu. */
+  .acc3d{position:fixed; inset:0; z-index:5; background:#0b1322; overflow:hidden;}
+  .acc3d canvas.a3Toile{position:absolute; inset:0; width:100%; height:100%; display:block; image-rendering:pixelated; image-rendering:crisp-edges; touch-action:none; opacity:0; transition:opacity .7s ease;}
+  .acc3d canvas.a3Toile.vu{opacity:1;}
+  .acc3d .a3Voile{position:absolute; left:0; right:0; pointer-events:none; z-index:1;}
+  .acc3d .a3Voile.haut{top:0; height:34%; background:linear-gradient(180deg, rgba(11,19,34,.96) 0%, rgba(11,19,34,.72) 45%, rgba(11,19,34,0) 100%);}
+  .acc3d .a3Voile.bas{bottom:0; height:56%; background:linear-gradient(0deg, rgba(11,19,34,1) 0%, rgba(11,19,34,.97) 38%, rgba(11,19,34,.6) 70%, rgba(11,19,34,0) 100%);}
+  .acc3d .a3Ecran{position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; pointer-events:none;
+    padding:max(18px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));}
+  .acc3d .a3Logo{width:min(300px,74vw); margin:6px 0 0; font-size:inherit; filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));}
+  .acc3d .a3Bas{margin-top:auto; width:100%; max-width:440px; display:flex; flex-direction:column; align-items:stretch; pointer-events:auto; text-align:left;}
+  .acc3d .a3Plaque{display:flex; align-items:center; justify-content:space-between; gap:12px; font-family:"Silkscreen","Courier New",monospace; font-size:11px; letter-spacing:.1em; color:var(--dim); text-transform:uppercase;}
+  .acc3d .a3Plaque b{font-weight:400; color:var(--clair);}
+  .acc3d .a3Points{display:flex; gap:5px; flex:none;}
+  .acc3d .a3Points i{width:6px; height:6px; background:#2c3d59; display:block;} .acc3d .a3Points i.on{background:var(--jaune);}
+  .acc3d .a3Etsi{min-height:2.4em; margin:12px 0 0; font-size:clamp(24px,7.2vw,31px); line-height:1.16; font-weight:600; color:var(--clair); letter-spacing:-.01em; text-wrap:balance; transition:opacity .5s ease, transform .5s ease;}
+  .acc3d .a3Etsi em{font-style:normal; color:var(--jaune);}
+  .acc3d .a3Etsi.cache{opacity:0; transform:translateY(8px);}
+  .acc3d .a3Promesse{margin:12px 0 0; font-size:15.5px; color:var(--dim); line-height:1.45;}
+  .acc3d .a3Promesse b{color:var(--txt); font-weight:600;}
+  .acc3d button.a3Jouer{display:block; width:100%; font-family:inherit; padding:0 12px; margin-top:20px; min-height:60px; border:0; cursor:pointer; background:var(--jaune); color:#16243c; font-weight:700; font-size:20px; line-height:1; letter-spacing:.1em;
+    box-shadow:0 5px 0 #9c7c1c, 0 0 0 1px rgba(255,210,74,.35), 0 18px 40px -14px rgba(255,210,74,.55); transition:transform .08s, box-shadow .08s;}
+  .acc3d button.a3Jouer:active{transform:translateY(4px); box-shadow:0 1px 0 #9c7c1c;}
+  .acc3d button.a3Jouer small{display:block; margin-top:7px; font-weight:500; font-size:12.5px; letter-spacing:.02em; opacity:.8;}
+  .acc3d .a3Second{display:flex; justify-content:center; flex-wrap:wrap; gap:4px 22px; margin-top:16px; font-size:14px; color:var(--dim);}
+  .acc3d .a3Second button{font:inherit; color:var(--txt); background:none; border:0; padding:8px 2px; text-decoration:underline; text-underline-offset:3px; cursor:pointer;}
+  .acc3d .a3Second button.a3Solde{color:var(--jaune); text-decoration:none;}
+  .acc3d .a3Club{display:flex; align-items:center; gap:12px; margin:12px 0 0;}
+  .acc3d .a3Club .a3Bl{flex:none; filter:drop-shadow(0 3px 0 rgba(0,0,0,.4));}
+  .acc3d .a3Club b{display:block; font-size:clamp(24px,7.2vw,31px); line-height:1.1; font-weight:600; color:var(--clair); letter-spacing:-.01em;}
+  .acc3d .a3Club .a3Ou{display:block; margin-top:4px; font-size:14.5px; color:var(--dim);}
+  @media (min-width:760px){ .acc3d .a3Ecran{align-items:flex-start; padding-left:6vw;} .acc3d .a3Bas{margin-bottom:6vh;} .acc3d .a3Voile.haut{display:none;}
+    .acc3d .a3Voile.bas{height:100%; background:linear-gradient(90deg, rgba(11,19,34,.96) 0%, rgba(11,19,34,.82) 30%, rgba(11,19,34,0) 62%);} .acc3d .a3Logo{width:320px;} }
+  @media (max-height:640px){ .acc3d .a3Promesse{display:none;} .acc3d .a3Logo{width:min(230px,60vw);} }
   .vitrine{max-width:460px; margin:0 auto; min-height:calc(100dvh - 24px); display:flex; flex-direction:column; align-items:center; text-align:center; padding:28px 0 22px; box-sizing:border-box;}
   .vitrine .vitLogo{width:min(320px,82%); margin:0; font-size:inherit;}
   .vitrine .vitStade{width:100%; aspect-ratio:390 / 290; overflow:hidden; position:relative; margin-top:12px;}
@@ -864,7 +899,7 @@ body.mode-direct.direct-fini .stDirect:not(.plein){width:min(100%, 64vh);margin:
    ~97% de vrais noms ; complétés à la marge par génération procédurale).
    ===================================================================== */
 
-const VERSION = "3.35"; // numéro de version — affiché en pied de page (accueil ET jeu)
+const VERSION = "3.36"; // numéro de version — affiché en pied de page (accueil ET jeu)
 const FMT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const MF  = n => Number.isFinite(n) ? (Math.round(n/1e5)/10).toLocaleString("fr-FR")+" M" : "-"; // repli : un montant absent s'écrit —, jamais « NaN M »
 /* ---------- LES PAYS (ANG-A, v1.80) ----------
@@ -26866,7 +26901,138 @@ const ACCROCHE_VITRINE="Prends un club des années 90 et réécris l'histoire.";
 const STADE_VITRINE={cap:22000, aff:.92, virages:0, eclairage:2, toit:1, loges:0, ecran:0, chauffante:0, led:0, boutique:1, buvette:1,
   restaurant:0, musee:0, hotel:0, transport:0, kop:0, retract:0, ferme:0, legende:0, style:"lumiere", chantier:0, cible:null, mois:8, jour:3};
 function vitrineVoulue(){ return !carrieresAffichees().length && !compteLit(); }
+/* L'ACCUEIL EN 3D (v3.36, choix de l'auteur des 27 et 28/11/2026 : « quelque chose de beaucoup plus stylé, de beaucoup plus
+   inspirant, à l'image du jeu, et qui donne vraiment envie de jouer », puis sur la maquette docs/prototype-accueil.html :
+   « tout est nickel, go »). Le stade n'est plus une image dans un cadre : il EST l'écran, en 3D, la nuit, sous ses projecteurs.
+   - LE NOUVEAU JOUEUR (ecranVitrine) voit défiler sept stades mythiques, un toutes les neuf secondes, chacun avec sa question
+     « Et si… » : le jeu tient dans cette promesse, réécrire l'histoire. Un seul bouton, « Jouer », qui ouvre l'accueil de
+     toujours (pays, saison, club).
+   - LE JOUEUR QUI REVIENT (ecranRetour) retrouve SON stade, tel qu'il l'a bâti, son club, où il en est, et un seul bouton,
+     « Reprendre ». Nouvelle carrière, liste des carrières et trophées sont des liens discrets vers l'accueil de toujours.
+   Les deux ne s'affichent qu'AU DÉMARRAGE. Sans 3D (essais, appareil sans WebGL, mouvement réduit), le nouveau joueur garde
+   la vitrine en pixel art (ecranVitrinePix) et le joueur qui revient l'accueil de toujours. Rien n'entre dans la sauvegarde.
+   ACCUEIL_STADES : les fiches de vrais stades (o.stade.forme du moteur), dessinées de mémoire, version années 90. Elles ne
+   servent QU'ICI : en jeu, les clubs gardent leur stade d'avant (le branchement des vrais stades est un autre chantier). */
+const A3_BETON={coulToit:"#c2c5c6", coulCharpente:"#a9acac", coulLisere:"#e6e8e8", coulMur:"#b4b6b4", coulBalcon:"#dfe1e0"};
+const ACCUEIL_STADES=[
+  {stade:"Parc des Princes", id:"PSG", maillot:"#1d2f6f", short:"#c8231f", q:"Et si <em>Weah</em> n'avait jamais quitté Paris ?",
+   fiche:{cap:48000, aff:.88, virages:1, toit:1, eclairage:3, kop:1, buvette:1, boutique:1, transport:1,
+     forme:Object.assign({rangs:[13,13,13,13], arrondi:12, etages:2, couv:.86, portiques:50, coulPortique:"#cdd0cf"}, A3_BETON)}},
+  {stade:"San Siro", id:"MIL", maillot:"#c8231f", short:"#1b1b1b", q:"Et si le <em>Scudetto</em> ne quittait plus Milan ?",
+   fiche:{cap:80018, aff:.85, virages:1, toit:1, eclairage:3, kop:2, buvette:2, boutique:2, transport:2,
+     forme:{rangs:[16,16,16,16], arrondi:4, etages:2, couv:.8, tours:{forme:"rond", coul:"#c9c6bc", cercle:"#9d9a90", poutre:"#b3261e"},
+       coulToit:"#d5d9dc", coulCharpente:"#b3261e", coulLisere:"#b3261e", coulMur:"#b9b6ac", coulBalcon:"#dcd9d0"}}},
+  {stade:"Stade Saint-Symphorien", id:"MET", maillot:"#8a1c2b", short:"#f4edd8", q:"Et si <em>Metz</em> était champion en 1998 ?",
+   fiche:{cap:23000, aff:.82, virages:0, toit:1, eclairage:2, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[10,8,5,5], etages:{N:2, S:1, E:1, O:1}, toits:{N:"plat", S:"plat", E:"aucun", O:"aucun"}, couv:.82, riviere:"N",
+       coulToit:"#c8cacb", coulCharpente:"#8e93a3", coulLisere:"#8a1c2b", coulMur:"#a9a493", coulBalcon:"#f4edd8"}}},
+  {stade:"Old Trafford", id:"MUN", maillot:"#c8231f", short:"#f4f4f2", q:"Et si <em>Cantona</em> était resté à Leeds ?",
+   fiche:{cap:44000, aff:.97, virages:1, toit:1, eclairage:3, kop:1, buvette:1, boutique:2, transport:1,
+     forme:{rangs:[11,11,11,11], arrondi:5, couv:.85, poutres:11, coulToit:"#cfd3d6", coulCharpente:"#e9ebec", coulLisere:"#c8231f", coulMur:"#8f3a32"}}},
+  {stade:"Stade Geoffroy-Guichard", id:"STE", maillot:"#1f8a45", short:"#f4f4f0", q:"Et si les <em>Verts</em> ne descendaient pas en 1996 ?",
+   fiche:{cap:36000, aff:.86, virages:0, toit:1, eclairage:2, kop:1, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[11,11,10,10], etages:{N:2, S:2, E:2, O:2}, toits:{N:"incline", S:"incline", E:"incline", O:"incline"}, couv:.7, kop:1, poutres:9,
+       coulToit:"#c9d0cd", coulCharpente:"#1f7a3d", coulLisere:"#1f7a3d", coulMur:"#2c7d47", coulBalcon:"#e9ebe6"}}},
+  {stade:"Anfield", id:"LIV", maillot:"#c8231f", short:"#c8231f", q:"Et si <em>Liverpool</em> n'attendait pas trente ans ?",
+   fiche:{cap:41000, aff:.96, virages:0, toit:1, eclairage:2, kop:1, buvette:1, boutique:2, transport:1,
+     forme:{rangs:[9,11,8,14], etages:{N:1, S:2, E:1, O:1}, couv:.85, kop:1,
+       coulToit:"#c6cacd", coulCharpente:"#8a8f96", coulLisere:"#c8231f", coulMur:"#8f3a32", coulBalcon:"#f4f4f2"}}},
+  {stade:"Stade Félix-Bollaert", id:"LEN", maillot:"#c8231f", short:"#e8c21a", q:"Et si <em>Lens</em> gardait son titre ?",
+   fiche:{cap:34000, aff:.9, virages:0, toit:1, eclairage:2, buvette:1, boutique:1, transport:1,
+     forme:{rangs:[11,11,10,10], etages:{N:2, S:2, E:2, O:2}, couv:.78, poutres:12,
+       coulToit:"#cfd2d2", coulCharpente:"#8a8f96", coulLisere:"#e8c21a", coulMur:"#9a3b33", coulBalcon:"#e8c21a"}}},
+];
+const A3_DUREE=9000;                       // un stade reste neuf secondes
+let A3=null;                               // la scène à l'écran : {sc, cv} ; A3_T : la minuterie du défilé
+let A3_T=0;
+function accueil3dFerme(v){ v=v||A3; if(!v) return; if(v===A3) A3=null; if(v.sc){ try{ v.sc.ferme(); }catch(e){} v.sc=null; } if(v.cv) v.cv.remove(); }
+function accueil3dQuitte(){ clearTimeout(A3_T); A3_T=0; accueil3dFerme(); }
+/* monte un stade derrière le texte : l'ancienne toile s'éteint, la nouvelle s'allume. `pret` est appelé quand le nouveau stade
+   est là (ou tout de suite si la 3D ne vient pas : le fond de nuit, le logo et le bouton suffisent). */
+function accueil3dMonte(etat, coul, pret){
+  const boite=document.getElementById("acc3d"); if(!boite){ if(pret) pret(); return; }
+  const vieux=A3, moi={sc:null, cv:null}; A3=moi;
+  if(vieux && vieux.cv) vieux.cv.classList.remove("vu");
+  const suite=()=>{
+    if(vieux) accueil3dFerme(vieux);
+    if(A3!==moi || !document.getElementById("acc3d")){ return; }
+    match3dCharge().then(THREE=>{
+      const b=document.getElementById("acc3d"); if(A3!==moi || !b){ return; }
+      const cv=document.createElement("canvas"); cv.className="a3Toile"; cv.setAttribute("aria-hidden","true"); b.insertBefore(cv, b.firstChild); moi.cv=cv;
+      try{ moi.sc=fabriqueMatch3D(THREE, { canvas:cv, vitrine:true, pixels:RENDU_3D.pixels, lisse:RENDU_3D.lisse, decalage:.3, heure:"nuit", meteo:"sec", stade:etat,
+        dom:{id:coul.id||"", maillot:coul.a, short:coul.b, xi:[]}, ext:{id:"", maillot:"#1d4f9c", short:"#ffffff", xi:[]},
+        cache:()=>{ if(cv.isConnected) return false; setTimeout(()=>accueil3dFerme(moi), 0); return true; } });   // on a quitté l'accueil : la scène se ferme
+        const debout=()=>window.innerHeight>window.innerWidth*1.15;
+        moi.sc.zoom(debout() ? .66 : .9);   // au téléphone, le stade déborde un peu : on le voit de près, sans le couper
+      }catch(e){ accueil3dFerme(moi); if(pret) pret(); return; }
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(moi.cv) moi.cv.classList.add("vu"); }));
+      if(pret) pret();
+    }).catch(()=>{ if(A3===moi) A3=null; if(pret) pret(); });
+  };
+  if(vieux && vieux.cv) setTimeout(suite, 720); else suite();
+}
+function accueil3dCadre(logo, bas){
+  return `<div class="acc3d" id="acc3d"><div class="a3Voile haut"></div><div class="a3Voile bas"></div>
+   <div class="a3Ecran"><h1 class="a3Logo">${logoGenerique(true)}</h1><div class="a3Bas">${bas}</div></div></div>`;
+}
 function ecranVitrine(){
+  const app=document.getElementById("app"); if(!app) return ecranAccueil();
+  if(!match3dPossible()) return ecranVitrinePix();
+  accueil3dQuitte();
+  const codes=Object.keys(PAYS).filter(code=>Object.keys(SAISONS).some(k=>(SAISONS[k].pays||"FR")===code)), ans=Object.keys(SAISONS).map(k=>SAISONS[k].an).filter(Number.isFinite);
+  const pays=codes.map(c=>PAYS[c].nom), liste=pays.length>1 ? pays.slice(0,-1).join(", ")+", "+pays[pays.length-1] : pays.join("");
+  app.innerHTML=accueil3dCadre(true, `
+     <div class="a3Plaque"><b id="a3Nom"></b><span class="a3Points" id="a3Points"></span></div>
+     <p class="a3Etsi cache" id="a3Etsi"></p>
+     <p class="a3Promesse"><b>${esc(ACCROCHE_VITRINE)}</b><br>${esc(liste)}. ${Object.keys(SAISONS).length} saisons, de ${Math.min(...ans)} à ${Math.max(...ans)+1}.</p>
+     <button class="a3Jouer" id="bJouer">▶ JOUER</button>
+     <div class="a3Second"><span>Déjà une carrière ? <button id="bCompteVit">Se connecter</button></span></div>`);
+  document.getElementById("bJouer").onclick=()=>{ accueil3dQuitte(); ecranAccueil(); if(window.scrollTo) window.scrollTo(0,0); };
+  document.getElementById("bCompteVit").onclick=fenetreCompte;
+  let i=0;
+  const tour=()=>{
+    if(!document.getElementById("a3Etsi")){ accueil3dQuitte(); return; }   // on a quitté la vitrine
+    const S=ACCUEIL_STADES[i%ACCUEIL_STADES.length], n=i%ACCUEIL_STADES.length;
+    const et=document.getElementById("a3Etsi"); et.classList.add("cache");
+    accueil3dMonte(JSON.parse(JSON.stringify(S.fiche)), {id:S.id, a:S.maillot, b:S.short}, ()=>{
+      const e=document.getElementById("a3Etsi"); if(!e) return;
+      document.getElementById("a3Nom").textContent=S.stade; e.innerHTML=S.q; e.classList.remove("cache");
+      document.getElementById("a3Points").innerHTML=ACCUEIL_STADES.map((_,k)=>`<i${k===n?' class="on"':""}></i>`).join("");
+    });
+    i++; clearTimeout(A3_T); A3_T=setTimeout(tour, A3_DUREE);
+  };
+  tour();
+}
+/* le joueur qui revient : sa carrière la plus récente, et le stade de cette carrière lu dans sa sauvegarde (sans la charger) */
+function retourVoulu(){ return match3dPossible() && carrieresAffichees().length>0; }
+function stadeDeCarriere(p){
+  const c0=metaClub(p.clubId)||{cap:20000};
+  let st=null, cap=c0.cap;
+  try{ if(p.k){ const g=JSON.parse(lsLit(p.k)||"null"); if(g){ st=g.stade||null; const c=(g.clubs||[]).find(x=>x.id===g.monClub); if(c && c.cap>0) cap=c.cap; } } }catch(e){}
+  const s=st||inferStade({cap});
+  return {cap, aff:.9, virages:s.virages|0, eclairage:s.eclairage||1, toit:s.toit|0, loges:s.loges|0, ecran:s.ecran|0, chauffante:s.chauffante|0, led:s.led|0,
+    boutique:s.boutique|0, buvette:s.buvette|0, restaurant:s.restaurant|0, musee:s.musee|0, hotel:s.hotel|0, transport:s.transport|0, kop:s.kop|0,
+    retract:s.retract|0, ferme:s.ferme|0, legende:s.legende|0, style:s.style||"lumiere", chantier:0, cible:null, rangs:rangsVitrine(cap, s.virages)};
+}
+function ecranRetour(){
+  const app=document.getElementById("app"), parties=carrieresAffichees(), p=parties[0];
+  if(!app || !p || !match3dPossible()) return ecranAccueil();
+  accueil3dQuitte();
+  const c=metaClub(p.clubId)||{id:p.clubId, nom:p.club, stade:""}, B=BLASONS[p.clubId]||{a:"#9aa3b2", b:"#3a4252"};
+  app.innerHTML=accueil3dCadre(true, `
+     <div class="a3Plaque"><b>${esc(c.stade||"")}</b><span>${esc(ilYA(p.maj))}</span></div>
+     <div class="a3Club"><span class="a3Bl">${blason(c,44)}</span><span><b>${esc(p.nom||p.club)}</b>
+       <span class="a3Ou">${p.nom&&p.nom!==p.club?esc(p.club)+" · ":""}${esc(p.saison)} · ${esc(divCarte(p))} · Journée ${p.journee}/38${p.titres?" · 🏆 "+p.titres:""}</span></span></div>
+     <button class="a3Jouer" id="bReprendre" data-id="${esc(p.id)}">▶ REPRENDRE${p.enjeu?`<small>${esc(p.enjeu)}</small>`:""}</button>
+     <div class="a3Second"><button id="bA3Nouv">Nouvelle carrière</button><button id="bA3Car">Mes carrières${parties.length>1?" ("+parties.length+")":""}</button><button class="a3Solde" id="bA3Tr">🏆 ⭐ ${FMT(soldePoints())}</button></div>`);
+  const va=f=>()=>{ accueil3dQuitte(); f(); };
+  document.getElementById("bReprendre").onclick=()=>ouvreCarriere(p.id);
+  document.getElementById("bA3Car").onclick=va(()=>{ ecranAccueil(); if(window.scrollTo) window.scrollTo(0,0); });
+  document.getElementById("bA3Nouv").onclick=va(()=>{ ecranAccueil(); const z=document.querySelector(".accNouv"); if(z&&z.scrollIntoView) z.scrollIntoView({block:"start"}); });
+  document.getElementById("bA3Tr").onclick=va(ecranTrophees);
+  accueil3dMonte(stadeDeCarriere(p), {id:p.clubId, a:B.a, b:B.b});
+}
+function ecranVitrinePix(){
   const app=document.getElementById("app"); if(!app) return ecranAccueil();
   const pays=Object.keys(PAYS).filter(code=>Object.keys(SAISONS).some(k=>(SAISONS[k].pays||"FR")===code)).map(code=>PAYS[code].nom);
   const [w,h]=pxTaille(STADEPIX), dir={dom:["#ffd24a","#1f6b3a"], ext:["#f2f5fa","#2b56a8"], sc:[1,0]};
@@ -35331,7 +35497,7 @@ if(typeof document!=="undefined" && typeof window!=="undefined" && !window.__TES
   document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(fermeMessage()) return; fermeFiche(); });
   try{ if(parrainageDepuisAdresse(location.search)) history.replaceState(null, "", location.pathname+location.hash); }catch(e){} // ?p= : un lien de parrainage (lu sans requête)
   progRattrape(); // une fois : les titres de D1 déjà gagnés dans les carrières du navigateur rapportent leur clé
-  if(vitrineVoulue()) ecranVitrine(); else ecranAccueil(); // la vitrine pour une toute première visite (v3.15)
+  if(vitrineVoulue()) ecranVitrine(); else if(retourVoulu()) ecranRetour(); else ecranAccueil(); // la vitrine pour une toute première visite (v3.15), le stade du joueur qui revient (v3.36)
   retourDeLien(); // retour d'un lien reçu par email : lu dans l'adresse, sans requête
   // LES VIGNETTES SE PRÉCHARGENT EN DOUCE (v2.17) : sorties du fichier, elles arriveraient sinon avec un temps de
   // retard au premier flash. On attend que l'accueil soit affiché, puis on les demande une à une, au calme ;
